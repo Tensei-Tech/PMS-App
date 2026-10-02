@@ -1416,11 +1416,24 @@ class CommonFormDocumentView extends StatelessWidget {
                       value: isPrBond ? 'Yes (✓)' : 'No',
                       fullWidth: false,
                     ),
+                    if (isPrBond)
+                      (
+                        label: 'PR Bond Date',
+                        value: _v(
+                            custody['prBondDate'] ?? custody['pr_bond_date']),
+                        fullWidth: false,
+                      ),
                     (
                       label: 'Jail',
                       value: isJail ? 'Yes (✓)' : 'No',
                       fullWidth: false,
                     ),
+                    if (isJail)
+                      (
+                        label: 'Jail Date',
+                        value: _v(custody['jailDate'] ?? custody['jail_date']),
+                        fullWidth: false,
+                      ),
                     (
                       label: 'Bail Granted',
                       value: isBail ? 'Yes (✓)' : 'No',
@@ -1429,7 +1442,7 @@ class CommonFormDocumentView extends StatelessWidget {
                     if (isJail)
                       (
                         label: 'Jail Name / Details',
-                        value: _v(custody['jailName']),
+                        value: _v(custody['mcrJail'] ?? custody['jailName']),
                         fullWidth: false,
                       ),
                   ]),
@@ -1664,38 +1677,85 @@ class CommonFormDocumentView extends StatelessWidget {
         sIdx++,
         'PREVENTIVE ACTION & BONDS',
         accent,
-        _pairedSimpleFields(context, [
-          (
-            label: 'Preventive Action Act / Section',
-            value: _v(prev['action'] ?? prev['actionType'], or: 'Not set'),
-            fullWidth: false,
-          ),
-          (
-            label: 'Action Date (Mandatory 📅)',
-            value: _v(prev['actionDate']),
-            fullWidth: false,
-          ),
-          (
-            label: 'Outward Number (Optional)',
-            value: _v(prev['outwardNo'] ?? prev['outwardNumber']),
-            fullWidth: false,
-          ),
-          (
-            label: 'Bond Date 📅',
-            value: _v(prev['bondDate']),
-            fullWidth: false,
-          ),
-          (
-            label: 'Bond Cancellation Date 📅',
-            value: _v(prev['bondCancellation'] ?? prev['bondCancelDate']),
-            fullWidth: false,
-          ),
-          (
-            label: 'Reason for PR Bond',
-            value: _v(prev['bondReason'] ?? prev['prBondReason']),
-            fullWidth: true,
-          ),
-        ]),
+        [
+          if (((prev['items'] as List?)?.isNotEmpty ?? false) ||
+              ((m['preventive_actions'] as List?)?.isNotEmpty ?? false)) ...[
+            ...((prev['items'] as List?) ??
+                    (m['preventive_actions'] as List?) ??
+                    [])
+                .map((it) {
+              if (it is! Map) return const SizedBox.shrink();
+              final pName = _v(it['person_name'] ??
+                  it['name'] ??
+                  it['accusedName'] ??
+                  it['person']);
+              final pAction = _v(it['action'] ?? it['action_type']);
+              final pDate = _v(it['action_date'] ?? it['actionDate']);
+              final pOut = _v(it['outward_number'] ?? it['outwardNumber']);
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.lightBg,
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                  border: Border.all(color: AppColors.lightBorder),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ..._pairedSimpleFields(context, [
+                      (
+                        label: 'Accused / Person',
+                        value: pName,
+                        fullWidth: false
+                      ),
+                      (label: 'Provision', value: pAction, fullWidth: false),
+                      (label: 'Action Date 📅', value: pDate, fullWidth: false),
+                      (label: 'Outward Number', value: pOut, fullWidth: false),
+                    ]),
+                  ],
+                ),
+              );
+            }),
+            const Divider(height: 16),
+          ] else ...[
+            ..._pairedSimpleFields(context, [
+              (
+                label: 'Preventive Action Act / Section',
+                value: _v(prev['action'] ?? prev['actionType'], or: 'Not set'),
+                fullWidth: false,
+              ),
+              (
+                label: 'Action Date (Mandatory 📅)',
+                value: _v(prev['actionDate']),
+                fullWidth: false,
+              ),
+              (
+                label: 'Outward Number (Optional)',
+                value: _v(prev['outwardNo'] ?? prev['outwardNumber']),
+                fullWidth: false,
+              ),
+            ]),
+            const Divider(height: 16),
+          ],
+          ..._pairedSimpleFields(context, [
+            (
+              label: 'Bond Date 📅',
+              value: _v(prev['bondDate']),
+              fullWidth: false,
+            ),
+            (
+              label: 'Bond Cancellation Date 📅',
+              value: _v(prev['bondCancellation'] ?? prev['bondCancelDate']),
+              fullWidth: false,
+            ),
+            (
+              label: 'Reason for PR Bond',
+              value: _v(prev['bondReason'] ?? prev['prBondReason']),
+              fullWidth: true,
+            ),
+          ]),
+        ],
       ),
 
       // ── Card 16: Discharge Accused ────────────────────────────────────────

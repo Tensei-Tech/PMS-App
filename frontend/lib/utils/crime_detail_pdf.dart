@@ -15,64 +15,134 @@ import 'pdf_font_cache.dart';
 Map<String, dynamic> mapToCrimeDetailDoc(Map<String, dynamic> source) {
   final out = Map<String, dynamic>.from(source);
 
-  // Registration / FIR
-  final firNo = source['crNo'] ??
-      source['firNo'] ??
-      source['caseNumber'] ??
-      source['adNo'] ??
-      source['ncNo'] ??
-      '';
-  out['firNo'] = firNo.toString();
+  // --- Registration / FIR ---
+  final crNo = source['crNo']?.toString().trim() ?? '';
+  if (crNo.isNotEmpty) {
+    out['firNo'] = crNo;
+  } else {
+    final existingFirNo = source['firNo']?.toString().trim() ?? '';
+    if (existingFirNo.isEmpty) {
+      final firNo =
+          source['caseNumber'] ?? source['adNo'] ?? source['ncNo'] ?? '';
+      out['firNo'] = firNo.toString();
+    }
+  }
 
-  final regDateStr =
-      source['regDate'] ?? source['date'] ?? source['incidentDate'] ?? '';
-  out['date'] = regDateStr.toString();
+  // Only use fallback for 'date' if the Crime Detail Form's date parts are all absent.
+  final hasDayParts = (source['dateDay']?.toString().trim() ?? '').isNotEmpty ||
+      (source['dateMonth']?.toString().trim() ?? '').isNotEmpty ||
+      (source['dateYear']?.toString().trim() ?? '').isNotEmpty;
+  if (!hasDayParts) {
+    final regDateStr =
+        source['regDate'] ?? source['date'] ?? source['incidentDate'] ?? '';
+    out['date'] = regDateStr.toString();
+  }
 
-  // Complainant KYC
+  // Complainant KYC — only map nested complainant object when it exists
   final comp = source['complainant'];
   if (comp is Map) {
-    out['complainantName'] =
-        comp['name']?.toString() ?? out['complainantName'] ?? '';
-    out['complainantAge'] = comp['age']?.toString() ?? '';
-    out['complainantGender'] = comp['gender']?.toString() ?? '';
-    out['complainantOccupation'] = comp['occ']?.toString() ?? '';
-    out['complainantMobile'] = comp['mobile']?.toString() ?? '';
-    out['complainantAadhaar'] = comp['aadhaar']?.toString() ?? '';
-    out['complainantAddress'] = comp['address']?.toString() ?? '';
-    out['complainantReligion'] = comp['religion']?.toString() ?? '';
-    out['complainantCaste'] = comp['caste']?.toString() ?? '';
+    // Only overwrite if the Crime Detail Form's dedicated field is absent
+    if ((out['complainantName']?.toString().trim() ?? '').isEmpty) {
+      out['complainantName'] = comp['name']?.toString() ?? '';
+    }
+    out['complainantAge'] =
+        (out['complainantAge']?.toString().trim() ?? '').isNotEmpty
+            ? out['complainantAge']
+            : comp['age']?.toString() ?? '';
+    out['complainantGender'] =
+        (out['complainantGender']?.toString().trim() ?? '').isNotEmpty
+            ? out['complainantGender']
+            : comp['gender']?.toString() ?? '';
+    out['complainantOccupation'] =
+        (out['complainantOccupation']?.toString().trim() ?? '').isNotEmpty
+            ? out['complainantOccupation']
+            : comp['occ']?.toString() ?? '';
+    out['complainantMobile'] =
+        (out['complainantMobile']?.toString().trim() ?? '').isNotEmpty
+            ? out['complainantMobile']
+            : comp['mobile']?.toString() ?? '';
+    out['complainantAadhaar'] =
+        (out['complainantAadhaar']?.toString().trim() ?? '').isNotEmpty
+            ? out['complainantAadhaar']
+            : comp['aadhaar']?.toString() ?? '';
+    out['complainantAddress'] =
+        (out['complainantAddress']?.toString().trim() ?? '').isNotEmpty
+            ? out['complainantAddress']
+            : comp['address']?.toString() ?? '';
+    out['complainantReligion'] =
+        (out['complainantReligion']?.toString().trim() ?? '').isNotEmpty
+            ? out['complainantReligion']
+            : comp['religion']?.toString() ?? '';
+    out['complainantCaste'] =
+        (out['complainantCaste']?.toString().trim() ?? '').isNotEmpty
+            ? out['complainantCaste']
+            : comp['caste']?.toString() ?? '';
   }
 
-  // Victim KYC
+  // Victim KYC — only map nested victim object when it exists
   final victim = source['victim'];
   if (victim is Map) {
-    out['victimName'] = victim['name']?.toString() ?? out['victimName'] ?? '';
-    out['victimAge'] = victim['age']?.toString() ?? '';
-    out['victimGender'] = victim['gender']?.toString() ?? '';
-    out['victimOccupation'] = victim['occ']?.toString() ?? '';
-    out['victimMobile'] = victim['mobile']?.toString() ?? '';
-    out['victimAadhaar'] = victim['aadhaar']?.toString() ?? '';
-    out['victimAddress'] = victim['address']?.toString() ?? '';
-    out['victimReligion'] = victim['religion']?.toString() ?? '';
-    out['victimCaste'] = victim['caste']?.toString() ?? '';
+    if ((out['victimName']?.toString().trim() ?? '').isEmpty) {
+      out['victimName'] = victim['name']?.toString() ?? '';
+    }
+    out['victimAge'] = (out['victimAge']?.toString().trim() ?? '').isNotEmpty
+        ? out['victimAge']
+        : victim['age']?.toString() ?? '';
+    out['victimGender'] =
+        (out['victimGender']?.toString().trim() ?? '').isNotEmpty
+            ? out['victimGender']
+            : victim['gender']?.toString() ?? '';
+    out['victimOccupation'] =
+        (out['victimOccupation']?.toString().trim() ?? '').isNotEmpty
+            ? out['victimOccupation']
+            : victim['occ']?.toString() ?? '';
+    out['victimMobile'] =
+        (out['victimMobile']?.toString().trim() ?? '').isNotEmpty
+            ? out['victimMobile']
+            : victim['mobile']?.toString() ?? '';
+    out['victimAadhaar'] =
+        (out['victimAadhaar']?.toString().trim() ?? '').isNotEmpty
+            ? out['victimAadhaar']
+            : victim['aadhaar']?.toString() ?? '';
+    out['victimAddress'] =
+        (out['victimAddress']?.toString().trim() ?? '').isNotEmpty
+            ? out['victimAddress']
+            : victim['address']?.toString() ?? '';
+    out['victimReligion'] =
+        (out['victimReligion']?.toString().trim() ?? '').isNotEmpty
+            ? out['victimReligion']
+            : victim['religion']?.toString() ?? '';
+    out['victimCaste'] =
+        (out['victimCaste']?.toString().trim() ?? '').isNotEmpty
+            ? out['victimCaste']
+            : victim['caste']?.toString() ?? '';
   }
 
-  // Crime Spot
-  final village = source['spotVillage']?.toString() ?? '';
-  final area = source['spotArea']?.toString() ?? '';
-  final addr = source['spotAddress']?.toString() ?? '';
-  final spotFull = [addr, area, village].where((s) => s.isNotEmpty).join(', ');
-  if (spotFull.isNotEmpty) {
-    out['placeAddress'] = spotFull;
-    out['spotAddress'] = spotFull;
+  // Crime Spot — only apply if placeAddress is not already set by the form
+  if ((out['placeAddress']?.toString().trim() ?? '').isEmpty) {
+    final village = source['spotVillage']?.toString() ?? '';
+    final area = source['spotArea']?.toString() ?? '';
+    final addr = source['spotAddress']?.toString() ?? '';
+    final spotFull =
+        [addr, area, village].where((s) => s.isNotEmpty).join(', ');
+    if (spotFull.isNotEmpty) {
+      out['placeAddress'] = spotFull;
+      out['spotAddress'] = spotFull;
+    }
   }
 
-  // Case IO
+  // Case IO — only apply if not already set by the form
   final caseResp = source['caseResponsibility'];
   if (caseResp is Map) {
-    out['ioName'] = caseResp['ioName']?.toString() ?? out['ioName'] ?? '';
-    out['ioDesig'] = caseResp['ioDesig']?.toString() ?? out['ioDesig'] ?? '';
-    out['ioRank'] = caseResp['ioDesig']?.toString() ?? out['ioRank'] ?? '';
+    if ((out['ioName']?.toString().trim() ?? '').isEmpty) {
+      out['ioName'] = caseResp['ioName']?.toString() ?? '';
+    }
+    if ((out['ioDesig']?.toString().trim() ?? '').isEmpty) {
+      out['ioDesig'] = caseResp['ioDesig']?.toString() ?? '';
+    }
+    if ((out['ioRank']?.toString().trim() ?? '').isEmpty) {
+      out['ioRank'] = caseResp['ioDesig']?.toString() ?? '';
+    }
   }
 
   return out;
@@ -229,16 +299,16 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
             ),
             pw.SizedBox(height: 12),
 
-            // --- SECTION 1 (Row 1 - District, P.S., Year, FIR No, Date) ---
+            // --- SECTION 1: Row 1 — District | P.S. | Year (matches app form layout) ---
             pw.Row(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
+                // District (flex ~22)
                 pw.Expanded(
-                  flex: 30,
-                  child: _buildPdfInlineField(
+                  flex: 22,
+                  child: _buildPdfDynamicField(
                     label: '1) District: ',
                     marathiLabelKey: 'lbl_district',
-                    valKey: 'val_district',
                     fallbackValue: doc['district']?.toString() ?? '',
                     englishStyle: englishStyle,
                     marathiStyle: marathiStyle,
@@ -246,35 +316,43 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                     cache: cache,
                   ),
                 ),
-                pw.SizedBox(width: 8),
+                pw.SizedBox(width: 10),
+                // P.S. (flex ~28)
                 pw.Expanded(
-                  flex: 30,
-                  child: _buildPdfInlineField(
+                  flex: 28,
+                  child: _buildPdfDynamicField(
                     label: 'P.S.: ',
                     marathiLabelKey: 'lbl_ps',
-                    valKey: 'val_ps',
-                    fallbackValue: doc['ps'] ?? '',
+                    fallbackValue: doc['ps']?.toString() ?? '',
                     englishStyle: englishStyle,
                     marathiStyle: marathiStyle,
                     valueStyle: valueStyle,
                     cache: cache,
                   ),
                 ),
-                pw.SizedBox(width: 8),
+                pw.SizedBox(width: 10),
+                // Year (flex ~15) — below District as per app form
                 pw.Expanded(
-                  flex: 18,
-                  child: _buildPdfInlineField(
+                  flex: 15,
+                  child: _buildPdfDynamicField(
                     label: 'Year: ',
                     marathiLabelKey: 'lbl_year',
-                    valKey: 'val_year',
-                    fallbackValue: doc['year'] ?? '',
+                    fallbackValue: doc['year']?.toString() ?? '',
                     englishStyle: englishStyle,
                     marathiStyle: marathiStyle,
                     valueStyle: valueStyle,
                     cache: cache,
                   ),
                 ),
-                pw.SizedBox(width: 8),
+              ],
+            ),
+            pw.SizedBox(height: 8),
+
+            // --- SECTION 1: Row 2 — FIR No. | Date (same row, matches app form) ---
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                // FIR No. with /20YY suffix (flex ~22)
                 pw.Expanded(
                   flex: 22,
                   child: pw.Column(
@@ -293,18 +371,18 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                                   ),
                                 ),
                               ),
-                              alignment: pw.Alignment.bottomCenter,
-                              child: cache.has('val_firNo')
-                                  ? cache.img('val_firNo')
-                                  : pw.Text(
-                                      doc['firNo'] ?? '',
-                                      style: valueStyle,
-                                    ),
+                              alignment: pw.Alignment.bottomLeft,
+                              padding:
+                                  const pw.EdgeInsets.only(left: 2, bottom: 1),
+                              child: pw.Text(
+                                doc['firNo']?.toString() ?? '',
+                                style: valueStyle,
+                              ),
                             ),
                           ),
-                          pw.Text('/20', style: englishStyle),
+                          pw.Text(' /20', style: englishStyle),
                           pw.Container(
-                            width: 15,
+                            width: 22,
                             decoration: const pw.BoxDecoration(
                               border: pw.Border(
                                 bottom: pw.BorderSide(
@@ -314,12 +392,11 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                               ),
                             ),
                             alignment: pw.Alignment.bottomCenter,
-                            child: cache.has('val_firYearSuffix')
-                                ? cache.img('val_firYearSuffix')
-                                : pw.Text(
-                                    doc['firYearSuffix'] ?? '',
-                                    style: valueStyle,
-                                  ),
+                            padding: const pw.EdgeInsets.only(bottom: 1),
+                            child: pw.Text(
+                              doc['firYearSuffix']?.toString() ?? '',
+                              style: valueStyle,
+                            ),
                           ),
                         ],
                       ),
@@ -333,7 +410,8 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                     ],
                   ),
                 ),
-                pw.SizedBox(width: 8),
+                pw.SizedBox(width: 10),
+                // Date: DD / MM / 20YY (flex ~28)
                 pw.Expanded(
                   flex: 28,
                   child: pw.Column(
@@ -341,9 +419,9 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                     children: [
                       pw.Row(
                         children: [
-                          pw.Text('Date : ', style: englishStyle),
+                          pw.Text('Date: ', style: englishStyle),
                           pw.Container(
-                            width: 18,
+                            width: 22,
                             decoration: const pw.BoxDecoration(
                               border: pw.Border(
                                 bottom: pw.BorderSide(
@@ -353,16 +431,15 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                               ),
                             ),
                             alignment: pw.Alignment.bottomCenter,
-                            child: cache.has('val_dateDay')
-                                ? cache.img('val_dateDay')
-                                : pw.Text(
-                                    doc['dateDay'] ?? '',
-                                    style: valueStyle,
-                                  ),
+                            padding: const pw.EdgeInsets.only(bottom: 1),
+                            child: pw.Text(
+                              doc['dateDay']?.toString() ?? '',
+                              style: valueStyle,
+                            ),
                           ),
-                          pw.Text('/', style: englishStyle),
+                          pw.Text(' / ', style: englishStyle),
                           pw.Container(
-                            width: 18,
+                            width: 22,
                             decoration: const pw.BoxDecoration(
                               border: pw.Border(
                                 bottom: pw.BorderSide(
@@ -372,16 +449,15 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                               ),
                             ),
                             alignment: pw.Alignment.bottomCenter,
-                            child: cache.has('val_dateMonth')
-                                ? cache.img('val_dateMonth')
-                                : pw.Text(
-                                    doc['dateMonth'] ?? '',
-                                    style: valueStyle,
-                                  ),
+                            padding: const pw.EdgeInsets.only(bottom: 1),
+                            child: pw.Text(
+                              doc['dateMonth']?.toString() ?? '',
+                              style: valueStyle,
+                            ),
                           ),
-                          pw.Text('/20', style: englishStyle),
+                          pw.Text(' /20', style: englishStyle),
                           pw.Container(
-                            width: 18,
+                            width: 22,
                             decoration: const pw.BoxDecoration(
                               border: pw.Border(
                                 bottom: pw.BorderSide(
@@ -391,12 +467,11 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                               ),
                             ),
                             alignment: pw.Alignment.bottomCenter,
-                            child: cache.has('val_dateYear')
-                                ? cache.img('val_dateYear')
-                                : pw.Text(
-                                    doc['dateYear'] ?? '',
-                                    style: valueStyle,
-                                  ),
+                            padding: const pw.EdgeInsets.only(bottom: 1),
+                            child: pw.Text(
+                              doc['dateYear']?.toString() ?? '',
+                              style: valueStyle,
+                            ),
                           ),
                         ],
                       ),
@@ -410,6 +485,9 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                     ],
                   ),
                 ),
+                // Empty flex to maintain alignment with Row 1's Year column
+                pw.SizedBox(width: 10),
+                pw.Expanded(flex: 15, child: pw.SizedBox()),
               ],
             ),
             pw.SizedBox(height: 8),
@@ -1432,10 +1510,12 @@ pw.Widget _buildPdfValueCell(
   );
 }
 
-pw.Widget _buildPdfInlineField({
+/// A field with a label followed by dynamic multi-line underlined value.
+/// Short text stays on one line. Long text wraps — each wrapped line gets
+/// its own underline. Following content shifts down automatically.
+pw.Widget _buildPdfDynamicField({
   required String label,
   required String marathiLabelKey,
-  required String valKey,
   required String fallbackValue,
   required pw.TextStyle englishStyle,
   required pw.TextStyle marathiStyle,
@@ -1443,11 +1523,18 @@ pw.Widget _buildPdfInlineField({
   required MarathiImageCache cache,
   bool showMarathiLabel = true,
 }) {
-  final hasValImg = cache.has(valKey);
+  // Approximate chars that fit on one half-width column at font ~10.5
+  // A4 usable width ~515pt, two cols ~250pt each, ~10pt/char ≈ 35 chars
+  const int charsPerLine = 35;
+  final text = fallbackValue.trim();
+  final lines = text.isEmpty ? [''] : _splitTextIntoLines(text, charsPerLine);
+
   return pw.Column(
     crossAxisAlignment: pw.CrossAxisAlignment.start,
     children: [
+      // First line: label + first line of value
       pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.end,
         children: [
           pw.Text(label, style: englishStyle),
           pw.Expanded(
@@ -1458,14 +1545,31 @@ pw.Widget _buildPdfInlineField({
                 ),
               ),
               alignment: pw.Alignment.bottomLeft,
-              padding: const pw.EdgeInsets.only(left: 2),
-              child: hasValImg
-                  ? cache.img(valKey)
-                  : pw.Text(fallbackValue, style: valueStyle),
+              padding: const pw.EdgeInsets.only(left: 2, bottom: 1),
+              child: pw.Text(
+                lines.isNotEmpty ? lines[0] : '',
+                style: valueStyle,
+              ),
             ),
           ),
         ],
       ),
+      // Continuation lines (index 1+) — full-width underlined
+      for (int i = 1; i < lines.length; i++) ...[
+        pw.SizedBox(height: 3),
+        pw.Container(
+          width: double.infinity,
+          decoration: const pw.BoxDecoration(
+            border: pw.Border(
+              bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+            ),
+          ),
+          alignment: pw.Alignment.bottomLeft,
+          padding: const pw.EdgeInsets.only(left: 2, bottom: 1),
+          child: pw.Text(lines[i], style: valueStyle),
+        ),
+      ],
+      // Marathi label below
       if (showMarathiLabel &&
           marathiLabelKey.isNotEmpty &&
           cache.has(marathiLabelKey)) ...[
@@ -1479,7 +1583,9 @@ pw.Widget _buildPdfInlineField({
   );
 }
 
-pw.Widget _buildPdfWideField({
+/// Legacy inline field — single underlined line, no wrapping.
+/// Kept for backward compat but callers migrated to _buildPdfDynamicField.
+pw.Widget _buildPdfInlineField({
   required String label,
   required String marathiLabelKey,
   required String valKey,
@@ -1488,12 +1594,18 @@ pw.Widget _buildPdfWideField({
   required pw.TextStyle marathiStyle,
   required pw.TextStyle valueStyle,
   required MarathiImageCache cache,
+  bool showMarathiLabel = true,
 }) {
-  final hasValImg = cache.has(valKey);
+  final text = fallbackValue.trim();
+  const int charsPerLine = 35;
+  final lines = text.isEmpty ? [''] : _splitTextIntoLines(text, charsPerLine);
+
   return pw.Column(
     crossAxisAlignment: pw.CrossAxisAlignment.start,
     children: [
+      // First line: label + value start
       pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.end,
         children: [
           pw.Text(label, style: englishStyle),
           pw.Expanded(
@@ -1504,14 +1616,99 @@ pw.Widget _buildPdfWideField({
                 ),
               ),
               alignment: pw.Alignment.bottomLeft,
-              padding: const pw.EdgeInsets.only(left: 2),
-              child: hasValImg
-                  ? cache.img(valKey)
-                  : pw.Text(fallbackValue, style: valueStyle),
+              padding: const pw.EdgeInsets.only(left: 2, bottom: 1),
+              child: pw.Text(
+                lines.isNotEmpty ? lines[0] : '',
+                style: valueStyle,
+              ),
             ),
           ),
         ],
       ),
+      // Continuation lines
+      for (int i = 1; i < lines.length; i++) ...[
+        pw.SizedBox(height: 3),
+        pw.Container(
+          width: double.infinity,
+          decoration: const pw.BoxDecoration(
+            border: pw.Border(
+              bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+            ),
+          ),
+          alignment: pw.Alignment.bottomLeft,
+          padding: const pw.EdgeInsets.only(left: 2, bottom: 1),
+          child: pw.Text(lines[i], style: valueStyle),
+        ),
+      ],
+      if (showMarathiLabel &&
+          marathiLabelKey.isNotEmpty &&
+          cache.has(marathiLabelKey)) ...[
+        pw.SizedBox(height: 2),
+        pw.Padding(
+          padding: const pw.EdgeInsets.only(left: 4.0),
+          child: cache.img(marathiLabelKey),
+        ),
+      ],
+    ],
+  );
+}
+
+/// Wide field spanning the full row with dynamic multi-line wrapping.
+pw.Widget _buildPdfWideField({
+  required String label,
+  required String marathiLabelKey,
+  required String valKey,
+  required String fallbackValue,
+  required pw.TextStyle englishStyle,
+  required pw.TextStyle marathiStyle,
+  required pw.TextStyle valueStyle,
+  required MarathiImageCache cache,
+}) {
+  final text = fallbackValue.trim();
+  // Wide field spans full column ~515pt ≈ 70 chars at 10pt
+  const int charsPerLine = 70;
+  final lines = text.isEmpty ? [''] : _splitTextIntoLines(text, charsPerLine);
+
+  return pw.Column(
+    crossAxisAlignment: pw.CrossAxisAlignment.start,
+    children: [
+      // First line: label + start of value
+      pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.end,
+        children: [
+          pw.Text(label, style: englishStyle),
+          pw.Expanded(
+            child: pw.Container(
+              decoration: const pw.BoxDecoration(
+                border: pw.Border(
+                  bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+                ),
+              ),
+              alignment: pw.Alignment.bottomLeft,
+              padding: const pw.EdgeInsets.only(left: 2, bottom: 1),
+              child: pw.Text(
+                lines.isNotEmpty ? lines[0] : '',
+                style: valueStyle,
+              ),
+            ),
+          ),
+        ],
+      ),
+      // Continuation lines
+      for (int i = 1; i < lines.length; i++) ...[
+        pw.SizedBox(height: 3),
+        pw.Container(
+          width: double.infinity,
+          decoration: const pw.BoxDecoration(
+            border: pw.Border(
+              bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+            ),
+          ),
+          alignment: pw.Alignment.bottomLeft,
+          padding: const pw.EdgeInsets.only(left: 2, bottom: 1),
+          child: pw.Text(lines[i], style: valueStyle),
+        ),
+      ],
       pw.SizedBox(height: 2),
       if (marathiLabelKey.isNotEmpty && cache.has(marathiLabelKey))
         pw.Padding(
@@ -1532,16 +1729,17 @@ pw.Widget _buildPdfLinedField({
   required MarathiImageCache cache,
 }) {
   final lines = _splitTextIntoLines(fallbackValue, 40);
-  final total =
-      linesCount; // Cap to linesCount to prevent pw.Row height overflow on large inputs
+  // Use actual line count; fall back to linesCount minimum so empty fields
+  // still show the right number of blank underlines.
+  final total = lines.isEmpty ? linesCount : lines.length;
 
   return pw.Column(
     crossAxisAlignment: pw.CrossAxisAlignment.start,
     children: [
-      // Render label parts (skip if empty)
+      // Render label (skip if empty)
       if (labelKey.isNotEmpty && cache.has(labelKey)) ...[cache.img(labelKey)],
       pw.SizedBox(height: 3),
-      // Render underlined value lines
+      // Render one underlined row per line of actual text
       for (var i = 0; i < total; i++) ...[
         if (i > 0) pw.SizedBox(height: 4),
         pw.Container(

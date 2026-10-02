@@ -81,7 +81,7 @@ class CaseRecordViewSet(viewsets.ModelViewSet):
         # Apply query parameter filters
         module_key = self.request.query_params.get('module_key')
         if module_key:
-            queryset = queryset.filter(module_key=module_key)
+            queryset = queryset.filter(module_key__iexact=module_key)
 
         status_param = self.request.query_params.get('status')
         if status_param:

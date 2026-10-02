@@ -33,6 +33,20 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
   final _panchSig2Ctrl = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    final d = now.day.toString().padLeft(2, '0');
+    final m = now.month.toString().padLeft(2, '0');
+    final y = (now.year % 100).toString().padLeft(2, '0');
+    final yFull = now.year.toString();
+    _dateCombinedCtrl.text = '$d/$m/$yFull';
+    _dateDayCtrl.text = d;
+    _dateMonthCtrl.text = m;
+    _dateYearCtrl.text = y;
+  }
+
+  @override
   void dispose() {
     _campNoCtrl.dispose();
     _dateDayCtrl.dispose();
@@ -71,9 +85,36 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
       _dateDayCtrl.text = data['dateDay']?.toString() ?? '';
       _dateMonthCtrl.text = data['dateMonth']?.toString() ?? '';
       _dateYearCtrl.text = data['dateYear']?.toString() ?? '';
-      _dateCombinedCtrl.text =
-          "\${_dateDayCtrl.text}/\${_dateMonthCtrl.text}/\${_dateYearCtrl.text}"
-              .replaceAll(RegExp(r'^/|/$|//'), '');
+      if (data['date'] != null && data['date'].toString().isNotEmpty) {
+        final dStr = data['date'].toString();
+        _dateCombinedCtrl.text = dStr;
+        final parts = dStr.split(RegExp(r'[-/]'));
+        if (parts.length >= 3) {
+          if (parts[0].length == 4) {
+            _dateYearCtrl.text = parts[0];
+            _dateMonthCtrl.text = parts[1];
+            _dateDayCtrl.text = parts[2];
+          } else {
+            _dateDayCtrl.text = parts[0];
+            _dateMonthCtrl.text = parts[1];
+            _dateYearCtrl.text = parts[2];
+          }
+        }
+      } else {
+        final combined =
+            "${_dateDayCtrl.text}/${_dateMonthCtrl.text}/${_dateYearCtrl.text}"
+                .replaceAll(RegExp(r'^/|/$|//'), '');
+        if (combined.isNotEmpty) {
+          _dateCombinedCtrl.text = combined;
+        } else {
+          final now = DateTime.now();
+          _dateDayCtrl.text = now.day.toString().padLeft(2, '0');
+          _dateMonthCtrl.text = now.month.toString().padLeft(2, '0');
+          _dateYearCtrl.text = now.year.toString();
+          _dateCombinedCtrl.text =
+              "${_dateDayCtrl.text}/${_dateMonthCtrl.text}/${_dateYearCtrl.text}";
+        }
+      }
       _panch1NameCtrl.text = data['panch1Name']?.toString() ?? '';
       _panch2NameCtrl.text = data['panch2Name']?.toString() ?? '';
       _bodyCtrl.text = data['body']?.toString() ?? '';

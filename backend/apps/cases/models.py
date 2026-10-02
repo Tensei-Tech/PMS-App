@@ -126,6 +126,87 @@ def is_ad_case_disposed(case) -> bool:
     return bool(num and dt)
 
 
+COURT_FILING_DISPOSAL_KEYS = [
+    'a_final_number', 'aFinalNumber', 'a_final_no', 'aFinalNo',
+    'b_final_number', 'bFinalNumber', 'b_final_no', 'bFinalNo',
+    'c_final_number', 'cFinalNumber', 'c_final_no', 'cFinalNo',
+    'nc_final_number', 'ncFinalNumber', 'nc_final_no', 'ncFinalNo',
+    'abeted_summary_no', 'abetedSummaryNo', 'abeted_summary_number', 'abated_summary_no', 'abatedSummaryNo',
+    'cc_st_number', 'ccStNumber', 'cc_st_no', 'ccStNo',
+    'stay_by_high_court_date', 'stayByHighCourtDate', 'stay_by_high_court', 'stayHighCourtDate',
+    'quashed_by_high_court_date', 'quashedByHighCourtDate', 'quashed_by_high_court', 'quashedHighCourtDate',
+]
+
+
+def is_case_disposed_by_court_filing(case) -> bool:
+    """
+    Checks if ANY of the 8 Court Filing & Final Summary fields is filled (non-empty):
+    1. A Final Number
+    2. B Final Number
+    3. C Final Number
+    4. NC Final Number
+    5. Abeted Summary No.
+    6. CC/ST Number
+    7. Stay by High Court Date
+    8. Quashed by High Court Date
+    If any of these fields is filled, status automatically becomes 'Disposal'.
+    Note: AD cases are handled separately by is_ad_case_disposed.
+    """
+    if not case:
+        return False
+
+    if isinstance(case, dict):
+        mod = str(case.get('module_key') or case.get('moduleKey') or case.get('module') or '').strip().lower()
+        sub = str(case.get('sub_category') or case.get('subCategory') or '').strip().lower()
+        if mod == 'ad' or sub in ['ad', 'accidental death']:
+            return False
+    else:
+        mod = str(getattr(case, 'module_key', '')).strip().lower()
+        sub = str(getattr(case, 'sub_category', '')).strip().lower()
+        if mod == 'ad' or sub in ['ad', 'accidental death']:
+            return False
+
+    def _check_dict(d: dict) -> bool:
+        if not isinstance(d, dict):
+            return False
+        for k in COURT_FILING_DISPOSAL_KEYS:
+            v = d.get(k)
+            if v is not None and str(v).strip():
+                return True
+        for sub_k in ['final_verdict', 'finalVerdict', 'court', 'court_filing', 'courtFiling', 'commonForm', 'common_form']:
+            sub = d.get(sub_k)
+            if isinstance(sub, dict) and _check_dict(sub):
+                return True
+        return False
+
+    if isinstance(case, dict):
+        extra = case.get('extra_fields') or case.get('extraFields') or {}
+        return _check_dict(case) or _check_dict(extra)
+
+    extra = getattr(case, 'extra_fields', {}) or {}
+    if _check_dict(extra):
+        return True
+
+    # Check related final_verdict if present or in DB
+    try:
+        fv = getattr(case, 'final_verdict', None)
+        if not fv and hasattr(case, 'pk') and case.pk:
+            from apps.crimetab.models.common_form import FinalVerdict
+            fv = FinalVerdict.objects.filter(case=case).first()
+        if fv:
+            for attr in [
+                'a_final_number', 'b_final_number', 'c_final_number', 'nc_final_number',
+                'abeted_summary_no', 'cc_st_number', 'stay_by_high_court_date', 'quashed_by_high_court_date'
+            ]:
+                val = getattr(fv, attr, None)
+                if val is not None and str(val).strip():
+                    return True
+    except Exception:
+        pass
+
+    return False
+
+
 class CaseRecord(models.Model):
     """
     Case Record model matching Flutter ModuleRecord for PostgreSQL storage.
@@ -172,14 +253,21 @@ class CaseRecord(models.Model):
         ordering = ['-created_at']
 
     def save(self, *args, **kwargs):
-        from apps.cases.constants import DISPOSAL_KEYS
+        # 1. Reject client status overrides (handled before save if we want, but enforced here)
+        # Actually, if we just want to compute it:
+        from apps.cases.constants import CC_ST_KEYS
         from django.utils import timezone
         
-        has_disposal_key = False
-        if isinstance(self.extra_fields, dict):
-            has_disposal_key = bool(_extract_first_non_empty(self.extra_fields, DISPOSAL_KEYS))
-            if not has_disposal_key:
-                has_disposal_key = is_ad_case_disposed(self)
+        # Original AD Logic
+        if is_ad_case_disposed(self) and self.status not in ['Disposal', 'Closed', 'Resolved']:
+            self.status = 'Disposal'
+            
+        # CC/ST Logic (Skip AD cases)
+        elif self.module_key != 'ad':
+            # Check if CC/ST is currently present in extra_fields
+            has_cc = False
+            if isinstance(self.extra_fields, dict):
+                has_cc = bool(_extract_first_non_empty(self.extra_fields, CC_ST_KEYS))
             
         if self.pk:
             try:

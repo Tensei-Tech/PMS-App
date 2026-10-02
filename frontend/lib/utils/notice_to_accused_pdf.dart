@@ -173,16 +173,18 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
                           style: regular,
                         ),
                       ),
-                      pw.SizedBox(height: 8),
-                      pw.Container(
-                        decoration: const pw.BoxDecoration(
-                          border: pw.Border(bottom: borderLine),
+                      if (accusedLine2.isNotEmpty) ...[
+                        pw.SizedBox(height: 8),
+                        pw.Container(
+                          decoration: const pw.BoxDecoration(
+                            border: pw.Border(bottom: borderLine),
+                          ),
+                          child: pw.Text(
+                            accusedLine2,
+                            style: regular,
+                          ),
                         ),
-                        child: pw.Text(
-                          accusedLine2.isNotEmpty ? accusedLine2 : ' ',
-                          style: regular,
-                        ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -341,7 +343,7 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
                 ),
               ],
             ),
-            pw.SizedBox(height: 24),
+            pw.Spacer(),
 
             // ── MRW FOOTER ──
             pw.Align(
@@ -350,7 +352,7 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
                 'M.R.W',
                 style: pw.TextStyle(
                   font: devanagari,
-                  fontSize: 8,
+                  fontSize: 8.5,
                   color: PdfColors.grey700,
                 ),
               ),
@@ -368,6 +370,87 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
 // ── NATIVE FLUTTER WIDGET BUILDER (100% Devanagari Font Shaping) ──
 // ══════════════════════════════════════════════════════════════════════════════
 
+class _NoticeLinePainter extends CustomPainter {
+  final int lines;
+  final double lineHeight;
+
+  const _NoticeLinePainter({
+    required this.lines,
+    required this.lineHeight,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black87
+      ..strokeWidth = 0.8
+      ..style = PaintingStyle.stroke;
+
+    for (int i = 1; i <= lines; i++) {
+      final y = (i * lineHeight) - 1.5;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _NoticeLinePainter oldDelegate) =>
+      oldDelegate.lines != lines || oldDelegate.lineHeight != lineHeight;
+}
+
+class _DynamicNoticeUnderlineField extends StatelessWidget {
+  final String text;
+  final TextStyle style;
+  final int minLines;
+  final double lineHeight;
+
+  const _DynamicNoticeUnderlineField({
+    required this.text,
+    required this.style,
+    this.minLines = 1,
+    this.lineHeight = 22.0,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final trimmed = text.trim();
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxW =
+            constraints.maxWidth.isFinite ? constraints.maxWidth : 500.0;
+        int lines = minLines;
+        if (trimmed.isNotEmpty) {
+          final tp = TextPainter(
+            text: TextSpan(text: trimmed, style: style),
+            textDirection: TextDirection.ltr,
+          )..layout(maxWidth: maxW > 0 ? maxW : 500.0);
+          final metrics = tp.computeLineMetrics();
+          lines = metrics.isEmpty ? 1 : metrics.length;
+          if (lines < minLines) lines = minLines;
+        }
+
+        final h = lines * lineHeight;
+        return CustomPaint(
+          size: Size(maxW, h),
+          painter: _NoticeLinePainter(lines: lines, lineHeight: lineHeight),
+          child: Container(
+            width: maxW,
+            height: h,
+            padding: const EdgeInsets.only(left: 2, right: 2),
+            child: trimmed.isEmpty
+                ? const SizedBox()
+                : Text(
+                    trimmed,
+                    style: style.copyWith(
+                      height: lineHeight / (style.fontSize ?? 11.5),
+                    ),
+                  ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 Widget _buildPgWidget(Map<String, dynamic> doc) {
   String v(String key, [String fallback = '']) {
     final val = doc[key]?.toString().trim() ?? '';
@@ -381,6 +464,8 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
 
   final accusedLine1 = v('accusedName', v('accusedNameAddress'));
   final accusedLine2 = v('accusedNameLine2');
+  final fullAccusedName =
+      [accusedLine1, accusedLine2].where((s) => s.isNotEmpty).join(' ');
 
   final mobileNo = v('mobileNo');
   final aadhaarNo = v('aadhaarNo');
@@ -400,10 +485,10 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
   final accusedSig = v('accusedSig');
   final ioNameSig = v('ioNameSig');
 
-  final reg = FormImagePdfHelper.mReg(10.5, 1.45);
-  final bld = FormImagePdfHelper.mBld(10.5, 1.45);
-  final headerTitle = FormImagePdfHelper.mBld(16, 1.3);
-  final headerSub = FormImagePdfHelper.mBld(11, 1.3);
+  final reg = FormImagePdfHelper.mBld(11.5, 1.85);
+  final bld = FormImagePdfHelper.mBld(11.5, 1.85);
+  final headerTitle = FormImagePdfHelper.mBld(17, 1.3);
+  final headerSub = FormImagePdfHelper.mBld(12, 1.3);
 
   return FormImagePdfHelper.buildA4Page(
     padding: const EdgeInsets.symmetric(horizontal: 44, vertical: 36),
@@ -411,7 +496,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
       Align(
         alignment: Alignment.topRight,
         child: SizedBox(
-          width: 260,
+          width: 290,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -441,7 +526,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                   ),
                 ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 5),
               Row(
                 children: [
                   Text('दिनांक :', style: bld),
@@ -461,12 +546,12 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           ),
         ),
       ),
-      const SizedBox(height: 20),
+      const SizedBox(height: 22),
       Center(
         child: Column(
           children: [
             Text('-:: आरोपीस सुचनापत्र ::-', style: headerTitle),
-            const SizedBox(height: 3),
+            const SizedBox(height: 4),
             Text(
               '(भारतीय नागरी सुरक्षा संहिता २०२३ कलम ४७ (१)(२))',
               style: headerSub.copyWith(decoration: TextDecoration.underline),
@@ -478,36 +563,21 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('नांव :- ', style: bld),
+          Padding(
+            padding: const EdgeInsets.only(top: 2.0),
+            child: Text('नांव :- ', style: bld),
+          ),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  decoration: const BoxDecoration(
-                    border: Border(bottom: borderLine),
-                  ),
-                  child: Text(
-                    accusedLine1.isNotEmpty ? accusedLine1 : ' ',
-                    style: reg,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  decoration: const BoxDecoration(
-                    border: Border(bottom: borderLine),
-                  ),
-                  child: Text(
-                    accusedLine2.isNotEmpty ? accusedLine2 : ' ',
-                    style: reg,
-                  ),
-                ),
-              ],
+            child: _DynamicNoticeUnderlineField(
+              text: fullAccusedName,
+              style: reg,
+              minLines: 1,
+              lineHeight: 22.0,
             ),
           ),
         ],
       ),
-      const SizedBox(height: 14),
+      const SizedBox(height: 16),
       Row(
         children: [
           Text('मो.नं.:-', style: bld),
@@ -535,7 +605,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           ),
         ],
       ),
-      const SizedBox(height: 10),
+      const SizedBox(height: 14),
       Row(
         children: [
           Text('ईमेल :-', style: bld),
@@ -550,11 +620,11 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           ),
         ],
       ),
-      const SizedBox(height: 24),
+      const SizedBox(height: 26),
       RichText(
         textAlign: TextAlign.justify,
         text: TextSpan(
-          style: reg.copyWith(height: 1.6),
+          style: reg.copyWith(height: 1.95),
           children: [
             const TextSpan(
               text:
@@ -578,11 +648,11 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           ],
         ),
       ),
-      const SizedBox(height: 16),
+      const SizedBox(height: 22),
       RichText(
         textAlign: TextAlign.justify,
         text: TextSpan(
-          style: reg.copyWith(height: 1.6),
+          style: reg.copyWith(height: 1.95),
           children: [
             const TextSpan(
               text: '        सदर गुन्हा दखलपात्र असुन ',
@@ -600,7 +670,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           ],
         ),
       ),
-      const SizedBox(height: 16),
+      const SizedBox(height: 22),
       Padding(
         padding: const EdgeInsets.only(left: 28),
         child: Text(
@@ -616,7 +686,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           Column(
             children: [
               Text('आरोपीची स्वाक्षरी', style: bld),
-              const SizedBox(height: 12),
+              const SizedBox(height: 18),
               if (accusedSig.isNotEmpty)
                 Text(accusedSig, style: reg)
               else
@@ -632,7 +702,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           Column(
             children: [
               Text('तपासी अधिकारी नांव व सही', style: bld),
-              const SizedBox(height: 12),
+              const SizedBox(height: 18),
               if (ioNameSig.isNotEmpty)
                 Text(ioNameSig, style: reg)
               else
@@ -647,12 +717,12 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           ),
         ],
       ),
-      const SizedBox(height: 24),
+      const SizedBox(height: 12),
       Align(
         alignment: Alignment.bottomRight,
         child: Text(
           'M.R.W',
-          style: reg.copyWith(fontSize: 8, color: Colors.grey.shade700),
+          style: reg.copyWith(fontSize: 8.5, color: Colors.grey.shade700),
         ),
       ),
     ],

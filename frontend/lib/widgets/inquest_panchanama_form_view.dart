@@ -588,6 +588,16 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
     super.initState();
     if (widget.existingRecord != null) {
       hydrateFrom(widget.existingRecord!);
+    } else {
+      final now = DateTime.now();
+      final d = now.day.toString().padLeft(2, '0');
+      final m = now.month.toString().padLeft(2, '0');
+      final y = (now.year % 100).toString().padLeft(2, '0');
+      final yFull = now.year.toString();
+      _panchanamaDateCtrl.text = '$d/$m/$yFull';
+      _panchanamaDateDayCtrl.text = d;
+      _panchanamaDateMonthCtrl.text = m;
+      _panchanamaDateYearCtrl.text = y;
     }
   }
 
@@ -701,6 +711,9 @@ class InquestPanchanamaFormViewState extends State<InquestPanchanamaFormView> {
         if (yr.startsWith('20') && yr.length == 4) yr = yr.substring(2);
         _panchanamaDateYearCtrl.text = yr;
       }
+    } else if (_panchanamaDateCtrl.text.isEmpty &&
+        _panchanamaDateDayCtrl.text.isNotEmpty) {
+      _panchanamaDateCtrl.text = _panchanamaDateCombined;
     }
 
     _panchanamaTimeCtrl.text = doc['panchanamaTime'] ?? '';
