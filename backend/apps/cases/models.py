@@ -258,9 +258,13 @@ class CaseRecord(models.Model):
         from apps.cases.constants import CC_ST_KEYS
         from django.utils import timezone
         
+        has_disposal_key = False
+        
         # Original AD Logic
-        if is_ad_case_disposed(self) and self.status not in ['Disposal', 'Closed', 'Resolved']:
-            self.status = 'Disposal'
+        if is_ad_case_disposed(self):
+            has_disposal_key = True
+            if self.status not in ['Disposal', 'Closed', 'Resolved']:
+                self.status = 'Disposal'
             
         # CC/ST Logic (Skip AD cases)
         elif self.module_key != 'ad':
@@ -268,6 +272,7 @@ class CaseRecord(models.Model):
             has_cc = False
             if isinstance(self.extra_fields, dict):
                 has_cc = bool(_extract_first_non_empty(self.extra_fields, CC_ST_KEYS))
+            has_disposal_key = has_cc
             
         if self.pk:
             try:
