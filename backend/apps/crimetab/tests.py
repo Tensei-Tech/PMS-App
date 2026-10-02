@@ -1,3 +1,4 @@
+import json
 from django.test import TestCase, Client
 from django.utils import timezone
 from django.db import transaction, IntegrityError
@@ -39,6 +40,10 @@ from apps.crimetab.services.counter_service import get_group_counters, get_categ
 
 class CommonFormE2ETests(TestCase):
     def setUp(self):
+        from django.db import connection
+        if connection.connection and connection.connection.closed:
+            connection.connect()
+
         from apps.core.tenancy import set_tenant_schema
         from apps.public_master.models import StateRegistry
         StateRegistry.objects.get_or_create(
@@ -265,14 +270,47 @@ class CommonFormE2ETests(TestCase):
                     surety_name='Suresh Patil'
                 )
 
-        # Case D: Invalid Remand - Jail set but Bail=False -> Rejected by DB constraint
+        # Case D: Invalid Remand - Jail set but MCR=False -> Rejected by DB constraint
         with self.assertRaises((IntegrityError, ValueError)):
             with transaction.atomic():
                 RemandCustody.objects.create(
                     person=person,
-                    bail=False,
+                    mcr=False,
                     jail=True
                 )
+
+        # Case E: Invalid Remand - PR Bond Date set but PR Bond=False -> Rejected by DB constraint
+        with self.assertRaises((IntegrityError, ValueError)):
+            with transaction.atomic():
+                RemandCustody.objects.create(
+                    person=person,
+                    mcr=True,
+                    pr_bond=False,
+                    pr_bond_date=timezone.now().date()
+                )
+
+        # Case F: Invalid Remand - Jail Date set but Jail=False -> Rejected by DB constraint
+        with self.assertRaises((IntegrityError, ValueError)):
+            with transaction.atomic():
+                RemandCustody.objects.create(
+                    person=person,
+                    mcr=True,
+                    jail=False,
+                    jail_date=timezone.now().date()
+                )
+
+        # Case G: Valid Remand with PR Bond Date and Jail Date
+        remand_dates = RemandCustody.objects.create(
+            person=person,
+            mcr=True,
+            pr_bond=True,
+            pr_bond_date=timezone.now().date(),
+            jail=True,
+            jail_date=timezone.now().date()
+        )
+        self.assertIsNotNone(remand_dates.pr_bond_date)
+        self.assertIsNotNone(remand_dates.jail_date)
+        remand_dates.delete()
 
     def test_4_tab_without_extras_and_standalone_categories(self):
         """
@@ -308,20 +346,28 @@ class CommonFormE2ETests(TestCase):
             station_name='Pune PS'
         )
 
+        person = CasesPerson.objects.create(
+            case=case,
+            role='accused',
+            name='Ramesh Patil'
+        )
+
         today = timezone.now().date()
 
-        # 1. Add first provision
+        # 1. Add first provision for person
         pa1 = PreventiveActionItems.objects.create(
             case=case,
+            person=person,
             action_type='107 CrPC/126 BNSS',
             action_date=today,
             outward_number='OUT/101'
         )
         self.assertEqual(pa1.action_type, '107 CrPC/126 BNSS')
 
-        # 2. Add second provision to same case
+        # 2. Add second provision for person on same case
         pa2 = PreventiveActionItems.objects.create(
             case=case,
+            person=person,
             action_type='93 Prohibition Act',
             action_date=today,
             outward_number='OUT/102'
@@ -331,11 +377,12 @@ class CommonFormE2ETests(TestCase):
         # 3. Both exist on the same case
         self.assertEqual(PreventiveActionItems.objects.filter(case=case).count(), 2)
 
-        # 4. Duplicate same provision on same case must fail
+        # 4. Duplicate same provision on same person and case must fail
         with self.assertRaises(IntegrityError):
             with transaction.atomic():
                 PreventiveActionItems.objects.create(
                     case=case,
+                    person=person,
                     action_type='107 CrPC/126 BNSS',
                     action_date=today,
                     outward_number='OUT/103'
@@ -707,3 +754,151 @@ class CommonFormE2ETests(TestCase):
         kailash_seizures = SeizureRecords.objects.filter(seized_from_person_id=new_person.person_id)
         self.assertEqual(kailash_seizures.count(), 1)
         self.assertEqual(kailash_seizures.first().description, 'Cash INR 50000')
+
+    def test_11_court_filing_auto_disposal_status(self):
+        """
+        Part E:
+        If ANY of the 8 Court Filing fields is filled:
+        A Final Number, B Final Number, C Final Number, NC Final Number,
+        Abeted Summary No., CC/ST Number, Stay by High Court Date, Quashed by High Court Date,
+        then cases_caserecord.status must automatically be set to 'Disposal'.
+        If none of these fields are filled, status stays 'Pending'.
+        """
+        import uuid
+        # Case 1: Status Pending, fill in only "CC/ST Number", save, confirm status becomes 'Disposal'
+        case_id_1 = str(uuid.uuid4())
+        payload_1 = {
+            'id': case_id_1,
+            'case_number': f'CR/TEST-DISP-1-{uuid.uuid4().hex[:4]}',
+            'title': 'Test Case With CC/ST Number',
+            'station_name': 'Test Station',
+            'status': 'Pending',
+            'court_filing': {
+                'cc_st_number': 'CC/1024/2026',
+            }
+        }
+        res_1 = self.client.post('/api/cases/', data=json.dumps(payload_1), content_type='application/json')
+        self.assertEqual(res_1.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(res_1.data.get('status'), 'Disposal')
+
+        case_1_db = CaseRecord.objects.get(pk=case_id_1)
+        self.assertEqual(case_1_db.status, 'Disposal')
+
+        # Case 2: Status Pending, none of the 8 fields filled, confirm status stays 'Pending'
+        case_id_2 = str(uuid.uuid4())
+        payload_2 = {
+            'id': case_id_2,
+            'case_number': f'CR/TEST-DISP-2-{uuid.uuid4().hex[:4]}',
+            'title': 'Test Case With No Court Filing Fields',
+            'station_name': 'Test Station',
+            'status': 'Pending',
+            'court_filing': {}
+        }
+        res_2 = self.client.post('/api/cases/', data=json.dumps(payload_2), content_type='application/json')
+        self.assertEqual(res_2.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(res_2.data.get('status'), 'Pending')
+
+        case_2_db = CaseRecord.objects.get(pk=case_id_2)
+        self.assertEqual(case_2_db.status, 'Pending')
+
+    def test_12_multiple_accused_suspected_unidentified_arrest(self):
+        """
+        Part H:
+        Confirm saving multiple Accused, Suspected Accused, Unidentified Accused, and Arrest records
+        and reloading preserves all entries properly.
+        """
+        import uuid
+        case_id = str(uuid.uuid4())
+        payload = {
+            'id': case_id,
+            'case_number': f'CR/TEST-MUL-{uuid.uuid4().hex[:4]}',
+            'title': 'Test Case Multiple Persons',
+            'station_name': 'Test Station',
+            'status': 'Pending',
+            'accused': [
+                {'name': 'Accused Person One', 'age': '28', 'gender': 'Male'},
+                {'name': 'Accused Person Two', 'age': '35', 'gender': 'Female'},
+            ],
+            'suspectedAccused': [
+                {'name': 'Suspected One', 'age': '30', 'gender': 'Male'},
+                {'name': 'Suspected Two', 'age': '40', 'gender': 'Female'},
+            ],
+            'unidentifiedList': [
+                {'description': 'Unknown Suspect 1', 'gender': 'Male', 'approxAge': '25-30'},
+                {'description': 'Unknown Suspect 2', 'gender': 'Female', 'approxAge': '30-35'},
+            ],
+            'arrests': [
+                {
+                    'typed_name': 'Accused Person One',
+                    'arrest_datetime': '2026-09-15 10:00',
+                    'sec_47_48_bnss': True,
+                    'relative_friend_name': 'Friend John',
+                },
+                {
+                    'typed_name': 'Accused Person Two',
+                    'arrest_datetime': '2026-09-16 11:30',
+                    'release_on_notice': True,
+                    'release_on_notice_datetime': '2026-09-16 14:00',
+                },
+            ]
+        }
+        res = self.client.post('/api/cases/', data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        # Retrieve case
+        get_res = self.client.get(f'/api/cases/{case_id}/')
+        self.assertEqual(get_res.status_code, status.HTTP_200_OK)
+
+        # Check DB Records
+        acc_persons = CasesPerson.objects.filter(case_id=case_id, role='accused')
+        self.assertEqual(acc_persons.count(), 2)
+
+        susp_persons = CasesPerson.objects.filter(case_id=case_id, role='suspected_accused')
+        self.assertEqual(susp_persons.count(), 2)
+
+        unid_persons = CasesPerson.objects.filter(case_id=case_id, role='unidentified')
+        self.assertEqual(unid_persons.count(), 2)
+
+        arrests = ArrestReleaseStatus.objects.filter(person__case_id=case_id)
+        self.assertEqual(arrests.count(), 2)
+
+    def test_13_unknown_accused_repeating_list(self):
+        """
+        Part I:
+        Convert Unknown Accused into a repeating list.
+        2 separate entries on one test case both save as CasesPerson rows with role='unknown_accused',
+        and both come back on reload.
+        """
+        import uuid
+        case_id = str(uuid.uuid4())
+        payload = {
+            'id': case_id,
+            'case_number': f'CR/TEST-UNK-{uuid.uuid4().hex[:4]}',
+            'title': 'Test Case Unknown Accused List',
+            'station_name': 'Test Station',
+            'status': 'Pending',
+            'unknown_accused': [
+                {'name': 'Unknown Accused #1', 'role': 'unknown_accused'},
+                {'name': 'Unknown Accused #2', 'role': 'unknown_accused'},
+            ]
+        }
+        res = self.client.post('/api/cases/', data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        # Confirm 2 CasesPerson rows with role='unknown_accused'
+        unk_persons = CasesPerson.objects.filter(case_id=case_id, role='unknown_accused')
+        self.assertEqual(unk_persons.count(), 2)
+        names = set(unk_persons.values_list('name', flat=True))
+        self.assertIn('Unknown Accused #1', names)
+        self.assertIn('Unknown Accused #2', names)
+
+        # Retrieve and verify reload
+        get_res = self.client.get(f'/api/cases/{case_id}/')
+        self.assertEqual(get_res.status_code, status.HTTP_200_OK)
+        persons_returned = get_res.data.get('persons', [])
+        unk_returned = [p for p in persons_returned if p.get('role') == 'unknown_accused']
+        self.assertEqual(len(unk_returned), 2)
+
+
+
+

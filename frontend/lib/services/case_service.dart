@@ -537,4 +537,70 @@ class CaseService {
     }
     return null;
   }
+
+  /// Fetch reference list of all Acts
+  Future<List<Map<String, dynamic>>> fetchActs() async {
+    try {
+      final response = await _api.get(ApiConfig.acts);
+      if (response.isSuccess && response.data is List) {
+        return (response.data as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchActs exception: $e');
+      }
+    }
+    return [];
+  }
+
+  /// Fetch reference list of Sections, optionally filtered by actId
+  Future<List<Map<String, dynamic>>> fetchActSections({dynamic actId}) async {
+    try {
+      final params = <String, dynamic>{};
+      if (actId != null && actId.toString().trim().isNotEmpty) {
+        params['act_id'] = actId.toString().trim();
+      }
+      final response = await _api.get(
+        ApiConfig.actSections,
+        queryParameters: params.isNotEmpty ? params : null,
+      );
+      if (response.isSuccess && response.data is List) {
+        return (response.data as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchActSections exception: $e');
+      }
+    }
+    return [];
+  }
+
+  /// Fetch reference list of Subsections, optionally filtered by sectionId
+  Future<List<Map<String, dynamic>>> fetchActSubsections(
+      {dynamic sectionId}) async {
+    try {
+      final params = <String, dynamic>{};
+      if (sectionId != null && sectionId.toString().trim().isNotEmpty) {
+        params['section_id'] = sectionId.toString().trim();
+      }
+      final response = await _api.get(
+        ApiConfig.actSubsections,
+        queryParameters: params.isNotEmpty ? params : null,
+      );
+      if (response.isSuccess && response.data is List) {
+        return (response.data as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchActSubsections exception: $e');
+      }
+    }
+    return [];
+  }
 }

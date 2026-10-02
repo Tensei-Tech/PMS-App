@@ -31,10 +31,14 @@ def get_or_create_person_for_case(
     cleaned_name = str(typed_name).strip()
 
     # If a person with this name already exists on the case for this role, reuse
+    roles_to_match = [role]
+    if role in ('accused', 'suspect', 'suspected_accused'):
+        roles_to_match = ['accused', 'suspect', 'suspected_accused']
+
     existing = CasesPerson.objects.filter(
         case_id=case_id,
         name__iexact=cleaned_name,
-        role=role
+        role__in=roles_to_match
     ).first()
     if existing:
         return existing.person_id

@@ -126,6 +126,29 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
   final _panch2SigCtrl = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    final d = now.day.toString().padLeft(2, '0');
+    final m = now.month.toString().padLeft(2, '0');
+    final y = now.year.toString();
+    _dateDayCtrl.text = d;
+    _dateMonthCtrl.text = m;
+    _dateYearCtrl.text = y;
+    _dateCtrl.text = '$d/$m/$y';
+
+    _summonDateDayCtrl.text = d;
+    _summonDateMonthCtrl.text = m;
+    _summonDateYearCtrl.text = y;
+    _summonDateCtrl.text = '$d/$m/$y';
+
+    _panchDateDayCtrl.text = d;
+    _panchDateMonthCtrl.text = m;
+    _panchDateYearCtrl.text = y;
+    _panchDateCtrl.text = '$d/$m/$y';
+  }
+
+  @override
   void dispose() {
     _psCtrl.dispose();
     _campCtrl.dispose();
@@ -231,6 +254,13 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
         if (yr.startsWith('20') && yr.length == 4) yr = yr.substring(2);
         _dateYearCtrl.text = yr;
       }
+    } else if (_dateDayCtrl.text.isEmpty && _dateCtrl.text.isEmpty) {
+      final now = DateTime.now();
+      _dateDayCtrl.text = now.day.toString().padLeft(2, '0');
+      _dateMonthCtrl.text = now.month.toString().padLeft(2, '0');
+      _dateYearCtrl.text = now.year.toString();
+      _dateCtrl.text =
+          "${_dateDayCtrl.text}/${_dateMonthCtrl.text}/${_dateYearCtrl.text}";
     }
 
     _panch1Ctrl.text = data['panch1']?.toString() ?? '';
@@ -250,6 +280,14 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
         if (yr.startsWith('20') && yr.length == 4) yr = yr.substring(2);
         _summonDateYearCtrl.text = yr;
       }
+    } else if (_summonDateDayCtrl.text.isEmpty &&
+        _summonDateCtrl.text.isEmpty) {
+      final now = DateTime.now();
+      _summonDateDayCtrl.text = now.day.toString().padLeft(2, '0');
+      _summonDateMonthCtrl.text = now.month.toString().padLeft(2, '0');
+      _summonDateYearCtrl.text = now.year.toString();
+      _summonDateCtrl.text =
+          "${_summonDateDayCtrl.text}/${_summonDateMonthCtrl.text}/${_summonDateYearCtrl.text}";
     }
 
     _mauzaCtrl.text = data['mauza']?.toString() ?? '';
@@ -278,6 +316,13 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
         if (yr.startsWith('20') && yr.length == 4) yr = yr.substring(2);
         _panchDateYearCtrl.text = yr;
       }
+    } else if (_panchDateDayCtrl.text.isEmpty && _panchDateCtrl.text.isEmpty) {
+      final now = DateTime.now();
+      _panchDateDayCtrl.text = now.day.toString().padLeft(2, '0');
+      _panchDateMonthCtrl.text = now.month.toString().padLeft(2, '0');
+      _panchDateYearCtrl.text = now.year.toString();
+      _panchDateCtrl.text =
+          "${_panchDateDayCtrl.text}/${_panchDateMonthCtrl.text}/${_panchDateYearCtrl.text}";
     }
 
     _startTimeCtrl.text = data['startTime']?.toString() ?? '';
