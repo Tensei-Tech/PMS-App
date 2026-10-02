@@ -53,8 +53,16 @@ jobs:
 
       - name: Check for missing migrations
         run: |
-          python manage.py makemigrations --dry-run
+          python manage.py makemigrations --dry-run > migrations.txt || true
+          cat migrations.txt
           python manage.py makemigrations --check --dry-run
+
+      - name: Upload missing migrations
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: missing-migrations
+          path: backend/migrations.txt
 
       - name: Run migrations
         run: python manage.py migrate
