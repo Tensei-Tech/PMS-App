@@ -260,8 +260,16 @@ class ADCaseDisposalTests(APITestCase):
             # Force same created_at
             CaseRecord.objects.filter(id=c.id).update(created_at=identical_time)
             
-        res1 = client.get('/api/cases/disposal/case-wise/?page=1&page_size=20')
-        res2 = client.get('/api/cases/disposal/case-wise/?page=2&page_size=20')
+        from unittest.mock import patch
+        
+        with patch('apps.cases.views.check_dynamic_permission', return_value=True), \
+             patch('apps.core.permissions.check_dynamic_permission', return_value=True):
+            res1 = client.get('/api/cases/disposal/case-wise/?page=1&page_size=20')
+            res2 = client.get('/api/cases/disposal/case-wise/?page=2&page_size=20')
+        
+        # Verify it succeeds
+        self.assertEqual(res1.status_code, 200, res1.data)
+        self.assertEqual(res2.status_code, 200, res2.data)
         
         ids1 = [item['id'] for item in res1.data['results']]
         ids2 = [item['id'] for item in res2.data['results']]
