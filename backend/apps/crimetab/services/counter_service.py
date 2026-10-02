@@ -32,31 +32,28 @@ def get_group_counters(group_id: int, station_name: Optional[str] = None) -> Dic
     for cat_id in group_cat_ids:
         all_cat_ids.update(get_descendant_category_ids(cat_id))
 
-    disposal_fields = [
-        'final_verdict__cc_st_number',
-        'final_verdict__charge_sheet_no',
-        'final_verdict__a_final_number',
-        'final_verdict__b_final_number',
-        'final_verdict__c_final_number',
-        'final_verdict__nc_final_number',
-        'final_verdict__abeted_summary_no',
-    ]
-
-    disposal_q = Q()
-    for field in disposal_fields:
-        disposal_q |= Q(**{f"{field}__regex": r'\S'})
+    from apps.cases.constants import DISPOSAL_KEYS
+    from django.db.models.functions import Coalesce, Concat
+    from django.db import models
+    from django.db.models import Value
+    from django.db.models.fields.json import KeyTextTransform
+    
+    concat_args = []
+    for key in DISPOSAL_KEYS:
+        concat_args.append(Coalesce(KeyTextTransform(key, 'extra_fields'), Value(''), output_field=models.CharField()))
+        concat_args.append(Value(' '))
 
     queryset = CaseRecord.objects.filter(
         category_links__category_id__in=list(all_cat_ids)
-    )
+    ).annotate(all_cc_st=Concat(*concat_args, output_field=models.CharField()))
     
     if station_name:
         queryset = queryset.filter(station_name=station_name)
 
     stats = queryset.aggregate(
         total=Count('id', distinct=True),
-        pending=Count('id', filter=~disposal_q, distinct=True),
-        disposal=Count('id', filter=disposal_q, distinct=True),
+        pending=Count('id', filter=~Q(all_cc_st__regex=r'\S'), distinct=True),
+        disposal=Count('id', filter=Q(all_cc_st__regex=r'\S'), distinct=True),
     )
     return {
         'group_id': group_id,
@@ -71,32 +68,29 @@ def get_category_counters(category_id: int, station_name: Optional[str] = None) 
     Calculates live Total/Pending/Disposal counters for a specific Sub-tab / Category (e.g. 'Accident'),
     rolling up cases from all its nested child sub-tabs (e.g. 'Road Accident', 'Death Due to Rash Driving').
     """
+    from apps.cases.constants import DISPOSAL_KEYS
+    from django.db.models.functions import Coalesce, Concat
+    from django.db import models
+    from django.db.models import Value
+    from django.db.models.fields.json import KeyTextTransform
+    
     descendant_ids = get_descendant_category_ids(category_id)
     
-    disposal_fields = [
-        'final_verdict__cc_st_number',
-        'final_verdict__charge_sheet_no',
-        'final_verdict__a_final_number',
-        'final_verdict__b_final_number',
-        'final_verdict__c_final_number',
-        'final_verdict__nc_final_number',
-        'final_verdict__abeted_summary_no',
-    ]
-
-    disposal_q = Q()
-    for field in disposal_fields:
-        disposal_q |= Q(**{f"{field}__regex": r'\S'})
+    concat_args = []
+    for key in DISPOSAL_KEYS:
+        concat_args.append(Coalesce(KeyTextTransform(key, 'extra_fields'), Value(''), output_field=models.CharField()))
+        concat_args.append(Value(' '))
 
     queryset = CaseRecord.objects.filter(
         category_links__category_id__in=descendant_ids
-    )
+    ).annotate(all_cc_st=Concat(*concat_args, output_field=models.CharField()))
     if station_name:
         queryset = queryset.filter(station_name=station_name)
 
     stats = queryset.aggregate(
         total=Count('id', distinct=True),
-        pending=Count('id', filter=~disposal_q, distinct=True),
-        disposal=Count('id', filter=disposal_q, distinct=True),
+        pending=Count('id', filter=~Q(all_cc_st__regex=r'\S'), distinct=True),
+        disposal=Count('id', filter=Q(all_cc_st__regex=r'\S'), distinct=True),
     )
     return {
         'category_id': category_id,

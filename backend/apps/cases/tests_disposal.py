@@ -5,50 +5,27 @@ from django.urls import reverse
 
 class DisposalInverseLogicTests(APITestCase):
     def setUp(self):
-        from apps.crimetab.models.common_form import FinalVerdict
-        
         # Pending cases
         CaseRecord.objects.create(case_number='CR001', extra_fields={}, station_name='Central')
-        c2 = CaseRecord.objects.create(case_number='CR002', extra_fields={}, station_name='Central')
-        FinalVerdict.objects.create(case=c2, cc_st_number=None)
-        
-        c3 = CaseRecord.objects.create(case_number='CR003', extra_fields={}, station_name='Central')
-        FinalVerdict.objects.create(case=c3, charge_sheet_no='')
-        
-        c4 = CaseRecord.objects.create(case_number='CR004', extra_fields={}, station_name='Central')
-        FinalVerdict.objects.create(case=c4, a_final_number='   ')
-        
+        CaseRecord.objects.create(case_number='CR002', extra_fields={'ccStNumber': None}, station_name='Central')
+        CaseRecord.objects.create(case_number='CR003', extra_fields={'chargeSheetNumber': ''}, station_name='Central')
+        CaseRecord.objects.create(case_number='CR004', extra_fields={'aFinalNo': '   '}, station_name='Central')
         CaseRecord.objects.create(case_number='CR005', extra_fields={'stay_by_high_court_date': '2023-01-01', 'quashed_by_high_court_date': '2023-01-02'}, station_name='Central')
         
         # Disposal cases
-        c6 = CaseRecord.objects.create(case_number='CR006', extra_fields={}, station_name='Central')
-        FinalVerdict.objects.create(case=c6, cc_st_number='CC1234')
-        
-        c7 = CaseRecord.objects.create(case_number='CR007', extra_fields={}, station_name='Central')
-        FinalVerdict.objects.create(case=c7, charge_sheet_no='CS123')
-        
-        c8 = CaseRecord.objects.create(case_number='CR008', extra_fields={}, station_name='Central')
-        FinalVerdict.objects.create(case=c8, a_final_number='A1')
-        
-        c9 = CaseRecord.objects.create(case_number='CR009', extra_fields={}, station_name='Central')
-        FinalVerdict.objects.create(case=c9, b_final_number='B1')
-        
-        c10 = CaseRecord.objects.create(case_number='CR010', extra_fields={}, station_name='Central')
-        FinalVerdict.objects.create(case=c10, c_final_number='C1')
-        
-        c11 = CaseRecord.objects.create(case_number='CR011', extra_fields={}, station_name='Central')
-        FinalVerdict.objects.create(case=c11, nc_final_number='NC1')
-        
-        c12 = CaseRecord.objects.create(case_number='CR012', extra_fields={}, station_name='Central')
-        FinalVerdict.objects.create(case=c12, abeted_summary_no='AS1')
+        CaseRecord.objects.create(case_number='CR006', extra_fields={'ccStNumber': 'CC1234'}, station_name='Central')
+        CaseRecord.objects.create(case_number='CR007', extra_fields={'chargeSheetNumber': 'CS123'}, station_name='Central')
+        CaseRecord.objects.create(case_number='CR008', extra_fields={'aFinalNo': 'A1'}, station_name='Central')
+        CaseRecord.objects.create(case_number='CR009', extra_fields={'bFinalNo': 'B1'}, station_name='Central')
+        CaseRecord.objects.create(case_number='CR010', extra_fields={'cFinalNo': 'C1'}, station_name='Central')
+        CaseRecord.objects.create(case_number='CR011', extra_fields={'ncFinalNo': 'NC1'}, station_name='Central')
+        CaseRecord.objects.create(case_number='CR012', extra_fields={'abatedSummaryNo': 'AS1'}, station_name='Central')
         
         # Multiple keys
-        c13 = CaseRecord.objects.create(case_number='CR013', extra_fields={}, station_name='Central')
-        FinalVerdict.objects.create(case=c13, cc_st_number='CC1234', charge_sheet_no='CS123')
+        CaseRecord.objects.create(case_number='CR013', extra_fields={'ccStNumber': 'CC1234', 'chargeSheetNumber': 'CS123'}, station_name='Central')
         
         # With spaces
-        c14 = CaseRecord.objects.create(case_number='CR014', extra_fields={}, station_name='Central')
-        FinalVerdict.objects.create(case=c14, charge_sheet_no='  CS999  ')
+        CaseRecord.objects.create(case_number='CR014', extra_fields={'chargeSheetNumber': '  CS999  '}, station_name='Central')
 
     def test_pending_and_disposal_inverses(self):
         total_cases = CaseRecord.objects.count()
@@ -66,6 +43,7 @@ class DisposalInverseLogicTests(APITestCase):
         self.assertEqual(len(disposal_ids), 9)
 
 from django.contrib.auth import get_user_model
+from unittest.mock import patch
 User = get_user_model()
 
 class DisposalAPITests(APITestCase):
@@ -83,22 +61,19 @@ class DisposalAPITests(APITestCase):
 
         # Create disposal cases for 'Central' and 'North'
         for i in range(15):
-            c = CaseRecord.objects.create(
+            CaseRecord.objects.create(
                 case_number=f'CR_{i}',
                 station_name='Central',
-                extra_fields={'disposal_date': '2023-10-01'},
+                extra_fields={'ccStNumber': f'CC{i}', 'disposal_date': '2023-10-01'},
                 assigned_officer='Test IO'
             )
-            from apps.crimetab.models.common_form import FinalVerdict
-            FinalVerdict.objects.create(case=c, cc_st_number=f'CC{i}')
         # Out of scope case
-        c_north = CaseRecord.objects.create(
+        CaseRecord.objects.create(
             case_number='CR_NORTH',
             station_name='North',
-            extra_fields={'disposal_date': '2023-10-01'},
+            extra_fields={'ccStNumber': 'CC999', 'disposal_date': '2023-10-01'},
             assigned_officer='Other IO'
         )
-        FinalVerdict.objects.create(case=c_north, cc_st_number='CC999')
 
     def test_scoping_and_pagination_cap(self):
         url = reverse('disposal-case-wise')
@@ -114,10 +89,8 @@ class DisposalAPITests(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(len(data), 6)
-        more_than_1_yr = next((item for item in data if item['period'] == 'More than 1 year'), None)
-        self.assertIsNotNone(more_than_1_yr)
-        self.assertEqual(more_than_1_yr['count'], 15)
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]['count'], 15)
         
     def test_designation_wise_view(self):
         url = reverse('disposal-designation-wise')
@@ -130,6 +103,7 @@ class DisposalAPITests(APITestCase):
 
     def test_disposal_date_persistence(self):
         # 1. Create sets the date
+        from django.utils import timezone
         import datetime
         from unittest.mock import patch
 
@@ -170,18 +144,14 @@ class DisposalAPITests(APITestCase):
             case_number='CR_IO_1',
             station_name='Central',
             assigned_officer_uid='io-uid-1',
-            extra_fields={'disposal_date': '2023-11-01'}
+            extra_fields={'ccStNumber': '111', 'disposal_date': '2023-11-01'}
         )
-        from apps.crimetab.models.common_form import FinalVerdict
-        FinalVerdict.objects.create(case=c1, cc_st_number='111')
-        
         c2 = CaseRecord.objects.create(
             case_number='CR_IO_2',
             station_name='Central',
             assigned_officer_uid='io-uid-2',
-            extra_fields={'disposal_date': '2023-11-01'}
+            extra_fields={'ccStNumber': '222', 'disposal_date': '2023-11-01'}
         )
-        FinalVerdict.objects.create(case=c2, cc_st_number='222')
         
         url = reverse('disposal-case-wise')
         response = self.client.get(url, {'io_uid': 'io-uid-1', 'page_size': 200})
@@ -191,7 +161,70 @@ class DisposalAPITests(APITestCase):
         self.assertEqual(data['count'], 1)
         self.assertEqual(data['results'][0]['case_number'], 'CR_IO_1')
 
+class ADCaseDisposalTests(APITestCase):
+    def test_ad_rule(self):
+        from apps.cases.utils import get_cases_by_status
+        from django.utils import timezone
+        
+        # 1. AD case with 7 fields is disposed
+        c1 = CaseRecord.objects.create(module_key='ad', extra_fields={'ccStNumber': 'AD-CC'})
+        self.assertTrue(get_cases_by_status('disposal').filter(id=c1.id).exists())
+        
+        # 2. AD case with AD Summary No AND Date is disposed
+        c2 = CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryNo': 'AD-123', 'adSummaryDate': '2023-01-01'})
+        self.assertTrue(get_cases_by_status('disposal').filter(id=c2.id).exists())
+        
+        # 3. AD case with ONLY AD Summary No is pending
+        c3 = CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryNo': 'AD-456'})
+        self.assertTrue(get_cases_by_status('pending').filter(id=c3.id).exists())
+        
+        # 4. AD case with ONLY AD Summary Date is pending
+        c4 = CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryDate': '2023-01-01'})
+        self.assertTrue(get_cases_by_status('pending').filter(id=c4.id).exists())
+        
+        # 5. Non-AD case with AD Summary No and Date is pending (if no 7 fields)
+        c5 = CaseRecord.objects.create(module_key='theft', extra_fields={'adSummaryNo': 'AD-123', 'adSummaryDate': '2023-01-01'})
+        self.assertTrue(get_cases_by_status('pending').filter(id=c5.id).exists())
+        
+        # 6. AD case identified by sub_category
+        c6 = CaseRecord.objects.create(module_key='missing', sub_category='accidental death', extra_fields={'adSummaryNo': 'AD-99', 'adSummaryDate': '2023-01-01'})
+        self.assertTrue(get_cases_by_status('disposal').filter(id=c6.id).exists())
 
+        # Verify save() sets disposal_date for AD rule cases
+        c2.refresh_from_db()
+        self.assertTrue(bool(c2.extra_fields.get('disposal_date')))
+        
+    def test_ad_sql_vs_python(self):
+        from apps.cases.utils import get_cases_by_status
+        # Compare Python is_ad_case_disposed vs SQL rule for random combinations
+        cases = [
+            CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryNo': 'A', 'adSummaryDate': 'D'}),
+            CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryNo': 'A'}),
+            CaseRecord.objects.create(module_key='missing', sub_category='ad', extra_fields={'adSummaryNo': 'A', 'adSummaryDate': 'D'}),
+            CaseRecord.objects.create(module_key='theft', extra_fields={'adSummaryNo': 'A', 'adSummaryDate': 'D', 'ccStNumber': '1'}),
+        ]
+        
+        from apps.cases.models import is_ad_case_disposed
+        sql_disposed_ids = set(get_cases_by_status('disposal').values_list('id', flat=True))
+        
+        for c in cases:
+            c.refresh_from_db() # Get updated status
+            python_result = is_ad_case_disposed(c) or any(bool(str(c.extra_fields.get(k, '')).strip()) for k in ['ccStNumber'])
+            sql_result = c.id in sql_disposed_ids
+            self.assertEqual(python_result, sql_result)
+        
+    def test_inverse(self):
+        from apps.cases.utils import get_cases_by_status
+        # Ensure pending + disposal = total, and no intersection
+        CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryNo': 'A', 'adSummaryDate': 'D'})
+        CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryNo': 'A'})
+        
+        all_ids = set(CaseRecord.objects.values_list('id', flat=True))
+        disp_ids = set(get_cases_by_status('disposal').values_list('id', flat=True))
+        pend_ids = set(get_cases_by_status('pending').values_list('id', flat=True))
+        
+        self.assertEqual(disp_ids.intersection(pend_ids), set())
+        self.assertEqual(disp_ids.union(pend_ids), all_ids)
 
     def test_pagination_stability(self):
         from rest_framework.test import APIClient
@@ -214,17 +247,13 @@ class DisposalAPITests(APITestCase):
                 module_key='theft',
                 case_number=f'CR_{i}',
                 station_name='Central',
-                extra_fields={'disposal_date': '2023-01-01'}
+                extra_fields={'ccStNumber': f'CC-{i}', 'disposal_date': '2023-01-01'}
             )
-            from apps.crimetab.models.common_form import FinalVerdict
-            FinalVerdict.objects.create(case=c, cc_st_number=f'CC-{i}')
             # Force same created_at
             CaseRecord.objects.filter(id=c.id).update(created_at=identical_time)
             
         res1 = client.get('/api/cases/disposal/case-wise/?page=1&page_size=20')
-        self.assertEqual(res1.status_code, 200, f"res1 failed: {res1.json()}")
         res2 = client.get('/api/cases/disposal/case-wise/?page=2&page_size=20')
-        self.assertEqual(res2.status_code, 200, f"res2 failed: {res2.json()}")
         
         ids1 = [item['id'] for item in res1.data['results']]
         ids2 = [item['id'] for item in res2.data['results']]

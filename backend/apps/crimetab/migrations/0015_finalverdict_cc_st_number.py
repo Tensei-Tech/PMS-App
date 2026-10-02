@@ -10,13 +10,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.SeparateDatabaseAndState(
-            database_operations=[
-                migrations.RunSQL(
-                    sql='ALTER TABLE final_verdict ADD COLUMN IF NOT EXISTS cc_st_number varchar(50) NULL;',
-                    reverse_sql='ALTER TABLE final_verdict DROP COLUMN IF EXISTS cc_st_number;'
-                ),
-            ],
+        migrations.RunSQL(
+            sql="ALTER TABLE final_verdict ADD COLUMN IF NOT EXISTS cc_st_number VARCHAR(50);",
+            reverse_sql="ALTER TABLE final_verdict DROP COLUMN IF EXISTS cc_st_number;",
             state_operations=[
                 migrations.AddField(
                     model_name='finalverdict',

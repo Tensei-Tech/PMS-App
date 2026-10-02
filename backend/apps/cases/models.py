@@ -161,7 +161,6 @@ class CaseRecord(models.Model):
     sub_category = models.CharField(max_length=128, blank=True, null=True)
     created_by = models.CharField(max_length=128, blank=True)
     station_name = models.CharField(max_length=255, db_index=True)
-    disposal_date = models.DateTimeField(blank=True, null=True)
     extra_fields = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -204,6 +203,13 @@ class CaseRecord(models.Model):
             if has_disposal_key:
                 if isinstance(self.extra_fields, dict) and not self.extra_fields.get('disposal_date'):
                     self.extra_fields['disposal_date'] = timezone.localtime(timezone.now()).strftime('%Y-%m-%d')
+                    
+        # Update the status based on disposal key presence
+        from apps.cases.constants import CASE_STATUS_DISPOSAL, CASE_STATUS_PENDING
+        if has_disposal_key:
+            self.status = CASE_STATUS_DISPOSAL
+        elif self.status == CASE_STATUS_DISPOSAL:
+            self.status = CASE_STATUS_PENDING
 
         super().save(*args, **kwargs)
 

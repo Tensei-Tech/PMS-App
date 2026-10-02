@@ -4,7 +4,6 @@ import '../services/backend_case_service.dart';
 import '../theme/app_theme.dart';
 import 'filtered_disposal_screen.dart';
 
-
 class DisposalHubScreen extends StatefulWidget {
   final String stationName;
 

@@ -24,7 +24,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U postgres -d test_db"
+          --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -52,25 +52,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Check for missing migrations
-        run: |
-          python manage.py makemigrations --dry-run > migrations.txt 2>&1 || true
-          python manage.py makemigrations --check --dry-run > check_output.txt 2>&1 || true
-          cat migrations.txt > full_output.txt
-          echo -e "\n\nCHECK OUTPUT:\n\n" >> full_output.txt
-          cat check_output.txt >> full_output.txt
-          git config --global user.name 'github-actions'
-          git config --global user.email 'github-actions@github.com'
-          git add full_output.txt
-          git commit -m "Add full_output.txt" || true
-          git push origin cleanup-disposal-tab || true
-          python manage.py makemigrations --check --dry-run
-
-      - name: Upload missing migrations
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: missing-migrations
-          path: backend/migrations.txt
+        run: python manage.py makemigrations --check --dry-run
 
       - name: Run migrations
         run: python manage.py migrate

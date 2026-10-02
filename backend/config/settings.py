@@ -113,23 +113,14 @@ def is_ssl_required(db_url: str) -> bool:
 # 1. Primary Database (Writes & Critical Operations)
 is_local = os.getenv('DB_HOST', 'localhost') in ['localhost', '127.0.0.1']
 
-if os.getenv('DATABASE_URL'):
-    from urllib.parse import urlparse
-    db_url = urlparse(os.getenv('DATABASE_URL'))
-    DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': db_url.path.lstrip('/'),
-        'USER': db_url.username or 'postgres',
-        'PASSWORD': db_url.password or 'postgres',
-        'HOST': db_url.hostname or 'localhost',
-        'PORT': db_url.port or 5432,
-        'CONN_MAX_AGE': 600,
-        'CONN_HEALTH_CHECKS': True,
-        'OPTIONS': {
-            'sslmode': os.getenv('DB_SSLMODE', 'disable' if is_local else 'require'),
-            'options': '-c search_path=maharashtra,public',
-        },
-    }
+if os.getenv('DATABASE_URL') and dj_database_url:
+    DATABASES['default'] = dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
+        ssl_require=is_ssl_required(os.getenv('DATABASE_URL', '')),
+    )
+    DATABASES['default'].setdefault('OPTIONS', {})['options'] = '-c search_path=maharashtra,public'
 elif os.getenv('DB_NAME') and os.getenv('DB_PASSWORD') and os.getenv('DB_PASSWORD') != 'YOUR_SUPABASE_DB_PASSWORD':
     DATABASES['default'] = {
         'ENGINE': 'django.db.backends.postgresql',
