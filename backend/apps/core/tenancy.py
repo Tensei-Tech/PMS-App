@@ -89,9 +89,15 @@ def provision_state_schema(schema_name: str):
             created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
         );
-        ALTER TABLE "{clean_schema}".users_officerprofile ADD COLUMN IF NOT EXISTS division_name VARCHAR(128);
-        ALTER TABLE "{clean_schema}".users_officerprofile ADD COLUMN IF NOT EXISTS division_id VARCHAR(64);
-        ALTER TABLE "{clean_schema}".users_officerprofile ADD COLUMN IF NOT EXISTS is_biometric_enabled BOOLEAN DEFAULT FALSE;
+        CREATE TABLE IF NOT EXISTS "{clean_schema}".master_divisions (
+            id BIGSERIAL PRIMARY KEY,
+            state_code VARCHAR(10) DEFAULT 'MH',
+            state_name VARCHAR(100) DEFAULT 'Maharashtra',
+            name VARCHAR(128) NOT NULL,
+            code VARCHAR(64),
+            created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT "{clean_schema}_master_divisions_state_name_uniq" UNIQUE (state_code, name)
+        );
         """)
         logger.info(f"[Tenancy] Provisioned PostgreSQL schema & tables: {clean_schema}")
 
