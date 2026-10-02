@@ -130,12 +130,14 @@ class CaseManagementAPITests(TestCase):
             ('/api/cases/crime-types/Theft/cases/', 'get'),
             ('/api/cases/crime-types/Theft/sections/', 'get'),
             ('/api/cases/pending/', 'get'),
-            ('/api/cases/disposal/', 'get'),
+            ('/api/cases/disposal/case-wise/', 'get'),
             ('/api/cases/create/', 'post'),
         ]
 
-        # Explicitly empty credentials
+        # Explicitly empty credentials and session/cookies
         self.client.credentials()
+        self.client.logout()
+        self.client.cookies.clear()
 
         for url, method in endpoints:
             with self.subTest(url=url, method=method):

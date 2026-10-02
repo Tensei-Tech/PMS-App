@@ -266,12 +266,12 @@ class CaseRecord(models.Model):
             if self.status not in ['Disposal', 'Closed', 'Resolved']:
                 self.status = 'Disposal'
             
-        # CC/ST Logic (Skip AD cases)
+        # CC/ST / Court Filing Logic (Skip AD cases)
         elif self.module_key != 'ad':
-            # Check if CC/ST is currently present in extra_fields
+            # Check if CC/ST or Court Filing fields are present in extra_fields
             has_cc = False
             if isinstance(self.extra_fields, dict):
-                has_cc = bool(_extract_first_non_empty(self.extra_fields, CC_ST_KEYS))
+                has_cc = bool(_extract_first_non_empty(self.extra_fields, CC_ST_KEYS + COURT_FILING_DISPOSAL_KEYS))
             has_disposal_key = has_cc
             
         if self.pk:
