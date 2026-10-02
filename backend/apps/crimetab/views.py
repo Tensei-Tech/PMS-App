@@ -1328,13 +1328,16 @@ class CrimeCaseManageView(APIView):
         try:
             with transaction.atomic():
                 extra_fields_val = data.get('extra_fields', {})
-                fv_data = data.get('final_verdict') or data.get('court')
-                if isinstance(fv_data, dict):
-                    if not isinstance(extra_fields_val, dict):
-                        extra_fields_val = {}
-                    for k, v in fv_data.items():
-                        if v:
-                            extra_fields_val[k] = v
+                if not isinstance(extra_fields_val, dict):
+                    extra_fields_val = {}
+
+                for container_key in ['final_verdict', 'court', 'court_filing']:
+                    container_data = data.get(container_key)
+                    if isinstance(container_data, dict):
+                        for k, v in container_data.items():
+                            if v is not None:
+                                extra_fields_val[k] = v
+                        extra_fields_val[container_key] = container_data
 
                 # 1. Create CaseRecord
                 case = CaseRecord.objects.create(
@@ -1409,14 +1412,16 @@ class CrimeCaseManageView(APIView):
                 if 'extra_fields' in data:
                     case.extra_fields = data['extra_fields']
                 
-                # Merge final_verdict keys into extra_fields for disposal detection
-                fv_data = data.get('final_verdict') or data.get('court')
-                if isinstance(fv_data, dict):
-                    if not isinstance(case.extra_fields, dict):
-                        case.extra_fields = {}
-                    for k, v in fv_data.items():
-                        if v:
-                            case.extra_fields[k] = v
+                if not isinstance(case.extra_fields, dict):
+                    case.extra_fields = {}
+
+                for container_key in ['final_verdict', 'court', 'court_filing']:
+                    container_data = data.get(container_key)
+                    if isinstance(container_data, dict):
+                        for k, v in container_data.items():
+                            if v is not None:
+                                case.extra_fields[k] = v
+                        case.extra_fields[container_key] = container_data
 
                 case.save()
 
