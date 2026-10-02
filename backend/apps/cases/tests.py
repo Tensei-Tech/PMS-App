@@ -134,17 +134,16 @@ class CaseManagementAPITests(TestCase):
             ('/api/cases/create/', 'post'),
         ]
 
-        # Explicitly empty credentials and session/cookies
-        self.client.credentials()
-        self.client.logout()
-        self.client.cookies.clear()
+        from rest_framework.test import APIClient
+        unauth_client = APIClient()
 
         for url, method in endpoints:
+            unauth_client = APIClient()
             with self.subTest(url=url, method=method):
                 if method == 'get':
-                    response = self.client.get(url)
+                    response = unauth_client.get(url)
                 else:
-                    response = self.client.post(url, {}, format='json')
+                    response = unauth_client.post(url, {}, format='json')
                 self.assertEqual(
                     response.status_code,
                     status.HTTP_401_UNAUTHORIZED,
