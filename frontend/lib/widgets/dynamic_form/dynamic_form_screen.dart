@@ -5077,7 +5077,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                           children: [
                             CheckboxListTile(
                               title: Text(
-                                'Release on Notice under BNSS',
+                                'Release on Notice',
                                 style: GoogleFonts.poppins(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
@@ -5148,7 +5148,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                           children: [
                             CheckboxListTile(
                               title: Text(
-                                'Anticipatory Bail Granted',
+                                'Anticipatory Bail',
                                 style: GoogleFonts.poppins(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
