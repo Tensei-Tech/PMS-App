@@ -3,6 +3,7 @@ from unittest.mock import patch
 from apps.cases.models import CaseRecord
 from apps.cases.serializers import CaseRecordSerializer
 from apps.users.models import OfficerProfile
+from apps.crimetab.models.common_form import FinalVerdict
 
 class StatusLogicTests(TestCase):
     def setUp(self):

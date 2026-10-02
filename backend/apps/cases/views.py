@@ -26,11 +26,10 @@ from django.db.models import Q
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models.fields.json import KeyTextTransform
-from apps.public_master.models import District, PoliceStation
+from apps.stations.models import District, PoliceStation
 from apps.cases.serializers import DisposalCaseRecordSerializer
 from apps.crimetab.models.groupings import CaseCategory
 from rest_framework.pagination import PageNumberPagination
-from apps.crimetab.models import PoliceStation
 from datetime import timedelta, datetime
 import re
 from apps.users.models import OfficerProfile
