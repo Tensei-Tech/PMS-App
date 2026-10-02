@@ -312,6 +312,7 @@ class CommonFormState extends State<CommonForm> {
   // ── §2 Acts & Sections ────────────────────────────────────────────────────
   int _chargeSeq = 0;
   final Map<String, Map<String, dynamic>> _chargeData = {};
+  List<Map<String, dynamic>> _cascadingCharges = [];
 
   // ── §3 Crime Spot ─────────────────────────────────────────────────────────
   final _spotVillage = TextEditingController();
@@ -1347,6 +1348,7 @@ class CommonFormState extends State<CommonForm> {
 
   void clearForm() {
     _chargeData.clear();
+    _cascadingCharges.clear();
     _chargeSeq = 0;
     _disposePeople(_accused);
     _disposePeople(_suspected);
@@ -1542,9 +1544,26 @@ class CommonFormState extends State<CommonForm> {
       'charges': _chargeData.map(
         (k, v) => MapEntry(k, {
           'act': v['act'],
+          'act_id': v['act_id'],
+          'section_id': v['section_id'],
+          'section_number': v['section_number'],
+          'subsection_id': v['subsection_id'],
+          'subsection_code': v['subsection_code'],
           'sections': (v['sections'] as Set<String>).toList(),
         }),
       ),
+      'acts_sections': _cascadingCharges.isNotEmpty
+          ? _cascadingCharges
+          : _chargeData.values
+              .map((v) => {
+                    'act': v['act_id'] ?? v['act'],
+                    'act_name': v['act'],
+                    'section': v['section_id'],
+                    'section_number': v['section_number'],
+                    'subsection': v['subsection_id'],
+                    'subsection_code': v['subsection_code'],
+                  })
+              .toList(),
       'spotVillage': _spotVillage.text,
       'spotArea': _spotArea.text,
       'spotAddress': _spotAddress.text,
@@ -1883,6 +1902,17 @@ class CommonFormState extends State<CommonForm> {
     _regDate.text = _s(m['regDate']);
     _firPath = m['firCopyPath'] as String?;
 
+    _cascadingCharges.clear();
+    final actsSecs =
+        m['acts_sections'] ?? m['charges_list'] ?? m['actsSections'];
+    if (actsSecs is List && actsSecs.isNotEmpty) {
+      for (final item in actsSecs) {
+        if (item is Map) {
+          _cascadingCharges.add(Map<String, dynamic>.from(item));
+        }
+      }
+    }
+
     final ch = m['charges'];
     if (ch is Map) {
       for (final e in ch.entries) {
@@ -1891,13 +1921,37 @@ class CommonFormState extends State<CommonForm> {
         final raw = e.value as Map?;
         if (raw == null) continue;
         final secs = raw['sections'];
+        final act = _s(raw['act']);
+        final secList = <String>[
+          if (secs is Iterable)
+            for (final s in secs) s.toString(),
+        ];
         _chargeData[id] = {
-          'act': _s(raw['act']),
-          'sections': <String>{
-            if (secs is Iterable)
-              for (final s in secs) s.toString(),
-          },
+          'act': act,
+          'act_id': raw['act_id'],
+          'section_id': raw['section_id'],
+          'section_number': raw['section_number'],
+          'subsection_id': raw['subsection_id'],
+          'subsection_code': raw['subsection_code'],
+          'sections': secList.toSet(),
         };
+        if (_cascadingCharges.isEmpty &&
+            (act.isNotEmpty || raw['act_id'] != null)) {
+          _cascadingCharges.add({
+            'act_id': raw['act_id'] ?? act,
+            'act': raw['act_id'] ?? act,
+            'act_name': act,
+            'section_id': raw['section_id'] ??
+                (secList.isNotEmpty ? secList.first : null),
+            'section': raw['section_id'] ??
+                (secList.isNotEmpty ? secList.first : null),
+            'section_number': raw['section_number'] ??
+                (secList.isNotEmpty ? secList.first : null),
+            'subsection_id': raw['subsection_id'],
+            'subsection': raw['subsection_id'],
+            'subsection_code': raw['subsection_code'],
+          });
+        }
       }
     }
 
@@ -3555,9 +3609,38 @@ class CommonFormState extends State<CommonForm> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           RepeatingCascadingChargesSelector(
+            key: ValueKey('charges_${_cascadingCharges.length}'),
+            initialCharges: _cascadingCharges,
             readOnly: false,
             onChargesChanged: (chargesList) {
-              // Charges updated dynamically
+              setState(() {
+                _cascadingCharges =
+                    List<Map<String, dynamic>>.from(chargesList);
+                _chargeData.clear();
+                int idx = 0;
+                for (final item in chargesList) {
+                  idx++;
+                  final actName = item['act_name']?.toString() ??
+                      item['act']?.toString() ??
+                      '';
+                  final secNum = item['section_number']?.toString() ??
+                      item['section_title']?.toString() ??
+                      '';
+                  final subsec = item['subsection_code']?.toString() ?? '';
+                  _chargeData['charge-$idx'] = {
+                    'act': actName,
+                    'act_id': item['act_id'] ?? item['act'],
+                    'section_id': item['section_id'] ?? item['section'],
+                    'section_number': secNum,
+                    'subsection_id':
+                        item['subsection_id'] ?? item['subsection'],
+                    'subsection_code': subsec,
+                    'sections': <String>{
+                      if (secNum.isNotEmpty) secNum,
+                    },
+                  };
+                }
+              });
             },
           ),
         ],
