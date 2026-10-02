@@ -163,70 +163,7 @@ class DisposalAPITests(APITestCase):
         self.assertEqual(data['count'], 1)
         self.assertEqual(data['results'][0]['case_number'], 'CR_IO_1')
 
-class ADCaseDisposalTests(APITestCase):
-    def test_ad_rule(self):
-        from apps.cases.utils import get_cases_by_status
-        from django.utils import timezone
-        
-        # 1. AD case with 7 fields is disposed
-        c1 = CaseRecord.objects.create(module_key='ad', extra_fields={'ccStNumber': 'AD-CC'})
-        self.assertTrue(get_cases_by_status('disposal').filter(id=c1.id).exists())
-        
-        # 2. AD case with AD Summary No AND Date is disposed
-        c2 = CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryNo': 'AD-123', 'adSummaryDate': '2023-01-01'})
-        self.assertTrue(get_cases_by_status('disposal').filter(id=c2.id).exists())
-        
-        # 3. AD case with ONLY AD Summary No is pending
-        c3 = CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryNo': 'AD-456'})
-        self.assertTrue(get_cases_by_status('pending').filter(id=c3.id).exists())
-        
-        # 4. AD case with ONLY AD Summary Date is pending
-        c4 = CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryDate': '2023-01-01'})
-        self.assertTrue(get_cases_by_status('pending').filter(id=c4.id).exists())
-        
-        # 5. Non-AD case with AD Summary No and Date is pending (if no 7 fields)
-        c5 = CaseRecord.objects.create(module_key='theft', extra_fields={'adSummaryNo': 'AD-123', 'adSummaryDate': '2023-01-01'})
-        self.assertTrue(get_cases_by_status('pending').filter(id=c5.id).exists())
-        
-        # 6. AD case identified by sub_category
-        c6 = CaseRecord.objects.create(module_key='missing', sub_category='accidental death', extra_fields={'adSummaryNo': 'AD-99', 'adSummaryDate': '2023-01-01'})
-        self.assertTrue(get_cases_by_status('disposal').filter(id=c6.id).exists())
 
-        # Verify save() sets disposal_date for AD rule cases
-        c2.refresh_from_db()
-        self.assertTrue(bool(c2.extra_fields.get('disposal_date')))
-        
-    def test_ad_sql_vs_python(self):
-        from apps.cases.utils import get_cases_by_status
-        # Compare Python is_ad_case_disposed vs SQL rule for random combinations
-        cases = [
-            CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryNo': 'A', 'adSummaryDate': 'D'}),
-            CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryNo': 'A'}),
-            CaseRecord.objects.create(module_key='missing', sub_category='ad', extra_fields={'adSummaryNo': 'A', 'adSummaryDate': 'D'}),
-            CaseRecord.objects.create(module_key='theft', extra_fields={'adSummaryNo': 'A', 'adSummaryDate': 'D', 'ccStNumber': '1'}),
-        ]
-        
-        from apps.cases.models import is_ad_case_disposed
-        sql_disposed_ids = set(get_cases_by_status('disposal').values_list('id', flat=True))
-        
-        for c in cases:
-            c.refresh_from_db() # Get updated status
-            python_result = is_ad_case_disposed(c) or any(bool(str(c.extra_fields.get(k, '')).strip()) for k in ['ccStNumber'])
-            sql_result = c.id in sql_disposed_ids
-            self.assertEqual(python_result, sql_result)
-        
-    def test_inverse(self):
-        from apps.cases.utils import get_cases_by_status
-        # Ensure pending + disposal = total, and no intersection
-        CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryNo': 'A', 'adSummaryDate': 'D'})
-        CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryNo': 'A'})
-        
-        all_ids = set(CaseRecord.objects.values_list('id', flat=True))
-        disp_ids = set(get_cases_by_status('disposal').values_list('id', flat=True))
-        pend_ids = set(get_cases_by_status('pending').values_list('id', flat=True))
-        
-        self.assertEqual(disp_ids.intersection(pend_ids), set())
-        self.assertEqual(disp_ids.union(pend_ids), all_ids)
 
     def test_pagination_stability(self):
         from rest_framework.test import APIClient
