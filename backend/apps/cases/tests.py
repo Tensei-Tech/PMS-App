@@ -135,17 +135,15 @@ class CaseManagementAPITests(TestCase):
         ]
 
         from apps.core.tenancy import set_tenant_schema
-        set_tenant_schema('maharashtra')
-        self.client.credentials()
-        from rest_framework.test import APIClient
 
         for url, method in endpoints:
-            unauth_client = APIClient()
+            set_tenant_schema('maharashtra')
+            self.client.credentials()
             with self.subTest(url=url, method=method):
                 if method == 'get':
-                    response = unauth_client.get(url, HTTP_X_STATE_CODE='MH')
+                    response = self.client.get(url, HTTP_X_STATE_CODE='MH')
                 else:
-                    response = unauth_client.post(url, {}, format='json', HTTP_X_STATE_CODE='MH')
+                    response = self.client.post(url, {}, format='json', HTTP_X_STATE_CODE='MH')
                 self.assertEqual(
                     response.status_code,
                     status.HTTP_401_UNAUTHORIZED,
