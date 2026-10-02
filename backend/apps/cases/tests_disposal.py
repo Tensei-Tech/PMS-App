@@ -54,13 +54,9 @@ class DisposalAPITests(APITestCase):
         
         self.client.force_authenticate(user=self.user)
         
-        from apps.cases.views import DisposalCaseWiseView, TimeWiseDisposalView, DesignationWiseDisposalView
-        self.original_perms_case = DisposalCaseWiseView.permission_classes
-        self.original_perms_time = TimeWiseDisposalView.permission_classes
-        self.original_perms_desig = DesignationWiseDisposalView.permission_classes
-        DisposalCaseWiseView.permission_classes = []
-        TimeWiseDisposalView.permission_classes = []
-        DesignationWiseDisposalView.permission_classes = []
+        # Patch check_dynamic_permission to always return True for these tests
+        self.patcher = patch('apps.cases.views.check_dynamic_permission', return_value=True)
+        self.patcher.start()
 
         # Create disposal cases for 'Central' and 'North'
         for i in range(15):
@@ -79,10 +75,7 @@ class DisposalAPITests(APITestCase):
         )
 
     def tearDown(self):
-        from apps.cases.views import DisposalCaseWiseView, TimeWiseDisposalView, DesignationWiseDisposalView
-        DisposalCaseWiseView.permission_classes = self.original_perms_case
-        TimeWiseDisposalView.permission_classes = self.original_perms_time
-        DesignationWiseDisposalView.permission_classes = self.original_perms_desig
+        self.patcher.stop()
 
     def test_scoping_and_pagination_cap(self):
         url = reverse('disposal-case-wise')
