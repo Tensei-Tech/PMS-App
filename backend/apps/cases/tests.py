@@ -85,6 +85,47 @@ class CaseManagementAPITests(TestCase):
                 WHERE status IN ('Disposal', 'Closed');
             """)
 
+            # Add remand_custody table with proper constraints
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS remand_custody (
+                    id SERIAL PRIMARY KEY,
+                    person_id INTEGER NOT NULL,
+                    pcr_days INTEGER,
+                    mcr BOOLEAN DEFAULT FALSE,
+                    pr_bond BOOLEAN DEFAULT FALSE,
+                    pr_bond_date DATE,
+                    bail BOOLEAN DEFAULT FALSE,
+                    surety_jail BOOLEAN DEFAULT FALSE,
+                    surety_name VARCHAR(255),
+                    surety_age INTEGER,
+                    surety_gender VARCHAR(50),
+                    surety_occupation VARCHAR(255),
+                    surety_mobile VARCHAR(20),
+                    surety_aadhaar VARCHAR(20),
+                    surety_pan VARCHAR(20),
+                    surety_add TEXT,
+                    created_at TIMESTAMPTZ DEFAULT NOW(),
+                    CONSTRAINT chk_pr_bond_requires_mcr CHECK (
+                        NOT pr_bond OR mcr = TRUE
+                    ),
+                    CONSTRAINT chk_surety_jail_requires_bail CHECK (
+                        NOT surety_jail OR bail = TRUE
+                    )
+                );
+            """)
+            
+            # Add preventive_action_items table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS preventive_action_items (
+                    id SERIAL PRIMARY KEY,
+                    case_id INTEGER NOT NULL,
+                    person_id INTEGER NOT NULL,
+                    action VARCHAR(255),
+                    created_at TIMESTAMPTZ DEFAULT NOW(),
+                    UNIQUE(case_id, person_id, action)
+                );
+            """)
+
             # Insert sample crime type
             cursor.execute("""
                 INSERT INTO crime_type_master (crime_type, act, section, sub_section, ipc_number)
