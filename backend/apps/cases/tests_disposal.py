@@ -54,9 +54,14 @@ class DisposalAPITests(APITestCase):
         
         self.client.force_authenticate(user=self.user)
         
-        # Patch check_dynamic_permission to always return True for these tests
-        self.patcher = patch('apps.cases.views.check_dynamic_permission', return_value=True)
-        self.patcher.start()
+        # Patch check_dynamic_permission to only allow case:view, so district/state skips work
+        def mock_check_perm(user, perm_code):
+            return perm_code in ['case:view']
+            
+        self.patcher1 = patch('apps.cases.views.check_dynamic_permission', side_effect=mock_check_perm)
+        self.patcher2 = patch('apps.core.permissions.check_dynamic_permission', side_effect=mock_check_perm)
+        self.patcher1.start()
+        self.patcher2.start()
 
         # Create disposal cases for 'Central' and 'North'
         for i in range(15):
@@ -75,7 +80,8 @@ class DisposalAPITests(APITestCase):
         )
 
     def tearDown(self):
-        self.patcher.stop()
+        self.patcher1.stop()
+        self.patcher2.stop()
 
     def test_scoping_and_pagination_cap(self):
         url = reverse('disposal-case-wise')
