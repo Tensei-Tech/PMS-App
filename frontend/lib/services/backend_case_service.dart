@@ -202,13 +202,18 @@ class BackendCaseService {
       }
       if (page != null) queryParams['page'] = page;
       if (pageSize != null) queryParams['page_size'] = pageSize;
-      if (station != null && station.isNotEmpty)
+      if (station != null && station.isNotEmpty) {
         queryParams['station'] = station;
-      if (district != null && district.isNotEmpty)
+      }
+      if (district != null && district.isNotEmpty) {
         queryParams['district'] = district;
-      if (crimeType != null && crimeType.isNotEmpty)
+      }
+      if (crimeType != null && crimeType.isNotEmpty) {
         queryParams['crime_type'] = crimeType;
-      if (search != null && search.isNotEmpty) queryParams['search'] = search;
+      }
+      if (search != null && search.isNotEmpty) {
+        queryParams['search'] = search;
+      }
 
       final url = '${ApiConfig.cases}disposal/case-wise/';
       final response = await _api.get(url, queryParameters: queryParams);
