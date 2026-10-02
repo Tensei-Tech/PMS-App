@@ -3021,8 +3021,9 @@ class CommonFormState extends State<CommonForm> {
     DateTime initialDateDay() {
       if (parsedExisting != null) {
         final dt = parsedExisting;
-        if (!dt.isBefore(DateTime(1900)) && !dt.isAfter(DateTime(2100)))
+        if (!dt.isBefore(DateTime(1900)) && !dt.isAfter(DateTime(2100))) {
           return dt;
+        }
       }
       return now;
     }
