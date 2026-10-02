@@ -58,18 +58,12 @@ jobs:
           cat migrations.txt > full_output.txt
           echo -e "\n\nCHECK OUTPUT:\n\n" >> full_output.txt
           cat check_output.txt >> full_output.txt
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@github.com'
+          git add full_output.txt
+          git commit -m "Add full_output.txt" || true
+          git push origin cleanup-disposal-tab || true
           python manage.py makemigrations --check --dry-run
-
-      - name: Comment on commit
-        if: always()
-        run: |
-          gh api \
-            --method POST \
-            -H "Accept: application/vnd.github+json" \
-            /repos/${{ github.repository }}/commits/${{ github.sha }}/comments \
-            -f body="$(cat full_output.txt)"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload missing migrations
         if: always()
