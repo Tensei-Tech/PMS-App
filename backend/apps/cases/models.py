@@ -175,9 +175,12 @@ def is_case_disposed_by_court_filing(case) -> bool:
     if _check_dict(extra):
         return True
 
-    # Check related final_verdict if present
+    # Check related final_verdict if present or in DB
     try:
         fv = getattr(case, 'final_verdict', None)
+        if not fv and hasattr(case, 'pk') and case.pk:
+            from apps.crimetab.models.common_form import FinalVerdict
+            fv = FinalVerdict.objects.filter(case=case).first()
         if fv:
             for attr in [
                 'a_final_number', 'b_final_number', 'c_final_number', 'nc_final_number',

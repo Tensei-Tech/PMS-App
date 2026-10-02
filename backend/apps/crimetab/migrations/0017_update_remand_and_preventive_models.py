@@ -34,7 +34,10 @@ def update_db_schemas_and_templates(apps, schema_editor):
                 )
 
         # 2. Multi-schema column and constraint sync
-        for schema in ['maharashtra', 'manipur', 'bihar']:
+        for schema in ['public', 'maharashtra', 'manipur', 'bihar']:
+            cursor.execute("SELECT 1 FROM information_schema.schemata WHERE schema_name = %s;", [schema])
+            if not cursor.fetchone():
+                continue
             # remand_custody columns
             cursor.execute(f"ALTER TABLE IF EXISTS {schema}.remand_custody ADD COLUMN IF NOT EXISTS pr_bond_date date;")
             cursor.execute(f"ALTER TABLE IF EXISTS {schema}.remand_custody ADD COLUMN IF NOT EXISTS jail_date date;")
@@ -107,10 +110,15 @@ class Migration(migrations.Migration):
             field=models.CharField(blank=True, max_length=150, null=True),
         ),
         # FinalVerdict field addition
-        migrations.AddField(
-            model_name='finalverdict',
-            name='cc_st_number',
-            field=models.CharField(blank=True, max_length=50, null=True),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[],
+            state_operations=[
+                migrations.AddField(
+                    model_name='finalverdict',
+                    name='cc_st_number',
+                    field=models.CharField(blank=True, max_length=50, null=True),
+                ),
+            ],
         ),
         # Constraint updates
         migrations.RemoveConstraint(

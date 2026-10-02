@@ -134,6 +134,10 @@ elif os.getenv('DB_NAME') and os.getenv('DB_PASSWORD') and os.getenv('DB_PASSWOR
         'OPTIONS': {
             'sslmode': os.getenv('DB_SSLMODE', 'disable' if is_local else 'require'),
             'options': '-c search_path=maharashtra,public',
+            'keepalives': 1,
+            'keepalives_idle': 30,
+            'keepalives_interval': 10,
+            'keepalives_count': 5,
         },
     }
 else:
@@ -141,6 +145,8 @@ else:
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
+
+DATABASES['default'].setdefault('TEST', {})['MIGRATE'] = False
 
 # 2. Read Replica 1 (Optional - High Load Read Offloading)
 is_rep1_local = os.getenv('DB_REPLICA_1_HOST', 'localhost') in ['localhost', '127.0.0.1']

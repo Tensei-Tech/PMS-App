@@ -4,6 +4,9 @@ from django.db import migrations, models
 def update_preventive_constraints(apps, schema_editor):
     with schema_editor.connection.cursor() as cursor:
         for schema in ['maharashtra', 'manipur', 'bihar']:
+            cursor.execute("SELECT 1 FROM information_schema.schemata WHERE schema_name = %s;", [schema])
+            if not cursor.fetchone():
+                continue
             # Drop old single action per case unique constraint
             cursor.execute(f"ALTER TABLE IF EXISTS {schema}.preventive_action_items DROP CONSTRAINT IF EXISTS preventive_action_items_case_id_action_type_key;")
             # Add new unique constraint per case, person, and action

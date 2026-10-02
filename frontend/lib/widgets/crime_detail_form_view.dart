@@ -160,6 +160,16 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
     super.initState();
     _victimRows = [VictimRow()];
     _motiveOfCrimeCtrl = TextEditingController();
+    final now = DateTime.now();
+    final d = now.day.toString().padLeft(2, '0');
+    final m = now.month.toString().padLeft(2, '0');
+    final y = (now.year % 100).toString().padLeft(2, '0');
+    final yFull = now.year.toString();
+    _panchnamaDateCtrl.text = '$d/$m/$yFull';
+    _panchnamaDateDayCtrl.text = d;
+    _panchnamaDateMonthCtrl.text = m;
+    _panchnamaDateYearCtrl.text = y;
+    _panchnamaFormDateCtrl.text = '$d/$m/$yFull';
   }
 
   @override
@@ -365,6 +375,9 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
           if (yr.startsWith('20') && yr.length == 4) yr = yr.substring(2);
           _panchnamaDateYearCtrl.text = yr;
         }
+      } else if (_panchnamaDateCtrl.text.isEmpty &&
+          _panchnamaDateDayCtrl.text.isNotEmpty) {
+        _panchnamaDateCtrl.text = _panchnamaDateCombined;
       }
 
       // Legacy fallback for panchnamaTime:

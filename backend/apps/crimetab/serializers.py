@@ -163,6 +163,8 @@ class ArrestReleaseStatusSerializer(serializers.ModelSerializer):
 
 
 class RemandCustodySerializer(serializers.ModelSerializer):
+    person_name = serializers.CharField(source='person.name', read_only=True)
+
     class Meta:
         model = RemandCustody
         fields = '__all__'

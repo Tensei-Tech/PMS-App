@@ -10,6 +10,29 @@ Widget formDatePickerField(
   String hintText = 'Select Date',
   bool readOnly = false,
 }) {
+  if (controller.text.isEmpty &&
+      dayCtrl != null &&
+      dayCtrl.text.isNotEmpty &&
+      monthCtrl != null &&
+      monthCtrl.text.isNotEmpty) {
+    final y = yearCtrl?.text.trim() ?? '';
+    final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
+    final d = dayCtrl.text.padLeft(2, '0');
+    final m = monthCtrl.text.padLeft(2, '0');
+    controller.text = yFull.isNotEmpty ? '$d/$m/$yFull' : '$d/$m';
+  } else if (controller.text.isNotEmpty && dayCtrl != null && dayCtrl.text.isEmpty) {
+    final parts = controller.text.split(RegExp(r'[/.-]'));
+    if (parts.length >= 3) {
+      dayCtrl.text = parts[0].trim();
+      if (monthCtrl != null) monthCtrl.text = parts[1].trim();
+      if (yearCtrl != null) {
+        var yr = parts[2].trim();
+        if (yr.startsWith('20') && yr.length == 4) yr = yr.substring(2);
+        yearCtrl.text = yr;
+      }
+    }
+  }
+
   return SizedBox(
     width: width ?? 140,
     child: TextFormField(

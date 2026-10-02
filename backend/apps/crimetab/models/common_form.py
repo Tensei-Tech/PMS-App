@@ -183,6 +183,11 @@ class CasesPerson(models.Model):
         ('accused', 'Accused'),
         ('suspected_accused', 'Suspected Accused'),
         ('unidentified_accused', 'Unidentified Accused'),
+        ('unidentified', 'Unidentified'),
+        ('unknown_accused', 'Unknown Accused'),
+        ('victim', 'Victim'),
+        ('deceased', 'Deceased'),
+        ('injured', 'Injured'),
     )
 
     person_id = models.BigAutoField(primary_key=True)
@@ -192,7 +197,7 @@ class CasesPerson(models.Model):
         related_name='persons',
         db_column='case_id'
     )
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='accused')
+    role = models.CharField(max_length=30, choices=ROLE_CHOICES, default='accused')
 
     # KYC fields (complainant / accused / suspected_accused)
     name = models.CharField(max_length=150, null=True, blank=True)
@@ -309,6 +314,14 @@ class RemandCustody(models.Model):
     pr_bond_date = models.DateField(null=True, blank=True)
     bail = models.BooleanField(null=True, blank=True)
     surety_name = models.CharField(max_length=150, null=True, blank=True)
+    surety_age = models.IntegerField(null=True, blank=True)
+    surety_gender = models.CharField(max_length=20, null=True, blank=True, default='Male')
+    surety_occupation = models.CharField(max_length=150, null=True, blank=True)
+    surety_mobile = models.CharField(max_length=20, null=True, blank=True)
+    surety_aadhaar = models.CharField(max_length=20, null=True, blank=True)
+    surety_pan = models.CharField(max_length=20, null=True, blank=True)
+    surety_address = models.TextField(null=True, blank=True)
+    surety_relation = models.CharField(max_length=50, null=True, blank=True)
     jail = models.BooleanField(null=True, blank=True)
     jail_date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
@@ -492,6 +505,8 @@ class PreventiveActionItems(models.Model):
     action_type = models.CharField(max_length=30, choices=ACTION_TYPE_CHOICES, default='107 CrPC/126 BNSS')
     action_date = models.DateField(default=timezone.now)
     outward_number = models.CharField(max_length=50, null=True, blank=True)
+    bond_date = models.DateField(null=True, blank=True)
+    bond_cancellation_date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:

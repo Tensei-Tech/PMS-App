@@ -35,14 +35,17 @@ class PanchanamaContinuationFormViewState
   @override
   void initState() {
     super.initState();
+    final now = DateTime.now();
+    final defaultDate =
+        "${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}";
     _fields = {
       'dist': TextEditingController(),
       'ps': TextEditingController(),
       'firNo': TextEditingController(),
       'firYearSuffix': TextEditingController(),
-      'headerDate': TextEditingController(),
+      'headerDate': TextEditingController(text: defaultDate),
       'furtherPanchanama': TextEditingController(),
-      'furtherDate': TextEditingController(),
+      'furtherDate': TextEditingController(text: defaultDate),
       'furtherTimeFrom': TextEditingController(),
       'furtherTimeTo': TextEditingController(),
       'panch1Line1': TextEditingController(),
@@ -74,6 +77,15 @@ class PanchanamaContinuationFormViewState
 
   void hydrateFrom(Map<String, dynamic> data) {
     hydrateControllers(data, _fields);
+    final now = DateTime.now();
+    final defaultDate =
+        "${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}";
+    if (_fields['headerDate']?.text.isEmpty ?? true) {
+      _fields['headerDate']?.text = defaultDate;
+    }
+    if (_fields['furtherDate']?.text.isEmpty ?? true) {
+      _fields['furtherDate']?.text = defaultDate;
+    }
     if (mounted) setState(() {});
   }
 

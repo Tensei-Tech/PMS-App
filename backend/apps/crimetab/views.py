@@ -565,9 +565,9 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
         for acc in (m.get('accused') if isinstance(m.get('accused'), list) else []):
             _add_person('accused', acc)
         for susp in (m.get('suspectedAccused') if isinstance(m.get('suspectedAccused'), list) else []):
-            _add_person('suspect', susp)
+            _add_person('suspected_accused', susp)
         if not m.get('suspectedAccused') and (m.get('suspected_accused_name') or data.get('suspected_accused_name')):
-            _add_person('suspect', {
+            _add_person('suspected_accused', {
                 'name': m.get('suspected_accused_name') or data.get('suspected_accused_name'),
                 'age': m.get('suspected_accused_age') or data.get('suspected_accused_age'),
                 'gender': m.get('suspected_accused_gender') or data.get('suspected_accused_gender'),
@@ -579,15 +579,15 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
                 'caste': m.get('suspected_accused_caste') or data.get('suspected_accused_caste'),
                 'address': m.get('suspected_accused_address') or data.get('suspected_accused_address'),
             })
-        unid_list = m.get('unidentifiedList')
+        unid_list = m.get('unidentifiedList') or m.get('unknownAccusedList') or m.get('unknown_accused_list')
         if unid_list is not None and isinstance(unid_list, list):
             for unid in unid_list:
                 if isinstance(unid, dict):
                     CasesPerson.objects.create(
                         case=case,
-                        role='unidentified',
-                        name=unid.get('description') or 'Unidentified Person',
-                        approximate_age=unid.get('approxAge') or unid.get('approximate_age'),
+                        role=unid.get('role') or 'unidentified',
+                        name=unid.get('description') or unid.get('name') or 'Unidentified Person',
+                        approximate_age=unid.get('approxAge') or unid.get('approximate_age') or (str(unid.get('age')) if unid.get('age') else None),
                         gender=unid.get('gender') or unid.get('unidentified_gender') or 'Male',
                         skin_colour=unid.get('skinColor') or unid.get('skin_colour'),
                         possible_occupation=unid.get('occupation') or unid.get('possible_occupation'),
@@ -619,6 +619,26 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
                     address=u_addr,
                     description=u_desc,
                 )
+
+        unk_list = m.get('unknown_accused') or m.get('unknownAccused') or m.get('unknownList')
+        if unk_list is not None and isinstance(unk_list, list):
+            for unk in unk_list:
+                name = 'Unknown Accused'
+                if isinstance(unk, dict):
+                    name = unk.get('name') or unk.get('description') or 'Unknown Accused'
+                elif isinstance(unk, str) and unk.strip():
+                    name = unk.strip()
+                CasesPerson.objects.create(
+                    case=case,
+                    role='unknown_accused',
+                    name=name
+                )
+        elif m.get('is_unknown_accused') is True or str(m.get('is_unknown_accused')).lower() == 'true':
+            CasesPerson.objects.create(
+                case=case,
+                role='unknown_accused',
+                name='Unknown Accused'
+            )
 
     # 6. Arrests (Pick existing or type new)
     arrests_data = m.get('arrests') or m.get('arrest_records') or m.get('arrestRelease')
@@ -725,6 +745,19 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
             pr_b_dt = _parse_d(c.get('prBondDate') or c.get('pr_bond_date')) if is_pr_bond else None
             is_bail = is_mcr and bool(c.get('isBail') or c.get('bail'))
             surety = (c.get('suretyName') or c.get('surety_name') or '') if is_bail else ''
+            surety_age_raw = (c.get('suretyAge') or c.get('surety_age')) if is_bail else None
+            try:
+                surety_age = int(surety_age_raw) if surety_age_raw is not None and str(surety_age_raw).strip() != '' else None
+            except (ValueError, TypeError):
+                surety_age = None
+            surety_gender = (c.get('suretyGender') or c.get('surety_gender') or '') if is_bail else ''
+            surety_occ = (c.get('suretyOccupation') or c.get('surety_occupation') or '') if is_bail else ''
+            surety_mob = (c.get('suretyMobile') or c.get('surety_mobile') or c.get('surety_mobile_no') or '') if is_bail else ''
+            surety_aadhaar = (c.get('suretyAadhaar') or c.get('surety_aadhaar') or c.get('surety_aadhaar_no') or '') if is_bail else ''
+            surety_pan = (c.get('suretyPan') or c.get('surety_pan') or c.get('surety_pan_no') or '') if is_bail else ''
+            surety_addr = (c.get('suretyAddress') or c.get('surety_address') or '') if is_bail else ''
+            surety_rel = (c.get('suretyRelation') or c.get('surety_relation') or c.get('relation_with_accused') or '') if is_bail else ''
+
             is_jail = is_mcr and bool(c.get('isJail') or c.get('jail'))
             jail_dt = _parse_d(c.get('jailDate') or c.get('jail_date')) if is_jail else None
 
@@ -737,6 +770,14 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
                     'pr_bond_date': pr_b_dt,
                     'bail': is_bail,
                     'surety_name': surety,
+                    'surety_age': surety_age,
+                    'surety_gender': surety_gender,
+                    'surety_occupation': surety_occ,
+                    'surety_mobile': surety_mob,
+                    'surety_aadhaar': surety_aadhaar,
+                    'surety_pan': surety_pan,
+                    'surety_address': surety_addr,
+                    'surety_relation': surety_rel,
                     'jail': is_jail,
                     'jail_date': jail_dt,
                 }
@@ -751,7 +792,20 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
         is_pr_bond = is_mcr and bool(m.get('pr_bond'))
         pr_b_dt = _parse_d(m.get('pr_bond_date')) if is_pr_bond else None
         is_bail = is_mcr and bool(m.get('bail'))
-        surety = (m.get('surety_name') or '') if is_bail else ''
+        surety = (m.get('surety_name') or m.get('suretyName') or '') if is_bail else ''
+        surety_age_raw = (m.get('surety_age') or m.get('suretyAge')) if is_bail else None
+        try:
+            surety_age = int(surety_age_raw) if surety_age_raw is not None and str(surety_age_raw).strip() != '' else None
+        except (ValueError, TypeError):
+            surety_age = None
+        surety_gender = (m.get('surety_gender') or m.get('suretyGender') or '') if is_bail else ''
+        surety_occ = (m.get('surety_occupation') or m.get('suretyOccupation') or '') if is_bail else ''
+        surety_mob = (m.get('surety_mobile') or m.get('surety_mobile_no') or m.get('suretyMobile') or '') if is_bail else ''
+        surety_aadhaar = (m.get('surety_aadhaar') or m.get('surety_aadhaar_no') or m.get('suretyAadhaar') or '') if is_bail else ''
+        surety_pan = (m.get('surety_pan') or m.get('surety_pan_no') or m.get('suretyPan') or '') if is_bail else ''
+        surety_addr = (m.get('surety_address') or m.get('suretyAddress') or '') if is_bail else ''
+        surety_rel = (m.get('surety_relation') or m.get('relation_with_accused') or m.get('suretyRelation') or '') if is_bail else ''
+
         is_jail = is_mcr and bool(m.get('jail'))
         jail_dt = _parse_d(m.get('jail_date')) if is_jail else None
 
@@ -777,6 +831,14 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
                     'pr_bond_date': pr_b_dt,
                     'bail': is_bail,
                     'surety_name': surety,
+                    'surety_age': surety_age,
+                    'surety_gender': surety_gender,
+                    'surety_occupation': surety_occ,
+                    'surety_mobile': surety_mob,
+                    'surety_aadhaar': surety_aadhaar,
+                    'surety_pan': surety_pan,
+                    'surety_address': surety_addr,
+                    'surety_relation': surety_rel,
                     'jail': is_jail,
                     'jail_date': jail_dt,
                 }
@@ -993,47 +1055,45 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
                         role='accused'
                     )
                 if act_type and act_date:
-                    PreventiveActionItems.objects.create(
+                    b_dt = _parse_d(pa.get('bond_date') or pa.get('bondDate'))
+                    b_c_dt = _parse_d(pa.get('bond_cancellation_date') or pa.get('bondCancellationDate'))
+                    PreventiveActionItems.objects.update_or_create(
                         case=case,
                         person_id=p_id,
-                        name=str(typed_nm).strip() if typed_nm else None,
                         action_type=act_type,
-                        action_date=act_date,
-                        outward_number=outward
+                        defaults={
+                            'name': str(typed_nm).strip() if typed_nm else None,
+                            'action_date': act_date,
+                            'outward_number': outward,
+                            'bond_date': b_dt,
+                            'bond_cancellation_date': b_c_dt,
+                        }
                     )
     elif 'preventive' in m:
         prev_map = m['preventive'] or {}
-        act_type = prev_map.get('action')
-        act_date = _parse_d(prev_map.get('actionDate'))
-        if act_type and act_date:
+        act_type = prev_map.get('action') or prev_map.get('action_type')
+        act_date = _parse_d(prev_map.get('actionDate') or prev_map.get('action_date')) or timezone.now().date()
+        if act_type:
             PreventiveActionItems.objects.filter(case=case).delete()
             PreventiveActionItems.objects.create(
                 case=case,
                 action_type=act_type,
                 action_date=act_date,
-                outward_number=prev_map.get('outwardNumber')
+                outward_number=prev_map.get('outwardNumber') or prev_map.get('outward_number'),
+                bond_date=_parse_d(prev_map.get('bondDate') or prev_map.get('bond_date')),
+                bond_cancellation_date=_parse_d(prev_map.get('bondCancellation') or prev_map.get('bond_cancellation_date')),
             )
-
-    prev_map = m.get('preventive') or {}
-    b_dt = _parse_d(prev_map.get('bondDate') or m.get('bond_date'))
-    b_c_dt = _parse_d(prev_map.get('bondCancellation') or m.get('bond_cancellation_date'))
-    if b_dt or b_c_dt:
-        PreventiveBond.objects.update_or_create(
+    elif m.get('preventive_action_type'):
+        act_type = m.get('preventive_action_type')
+        act_date = _parse_d(m.get('preventive_action_date')) or timezone.now().date()
+        PreventiveActionItems.objects.filter(case=case).delete()
+        PreventiveActionItems.objects.create(
             case=case,
-            defaults={
-                'bond_date': b_dt,
-                'bond_cancellation_date': b_c_dt,
-            }
-        )
-
-    pb_data = m.get('preventive_bond')
-    if pb_data and isinstance(pb_data, dict):
-        PreventiveBond.objects.update_or_create(
-            case=case,
-            defaults={
-                'bond_date': _parse_d(pb_data.get('bond_date')),
-                'bond_cancellation_date': _parse_d(pb_data.get('bond_cancellation_date')),
-            }
+            action_type=act_type,
+            action_date=act_date,
+            outward_number=m.get('preventive_outward_no') or m.get('preventive_action_outward_no'),
+            bond_date=_parse_d(m.get('bond_date')),
+            bond_cancellation_date=_parse_d(m.get('bond_cancellation_date')),
         )
 
     # 13. Scrutiny Pipeline
@@ -1167,7 +1227,7 @@ class CrimeCaseManageView(APIView):
                 search = request.query_params.get('search')
 
                 if module_key and module_key.lower() not in ['all', '']:
-                    qs = CaseRecord.objects.filter(module_key=module_key)
+                    qs = CaseRecord.objects.filter(module_key__iexact=module_key)
                 else:
                     qs = CaseRecord.objects.all()
                 if station_name and station_name.strip().upper() not in ['ALL', '']:
@@ -1227,6 +1287,7 @@ class CrimeCaseManageView(APIView):
                 # 2. Save all child relational tables
                 _save_case_child_entities(case, data)
 
+            case = self._optimize_queryset(CaseRecord.objects.filter(pk=case.pk)).first()
             serializer = FullCaseDetailSerializer(case)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -1280,6 +1341,7 @@ class CrimeCaseManageView(APIView):
                 # 2. Update child tables
                 _save_case_child_entities(case, data)
 
+            case = self._optimize_queryset(CaseRecord.objects.filter(pk=pk)).first()
             serializer = FullCaseDetailSerializer(case)
             return Response(serializer.data, status=status.HTTP_200_OK)
 

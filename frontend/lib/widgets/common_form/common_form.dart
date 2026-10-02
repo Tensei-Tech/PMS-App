@@ -1320,7 +1320,13 @@ class CommonFormState extends State<CommonForm> {
   void toggleProcedural(String key, bool v) {
     setState(() {
       _procChecks[key] = v;
-      if (!v) _procDates[key]!.clear();
+      if (v) {
+        if (_procDates[key]!.text.trim().isEmpty) {
+          _procDates[key]!.text = _formatDateTimeDdMmYyyyHhMm(DateTime.now());
+        }
+      } else {
+        _procDates[key]!.clear();
+      }
     });
   }
 
@@ -2181,8 +2187,23 @@ class CommonFormState extends State<CommonForm> {
     if (pc != null) {
       for (final e in pc.entries) {
         final k = e.key.toString();
-        if (_procChecks.containsKey(k) && e.value is bool) {
-          _procChecks[k] = e.value as bool;
+        final isChecked = e.value == true ||
+            e.value == 'true' ||
+            e.value == 1 ||
+            e.value == '1';
+        String? targetKey;
+        if (_procChecks.containsKey(k)) {
+          targetKey = k;
+        } else {
+          for (final entry in _activeProceduralKeys.entries) {
+            if (entry.value.toLowerCase() == k.toLowerCase()) {
+              targetKey = entry.key;
+              break;
+            }
+          }
+        }
+        if (targetKey != null) {
+          _procChecks[targetKey] = isChecked;
         }
       }
     }
@@ -2190,7 +2211,64 @@ class CommonFormState extends State<CommonForm> {
     if (pd != null) {
       for (final e in pd.entries) {
         final k = e.key.toString();
-        if (_procDates.containsKey(k)) _procDates[k]!.text = _s(e.value);
+        String? targetKey;
+        if (_procDates.containsKey(k)) {
+          targetKey = k;
+        } else {
+          for (final entry in _activeProceduralKeys.entries) {
+            if (entry.value.toLowerCase() == k.toLowerCase()) {
+              targetKey = entry.key;
+              break;
+            }
+          }
+        }
+        if (targetKey != null) {
+          final sVal = _s(e.value);
+          final parsed = _parseDateTimeDdMmYyyyHhMm(sVal);
+          if (parsed != null) {
+            _procDates[targetKey]!.text = _formatDateTimeDdMmYyyyHhMm(parsed);
+          } else {
+            _procDates[targetKey]!.text = sVal;
+          }
+        }
+      }
+    }
+    // Also hydrate from procedural_checklists (from Django case serializer)
+    final pList = m['procedural_checklists'] as List?;
+    if (pList != null && pList.isNotEmpty) {
+      for (final item in pList) {
+        if (item is Map) {
+          final itemName = item['item_name']?.toString() ?? '';
+          final isChecked = item['is_checked'] == true ||
+              item['is_checked'] == 'true' ||
+              item['is_checked'] == 1 ||
+              item['is_checked'] == '1';
+          final dtRaw = item['event_datetime'];
+          for (final entry in _activeProceduralKeys.entries) {
+            if (entry.key.toLowerCase() == itemName.toLowerCase() ||
+                entry.value.toLowerCase() == itemName.toLowerCase()) {
+              _procChecks[entry.key] = isChecked;
+              if (dtRaw != null) {
+                final sVal = _s(dtRaw);
+                final parsed = _parseDateTimeDdMmYyyyHhMm(sVal);
+                if (parsed != null) {
+                  _procDates[entry.key]!.text =
+                      _formatDateTimeDdMmYyyyHhMm(parsed);
+                } else {
+                  _procDates[entry.key]!.text = sVal;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    // Ensure checked panchanama items always have a valid date displayed
+    for (final k in _procChecks.keys) {
+      if (_procChecks[k] == true && (_procDates[k]?.text.trim().isEmpty ?? true)) {
+        _procDates[k]?.text = _regDate.text.isNotEmpty
+            ? '${_regDate.text} 12:00'
+            : _formatDateTimeDdMmYyyyHhMm(DateTime.now());
       }
     }
     _eshaksh = m['eshakshValue'] as String?;
@@ -2909,26 +2987,26 @@ class CommonFormState extends State<CommonForm> {
 
   DateTime? _parseDateTimeDdMmYyyyHhMm(String raw) {
     final s = raw.trim();
+    if (s.isEmpty) return null;
     final m = RegExp(
-      r'^(\d{2})/(\d{2})/(\d{4})\s+(\d{1,2}):(\d{2})$',
+      r'^(\d{1,2})[/.-](\d{1,2})[/.-](\d{2,4})(?:\s+(\d{1,2}):(\d{2}))?$',
     ).firstMatch(s);
-    if (m == null) return null;
-    final dd = int.tryParse(m.group(1)!);
-    final mo = int.tryParse(m.group(2)!);
-    final yy = int.tryParse(m.group(3)!);
-    final hh = int.tryParse(m.group(4)!);
-    final mm = int.tryParse(m.group(5)!);
-    if (dd == null || mo == null || yy == null || hh == null || mm == null) {
-      return null;
+    if (m != null) {
+      final dd = int.tryParse(m.group(1)!);
+      final mo = int.tryParse(m.group(2)!);
+      var yy = int.tryParse(m.group(3)!);
+      final hh = m.group(4) != null ? int.tryParse(m.group(4)!) : 0;
+      final mm = m.group(5) != null ? int.tryParse(m.group(5)!) : 0;
+      if (dd != null && mo != null && yy != null && hh != null && mm != null) {
+        if (yy < 100) yy += 2000;
+        if (hh <= 23 && mm <= 59) {
+          try {
+            return DateTime(yy, mo, dd, hh, mm);
+          } catch (_) {}
+        }
+      }
     }
-    if (hh > 23 || mm > 59) return null;
-    try {
-      final dt = DateTime(yy, mo, dd, hh, mm);
-      if (dt.year != yy || dt.month != mo || dt.day != dd) return null;
-      return dt;
-    } catch (_) {
-      return null;
-    }
+    return DateTime.tryParse(s);
   }
 
   Future<void> _pickDateTimeFor(
@@ -2941,15 +3019,15 @@ class CommonFormState extends State<CommonForm> {
     DateTime initialDateDay() {
       if (parsedExisting != null) {
         final dt = parsedExisting;
-        if (!dt.isBefore(DateTime(2000)) && !dt.isAfter(now)) return dt;
+        if (!dt.isBefore(DateTime(1900)) && !dt.isAfter(DateTime(2100))) return dt;
       }
       return now;
     }
 
     final pickedDate = await showDatePicker(
       context: context,
-      firstDate: DateTime(2000),
-      lastDate: now,
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2100),
       initialDate: initialDateDay(),
     );
     if (!mounted || pickedDate == null) return;

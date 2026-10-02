@@ -57,6 +57,14 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
     'jail': 'mcr',
     'pr_bond_date': 'pr_bond',
     'surety_name': 'bail',
+    'surety_age': 'bail',
+    'surety_gender': 'bail',
+    'surety_occupation': 'bail',
+    'surety_mobile': 'bail',
+    'surety_aadhaar': 'bail',
+    'surety_pan': 'bail',
+    'surety_address': 'bail',
+    'surety_relation': 'bail',
     'jail_date': 'jail',
   };
 
@@ -172,21 +180,55 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final isWide = constraints.maxWidth > 600;
+                  Widget buildControl(DynamicFieldDef f) {
+                    final dateKey = '${f.fieldKey}_date';
+                    final dateCtrl = widget.controllers.putIfAbsent(
+                      dateKey,
+                      () => TextEditingController(
+                        text: widget.values[dateKey]?.toString() ?? '',
+                      ),
+                    );
+                    if (widget.values[dateKey] != null &&
+                        dateCtrl.text.isEmpty) {
+                      dateCtrl.text = widget.values[dateKey].toString();
+                    }
+
+                    final fieldCtrl = widget.controllers.putIfAbsent(
+                      f.fieldKey,
+                      () => TextEditingController(
+                        text: widget.values[f.fieldKey]?.toString() ?? '',
+                      ),
+                    );
+                    if (widget.values[f.fieldKey] != null &&
+                        fieldCtrl.text.isEmpty) {
+                      fieldCtrl.text = widget.values[f.fieldKey].toString();
+                    }
+
+                    return DynamicControlFactory(
+                      fieldDef: f,
+                      controller: fieldCtrl,
+                      value: widget.values[f.fieldKey],
+                      onChanged: (val) {
+                        widget.onValueChanged(f.fieldKey, val);
+                        if (mounted) setState(() {});
+                      },
+                      readOnly: widget.readOnly,
+                      accusedOptions: widget.accusedOptions,
+                      dateController: dateCtrl,
+                      onDateChanged: (val) {
+                        widget.onValueChanged(dateKey, val);
+                        if (mounted) setState(() {});
+                      },
+                    );
+                  }
+
                   if (!isWide) {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: visibleFields.map((f) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
-                          child: DynamicControlFactory(
-                            fieldDef: f,
-                            controller: widget.controllers[f.fieldKey],
-                            value: widget.values[f.fieldKey],
-                            onChanged: (val) =>
-                                widget.onValueChanged(f.fieldKey, val),
-                            readOnly: widget.readOnly,
-                            accusedOptions: widget.accusedOptions,
-                          ),
+                          child: buildControl(f),
                         );
                       }).toList(),
                     );
@@ -205,15 +247,7 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                       items.add(
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12),
-                          child: DynamicControlFactory(
-                            fieldDef: f1,
-                            controller: widget.controllers[f1.fieldKey],
-                            value: widget.values[f1.fieldKey],
-                            onChanged: (val) =>
-                                widget.onValueChanged(f1.fieldKey, val),
-                            readOnly: widget.readOnly,
-                            accusedOptions: widget.accusedOptions,
-                          ),
+                          child: buildControl(f1),
                         ),
                       );
                       i -= 1; // Realign single step
@@ -227,29 +261,12 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
-                              child: DynamicControlFactory(
-                                fieldDef: f1,
-                                controller: widget.controllers[f1.fieldKey],
-                                value: widget.values[f1.fieldKey],
-                                onChanged: (val) =>
-                                    widget.onValueChanged(f1.fieldKey, val),
-                                readOnly: widget.readOnly,
-                                accusedOptions: widget.accusedOptions,
-                              ),
+                              child: buildControl(f1),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
                               child: f2 != null
-                                  ? DynamicControlFactory(
-                                      fieldDef: f2,
-                                      controller:
-                                          widget.controllers[f2.fieldKey],
-                                      value: widget.values[f2.fieldKey],
-                                      onChanged: (val) => widget.onValueChanged(
-                                          f2.fieldKey, val),
-                                      readOnly: widget.readOnly,
-                                      accusedOptions: widget.accusedOptions,
-                                    )
+                                  ? buildControl(f2)
                                   : const SizedBox.shrink(),
                             ),
                           ],
