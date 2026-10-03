@@ -1525,21 +1525,41 @@ class LocationDivisionsView(APIView):
         from apps.public_master.models import StateRegistry
 
         state_id = (request.query_params.get('state_id') or request.query_params.get('state_code') or '').strip().upper()
-        state_reg = StateRegistry.objects.filter(Q(state_code__iexact=state_id) | Q(state_name__iexact=state_id)).first() if state_id else None
-        target_schema = state_reg.schema_name if (state_reg and state_reg.schema_name) else get_active_tenant_schema(request)
+        target_schema = None
 
-        divisions = []
+        if state_id:
+            state_reg = StateRegistry.objects.filter(Q(state_code__iexact=state_id) | Q(state_name__iexact=state_id)).first()
+            if state_reg and state_reg.schema_name:
+                target_schema = state_reg.schema_name
+
+        if not target_schema:
+            active_schema = get_active_tenant_schema(request)
+            if active_schema and active_schema != 'public':
+                target_schema = active_schema
+
+        # Fail-fast guard: MasterDivision is strictly tenant-scoped (never exists in public schema)
+        if not target_schema or target_schema == 'public':
+            return Response(
+                {
+                    'error': 'State tenant context is required for division hierarchy. Please provide state_id query param or X-State-Code header.',
+                    'divisions': []
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         try:
             with TenantContext(target_schema):
                 queryset = MasterDivision.objects.all().order_by('id')
                 if state_id:
                     queryset = queryset.filter(Q(state_code__iexact=state_id) | Q(state_name__iexact=state_id))
                 divisions = [{'id': d.id, 'name': d.name, 'code': d.code, 'state_code': d.state_code} for d in queryset]
+                return Response(divisions, status=status.HTTP_200_OK)
         except Exception as e:
-            logger.warning(f"[LocationDivisionsView] Query failed in schema '{target_schema}' (state: {state_id}): {e}")
-            divisions = []
-
-        return Response(divisions)
+            logger.error(f"[LocationDivisionsView] Query failed in schema '{target_schema}' (state: {state_id}): {e}")
+            return Response(
+                {'error': f"Failed to retrieve divisions for schema '{target_schema}'", 'details': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class LocationDistrictsView(APIView):

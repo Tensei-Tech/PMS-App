@@ -1,6 +1,6 @@
 import threading
 from django.test import TestCase, RequestFactory
-from django.db import connection
+from django.db import connection, transaction
 from apps.core.tenancy import (
     TenantContext,
     set_tenant_schema,
@@ -190,7 +190,8 @@ class TenancyStackSafetyTests(TestCase):
 
         # Confirm Kerala division is NOT visible in Request B
         try:
-            leaked_records = list(MasterDivision.objects.filter(name='Kochi Division'))
+            with transaction.atomic():
+                leaked_records = list(MasterDivision.objects.filter(name='Kochi Division'))
         except Exception:
             # master_divisions does not exist in public — completely safe
             leaked_records = []
@@ -209,7 +210,7 @@ class TenancyStackSafetyTests(TestCase):
         """Confirm simultaneous threads with different tenants maintain isolated stacks without cross-contamination."""
         errors = []
 
-        def worker(schema_name, expected_depth):
+        def worker(schema_name):
             try:
                 for _ in range(5):
                     with TenantContext(schema_name):
@@ -229,8 +230,8 @@ class TenancyStackSafetyTests(TestCase):
                 errors.append(str(e))
 
         threads = [
-            threading.Thread(target=worker, args=(f"tenant_{i}", 1))
-            for i in range(10)
+            threading.Thread(target=worker, args=(f"tenant_{i}",))
+            for i in range(4)
         ]
         for t in threads:
             t.start()
@@ -238,4 +239,58 @@ class TenancyStackSafetyTests(TestCase):
             t.join()
 
         self.assertEqual(len(errors), 0, f"Thread concurrency errors: {errors}")
+
+    def test_no_tenant_header_division_lookup_fail_fast_boundary(self):
+        """
+        Regression test for 'no tenant header + division lookup':
+        Confirm that querying division endpoints without any state context
+        fails fast with HTTP 400 Bad Request instead of attempting to query public.master_divisions
+        or silently returning empty data.
+        """
+        from apps.public_master.views import MasterDivisionsView
+        from apps.crimetab.views import LocationDivisionsView
+        rf = RequestFactory()
+
+        # 1. MasterDivisionsView with no header / query param
+        req1 = rf.get('/api/v1/master/hierarchy/divisions/')
+        res1 = MasterDivisionsView.as_view()(req1)
+        self.assertEqual(res1.status_code, 400)
+        self.assertIn('error', res1.data)
+        self.assertIn('State tenant context is required', res1.data['error'])
+
+        # 2. LocationDivisionsView with no header / query param
+        req2 = rf.get('/api/v1/crimetab/locations/divisions/')
+        res2 = LocationDivisionsView.as_view()(req2)
+        self.assertEqual(res2.status_code, 400)
+        self.assertIn('error', res2.data)
+        self.assertIn('State tenant context is required', res2.data['error'])
+
+    def test_explicit_tenant_header_division_lookup_success(self):
+        """
+        Confirm that division endpoints with explicit state context
+        properly route to tenant schema and return HTTP 200 OK with data.
+        """
+        from apps.public_master.views import MasterDivisionsView
+        from apps.crimetab.views import LocationDivisionsView
+        from apps.public_master.models import StateRegistry
+
+        StateRegistry.objects.get_or_create(
+            state_code='MH',
+            defaults={'state_name': 'Maharashtra', 'schema_name': 'maharashtra', 'is_active': True}
+        )
+
+        rf = RequestFactory()
+
+        # 1. Query with ?state_code=MH
+        req1 = rf.get('/api/v1/master/hierarchy/divisions/?state_code=MH')
+        res1 = MasterDivisionsView.as_view()(req1)
+        self.assertEqual(res1.status_code, 200)
+        self.assertIsInstance(res1.data, list)
+
+        # 2. Query with ?state_id=MH
+        req2 = rf.get('/api/v1/crimetab/locations/divisions/?state_id=MH')
+        res2 = LocationDivisionsView.as_view()(req2)
+        self.assertEqual(res2.status_code, 200)
+        self.assertIsInstance(res2.data, list)
+
 

@@ -6,6 +6,7 @@ based on onboarded active admin accounts (State Super Admin, Division Admin, Dis
 
 import logging
 from django.db import connection
+from apps.core.tenancy import TenantContext
 from apps.public_master.models import StateRegistry, MasterUser
 from apps.stations.models import District, PoliceStation
 
@@ -106,57 +107,59 @@ class HierarchyAvailabilityEngine:
         except Exception as e:
             logger.warning(f"[HierarchyAvailability] Exception reading tenant schema tables: {e}")
 
-        # Fetch all districts from tenant table
-        districts_qs = District.objects.all().values('district_id', 'name', 'code', 'status')
         district_list = []
-
-        for d in districts_qs:
-            d_name = d['name']
-            clean_d_name = d_name.lower().strip()
-
-            # District is available if:
-            # 1. State Admin is active OR
-            # 2. Specific District Admin exists OR
-            # 3. District is explicitly marked approved
-            has_direct_admin = clean_d_name in active_district_names or any(clean_d_name in ad for ad in active_district_names)
-            is_available = has_state_admin or has_direct_admin or d['status'] == 'approved'
-
-            if has_direct_admin:
-                reason = "Active & Onboarded (District Admin Present)"
-            elif has_state_admin:
-                reason = "Active & Onboarded (State Admin Supervision)"
-            else:
-                reason = "Active (System Default Approved)"
-
-            district_list.append({
-                'district_id': d['district_id'],
-                'name': d_name,
-                'code': d['code'],
-                'is_available': is_available,
-                'has_admin': has_direct_admin or has_state_admin,
-                'status_reason': reason
-            })
-
-        # Fetch all police stations
-        stations_qs = PoliceStation.objects.all().values('station_id', 'station_name', 'district_name', 'zone', 'address')
         station_list = []
 
-        for st in stations_qs:
-            st_name = st['station_name']
-            dist_name = st['district_name']
-            clean_dist = dist_name.lower().strip()
+        with TenantContext(clean_schema):
+            # Fetch all districts from tenant table
+            districts_qs = District.objects.all().values('district_id', 'name', 'code', 'status')
 
-            # Station is available if district is available
-            dist_available = has_state_admin or clean_dist in active_district_names or any(clean_dist in ad for ad in active_district_names) or True
+            for d in districts_qs:
+                d_name = d['name']
+                clean_d_name = d_name.lower().strip()
 
-            station_list.append({
-                'station_id': st['station_id'],
-                'station_name': st_name,
-                'district_name': dist_name,
-                'zone': st['zone'],
-                'address': st['address'],
-                'is_available': dist_available
-            })
+                # District is available if:
+                # 1. State Admin is active OR
+                # 2. Specific District Admin exists OR
+                # 3. District is explicitly marked approved
+                has_direct_admin = clean_d_name in active_district_names or any(clean_d_name in ad for ad in active_district_names)
+                is_available = has_state_admin or has_direct_admin or d['status'] == 'approved'
+
+                if has_direct_admin:
+                    reason = "Active & Onboarded (District Admin Present)"
+                elif has_state_admin:
+                    reason = "Active & Onboarded (State Admin Supervision)"
+                else:
+                    reason = "Active (System Default Approved)"
+
+                district_list.append({
+                    'district_id': d['district_id'],
+                    'name': d_name,
+                    'code': d['code'],
+                    'is_available': is_available,
+                    'has_admin': has_direct_admin or has_state_admin,
+                    'status_reason': reason
+                })
+
+            # Fetch all police stations
+            stations_qs = PoliceStation.objects.all().values('station_id', 'station_name', 'district_name', 'zone', 'address')
+
+            for st in stations_qs:
+                st_name = st['station_name']
+                dist_name = st['district_name']
+                clean_dist = dist_name.lower().strip()
+
+                # Station is available if district is available
+                dist_available = has_state_admin or clean_dist in active_district_names or any(clean_dist in ad for ad in active_district_names) or True
+
+                station_list.append({
+                    'station_id': st['station_id'],
+                    'station_name': st_name,
+                    'district_name': dist_name,
+                    'zone': st['zone'],
+                    'address': st['address'],
+                    'is_available': dist_available
+                })
 
         return {
             'state_code': clean_state_code,

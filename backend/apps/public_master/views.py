@@ -173,20 +173,42 @@ class MasterDivisionsView(views.APIView):
         from .models import MasterDivision, StateRegistry
         from apps.core.tenancy import TenantContext, get_active_tenant_schema
         
-        state_code = (request.query_params.get('state_code') or request.query_params.get('state_id') or 'MH').strip().upper()
-        state_reg = StateRegistry.objects.filter(state_code__iexact=state_code).first()
-        target_schema = state_reg.schema_name if (state_reg and state_reg.schema_name) else get_active_tenant_schema(request)
+        state_code = (request.query_params.get('state_code') or request.query_params.get('state_id') or '').strip().upper()
+        target_schema = None
+        
+        if state_code:
+            state_reg = StateRegistry.objects.filter(state_code__iexact=state_code).first()
+            if state_reg and state_reg.schema_name:
+                target_schema = state_reg.schema_name
 
-        data = []
+        if not target_schema:
+            active_schema = get_active_tenant_schema(request)
+            if active_schema and active_schema != 'public':
+                target_schema = active_schema
+
+        # Fail-fast guard: MasterDivision is strictly tenant-scoped (never exists in public schema)
+        if not target_schema or target_schema == 'public':
+            return Response(
+                {
+                    'error': 'State tenant context is required for division hierarchy. Please provide state_code query param or X-State-Code header.',
+                    'divisions': []
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         try:
             with TenantContext(target_schema):
-                divs = MasterDivision.objects.filter(state_code__iexact=state_code).values('id', 'name', 'code', 'state_name')
-                data = list(divs)
+                qs = MasterDivision.objects.all()
+                if state_code:
+                    qs = qs.filter(state_code__iexact=state_code)
+                data = list(qs.values('id', 'name', 'code', 'state_name'))
+                return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
-            logger.warning(f"[MasterDivisionsView] Query failed in schema '{target_schema}': {e}")
-            data = []
-
-        return Response(data, status=status.HTTP_200_OK)
+            logger.error(f"[MasterDivisionsView] Query failed in schema '{target_schema}': {e}")
+            return Response(
+                {'error': f"Failed to retrieve divisions for schema '{target_schema}'", 'details': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class MasterDistrictsView(views.APIView):

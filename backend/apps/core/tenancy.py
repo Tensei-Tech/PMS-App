@@ -146,6 +146,45 @@ def provision_state_schema(schema_name: str, state_code: str = None, state_name:
             created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
             CONSTRAINT "{clean_schema}_master_divisions_state_name_uniq" UNIQUE (state_code, name)
         );
+        CREATE TABLE IF NOT EXISTS "{clean_schema}".users_notificationrecord (
+            id SERIAL PRIMARY KEY,
+            target_role_id VARCHAR(64) DEFAULT '',
+            target_station_name VARCHAR(255),
+            target_district VARCHAR(128),
+            target_state_code VARCHAR(10),
+            target_user_uid VARCHAR(128),
+            title VARCHAR(255) NOT NULL,
+            body TEXT NOT NULL,
+            category VARCHAR(64) DEFAULT 'approval_request',
+            registration_uid VARCHAR(128),
+            status VARCHAR(32) DEFAULT 'pending',
+            is_read BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS "{clean_schema}".users_transferrequest (
+            id VARCHAR(128) PRIMARY KEY,
+            requested_by_uid VARCHAR(128) NOT NULL,
+            officer_name VARCHAR(255) DEFAULT '',
+            from_designation VARCHAR(128) DEFAULT '',
+            to_designation VARCHAR(128) DEFAULT '',
+            from_station_name VARCHAR(255) DEFAULT '',
+            to_station_name VARCHAR(255) DEFAULT '',
+            from_district VARCHAR(128) DEFAULT '',
+            to_district VARCHAR(128) DEFAULT '',
+            from_state VARCHAR(128) DEFAULT '',
+            to_state VARCHAR(128) DEFAULT '',
+            from_unit_type VARCHAR(128) DEFAULT '',
+            to_unit_type VARCHAR(128) DEFAULT '',
+            reason TEXT DEFAULT '',
+            status VARCHAR(32) DEFAULT 'pending',
+            approved_by_uid VARCHAR(128),
+            rejected_by_uid VARCHAR(128),
+            rejection_reason TEXT,
+            approved_at TIMESTAMPTZ,
+            rejected_at TIMESTAMPTZ,
+            created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+        );
         """)
         logger.info(f"[Tenancy] Provisioned PostgreSQL schema & tables: {clean_schema} (State: {resolved_name}/{resolved_code})")
 
