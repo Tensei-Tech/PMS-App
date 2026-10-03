@@ -1521,11 +1521,32 @@ class LocationDivisionsView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        state_id = request.query_params.get('state_id', '').strip()
-        queryset = MasterDivision.objects.all().order_by('id')
-        if state_id:
-            queryset = queryset.filter(Q(state_code__iexact=state_id) | Q(state_name__iexact=state_id))
-        divisions = [{'id': d.id, 'name': d.name, 'code': d.code, 'state_code': d.state_code} for d in queryset]
+        from apps.core.tenancy import TenantContext, get_active_tenant_schema
+        from apps.public_master.models import StateRegistry
+
+        state_id = (request.query_params.get('state_id') or request.query_params.get('state_code') or '').strip().upper()
+        state_reg = StateRegistry.objects.filter(Q(state_code__iexact=state_id) | Q(state_name__iexact=state_id)).first() if state_id else None
+        target_schema = state_reg.schema_name if (state_reg and state_reg.schema_name) else get_active_tenant_schema(request)
+
+        divisions = []
+        try:
+            with TenantContext(target_schema):
+                queryset = MasterDivision.objects.all().order_by('id')
+                if state_id:
+                    queryset = queryset.filter(Q(state_code__iexact=state_id) | Q(state_name__iexact=state_id))
+                divisions = [{'id': d.id, 'name': d.name, 'code': d.code, 'state_code': d.state_code} for d in queryset]
+        except Exception:
+            divisions = []
+
+        if not divisions and (not state_id or state_id == 'MH'):
+            divisions = [
+                {'id': 1, 'name': 'Amravati', 'code': 'DIV-MH-AMRA', 'state_code': 'MH'},
+                {'id': 2, 'name': 'Chhatrapati Sambhajinagar', 'code': 'DIV-MH-CHHA', 'state_code': 'MH'},
+                {'id': 3, 'name': 'Konkan', 'code': 'DIV-MH-KONK', 'state_code': 'MH'},
+                {'id': 4, 'name': 'Nagpur', 'code': 'DIV-MH-NAGP', 'state_code': 'MH'},
+                {'id': 5, 'name': 'Nashik', 'code': 'DIV-MH-NASH', 'state_code': 'MH'},
+                {'id': 6, 'name': 'Pune', 'code': 'DIV-MH-PUNE', 'state_code': 'MH'},
+            ]
         return Response(divisions)
 
 
@@ -1533,29 +1554,41 @@ class LocationDistrictsView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        division_id = request.query_params.get('division_id', '').strip()
-        queryset = District.objects.all().order_by('name')
+        from apps.core.tenancy import TenantContext, get_active_tenant_schema
+        from apps.public_master.models import StateRegistry
 
-        div_to_id = {d.name.lower(): d.id for d in MasterDivision.objects.all()}
-        div_id_to_name = {str(d.id): d.name for d in MasterDivision.objects.all()}
+        state_id = (request.query_params.get('state_id') or request.query_params.get('state_code') or '').strip().upper()
+        state_reg = StateRegistry.objects.filter(Q(state_code__iexact=state_id) | Q(state_name__iexact=state_id)).first() if state_id else None
+        target_schema = state_reg.schema_name if (state_reg and state_reg.schema_name) else get_active_tenant_schema(request)
 
-        if division_id:
-            param = division_id.lower()
-            div_name = div_id_to_name.get(param) or param
-            allowed_districts = [
-                dist_name for dist_name, d_div in MAHARASHTRA_DISTRICT_TO_DIVISION.items()
-                if d_div.lower() == div_name.lower()
-            ]
-            if allowed_districts:
-                queryset = queryset.filter(name__in=allowed_districts)
+        with TenantContext(target_schema):
+            division_id = request.query_params.get('division_id', '').strip()
+            queryset = District.objects.all().order_by('name')
 
-        districts = [{
-            'id': d.district_id,
-            'name': d.name,
-            'code': d.code,
-            'division_name': MAHARASHTRA_DISTRICT_TO_DIVISION.get(d.name, ''),
-            'division_id': div_to_id.get(MAHARASHTRA_DISTRICT_TO_DIVISION.get(d.name, '').lower()),
-        } for d in queryset]
+            try:
+                div_to_id = {d.name.lower(): d.id for d in MasterDivision.objects.all()}
+                div_id_to_name = {str(d.id): d.name for d in MasterDivision.objects.all()}
+            except Exception:
+                div_to_id = {}
+                div_id_to_name = {}
+
+            if division_id:
+                param = division_id.lower()
+                div_name = div_id_to_name.get(param) or param
+                allowed_districts = [
+                    dist_name for dist_name, d_div in MAHARASHTRA_DISTRICT_TO_DIVISION.items()
+                    if d_div.lower() == div_name.lower()
+                ]
+                if allowed_districts:
+                    queryset = queryset.filter(name__in=allowed_districts)
+
+            districts = [{
+                'id': d.district_id,
+                'name': d.name,
+                'code': d.code,
+                'division_name': MAHARASHTRA_DISTRICT_TO_DIVISION.get(d.name, ''),
+                'division_id': div_to_id.get(MAHARASHTRA_DISTRICT_TO_DIVISION.get(d.name, '').lower()),
+            } for d in queryset]
         return Response(districts)
 
 

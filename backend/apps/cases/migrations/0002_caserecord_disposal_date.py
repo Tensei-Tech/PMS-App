@@ -3,18 +3,39 @@ from django.db import migrations, models
 SQL_ADD_DISPOSAL_DATE = """
 DO $$
 DECLARE
-    target_schemas TEXT[] := ARRAY['maharashtra', 'manipur', 'bihar', 'public'];
-    s TEXT;
+    sch_rec RECORD;
 BEGIN
-    FOREACH s IN ARRAY target_schemas
+    -- 1. Iterate across all existing non-system schemata
+    FOR sch_rec IN
+        SELECT DISTINCT schema_name AS sch
+        FROM information_schema.schemata
+        WHERE schema_name NOT IN ('information_schema', 'pg_catalog', 'pg_toast')
+          AND schema_name NOT LIKE 'pg_temp_%'
+          AND schema_name NOT LIKE 'pg_toast_%'
     LOOP
         IF EXISTS (
             SELECT 1 FROM information_schema.tables 
-            WHERE table_schema = s AND table_name = 'cases_caserecord'
+            WHERE table_schema = sch_rec.sch AND table_name = 'cases_caserecord'
         ) THEN
-            EXECUTE format('ALTER TABLE %I.cases_caserecord ADD COLUMN IF NOT EXISTS disposal_date TIMESTAMPTZ;', s);
+            EXECUTE format('ALTER TABLE %I.cases_caserecord ADD COLUMN IF NOT EXISTS disposal_date TIMESTAMPTZ;', sch_rec.sch);
         END IF;
     END LOOP;
+
+    -- 2. Also check public.states if registered tenant states exist
+    IF EXISTS (
+        SELECT 1 FROM information_schema.tables 
+        WHERE table_schema = 'public' AND table_name = 'states'
+    ) THEN
+        FOR sch_rec IN EXECUTE 'SELECT DISTINCT schema_name AS sch FROM public.states WHERE schema_name IS NOT NULL AND trim(schema_name) != '''''
+        LOOP
+            IF EXISTS (
+                SELECT 1 FROM information_schema.tables 
+                WHERE table_schema = sch_rec.sch AND table_name = 'cases_caserecord'
+            ) THEN
+                EXECUTE format('ALTER TABLE %I.cases_caserecord ADD COLUMN IF NOT EXISTS disposal_date TIMESTAMPTZ;', sch_rec.sch);
+            END IF;
+        END LOOP;
+    END IF;
 END
 $$;
 """

@@ -170,10 +170,22 @@ class MasterDivisionsView(views.APIView):
 
     @cache_response(ttl=43200, key_prefix="hierarchy:divisions")
     def get(self, request):
-        from .models import MasterDivision
-        state_code = request.query_params.get('state_code', 'MH').upper()
-        divs = MasterDivision.objects.filter(state_code=state_code).values('id', 'name', 'code', 'state_name')
-        data = list(divs)
+        from .models import MasterDivision, StateRegistry
+        from apps.core.tenancy import TenantContext, get_active_tenant_schema
+        
+        state_code = (request.query_params.get('state_code') or request.query_params.get('state_id') or 'MH').strip().upper()
+        state_reg = StateRegistry.objects.filter(state_code__iexact=state_code).first()
+        target_schema = state_reg.schema_name if (state_reg and state_reg.schema_name) else get_active_tenant_schema(request)
+
+        data = []
+        try:
+            with TenantContext(target_schema):
+                divs = MasterDivision.objects.filter(state_code__iexact=state_code).values('id', 'name', 'code', 'state_name')
+                data = list(divs)
+        except Exception as e:
+            logger.warning(f"[MasterDivisionsView] Query failed in schema '{target_schema}': {e}")
+            data = []
+
         if not data:
             data = [
                 {'name': 'Amravati'}, {'name': 'Chhatrapati Sambhajinagar'},

@@ -3,31 +3,62 @@ from django.db import migrations, models
 SQL_ALTER_NULLABLE = """
 DO $$
 DECLARE
-    target_schemas TEXT[] := ARRAY['maharashtra', 'bihar', 'manipur', 'public'];
-    s TEXT;
+    sch_rec RECORD;
 BEGIN
-    FOREACH s IN ARRAY target_schemas
+    FOR sch_rec IN
+        SELECT DISTINCT schema_name AS sch
+        FROM information_schema.schemata
+        WHERE schema_name NOT IN ('information_schema', 'pg_catalog', 'pg_toast')
+          AND schema_name NOT LIKE 'pg_temp_%'
+          AND schema_name NOT LIKE 'pg_toast_%'
     LOOP
         -- 1. districts table: make code nullable
         IF EXISTS (
             SELECT 1 FROM information_schema.tables 
-            WHERE table_schema = s AND table_name = 'districts'
+            WHERE table_schema = sch_rec.sch AND table_name = 'districts'
         ) THEN
-            EXECUTE format('ALTER TABLE %I.districts ALTER COLUMN code DROP NOT NULL;', s);
+            EXECUTE format('ALTER TABLE %I.districts ALTER COLUMN code DROP NOT NULL;', sch_rec.sch);
         END IF;
 
         -- 2. stations_policestation table: make address, landline, district_name, zone, pi_in_charge nullable
         IF EXISTS (
             SELECT 1 FROM information_schema.tables 
-            WHERE table_schema = s AND table_name = 'stations_policestation'
+            WHERE table_schema = sch_rec.sch AND table_name = 'stations_policestation'
         ) THEN
-            EXECUTE format('ALTER TABLE %I.stations_policestation ALTER COLUMN address DROP NOT NULL;', s);
-            EXECUTE format('ALTER TABLE %I.stations_policestation ALTER COLUMN landline DROP NOT NULL;', s);
-            EXECUTE format('ALTER TABLE %I.stations_policestation ALTER COLUMN district_name DROP NOT NULL;', s);
-            EXECUTE format('ALTER TABLE %I.stations_policestation ALTER COLUMN zone DROP NOT NULL;', s);
-            EXECUTE format('ALTER TABLE %I.stations_policestation ALTER COLUMN pi_in_charge DROP NOT NULL;', s);
+            EXECUTE format('ALTER TABLE %I.stations_policestation ALTER COLUMN address DROP NOT NULL;', sch_rec.sch);
+            EXECUTE format('ALTER TABLE %I.stations_policestation ALTER COLUMN landline DROP NOT NULL;', sch_rec.sch);
+            EXECUTE format('ALTER TABLE %I.stations_policestation ALTER COLUMN district_name DROP NOT NULL;', sch_rec.sch);
+            EXECUTE format('ALTER TABLE %I.stations_policestation ALTER COLUMN zone DROP NOT NULL;', sch_rec.sch);
+            EXECUTE format('ALTER TABLE %I.stations_policestation ALTER COLUMN pi_in_charge DROP NOT NULL;', sch_rec.sch);
         END IF;
     END LOOP;
+
+    -- Also check public.states if registered tenant states exist
+    IF EXISTS (
+        SELECT 1 FROM information_schema.tables 
+        WHERE table_schema = 'public' AND table_name = 'states'
+    ) THEN
+        FOR sch_rec IN EXECUTE 'SELECT DISTINCT schema_name AS sch FROM public.states WHERE schema_name IS NOT NULL AND trim(schema_name) != '''''
+        LOOP
+            IF EXISTS (
+                SELECT 1 FROM information_schema.tables 
+                WHERE table_schema = sch_rec.sch AND table_name = 'districts'
+            ) THEN
+                EXECUTE format('ALTER TABLE %I.districts ALTER COLUMN code DROP NOT NULL;', sch_rec.sch);
+            END IF;
+
+            IF EXISTS (
+                SELECT 1 FROM information_schema.tables 
+                WHERE table_schema = sch_rec.sch AND table_name = 'stations_policestation'
+            ) THEN
+                EXECUTE format('ALTER TABLE %I.stations_policestation ALTER COLUMN address DROP NOT NULL;', sch_rec.sch);
+                EXECUTE format('ALTER TABLE %I.stations_policestation ALTER COLUMN landline DROP NOT NULL;', sch_rec.sch);
+                EXECUTE format('ALTER TABLE %I.stations_policestation ALTER COLUMN district_name DROP NOT NULL;', sch_rec.sch);
+                EXECUTE format('ALTER TABLE %I.stations_policestation ALTER COLUMN zone DROP NOT NULL;', sch_rec.sch);
+                EXECUTE format('ALTER TABLE %I.stations_policestation ALTER COLUMN pi_in_charge DROP NOT NULL;', sch_rec.sch);
+            END IF;
+        END LOOP;
+    END IF;
 END
 $$;
 """

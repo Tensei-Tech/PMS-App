@@ -151,19 +151,18 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
             }
 
         try:
-            set_tenant_schema('public')
-            master_divs = list(MasterDivision.objects.all())
-            for mdiv in master_divs:
-                if mdiv.division_name not in divisions_map:
-                    divisions_map[mdiv.division_name] = {
-                        'id': f"div-{mdiv.id}",
-                        'name': mdiv.division_name,
-                        'admins': [],
-                    }
-        except Exception:
-            pass
-        finally:
-            set_tenant_schema(active_schema)
+            with TenantContext(active_schema):
+                master_divs = list(MasterDivision.objects.all())
+                for mdiv in master_divs:
+                    div_name = getattr(mdiv, 'name', getattr(mdiv, 'division_name', ''))
+                    if div_name and div_name not in divisions_map:
+                        divisions_map[div_name] = {
+                            'id': f"div-{mdiv.id}",
+                            'name': div_name,
+                            'admins': [],
+                        }
+        except Exception as e:
+            logger.warning(f"[HierarchyDirectory] MasterDivision query failed in {active_schema}: {e}")
 
         # Map Division Admins (role_id == 'division_admin' or designation matching DySP/ACP/SDPO/DIG/IG)
         for off in all_officers:

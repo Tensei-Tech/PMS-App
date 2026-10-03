@@ -54,7 +54,7 @@ class OfficerProfile(models.Model):
 
     @property
     def master_division_record(self):
-        """Fetch corresponding MasterDivision record from public.master_divisions if available."""
+        """Fetch corresponding MasterDivision record from tenant schema master_divisions if available."""
         if not self.division_name:
             return None
         try:
