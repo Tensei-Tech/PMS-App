@@ -9,7 +9,7 @@ BEGIN
     FOR sch_rec IN
         SELECT DISTINCT schema_name AS sch
         FROM information_schema.schemata
-        WHERE schema_name NOT IN ('information_schema', 'pg_catalog', 'pg_toast')
+        WHERE schema_name NOT IN ('information_schema', 'pg_catalog', 'pg_toast', 'auth', 'storage', 'realtime', 'graphql', 'graphql_public', 'vault', 'supabase_functions', 'supabase_migrations', 'extensions', 'cron', 'net', '_analytics', '_realtime')
           AND schema_name NOT LIKE 'pg_temp_%'
           AND schema_name NOT LIKE 'pg_toast_%'
     LOOP
@@ -26,7 +26,10 @@ BEGIN
         SELECT 1 FROM information_schema.tables 
         WHERE table_schema = 'public' AND table_name = 'states'
     ) THEN
-        FOR sch_rec IN EXECUTE 'SELECT DISTINCT schema_name AS sch FROM public.states WHERE schema_name IS NOT NULL AND trim(schema_name) != '''''
+        FOR sch_rec IN
+            SELECT DISTINCT schema_name AS sch
+            FROM public.states
+            WHERE schema_name IS NOT NULL AND length(trim(schema_name)) > 0
         LOOP
             IF EXISTS (
                 SELECT 1 FROM information_schema.tables 

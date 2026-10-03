@@ -1,7 +1,10 @@
 import logging
+import threading
 from django.db import connection, transaction
 
 logger = logging.getLogger(__name__)
+
+_thread_local = threading.local()
 
 
 class TenantContext:
@@ -15,13 +18,13 @@ class TenantContext:
 
     def __init__(self, schema_name: str):
         self.schema_name = schema_name or 'public'
-        self.previous_schema = 'public'
+        self.previous_schema = getattr(_thread_local, 'tenant_schema', 'public')
 
     def __enter__(self):
         try:
+            clean_schema = "".join(c for c in self.schema_name if c.isalnum() or c == '_').lower()
+            _thread_local.tenant_schema = clean_schema
             with connection.cursor() as cursor:
-                # Sanitize schema name (alphanumeric and underscores only)
-                clean_schema = "".join(c for c in self.schema_name if c.isalnum() or c == '_').lower()
                 cursor.execute(f'SET search_path TO "{clean_schema}", public;')
                 logger.debug(f"[Tenancy] search_path set to: {clean_schema}, public")
         except Exception as e:
@@ -30,10 +33,15 @@ class TenantContext:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         try:
+            _thread_local.tenant_schema = self.previous_schema
+            clean_prev = "".join(c for c in self.previous_schema if c.isalnum() or c == '_').lower() if self.previous_schema else 'public'
             with connection.cursor() as cursor:
-                cursor.execute('SET search_path TO public;')
+                if clean_prev and clean_prev != 'public':
+                    cursor.execute(f'SET search_path TO "{clean_prev}", public;')
+                else:
+                    cursor.execute('SET search_path TO public;')
         except Exception as e:
-            logger.error(f"[Tenancy] Failed to reset search_path to public: {e}")
+            logger.error(f"[Tenancy] Failed to reset search_path to {self.previous_schema}: {e}")
 
 
 def set_tenant_schema(schema_name: str):
@@ -43,6 +51,7 @@ def set_tenant_schema(schema_name: str):
     if not schema_name:
         schema_name = 'public'
     clean_schema = "".join(c for c in schema_name if c.isalnum() or c == '_').lower()
+    _thread_local.tenant_schema = clean_schema
     with connection.cursor() as cursor:
         cursor.execute(f'SET search_path TO "{clean_schema}", public;')
 
@@ -117,15 +126,23 @@ def provision_state_schema(schema_name: str, state_code: str = None, state_name:
 
 def get_active_tenant_schema(request=None) -> str:
     """
-    Dynamically determines active tenant schema name from request headers, state_schema attribute,
-    or active StateRegistry in DB. Never relies on hardcoded schema names.
+    Dynamically determines active tenant schema name from active TenantContext thread context,
+    request headers, state_schema attribute, or active StateRegistry in DB.
     """
+    # 1. Active TenantContext in current thread
+    current = getattr(_thread_local, 'tenant_schema', None)
+    if current and current != 'public':
+        return current
+
+    # 2. Request attributes & headers
     if request:
         schema = getattr(request, 'state_schema', None)
         if not schema and hasattr(request, 'META'):
             schema = request.META.get('HTTP_X_TENANT_SCHEMA') or request.META.get('HTTP_X_STATE_SCHEMA')
         if schema and schema != 'public':
             return schema
+
+    # 3. Fallback to active StateRegistry in DB
     try:
         from apps.public_master.models import StateRegistry
         state = StateRegistry.objects.filter(is_active=True).first()
@@ -133,5 +150,6 @@ def get_active_tenant_schema(request=None) -> str:
             return state.schema_name
     except Exception:
         pass
+
     return 'public'
 
