@@ -116,6 +116,26 @@ class TenancyStackSafetyTests(TestCase):
         # 5. No request object at all -> returns 'public'
         self.assertEqual(get_active_tenant_schema(None), 'public')
 
+    def test_tenant_middleware_no_headers_resolves_to_public(self):
+        """
+        Verify that TenantMiddleware processes a request with no state header or JWT
+        by intentionally assigning schema_name='public' (NOT 'maharashtra' or another tenant).
+        """
+        from apps.core.middleware import TenantMiddleware
+        rf = RequestFactory()
+        req = rf.get('/api/v1/master/states/')
+        middleware = TenantMiddleware(lambda r: None)
+        middleware.process_request(req)
+
+        self.assertEqual(req.state_schema, 'public')
+        self.assertIn(req.state_code, (None, ''))
+        self.assertEqual(get_active_tenant_schema(req), 'public')
+        with connection.cursor() as cursor:
+            cursor.execute("SHOW search_path;")
+            current_sp = cursor.fetchone()[0]
+            self.assertTrue('public' in current_sp)
+
+
     def test_provision_state_schema_and_isolation(self):
         """Test provisioning a fresh tenant schema from scratch and querying master_divisions."""
         test_schema = 'kerala_test_unit'
