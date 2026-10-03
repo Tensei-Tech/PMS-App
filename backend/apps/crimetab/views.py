@@ -1535,18 +1535,10 @@ class LocationDivisionsView(APIView):
                 if state_id:
                     queryset = queryset.filter(Q(state_code__iexact=state_id) | Q(state_name__iexact=state_id))
                 divisions = [{'id': d.id, 'name': d.name, 'code': d.code, 'state_code': d.state_code} for d in queryset]
-        except Exception:
+        except Exception as e:
+            logger.warning(f"[LocationDivisionsView] Query failed in schema '{target_schema}' (state: {state_id}): {e}")
             divisions = []
 
-        if not divisions and (not state_id or state_id == 'MH'):
-            divisions = [
-                {'id': 1, 'name': 'Amravati', 'code': 'DIV-MH-AMRA', 'state_code': 'MH'},
-                {'id': 2, 'name': 'Chhatrapati Sambhajinagar', 'code': 'DIV-MH-CHHA', 'state_code': 'MH'},
-                {'id': 3, 'name': 'Konkan', 'code': 'DIV-MH-KONK', 'state_code': 'MH'},
-                {'id': 4, 'name': 'Nagpur', 'code': 'DIV-MH-NAGP', 'state_code': 'MH'},
-                {'id': 5, 'name': 'Nashik', 'code': 'DIV-MH-NASH', 'state_code': 'MH'},
-                {'id': 6, 'name': 'Pune', 'code': 'DIV-MH-PUNE', 'state_code': 'MH'},
-            ]
         return Response(divisions)
 
 

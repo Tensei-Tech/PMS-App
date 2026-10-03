@@ -186,15 +186,6 @@ class MasterDivisionsView(views.APIView):
             logger.warning(f"[MasterDivisionsView] Query failed in schema '{target_schema}': {e}")
             data = []
 
-        if not data and state_code == 'MH':
-            data = [
-                {'name': 'Amravati', 'state_code': 'MH', 'state_name': 'Maharashtra'},
-                {'name': 'Chhatrapati Sambhajinagar', 'state_code': 'MH', 'state_name': 'Maharashtra'},
-                {'name': 'Konkan', 'state_code': 'MH', 'state_name': 'Maharashtra'},
-                {'name': 'Nagpur', 'state_code': 'MH', 'state_name': 'Maharashtra'},
-                {'name': 'Nashik', 'state_code': 'MH', 'state_name': 'Maharashtra'},
-                {'name': 'Pune', 'state_code': 'MH', 'state_name': 'Maharashtra'},
-            ]
         return Response(data, status=status.HTTP_200_OK)
 
 

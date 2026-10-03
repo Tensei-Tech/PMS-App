@@ -1,59 +1,85 @@
 import logging
 import threading
-from django.db import connection, transaction
+from django.db import connection
 
 logger = logging.getLogger(__name__)
 
 _thread_local = threading.local()
 
 
+def _get_schema_stack() -> list:
+    """Returns the thread-local schema stack, initializing it if not present."""
+    if not hasattr(_thread_local, 'schema_stack'):
+        _thread_local.schema_stack = []
+    return _thread_local.schema_stack
+
+
 class TenantContext:
     """
-    Context manager for dynamically setting the PostgreSQL search_path for multi-tenancy.
+    Stack-safe Context manager for dynamically setting the PostgreSQL search_path for multi-tenancy.
+    Maintains a thread-local LIFO stack so nested blocks cleanly restore outer tenant schemas on exit.
+    
     Example:
-        with TenantContext('maharashtra'):
-            # Operations run within 'maharashtra, public' search path
-            OfficerProfile.objects.all()
+        with TenantContext('kerala'):
+            # search_path is 'kerala, public'
+            with TenantContext('maharashtra'):
+                # search_path is 'maharashtra, public'
+            # search_path correctly restored to 'kerala, public'
+        # search_path correctly restored to 'public'
     """
 
     def __init__(self, schema_name: str):
-        self.schema_name = schema_name or 'public'
-        self.previous_schema = getattr(_thread_local, 'tenant_schema', 'public')
+        self.target_schema = "".join(c for c in (schema_name or 'public') if c.isalnum() or c == '_').lower() or 'public'
 
     def __enter__(self):
+        stack = _get_schema_stack()
+        stack.append(self.target_schema)
+
         try:
-            clean_schema = "".join(c for c in self.schema_name if c.isalnum() or c == '_').lower()
-            _thread_local.tenant_schema = clean_schema
             with connection.cursor() as cursor:
-                cursor.execute(f'SET search_path TO "{clean_schema}", public;')
-                logger.debug(f"[Tenancy] search_path set to: {clean_schema}, public")
+                if self.target_schema != 'public':
+                    cursor.execute(f'SET search_path TO "{self.target_schema}", public;')
+                else:
+                    cursor.execute('SET search_path TO public;')
+                logger.debug(f"[Tenancy] search_path set to: {self.target_schema}, public (stack depth: {len(stack)})")
         except Exception as e:
-            logger.error(f"[Tenancy] Failed to set search_path to {self.schema_name}: {e}")
+            logger.error(f"[Tenancy] Failed to set search_path to {self.target_schema}: {e}")
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        stack = _get_schema_stack()
+        if stack:
+            stack.pop()
+        
+        # Restore to whatever is on top of the stack, or 'public' if empty
+        restore_schema = stack[-1] if stack else 'public'
+
         try:
-            _thread_local.tenant_schema = self.previous_schema
-            clean_prev = "".join(c for c in self.previous_schema if c.isalnum() or c == '_').lower() if self.previous_schema else 'public'
             with connection.cursor() as cursor:
-                if clean_prev and clean_prev != 'public':
-                    cursor.execute(f'SET search_path TO "{clean_prev}", public;')
+                if restore_schema and restore_schema != 'public':
+                    cursor.execute(f'SET search_path TO "{restore_schema}", public;')
                 else:
                     cursor.execute('SET search_path TO public;')
+                logger.debug(f"[Tenancy] Restored search_path to: {restore_schema} (stack depth: {len(stack)})")
         except Exception as e:
-            logger.error(f"[Tenancy] Failed to reset search_path to {self.previous_schema}: {e}")
+            logger.error(f"[Tenancy] Failed to restore search_path to {restore_schema}: {e}")
 
 
 def set_tenant_schema(schema_name: str):
     """
     Sets search_path on the active database connection.
+    If a TenantContext stack is active, updates the top frame.
     """
-    if not schema_name:
-        schema_name = 'public'
-    clean_schema = "".join(c for c in schema_name if c.isalnum() or c == '_').lower()
-    _thread_local.tenant_schema = clean_schema
+    clean_schema = "".join(c for c in (schema_name or 'public') if c.isalnum() or c == '_').lower() or 'public'
+    stack = _get_schema_stack()
+    if stack:
+        stack[-1] = clean_schema
+
     with connection.cursor() as cursor:
-        cursor.execute(f'SET search_path TO "{clean_schema}", public;')
+        if clean_schema != 'public':
+            cursor.execute(f'SET search_path TO "{clean_schema}", public;')
+        else:
+            cursor.execute('SET search_path TO public;')
 
 
 def provision_state_schema(schema_name: str, state_code: str = None, state_name: str = None):
@@ -126,14 +152,14 @@ def provision_state_schema(schema_name: str, state_code: str = None, state_name:
 
 def get_active_tenant_schema(request=None) -> str:
     """
-    Dynamically determines active tenant schema name from active TenantContext thread context,
-    request headers, state_schema attribute, or falls back cleanly to 'public'.
-    Never returns an arbitrary state tenant when global/public scope is expected.
+    Dynamically determines active tenant schema name from active TenantContext thread stack,
+    request headers, or state_schema attribute.
+    Logs warning if no tenant context is available and defaults to 'public'.
     """
-    # 1. Explicit thread-local context (e.g. inside TenantContext block)
-    current = getattr(_thread_local, 'tenant_schema', None)
-    if current is not None:
-        return current
+    # 1. Explicit thread-local context (from TenantContext stack)
+    stack = _get_schema_stack()
+    if stack:
+        return stack[-1]
 
     # 2. Request attributes & headers
     if request:
@@ -143,5 +169,7 @@ def get_active_tenant_schema(request=None) -> str:
         if schema:
             return schema
 
+    logger.warning("[Tenancy] No active tenant context or request header found; falling back to 'public'")
     return 'public'
+
 

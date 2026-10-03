@@ -44,6 +44,30 @@ $$;
 """
 
 
+SQL_REVERSE_DISPOSAL_DATE = """
+DO $$
+DECLARE
+    sch_rec RECORD;
+BEGIN
+    FOR sch_rec IN
+        SELECT DISTINCT schema_name AS sch
+        FROM information_schema.schemata
+        WHERE schema_name NOT IN ('information_schema', 'pg_catalog', 'pg_toast', 'auth', 'storage', 'realtime', 'graphql', 'graphql_public', 'vault', 'supabase_functions', 'supabase_migrations', 'extensions', 'cron', 'net', '_analytics', '_realtime')
+          AND schema_name NOT LIKE 'pg_temp_%'
+          AND schema_name NOT LIKE 'pg_toast_%'
+    LOOP
+        IF EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_schema = sch_rec.sch AND table_name = 'cases_caserecord' AND column_name = 'disposal_date'
+        ) THEN
+            EXECUTE format('ALTER TABLE %I.cases_caserecord DROP COLUMN IF EXISTS disposal_date;', sch_rec.sch);
+        END IF;
+    END LOOP;
+END
+$$;
+"""
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -62,8 +86,9 @@ class Migration(migrations.Migration):
             database_operations=[
                 migrations.RunSQL(
                     sql=SQL_ADD_DISPOSAL_DATE,
-                    reverse_sql="ALTER TABLE IF EXISTS maharashtra.cases_caserecord DROP COLUMN IF EXISTS disposal_date;",
+                    reverse_sql=SQL_REVERSE_DISPOSAL_DATE,
                 ),
             ],
         ),
     ]
+
