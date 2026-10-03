@@ -23,6 +23,7 @@ from apps.cases.views import (
     SectionsByCrimeTypeView,
     CreateCaseView,
     PendingCasesView,
+    DetectedCasesView,
 )
 
 router = DefaultRouter()
@@ -37,6 +38,7 @@ urlpatterns = [
     path('cases/crime-types/<str:crime_type>/sections/', SectionsByCrimeTypeView.as_view(), name='sections-by-crime-type'),
     path('cases/create/', CreateCaseView.as_view(), name='case-create'),
     path('cases/pending/', PendingCasesView.as_view(), name='pending-cases'),
+    path('cases/detected/', DetectedCasesView.as_view(), name='detected-cases-alias'),
 
     # Explicit Action Endpoints for Cases
     path('cases/transferred-in/', TransferredInInboxView.as_view(), name='cases-transferred-in'),

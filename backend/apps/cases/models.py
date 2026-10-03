@@ -221,6 +221,7 @@ class CaseRecord(models.Model):
 
     STATUS_CHOICES = (
         ('Pending', 'Pending'),
+        ('Detected', 'Detected'),
         ('Disposal', 'Disposal'),
         ('Closed', 'Closed'),
         ('Open', 'Open'),
@@ -255,7 +256,7 @@ class CaseRecord(models.Model):
     def save(self, *args, **kwargs):
         # 1. Reject client status overrides (handled before save if we want, but enforced here)
         # Actually, if we just want to compute it:
-        from apps.cases.constants import CC_ST_KEYS
+        from apps.cases.constants import CC_ST_KEYS, DISPOSAL_KEYS
         from django.utils import timezone
         
         has_disposal_key = False
@@ -271,7 +272,7 @@ class CaseRecord(models.Model):
             # Check if CC/ST or Court Filing fields are present in extra_fields
             has_cc = False
             if isinstance(self.extra_fields, dict):
-                has_cc = bool(_extract_first_non_empty(self.extra_fields, CC_ST_KEYS + COURT_FILING_DISPOSAL_KEYS))
+                has_cc = bool(_extract_first_non_empty(self.extra_fields, DISPOSAL_KEYS))
             has_disposal_key = has_cc
             
         if self.pk:
@@ -298,8 +299,24 @@ class CaseRecord(models.Model):
                     self.extra_fields['disposal_date'] = timezone.localtime(timezone.now()).strftime('%Y-%m-%d')
                     
         # Update the status based on disposal key presence
-        from apps.cases.constants import CASE_STATUS_DISPOSAL, CASE_STATUS_PENDING
+        from apps.cases.constants import CASE_STATUS_DISPOSAL, CASE_STATUS_PENDING, CASE_STATUS_DETECTED
+        
         is_ad = getattr(self, 'module_key', '') == 'ad'
+        
+        # Helper to determine if case is detected
+        is_detected = False
+        if not is_ad:
+            # Check standard accused field
+            if self.accused and str(self.accused).strip():
+                is_detected = True
+            # Check extra_fields for accused
+            elif isinstance(self.extra_fields, dict):
+                for accused_key in ['accused', 'AccusedName', 'accused_name', 'accusedName']:
+                    val = self.extra_fields.get(accused_key)
+                    if val and str(val).strip():
+                        is_detected = True
+                        break
+
         if is_ad:
             if is_ad_case_disposed(self):
                 self.status = CASE_STATUS_DISPOSAL
@@ -308,8 +325,8 @@ class CaseRecord(models.Model):
         else:
             if has_disposal_key:
                 self.status = CASE_STATUS_DISPOSAL
-            elif self.status == CASE_STATUS_DISPOSAL:
-                self.status = CASE_STATUS_PENDING
+            elif self.status == CASE_STATUS_DISPOSAL or self.status == CASE_STATUS_PENDING or self.status == CASE_STATUS_DETECTED:
+                self.status = CASE_STATUS_DETECTED if is_detected else CASE_STATUS_PENDING
 
         super().save(*args, **kwargs)
 

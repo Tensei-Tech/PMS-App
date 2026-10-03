@@ -47,3 +47,4 @@ REASON_KEYS = ['reason_for_pending', 'pendingReason', 'pending_reason']
 
 CASE_STATUS_PENDING = 'Pending'
 CASE_STATUS_DISPOSAL = 'Disposal'
+CASE_STATUS_DETECTED = 'Detected'

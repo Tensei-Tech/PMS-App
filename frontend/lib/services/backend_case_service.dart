@@ -401,4 +401,78 @@ class BackendCaseService {
       return false;
     }
   }
+
+
+  // ---------------------------------------------------------------------------
+  // DETECTED API WRAPPERS
+  // ---------------------------------------------------------------------------
+
+  Future<List<Map<String, dynamic>>?> fetchDetectedCases({
+    String? ioUid,
+    String? startDate,
+    String? endDate,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (ioUid != null && ioUid.isNotEmpty) queryParams['io'] = ioUid;
+      if (startDate != null && startDate.isNotEmpty) queryParams['start_date'] = startDate;
+      if (endDate != null && endDate.isNotEmpty) queryParams['end_date'] = endDate;
+
+      final url = '${ApiConfig.cases}detected/';
+      final response = await _api.get(url, queryParameters: queryParams);
+
+      if (response.isSuccess) {
+        if (response.data is List) {
+          return List<Map<String, dynamic>>.from(response.data);
+        } else if (response.data is Map && response.data.containsKey('results')) {
+          return List<Map<String, dynamic>>.from(response.data['results']);
+        }
+      } else {
+        if (kDebugMode) debugPrint('[BackendCaseService] fetchDetectedCases error: ${response.errorMessage}');
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('[BackendCaseService] fetchDetectedCases exception: $e');
+    }
+    return null;
+  }
+
+  Future<List<Map<String, dynamic>>?> fetchDetectedIOWise({
+    String? startDate,
+    String? endDate,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (startDate != null && startDate.isNotEmpty) queryParams['start_date'] = startDate;
+      if (endDate != null && endDate.isNotEmpty) queryParams['end_date'] = endDate;
+
+      final url = '${ApiConfig.cases}detected/io-wise/';
+      final response = await _api.get(url, queryParameters: queryParams);
+
+      if (response.isSuccess && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data);
+      } else {
+        if (kDebugMode) debugPrint('[BackendCaseService] fetchDetectedIOWise error: ${response.errorMessage}');
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('[BackendCaseService] fetchDetectedIOWise exception: $e');
+    }
+    return null;
+  }
+
+  Future<List<Map<String, dynamic>>?> fetchDetectedTimeWise() async {
+    try {
+      final url = '${ApiConfig.cases}detected/time-wise/';
+      final response = await _api.get(url);
+
+      if (response.isSuccess && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data);
+      } else {
+        if (kDebugMode) debugPrint('[BackendCaseService] fetchDetectedTimeWise error: ${response.errorMessage}');
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('[BackendCaseService] fetchDetectedTimeWise exception: $e');
+    }
+    return null;
+  }
 }
+

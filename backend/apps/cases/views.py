@@ -87,11 +87,9 @@ class CaseRecordViewSet(viewsets.ModelViewSet):
         if status_param:
             st_lower = status_param.lower()
             if st_lower in ['disposal', 'disposed', 'closed', 'resolved']:
-                disposed_ids = [c.id for c in queryset if c.status in ['Disposal', 'Disposed', 'Closed', 'Resolved'] or is_ad_case_disposed(c)]
-                queryset = queryset.filter(id__in=disposed_ids)
+                queryset = queryset.filter(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved'])
             elif st_lower in ['pending', 'open', 'active']:
-                disposed_ids = [c.id for c in queryset if c.status in ['Disposal', 'Disposed', 'Closed', 'Resolved'] or is_ad_case_disposed(c)]
-                queryset = queryset.exclude(id__in=disposed_ids)
+                queryset = queryset.exclude(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved'])
             else:
                 queryset = queryset.filter(status__iexact=status_param)
 
@@ -271,7 +269,9 @@ class DisposalCaseWiseView(APIView):
             end_date = request.query_params.get('end_date') or request.query_params.get('to_date')
             
             if start_date or end_date:
-                queryset = queryset.filter(extra_fields__disposal_date__regex=r'^\d{4}-\d{2}-\d{2}')
+                # Exclude cases with no disposal_date or empty disposal_date
+                queryset = queryset.exclude(extra_fields__disposal_date__isnull=True)
+                queryset = queryset.exclude(extra_fields__disposal_date__exact='')
             if start_date:
                 queryset = queryset.filter(extra_fields__disposal_date__gte=start_date)
             if end_date:
@@ -354,8 +354,8 @@ class TimeWiseDisposalView(APIView):
 
             district = request.query_params.get('district')
             if district:
-                from apps.crimetab.models import PoliceStation
-                stations = PoliceStation.objects.filter(district__district_name__iexact=district).values_list('station_name', flat=True)
+                from apps.stations.models import PoliceStation
+                stations = PoliceStation.objects.filter(district__name__iexact=district).values_list('station_name', flat=True)
                 queryset = queryset.filter(station_name__in=stations)
 
             from django.db.models.fields.json import KeyTextTransform
@@ -427,8 +427,8 @@ class DesignationWiseDisposalView(APIView):
 
             district = request.query_params.get('district')
             if district:
-                from apps.crimetab.models import PoliceStation
-                stations = PoliceStation.objects.filter(district__district_name__iexact=district).values_list('station_name', flat=True)
+                from apps.stations.models import PoliceStation
+                stations = PoliceStation.objects.filter(district__name__iexact=district).values_list('station_name', flat=True)
                 queryset = queryset.filter(station_name__in=stations)
 
             counts = queryset.values('assigned_officer_uid', 'assigned_officer', 'station_name').annotate(count=Count('id')).order_by('-count')
@@ -584,3 +584,113 @@ class CreateCaseView(APIView):
         except Exception as e:
             logger.exception(f"[CreateCaseView] Database insertion failed: {e}")
             return Response({'error': 'Failed to create case record.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class DetectedCasesView(APIView):
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def get(self, request):
+        try:
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('Detected')
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            # Optional time range filter
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            if start_date:
+                queryset = queryset.filter(created_at__date__gte=start_date)
+            if end_date:
+                queryset = queryset.filter(created_at__date__lte=end_date)
+                
+            from apps.cases.serializers import CaseRecordSerializer
+            serializer = CaseRecordSerializer(queryset.order_by('-created_at'), many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            logger.exception(f"[DetectedCasesView] Database error: {e}")
+            return Response({'error': 'Failed to retrieve detected cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class IOWiseDetectedView(APIView):
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def get(self, request):
+        try:
+            from django.db.models import Count
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('Detected')
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            if start_date:
+                queryset = queryset.filter(created_at__date__gte=start_date)
+            if end_date:
+                queryset = queryset.filter(created_at__date__lte=end_date)
+
+            counts = queryset.values('assigned_officer', 'station_name').annotate(count=Count('id')).order_by('-count')
+            
+            results = []
+            for c in counts:
+                name = c['assigned_officer']
+                results.append({
+                    'io_uid': name, 
+                    'io_name': name if name else 'Unassigned',
+                    'io_rank': '',
+                    'station_name': c['station_name'],
+                    'detected_count': c['count']
+                })
+
+            return Response(results)
+        except Exception as e:
+            logger.exception(f"[IOWiseDetectedView] Database error: {e}")
+            return Response({'error': 'Failed to retrieve IO-wise detected counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class TimeWiseDetectedView(APIView):
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def get(self, request):
+        try:
+            from django.db.models import Q
+            from django.utils import timezone
+            from datetime import timedelta
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('Detected')
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            now = timezone.now()
+            month_1 = now - timedelta(days=30)
+            months_3 = now - timedelta(days=90)
+            months_6 = now - timedelta(days=180)
+            year_1 = now - timedelta(days=365)
+
+            under_1_month = queryset.filter(created_at__gte=month_1).count()
+            months_1_to_3 = queryset.filter(created_at__gte=months_3, created_at__lt=month_1).count()
+            months_3_to_6 = queryset.filter(created_at__gte=months_6, created_at__lt=months_3).count()
+            months_6_to_12 = queryset.filter(created_at__gte=year_1, created_at__lt=months_6).count()
+            more_than_1_year = queryset.filter(created_at__lt=year_1).count()
+            
+            results = [
+                {'period': 'Under 1 month', 'count': under_1_month},
+                {'period': '1 to 3 months', 'count': months_1_to_3},
+                {'period': '3 to 6 months', 'count': months_3_to_6},
+                {'period': '6 to 12 months', 'count': months_6_to_12},
+                {'period': 'More than 1 year', 'count': more_than_1_year},
+                {'period': 'Under 3 months (Total)', 'count': under_1_month + months_1_to_3}
+            ]
+
+            return Response(results)
+        except Exception as e:
+            logger.exception(f"[TimeWiseDetectedView] Database error: {e}")
+            return Response({'error': 'Failed to retrieve Time-wise detected counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

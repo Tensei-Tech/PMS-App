@@ -62,7 +62,7 @@ class CaseRecordSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
-        from apps.cases.constants import CC_ST_KEYS, REASON_KEYS
+        from apps.cases.constants import CC_ST_KEYS, REASON_KEYS, DISPOSAL_KEYS
         
         # Reject client status overrides
         if 'status' in attrs:
@@ -116,23 +116,23 @@ class CaseRecordSerializer(serializers.ModelSerializer):
                         else:
                             delete_keys(d[k], targets)
                             
-            incoming_cc_keys = find_keys(extra_fields, CC_ST_KEYS)
-            non_empty_cc_keys = find_non_empty_keys(extra_fields, CC_ST_KEYS)
+            incoming_cc_keys = find_keys(extra_fields, DISPOSAL_KEYS)
+            non_empty_cc_keys = find_non_empty_keys(extra_fields, DISPOSAL_KEYS)
             
             if incoming_cc_keys and not non_empty_cc_keys:
                 # Client explicitly sent empty CC keys, meaning they removed it
-                existing_cc_keys = find_non_empty_keys(self.instance.extra_fields, CC_ST_KEYS)
+                existing_cc_keys = find_non_empty_keys(self.instance.extra_fields, DISPOSAL_KEYS)
                 if existing_cc_keys:
-                    delete_keys(merged, CC_ST_KEYS)
+                    delete_keys(merged, DISPOSAL_KEYS)
                     from django.utils import timezone
                     if 'status_logs' not in merged:
                         merged['status_logs'] = []
                     merged['status_logs'].append({
-                        'action': 'cc_st_removed',
+                        'action': 'disposal_keys_removed',
                         'timestamp': timezone.now().isoformat()
                     })
             elif incoming_cc_keys:
-                keys_to_delete = [k for k in CC_ST_KEYS if k not in incoming_cc_keys]
+                keys_to_delete = [k for k in DISPOSAL_KEYS if k not in incoming_cc_keys]
                 delete_keys(merged, keys_to_delete)
                     
             attrs['extra_fields'] = merged
@@ -176,7 +176,6 @@ class DisposalCaseRecordSerializer(CaseRecordSerializer):
             if x not in unique_cc_st:
                 unique_cc_st.append(x)
         data['cc_st_no'] = ", ".join(unique_cc_st) if unique_cc_st else ""
-        data['status'] = 'Disposal'
         
         # Get crime_type_name from CaseCategory via context map
         cat_map = self.context.get('cat_map', {})
@@ -191,7 +190,7 @@ class CreateCaseSerializer(serializers.Serializer):
     Validates required fields, lengths, choices, and data types before DB insertion.
     """
     PRIORITY_CHOICES = ('Low', 'Medium', 'High', 'Critical')
-    STATUS_CHOICES = ('Draft', 'Pending', 'Disposal', 'Closed', 'Open')
+    STATUS_CHOICES = ('Draft', 'Pending', 'Detected', 'Disposal', 'Closed', 'Open')
 
     case_number = serializers.CharField(max_length=128, required=True, allow_blank=False, trim_whitespace=True)
     title = serializers.CharField(max_length=255, required=True, allow_blank=False, trim_whitespace=True)
@@ -224,7 +223,7 @@ from apps.cases.constants import CC_ST_KEYS
 
 def extract_section_act(extra_fields):
     if not isinstance(extra_fields, dict):
-        return '��  '
+        return ''
     
     sections = extra_fields.get('sections', {})
     if isinstance(sections, dict) and sections.get('otherSections'):
@@ -243,4 +242,4 @@ def extract_section_act(extra_fields):
                 return str(val['section']).strip()
             if val.get('act'):
                 return str(val['act']).strip()
-    return '��  '
+    return ''
