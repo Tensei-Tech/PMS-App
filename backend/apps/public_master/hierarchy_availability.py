@@ -39,7 +39,7 @@ class HierarchyAvailabilityEngine:
                 'districts': []
             }
 
-        schema_name = state_obj.schema_name or 'maharashtra'
+        schema_name = state_obj.schema_name or clean_state_code.lower()
         clean_schema = "".join(c for c in schema_name if c.isalnum() or c == '_').lower()
 
         # Check state level admin presence

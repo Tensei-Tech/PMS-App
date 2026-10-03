@@ -58,15 +58,11 @@ class OfficerProfile(models.Model):
         if not self.division_name:
             return None
         try:
-            from apps.public_master.models import MasterDivision, StateRegistry
+            from apps.public_master.models import MasterDivision
             from apps.core.tenancy import TenantContext, get_active_tenant_schema
             target_schema = get_active_tenant_schema()
             if not target_schema or target_schema == 'public':
-                state = StateRegistry.objects.filter(is_active=True).first()
-                if state and state.schema_name:
-                    target_schema = state.schema_name
-                else:
-                    target_schema = 'maharashtra'
+                return None
 
             with TenantContext(target_schema):
                 return MasterDivision.objects.filter(name__iexact=self.division_name).first()

@@ -37,26 +37,22 @@ class TenantMiddleware(MiddlewareMixin):
         if not state_code:
             state_code = request.GET.get('state_code', '')
 
-        schema_name = 'maharashtra'
+        schema_name = 'public'
         if state_code and state_code.upper() != 'GLOBAL':
             state_code = state_code.upper()
             try:
                 state_record = StateRegistry.objects.filter(state_code=state_code, is_active=True).first()
                 if state_record and state_record.schema_name:
                     schema_name = state_record.schema_name
-                elif state_code == 'MH':
-                    schema_name = 'maharashtra'
-                elif state_code == 'KA':
-                    schema_name = 'karnataka'
                 else:
                     schema_name = state_code.lower()
             except Exception as e:
-                logger.warning(f"[TenantMiddleware] State lookup failed: {e}")
-                schema_name = 'maharashtra' if state_code == 'MH' else state_code.lower()
+                logger.warning(f"[TenantMiddleware] State lookup failed for state '{state_code}': {e}")
+                schema_name = state_code.lower()
         elif state_code and state_code.upper() == 'GLOBAL':
             schema_name = 'public'
 
-        request.state_code = state_code or 'MH'
+        request.state_code = state_code
         request.state_schema = schema_name
 
         # Enforce PostgreSQL search_path for the request
