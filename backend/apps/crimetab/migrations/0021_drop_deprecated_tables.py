@@ -23,7 +23,7 @@ BEGIN
     FOR sch_rec IN
         SELECT DISTINCT schema_name AS sch
         FROM information_schema.schemata
-        WHERE schema_name NOT IN ('information_schema', 'pg_catalog', 'pg_toast')
+        WHERE schema_name NOT IN ('information_schema', 'pg_catalog', 'pg_toast', 'auth', 'storage', 'realtime', 'graphql', 'graphql_public', 'vault', 'supabase_functions', 'supabase_migrations', 'extensions', 'cron', 'net', '_analytics', '_realtime')
           AND schema_name NOT LIKE 'pg_temp_%'
           AND schema_name NOT LIKE 'pg_toast_%'
     LOOP

@@ -127,11 +127,12 @@ def provision_state_schema(schema_name: str, state_code: str = None, state_name:
 def get_active_tenant_schema(request=None) -> str:
     """
     Dynamically determines active tenant schema name from active TenantContext thread context,
-    request headers, state_schema attribute, or active StateRegistry in DB.
+    request headers, state_schema attribute, or falls back cleanly to 'public'.
+    Never returns an arbitrary state tenant when global/public scope is expected.
     """
-    # 1. Active TenantContext in current thread
+    # 1. Explicit thread-local context (e.g. inside TenantContext block)
     current = getattr(_thread_local, 'tenant_schema', None)
-    if current and current != 'public':
+    if current is not None:
         return current
 
     # 2. Request attributes & headers
@@ -139,17 +140,8 @@ def get_active_tenant_schema(request=None) -> str:
         schema = getattr(request, 'state_schema', None)
         if not schema and hasattr(request, 'META'):
             schema = request.META.get('HTTP_X_TENANT_SCHEMA') or request.META.get('HTTP_X_STATE_SCHEMA')
-        if schema and schema != 'public':
+        if schema:
             return schema
-
-    # 3. Fallback to active StateRegistry in DB
-    try:
-        from apps.public_master.models import StateRegistry
-        state = StateRegistry.objects.filter(is_active=True).first()
-        if state and state.schema_name:
-            return state.schema_name
-    except Exception:
-        pass
 
     return 'public'
 
