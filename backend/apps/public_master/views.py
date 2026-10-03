@@ -220,27 +220,77 @@ class MasterDistrictsView(views.APIView):
     @cache_response(ttl=43200, key_prefix="hierarchy:districts")
     def get(self, request):
         from apps.stations.models import District
-        dists = District.objects.filter(status='approved').values('district_id', 'name', 'code')
-        return Response(list(dists), status=status.HTTP_200_OK)
+        from apps.core.tenancy import TenantContext, get_active_tenant_schema
+        from apps.public_master.models import StateRegistry
+
+        state_code = (request.query_params.get('state_code') or request.query_params.get('state_id') or '').strip().upper()
+        target_schema = None
+        if state_code:
+            state_reg = StateRegistry.objects.filter(state_code__iexact=state_code).first()
+            if state_reg and state_reg.schema_name:
+                target_schema = state_reg.schema_name
+
+        if not target_schema:
+            active_schema = get_active_tenant_schema(request)
+            if active_schema and active_schema != 'public':
+                target_schema = active_schema
+
+        if not target_schema or target_schema == 'public':
+            return Response(
+                {
+                    'error': 'State tenant context is required for district hierarchy. Please provide state_code query param or X-State-Code header.',
+                    'districts': []
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        with TenantContext(target_schema):
+            dists = list(District.objects.filter(status='approved').values('district_id', 'name', 'code'))
+            return Response(dists, status=status.HTTP_200_OK)
 
 
 class MasterStationsView(views.APIView):
     """
-    GET /api/v1/master/hierarchy/stations/?district=Ahmednagar
+    GET /api/v1/master/hierarchy/stations/?district=Ahmednagar&state_code=MH
     """
     permission_classes = [permissions.AllowAny]
 
     @cache_response(ttl=43200, key_prefix="hierarchy:stations")
     def get(self, request):
         from apps.stations.models import PoliceStation
-        district_name = request.query_params.get('district', '').strip()
-        qs = PoliceStation.objects.all()
-        if district_name:
-            qs = qs.filter(district_name__icontains=district_name)
-        data = list(qs.values('station_id', 'station_name', 'district_name', 'zone', 'address'))
-        for item in data:
-            item['name'] = item.get('station_name', '')
-        return Response(data, status=status.HTTP_200_OK)
+        from apps.core.tenancy import TenantContext, get_active_tenant_schema
+        from apps.public_master.models import StateRegistry
+
+        state_code = (request.query_params.get('state_code') or request.query_params.get('state_id') or '').strip().upper()
+        target_schema = None
+        if state_code:
+            state_reg = StateRegistry.objects.filter(state_code__iexact=state_code).first()
+            if state_reg and state_reg.schema_name:
+                target_schema = state_reg.schema_name
+
+        if not target_schema:
+            active_schema = get_active_tenant_schema(request)
+            if active_schema and active_schema != 'public':
+                target_schema = active_schema
+
+        if not target_schema or target_schema == 'public':
+            return Response(
+                {
+                    'error': 'State tenant context is required for stations hierarchy. Please provide state_code query param or X-State-Code header.',
+                    'stations': []
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        with TenantContext(target_schema):
+            district_name = request.query_params.get('district', '').strip()
+            qs = PoliceStation.objects.all()
+            if district_name:
+                qs = qs.filter(district_name__icontains=district_name)
+            data = list(qs.values('station_id', 'station_name', 'district_name', 'zone', 'address'))
+            for item in data:
+                item['name'] = item.get('station_name', '')
+            return Response(data, status=status.HTTP_200_OK)
 
 
 class AvailableUnitsView(views.APIView):
