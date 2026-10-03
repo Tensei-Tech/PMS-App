@@ -295,4 +295,40 @@ class TenancyStackSafetyTests(TestCase):
         self.assertEqual(res2.status_code, 200)
         self.assertIsInstance(res2.data, list)
 
+    def test_provision_state_schema_table_consistency(self):
+        """
+        Verify that provisioning a fresh tenant schema creates all expected tenant tables
+        (users_officerprofile, master_divisions, users_notificationrecord, users_transferrequest)
+        consistently, confirming agreement with migration cleanup logic.
+        """
+        if connection.vendor != 'postgresql':
+            self.skipTest("Schema provisioning is PostgreSQL-specific")
+
+        test_schema = "test_fresh_tenant_provision"
+        try:
+            provision_state_schema(test_schema, state_code="TP", state_name="Test Provision")
+
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT table_name 
+                    FROM information_schema.tables 
+                    WHERE table_schema = %s
+                """, [test_schema])
+                tables = {row[0] for row in cursor.fetchall()}
+
+            expected_tables = {
+                'users_officerprofile',
+                'master_divisions',
+                'users_notificationrecord',
+                'users_transferrequest'
+            }
+            self.assertTrue(
+                expected_tables.issubset(tables),
+                f"Fresh tenant schema missing expected tables. Present: {tables}, Expected: {expected_tables}"
+            )
+        finally:
+            with connection.cursor() as cursor:
+                cursor.execute(f'DROP SCHEMA IF EXISTS "{test_schema}" CASCADE;')
+
+
 
