@@ -221,6 +221,7 @@ class CaseRecord(models.Model):
 
     STATUS_CHOICES = (
         ('Pending', 'Pending'),
+        ('Detected', 'Detected'),
         ('Disposal', 'Disposal'),
         ('Closed', 'Closed'),
         ('Open', 'Open'),
@@ -250,51 +251,82 @@ class CaseRecord(models.Model):
         db_table = 'cases_caserecord'
         verbose_name = 'Case Record'
         verbose_name_plural = 'Case Records'
-        ordering = ['-created_at']
+        ordering = ['-created_at', '-id']
 
     def save(self, *args, **kwargs):
-        from apps.cases.constants import CC_ST_KEYS, CASE_STATUS_DISPOSAL, CASE_STATUS_PENDING
+        # 1. Reject client status overrides (handled before save if we want, but enforced here)
+        # Actually, if we just want to compute it:
+        from apps.cases.constants import CC_ST_KEYS, DISPOSAL_KEYS
         from django.utils import timezone
-
-        # 1. Auto-disposal for AD summary and Court Filing / Final Summary
-        if (is_ad_case_disposed(self) or is_case_disposed_by_court_filing(self)) and self.status != CASE_STATUS_DISPOSAL:
-            self.status = CASE_STATUS_DISPOSAL
+        
+        has_disposal_key = False
+        
+        # Original AD Logic
+        if is_ad_case_disposed(self):
+            has_disposal_key = True
+            if self.status not in ['Disposal', 'Closed', 'Resolved']:
+                self.status = 'Disposal'
             
-        # CC/ST Logic (Skip AD cases)
+        # CC/ST / Court Filing Logic (Skip AD cases)
         elif self.module_key != 'ad':
-            # Check if CC/ST is currently present in extra_fields
+            # Check if CC/ST or Court Filing fields are present in extra_fields
             has_cc = False
             if isinstance(self.extra_fields, dict):
-                has_cc = bool(_extract_first_non_empty(self.extra_fields, CC_ST_KEYS))
+                has_cc = bool(_extract_first_non_empty(self.extra_fields, DISPOSAL_KEYS))
+            has_disposal_key = has_cc
             
-            # Check previous state if this is an update
-            if self.pk:
-                try:
-                    old_instance = CaseRecord.objects.get(pk=self.pk)
-                    old_extra = old_instance.extra_fields if isinstance(old_instance.extra_fields, dict) else {}
-                    had_cc = bool(_extract_first_non_empty(old_extra, CC_ST_KEYS))
-                    
-                    if not had_cc and has_cc:
-                        self.status = 'Disposal'
-                    elif had_cc and not has_cc:
-                        self.status = 'Pending'
-                        # Log it
-                        if not isinstance(self.extra_fields, dict):
-                            self.extra_fields = {}
-                        if 'status_logs' not in self.extra_fields:
-                            self.extra_fields['status_logs'] = []
+        if self.pk:
+            try:
+                old_instance = CaseRecord.objects.get(pk=self.pk)
+                old_extra = old_instance.extra_fields if isinstance(old_instance.extra_fields, dict) else {}
+                
+                if isinstance(self.extra_fields, dict):
+                    # ALWAYS preserve the old disposal_date if it's missing from the incoming payload
+                    if 'disposal_date' not in self.extra_fields and 'disposal_date' in old_extra:
+                        self.extra_fields['disposal_date'] = old_extra['disposal_date']
                         
-                        uid = getattr(self, '_current_user_uid', 'unknown')
-                        self.extra_fields['status_logs'].append({
-                            'action': 'cc_st_removed',
-                            'timestamp': timezone.now().isoformat(),
-                            'user_uid': uid
-                        })
-                except CaseRecord.DoesNotExist:
-                    pass
-            else:
-                if has_cc:
-                    self.status = 'Disposal'
+                    # If it's a disposal case now and STILL doesn't have a disposal_date, set it
+                    if has_disposal_key and not self.extra_fields.get('disposal_date'):
+                        self.extra_fields['disposal_date'] = timezone.localtime(timezone.now()).strftime('%Y-%m-%d')
+            except CaseRecord.DoesNotExist:
+                # It's a new instance despite having a PK (because of uuid4 default)
+                if has_disposal_key:
+                    if isinstance(self.extra_fields, dict) and not self.extra_fields.get('disposal_date'):
+                        self.extra_fields['disposal_date'] = timezone.localtime(timezone.now()).strftime('%Y-%m-%d')
+        else:
+            if has_disposal_key:
+                if isinstance(self.extra_fields, dict) and not self.extra_fields.get('disposal_date'):
+                    self.extra_fields['disposal_date'] = timezone.localtime(timezone.now()).strftime('%Y-%m-%d')
+                    
+        # Update the status based on disposal key presence
+        from apps.cases.constants import CASE_STATUS_DISPOSAL, CASE_STATUS_PENDING, CASE_STATUS_DETECTED
+        
+        is_ad = getattr(self, 'module_key', '') == 'ad'
+        
+        # Helper to determine if case is detected
+        is_detected = False
+        if not is_ad:
+            # Check standard accused field
+            if self.accused and str(self.accused).strip():
+                is_detected = True
+            # Check extra_fields for accused
+            elif isinstance(self.extra_fields, dict):
+                for accused_key in ['accused', 'AccusedName', 'accused_name', 'accusedName']:
+                    val = self.extra_fields.get(accused_key)
+                    if val and str(val).strip():
+                        is_detected = True
+                        break
+
+        if is_ad:
+            if is_ad_case_disposed(self):
+                self.status = CASE_STATUS_DISPOSAL
+            elif self.status == CASE_STATUS_DISPOSAL:
+                self.status = CASE_STATUS_PENDING
+        else:
+            if has_disposal_key:
+                self.status = CASE_STATUS_DISPOSAL
+            elif self.status == CASE_STATUS_DISPOSAL or self.status == CASE_STATUS_PENDING or self.status == CASE_STATUS_DETECTED:
+                self.status = CASE_STATUS_DETECTED if is_detected else CASE_STATUS_PENDING
 
         super().save(*args, **kwargs)
 

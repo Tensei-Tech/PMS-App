@@ -1327,6 +1327,18 @@ class CrimeCaseManageView(APIView):
 
         try:
             with transaction.atomic():
+                extra_fields_val = data.get('extra_fields', {})
+                if not isinstance(extra_fields_val, dict):
+                    extra_fields_val = {}
+
+                for container_key in ['final_verdict', 'court', 'court_filing']:
+                    container_data = data.get(container_key)
+                    if isinstance(container_data, dict):
+                        for k, v in container_data.items():
+                            if v is not None:
+                                extra_fields_val[k] = v
+                        extra_fields_val[container_key] = container_data
+
                 # 1. Create CaseRecord
                 case = CaseRecord.objects.create(
                     id=case_id,
@@ -1345,7 +1357,7 @@ class CrimeCaseManageView(APIView):
                     sub_category=data.get('sub_category'),
                     created_by=data.get('created_by', ''),
                     station_name=station_name,
-                    extra_fields=data.get('extra_fields', {}),
+                    extra_fields=extra_fields_val,
                 )
 
                 # 2. Save all child relational tables
@@ -1399,6 +1411,17 @@ class CrimeCaseManageView(APIView):
                     case.station_name = data['station_name']
                 if 'extra_fields' in data:
                     case.extra_fields = data['extra_fields']
+                
+                if not isinstance(case.extra_fields, dict):
+                    case.extra_fields = {}
+
+                for container_key in ['final_verdict', 'court', 'court_filing']:
+                    container_data = data.get(container_key)
+                    if isinstance(container_data, dict):
+                        for k, v in container_data.items():
+                            if v is not None:
+                                case.extra_fields[k] = v
+                        case.extra_fields[container_key] = container_data
 
                 case.save()
 

@@ -28,6 +28,22 @@ class CaseRecordSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['created_at', 'updated_at']
 
+    def to_internal_value(self, data):
+        if isinstance(data, dict):
+            data = data.copy()
+            known_fields = set(self.fields.keys())
+            extra_fields = data.get('extra_fields')
+            if not isinstance(extra_fields, dict):
+                extra_fields = {}
+            
+            unknown_keys = [k for k in list(data.keys()) if k not in known_fields]
+            for k in unknown_keys:
+                extra_fields[k] = data.pop(k)
+            
+            data['extra_fields'] = extra_fields
+
+        return super().to_internal_value(data)
+
     def validate_station_name(self, value):
         if not value or not value.strip():
             raise serializers.ValidationError("Security violation: Station name is required.")
@@ -46,7 +62,7 @@ class CaseRecordSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
-        from apps.cases.constants import CC_ST_KEYS, REASON_KEYS
+        from apps.cases.constants import CC_ST_KEYS, REASON_KEYS, DISPOSAL_KEYS
         
         # Reject client status overrides
         if 'status' in attrs:
@@ -83,6 +99,14 @@ class CaseRecordSerializer(serializers.ModelSerializer):
                         if k in targets: found.add(k)
                         find_keys(v, targets, found)
                 return found
+
+            def find_non_empty_keys(d, targets, found=None):
+                if found is None: found = set()
+                if isinstance(d, dict):
+                    for k, v in d.items():
+                        if k in targets and str(v).strip(): found.add(k)
+                        find_non_empty_keys(v, targets, found)
+                return found
                 
             def delete_keys(d, targets):
                 if isinstance(d, dict):
@@ -92,11 +116,25 @@ class CaseRecordSerializer(serializers.ModelSerializer):
                         else:
                             delete_keys(d[k], targets)
                             
-            incoming_cc_keys = find_keys(extra_fields, CC_ST_KEYS)
-            if incoming_cc_keys:
-                keys_to_delete = [k for k in CC_ST_KEYS if k not in incoming_cc_keys]
+            incoming_cc_keys = find_keys(extra_fields, DISPOSAL_KEYS)
+            non_empty_cc_keys = find_non_empty_keys(extra_fields, DISPOSAL_KEYS)
+            
+            if incoming_cc_keys and not non_empty_cc_keys:
+                # Client explicitly sent empty CC keys, meaning they removed it
+                existing_cc_keys = find_non_empty_keys(self.instance.extra_fields, DISPOSAL_KEYS)
+                if existing_cc_keys:
+                    delete_keys(merged, DISPOSAL_KEYS)
+                    from django.utils import timezone
+                    if 'status_logs' not in merged:
+                        merged['status_logs'] = []
+                    merged['status_logs'].append({
+                        'action': 'disposal_keys_removed',
+                        'timestamp': timezone.now().isoformat()
+                    })
+            elif incoming_cc_keys:
+                keys_to_delete = [k for k in DISPOSAL_KEYS if k not in incoming_cc_keys]
                 delete_keys(merged, keys_to_delete)
-                        
+                    
             attrs['extra_fields'] = merged
         elif extra_fields and 'status_logs' in extra_fields:
             extra_fields.pop('status_logs')
@@ -104,13 +142,55 @@ class CaseRecordSerializer(serializers.ModelSerializer):
         return attrs
 
 
+class DisposalCaseRecordSerializer(CaseRecordSerializer):
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        from apps.cases.constants import DISPOSAL_KEYS, DISPOSAL_LABELS
+        from apps.cases.constants import CC_ST_KEYS
+        from apps.crimetab.models.groupings import CaseCategory
+        
+        extra = instance.extra_fields or {}
+        
+        types = []
+        nums = []
+        cc_st = []
+        
+        for key in DISPOSAL_KEYS:
+            val = extra.get(key)
+            if val is not None and str(val).strip():
+                types.append(DISPOSAL_LABELS.get(key, key))
+                nums.append(str(val).strip())
+                
+        for key in CC_ST_KEYS:
+            val = extra.get(key)
+            if val is not None and str(val).strip():
+                cc_st.append(str(val).strip())
+                
+        data['disposal_type'] = ", ".join(types) if types else "N/A"
+        data['disposal_no'] = ", ".join(nums) if nums else "N/A"
+        data['disposal_date'] = extra.get('disposal_date', 'N/A')
+        
+        # Dedupe cc_st_no and return "" if empty
+        unique_cc_st = []
+        for x in cc_st:
+            if x not in unique_cc_st:
+                unique_cc_st.append(x)
+        data['cc_st_no'] = ", ".join(unique_cc_st) if unique_cc_st else ""
+        
+        # Get crime_type_name from CaseCategory via context map
+        cat_map = self.context.get('cat_map', {})
+        mk = (instance.module_key or "").strip().lower()
+        data['crime_type_name'] = cat_map.get(mk, instance.module_key)
+        
+        return data
+
 class CreateCaseSerializer(serializers.Serializer):
     """
     Strict serializer for raw SQL case creation endpoint.
     Validates required fields, lengths, choices, and data types before DB insertion.
     """
     PRIORITY_CHOICES = ('Low', 'Medium', 'High', 'Critical')
-    STATUS_CHOICES = ('Draft', 'Pending', 'Disposal', 'Closed', 'Open')
+    STATUS_CHOICES = ('Draft', 'Pending', 'Detected', 'Disposal', 'Closed', 'Open')
 
     case_number = serializers.CharField(max_length=128, required=True, allow_blank=False, trim_whitespace=True)
     title = serializers.CharField(max_length=255, required=True, allow_blank=False, trim_whitespace=True)
@@ -137,3 +217,29 @@ class CreateCaseSerializer(serializers.Serializer):
             raise serializers.ValidationError("module cannot be blank.")
         return value.strip()
 
+from rest_framework import serializers
+from apps.cases.models import CaseRecord, _extract_first_non_empty
+from apps.cases.constants import CC_ST_KEYS
+
+def extract_section_act(extra_fields):
+    if not isinstance(extra_fields, dict):
+        return ''
+    
+    sections = extra_fields.get('sections', {})
+    if isinstance(sections, dict) and sections.get('otherSections'):
+        return str(sections['otherSections']).strip()
+        
+    for key in ['otherSections', 'section', 'act']:
+        if key in extra_fields and str(extra_fields[key]).strip():
+            return str(extra_fields[key]).strip()
+            
+    # Try searching in nested objects
+    for val in extra_fields.values():
+        if isinstance(val, dict):
+            if val.get('otherSections'):
+                return str(val['otherSections']).strip()
+            if val.get('section'):
+                return str(val['section']).strip()
+            if val.get('act'):
+                return str(val['act']).strip()
+    return ''

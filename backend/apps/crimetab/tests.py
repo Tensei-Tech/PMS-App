@@ -902,3 +902,21 @@ class CommonFormE2ETests(TestCase):
 
 
 
+
+class CounterServiceTests(TestCase):
+    def setUp(self):
+        from apps.core.tenancy import set_tenant_schema
+        from apps.public_master.models import StateRegistry
+        StateRegistry.objects.get_or_create(
+            state_code='MH',
+            defaults={'state_name': 'Maharashtra', 'schema_name': 'maharashtra', 'is_active': True}
+        )
+        set_tenant_schema('maharashtra')
+        self.group = CaseCategoryGroup.objects.create(group_name='Test Group', group_code='TEST_GRP', display_order=1)
+        self.cat1 = CaseCategory.objects.create(category_name='Cat 1', category_code='CAT1', group=self.group)
+
+    def test_get_category_counters_no_name_error(self):
+        try:
+            get_category_counters(self.cat1.category_id)
+        except NameError as e:
+            self.fail(f"NameError unexpectedly: {e}")
