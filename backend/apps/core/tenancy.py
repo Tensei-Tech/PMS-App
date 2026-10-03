@@ -68,12 +68,8 @@ class TenantContext:
 def set_tenant_schema(schema_name: str):
     """
     Sets search_path on the active database connection.
-    If a TenantContext stack is active, updates the top frame.
     """
     clean_schema = "".join(c for c in (schema_name or 'public') if c.isalnum() or c == '_').lower() or 'public'
-    stack = _get_schema_stack()
-    if stack:
-        stack[-1] = clean_schema
 
     with connection.cursor() as cursor:
         if clean_schema != 'public':

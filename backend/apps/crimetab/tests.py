@@ -3,6 +3,7 @@ from django.test import TestCase, Client
 from django.utils import timezone
 from django.db import transaction, IntegrityError
 from rest_framework import status
+from apps.core.tenancy import TenantContext
 
 from apps.cases.models import CaseRecord
 from apps.crimetab.models.groupings import CaseCategoryGroup, CaseCategory, CaseCategoryLink
@@ -44,13 +45,14 @@ class CommonFormE2ETests(TestCase):
         if connection.connection and connection.connection.closed:
             connection.connect()
 
-        from apps.core.tenancy import set_tenant_schema
+        from apps.core.tenancy import TenantContext
         from apps.public_master.models import StateRegistry
         StateRegistry.objects.get_or_create(
             state_code='MH',
             defaults={'state_name': 'Maharashtra', 'schema_name': 'maharashtra', 'is_active': True}
         )
-        set_tenant_schema('maharashtra')
+        self.tenant_ctx = TenantContext('maharashtra')
+        self.tenant_ctx.__enter__()
 
         self.client = Client(HTTP_X_STATE_CODE='MH')
 
@@ -174,6 +176,13 @@ class CommonFormE2ETests(TestCase):
         # Trigger B mappings (Section-triggered dynamic templates)
         SectionFieldTemplate.objects.get_or_create(section=self.sec_murder, template=self.tmpl_murder)
         SectionFieldTemplate.objects.get_or_create(section=self.sec_hurt, template=self.tmpl_hurt)
+
+    def tearDown(self):
+        if hasattr(self, 'tenant_ctx'):
+            try:
+                self.tenant_ctx.__exit__(None, None, None)
+            except Exception:
+                pass
 
     def test_1_form_renders_common_fields_and_tab_specific_extras_immediately(self):
         """
@@ -668,14 +677,15 @@ class CommonFormE2ETests(TestCase):
         self.assertEqual(res_new.status_code, status.HTTP_200_OK)
 
         # Confirm CasesPerson row was created
-        person_deepak = CasesPerson.objects.filter(case=case, name='Deepak Shinde').first()
-        self.assertIsNotNone(person_deepak)
-        self.assertEqual(person_deepak.role, 'accused')
+        with TenantContext('maharashtra'):
+            person_deepak = CasesPerson.objects.filter(case=case, name='Deepak Shinde').first()
+            self.assertIsNotNone(person_deepak)
+            self.assertEqual(person_deepak.role, 'accused')
 
-        # Confirm DischargeStatus is linked
-        dis_record = DischargeStatus.objects.filter(person=person_deepak).first()
-        self.assertIsNotNone(dis_record)
-        self.assertTrue(dis_record.is_discharged)
+            # Confirm DischargeStatus is linked
+            dis_record = DischargeStatus.objects.filter(person=person_deepak).first()
+            self.assertIsNotNone(dis_record)
+            self.assertTrue(dis_record.is_discharged)
 
         # 2. Pick EXISTING accused
         payload_exist = {
@@ -911,9 +921,14 @@ class CommonFormE2ETests(TestCase):
         case_id = str(uuid.uuid4())
 
         # Ensure Act and Sections exist
-        act, _ = Act.objects.get_or_create(act_name='Indian Penal Code')
-        sec_murder, _ = ActSection.objects.get_or_create(act=act, section_number='302', defaults={'section_title': 'Punishment for murder'})
-        sec_hurt, _ = ActSection.objects.get_or_create(act=act, section_number='323', defaults={'section_title': 'Punishment for voluntarily causing hurt'})
+        with TenantContext('maharashtra'):
+            act, _ = Act.objects.get_or_create(act_name='Indian Penal Code')
+            sec_murder, _ = ActSection.objects.get_or_create(act=act, section_number='302', defaults={'section_title': 'Punishment for murder'})
+            sec_hurt, _ = ActSection.objects.get_or_create(act=act, section_number='323', defaults={'section_title': 'Punishment for voluntarily causing hurt'})
+
+            act_id = act.act_id
+            sec_murder_id = sec_murder.section_id
+            sec_hurt_id = sec_hurt.section_id
 
         create_payload = {
             'id': case_id,
@@ -922,8 +937,8 @@ class CommonFormE2ETests(TestCase):
             'station_name': 'Test Station',
             'status': 'Under Investigation',
             'charges': [
-                {'act_id': act.act_id, 'section_id': sec_murder.section_id, 'section_number': '302', 'act_name': 'Indian Penal Code'},
-                {'act_id': act.act_id, 'section_id': sec_hurt.section_id, 'section_number': '323', 'act_name': 'Indian Penal Code'},
+                {'act_id': act_id, 'section_id': sec_murder_id, 'section_number': '302', 'act_name': 'Indian Penal Code'},
+                {'act_id': act_id, 'section_id': sec_hurt_id, 'section_number': '323', 'act_name': 'Indian Penal Code'},
             ]
         }
 
@@ -932,8 +947,9 @@ class CommonFormE2ETests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
         # Confirm 2 charges saved in DB
-        db_charges = CrimeCaseActsSections.objects.filter(case_id=case_id)
-        self.assertEqual(db_charges.count(), 2)
+        with TenantContext('maharashtra'):
+            db_charges = CrimeCaseActsSections.objects.filter(case_id=case_id)
+            self.assertEqual(db_charges.count(), 2)
 
         # 2. Fetch case for EDIT
         get_res = self.client.get(f'/api/cases/{case_id}/')
@@ -959,7 +975,8 @@ class CommonFormE2ETests(TestCase):
         self.assertEqual(len(reloaded_charges), 2)
         reloaded_sec_numbers = {c.get('section_number') for c in reloaded_charges}
         self.assertEqual(reloaded_sec_numbers, {'302', '323'})
-        self.assertEqual(CrimeCaseActsSections.objects.filter(case_id=case_id).count(), 2)
+        with TenantContext('maharashtra'):
+            self.assertEqual(CrimeCaseActsSections.objects.filter(case_id=case_id).count(), 2)
 
 
 

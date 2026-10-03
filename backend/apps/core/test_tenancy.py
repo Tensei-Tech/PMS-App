@@ -150,7 +150,11 @@ class TenancyStackSafetyTests(TestCase):
         kerala_schema = 'kerala_test_cross'
         provision_state_schema(kerala_schema, state_code='KL', state_name='Kerala')
         with TenantContext(kerala_schema):
-            MasterDivision.objects.create(name='Kochi Division', code='DIV-KL-KOC', state_code='KL', state_name='Kerala')
+            MasterDivision.objects.get_or_create(
+                name='Kochi Division',
+                state_code='KL',
+                defaults={'code': 'DIV-KL-KOC', 'state_name': 'Kerala'}
+            )
 
         rf = RequestFactory()
         middleware = TenantMiddleware(lambda r: HttpResponse("OK"))
@@ -188,14 +192,14 @@ class TenancyStackSafetyTests(TestCase):
         self.assertEqual(req_b.state_schema, 'public')
         self.assertEqual(get_active_tenant_schema(req_b), 'public')
 
-        # Confirm Kerala division is NOT visible in Request B
-        try:
-            with transaction.atomic():
-                leaked_records = list(MasterDivision.objects.filter(name='Kochi Division'))
-        except Exception:
-            # master_divisions does not exist in public — completely safe
-            leaked_records = []
-        self.assertEqual(len(leaked_records), 0)
+        # Confirm public schema does NOT have master_divisions table (so no Kerala records can ever leak)
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT 1 FROM information_schema.tables 
+                WHERE table_schema = 'public' AND table_name = 'master_divisions';
+            """)
+            table_exists = cursor.fetchone()
+        self.assertIsNone(table_exists, "public.master_divisions must not exist")
 
         # Complete Request B
         res_b = HttpResponse("OK")

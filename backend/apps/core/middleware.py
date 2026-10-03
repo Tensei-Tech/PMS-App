@@ -68,11 +68,14 @@ class TenantMiddleware(MiddlewareMixin):
 
     def process_response(self, request, response):
         """
-        Safely resets search_path back to neutral default ('public')
+        Safely resets search_path back to active TenantContext (or 'public' if stack is empty)
         immediately after every request completes, preventing tenant search_path leakage.
         """
         try:
-            set_tenant_schema('public')
+            from apps.core.tenancy import _get_schema_stack
+            stack = _get_schema_stack()
+            restore_schema = stack[-1] if stack else 'public'
+            set_tenant_schema(restore_schema)
         except Exception as e:
             logger.warning(f"[TenantMiddleware] Failed to reset search_path on response: {e}")
         return response
