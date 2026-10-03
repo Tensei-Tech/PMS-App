@@ -44,6 +44,18 @@ $$;
 
 
 class Migration(migrations.Migration):
+    """
+    Destructive cleanup migration: Drops deprecated legacy tables across all PostgreSQL schemas.
+    
+    NOTE ON REVERSIBILITY:
+    This migration is intentionally ONE-WAY (reverse_sql="").
+    The dropped tables (court_filing, recovered_property, stolen_property, technical_custody,
+    preventive_actions, procedural_details, case_transfers, district_admins, super_admins,
+    users_notificationrecord, users_transferrequest) represent obsolete legacy prototypes
+    and duplicate tables that have been fully replaced by canonical shared models in the `public`
+    schema or standardized tenant models (e.g., cases_caserecord, preventive_action_items,
+    districts, stations_policestation). Rolling backward should NOT restore deprecated tables.
+    """
 
     dependencies = [
         ('crimetab', '0020_preventiveactionitems_bond_cancellation_date_and_more'),
@@ -54,6 +66,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunSQL(
             sql=SQL_DROP_DEPRECATED_TABLES,
-            reverse_sql="",
+            reverse_sql="",  # Intentionally no-op: one-way legacy cleanup
         ),
     ]

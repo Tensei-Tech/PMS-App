@@ -57,11 +57,24 @@ class OfficerProfile(models.Model):
         """Fetch corresponding MasterDivision record from tenant schema master_divisions if available."""
         if not self.division_name:
             return None
+        from apps.public_master.models import MasterDivision
+        # 1. Attempt direct query within active connection search_path
         try:
-            from apps.public_master.models import MasterDivision
             return MasterDivision.objects.filter(name__iexact=self.division_name).first()
         except Exception:
-            return None
+            pass
+
+        # 2. Fallback: try active tenant schema if outside TenantContext
+        try:
+            from apps.core.tenancy import TenantContext, get_active_tenant_schema
+            active_schema = get_active_tenant_schema()
+            if active_schema and active_schema != 'public':
+                with TenantContext(active_schema):
+                    return MasterDivision.objects.filter(name__iexact=self.division_name).first()
+        except Exception:
+            pass
+
+        return None
 
     def set_password(self, raw_password):
         self.password = make_password(raw_password)

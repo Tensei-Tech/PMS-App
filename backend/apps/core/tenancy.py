@@ -47,14 +47,27 @@ def set_tenant_schema(schema_name: str):
         cursor.execute(f'SET search_path TO "{clean_schema}", public;')
 
 
-def provision_state_schema(schema_name: str):
+def provision_state_schema(schema_name: str, state_code: str = None, state_name: str = None):
     """
     Provisions a new PostgreSQL schema for a state tenant.
-    Creates schema and executes DDL tables if not present.
+    Creates schema and executes DDL tables (users_officerprofile, master_divisions) if not present.
     """
     clean_schema = "".join(c for c in schema_name if c.isalnum() or c == '_').lower()
     if not clean_schema:
         raise ValueError("Invalid schema name")
+
+    if not state_code or not state_name:
+        try:
+            from apps.public_master.models import StateRegistry
+            reg = StateRegistry.objects.filter(schema_name=clean_schema).first()
+            if reg:
+                state_code = state_code or reg.state_code
+                state_name = state_name or reg.state_name
+        except Exception:
+            pass
+
+    resolved_code = (state_code or clean_schema[:2].upper())[:10]
+    resolved_name = state_name or clean_schema.replace('_', ' ').title()
 
     with connection.cursor() as cursor:
         cursor.execute(f'CREATE SCHEMA IF NOT EXISTS "{clean_schema}";')
@@ -91,15 +104,15 @@ def provision_state_schema(schema_name: str):
         );
         CREATE TABLE IF NOT EXISTS "{clean_schema}".master_divisions (
             id BIGSERIAL PRIMARY KEY,
-            state_code VARCHAR(10) DEFAULT 'MH',
-            state_name VARCHAR(100) DEFAULT 'Maharashtra',
+            state_code VARCHAR(10) NOT NULL DEFAULT '{resolved_code}',
+            state_name VARCHAR(100) NOT NULL DEFAULT '{resolved_name}',
             name VARCHAR(128) NOT NULL,
             code VARCHAR(64),
             created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
             CONSTRAINT "{clean_schema}_master_divisions_state_name_uniq" UNIQUE (state_code, name)
         );
         """)
-        logger.info(f"[Tenancy] Provisioned PostgreSQL schema & tables: {clean_schema}")
+        logger.info(f"[Tenancy] Provisioned PostgreSQL schema & tables: {clean_schema} (State: {resolved_name}/{resolved_code})")
 
 
 def get_active_tenant_schema(request=None) -> str:

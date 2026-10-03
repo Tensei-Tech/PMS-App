@@ -209,6 +209,12 @@ class MasterDivision(models.Model):
     """
     State Administrative Divisions / Revenue Ranges in tenant schema (e.g. `maharashtra.master_divisions`).
     e.g., Amravati, Chhatrapati Sambhajinagar, Konkan, Nagpur, Nashik, Pune.
+
+    IMPORTANT MULTI-TENANCY ARCHITECTURE NOTE:
+    This table is strictly TENANT-SCOPED (exists only inside tenant schemas like `maharashtra`,
+    never in `public`). Direct queries outside a TenantContext will fail because `public.master_divisions`
+    has been dropped. Always execute queries within `with TenantContext(target_schema):` or ensure the
+    PostgreSQL search_path includes the active tenant schema.
     """
     id = models.BigAutoField(primary_key=True)
     state_code = models.CharField(max_length=10, default='MH', db_index=True)
@@ -220,8 +226,8 @@ class MasterDivision(models.Model):
     class Meta:
         db_table = 'master_divisions'
         unique_together = ('state_code', 'name')
-        verbose_name = 'Master Division'
-        verbose_name_plural = 'Master Divisions'
+        verbose_name = 'Master Division (Tenant-Scoped)'
+        verbose_name_plural = 'Master Divisions (Tenant-Scoped)'
         ordering = ['state_code', 'name']
 
     def __str__(self):
