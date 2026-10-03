@@ -899,6 +899,69 @@ class CommonFormE2ETests(TestCase):
         unk_returned = [p for p in persons_returned if p.get('role') == 'unknown_accused']
         self.assertEqual(len(unk_returned), 2)
 
+    def test_charges_hydration_and_preservation_on_edit(self):
+        """
+        Verify:
+        1. Create a case with 2 charges (e.g. IPC Murder 302 + Hurt 323).
+        2. Open it for EDIT (GET details).
+        3. Confirm both charges show correctly pre-selected/hydrated in charges list.
+        4. Re-save/update without changes (PUT /api/cases/{id}/), confirm both charges are STILL there on reload, not lost or duplicated.
+        """
+        import uuid
+        case_id = str(uuid.uuid4())
+
+        # Ensure Act and Sections exist
+        act, _ = Act.objects.get_or_create(act_name='Indian Penal Code')
+        sec_murder, _ = ActSection.objects.get_or_create(act=act, section_number='302', defaults={'section_title': 'Punishment for murder'})
+        sec_hurt, _ = ActSection.objects.get_or_create(act=act, section_number='323', defaults={'section_title': 'Punishment for voluntarily causing hurt'})
+
+        create_payload = {
+            'id': case_id,
+            'case_number': f'CR/TEST-CHARGES-{uuid.uuid4().hex[:4]}',
+            'title': 'Test Multiple Charges Hydration',
+            'station_name': 'Test Station',
+            'status': 'Under Investigation',
+            'charges': [
+                {'act_id': act.act_id, 'section_id': sec_murder.section_id, 'section_number': '302', 'act_name': 'Indian Penal Code'},
+                {'act_id': act.act_id, 'section_id': sec_hurt.section_id, 'section_number': '323', 'act_name': 'Indian Penal Code'},
+            ]
+        }
+
+        # 1. Create case with 2 charges
+        res = self.client.post('/api/cases/', data=json.dumps(create_payload), content_type='application/json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        # Confirm 2 charges saved in DB
+        db_charges = CrimeCaseActsSections.objects.filter(case_id=case_id)
+        self.assertEqual(db_charges.count(), 2)
+
+        # 2. Fetch case for EDIT
+        get_res = self.client.get(f'/api/cases/{case_id}/')
+        self.assertEqual(get_res.status_code, status.HTTP_200_OK)
+        fetched_charges = get_res.data.get('charges', [])
+        
+        # 3. Confirm both charges show correctly, pre-selected
+        self.assertEqual(len(fetched_charges), 2)
+        sec_numbers = {c.get('section_number') for c in fetched_charges}
+        self.assertIn('302', sec_numbers)
+        self.assertIn('323', sec_numbers)
+
+        # 4. Save without changing anything (simulate Edit screen Submit)
+        update_payload = dict(get_res.data)
+        update_payload['charges'] = fetched_charges
+        put_res = self.client.put(f'/api/cases/{case_id}/', data=json.dumps(update_payload), content_type='application/json')
+        self.assertEqual(put_res.status_code, status.HTTP_200_OK)
+
+        # 5. Reload and verify both charges STILL exist (not lost, not duplicated)
+        reload_res = self.client.get(f'/api/cases/{case_id}/')
+        self.assertEqual(reload_res.status_code, status.HTTP_200_OK)
+        reloaded_charges = reload_res.data.get('charges', [])
+        self.assertEqual(len(reloaded_charges), 2)
+        reloaded_sec_numbers = {c.get('section_number') for c in reloaded_charges}
+        self.assertEqual(reloaded_sec_numbers, {'302', '323'})
+        self.assertEqual(CrimeCaseActsSections.objects.filter(case_id=case_id).count(), 2)
+
+
 
 
 
