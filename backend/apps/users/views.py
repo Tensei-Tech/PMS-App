@@ -1,3 +1,4 @@
+import logging
 from django.utils import timezone
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
@@ -9,6 +10,8 @@ from apps.users.serializers import (
     TransferRequestSerializer,
 )
 from apps.authentication.permissions import IsSupervisorOrAdmin
+
+logger = logging.getLogger(__name__)
 
 
 DISTRICT_TO_DIVISION_MAP = {
@@ -114,7 +117,7 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
         """
         from apps.public_master.models import MasterDivision
         from apps.stations.models import District, PoliceStation
-        from apps.core.tenancy import get_active_tenant_schema, set_tenant_schema
+        from apps.core.tenancy import TenantContext, get_active_tenant_schema, set_tenant_schema
 
         active_schema = get_active_tenant_schema(request)
 
@@ -384,10 +387,9 @@ class TransferRequestViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
         """Approve transfer request and update officer posting in database."""
-        from apps.users.models import TransferRequest
         transfer = self.get_object()
         approver_uid = request.data.get('approved_by_uid', getattr(request.user, 'uid', 'admin'))
-        
+
         transfer.status = 'approved'
         transfer.approved_by_uid = approver_uid
         transfer.approved_at = timezone.now()
