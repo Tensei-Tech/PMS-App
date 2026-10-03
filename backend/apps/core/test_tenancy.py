@@ -136,15 +136,74 @@ class TenancyStackSafetyTests(TestCase):
             self.assertTrue('public' in current_sp)
 
 
-    def test_provision_state_schema_and_isolation(self):
-        """Test provisioning a fresh tenant schema from scratch and querying master_divisions."""
-        test_schema = 'kerala_test_unit'
-        provision_state_schema(test_schema, state_code='KL', state_name='Kerala')
+    def test_cross_request_connection_reuse_isolation(self):
+        """
+        Critical cross-request connection reuse test:
+        1. Request A handles 'kerala_test_cross', queries data, completes via process_response.
+        2. Request B arrives on the SAME connection with NO state headers/context.
+        3. Confirm Request B does NOT see Kerala data or Kerala search_path on the connection.
+        """
+        from django.http import HttpResponse
+        from apps.core.middleware import TenantMiddleware
 
-        with TenantContext(test_schema):
-            # Verify we can query master_divisions in the new schema
-            divs = list(MasterDivision.objects.all())
-            self.assertIsInstance(divs, list)
+        # 1. Provision Kerala schema and insert record
+        kerala_schema = 'kerala_test_cross'
+        provision_state_schema(kerala_schema, state_code='KL', state_name='Kerala')
+        with TenantContext(kerala_schema):
+            MasterDivision.objects.create(name='Kochi Division', code='DIV-KL-KOC', state_code='KL', state_name='Kerala')
+
+        rf = RequestFactory()
+        middleware = TenantMiddleware(lambda r: HttpResponse("OK"))
+
+        # 2. Request A: Kerala request
+        req_a = rf.get('/api/test/', HTTP_X_TENANT_SCHEMA=kerala_schema)
+        middleware.process_request(req_a)
+        self.assertEqual(req_a.state_schema, kerala_schema)
+
+        # Inside Request A, Kerala division is accessible
+        with connection.cursor() as cursor:
+            cursor.execute("SHOW search_path;")
+            sp_a = cursor.fetchone()[0]
+            self.assertTrue(kerala_schema in sp_a)
+
+        res_a = HttpResponse("OK")
+        middleware.process_response(req_a, res_a)
+
+        # 3. Verify connection search_path is immediately reset to 'public' (NOT 'kerala_test_cross' or 'maharashtra')
+        with connection.cursor() as cursor:
+            cursor.execute("SHOW search_path;")
+            post_a_sp = cursor.fetchone()[0]
+            self.assertEqual(post_a_sp, 'public')
+
+        # 4. Request B: Arrives with NO state headers on the SAME database connection
+        req_b = rf.get('/api/test/')
+        
+        # Verify before Request B's resolution, the connection is clean 'public'
+        with connection.cursor() as cursor:
+            cursor.execute("SHOW search_path;")
+            pre_b_sp = cursor.fetchone()[0]
+            self.assertEqual(pre_b_sp, 'public')
+
+        middleware.process_request(req_b)
+        self.assertEqual(req_b.state_schema, 'public')
+        self.assertEqual(get_active_tenant_schema(req_b), 'public')
+
+        # Confirm Kerala division is NOT visible in Request B
+        try:
+            leaked_records = list(MasterDivision.objects.filter(name='Kochi Division'))
+        except Exception:
+            # master_divisions does not exist in public — completely safe
+            leaked_records = []
+        self.assertEqual(len(leaked_records), 0)
+
+        # Complete Request B
+        res_b = HttpResponse("OK")
+        middleware.process_response(req_b, res_b)
+        with connection.cursor() as cursor:
+            cursor.execute("SHOW search_path;")
+            post_b_sp = cursor.fetchone()[0]
+            self.assertEqual(post_b_sp, 'public')
+
 
     def test_concurrent_threads_schema_isolation(self):
         """Confirm simultaneous threads with different tenants maintain isolated stacks without cross-contamination."""

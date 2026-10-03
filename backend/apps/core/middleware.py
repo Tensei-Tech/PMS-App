@@ -29,7 +29,13 @@ class TenantMiddleware(MiddlewareMixin):
             except Exception:
                 pass
 
-        # 2. Inspect X-State-Code HTTP Request Header
+        # 2. Inspect Headers
+        direct_schema = (
+            request.headers.get('X-Tenant-Schema') or 
+            request.META.get('HTTP_X_TENANT_SCHEMA') or 
+            request.headers.get('X-State-Schema') or 
+            request.META.get('HTTP_X_STATE_SCHEMA')
+        )
         if not state_code:
             state_code = request.headers.get('X-State-Code') or request.META.get('HTTP_X_STATE_CODE')
 
@@ -38,7 +44,9 @@ class TenantMiddleware(MiddlewareMixin):
             state_code = request.GET.get('state_code', '')
 
         schema_name = 'public'
-        if state_code and state_code.upper() != 'GLOBAL':
+        if direct_schema:
+            schema_name = "".join(c for c in direct_schema if c.isalnum() or c == '_').lower()
+        elif state_code and state_code.upper() != 'GLOBAL':
             state_code = state_code.upper()
             try:
                 state_record = StateRegistry.objects.filter(state_code=state_code, is_active=True).first()
@@ -60,12 +68,13 @@ class TenantMiddleware(MiddlewareMixin):
 
     def process_response(self, request, response):
         """
-        Safely resets search_path back to connection default ('maharashtra, public')
+        Safely resets search_path back to neutral default ('public')
         immediately after every request completes, preventing tenant search_path leakage.
         """
         try:
-            set_tenant_schema('maharashtra')
+            set_tenant_schema('public')
         except Exception as e:
             logger.warning(f"[TenantMiddleware] Failed to reset search_path on response: {e}")
         return response
+
 
