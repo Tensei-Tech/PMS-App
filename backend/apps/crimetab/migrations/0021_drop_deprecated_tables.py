@@ -17,19 +17,30 @@ DECLARE
     sch_rec RECORD;
     t TEXT;
 BEGIN
-    -- 1. Loop through registered state schemas in public.states + public
-    FOR sch_rec IN
-        SELECT DISTINCT LOWER(TRIM(schema_name)) AS sch
-        FROM public.states
-        WHERE schema_name IS NOT NULL AND TRIM(schema_name) != ''
-        UNION
-        SELECT 'public' AS sch
-    LOOP
-        FOREACH t IN ARRAY target_tables
+    -- 1. If public.states exists, query registered state schemas; otherwise query user schemas safely
+    IF to_regclass('public.states') IS NOT NULL THEN
+        FOR sch_rec IN
+            EXECUTE 'SELECT DISTINCT LOWER(TRIM(schema_name)) AS sch FROM public.states WHERE schema_name IS NOT NULL AND TRIM(schema_name) != '''' UNION SELECT ''public'' AS sch'
         LOOP
-            EXECUTE format('DROP TABLE IF EXISTS %I.%I CASCADE;', sch_rec.sch, t);
+            FOREACH t IN ARRAY target_tables
+            LOOP
+                EXECUTE format('DROP TABLE IF EXISTS %I.%I CASCADE;', sch_rec.sch, t);
+            END LOOP;
         END LOOP;
-    END LOOP;
+    ELSE
+        FOR sch_rec IN
+            SELECT schema_name AS sch
+            FROM information_schema.schemata
+            WHERE schema_name NOT IN ('information_schema', 'pg_catalog', 'pg_toast', 'auth', 'storage', 'realtime', 'graphql', 'graphql_public', 'vault', 'supabase_functions', 'supabase_migrations', 'extensions', 'cron', 'net', '_analytics', '_realtime')
+              AND schema_name NOT LIKE 'pg_temp_%'
+              AND schema_name NOT LIKE 'pg_toast_%'
+        LOOP
+            FOREACH t IN ARRAY target_tables
+            LOOP
+                EXECUTE format('DROP TABLE IF EXISTS %I.%I CASCADE;', sch_rec.sch, t);
+            END LOOP;
+        END LOOP;
+    END IF;
 
     -- 2. Direct drop in current search_path as fallback
     FOREACH t IN ARRAY target_tables
