@@ -234,6 +234,19 @@ class MasterDivision(models.Model):
         return f"[{self.state_code}] Division: {self.name}"
 
 
+@receiver([post_save, post_delete], sender=MasterDivision)
+def auto_invalidate_division_cache(sender, instance, **kwargs):
+    """Automatically purge Redis & local cache whenever MasterDivision changes."""
+    try:
+        from apps.core.cache import upstash_cache
+        from django.core.cache import cache
+        cache.clear()
+        upstash_cache.delete_pattern("pms:cache:*hierarchy:divisions*")
+        upstash_cache.delete_pattern("pms:cache:*hierarchy*")
+    except Exception:
+        pass
+
+
 class AppAnnouncement(models.Model):
     """
     App Announcements & News items stored in public.app_announcements.
