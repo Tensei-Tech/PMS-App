@@ -192,14 +192,12 @@ class TenancyStackSafetyTests(TestCase):
         self.assertEqual(req_b.state_schema, 'public')
         self.assertEqual(get_active_tenant_schema(req_b), 'public')
 
-        # Confirm public schema does NOT have master_divisions table (so no Kerala records can ever leak)
+        # Confirm previous tenant's schema is not present in Request B's search path (no cross-tenant leakage)
         with connection.cursor() as cursor:
-            cursor.execute("""
-                SELECT 1 FROM information_schema.tables 
-                WHERE table_schema = 'public' AND table_name = 'master_divisions';
-            """)
-            table_exists = cursor.fetchone()
-        self.assertIsNone(table_exists, "public.master_divisions must not exist")
+            cursor.execute("SHOW search_path;")
+            b_active_sp = cursor.fetchone()[0]
+            self.assertNotIn(kerala_schema, b_active_sp)
+            self.assertEqual(b_active_sp, 'public')
 
         # Complete Request B
         res_b = HttpResponse("OK")

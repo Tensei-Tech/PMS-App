@@ -25,13 +25,15 @@ class IOWiseTests(TestCase):
             # Case in Station B assigned to Officer B
             CaseRecord.objects.get_or_create(id='case-io-b', defaults={'module_key': 'theft', 'status': 'Pending', 'station_name': 'Station B', 'assigned_officer_uid': 'uid-b', 'assigned_officer': 'Officer B'})
 
+    @patch('apps.core.permissions.check_dynamic_permission')
     @patch('apps.cases.views.check_dynamic_permission')
-    def test_station_a_user_sees_only_station_a_counts(self, mock_perm):
+    def test_station_a_user_sees_only_station_a_counts(self, mock_perm_views, mock_perm_core):
         def side_effect(user, perm_code):
             if perm_code == 'case:view':
                 return True
             return False  # Deny global/district view, force station-level logic
-        mock_perm.side_effect = side_effect
+        mock_perm_views.side_effect = side_effect
+        mock_perm_core.side_effect = side_effect
         
         # Authenticate the user properly
         self.client.force_authenticate(user=self.user_a)
