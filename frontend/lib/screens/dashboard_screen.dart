@@ -91,7 +91,7 @@ import '../widgets/send_reminder_dialog.dart';
 import '../widgets/state_police_banner_dialog.dart';
 import '../widgets/voice_search_dialog.dart';
 import 'about_app_screen.dart';
-import 'absconded_cases_screen.dart';
+import 'absconded_hub_screen.dart';
 import 'ad_form_screen.dart';
 import 'ad_record_detail_screen.dart';
 import 'add_members_screen.dart';
@@ -3915,7 +3915,7 @@ class _HomeTabState extends State<_HomeTab> {
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
-          page: const AbscondedCasesScreen(),
+          page: AbscondedHubScreen(stationName: widget.auth.stationName),
         ),
       );
     } else {

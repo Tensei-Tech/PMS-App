@@ -67,7 +67,7 @@ import '../widgets/forms_accordion_list.dart';
 import '../widgets/module_hub_report_card.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
 import '../widgets/read_only_module_record_hub_card.dart';
-import 'absconded_cases_screen.dart';
+import 'absconded_hub_screen.dart';
 import 'ad_form_screen.dart';
 import 'ad_record_detail_screen.dart';
 import 'common_form_screen.dart';
@@ -460,7 +460,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       return HurtCasesScreen(readOnly: widget.readOnly);
     }
     if (widget.moduleKey == 'absconded') {
-      return AbscondedCasesScreen(readOnly: widget.readOnly);
+      final auth = context.watch<AuthProvider>();
+      return AbscondedHubScreen(stationName: auth.stationName);
     }
 
     List<ModuleRecord> allRecords;

@@ -529,6 +529,141 @@ class UndetectedTimeWiseView(APIView):
             return Response({'error': 'Failed to retrieve Time-wise undetected counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+class AbscondedCasesView(APIView):
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def get(self, request):
+        try:
+            from django.db.models import Q
+            from apps.cases.utils import get_absconded_cases
+            queryset = get_absconded_cases()
+
+            # Enforce station-level visibility
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            # Apply ?io filter
+            io_name = request.query_params.get('io')
+            if io_name:
+                queryset = queryset.filter(assigned_officer=io_name)
+
+            # Apply ?category / ?head filter
+            category = request.query_params.get('category') or request.query_params.get('head')
+            if category:
+                norm_cat = category.replace('_', ' ').strip()
+                queryset = queryset.filter(
+                    Q(module_key__iexact=category) |
+                    Q(sub_category__iexact=category) |
+                    Q(sub_category__iexact=norm_cat) |
+                    Q(category_links__category__category_name__iexact=norm_cat) |
+                    Q(category_links__category__category_code__iexact=category)
+                ).distinct()
+
+            # Apply time range filter (start_date, end_date)
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            if start_date:
+                queryset = queryset.filter(created_at__date__gte=start_date)
+            if end_date:
+                queryset = queryset.filter(created_at__date__lte=end_date)
+
+            from apps.cases.serializers import CaseRecordSerializer
+            paginator = PageNumberPagination()
+            page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
+            if page is not None:
+                serializer = CaseRecordSerializer(page, many=True)
+                return paginator.get_paginated_response(serializer.data)
+
+            serializer = CaseRecordSerializer(queryset.order_by('-created_at'), many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            logger.exception(f"[AbscondedCasesView] Database error: {e}")
+            return Response({'error': 'Failed to retrieve absconded cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class AbscondedIOWiseView(APIView):
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def get(self, request):
+        try:
+            from django.db.models import Count
+            from apps.cases.utils import get_absconded_cases
+            queryset = get_absconded_cases()
+
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            if start_date:
+                queryset = queryset.filter(created_at__date__gte=start_date)
+            if end_date:
+                queryset = queryset.filter(created_at__date__lte=end_date)
+
+            counts = queryset.values('assigned_officer', 'station_name').annotate(count=Count('id')).order_by('-count')
+            results = []
+            for c in counts:
+                name = c['assigned_officer']
+                results.append({
+                    'io_uid': name,
+                    'io_name': name if name else 'Unassigned',
+                    'io_rank': '',
+                    'station_name': c['station_name'],
+                    'absconded_count': c['count'],
+                    'pending_count': c['count'],
+                })
+
+            return Response(results)
+        except Exception as e:
+            logger.exception(f"[AbscondedIOWiseView] Database error: {e}")
+            return Response({'error': 'Failed to retrieve IO-wise absconded counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class AbscondedTimeWiseView(APIView):
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def get(self, request):
+        try:
+            from django.utils import timezone
+            from datetime import timedelta
+            from apps.cases.utils import get_absconded_cases
+            queryset = get_absconded_cases()
+
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            now = timezone.now()
+            month_1 = now - timedelta(days=30)
+            months_3 = now - timedelta(days=90)
+            months_6 = now - timedelta(days=180)
+            year_1 = now - timedelta(days=365)
+
+            under_1_month = queryset.filter(incident_date__gte=month_1).count()
+            months_1_to_3 = queryset.filter(incident_date__gte=months_3, incident_date__lt=month_1).count()
+            months_3_to_6 = queryset.filter(incident_date__gte=months_6, incident_date__lt=months_3).count()
+            months_6_to_12 = queryset.filter(incident_date__gte=year_1, incident_date__lt=months_6).count()
+            more_than_1_year = queryset.filter(incident_date__lt=year_1).count()
+
+            results = [
+                {'period': 'Under 1 month', 'count': under_1_month},
+                {'period': '1 to 3 months', 'count': months_1_to_3},
+                {'period': '3 to 6 months', 'count': months_3_to_6},
+                {'period': '6 to 12 months', 'count': months_6_to_12},
+                {'period': 'More than 1 year', 'count': more_than_1_year},
+                {'period': 'Under 3 months (Total)', 'count': under_1_month + months_1_to_3}
+            ]
+            return Response(results)
+        except Exception as e:
+            logger.exception(f"[AbscondedTimeWiseView] Database error: {e}")
+            return Response({'error': 'Failed to retrieve time-wise absconded counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 class DisposalCaseWiseView(APIView):
     permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
