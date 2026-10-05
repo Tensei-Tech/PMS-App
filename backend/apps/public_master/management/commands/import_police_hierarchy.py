@@ -147,35 +147,41 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS(f"Successfully parsed {len(parsed_records)} station records from Excel."))
 
-        # 0. Ensure public.master_divisions table exists
+        schema_name = StateRegistry.objects.filter(state_code=state_code).values_list('schema_name', flat=True).first() or 'maharashtra'
+        clean_schema = "".join(c for c in schema_name if c.isalnum() or c == '_').lower()
+
+        # 0. Ensure tenant schema and master_divisions table exist
         with connection.cursor() as cursor:
-            cursor.execute("""
-            CREATE TABLE IF NOT EXISTS public.master_divisions (
+            cursor.execute(f'CREATE SCHEMA IF NOT EXISTS "{clean_schema}";')
+            cursor.execute(f"""
+            CREATE TABLE IF NOT EXISTS "{clean_schema}".master_divisions (
                 id BIGSERIAL PRIMARY KEY,
-                state_code VARCHAR(10) DEFAULT 'MH',
+                state_code VARCHAR(10) DEFAULT '{state_code}',
                 state_name VARCHAR(100) DEFAULT 'Maharashtra',
-                name VARCHAR(128),
+                name VARCHAR(128) NOT NULL,
                 code VARCHAR(64),
                 created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-                CONSTRAINT unique_state_div_name UNIQUE (state_code, name)
+                CONSTRAINT "{clean_schema}_master_divisions_state_name_uniq" UNIQUE (state_code, name)
             );
             """)
 
-        # 1. Seed Master Divisions in public.master_divisions
+        # 1. Seed Master Divisions in tenant schema
         unique_divisions = set(r['division_name'] for r in parsed_records)
         unique_divisions.update([d[1] for d in MAHARASHTRA_36_DISTRICTS])
 
         div_map = {}
-        for div_name in sorted(list(unique_divisions)):
-            div_code = f"DIV-{state_code}-{div_name[:4].upper()}"
-            div_obj, _ = MasterDivision.objects.update_or_create(
-                state_code=state_code,
-                name=div_name,
-                defaults={'state_name': 'Maharashtra', 'code': div_code}
-            )
-            div_map[div_name] = div_obj
+        from apps.core.tenancy import TenantContext
+        with TenantContext(clean_schema):
+            for div_name in sorted(list(unique_divisions)):
+                div_code = f"DIV-{state_code}-{div_name[:4].upper()}"
+                div_obj, _ = MasterDivision.objects.update_or_create(
+                    state_code=state_code,
+                    name=div_name,
+                    defaults={'state_name': 'Maharashtra', 'code': div_code}
+                )
+                div_map[div_name] = div_obj
 
-        self.stdout.write(self.style.SUCCESS(f"Seeded {len(div_map)} Divisions in public.master_divisions."))
+        self.stdout.write(self.style.SUCCESS(f"Seeded {len(div_map)} Divisions in {clean_schema}.master_divisions."))
 
         # 2. Seed All 36 Districts in public AND state tenant schema (e.g. maharashtra)
         unique_districts = {}

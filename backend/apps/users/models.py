@@ -54,12 +54,18 @@ class OfficerProfile(models.Model):
 
     @property
     def master_division_record(self):
-        """Fetch corresponding MasterDivision record from public.master_divisions if available."""
+        """Fetch corresponding MasterDivision record from tenant schema master_divisions if available."""
         if not self.division_name:
             return None
         try:
             from apps.public_master.models import MasterDivision
-            return MasterDivision.objects.filter(name__iexact=self.division_name).first()
+            from apps.core.tenancy import TenantContext, get_active_tenant_schema
+            target_schema = get_active_tenant_schema()
+            if not target_schema or target_schema == 'public':
+                return None
+
+            with TenantContext(target_schema):
+                return MasterDivision.objects.filter(name__iexact=self.division_name).first()
         except Exception:
             return None
 

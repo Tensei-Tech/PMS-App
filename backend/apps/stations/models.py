@@ -34,7 +34,7 @@ class District(models.Model):
 
     district_id = models.CharField(max_length=64, primary_key=True)
     name = models.CharField(max_length=128, unique=True)
-    code = models.CharField(max_length=32, blank=True)
+    code = models.CharField(max_length=32, blank=True, null=True)
     status = models.CharField(max_length=32, choices=STATUS_CHOICES, default='approved')
     approved_by_super_admin_uid = models.CharField(max_length=128, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -78,11 +78,11 @@ class PoliceStation(models.Model):
     station_id = models.CharField(max_length=64, primary_key=True)
     station_name = models.CharField(max_length=255, unique=True)
     district = models.ForeignKey(District, on_delete=models.CASCADE, related_name='stations', null=True, blank=True)
-    district_name = models.CharField(max_length=128, blank=True)
-    zone = models.CharField(max_length=128, blank=True)
-    address = models.TextField(blank=True)
-    landline = models.CharField(max_length=32, blank=True)
-    pi_in_charge = models.CharField(max_length=255, blank=True)
+    district_name = models.CharField(max_length=128, blank=True, null=True)
+    zone = models.CharField(max_length=128, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    landline = models.CharField(max_length=32, blank=True, null=True)
+    pi_in_charge = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
