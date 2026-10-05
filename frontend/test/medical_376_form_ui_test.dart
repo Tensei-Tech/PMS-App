@@ -7,6 +7,7 @@ import 'package:khakhi_diary/widgets/medical_376_form_view.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  EditableText.debugDeterministicCursor = true;
   const artifactDir =
       r'C:\Users\TANISHK.GUPTA\.gemini\antigravity-ide\brain\3c253216-2949-4c91-9492-1a6f0fe53fda';
 
@@ -15,16 +16,22 @@ void main() {
     GlobalKey repaintKey,
     String filename,
   ) async {
-    final boundary =
-        repaintKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
-    if (boundary != null) {
-      final img = await boundary.toImage(pixelRatio: 2.0);
-      final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
-      if (byteData != null) {
-        File('$artifactDir/$filename')
-            .writeAsBytesSync(byteData.buffer.asUint8List());
+    await tester.runAsync(() async {
+      try {
+        final boundary = repaintKey.currentContext?.findRenderObject()
+            as RenderRepaintBoundary?;
+        if (boundary != null) {
+          final img = await boundary.toImage(pixelRatio: 2.0);
+          final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+          if (byteData != null && Directory(artifactDir).existsSync()) {
+            File('$artifactDir/$filename')
+                .writeAsBytesSync(byteData.buffer.asUint8List());
+          }
+        }
+      } catch (e) {
+        // Screenshot capture is optional for visual debugging
       }
-    }
+    });
   }
 
   group('376 Medical Form UI & Pagination Tests', () {
@@ -72,12 +79,10 @@ void main() {
         MaterialApp(
           home: Scaffold(
             backgroundColor: const Color(0xFFF0F2F5),
-            body: SingleChildScrollView(
-              child: RepaintBoundary(
-                key: repaintKey,
-                child: const Medical376FormView(
-                  formSection: 'female',
-                ),
+            body: RepaintBoundary(
+              key: repaintKey,
+              child: const Medical376FormView(
+                formSection: 'female',
               ),
             ),
           ),

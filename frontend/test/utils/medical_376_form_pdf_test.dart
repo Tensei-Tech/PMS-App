@@ -59,6 +59,14 @@ void main() {
     return result!;
   }
 
+  void saveArtifactFile(String filename, List<int> bytes) {
+    try {
+      if (Directory(artifactDir).existsSync()) {
+        File('$artifactDir/$filename').writeAsBytesSync(bytes);
+      }
+    } catch (_) {}
+  }
+
   group('376 Medical Form PDF Tests (Phase C Complete)', () {
     testWidgets('Empty female form test (Sections 1-25): generates valid PDF',
         (WidgetTester tester) async {
@@ -67,13 +75,13 @@ void main() {
       };
 
       final res = await runPdfBuild(tester, doc);
-      File('$artifactDir/medical_376_female_empty.pdf')
-          .writeAsBytesSync(res.pdfBytes as List<int>);
+      saveArtifactFile(
+          'medical_376_female_empty.pdf', res.pdfBytes as List<int>);
 
       final pageImages = res.pageImages as List<Uint8List>? ?? [];
       for (int i = 0; i < pageImages.length; i++) {
-        File('$artifactDir/medical_376_female_empty_page_${i + 1}.png')
-            .writeAsBytesSync(pageImages[i]);
+        saveArtifactFile(
+            'medical_376_female_empty_page_${i + 1}.png', pageImages[i]);
       }
 
       // ignore: avoid_print
@@ -428,13 +436,13 @@ void main() {
       };
 
       final res = await runPdfBuild(tester, doc);
-      File('$artifactDir/medical_376_female_filled.pdf')
-          .writeAsBytesSync(res.pdfBytes as List<int>);
+      saveArtifactFile(
+          'medical_376_female_filled.pdf', res.pdfBytes as List<int>);
 
       final pageImages = res.pageImages as List<Uint8List>? ?? [];
       for (int i = 0; i < pageImages.length; i++) {
-        File('$artifactDir/medical_376_female_filled_page_${i + 1}.png')
-            .writeAsBytesSync(pageImages[i]);
+        saveArtifactFile(
+            'medical_376_female_filled_page_${i + 1}.png', pageImages[i]);
       }
 
       // ignore: avoid_print
@@ -450,13 +458,12 @@ void main() {
       };
 
       final res = await runPdfBuild(tester, doc);
-      File('$artifactDir/medical_376_male_empty.pdf')
-          .writeAsBytesSync(res.pdfBytes as List<int>);
+      saveArtifactFile('medical_376_male_empty.pdf', res.pdfBytes as List<int>);
 
       final pageImages = res.pageImages as List<Uint8List>? ?? [];
       for (int i = 0; i < pageImages.length; i++) {
-        File('$artifactDir/medical_376_male_empty_page_${i + 1}.png')
-            .writeAsBytesSync(pageImages[i]);
+        saveArtifactFile(
+            'medical_376_male_empty_page_${i + 1}.png', pageImages[i]);
       }
 
       // ignore: avoid_print
@@ -532,13 +539,13 @@ void main() {
       };
 
       final res = await runPdfBuild(tester, doc);
-      File('$artifactDir/medical_376_male_filled.pdf')
-          .writeAsBytesSync(res.pdfBytes as List<int>);
+      saveArtifactFile(
+          'medical_376_male_filled.pdf', res.pdfBytes as List<int>);
 
       final pageImages = res.pageImages as List<Uint8List>? ?? [];
       for (int i = 0; i < pageImages.length; i++) {
-        File('$artifactDir/medical_376_male_filled_page_${i + 1}.png')
-            .writeAsBytesSync(pageImages[i]);
+        saveArtifactFile(
+            'medical_376_male_filled_page_${i + 1}.png', pageImages[i]);
       }
 
       // ignore: avoid_print

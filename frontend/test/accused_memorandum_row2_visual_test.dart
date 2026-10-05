@@ -18,16 +18,18 @@ void main() {
     String filename,
   ) async {
     await tester.runAsync(() async {
-      final boundary = repaintKey.currentContext?.findRenderObject()
-          as RenderRepaintBoundary?;
-      if (boundary != null) {
-        final img = await boundary.toImage(pixelRatio: 2.0);
-        final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
-        if (byteData != null) {
-          File('$artifactDir/$filename')
-              .writeAsBytesSync(byteData.buffer.asUint8List());
+      try {
+        final boundary = repaintKey.currentContext?.findRenderObject()
+            as RenderRepaintBoundary?;
+        if (boundary != null) {
+          final img = await boundary.toImage(pixelRatio: 2.0);
+          final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+          if (byteData != null && Directory(artifactDir).existsSync()) {
+            File('$artifactDir/$filename')
+                .writeAsBytesSync(byteData.buffer.asUint8List());
+          }
         }
-      }
+      } catch (_) {}
     });
   }
 
