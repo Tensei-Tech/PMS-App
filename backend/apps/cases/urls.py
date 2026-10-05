@@ -9,6 +9,9 @@ from apps.cases.views import (
     PendingCasesView,
     IOWisePendingView,
     TimeWisePendingView,
+    UndetectedCasesView,
+    UndetectedIOWiseView,
+    UndetectedTimeWiseView,
     DisposalCasesView,
 )
 
@@ -24,6 +27,9 @@ urlpatterns = [
     path('pending/', PendingCasesView.as_view(), name='pending-cases'),
     path('pending/io-wise/', IOWisePendingView.as_view(), name='pending-io-wise'),
     path('pending/time-wise/', TimeWisePendingView.as_view(), name='pending-time-wise'),
+    path('undetected/', UndetectedCasesView.as_view(), name='undetected-cases'),
+    path('undetected/io-wise/', UndetectedIOWiseView.as_view(), name='undetected-io-wise'),
+    path('undetected/time-wise/', UndetectedTimeWiseView.as_view(), name='undetected-time-wise'),
     path('disposal/', DisposalCasesView.as_view(), name='disposal-cases'),
     # Existing CaseRecordViewSet router (ModelViewSet)
     path('', include(router.urls)),

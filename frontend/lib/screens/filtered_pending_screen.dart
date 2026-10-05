@@ -9,15 +9,19 @@ import '../modules/core/models/base_record.dart';
 class FilteredPendingScreen extends StatefulWidget {
   final String title;
   final String? ioUid;
+  final String? category;
   final String? startDate;
   final String? endDate;
+  final bool isUndetected;
 
   const FilteredPendingScreen({
     super.key,
     required this.title,
     this.ioUid,
+    this.category,
     this.startDate,
     this.endDate,
+    this.isUndetected = false,
   });
 
   @override
@@ -38,11 +42,18 @@ class _FilteredPendingScreenState extends State<FilteredPendingScreen> {
 
   Future<void> _loadData() async {
     try {
-      final dataList = await _backend.fetchPendingCases(
-        ioUid: widget.ioUid,
-        startDate: widget.startDate,
-        endDate: widget.endDate,
-      );
+      final dataList = widget.isUndetected
+          ? await _backend.fetchUndetectedCases(
+              ioUid: widget.ioUid,
+              category: widget.category,
+              startDate: widget.startDate,
+              endDate: widget.endDate,
+            )
+          : await _backend.fetchPendingCases(
+              ioUid: widget.ioUid,
+              startDate: widget.startDate,
+              endDate: widget.endDate,
+            );
 
       if (!mounted) return;
 

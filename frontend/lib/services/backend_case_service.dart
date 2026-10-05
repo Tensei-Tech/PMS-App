@@ -177,6 +177,109 @@ class BackendCaseService {
     return null;
   }
 
+  /// Fetch undetected cases, optionally filtering by IO, category, and date range
+  Future<List<Map<String, dynamic>>?> fetchUndetectedCases({
+    String? ioUid,
+    String? category,
+    String? startDate,
+    String? endDate,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (ioUid != null && ioUid.isNotEmpty) {
+        queryParams['io'] = ioUid;
+      }
+      if (category != null && category.isNotEmpty) {
+        queryParams['category'] = category;
+      }
+      if (startDate != null && startDate.isNotEmpty) {
+        queryParams['start_date'] = startDate;
+      }
+      if (endDate != null && endDate.isNotEmpty) {
+        queryParams['end_date'] = endDate;
+      }
+
+      final url = '${ApiConfig.cases}undetected/';
+      final response = await _api.get(url, queryParameters: queryParams);
+
+      if (response.isSuccess) {
+        if (response.data is List) {
+          return List<Map<String, dynamic>>.from(response.data);
+        } else if (response.data is Map &&
+            response.data.containsKey('results')) {
+          return List<Map<String, dynamic>>.from(response.data['results']);
+        }
+      } else {
+        if (kDebugMode) {
+          debugPrint(
+            '[BackendCaseService] fetchUndetectedCases error: ${response.errorMessage}',
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] fetchUndetectedCases exception: $e');
+      }
+    }
+    return null;
+  }
+
+  /// Fetch IO-wise undetected cases
+  Future<List<Map<String, dynamic>>?> fetchUndetectedIOWise({
+    String? startDate,
+    String? endDate,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (startDate != null && startDate.isNotEmpty) {
+        queryParams['start_date'] = startDate;
+      }
+      if (endDate != null && endDate.isNotEmpty) {
+        queryParams['end_date'] = endDate;
+      }
+
+      final url = '${ApiConfig.cases}undetected/io-wise/';
+      final response = await _api.get(url, queryParameters: queryParams);
+
+      if (response.isSuccess && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data);
+      } else {
+        if (kDebugMode) {
+          debugPrint(
+            '[BackendCaseService] fetchUndetectedIOWise error: ${response.errorMessage}',
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] fetchUndetectedIOWise exception: $e');
+      }
+    }
+    return null;
+  }
+
+  /// Fetch time-wise grouped undetected counts
+  Future<List<Map<String, dynamic>>?> fetchUndetectedTimeWise() async {
+    try {
+      final url = '${ApiConfig.cases}undetected/time-wise/';
+      final response = await _api.get(url);
+      if (response.isSuccess && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data);
+      } else {
+        if (kDebugMode) {
+          debugPrint(
+            '[BackendCaseService] fetchUndetectedTimeWise error: ${response.errorMessage}',
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] fetchUndetectedTimeWise exception: $e');
+      }
+    }
+    return null;
+  }
+
   /// Fetch a single case record by ID
   Future<Map<String, dynamic>?> fetchCaseById(String id) async {
     try {
