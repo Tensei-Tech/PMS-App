@@ -22,15 +22,23 @@ class StatusLogicTests(TestCase):
         self.assertEqual(case.status, 'Disposal')
 
     def test_cc_removed_becomes_pending_with_log(self):
-        case = CaseRecord.objects.create(module_key='murder', status='Disposal', extra_fields={'cc_number': '12345'})
+        case = CaseRecord.objects.create(
+            module_key='murder', 
+            status='Disposal', 
+            extra_fields={'ccStNumber': '12345', 'pendingReason': 'Initial'}  # Add pendingReason
+        )
         
-        serializer = CaseRecordSerializer(instance=case, data={'extra_fields': {'ccStNumber': '', 'pendingReason': 'Re-opened'}}, partial=True)
-        self.assertTrue(serializer.is_valid())
+        serializer = CaseRecordSerializer(
+            instance=case, 
+            data={'extra_fields': {'ccStNumber': '', 'pendingReason': 'Re-opened'}}, 
+            partial=True
+        )
+        self.assertTrue(serializer.is_valid(), msg=serializer.errors)  # Add error debugging
         serializer.save(_current_user_uid=self.user.uid)
         
         case.refresh_from_db()
         self.assertEqual(case.status, 'Pending')
-        self.assertNotIn('cc_number', case.extra_fields)
+        self.assertNotIn('ccStNumber', case.extra_fields)  # Check correct field name
         self.assertIn('status_logs', case.extra_fields)
         self.assertEqual(case.extra_fields['status_logs'][0]['action'], 'cc_st_removed')
 
@@ -77,11 +85,20 @@ class StatusLogicTests(TestCase):
         self.assertIsNotNone(case.extra_fields)
 
     def test_ad_cases_unaffected_by_cc_logic(self):
-        case = CaseRecord.objects.create(module_key='ad', status='Pending')
+        case = CaseRecord.objects.create(
+            module_key='ad', 
+            status='Pending',
+            extra_fields={'pendingReason': 'Initial'}  # Add required field
+        )
         
-        serializer = CaseRecordSerializer(instance=case, data={'extra_fields': {'ccStNumber': '123'}}, partial=True)
-        self.assertTrue(serializer.is_valid())
+        serializer = CaseRecordSerializer(
+            instance=case, 
+            data={'extra_fields': {'ccStNumber': '123'}}, 
+            partial=True
+        )
+        self.assertTrue(serializer.is_valid(), msg=serializer.errors)
         serializer.save(_current_user_uid=self.user.uid)
         
         case.refresh_from_db()
+        # AD cases should NOT transition to Disposal on CC entry
         self.assertEqual(case.status, 'Pending')

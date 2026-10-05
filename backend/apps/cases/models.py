@@ -113,8 +113,7 @@ def is_ad_case_disposed(case) -> bool:
         extra = case.get('extra_fields') or case.get('extraFields') or {}
         num = _extract_first_non_empty(extra, AD_SUMMARY_NO_KEYS) or _extract_first_non_empty(case, AD_SUMMARY_NO_KEYS)
         dt = _extract_first_non_empty(extra, AD_SUMMARY_DATE_KEYS) or _extract_first_non_empty(case, AD_SUMMARY_DATE_KEYS)
-        cc = extra.get('ccStNumber') or extra.get('cc_st_number') or extra.get('ccStNo') or extra.get('cc_st_no')
-        return bool(cc) or bool(num and dt)
+        return bool(num and dt)
 
     mod = str(getattr(case, 'module_key', '')).strip().lower()
     sub = str(getattr(case, 'sub_category', '')).strip().lower()
@@ -124,8 +123,7 @@ def is_ad_case_disposed(case) -> bool:
     extra = getattr(case, 'extra_fields', {}) or {}
     num = _extract_first_non_empty(extra, AD_SUMMARY_NO_KEYS)
     dt = _extract_first_non_empty(extra, AD_SUMMARY_DATE_KEYS)
-    cc = extra.get('ccStNumber') or extra.get('cc_st_number') or extra.get('ccStNo') or extra.get('cc_st_no')
-    return bool(cc) or bool(num and dt)
+    return bool(num and dt)
 
 
 COURT_FILING_DISPOSAL_KEYS = [
