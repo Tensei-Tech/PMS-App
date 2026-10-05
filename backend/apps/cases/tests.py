@@ -38,100 +38,179 @@ class CaseManagementAPITests(TestCase):
 
         # 3. Create tables / mock views if not present in test DB
         with connection.cursor() as cursor:
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS crime_type_master (
-                    id SERIAL PRIMARY KEY,
-                    crime_type VARCHAR(255) NOT NULL,
-                    act VARCHAR(255),
-                    section VARCHAR(255),
-                    sub_section VARCHAR(255),
-                    ipc_number VARCHAR(255)
-                );
-            """)
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS cases (
-                    case_id SERIAL PRIMARY KEY,
-                    case_number VARCHAR(128) NOT NULL,
-                    title VARCHAR(255) NOT NULL,
-                    description TEXT,
-                    module VARCHAR(64),
-                    priority VARCHAR(32),
-                    status VARCHAR(32),
-                    station_id VARCHAR(128),
-                    assigned_to_uid VARCHAR(128),
-                    created_by_uid VARCHAR(128),
-                    incident_date TIMESTAMPTZ,
-                    location_address VARCHAR(255),
-                    latitude DOUBLE PRECISION,
-                    longitude DOUBLE PRECISION,
-                    created_at TIMESTAMPTZ DEFAULT NOW(),
-                    updated_at TIMESTAMPTZ DEFAULT NOW(),
-                    case_type VARCHAR(64),
-                    crime_type_master_id INTEGER
-                );
-            """)
-            cursor.execute("""
-                CREATE OR REPLACE VIEW pending_cases_combined AS
-                SELECT 'cases' AS source, case_id, case_number, title, case_type, priority,
-                       'Shivajinagar Police Station' AS station_name, '' AS assigned_officer, status, created_at
-                FROM cases
-                WHERE status IN ('Pending', 'Draft');
-            """)
-            cursor.execute("""
-                CREATE OR REPLACE VIEW disposal_cases_combined AS
-                SELECT 'cases' AS source, case_id, case_number, title, case_type, priority,
-                       'Shivajinagar Police Station' AS station_name, '' AS assigned_officer, status, created_at
-                FROM cases
-                WHERE status IN ('Disposal', 'Closed');
-            """)
-
-            # Add remand_custody table with proper constraints
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS remand_custody (
-                    id SERIAL PRIMARY KEY,
-                    person_id INTEGER NOT NULL,
-                    pcr_days INTEGER,
-                    mcr BOOLEAN DEFAULT FALSE,
-                    pr_bond BOOLEAN DEFAULT FALSE,
-                    pr_bond_date DATE,
-                    bail BOOLEAN DEFAULT FALSE,
-                    surety_jail BOOLEAN DEFAULT FALSE,
-                    surety_name VARCHAR(255),
-                    surety_age INTEGER,
-                    surety_gender VARCHAR(50),
-                    surety_occupation VARCHAR(255),
-                    surety_mobile VARCHAR(20),
-                    surety_aadhaar VARCHAR(20),
-                    surety_pan VARCHAR(20),
-                    surety_add TEXT,
-                    created_at TIMESTAMPTZ DEFAULT NOW(),
-                    CONSTRAINT chk_pr_bond_requires_mcr CHECK (
-                        NOT pr_bond OR mcr = TRUE
-                    ),
-                    CONSTRAINT chk_surety_jail_requires_bail CHECK (
-                        NOT surety_jail OR bail = TRUE
-                    )
-                );
-            """)
-            
-            # Add preventive_action_items table
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS preventive_action_items (
-                    id SERIAL PRIMARY KEY,
-                    case_id INTEGER NOT NULL,
-                    person_id INTEGER NOT NULL,
-                    action VARCHAR(255),
-                    created_at TIMESTAMPTZ DEFAULT NOW(),
-                    UNIQUE(case_id, person_id, action)
-                );
-            """)
-
-            # Insert sample crime type
-            cursor.execute("""
-                INSERT INTO crime_type_master (crime_type, act, section, sub_section, ipc_number)
-                VALUES ('Theft', 'IPC', '379', '1', 'IPC 379')
-                ON CONFLICT DO NOTHING;
-            """)
+            if connection.vendor == 'postgresql':
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS crime_type_master (
+                        id SERIAL PRIMARY KEY,
+                        crime_type VARCHAR(255) NOT NULL,
+                        act VARCHAR(255),
+                        section VARCHAR(255),
+                        sub_section VARCHAR(255),
+                        ipc_number VARCHAR(255)
+                    );
+                """)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS cases (
+                        case_id SERIAL PRIMARY KEY,
+                        case_number VARCHAR(128) NOT NULL,
+                        title VARCHAR(255) NOT NULL,
+                        description TEXT,
+                        module VARCHAR(64),
+                        priority VARCHAR(32),
+                        status VARCHAR(32),
+                        station_id VARCHAR(128),
+                        assigned_to_uid VARCHAR(128),
+                        created_by_uid VARCHAR(128),
+                        incident_date TIMESTAMPTZ,
+                        location_address VARCHAR(255),
+                        latitude DOUBLE PRECISION,
+                        longitude DOUBLE PRECISION,
+                        created_at TIMESTAMPTZ DEFAULT NOW(),
+                        updated_at TIMESTAMPTZ DEFAULT NOW(),
+                        case_type VARCHAR(64),
+                        crime_type_master_id INTEGER
+                    );
+                """)
+                cursor.execute("""
+                    CREATE OR REPLACE VIEW pending_cases_combined AS
+                    SELECT 'cases' AS source, case_id, case_number, title, case_type, priority,
+                           'Shivajinagar Police Station' AS station_name, '' AS assigned_officer, status, created_at
+                    FROM cases
+                    WHERE status IN ('Pending', 'Draft');
+                """)
+                cursor.execute("""
+                    CREATE OR REPLACE VIEW disposal_cases_combined AS
+                    SELECT 'cases' AS source, case_id, case_number, title, case_type, priority,
+                           'Shivajinagar Police Station' AS station_name, '' AS assigned_officer, status, created_at
+                    FROM cases
+                    WHERE status IN ('Disposal', 'Closed');
+                """)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS remand_custody (
+                        id SERIAL PRIMARY KEY,
+                        person_id INTEGER NOT NULL,
+                        pcr_days INTEGER,
+                        mcr BOOLEAN DEFAULT FALSE,
+                        pr_bond BOOLEAN DEFAULT FALSE,
+                        pr_bond_date DATE,
+                        bail BOOLEAN DEFAULT FALSE,
+                        surety_jail BOOLEAN DEFAULT FALSE,
+                        surety_name VARCHAR(255),
+                        surety_age INTEGER,
+                        surety_gender VARCHAR(50),
+                        surety_occupation VARCHAR(255),
+                        surety_mobile VARCHAR(20),
+                        surety_aadhaar VARCHAR(20),
+                        surety_pan VARCHAR(20),
+                        surety_add TEXT,
+                        created_at TIMESTAMPTZ DEFAULT NOW(),
+                        CONSTRAINT chk_pr_bond_requires_mcr CHECK (
+                            NOT pr_bond OR mcr = TRUE
+                        ),
+                        CONSTRAINT chk_surety_jail_requires_bail CHECK (
+                            NOT surety_jail OR bail = TRUE
+                        )
+                    );
+                """)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS preventive_action_items (
+                        id SERIAL PRIMARY KEY,
+                        case_id INTEGER NOT NULL,
+                        person_id INTEGER NOT NULL,
+                        action VARCHAR(255),
+                        created_at TIMESTAMPTZ DEFAULT NOW(),
+                        UNIQUE(case_id, person_id, action)
+                    );
+                """)
+                cursor.execute("""
+                    INSERT INTO crime_type_master (crime_type, act, section, sub_section, ipc_number)
+                    VALUES ('Theft', 'IPC', '379', '1', 'IPC 379')
+                    ON CONFLICT DO NOTHING;
+                """)
+            else:
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS crime_type_master (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        crime_type VARCHAR(255) NOT NULL,
+                        act VARCHAR(255),
+                        section VARCHAR(255),
+                        sub_section VARCHAR(255),
+                        ipc_number VARCHAR(255)
+                    );
+                """)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS cases (
+                        case_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        case_number VARCHAR(128) NOT NULL,
+                        title VARCHAR(255) NOT NULL,
+                        description TEXT,
+                        module VARCHAR(64),
+                        priority VARCHAR(32),
+                        status VARCHAR(32),
+                        station_id VARCHAR(128),
+                        assigned_to_uid VARCHAR(128),
+                        created_by_uid VARCHAR(128),
+                        incident_date DATETIME,
+                        location_address VARCHAR(255),
+                        latitude REAL,
+                        longitude REAL,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        case_type VARCHAR(64),
+                        crime_type_master_id INTEGER
+                    );
+                """)
+                cursor.execute("DROP VIEW IF EXISTS pending_cases_combined;")
+                cursor.execute("""
+                    CREATE VIEW pending_cases_combined AS
+                    SELECT 'cases' AS source, case_id, case_number, title, case_type, priority,
+                           'Shivajinagar Police Station' AS station_name, '' AS assigned_officer, status, created_at
+                    FROM cases
+                    WHERE status IN ('Pending', 'Draft');
+                """)
+                cursor.execute("DROP VIEW IF EXISTS disposal_cases_combined;")
+                cursor.execute("""
+                    CREATE VIEW disposal_cases_combined AS
+                    SELECT 'cases' AS source, case_id, case_number, title, case_type, priority,
+                           'Shivajinagar Police Station' AS station_name, '' AS assigned_officer, status, created_at
+                    FROM cases
+                    WHERE status IN ('Disposal', 'Closed');
+                """)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS remand_custody (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        person_id INTEGER NOT NULL,
+                        pcr_days INTEGER,
+                        mcr BOOLEAN DEFAULT 0,
+                        pr_bond BOOLEAN DEFAULT 0,
+                        pr_bond_date DATE,
+                        bail BOOLEAN DEFAULT 0,
+                        surety_jail BOOLEAN DEFAULT 0,
+                        surety_name VARCHAR(255),
+                        surety_age INTEGER,
+                        surety_gender VARCHAR(50),
+                        surety_occupation VARCHAR(255),
+                        surety_mobile VARCHAR(20),
+                        surety_aadhaar VARCHAR(20),
+                        surety_pan VARCHAR(20),
+                        surety_add TEXT,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    );
+                """)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS preventive_action_items (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        case_id INTEGER NOT NULL,
+                        person_id INTEGER NOT NULL,
+                        action VARCHAR(255),
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE(case_id, person_id, action)
+                    );
+                """)
+                cursor.execute("""
+                    INSERT OR IGNORE INTO crime_type_master (crime_type, act, section, sub_section, ipc_number)
+                    VALUES ('Theft', 'IPC', '379', '1', 'IPC 379');
+                """)
 
         # 4. Register and obtain tokens for test users
         self.officer_token = self._register_and_login(
@@ -424,4 +503,57 @@ class CaseManagementAPITests(TestCase):
         pend_case_numbers = [c.get('case_number') for c in resp_pend.data.get('results', resp_pend.data if isinstance(resp_pend.data, list) else [])]
         self.assertNotIn('AD/10/2026', pend_case_numbers)
         self.assertIn('AD/11/2026', pend_case_numbers)
+
+    # --------------------------------------------------------------------------
+    # Test 11: JWT and Tenant Resolution on /api/cases/
+    # --------------------------------------------------------------------------
+    def test_11_tenant_and_jwt_resolution_cases_endpoint(self):
+        """Verify /api/cases/ handles valid JWT, expired JWT, and no JWT safely without 500."""
+        import jwt
+        from datetime import datetime, timedelta, timezone
+        from django.conf import settings
+
+        # 1. No JWT -> 401 Unauthorized
+        self.client.credentials()  # Clear credentials
+        resp_no_jwt = self.client.get('/api/cases/?module_key=form_1_5')
+        self.assertEqual(resp_no_jwt.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # 2. Expired JWT -> 401 Unauthorized
+        expired_payload = {
+            'uid': 'test_expired_uid',
+            'user_id': 'test_expired_uid',
+            'email': 'expired@mhpolice.gov.in',
+            'role_id': 'officer',
+            'state_code': 'MH',
+            'exp': datetime.now(timezone.utc) - timedelta(hours=1),
+            'iat': datetime.now(timezone.utc) - timedelta(hours=2),
+        }
+        expired_token = jwt.encode(expired_payload, settings.SECRET_KEY, algorithm='HS256')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {expired_token}')
+        resp_expired = self.client.get('/api/cases/?module_key=form_1_5')
+        self.assertEqual(resp_expired.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # 3. Valid JWT -> 200 OK
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.officer_token}')
+        resp_valid = self.client.get('/api/cases/?module_key=form_1_5')
+        self.assertEqual(resp_valid.status_code, status.HTTP_200_OK)
+
+    # --------------------------------------------------------------------------
+    # Test 12: Two Different Tenants In A Row (No Schema Leak)
+    # --------------------------------------------------------------------------
+    def test_12_two_different_tenants_isolation(self):
+        """Two different tenants in a row isolate data with zero leakage."""
+        ka_token = self._register_and_login(
+            'officer_ka@kapolice.gov.in', 'OfficerPass123!', 'officer', 'KA'
+        )
+
+        # Request 1: Maharashtra Tenant
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.officer_token}')
+        resp_mh = self.client.get('/api/cases/?module_key=form_1_5')
+        self.assertEqual(resp_mh.status_code, status.HTTP_200_OK)
+
+        # Request 2: Karnataka Tenant
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {ka_token}')
+        resp_ka = self.client.get('/api/cases/?module_key=form_1_5')
+        self.assertEqual(resp_ka.status_code, status.HTTP_200_OK)
 

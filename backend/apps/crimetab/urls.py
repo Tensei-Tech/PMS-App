@@ -4,6 +4,7 @@ from apps.crimetab.views import (
     CaseCategoryGroupViewSet,
     CaseCategoryViewSet,
     CrimeCaseManageView,
+    CaseCountsView,
     CaseTransferView,
     TransferredInInboxView,
     AssignTransferredCaseView,
@@ -41,6 +42,7 @@ urlpatterns = [
     path('cases/detected/', DetectedCasesView.as_view(), name='detected-cases-alias'),
 
     # Explicit Action Endpoints for Cases
+    path('cases/counts/', CaseCountsView.as_view(), name='case-counts'),
     path('cases/transferred-in/', TransferredInInboxView.as_view(), name='cases-transferred-in'),
     path('cases/<str:pk>/transfer/', CaseTransferView.as_view(), name='case-transfer'),
     path('cases/<str:pk>/assign-io/', AssignTransferredCaseView.as_view(), name='case-assign-io'),
