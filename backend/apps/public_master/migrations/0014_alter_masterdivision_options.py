@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('public_master', '0014_drop_public_master_divisions'),
+        ('public_master', '0013_ensure_maharashtra_master_divisions'),
     ]
 
     operations = [

@@ -53,10 +53,11 @@ class TenantMiddleware(MiddlewareMixin):
                 if state_record and state_record.schema_name:
                     schema_name = state_record.schema_name
                 else:
-                    schema_name = state_code.lower()
+                    logger.warning(f"[TenantMiddleware] Inactive or unregistered state '{state_code}'; defaulting to 'public'")
+                    schema_name = 'public'
             except Exception as e:
                 logger.warning(f"[TenantMiddleware] State lookup failed for state '{state_code}': {e}")
-                schema_name = state_code.lower()
+                schema_name = 'public'
         elif state_code and state_code.upper() == 'GLOBAL':
             schema_name = 'public'
 
