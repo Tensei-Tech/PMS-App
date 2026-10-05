@@ -203,8 +203,8 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
               r.extraFields['moduleDisplayName']?.toString().trim() ??
               '';
           if (fallbackName.isNotEmpty &&
-              !options.any((o) =>
-                  o.toLowerCase() == fallbackName.toLowerCase())) {
+              !options
+                  .any((o) => o.toLowerCase() == fallbackName.toLowerCase())) {
             options.add(fallbackName);
           }
         }

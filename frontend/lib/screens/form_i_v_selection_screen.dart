@@ -266,8 +266,8 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
               '';
           if (fallbackName.isNotEmpty &&
               !_isExcludedFromFormIV(fallbackName) &&
-              !options.any((o) =>
-                  o.toLowerCase() == fallbackName.toLowerCase())) {
+              !options
+                  .any((o) => o.toLowerCase() == fallbackName.toLowerCase())) {
             options.add(fallbackName);
           }
         }
