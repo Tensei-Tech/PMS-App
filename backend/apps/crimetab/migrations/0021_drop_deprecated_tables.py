@@ -59,11 +59,13 @@ class Migration(migrations.Migration):
     NOTE ON REVERSIBILITY:
     This migration is intentionally ONE-WAY (reverse_sql="").
     The dropped tables (court_filing, recovered_property, stolen_property, technical_custody,
-    preventive_actions, procedural_details, case_transfers, district_admins, super_admins,
-    users_notificationrecord, users_transferrequest) represent obsolete legacy prototypes
-    and duplicate tables that have been fully replaced by canonical shared models in the `public`
-    schema or standardized tenant models (e.g., cases_caserecord, preventive_action_items,
-    districts, stations_policestation). Rolling backward should NOT restore deprecated tables.
+    preventive_actions, procedural_details, case_transfers, district_admins, super_admins)
+    represent obsolete legacy prototypes and duplicate tables that have been fully replaced
+    by canonical shared models in the `public` schema or standardized tenant models (e.g.,
+    cases_caserecord, preventive_action_items, districts, stations_policestation).
+    Tenant-specific operational tables (e.g., users_notificationrecord, users_transferrequest,
+    master_divisions, users_officerprofile) are provisioned per tenant schema in tenancy.py.
+    Rolling backward should NOT restore deprecated tables.
     """
 
     dependencies = [
