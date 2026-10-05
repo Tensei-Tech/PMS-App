@@ -274,7 +274,8 @@ class BackendCaseService {
       }
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('[BackendCaseService] fetchUndetectedTimeWise exception: $e');
+        debugPrint(
+            '[BackendCaseService] fetchUndetectedTimeWise exception: $e');
       }
     }
     return null;
