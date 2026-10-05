@@ -22,11 +22,12 @@ def get_cases_by_status(tab: str):
     elif tab.lower() == 'arrested':
         return queryset.filter(
             Q(module_key__iexact='arrested') |
+            Q(persons__arrest_status__arrest_datetime__isnull=False) |
             Q(extra_fields__has_key='arrest_records') |
             Q(extra_fields__has_key='arrest_datetime') |
             Q(extra_fields__has_key='arrested_person_name') |
             Q(extra_fields__has_key='arrests')
-        )
+        ).distinct()
         
     return queryset
 
