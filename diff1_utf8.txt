@@ -1,0 +1,240 @@
+diff --git a/backend/apps/cases/models.py b/backend/apps/cases/models.py
+index 5a792f9..e63ba94 100644
+--- a/backend/apps/cases/models.py
++++ b/backend/apps/cases/models.py
+@@ -172,51 +172,8 @@ class CaseRecord(models.Model):
+         ordering = ['-created_at']
+ 
+     def save(self, *args, **kwargs):
+-        # 1. Reject client status overrides (handled before save if we want, but enforced here)
+-        # Actually, if we just want to compute it:
+-        from apps.cases.constants import CC_ST_KEYS
+-        from django.utils import timezone
+-        
+-        # Original AD Logic
+         if is_ad_case_disposed(self) and self.status not in ['Disposal', 'Closed', 'Resolved']:
+             self.status = 'Disposal'
+-            
+-        # CC/ST Logic (Skip AD cases)
+-        elif self.module_key != 'ad':
+-            # Check if CC/ST is currently present in extra_fields
+-            has_cc = False
+-            if isinstance(self.extra_fields, dict):
+-                has_cc = bool(_extract_first_non_empty(self.extra_fields, CC_ST_KEYS))
+-            
+-            # Check previous state if this is an update
+-            if self.pk:
+-                try:
+-                    old_instance = CaseRecord.objects.get(pk=self.pk)
+-                    old_extra = old_instance.extra_fields if isinstance(old_instance.extra_fields, dict) else {}
+-                    had_cc = bool(_extract_first_non_empty(old_extra, CC_ST_KEYS))
+-                    
+-                    if not had_cc and has_cc:
+-                        self.status = 'Disposal'
+-                    elif had_cc and not has_cc:
+-                        self.status = 'Pending'
+-                        # Log it
+-                        if not isinstance(self.extra_fields, dict):
+-                            self.extra_fields = {}
+-                        if 'status_logs' not in self.extra_fields:
+-                            self.extra_fields['status_logs'] = []
+-                        
+-                        uid = getattr(self, '_current_user_uid', 'unknown')
+-                        self.extra_fields['status_logs'].append({
+-                            'action': 'cc_st_removed',
+-                            'timestamp': timezone.now().isoformat(),
+-                            'user_uid': uid
+-                        })
+-                except CaseRecord.DoesNotExist:
+-                    pass
+-            else:
+-                if has_cc:
+-                    self.status = 'Disposal'
+-
+         super().save(*args, **kwargs)
+ 
+     def __str__(self):
+diff --git a/backend/apps/cases/serializers.py b/backend/apps/cases/serializers.py
+index af77317..148fed1 100644
+--- a/backend/apps/cases/serializers.py
++++ b/backend/apps/cases/serializers.py
+@@ -38,71 +38,6 @@ class CaseRecordSerializer(serializers.ModelSerializer):
+             raise serializers.ValidationError("Security violation: CreatedBy (officer UID) is required.")
+         return value
+ 
+-    def validate_assigned_officer_uid(self, value):
+-        if value:
+-            from apps.users.models import OfficerProfile
+-            if not OfficerProfile.objects.filter(uid=value).exists():
+-                raise serializers.ValidationError("Invalid IO: Officer with this UID does not exist.")
+-        return value
+-
+-    def validate(self, attrs):
+-        from apps.cases.constants import CC_ST_KEYS, REASON_KEYS
+-        
+-        # Reject client status overrides
+-        if 'status' in attrs:
+-            attrs.pop('status')
+-            
+-        extra_fields = attrs.get('extra_fields')
+-        if extra_fields is None:
+-            extra_fields = {}
+-            if 'extra_fields' in attrs:
+-                attrs['extra_fields'] = extra_fields
+-            
+-        if self.instance and isinstance(self.instance.extra_fields, dict):
+-            # We must deeply merge dictionaries to avoid replacing entire nested objects
+-            def deep_merge(d1, d2):
+-                for k, v in d2.items():
+-                    if k in d1 and isinstance(d1[k], dict) and isinstance(v, dict):
+-                        deep_merge(d1[k], v)
+-                    else:
+-                        d1[k] = v
+-            
+-            merged = self.instance.extra_fields.copy()
+-            
+-            # Strip client-sent status_logs
+-            if 'status_logs' in extra_fields:
+-                extra_fields.pop('status_logs')
+-                
+-            deep_merge(merged, extra_fields)
+-            
+-            # Alias blanking recursively
+-            def find_keys(d, targets, found=None):
+-                if found is None: found = set()
+-                if isinstance(d, dict):
+-                    for k, v in d.items():
+-                        if k in targets: found.add(k)
+-                        find_keys(v, targets, found)
+-                return found
+-                
+-            def delete_keys(d, targets):
+-                if isinstance(d, dict):
+-                    for k in list(d.keys()):
+-                        if k in targets:
+-                            del d[k]
+-                        else:
+-                            delete_keys(d[k], targets)
+-                            
+-            incoming_cc_keys = find_keys(extra_fields, CC_ST_KEYS)
+-            if incoming_cc_keys:
+-                keys_to_delete = [k for k in CC_ST_KEYS if k not in incoming_cc_keys]
+-                delete_keys(merged, keys_to_delete)
+-                        
+-            attrs['extra_fields'] = merged
+-        elif extra_fields and 'status_logs' in extra_fields:
+-            extra_fields.pop('status_logs')
+-
+-        return attrs
+-
+ 
+ class CreateCaseSerializer(serializers.Serializer):
+     """
+diff --git a/backend/apps/cases/views.py b/backend/apps/cases/views.py
+index 0dbe30f..83cb3c8 100644
+--- a/backend/apps/cases/views.py
++++ b/backend/apps/cases/views.py
+@@ -130,87 +130,28 @@ class PendingCasesView(APIView):
+ 
+     def get(self, request):
+         try:
+-            from apps.cases.constants import CASE_STATUS_PENDING
+-            # Replaced raw SQL with ORM since pending_cases_combined does not exist
+-            queryset = CaseRecord.objects.filter(status=CASE_STATUS_PENDING)
+-            
+-            # Enforce station-level visibility
+-            user = request.user
+-            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+-                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+-                queryset = queryset.filter(station_name__in=stations)
+-
+-            # Apply ?io filter
+-            io_uid = request.query_params.get('io')
+-            if io_uid:
+-                queryset = queryset.filter(assigned_officer_uid=io_uid)
+-
+-            # Apply time range filter (start_date, end_date)
+-            start_date = request.query_params.get('start_date')
+-            end_date = request.query_params.get('end_date')
+-            if start_date:
+-                queryset = queryset.filter(created_at__date__gte=start_date)
+-            if end_date:
+-                queryset = queryset.filter(created_at__date__lte=end_date)
+-
+-            from apps.cases.serializers import CaseRecordSerializer
+-            
++            with connection.cursor() as cursor:
++                cursor.execute("""
++                    SELECT source, case_id, case_number, title, case_type, priority, station_name, assigned_officer, status
++                    FROM pending_cases_combined
++                """)
++                columns = [col[0] for col in cursor.description]
++                rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
++
++            # Exclude any AD cases from cases_caserecord that qualify as disposal
++            disposed_ad_ids = {c.id for c in CaseRecord.objects.filter(module_key='ad') if is_ad_case_disposed(c)}
++            if disposed_ad_ids:
++                rows = [r for r in rows if r.get('case_id') not in disposed_ad_ids]
++
+             paginator = PageNumberPagination()
+-            page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
++            page = paginator.paginate_queryset(rows, request)
+             if page is not None:
+-                serializer = CaseRecordSerializer(page, many=True)
+-                return paginator.get_paginated_response(serializer.data)
+-                
+-            serializer = CaseRecordSerializer(queryset.order_by('-created_at'), many=True)
+-            return Response(serializer.data)
++                return paginator.get_paginated_response(page)
++            return Response(rows)
+         except Exception as e:
+             logger.exception(f"[PendingCasesView] Database error: {e}")
+             return Response({'error': 'Failed to retrieve pending cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+ 
+-class IOWisePendingView(APIView):
+-    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+-
+-    def get(self, request):
+-        try:
+-            from django.db.models import Count
+-            from apps.cases.constants import CASE_STATUS_PENDING
+-            queryset = CaseRecord.objects.filter(status=CASE_STATUS_PENDING).exclude(assigned_officer_uid__isnull=True).exclude(assigned_officer_uid='')
+-            
+-            user = request.user
+-            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+-                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+-                queryset = queryset.filter(station_name__in=stations)
+-
+-            # Apply time range filter (start_date, end_date)
+-            start_date = request.query_params.get('start_date')
+-            end_date = request.query_params.get('end_date')
+-            if start_date:
+-                queryset = queryset.filter(created_at__date__gte=start_date)
+-            if end_date:
+-                queryset = queryset.filter(created_at__date__lte=end_date)
+-
+-            counts = queryset.values('assigned_officer_uid', 'station_name').annotate(count=Count('id')).order_by('-count')
+-            
+-            from apps.users.models import OfficerProfile
+-            officer_uids = [c['assigned_officer_uid'] for c in counts]
+-            officers = {o.uid: o for o in OfficerProfile.objects.filter(uid__in=officer_uids)}
+-
+-            results = []
+-            for c in counts:
+-                uid = c['assigned_officer_uid']
+-                officer = officers.get(uid)
+-                results.append({
+-                    'io_uid': uid,
+-                    'io_name': officer.name if officer else 'Unknown Officer',
+-                    'io_rank': officer.designation if officer else 'Unknown',
+-                    'station_name': c['station_name'],
+-                    'pending_count': c['count']
+-                })
+-
+-            return Response(results)
+-        except Exception as e:
+-            logger.exception(f"[IOWisePendingView] Database error: {e}")
+-            return Response({'error': 'Failed to retrieve IO-wise counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+ 
+ class DisposalCasesView(APIView):
+     permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]

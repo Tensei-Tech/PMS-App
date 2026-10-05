@@ -2,6 +2,7 @@
 // Unified disposal identification logic for AD (Accidental Death) and all module cases.
 
 import 'common_form_module.dart' show isAbscondedDisposal;
+import '../constants/case_status_constants.dart';
 
 /// Candidate keys for "AD Summary No." / "मर्ग समरी No." across various form formats.
 const List<String> kAdSummaryNoKeys = [
@@ -188,7 +189,7 @@ bool isAdDisposalCase(dynamic recordOrMap) {
 
 /// Unified helper to determine if ANY case record is Disposed.
 /// Covers:
-/// 1. Status == 'Disposal' / 'Disposed' / 'Closed' / 'Resolved'
+/// 1. Status == CaseStatus.disposal / 'Disposed' / 'Closed' / 'Resolved'
 /// 2. Absconded disposal rules via [isAbscondedDisposal]
 /// 3. AD (Accidental Death) disposal rule: both AD Summary No. & AD Summary Date present
 bool isRecordDisposal(dynamic record) {
@@ -201,7 +202,13 @@ bool isRecordDisposal(dynamic record) {
       s = (record.status ?? '').toString().trim().toLowerCase();
     } catch (_) {}
   }
-  if (s == 'disposal' || s == 'disposed' || s == 'closed' || s == 'resolved') {
+  final disposalStatuses = {
+    CaseStatus.disposal.toLowerCase(),
+    CaseStatus.closed.toLowerCase(),
+    CaseStatus.disposed.toLowerCase(),
+    CaseStatus.resolved.toLowerCase(),
+  };
+  if (disposalStatuses.contains(s)) {
     return true;
   }
   if (isAbscondedDisposal(record)) {

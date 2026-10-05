@@ -27,18 +27,18 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
   final devanagariBold = await PdfFontCache.devanagariBold();
 
   final regular = pw.TextStyle(
-    font: devanagari,
-    fontSize: 10.5,
+    font: devanagariBold,
+    fontSize: 11,
     lineSpacing: 4,
   );
   final bold = pw.TextStyle(
     font: devanagariBold,
-    fontSize: 10.5,
+    fontSize: 11,
     fontWeight: pw.FontWeight.bold,
   );
   final headerTitle = pw.TextStyle(
     font: devanagariBold,
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: pw.FontWeight.bold,
     decoration: pw.TextDecoration.underline,
   );
@@ -105,31 +105,112 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
             pw.Center(
               child: pw.Text('-:: मुद्देमाल पावती ::-', style: headerTitle),
             ),
-            pw.SizedBox(height: 24),
+            pw.SizedBox(height: 28),
 
             // ── ROW 1: पोलीस स्टेशन ──
-            pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Padding(
-                  padding: const pw.EdgeInsets.only(top: 1.0),
-                  child: pw.Text('१) पोलीस स्टेशन   :-  ', style: bold),
-                ),
-                pw.Expanded(
-                  child: pw.Text(
-                    ps.isEmpty ? ' ' : ps,
-                    style: regular,
-                    softWrap: true,
+            if (ps.trim().length > 20) ...[
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.only(top: 1.0),
+                    child: pw.Text('१) पोलीस स्टेशन   :-  ', style: bold),
                   ),
-                ),
-                pw.SizedBox(width: 12),
-                pw.Padding(
-                  padding: const pw.EdgeInsets.only(top: 1.0),
-                  child: pw.Text('जिल्हा $dist', style: bold),
-                ),
-              ],
-            ),
-            pw.SizedBox(height: 12),
+                  pw.Expanded(
+                    child: pw.Container(
+                      decoration: const pw.BoxDecoration(
+                        border: pw.Border(
+                          bottom:
+                              pw.BorderSide(color: PdfColors.black, width: 0.8),
+                        ),
+                      ),
+                      padding: const pw.EdgeInsets.only(bottom: 2),
+                      child: pw.Text(
+                        ps.isNotEmpty ? ps : ' ',
+                        style: regular,
+                        softWrap: true,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 8),
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.only(top: 1.0),
+                    child: pw.Text('जिल्हा :- ', style: bold),
+                  ),
+                  pw.Expanded(
+                    child: pw.Container(
+                      decoration: const pw.BoxDecoration(
+                        border: pw.Border(
+                          bottom:
+                              pw.BorderSide(color: PdfColors.black, width: 0.8),
+                        ),
+                      ),
+                      padding: const pw.EdgeInsets.only(bottom: 2),
+                      child: pw.Text(
+                        dist.isNotEmpty ? dist : ' ',
+                        style: regular,
+                        softWrap: true,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ] else ...[
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.only(top: 1.0),
+                    child: pw.Text('१) पोलीस स्टेशन   :-  ', style: bold),
+                  ),
+                  pw.Expanded(
+                    flex: 4,
+                    child: pw.Container(
+                      decoration: const pw.BoxDecoration(
+                        border: pw.Border(
+                          bottom:
+                              pw.BorderSide(color: PdfColors.black, width: 0.8),
+                        ),
+                      ),
+                      padding: const pw.EdgeInsets.only(bottom: 2),
+                      child: pw.Text(
+                        ps.isNotEmpty ? ps : ' ',
+                        style: regular,
+                        softWrap: true,
+                      ),
+                    ),
+                  ),
+                  pw.SizedBox(width: 12),
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.only(top: 1.0),
+                    child: pw.Text('जिल्हा :- ', style: bold),
+                  ),
+                  pw.Expanded(
+                    flex: 3,
+                    child: pw.Container(
+                      decoration: const pw.BoxDecoration(
+                        border: pw.Border(
+                          bottom:
+                              pw.BorderSide(color: PdfColors.black, width: 0.8),
+                        ),
+                      ),
+                      padding: const pw.EdgeInsets.only(bottom: 2),
+                      child: pw.Text(
+                        dist.isNotEmpty ? dist : ' ',
+                        style: regular,
+                        softWrap: true,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            pw.SizedBox(height: 16),
 
             // ── ROW 2: अप क्रमांक व कलम ──
             pw.Row(
@@ -143,7 +224,7 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
                 ),
               ],
             ),
-            pw.SizedBox(height: 12),
+            pw.SizedBox(height: 16),
 
             // ── ROW 3: अन्वेषन अधिकारी ──
             if (ioName.trim().length > 20 ||
@@ -280,7 +361,7 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
                 ],
               ),
             ],
-            pw.SizedBox(height: 12),
+            pw.SizedBox(height: 16),
 
             // ── ROW 4: आरोपी नांव ──
             pw.Row(
@@ -291,7 +372,7 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
                 ),
               ],
             ),
-            pw.SizedBox(height: 12),
+            pw.SizedBox(height: 16),
 
             // ── ROW 5: जप्त माल दिनांक व माल नंबर ──
             pw.Row(
@@ -303,7 +384,7 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
                 pw.Text(propertyNo, style: regular),
               ],
             ),
-            pw.SizedBox(height: 20),
+            pw.SizedBox(height: 24),
 
             // ── MAIN TABLE ──
             pw.Table(
@@ -355,23 +436,23 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
                   pw.TableRow(
                     children: [
                       pw.Container(
-                        height: 240,
+                        height: 380,
                         padding: const pw.EdgeInsets.all(6),
                         child: pw.Text('', style: regular),
                       ),
                       pw.Container(
-                        height: 240,
+                        height: 380,
                         padding: const pw.EdgeInsets.all(6),
                         child: pw.Text('', style: regular),
                       ),
                       pw.Container(
-                        height: 240,
+                        height: 380,
                         padding: const pw.EdgeInsets.all(6),
                         alignment: pw.Alignment.topCenter,
                         child: pw.Text('......./२०....', style: regular),
                       ),
                       pw.Container(
-                        height: 240,
+                        height: 380,
                         padding: const pw.EdgeInsets.all(6),
                         child: pw.Text('', style: regular),
                       ),
@@ -382,7 +463,10 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
                     pw.TableRow(
                       children: [
                         pw.Container(
-                          constraints: const pw.BoxConstraints(minHeight: 180),
+                          constraints: pw.BoxConstraints(
+                              minHeight: items.length == 1
+                                  ? 360
+                                  : (items.length == 2 ? 180 : 120)),
                           padding: const pw.EdgeInsets.all(6),
                           child: pw.Text(
                             item['description']?.toString() ?? '',
@@ -390,7 +474,10 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
                           ),
                         ),
                         pw.Container(
-                          constraints: const pw.BoxConstraints(minHeight: 180),
+                          constraints: pw.BoxConstraints(
+                              minHeight: items.length == 1
+                                  ? 360
+                                  : (items.length == 2 ? 180 : 120)),
                           padding: const pw.EdgeInsets.all(6),
                           child: pw.Text(
                             item['estimatedValue']?.toString() ?? '',
@@ -398,7 +485,10 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
                           ),
                         ),
                         pw.Container(
-                          constraints: const pw.BoxConstraints(minHeight: 180),
+                          constraints: pw.BoxConstraints(
+                              minHeight: items.length == 1
+                                  ? 360
+                                  : (items.length == 2 ? 180 : 120)),
                           padding: const pw.EdgeInsets.all(6),
                           alignment: pw.Alignment.topCenter,
                           child: pw.Text(
@@ -409,7 +499,10 @@ Future<Uint8List> generateMuddemalPavtiPdf(Map<String, dynamic> doc) async {
                           ),
                         ),
                         pw.Container(
-                          constraints: const pw.BoxConstraints(minHeight: 180),
+                          constraints: pw.BoxConstraints(
+                              minHeight: items.length == 1
+                                  ? 360
+                                  : (items.length == 2 ? 180 : 120)),
                           padding: const pw.EdgeInsets.all(6),
                           child: pw.Text(
                             item['seizedFrom']?.toString() ?? '',
@@ -561,9 +654,9 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
   final investigatingOfficerSig =
       v('investigatingOfficerSig', v('ioSign', v('ioName')));
 
-  final reg = FormImagePdfHelper.mReg(10.5, 1.45);
-  final bld = FormImagePdfHelper.mBld(10.5, 1.45);
-  final headerTitle = FormImagePdfHelper.mBld(15, 1.3);
+  final reg = FormImagePdfHelper.mBld(11.5, 1.5);
+  final bld = FormImagePdfHelper.mBld(11.5, 1.5);
+  final headerTitle = FormImagePdfHelper.mBld(16, 1.3);
 
   Widget uUnderlineField(String value, TextStyle style,
       {double minWidth = 40}) {
@@ -620,6 +713,17 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
     return false;
   }();
 
+  final isPsLong = () {
+    final p = ps.trim();
+    if (p.length > 20) return true;
+    final tp = TextPainter(
+      text: TextSpan(text: p, style: reg),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    if (tp.width > 180) return true;
+    return false;
+  }();
+
   return FormImagePdfHelper.buildA4Page(
     padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 40),
     children: [
@@ -629,29 +733,58 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           style: headerTitle.copyWith(decoration: TextDecoration.underline),
         ),
       ),
-      const SizedBox(height: 24),
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 1.0),
-            child: Text('१) पोलीस स्टेशन   :-  ', style: bld),
-          ),
-          Expanded(
-            child: Text(
-              ps.isEmpty ? ' ' : ps,
-              softWrap: true,
-              style: reg,
+      const SizedBox(height: 28),
+      if (isPsLong) ...[
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 1.0),
+              child: Text('१) पोलीस स्टेशन   :-  ', style: bld),
             ),
-          ),
-          const SizedBox(width: 12),
-          Padding(
-            padding: const EdgeInsets.only(top: 1.0),
-            child: Text('जिल्हा $dist', style: bld),
-          ),
-        ],
-      ),
-      const SizedBox(height: 12),
+            Expanded(
+              child: uUnderlineField(ps, reg),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 1.0),
+              child: Text('जिल्हा :- ', style: bld),
+            ),
+            Expanded(
+              child: uUnderlineField(dist, reg),
+            ),
+          ],
+        ),
+      ] else ...[
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 1.0),
+              child: Text('१) पोलीस स्टेशन   :-  ', style: bld),
+            ),
+            Expanded(
+              flex: 4,
+              child: uUnderlineField(ps, reg),
+            ),
+            const SizedBox(width: 12),
+            Padding(
+              padding: const EdgeInsets.only(top: 1.0),
+              child: Text('जिल्हा :- ', style: bld),
+            ),
+            Expanded(
+              flex: 3,
+              child: uUnderlineField(dist, reg),
+            ),
+          ],
+        ),
+      ],
+      const SizedBox(height: 16),
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -679,7 +812,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           ),
         ],
       ),
-      const SizedBox(height: 12),
+      const SizedBox(height: 16),
       // ── ROW 3: अन्वेषन अधिकारी ──
       if (isIoNameLong) ...[
         Row(
@@ -744,12 +877,16 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             const SizedBox(width: 12),
             Padding(
               padding: const EdgeInsets.only(top: 1.0),
-              child: Text('जिल्हा $ioDist', style: bld),
+              child: Text('जिल्हा :- ', style: bld),
+            ),
+            Expanded(
+              flex: 2,
+              child: uUnderlineField(ioDist, reg),
             ),
           ],
         ),
       ],
-      const SizedBox(height: 12),
+      const SizedBox(height: 16),
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -758,17 +895,11 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             child: Text('४) आरोपी नांव :- ', style: bld),
           ),
           Expanded(
-            child: Text(
-              accusedName.isNotEmpty
-                  ? accusedName
-                  : '________________________________________________',
-              softWrap: true,
-              style: reg,
-            ),
+            child: uUnderlineField(accusedName, reg),
           ),
         ],
       ),
-      const SizedBox(height: 12),
+      const SizedBox(height: 16),
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -794,7 +925,7 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
           ),
         ],
       ),
-      const SizedBox(height: 20),
+      const SizedBox(height: 24),
       Table(
         border: TableBorder.all(color: Colors.black87, width: 1),
         columnWidths: const {
@@ -836,23 +967,23 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
             TableRow(
               children: [
                 Container(
-                  height: 240,
+                  height: 380,
                   padding: const EdgeInsets.all(6),
                   child: Text('', style: reg),
                 ),
                 Container(
-                  height: 240,
+                  height: 380,
                   padding: const EdgeInsets.all(6),
                   child: Text('', style: reg),
                 ),
                 Container(
-                  height: 240,
+                  height: 380,
                   padding: const EdgeInsets.all(6),
                   alignment: Alignment.topCenter,
                   child: Text('......./२०....', style: reg),
                 ),
                 Container(
-                  height: 240,
+                  height: 380,
                   padding: const EdgeInsets.all(6),
                   child: Text('', style: reg),
                 ),
@@ -863,7 +994,10 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
               TableRow(
                 children: [
                   Container(
-                    constraints: const BoxConstraints(minHeight: 180),
+                    constraints: BoxConstraints(
+                        minHeight: items.length == 1
+                            ? 360
+                            : (items.length == 2 ? 180 : 120)),
                     padding: const EdgeInsets.all(6),
                     child: Text(
                       item['description']?.toString() ?? '',
@@ -871,7 +1005,10 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                     ),
                   ),
                   Container(
-                    constraints: const BoxConstraints(minHeight: 180),
+                    constraints: BoxConstraints(
+                        minHeight: items.length == 1
+                            ? 360
+                            : (items.length == 2 ? 180 : 120)),
                     padding: const EdgeInsets.all(6),
                     child: Text(
                       item['estimatedValue']?.toString() ?? '',
@@ -879,7 +1016,10 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                     ),
                   ),
                   Container(
-                    constraints: const BoxConstraints(minHeight: 180),
+                    constraints: BoxConstraints(
+                        minHeight: items.length == 1
+                            ? 360
+                            : (items.length == 2 ? 180 : 120)),
                     padding: const EdgeInsets.all(6),
                     alignment: Alignment.topCenter,
                     child: Text(
@@ -890,7 +1030,10 @@ Widget _buildPgWidget(Map<String, dynamic> doc) {
                     ),
                   ),
                   Container(
-                    constraints: const BoxConstraints(minHeight: 180),
+                    constraints: BoxConstraints(
+                        minHeight: items.length == 1
+                            ? 360
+                            : (items.length == 2 ? 180 : 120)),
                     padding: const EdgeInsets.all(6),
                     child: Text(
                       item['seizedFrom']?.toString() ?? '',

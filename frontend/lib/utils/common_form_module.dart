@@ -1,6 +1,8 @@
 // lib/utils/common_form_module.dart
 // Routing + storage key for the shared crime registration form (CommonForm).
 
+import '../constants/case_status_constants.dart';
+
 /// Firestore / [ModuleRecord.extraFields] key for the full common form payload.
 const String kCommonFormExtraFieldsKey = 'commonForm';
 
@@ -52,7 +54,7 @@ bool isCaseUnarrested(dynamic record) {
 bool isAbscondedDisposal(dynamic record) {
   if (record == null) return false;
   final status = (record.status ?? '').toString().toLowerCase().trim();
-  if (status == 'disposal' || status == 'closed' || status == 'resolved') {
+  if (status == CaseStatus.disposal.toLowerCase()) {
     return true;
   }
   final extraFields = record.extraFields;

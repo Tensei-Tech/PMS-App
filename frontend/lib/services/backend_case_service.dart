@@ -155,6 +155,28 @@ class BackendCaseService {
     return null;
   }
 
+  /// Fetch time-wise grouped pending counts
+  Future<List<Map<String, dynamic>>?> fetchPendingTimeWise() async {
+    try {
+      final url = '${ApiConfig.cases}pending/time-wise/';
+      final response = await _api.get(url);
+      if (response.isSuccess && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data);
+      } else {
+        if (kDebugMode) {
+          debugPrint(
+            '[BackendCaseService] fetchPendingTimeWise error: ${response.errorMessage}',
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] fetchPendingTimeWise exception: $e');
+      }
+    }
+    return null;
+  }
+
   /// Fetch a single case record by ID
   Future<Map<String, dynamic>?> fetchCaseById(String id) async {
     try {

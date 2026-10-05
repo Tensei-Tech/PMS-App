@@ -87,6 +87,11 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<FormIVProvider>().refresh();
+      }
+    });
     if (widget.initialCategory != null) {
       final initCat = widget.initialCategory!.trim();
       _categoryBreadcrumb.add(initCat);
@@ -938,11 +943,19 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
   ) {
     final categoryRecords = category == FormIVSelectionScreen.allFilterLabel
         ? records.toList()
-        : records
-            .where((r) =>
-                (r.subCategory ?? '').toLowerCase() == category.toLowerCase() ||
-                r.category.toLowerCase() == category.toLowerCase())
-            .toList();
+        : records.where((r) {
+            final target = category.trim().toLowerCase();
+            final sub = (r.subCategory ?? '').trim().toLowerCase();
+            final cat = r.category.trim().toLowerCase();
+            final mod = r.moduleKey.trim().toLowerCase();
+            if (sub == target || cat == target || mod == target) return true;
+            final descendants = _getDescendantCategoryNames(category)
+                .map((d) => d.trim().toLowerCase())
+                .toSet();
+            return descendants.contains(sub) ||
+                descendants.contains(cat) ||
+                descendants.contains(mod);
+          }).toList();
 
     final filtered = categoryRecords.where(_recordMatchesDate).toList();
 
@@ -2042,14 +2055,22 @@ class _CategoryGridView extends StatelessWidget {
     if (category == FormIVSelectionScreen.allFilterLabel) {
       return records.length;
     }
-    final descendants =
-        getDescendantNames != null ? getDescendantNames!(category) : {category};
-    return records
-        .where((r) =>
-            descendants.any((d) =>
-                d.toLowerCase() == (r.subCategory ?? '').toLowerCase()) ||
-            (r.subCategory ?? '').toLowerCase() == category.toLowerCase())
-        .length;
+    final target = category.trim().toLowerCase();
+    final descendants = getDescendantNames != null
+        ? getDescendantNames!(category)
+            .map((d) => d.trim().toLowerCase())
+            .toSet()
+        : <String>{target};
+    descendants.add(target);
+
+    return records.where((r) {
+      final sub = (r.subCategory ?? '').trim().toLowerCase();
+      final cat = r.category.trim().toLowerCase();
+      final mod = r.moduleKey.trim().toLowerCase();
+      return descendants.contains(sub) ||
+          descendants.contains(cat) ||
+          descendants.contains(mod);
+    }).length;
   }
 
   IconData _iconForCategory(String category) {

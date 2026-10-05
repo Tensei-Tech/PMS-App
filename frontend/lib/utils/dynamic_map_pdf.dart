@@ -436,8 +436,8 @@ class DynamicMapPdf {
     String moduleDisplayName,
   ) {
     final raw = Map<String, dynamic>.from(record.toMap());
-    final extra = raw['extraFields'] != null
-        ? Map<String, dynamic>.from(raw['extraFields'] as Map? ?? {})
+    final extra = (raw['extraFields'] is Map)
+        ? Map<String, dynamic>.from(raw['extraFields'] as Map)
         : <String, dynamic>{};
     raw.remove('extraFields');
 
