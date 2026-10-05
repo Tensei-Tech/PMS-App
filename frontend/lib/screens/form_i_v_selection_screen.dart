@@ -155,6 +155,15 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<FormIVProvider>().ensureInitialized();
+        if (widget.initialCategory?.toLowerCase() == 'accident' ||
+            widget.moduleKey == 'accident') {
+          context.read<AccidentProvider>().ensureInitialized();
+        }
+      }
+    });
     if (widget.initialCategory != null) {
       final initCat = widget.initialCategory!.trim();
       _categoryBreadcrumb.add(initCat);

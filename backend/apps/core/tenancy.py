@@ -49,8 +49,17 @@ def set_tenant_schema(schema_name: str):
     if not schema_name:
         schema_name = 'public'
     clean_schema = "".join(c for c in schema_name if c.isalnum() or c == '_').lower()
-    with connection.cursor() as cursor:
-        cursor.execute(f'SET search_path TO "{clean_schema}", public;')
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(f'SET search_path TO "{clean_schema}", public;')
+    except Exception:
+        # If connection was closed or dropped by the remote pooler, reconnect cleanly
+        try:
+            connection.close()
+            with connection.cursor() as cursor:
+                cursor.execute(f'SET search_path TO "{clean_schema}", public;')
+        except Exception as e:
+            logger.warning(f"[Tenancy] Failed to set search_path to {schema_name}: {e}")
 
 
 def provision_state_schema(schema_name: str):

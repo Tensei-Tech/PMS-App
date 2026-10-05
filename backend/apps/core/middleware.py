@@ -6,6 +6,25 @@ from apps.public_master.models import StateRegistry
 logger = logging.getLogger(__name__)
 
 
+_STATE_SCHEMA_CACHE = {
+    'MH': 'maharashtra',
+    'KA': 'karnataka',
+    'DL': 'delhi',
+    'GJ': 'gujarat',
+    'MP': 'madhya_pradesh',
+    'RJ': 'rajasthan',
+    'UP': 'uttar_pradesh',
+    'TN': 'tamil_nadu',
+    'TG': 'telangana',
+    'AP': 'andhra_pradesh',
+    'WB': 'west_bengal',
+    'KL': 'kerala',
+    'PB': 'punjab',
+    'HR': 'haryana',
+    'BR': 'bihar',
+}
+
+
 class TenantMiddleware(MiddlewareMixin):
     """
     Middleware that enforces strict Multi-Tenant PostgreSQL Schema Isolation.
@@ -23,11 +42,15 @@ class TenantMiddleware(MiddlewareMixin):
         if auth_header.startswith('Bearer '):
             try:
                 import jwt
+                from django.conf import settings
                 token = auth_header.split(' ')[1]
-                decoded = jwt.decode(token, options={"verify_signature": False})
+                decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
                 state_code = decoded.get('state_code')
+            except jwt.ExpiredSignatureError:
+                request._token_expired = True
+                state_code = None
             except Exception:
-                pass
+                state_code = None
 
         # 2. Inspect X-State-Code HTTP Request Header
         if not state_code:
@@ -37,39 +60,60 @@ class TenantMiddleware(MiddlewareMixin):
         if not state_code:
             state_code = request.GET.get('state_code', '')
 
-        schema_name = 'maharashtra'
+        schema_name = None
         if state_code and state_code.upper() != 'GLOBAL':
             state_code = state_code.upper()
-            try:
-                state_record = StateRegistry.objects.filter(state_code=state_code, is_active=True).first()
-                if state_record and state_record.schema_name:
-                    schema_name = state_record.schema_name
-                elif state_code == 'MH':
-                    schema_name = 'maharashtra'
-                elif state_code == 'KA':
-                    schema_name = 'karnataka'
-                else:
+            if state_code in _STATE_SCHEMA_CACHE:
+                schema_name = _STATE_SCHEMA_CACHE[state_code]
+            else:
+                try:
+                    state_record = StateRegistry.objects.filter(state_code=state_code, is_active=True).first()
+                    if state_record and state_record.schema_name:
+                        schema_name = state_record.schema_name
+                        _STATE_SCHEMA_CACHE[state_code] = schema_name
+                    else:
+                        schema_name = state_code.lower()
+                        _STATE_SCHEMA_CACHE[state_code] = schema_name
+                except Exception as e:
+                    logger.warning(f"[TenantMiddleware] State lookup failed: {e}")
                     schema_name = state_code.lower()
-            except Exception as e:
-                logger.warning(f"[TenantMiddleware] State lookup failed: {e}")
-                schema_name = 'maharashtra' if state_code == 'MH' else state_code.lower()
         elif state_code and state_code.upper() == 'GLOBAL':
             schema_name = 'public'
 
-        request.state_code = state_code or 'MH'
+        request.state_code = state_code
         request.state_schema = schema_name
 
-        # Enforce PostgreSQL search_path for the request
-        set_tenant_schema(schema_name)
+        # Enforce PostgreSQL search_path on active connection for pooler stability if resolved
+        if schema_name and schema_name != 'public':
+            try:
+                set_tenant_schema(schema_name)
+                request._schema_switched = (schema_name != 'maharashtra')
+            except Exception as e:
+                logger.warning(f"[TenantMiddleware] Failed to set search_path: {e}")
+                request._schema_switched = False
+        else:
+            request._schema_switched = False
 
     def process_response(self, request, response):
         """
         Safely resets search_path back to connection default ('maharashtra, public')
-        immediately after every request completes, preventing tenant search_path leakage.
+        only if it was modified during this request.
         """
-        try:
-            set_tenant_schema('maharashtra')
-        except Exception as e:
-            logger.warning(f"[TenantMiddleware] Failed to reset search_path on response: {e}")
+        if getattr(request, '_schema_switched', False):
+            try:
+                set_tenant_schema('maharashtra')
+            except Exception as e:
+                logger.warning(f"[TenantMiddleware] Failed to reset search_path on response: {e}")
         return response
+
+    def process_exception(self, request, exception):
+        """
+        Ensures search_path is safely reset if an unhandled exception occurs.
+        """
+        if getattr(request, '_schema_switched', False):
+            try:
+                set_tenant_schema('maharashtra')
+            except Exception as e:
+                logger.warning(f"[TenantMiddleware] Failed to reset search_path on exception: {e}")
+        return None
 

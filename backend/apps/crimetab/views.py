@@ -1,6 +1,6 @@
 import uuid
 import logging
-from django.db import transaction, IntegrityError
+from django.db import transaction, IntegrityError, OperationalError
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework import status, viewsets
@@ -42,6 +42,7 @@ from apps.crimetab.models.common_form import (
 from apps.crimetab.serializers import (
     CaseCategoryGroupSerializer,
     CaseCategorySerializer,
+    CaseListSerializer,
     FullCaseDetailSerializer,
     ActSerializer,
     ActSectionSerializer,
@@ -275,6 +276,9 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=True, methods=['get'])
     def counters(self, request, pk=None):
+        from urllib.parse import unquote
+        if pk is not None:
+            pk = unquote(str(pk)).strip()
         if str(pk).isdigit():
             cat_id = int(pk)
         else:
@@ -289,17 +293,27 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=True, methods=['get'])
     def children(self, request, pk=None):
+        from urllib.parse import unquote
+        if pk is not None:
+            pk = unquote(str(pk)).strip()
         if str(pk).isdigit():
             cat_id = int(pk)
             cat = CaseCategory.objects.filter(pk=cat_id).first()
         else:
             cat = CaseCategory.objects.filter(category_name__iexact=pk).first()
             if not cat:
-                return Response({'error': f'Category {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
+                cleaned = str(pk).replace('/', ' ').replace('-', ' ').replace('_', ' ').strip().lower()
+                for c in CaseCategory.objects.filter(is_active=True):
+                    c_clean = c.category_name.replace('/', ' ').replace('-', ' ').replace('_', ' ').strip().lower()
+                    if c_clean == cleaned or (c.category_code and c.category_code.lower() == cleaned):
+                        cat = c
+                        break
+            if not cat:
+                return Response([], status=status.HTTP_200_OK)
             cat_id = cat.category_id
 
         if not cat:
-            return Response({'error': f'Category {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response([], status=status.HTTP_200_OK)
 
         station_name = request.query_params.get('station_name') or getattr(request, 'station_name', None)
         twin_ids = get_twin_category_ids(cat_id)
@@ -325,6 +339,9 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='form-definition')
     def form_definition(self, request, pk=None):
+        from urllib.parse import unquote
+        if pk is not None:
+            pk = unquote(str(pk)).strip()
         if str(pk).isdigit():
             category_id = int(pk)
         else:
@@ -332,9 +349,9 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
                 Q(category_name__iexact=pk) | Q(category_code__iexact=pk)
             ).first()
             if not cat:
-                cleaned = str(pk).replace('.', '').replace('_', ' ').replace('-', ' ').strip().lower()
+                cleaned = str(pk).replace('.', '').replace('/', ' ').replace('_', ' ').replace('-', ' ').strip().lower()
                 for c in CaseCategory.objects.filter(is_active=True):
-                    c_clean = c.category_name.replace('.', '').replace('_', ' ').replace('-', ' ').strip().lower()
+                    c_clean = c.category_name.replace('.', '').replace('/', ' ').replace('_', ' ').replace('-', ' ').strip().lower()
                     if c_clean == cleaned or (c.category_code and c.category_code.lower() == cleaned):
                         cat = c
                         break
@@ -1262,6 +1279,32 @@ class CrimeCaseManageView(APIView):
     permission_classes = [AllowAny]
 
     @staticmethod
+    def _resolve_schema_and_validate(request):
+        # 1. Check if token was expired
+        if getattr(request, '_token_expired', False):
+            return None, Response({'error': 'Token expired. Please login again.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 2. Check if Authorization header was provided but invalid
+        auth_header = request.headers.get('Authorization') or request.META.get('HTTP_AUTHORIZATION', '')
+        if auth_header and not getattr(request.user, 'is_authenticated', False):
+            return None, Response({'error': 'Invalid authentication credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 3. Resolve tenant schema
+        schema_name = getattr(request, 'state_schema', None)
+        if not schema_name or schema_name == 'public':
+            state_code = getattr(request, 'state_code', None) or getattr(request.user, 'state_code', None)
+            if state_code and state_code.upper() != 'GLOBAL':
+                from apps.core.middleware import _STATE_SCHEMA_CACHE
+                schema_name = _STATE_SCHEMA_CACHE.get(str(state_code).upper(), str(state_code).lower())
+
+        if not schema_name or schema_name == 'public':
+            if not getattr(request.user, 'is_authenticated', False) and not auth_header and not request.headers.get('X-State-Code') and not request.GET.get('state_code'):
+                return None, Response({'error': 'Authentication credentials were not provided.'}, status=status.HTTP_401_UNAUTHORIZED)
+            return None, Response({'error': 'Valid tenant state is required to manage cases.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return schema_name, None
+
+    @staticmethod
     def _optimize_queryset(qs):
         return qs.select_related(
             'registration_info',
@@ -1287,83 +1330,103 @@ class CrimeCaseManageView(APIView):
         )
 
     def get(self, request, pk=None):
+        schema_name, err_resp = self._resolve_schema_and_validate(request)
+        if err_resp:
+            return err_resp
+
+        from apps.core.tenancy import TenantContext
         try:
-            if pk:
-                case = self._optimize_queryset(CaseRecord.objects.filter(pk=pk)).first()
-                if not case:
-                    return Response({'error': f'Case {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
-                serializer = FullCaseDetailSerializer(case)
-                return Response(serializer.data)
-            else:
-                station_name = request.query_params.get('station_name')
-                module_key = request.query_params.get('module_key')
-                status_filter = request.query_params.get('status')
-                search = request.query_params.get('search')
-
-                if module_key and module_key.lower() not in ['all', '']:
-                    qs = CaseRecord.objects.filter(module_key__iexact=module_key)
+            with TenantContext(schema_name):
+                if pk:
+                    case = self._optimize_queryset(CaseRecord.objects.filter(pk=pk)).first()
+                    if not case:
+                        return Response({'error': f'Case {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
+                    serializer = FullCaseDetailSerializer(case)
+                    return Response(serializer.data)
                 else:
-                    qs = CaseRecord.objects.all()
-                if station_name and station_name.strip().upper() not in ['ALL', '']:
-                    qs = qs.filter(station_name__iexact=station_name)
-                if status_filter:
-                    qs = qs.filter(status__iexact=status_filter)
-                if search:
-                    qs = qs.filter(
-                        Q(case_number__icontains=search) |
-                        Q(title__icontains=search) |
-                        Q(complainant__icontains=search) |
-                        Q(accused__icontains=search)
-                    )
+                    station_name = request.query_params.get('station_name')
+                    module_key = request.query_params.get('module_key')
+                    status_filter = request.query_params.get('status')
+                    search = request.query_params.get('search')
 
-                total_count = qs.count()
-                optimized_qs = self._optimize_queryset(qs.order_by('-created_at'))[:50]
-                serializer = FullCaseDetailSerializer(optimized_qs, many=True)
-                return Response({
-                    'count': total_count,
-                    'results': serializer.data,
-                    'cases': serializer.data
-                })
+                    if module_key and module_key.lower() not in ['all', '']:
+                        qs = CaseRecord.objects.filter(module_key__iexact=module_key)
+                    else:
+                        qs = CaseRecord.objects.all()
+                    if station_name and station_name.strip().upper() not in ['ALL', '']:
+                        qs = qs.filter(station_name__iexact=station_name)
+                    if status_filter:
+                        qs = qs.filter(status__iexact=status_filter)
+                    if search:
+                        qs = qs.filter(
+                            Q(case_number__icontains=search) |
+                            Q(title__icontains=search) |
+                            Q(complainant__icontains=search) |
+                            Q(accused__icontains=search)
+                        )
+
+                    try:
+                        total_count = qs.count()
+                        records = qs.order_by('-created_at')[:50]
+                        serializer = CaseListSerializer(records, many=True)
+                    except OperationalError:
+                        from django.db import connection
+                        connection.close()
+                        total_count = qs.count()
+                        records = qs.order_by('-created_at')[:50]
+                        serializer = CaseListSerializer(records, many=True)
+
+                    return Response({
+                        'count': total_count,
+                        'results': serializer.data,
+                        'cases': serializer.data
+                    })
         except Exception as e:
-            logger.exception("Error in CrimeCaseManageView.get: %s", e)
-            return Response({'error': str(e), 'count': 0, 'results': [], 'cases': []}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            logger.error(f"Error in CrimeCaseManageView.get: {str(e)}")
+            return Response({'error': 'Database error fetching cases.', 'count': 0, 'results': [], 'cases': []}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def post(self, request):
+        schema_name, err_resp = self._resolve_schema_and_validate(request)
+        if err_resp:
+            return err_resp
+
         data = request.data
         case_id = data.get('id') or str(uuid.uuid4())
         case_number = data.get('case_number') or f"CR/{uuid.uuid4().hex[:6].upper()}"
         title = data.get('title') or f"Crime Incident {case_number}"
         station_name = data.get('station_name') or 'Default Station'
 
+        from apps.core.tenancy import TenantContext
         try:
-            with transaction.atomic():
-                # 1. Create CaseRecord
-                case = CaseRecord.objects.create(
-                    id=case_id,
-                    module_key=data.get('module_key', 'crime'),
-                    title=title,
-                    case_number=case_number,
-                    description=data.get('description', ''),
-                    complainant=data.get('complainant', ''),
-                    accused=data.get('accused', ''),
-                    location=data.get('location', ''),
-                    incident_date=data.get('incident_date'),
-                    priority=data.get('priority', 'Medium'),
-                    status=data.get('status', 'Pending'),
-                    assigned_officer=data.get('assigned_officer', ''),
-                    assigned_officer_uid=data.get('assigned_officer_uid'),
-                    sub_category=data.get('sub_category'),
-                    created_by=data.get('created_by', ''),
-                    station_name=station_name,
-                    extra_fields=data.get('extra_fields', {}),
-                )
+            with TenantContext(schema_name):
+                with transaction.atomic():
+                    # 1. Create CaseRecord
+                    case = CaseRecord.objects.create(
+                        id=case_id,
+                        module_key=data.get('module_key', 'crime'),
+                        title=title,
+                        case_number=case_number,
+                        description=data.get('description', ''),
+                        complainant=data.get('complainant', ''),
+                        accused=data.get('accused', ''),
+                        location=data.get('location', ''),
+                        incident_date=data.get('incident_date'),
+                        priority=data.get('priority', 'Medium'),
+                        status=data.get('status', 'Pending'),
+                        assigned_officer=data.get('assigned_officer', ''),
+                        assigned_officer_uid=data.get('assigned_officer_uid'),
+                        sub_category=data.get('sub_category'),
+                        created_by=data.get('created_by', ''),
+                        station_name=station_name,
+                        extra_fields=data.get('extra_fields', {}),
+                    )
 
-                # 2. Save all child relational tables
-                _save_case_child_entities(case, data)
+                    # 2. Save all child relational tables
+                    _save_case_child_entities(case, data)
 
-            case = self._optimize_queryset(CaseRecord.objects.filter(pk=case.pk)).first()
-            serializer = FullCaseDetailSerializer(case)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+                case = self._optimize_queryset(CaseRecord.objects.filter(pk=case.pk)).first()
+                serializer = FullCaseDetailSerializer(case)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         except (ValueError, IntegrityError) as e:
             logger.error(f"Error creating case: {str(e)}")
@@ -1373,51 +1436,57 @@ class CrimeCaseManageView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def put(self, request, pk=None):
-        case = CaseRecord.objects.filter(pk=pk).first()
-        if not case:
-            return Response({'error': f'Case {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
+        schema_name, err_resp = self._resolve_schema_and_validate(request)
+        if err_resp:
+            return err_resp
 
-        data = request.data
+        from apps.core.tenancy import TenantContext
         try:
-            with transaction.atomic():
-                # 1. Update CaseRecord fields if provided
-                if 'title' in data:
-                    case.title = data['title']
-                if 'case_number' in data:
-                    case.case_number = data['case_number']
-                if 'description' in data:
-                    case.description = data['description']
-                if 'complainant' in data:
-                    case.complainant = data['complainant']
-                if 'accused' in data:
-                    case.accused = data['accused']
-                if 'location' in data:
-                    case.location = data['location']
-                if 'incident_date' in data:
-                    case.incident_date = data['incident_date']
-                if 'priority' in data:
-                    case.priority = data['priority']
-                if 'status' in data:
-                    case.status = data['status']
-                if 'assigned_officer' in data:
-                    case.assigned_officer = data['assigned_officer']
-                if 'assigned_officer_uid' in data:
-                    case.assigned_officer_uid = data['assigned_officer_uid']
-                if 'sub_category' in data:
-                    case.sub_category = data['sub_category']
-                if 'station_name' in data:
-                    case.station_name = data['station_name']
-                if 'extra_fields' in data:
-                    case.extra_fields = data['extra_fields']
+            with TenantContext(schema_name):
+                case = CaseRecord.objects.filter(pk=pk).first()
+                if not case:
+                    return Response({'error': f'Case {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
 
-                case.save()
+                data = request.data
+                with transaction.atomic():
+                    # 1. Update CaseRecord fields if provided
+                    if 'title' in data:
+                        case.title = data['title']
+                    if 'case_number' in data:
+                        case.case_number = data['case_number']
+                    if 'description' in data:
+                        case.description = data['description']
+                    if 'complainant' in data:
+                        case.complainant = data['complainant']
+                    if 'accused' in data:
+                        case.accused = data['accused']
+                    if 'location' in data:
+                        case.location = data['location']
+                    if 'incident_date' in data:
+                        case.incident_date = data['incident_date']
+                    if 'priority' in data:
+                        case.priority = data['priority']
+                    if 'status' in data:
+                        case.status = data['status']
+                    if 'assigned_officer' in data:
+                        case.assigned_officer = data['assigned_officer']
+                    if 'assigned_officer_uid' in data:
+                        case.assigned_officer_uid = data['assigned_officer_uid']
+                    if 'sub_category' in data:
+                        case.sub_category = data['sub_category']
+                    if 'station_name' in data:
+                        case.station_name = data['station_name']
+                    if 'extra_fields' in data:
+                        case.extra_fields = data['extra_fields']
 
-                # 2. Update child tables
-                _save_case_child_entities(case, data)
+                    case.save()
 
-            case = self._optimize_queryset(CaseRecord.objects.filter(pk=pk)).first()
-            serializer = FullCaseDetailSerializer(case)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+                    # 2. Update child tables
+                    _save_case_child_entities(case, data)
+
+                case = self._optimize_queryset(CaseRecord.objects.filter(pk=pk)).first()
+                serializer = FullCaseDetailSerializer(case)
+                return Response(serializer.data, status=status.HTTP_200_OK)
 
         except (ValueError, IntegrityError) as e:
             logger.error(f"Error updating case {pk}: {str(e)}")
@@ -1425,6 +1494,52 @@ class CrimeCaseManageView(APIView):
         except Exception as e:
             logger.exception(f"Unexpected error updating case {pk}: {str(e)}")
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class CaseCountsView(APIView):
+    """
+    Lightweight single-query counts endpoint for dashboard tiles and module metrics.
+    Avoids fetching entire case record lists on login / dashboard load.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        schema_name = getattr(request, 'state_schema', None)
+        if not schema_name or schema_name == 'public':
+            state_code = getattr(request, 'state_code', None) or 'MH'
+            from apps.core.middleware import _STATE_SCHEMA_CACHE
+            schema_name = _STATE_SCHEMA_CACHE.get(str(state_code).upper(), 'maharashtra')
+
+        station_name = request.query_params.get('station_name')
+        from apps.core.tenancy import TenantContext
+        try:
+            with TenantContext(schema_name):
+                qs = CaseRecord.objects.all()
+                if station_name and station_name.strip().upper() not in ['ALL', '']:
+                    qs = qs.filter(station_name__iexact=station_name)
+
+                from django.db.models import Count, Q
+                module_counts_raw = qs.values('module_key').annotate(total=Count('id'))
+                counts_by_module = {item['module_key']: item['total'] for item in module_counts_raw if item['module_key']}
+
+                totals = qs.aggregate(
+                    total=Count('id'),
+                    open_count=Count('id', filter=Q(status__iexact='Open')),
+                    pending_count=Count('id', filter=Q(status__iexact='Pending') | Q(status__iexact='Active')),
+                    resolved_count=Count('id', filter=Q(status__iexact='Resolved')),
+                    disposal_count=Count('id', filter=Q(status__iexact='Disposal') | Q(status__iexact='Closed')),
+                )
+
+                return Response({
+                    'module_counts': counts_by_module,
+                    'totals': totals,
+                })
+        except Exception as e:
+            logger.exception("Error in CaseCountsView.get: %s", e)
+            return Response({'module_counts': {}, 'totals': {'total': 0}}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            logger.exception("Error in CaseCountsView.get: %s", e)
+            return Response({'module_counts': {}, 'totals': {'total': 0}}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class CasePdfView(APIView):

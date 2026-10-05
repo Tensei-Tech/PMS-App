@@ -144,6 +144,11 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<FormVIProvider>().ensureInitialized();
+      }
+    });
     _loadGroupCategories();
   }
 

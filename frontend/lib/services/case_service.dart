@@ -1,15 +1,45 @@
 // lib/services/case_service.dart
 // PostgreSQL & Django REST powered Case Service replacing Cloud Firestore for module records.
 
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../modules/core/models/base_record.dart';
 import 'api_config.dart';
 import 'api_service.dart';
 
+/// Concurrency gate limiting in-flight requests to PostgreSQL backend to [maxConcurrent]
+class _ConcurrencyGate {
+  final int maxConcurrent;
+  int _running = 0;
+  final List<Completer<void>> _waiters = [];
+
+  _ConcurrencyGate({this.maxConcurrent = 4});
+
+  Future<T> run<T>(Future<T> Function() task) async {
+    while (_running >= maxConcurrent) {
+      final completer = Completer<void>();
+      _waiters.add(completer);
+      await completer.future;
+    }
+    _running++;
+    try {
+      return await task();
+    } finally {
+      _running--;
+      if (_waiters.isNotEmpty) {
+        final next = _waiters.removeAt(0);
+        next.complete();
+      }
+    }
+  }
+}
+
 class CaseService {
   static final CaseService _instance = CaseService._internal();
   factory CaseService() => _instance;
   CaseService._internal();
+
+  static final _ConcurrencyGate _gate = _ConcurrencyGate(maxConcurrent: 4);
 
   final ApiService _api = ApiService();
   final Map<String, List<ModuleRecord>> _casesCache = {};
@@ -37,45 +67,66 @@ class CaseService {
       return _casesCache[cacheKey] ?? [];
     }
 
-    try {
-      final response = await _api.get(
-        ApiConfig.cases,
-        queryParameters: {'module_key': moduleKey, 'station_name': stationId},
-      );
+    return _gate.run(() async {
+      try {
+        final response = await _api.get(
+          ApiConfig.cases,
+          queryParameters: {'module_key': moduleKey, 'station_name': stationId},
+        );
 
-      if (response.isSuccess) {
-        final data = response.data;
-        List<dynamic> list = [];
-        if (data is List) {
-          list = data;
-        } else if (data is Map<String, dynamic>) {
-          list = (data['results'] as List?) ?? (data['cases'] as List?) ?? [];
+        if (response.isSuccess) {
+          final data = response.data;
+          List<dynamic> list = [];
+          if (data is List) {
+            list = data;
+          } else if (data is Map<String, dynamic>) {
+            list = (data['results'] as List?) ?? (data['cases'] as List?) ?? [];
+          }
+
+          final records = list
+              .map(
+                (item) => ModuleRecord.fromMap(
+                  Map<String, dynamic>.from(item as Map),
+                  item['id']?.toString(),
+                ),
+              )
+              .toList();
+          _casesCache[cacheKey] = records;
+          _casesCacheTime[cacheKey] = DateTime.now();
+          return records;
         }
-
-        final records = list
-            .map(
-              (item) => ModuleRecord.fromMap(
-                Map<String, dynamic>.from(item as Map),
-                item['id']?.toString(),
-              ),
-            )
-            .toList();
-        _casesCache[cacheKey] = records;
-        _casesCacheTime[cacheKey] = DateTime.now();
-        return records;
-      } else {
-        if (kDebugMode && response.statusCode != 401) {
-          debugPrint(
-            '[$moduleKey] CaseService.fetchCases failed: ${response.errorMessage}',
-          );
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('[$moduleKey] CaseService.fetchCases exception: $e');
         }
       }
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('[$moduleKey] CaseService.fetchCases exception: $e');
-      }
+      return _casesCache[cacheKey] ?? [];
+    });
+  }
+
+  /// Fetch single-query aggregated counts for dashboard tiles
+  Future<Map<String, dynamic>> fetchCounts({String? stationName}) async {
+    final token = await _api.getAuthToken();
+    if (token == null || token.isEmpty || _api.isTokenExpired(token)) {
+      return {};
     }
-    return [];
+
+    return _gate.run(() async {
+      try {
+        final response = await _api.get(
+          '${ApiConfig.baseUrl}/cases/counts/',
+          queryParameters: stationName != null && stationName.isNotEmpty
+              ? {'station_name': stationName}
+              : null,
+        );
+        if (response.isSuccess && response.data is Map) {
+          return Map<String, dynamic>.from(response.data as Map);
+        }
+      } catch (e) {
+        if (kDebugMode) debugPrint('[CaseService] fetchCounts error: $e');
+      }
+      return {};
+    });
   }
 
   /// Fetch all cases for an entire station from Django backend (for dashboard stats)
@@ -87,36 +138,38 @@ class CaseService {
       return [];
     }
 
-    try {
-      final response = await _api.get(
-        ApiConfig.cases,
-        queryParameters: {'station_name': stationId.trim()},
-      );
+    return _gate.run(() async {
+      try {
+        final response = await _api.get(
+          ApiConfig.cases,
+          queryParameters: {'station_name': stationId.trim()},
+        );
 
-      if (response.isSuccess) {
-        final data = response.data;
-        List<dynamic> list = [];
-        if (data is List) {
-          list = data;
-        } else if (data is Map<String, dynamic>) {
-          list = (data['results'] as List?) ?? (data['cases'] as List?) ?? [];
+        if (response.isSuccess) {
+          final data = response.data;
+          List<dynamic> list = [];
+          if (data is List) {
+            list = data;
+          } else if (data is Map<String, dynamic>) {
+            list = (data['results'] as List?) ?? (data['cases'] as List?) ?? [];
+          }
+
+          return list
+              .map(
+                (item) => ModuleRecord.fromMap(
+                  Map<String, dynamic>.from(item as Map),
+                  item['id']?.toString(),
+                ),
+              )
+              .toList();
         }
-
-        return list
-            .map(
-              (item) => ModuleRecord.fromMap(
-                Map<String, dynamic>.from(item as Map),
-                item['id']?.toString(),
-              ),
-            )
-            .toList();
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('[CaseService] fetchStationCases exception: $e');
+        }
       }
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('[CaseService] fetchStationCases exception: $e');
-      }
-    }
-    return [];
+      return [];
+    });
   }
 
   /// Fetch cases assigned to the current officer from Django backend
@@ -247,7 +300,8 @@ class CaseService {
       return _childrenCache[key]!;
     }
     try {
-      final url = '${ApiConfig.baseUrl}/categories/$categoryIdOrName/children/';
+      final encoded = Uri.encodeComponent(categoryIdOrName.trim());
+      final url = '${ApiConfig.baseUrl}/categories/$encoded/children/';
       final response = await _api.get(
         url,
         queryParameters: stationName != null && stationName.isNotEmpty

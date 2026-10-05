@@ -25,6 +25,16 @@ class HurtCasesScreen extends StatefulWidget {
 class _HurtCasesScreenState extends State<HurtCasesScreen> {
   FormIVStatusTab _selectedStatusTab = FormIVStatusTab.total;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<HurtProvider>().ensureInitialized();
+      }
+    });
+  }
+
   // Date filtering & sorting state
   DateTimeRange? _selectedDateRange;
   String? _datePresetLabel;

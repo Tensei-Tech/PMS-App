@@ -3,6 +3,7 @@ Django settings for config project.
 """
 
 import os
+import sys
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -113,14 +114,33 @@ def is_ssl_required(db_url: str) -> bool:
 # 1. Primary Database (Writes & Critical Operations)
 is_local = os.getenv('DB_HOST', 'localhost') in ['localhost', '127.0.0.1']
 
-if os.getenv('DATABASE_URL') and dj_database_url:
-    DATABASES['default'] = dj_database_url.config(
-        default=os.getenv('DATABASE_URL'),
-        conn_max_age=600,
-        conn_health_checks=True,
-        ssl_require=is_ssl_required(os.getenv('DATABASE_URL', '')),
-    )
-    DATABASES['default'].setdefault('OPTIONS', {})['options'] = '-c search_path=maharashtra,public'
+if 'test' in sys.argv:
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:',
+    }
+elif os.getenv('DATABASE_URL'):
+    from urllib.parse import urlparse, unquote
+    db_url = os.getenv('DATABASE_URL')
+    parsed_db = urlparse(db_url)
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': parsed_db.path.lstrip('/') or 'postgres',
+        'USER': unquote(parsed_db.username) if parsed_db.username else 'postgres',
+        'PASSWORD': unquote(parsed_db.password) if parsed_db.password else '',
+        'HOST': parsed_db.hostname or 'localhost',
+        'PORT': str(parsed_db.port or 5432),
+        'CONN_MAX_AGE': 0,
+        'CONN_HEALTH_CHECKS': True,
+        'OPTIONS': {
+            'sslmode': 'require' if is_ssl_required(db_url) else 'disable',
+            'options': '-c search_path=maharashtra,public',
+            'keepalives': 1,
+            'keepalives_idle': 30,
+            'keepalives_interval': 10,
+            'keepalives_count': 5,
+        },
+    }
 elif os.getenv('DB_NAME') and os.getenv('DB_PASSWORD') and os.getenv('DB_PASSWORD') != 'YOUR_SUPABASE_DB_PASSWORD':
     DATABASES['default'] = {
         'ENGINE': 'django.db.backends.postgresql',
@@ -129,7 +149,7 @@ elif os.getenv('DB_NAME') and os.getenv('DB_PASSWORD') and os.getenv('DB_PASSWOR
         'PASSWORD': os.getenv('DB_PASSWORD', ''),
         'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': os.getenv('DB_PORT', '5432'),
-        'CONN_MAX_AGE': int(os.getenv('DB_CONN_MAX_AGE', '0')),
+        'CONN_MAX_AGE': 0,
         'CONN_HEALTH_CHECKS': True,
         'OPTIONS': {
             'sslmode': os.getenv('DB_SSLMODE', 'disable' if is_local else 'require'),
@@ -154,7 +174,7 @@ is_rep1_local = os.getenv('DB_REPLICA_1_HOST', 'localhost') in ['localhost', '12
 if os.getenv('DATABASE_REPLICA_1_URL') and dj_database_url:
     DATABASES['replica_1'] = dj_database_url.config(
         default=os.getenv('DATABASE_REPLICA_1_URL'),
-        conn_max_age=600,
+        conn_max_age=0,
         conn_health_checks=True,
         ssl_require=is_ssl_required(os.getenv('DATABASE_REPLICA_1_URL', '')),
     )
@@ -166,7 +186,7 @@ elif os.getenv('DB_REPLICA_1_HOST'):
         'PASSWORD': os.getenv('DB_REPLICA_1_PASSWORD', os.getenv('DB_PASSWORD', '')),
         'HOST': os.getenv('DB_REPLICA_1_HOST'),
         'PORT': os.getenv('DB_REPLICA_1_PORT', '5432'),
-        'CONN_MAX_AGE': 600,
+        'CONN_MAX_AGE': 0,
         'CONN_HEALTH_CHECKS': True,
         'OPTIONS': {
             'sslmode': os.getenv('DB_SSLMODE', 'disable' if is_rep1_local else 'require'),
@@ -179,7 +199,7 @@ is_rep2_local = os.getenv('DB_REPLICA_2_HOST', 'localhost') in ['localhost', '12
 if os.getenv('DATABASE_REPLICA_2_URL') and dj_database_url:
     DATABASES['replica_2'] = dj_database_url.config(
         default=os.getenv('DATABASE_REPLICA_2_URL'),
-        conn_max_age=600,
+        conn_max_age=0,
         conn_health_checks=True,
         ssl_require=is_ssl_required(os.getenv('DATABASE_REPLICA_2_URL', '')),
     )
@@ -191,7 +211,7 @@ elif os.getenv('DB_REPLICA_2_HOST'):
         'PASSWORD': os.getenv('DB_REPLICA_2_PASSWORD', os.getenv('DB_PASSWORD', '')),
         'HOST': os.getenv('DB_REPLICA_2_HOST'),
         'PORT': os.getenv('DB_REPLICA_2_PORT', '5432'),
-        'CONN_MAX_AGE': 600,
+        'CONN_MAX_AGE': 0,
         'CONN_HEALTH_CHECKS': True,
         'OPTIONS': {
             'sslmode': os.getenv('DB_SSLMODE', 'disable' if is_rep2_local else 'require'),

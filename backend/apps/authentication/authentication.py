@@ -1,12 +1,33 @@
 import logging
+import re
 import jwt
 from django.conf import settings
-from rest_framework import authentication, exceptions
+from django.core.cache import cache
+from django.db import DatabaseError, OperationalError
+from rest_framework import authentication, exceptions, status
+from rest_framework.exceptions import APIException
 
 from apps.public_master.models import MasterUser, UserRoleMapping
 from apps.users.models import OfficerProfile
 
 logger = logging.getLogger(__name__)
+
+
+class ServiceUnavailable(APIException):
+    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    default_detail = 'Database service temporarily unavailable. Please retry shortly.'
+    default_code = 'service_unavailable'
+
+
+def _redact_message(msg: object) -> str:
+    """Redact hostnames, IPs, passwords, and tokens from exception logs."""
+    text = str(msg)
+    text = re.sub(r'connection to server at "[^"]*" \([^)]*\), port \d+', 'connection to server at [REDACTED], port [REDACTED]', text)
+    text = re.sub(r'(postgres(?:ql)?://)([^@]+)@([^:/]+)(:\d+)?(/.*)?', r'\1[REDACTED]@\3\4\5', text)
+    text = re.sub(r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b', '[REDACTED_IP]', text)
+    text = re.sub(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', '[REDACTED_EMAIL]', text)
+    text = re.sub(r'(password|pwd|secret|token|key)=\S+', r'\1=[REDACTED]', text, flags=re.IGNORECASE)
+    return text
 
 
 class PrimaryJWTAuthentication(authentication.BaseAuthentication):
@@ -50,30 +71,59 @@ class PrimaryJWTAuthentication(authentication.BaseAuthentication):
             raise exceptions.AuthenticationFailed('Invalid token payload: missing user identifier.')
 
         if user_type == 'master':
+            cache_key = f"auth_master_user_{uid}"
+            cached_master = cache.get(cache_key)
+            if cached_master is not None:
+                return (cached_master, payload)
+
             try:
                 master_user = MasterUser.objects.get(id=uid, is_active=True)
                 master_user.role_id = 'master_admin'
+                cache.set(cache_key, master_user, timeout=45)
                 return (master_user, payload)
             except MasterUser.DoesNotExist:
                 raise exceptions.AuthenticationFailed('Master Admin account not found or inactive.')
+            except (OperationalError, DatabaseError) as e:
+                logger.error(f"[PrimaryJWTAuth] Database connection error during master user lookup: {_redact_message(e)}")
+                raise ServiceUnavailable('Database service temporarily unavailable.')
+            except Exception as e:
+                logger.error(f"[PrimaryJWTAuth] Unexpected error during master user lookup: {_redact_message(e)}")
+                raise exceptions.AuthenticationFailed('Authentication failed.')
 
         # Standard State Officer / Admin User
-        from apps.core.tenancy import get_active_tenant_schema, set_tenant_schema
-        from apps.public_master.models import StateRegistry
+        from apps.core.tenancy import TenantContext
+        from apps.core.middleware import _STATE_SCHEMA_CACHE
+
+        state_code = payload.get('state_code')
+        if state_code:
+            state_code = state_code.upper()
+            active_schema = _STATE_SCHEMA_CACHE.get(state_code, state_code.lower())
+        else:
+            active_schema = getattr(request, 'state_schema', None) or 'maharashtra'
+
+        request.state_code = state_code or 'MH'
+        request.state_schema = active_schema
+
+        cache_key = f"auth_officer_profile_{active_schema}_{uid}"
+        cached_profile = cache.get(cache_key)
+        if cached_profile is not None:
+            if cached_profile.account_status not in ['active', 'approved']:
+                raise exceptions.AuthenticationFailed(f'Account status is {cached_profile.account_status}. Contact Admin.')
+            return (cached_profile, payload)
 
         try:
-            active_schema = get_active_tenant_schema(request)
-            profile = OfficerProfile.objects.filter(uid=str(uid)).first()
+            with TenantContext(active_schema):
+                profile = OfficerProfile.objects.filter(uid=str(uid)).first()
 
             # 1. Search in public schema if not found in active schema
             if not profile and active_schema != 'public':
                 try:
-                    set_tenant_schema('public')
-                    profile = OfficerProfile.objects.filter(uid=str(uid)).first()
+                    with TenantContext('public'):
+                        profile = OfficerProfile.objects.filter(uid=str(uid)).first()
+                except (OperationalError, DatabaseError):
+                    raise
                 except Exception as ex:
-                    logger.warning(f"[PrimaryJWTAuth] Public schema fallback error: {ex}")
-                finally:
-                    set_tenant_schema(active_schema)
+                    logger.warning(f"[PrimaryJWTAuth] Public schema fallback warning: {_redact_message(ex)}")
 
             # 2. Search across registered state tenant schemas if still not found
             if not profile:
@@ -87,10 +137,14 @@ class PrimaryJWTAuthentication(authentication.BaseAuthentication):
                                 profile = OfficerProfile.objects.filter(uid=str(uid)).first()
                                 if profile:
                                     break
+                            except (OperationalError, DatabaseError):
+                                raise
                             except Exception:
                                 pass
+                except (OperationalError, DatabaseError):
+                    raise
                 except Exception as ex:
-                    logger.warning(f"[PrimaryJWTAuth] Multi-tenant fallback error: {ex}")
+                    logger.warning(f"[PrimaryJWTAuth] Multi-tenant fallback warning: {_redact_message(ex)}")
                 finally:
                     set_tenant_schema(active_schema)
 
@@ -108,6 +162,8 @@ class PrimaryJWTAuthentication(authentication.BaseAuthentication):
                             district_id=mapping.district_id,
                             station_id=mapping.station_id
                         )
+                except (OperationalError, DatabaseError):
+                    raise
                 except Exception:
                     pass
                 finally:
@@ -119,10 +175,19 @@ class PrimaryJWTAuthentication(authentication.BaseAuthentication):
             if profile.account_status not in ['active', 'approved']:
                 raise exceptions.AuthenticationFailed(f'Account status is {profile.account_status}. Contact Admin.')
 
+            cache.set(cache_key, profile, timeout=45)
             return (profile, payload)
+        except (OperationalError, DatabaseError) as e:
+            logger.error(f"[PrimaryJWTAuth] Database connection error fetching officer profile: {_redact_message(e)}")
+            raise ServiceUnavailable('Database service temporarily unavailable.')
         except exceptions.AuthenticationFailed:
             raise
         except Exception as e:
-            logger.error(f"[PrimaryJWTAuth] Error fetching officer profile: {e}")
-            raise exceptions.AuthenticationFailed(f'Authentication failed: {str(e)}')
+            err_str = str(e)
+            if 'connection' in err_str.lower() or 'pool' in err_str.lower() or 'timeout' in err_str.lower():
+                logger.error(f"[PrimaryJWTAuth] Database error fetching officer profile: {_redact_message(e)}")
+                raise ServiceUnavailable('Database service temporarily unavailable.')
+            logger.error(f"[PrimaryJWTAuth] Error fetching officer profile: {_redact_message(e)}")
+            raise exceptions.AuthenticationFailed(f'Authentication failed: {_redact_message(e)}')
+
 
