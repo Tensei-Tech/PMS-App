@@ -40,6 +40,11 @@ class PoliceStationViewSet(viewsets.ModelViewSet):
         return res
 
     def get_queryset(self):
+        from apps.core.tenancy import get_active_tenant_schema
+        schema = get_active_tenant_schema(self.request)
+        if not schema or schema == 'public':
+            return PoliceStation.objects.none()
+
         qs = PoliceStation.objects.all().order_by('station_name')
         district = self.request.query_params.get('district') or self.request.query_params.get('district_id')
         if district:
@@ -57,6 +62,11 @@ class PoliceStationViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='districts')
     def list_districts(self, request):
         """Dynamic DB query for all Districts in current state schema."""
+        from apps.core.tenancy import get_active_tenant_schema
+        schema = get_active_tenant_schema(request)
+        if not schema or schema == 'public':
+            return Response([])
+
         dist_names = list(District.objects.values_list('name', flat=True))
         if not dist_names:
             dist_names = list(PoliceStation.objects.values_list('district_name', flat=True).distinct())
@@ -67,6 +77,11 @@ class PoliceStationViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='divisions')
     def list_divisions(self, request):
         """Dynamic DB query for Divisions/Zones within a district."""
+        from apps.core.tenancy import get_active_tenant_schema
+        schema = get_active_tenant_schema(request)
+        if not schema or schema == 'public':
+            return Response([])
+
         district = request.query_params.get('district', '').strip()
         qs = PoliceStation.objects.all()
         if district:

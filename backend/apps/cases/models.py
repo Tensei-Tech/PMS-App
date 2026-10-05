@@ -246,6 +246,7 @@ class CaseRecord(models.Model):
     created_by = models.CharField(max_length=128, blank=True)
     station_name = models.CharField(max_length=255, db_index=True)
     extra_fields = models.JSONField(default=dict, blank=True)
+    disposal_date = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
