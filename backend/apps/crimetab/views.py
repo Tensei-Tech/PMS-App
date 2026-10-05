@@ -1400,6 +1400,18 @@ class CrimeCaseManageView(APIView):
         try:
             with TenantContext(schema_name):
                 with transaction.atomic():
+                    extra_fields_val = data.get('extra_fields', {})
+                    if not isinstance(extra_fields_val, dict):
+                        extra_fields_val = {}
+
+                    for container_key in ['final_verdict', 'court', 'court_filing']:
+                        container_data = data.get(container_key)
+                        if isinstance(container_data, dict):
+                            for k, v in container_data.items():
+                                if v is not None:
+                                    extra_fields_val[k] = v
+                            extra_fields_val[container_key] = container_data
+
                     # 1. Create CaseRecord
                     case = CaseRecord.objects.create(
                         id=case_id,
@@ -1418,7 +1430,7 @@ class CrimeCaseManageView(APIView):
                         sub_category=data.get('sub_category'),
                         created_by=data.get('created_by', ''),
                         station_name=station_name,
-                        extra_fields=data.get('extra_fields', {}),
+                        extra_fields=extra_fields_val,
                     )
 
                     # 2. Save all child relational tables
@@ -1440,6 +1452,7 @@ class CrimeCaseManageView(APIView):
         if err_resp:
             return err_resp
 
+        data = request.data
         from apps.core.tenancy import TenantContext
         try:
             with TenantContext(schema_name):
@@ -1447,7 +1460,6 @@ class CrimeCaseManageView(APIView):
                 if not case:
                     return Response({'error': f'Case {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
 
-                data = request.data
                 with transaction.atomic():
                     # 1. Update CaseRecord fields if provided
                     if 'title' in data:
@@ -1478,6 +1490,17 @@ class CrimeCaseManageView(APIView):
                         case.station_name = data['station_name']
                     if 'extra_fields' in data:
                         case.extra_fields = data['extra_fields']
+
+                    if not isinstance(case.extra_fields, dict):
+                        case.extra_fields = {}
+
+                    for container_key in ['final_verdict', 'court', 'court_filing']:
+                        container_data = data.get(container_key)
+                        if isinstance(container_data, dict):
+                            for k, v in container_data.items():
+                                if v is not None:
+                                    case.extra_fields[k] = v
+                            case.extra_fields[container_key] = container_data
 
                     case.save()
 
@@ -1646,41 +1669,86 @@ class LocationDivisionsView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        state_id = request.query_params.get('state_id', '').strip()
-        queryset = MasterDivision.objects.all().order_by('id')
+        from apps.core.tenancy import TenantContext, get_active_tenant_schema
+        from apps.public_master.models import StateRegistry
+
+        state_id = (request.query_params.get('state_id') or request.query_params.get('state_code') or '').strip().upper()
+        target_schema = None
+
         if state_id:
-            queryset = queryset.filter(Q(state_code__iexact=state_id) | Q(state_name__iexact=state_id))
-        divisions = [{'id': d.id, 'name': d.name, 'code': d.code, 'state_code': d.state_code} for d in queryset]
-        return Response(divisions)
+            state_reg = StateRegistry.objects.filter(Q(state_code__iexact=state_id) | Q(state_name__iexact=state_id)).first()
+            if state_reg and state_reg.schema_name:
+                target_schema = state_reg.schema_name
+
+        if not target_schema:
+            active_schema = get_active_tenant_schema(request)
+            if active_schema and active_schema != 'public':
+                target_schema = active_schema
+
+        # Fail-fast guard: MasterDivision is strictly tenant-scoped (never exists in public schema)
+        if not target_schema or target_schema == 'public':
+            return Response(
+                {
+                    'error': 'State tenant context is required for division hierarchy. Please provide state_id query param or X-State-Code header.',
+                    'divisions': []
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            with TenantContext(target_schema):
+                queryset = MasterDivision.objects.all().order_by('id')
+                if state_id:
+                    queryset = queryset.filter(Q(state_code__iexact=state_id) | Q(state_name__iexact=state_id))
+                divisions = [{'id': d.id, 'name': d.name, 'code': d.code, 'state_code': d.state_code} for d in queryset]
+                return Response(divisions, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"[LocationDivisionsView] Query failed in schema '{target_schema}' (state: {state_id}): {e}")
+            return Response(
+                {'error': f"Failed to retrieve divisions for schema '{target_schema}'", 'details': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class LocationDistrictsView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        division_id = request.query_params.get('division_id', '').strip()
-        queryset = District.objects.all().order_by('name')
+        from apps.core.tenancy import TenantContext, get_active_tenant_schema
+        from apps.public_master.models import StateRegistry
 
-        div_to_id = {d.name.lower(): d.id for d in MasterDivision.objects.all()}
-        div_id_to_name = {str(d.id): d.name for d in MasterDivision.objects.all()}
+        state_id = (request.query_params.get('state_id') or request.query_params.get('state_code') or '').strip().upper()
+        state_reg = StateRegistry.objects.filter(Q(state_code__iexact=state_id) | Q(state_name__iexact=state_id)).first() if state_id else None
+        target_schema = state_reg.schema_name if (state_reg and state_reg.schema_name) else get_active_tenant_schema(request)
 
-        if division_id:
-            param = division_id.lower()
-            div_name = div_id_to_name.get(param) or param
-            allowed_districts = [
-                dist_name for dist_name, d_div in MAHARASHTRA_DISTRICT_TO_DIVISION.items()
-                if d_div.lower() == div_name.lower()
-            ]
-            if allowed_districts:
-                queryset = queryset.filter(name__in=allowed_districts)
+        with TenantContext(target_schema):
+            division_id = request.query_params.get('division_id', '').strip()
+            queryset = District.objects.all().order_by('name')
 
-        districts = [{
-            'id': d.district_id,
-            'name': d.name,
-            'code': d.code,
-            'division_name': MAHARASHTRA_DISTRICT_TO_DIVISION.get(d.name, ''),
-            'division_id': div_to_id.get(MAHARASHTRA_DISTRICT_TO_DIVISION.get(d.name, '').lower()),
-        } for d in queryset]
+            try:
+                div_to_id = {d.name.lower(): d.id for d in MasterDivision.objects.all()}
+                div_id_to_name = {str(d.id): d.name for d in MasterDivision.objects.all()}
+            except Exception:
+                div_to_id = {}
+                div_id_to_name = {}
+
+            if division_id:
+                param = division_id.lower()
+                div_name = div_id_to_name.get(param) or param
+                allowed_districts = [
+                    dist_name for dist_name, d_div in MAHARASHTRA_DISTRICT_TO_DIVISION.items()
+                    if d_div.lower() == div_name.lower()
+                ]
+                if allowed_districts:
+                    queryset = queryset.filter(name__in=allowed_districts)
+
+            districts = [{
+                'id': d.district_id,
+                'name': d.name,
+                'code': d.code,
+                'division_name': MAHARASHTRA_DISTRICT_TO_DIVISION.get(d.name, ''),
+                'division_id': div_to_id.get(MAHARASHTRA_DISTRICT_TO_DIVISION.get(d.name, '').lower()),
+            } for d in queryset]
         return Response(districts)
 
 

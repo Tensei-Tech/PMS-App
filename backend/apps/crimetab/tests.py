@@ -3,6 +3,7 @@ from django.test import TestCase, Client
 from django.utils import timezone
 from django.db import transaction, IntegrityError
 from rest_framework import status
+from apps.core.tenancy import TenantContext
 
 from apps.cases.models import CaseRecord
 from apps.crimetab.models.groupings import CaseCategoryGroup, CaseCategory, CaseCategoryLink
@@ -44,13 +45,14 @@ class CommonFormE2ETests(TestCase):
         if connection.connection and hasattr(connection.connection, 'closed') and connection.connection.closed:
             connection.connect()
 
-        from apps.core.tenancy import set_tenant_schema
+        from apps.core.tenancy import TenantContext
         from apps.public_master.models import StateRegistry
         StateRegistry.objects.get_or_create(
             state_code='MH',
             defaults={'state_name': 'Maharashtra', 'schema_name': 'maharashtra', 'is_active': True}
         )
-        set_tenant_schema('maharashtra')
+        self.tenant_ctx = TenantContext('maharashtra')
+        self.tenant_ctx.__enter__()
 
         self.client = Client(HTTP_X_STATE_CODE='MH')
 
@@ -174,6 +176,13 @@ class CommonFormE2ETests(TestCase):
         # Trigger B mappings (Section-triggered dynamic templates)
         SectionFieldTemplate.objects.get_or_create(section=self.sec_murder, template=self.tmpl_murder)
         SectionFieldTemplate.objects.get_or_create(section=self.sec_hurt, template=self.tmpl_hurt)
+
+    def tearDown(self):
+        if hasattr(self, 'tenant_ctx'):
+            try:
+                self.tenant_ctx.__exit__(None, None, None)
+            except Exception:
+                pass
 
     def test_1_form_renders_common_fields_and_tab_specific_extras_immediately(self):
         """
@@ -668,14 +677,15 @@ class CommonFormE2ETests(TestCase):
         self.assertEqual(res_new.status_code, status.HTTP_200_OK)
 
         # Confirm CasesPerson row was created
-        person_deepak = CasesPerson.objects.filter(case=case, name='Deepak Shinde').first()
-        self.assertIsNotNone(person_deepak)
-        self.assertEqual(person_deepak.role, 'accused')
+        with TenantContext('maharashtra'):
+            person_deepak = CasesPerson.objects.filter(case=case, name='Deepak Shinde').first()
+            self.assertIsNotNone(person_deepak)
+            self.assertEqual(person_deepak.role, 'accused')
 
-        # Confirm DischargeStatus is linked
-        dis_record = DischargeStatus.objects.filter(person=person_deepak).first()
-        self.assertIsNotNone(dis_record)
-        self.assertTrue(dis_record.is_discharged)
+            # Confirm DischargeStatus is linked
+            dis_record = DischargeStatus.objects.filter(person=person_deepak).first()
+            self.assertIsNotNone(dis_record)
+            self.assertTrue(dis_record.is_discharged)
 
         # 2. Pick EXISTING accused
         payload_exist = {
@@ -1087,6 +1097,94 @@ class CommonFormE2ETests(TestCase):
         self.assertTrue(res_stand_children.data[0]['has_children'])
         self.assertEqual(res_stand_children.data[0]['counters']['total'], 1)
 
+    def test_charges_hydration_and_preservation_on_edit(self):
+        """
+        Verify:
+        1. Create a case with 2 charges (e.g. IPC Murder 302 + Hurt 323).
+        2. Open it for EDIT (GET details).
+        3. Confirm both charges show correctly pre-selected/hydrated in charges list.
+        4. Re-save/update without changes (PUT /api/cases/{id}/), confirm both charges are STILL there on reload, not lost or duplicated.
+        """
+        import uuid
+        case_id = str(uuid.uuid4())
+
+        # Ensure Act and Sections exist
+        with TenantContext('maharashtra'):
+            act, _ = Act.objects.get_or_create(act_name='Indian Penal Code')
+            sec_murder, _ = ActSection.objects.get_or_create(act=act, section_number='302', defaults={'section_title': 'Punishment for murder'})
+            sec_hurt, _ = ActSection.objects.get_or_create(act=act, section_number='323', defaults={'section_title': 'Punishment for voluntarily causing hurt'})
+
+            act_id = act.act_id
+            sec_murder_id = sec_murder.section_id
+            sec_hurt_id = sec_hurt.section_id
+
+        create_payload = {
+            'id': case_id,
+            'case_number': f'CR/TEST-CHARGES-{uuid.uuid4().hex[:4]}',
+            'title': 'Test Multiple Charges Hydration',
+            'station_name': 'Test Station',
+            'status': 'Under Investigation',
+            'charges': [
+                {'act_id': act_id, 'section_id': sec_murder_id, 'section_number': '302', 'act_name': 'Indian Penal Code'},
+                {'act_id': act_id, 'section_id': sec_hurt_id, 'section_number': '323', 'act_name': 'Indian Penal Code'},
+            ]
+        }
+
+        # 1. Create case with 2 charges
+        res = self.client.post('/api/cases/', data=json.dumps(create_payload), content_type='application/json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        # Confirm 2 charges saved in DB
+        with TenantContext('maharashtra'):
+            db_charges = CrimeCaseActsSections.objects.filter(case_id=case_id)
+            self.assertEqual(db_charges.count(), 2)
+
+        # 2. Fetch case for EDIT
+        get_res = self.client.get(f'/api/cases/{case_id}/')
+        self.assertEqual(get_res.status_code, status.HTTP_200_OK)
+        fetched_charges = get_res.data.get('charges', [])
+        
+        # 3. Confirm both charges show correctly, pre-selected
+        self.assertEqual(len(fetched_charges), 2)
+        sec_numbers = {c.get('section_number') for c in fetched_charges}
+        self.assertIn('302', sec_numbers)
+        self.assertIn('323', sec_numbers)
+
+        # 4. Save without changing anything (simulate Edit screen Submit)
+        update_payload = dict(get_res.data)
+        update_payload['charges'] = fetched_charges
+        put_res = self.client.put(f'/api/cases/{case_id}/', data=json.dumps(update_payload), content_type='application/json')
+        self.assertEqual(put_res.status_code, status.HTTP_200_OK)
+
+        # 5. Reload and verify both charges STILL exist (not lost, not duplicated)
+        reload_res = self.client.get(f'/api/cases/{case_id}/')
+        self.assertEqual(reload_res.status_code, status.HTTP_200_OK)
+        reloaded_charges = reload_res.data.get('charges', [])
+        self.assertEqual(len(reloaded_charges), 2)
+        reloaded_sec_numbers = {c.get('section_number') for c in reloaded_charges}
+        self.assertEqual(reloaded_sec_numbers, {'302', '323'})
+        with TenantContext('maharashtra'):
+            self.assertEqual(CrimeCaseActsSections.objects.filter(case_id=case_id).count(), 2)
 
 
 
+
+
+
+class CounterServiceTests(TestCase):
+    def setUp(self):
+        from apps.core.tenancy import set_tenant_schema
+        from apps.public_master.models import StateRegistry
+        StateRegistry.objects.get_or_create(
+            state_code='MH',
+            defaults={'state_name': 'Maharashtra', 'schema_name': 'maharashtra', 'is_active': True}
+        )
+        set_tenant_schema('maharashtra')
+        self.group = CaseCategoryGroup.objects.create(group_name='Test Group', group_code='TEST_GRP', display_order=1)
+        self.cat1 = CaseCategory.objects.create(category_name='Cat 1', category_code='CAT1', group=self.group)
+
+    def test_get_category_counters_no_name_error(self):
+        try:
+            get_category_counters(self.cat1.category_id)
+        except NameError as e:
+            self.fail(f"NameError unexpectedly: {e}")

@@ -86,6 +86,43 @@ class CaseManagementAPITests(TestCase):
                     WHERE status IN ('Disposal', 'Closed');
                 """)
                 cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS remand_custody (
+                        id SERIAL PRIMARY KEY,
+                        person_id INTEGER NOT NULL,
+                        pcr_days INTEGER,
+                        mcr BOOLEAN DEFAULT FALSE,
+                        pr_bond BOOLEAN DEFAULT FALSE,
+                        pr_bond_date DATE,
+                        bail BOOLEAN DEFAULT FALSE,
+                        surety_jail BOOLEAN DEFAULT FALSE,
+                        surety_name VARCHAR(255),
+                        surety_age INTEGER,
+                        surety_gender VARCHAR(50),
+                        surety_occupation VARCHAR(255),
+                        surety_mobile VARCHAR(20),
+                        surety_aadhaar VARCHAR(20),
+                        surety_pan VARCHAR(20),
+                        surety_add TEXT,
+                        created_at TIMESTAMPTZ DEFAULT NOW(),
+                        CONSTRAINT chk_pr_bond_requires_mcr CHECK (
+                            NOT pr_bond OR mcr = TRUE
+                        ),
+                        CONSTRAINT chk_surety_jail_requires_bail CHECK (
+                            NOT surety_jail OR bail = TRUE
+                        )
+                    );
+                """)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS preventive_action_items (
+                        id SERIAL PRIMARY KEY,
+                        case_id INTEGER NOT NULL,
+                        person_id INTEGER NOT NULL,
+                        action VARCHAR(255),
+                        created_at TIMESTAMPTZ DEFAULT NOW(),
+                        UNIQUE(case_id, person_id, action)
+                    );
+                """)
+                cursor.execute("""
                     INSERT INTO crime_type_master (crime_type, act, section, sub_section, ipc_number)
                     VALUES ('Theft', 'IPC', '379', '1', 'IPC 379')
                     ON CONFLICT DO NOTHING;
@@ -140,6 +177,37 @@ class CaseManagementAPITests(TestCase):
                     WHERE status IN ('Disposal', 'Closed');
                 """)
                 cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS remand_custody (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        person_id INTEGER NOT NULL,
+                        pcr_days INTEGER,
+                        mcr BOOLEAN DEFAULT 0,
+                        pr_bond BOOLEAN DEFAULT 0,
+                        pr_bond_date DATE,
+                        bail BOOLEAN DEFAULT 0,
+                        surety_jail BOOLEAN DEFAULT 0,
+                        surety_name VARCHAR(255),
+                        surety_age INTEGER,
+                        surety_gender VARCHAR(50),
+                        surety_occupation VARCHAR(255),
+                        surety_mobile VARCHAR(20),
+                        surety_aadhaar VARCHAR(20),
+                        surety_pan VARCHAR(20),
+                        surety_add TEXT,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    );
+                """)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS preventive_action_items (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        case_id INTEGER NOT NULL,
+                        person_id INTEGER NOT NULL,
+                        action VARCHAR(255),
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE(case_id, person_id, action)
+                    );
+                """)
+                cursor.execute("""
                     INSERT OR IGNORE INTO crime_type_master (crime_type, act, section, sub_section, ipc_number)
                     VALUES ('Theft', 'IPC', '379', '1', 'IPC 379');
                 """)
@@ -182,19 +250,20 @@ class CaseManagementAPITests(TestCase):
             ('/api/cases/crime-types/Theft/cases/', 'get'),
             ('/api/cases/crime-types/Theft/sections/', 'get'),
             ('/api/cases/pending/', 'get'),
-            ('/api/cases/disposal/', 'get'),
+            ('/api/cases/disposal/case-wise/', 'get'),
             ('/api/cases/create/', 'post'),
         ]
 
-        # Explicitly empty credentials
-        self.client.credentials()
+        from apps.core.tenancy import set_tenant_schema
 
         for url, method in endpoints:
+            set_tenant_schema('maharashtra')
+            self.client.credentials()
             with self.subTest(url=url, method=method):
                 if method == 'get':
-                    response = self.client.get(url)
+                    response = self.client.get(url, HTTP_X_STATE_CODE='MH')
                 else:
-                    response = self.client.post(url, {}, format='json')
+                    response = self.client.post(url, {}, format='json', HTTP_X_STATE_CODE='MH')
                 self.assertEqual(
                     response.status_code,
                     status.HTTP_401_UNAUTHORIZED,
@@ -289,7 +358,7 @@ class CaseManagementAPITests(TestCase):
         self.assertIsInstance(pending_resp.data['results'], list)
 
         # Disposal Cases
-        disposal_resp = self.client.get('/api/cases/disposal/')
+        disposal_resp = self.client.get('/api/cases/disposal/case-wise/')
         self.assertEqual(disposal_resp.status_code, status.HTTP_200_OK)
         self.assertIn('count', disposal_resp.data)
         self.assertIn('results', disposal_resp.data)

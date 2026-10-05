@@ -66,17 +66,41 @@ def get_group_counters(group_id: int, station_name: Optional[str] = None) -> Dic
     for cat_id in group_cat_ids:
         all_cat_ids.update(get_descendant_category_ids(cat_id))
 
+    from apps.cases.constants import DISPOSAL_KEYS
+    from django.db.models.functions import Coalesce, Concat
+    from django.db import models, connection
+    from django.db.models import Value
+    from django.db.models.fields.json import KeyTextTransform
+    
     queryset = CaseRecord.objects.filter(
         category_links__category_id__in=list(all_cat_ids)
     )
     if station_name:
         queryset = queryset.filter(station_name=station_name)
 
-    stats = queryset.aggregate(
-        total=Count('id', distinct=True),
-        pending=Count('id', filter=Q(status__iexact='Pending'), distinct=True),
-        disposal=Count('id', filter=Q(status__in=['Disposal', 'Disposed', 'Closed']), distinct=True),
-    )
+    if connection.vendor == 'postgresql':
+        concat_args = [
+            Coalesce(KeyTextTransform(key, 'extra_fields'), Value(''), output_field=models.CharField())
+            for key in DISPOSAL_KEYS
+        ]
+        queryset = queryset.annotate(all_cc_st=Concat(*concat_args, output_field=models.CharField()))
+        stats = queryset.aggregate(
+            total=Count('id', distinct=True),
+            pending=Count('id', filter=~Q(all_cc_st__regex=r'\S') & ~Q(status__iexact='Disposal') & ~Q(status__iexact='Closed'), distinct=True),
+            disposal=Count('id', filter=Q(all_cc_st__regex=r'\S') | Q(status__iexact='Disposal') | Q(status__iexact='Closed'), distinct=True),
+        )
+    else:
+        disposal_q = Q(status__iexact='Disposal') | Q(status__iexact='Closed')
+        for key in DISPOSAL_KEYS[:8]:
+            disposal_q |= Q(**{f'extra_fields__{key}__isnull': False}) & ~Q(**{f'extra_fields__{key}': ''})
+        stats = queryset.aggregate(
+            total=Count('id', distinct=True),
+            disposal=Count('id', filter=disposal_q, distinct=True),
+        )
+        total_cnt = stats['total'] or 0
+        disp_cnt = stats['disposal'] or 0
+        stats['pending'] = max(0, total_cnt - disp_cnt)
+
     return {
         'group_id': group_id,
         'total': stats['total'] or 0,
@@ -90,6 +114,12 @@ def get_category_counters(category_id: int, station_name: Optional[str] = None) 
     Calculates live Total/Pending/Disposal counters for a specific Sub-tab / Category (e.g. 'Theft', 'Accident'),
     rolling up cases from all its twin categories and nested child sub-tabs.
     """
+    from apps.cases.constants import DISPOSAL_KEYS
+    from django.db.models.functions import Coalesce, Concat
+    from django.db import models, connection
+    from django.db.models import Value
+    from django.db.models.fields.json import KeyTextTransform
+    
     descendant_ids = get_descendant_category_ids(category_id)
     queryset = CaseRecord.objects.filter(
         category_links__category_id__in=descendant_ids
@@ -97,11 +127,29 @@ def get_category_counters(category_id: int, station_name: Optional[str] = None) 
     if station_name:
         queryset = queryset.filter(station_name=station_name)
 
-    stats = queryset.aggregate(
-        total=Count('id', distinct=True),
-        pending=Count('id', filter=Q(status__iexact='Pending'), distinct=True),
-        disposal=Count('id', filter=Q(status__in=['Disposal', 'Disposed', 'Closed']), distinct=True),
-    )
+    if connection.vendor == 'postgresql':
+        concat_args = [
+            Coalesce(KeyTextTransform(key, 'extra_fields'), Value(''), output_field=models.CharField())
+            for key in DISPOSAL_KEYS
+        ]
+        queryset = queryset.annotate(all_cc_st=Concat(*concat_args, output_field=models.CharField()))
+        stats = queryset.aggregate(
+            total=Count('id', distinct=True),
+            pending=Count('id', filter=~Q(all_cc_st__regex=r'\S') & ~Q(status__iexact='Disposal') & ~Q(status__iexact='Closed'), distinct=True),
+            disposal=Count('id', filter=Q(all_cc_st__regex=r'\S') | Q(status__iexact='Disposal') | Q(status__iexact='Closed'), distinct=True),
+        )
+    else:
+        disposal_q = Q(status__iexact='Disposal') | Q(status__iexact='Closed')
+        for key in DISPOSAL_KEYS[:8]:
+            disposal_q |= Q(**{f'extra_fields__{key}__isnull': False}) & ~Q(**{f'extra_fields__{key}': ''})
+        stats = queryset.aggregate(
+            total=Count('id', distinct=True),
+            disposal=Count('id', filter=disposal_q, distinct=True),
+        )
+        total_cnt = stats['total'] or 0
+        disp_cnt = stats['disposal'] or 0
+        stats['pending'] = max(0, total_cnt - disp_cnt)
+
     return {
         'category_id': category_id,
         'total': stats['total'] or 0,

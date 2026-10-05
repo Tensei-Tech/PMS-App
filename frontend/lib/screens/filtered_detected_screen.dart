@@ -2,33 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/backend_case_service.dart';
 import '../theme/app_theme.dart';
-import '../utils/pending_table_firestore_mapper.dart';
-import '../widgets/pending_cases_demo_data_table.dart';
+import '../utils/detected_table_firestore_mapper.dart';
+import '../widgets/detected_cases_demo_data_table.dart';
 import '../modules/core/models/base_record.dart';
 
-class FilteredPendingScreen extends StatefulWidget {
+class FilteredDetectedScreen extends StatefulWidget {
   final String title;
   final String? ioUid;
-  final String? category;
   final String? startDate;
   final String? endDate;
-  final bool isUndetected;
 
-  const FilteredPendingScreen({
+  const FilteredDetectedScreen({
     super.key,
     required this.title,
     this.ioUid,
-    this.category,
     this.startDate,
     this.endDate,
-    this.isUndetected = false,
   });
 
   @override
-  State<FilteredPendingScreen> createState() => _FilteredPendingScreenState();
+  State<FilteredDetectedScreen> createState() => _FilteredDetectedScreenState();
 }
 
-class _FilteredPendingScreenState extends State<FilteredPendingScreen> {
+class _FilteredDetectedScreenState extends State<FilteredDetectedScreen> {
   final BackendCaseService _backend = BackendCaseService();
   bool _isLoading = true;
   String? _error;
@@ -42,25 +38,18 @@ class _FilteredPendingScreenState extends State<FilteredPendingScreen> {
 
   Future<void> _loadData() async {
     try {
-      final dataList = widget.isUndetected
-          ? await _backend.fetchUndetectedCases(
-              ioUid: widget.ioUid,
-              category: widget.category,
-              startDate: widget.startDate,
-              endDate: widget.endDate,
-            )
-          : await _backend.fetchPendingCases(
-              ioUid: widget.ioUid,
-              startDate: widget.startDate,
-              endDate: widget.endDate,
-            );
+      final dataList = await _backend.fetchDetectedCases(
+        ioUid: widget.ioUid,
+        startDate: widget.startDate,
+        endDate: widget.endDate,
+      );
 
       if (!mounted) return;
 
       if (dataList != null) {
         final records = dataList.map((m) => ModuleRecord.fromMap(m)).toList();
         final mappedRows =
-            pendingModuleRecordsToTableRows(records, DateTime.now());
+            detectedModuleRecordsToTableRows(records, DateTime.now());
         setState(() {
           _tableRows = mappedRows;
           _isLoading = false;
@@ -131,7 +120,7 @@ class _FilteredPendingScreenState extends State<FilteredPendingScreen> {
                           ? const Center(child: Text("No cases found"))
                           : SingleChildScrollView(
                               padding: const EdgeInsets.all(12),
-                              child: PendingCasesDemoDataTable(
+                              child: DetectedCasesDemoDataTable(
                                 isAd: false,
                                 realDataRows: _tableRows,
                               ),
