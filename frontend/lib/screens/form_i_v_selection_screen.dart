@@ -57,6 +57,74 @@ class FormIVSelectionScreen extends StatefulWidget {
     this.moduleKey,
   });
 
+  static bool recordMatchesCategory(
+    ModuleRecord r,
+    String category, [
+    Set<String>? descendants,
+  ]) {
+    if (category == FormIVSelectionScreen.allFilterLabel ||
+        category.toLowerCase() == 'all') {
+      return true;
+    }
+
+    final candidates = <String>{};
+    if (r.subCategory != null && r.subCategory!.trim().isNotEmpty) {
+      candidates.add(r.subCategory!.trim());
+    }
+    if (r.category.trim().isNotEmpty &&
+        r.category != 'form_1_5' &&
+        r.category != 'form_6' &&
+        r.category.toLowerCase() != 'all') {
+      candidates.add(r.category.trim());
+    }
+    final rawDisplayName = r.extraFields['moduleDisplayName'];
+    if (rawDisplayName is String && rawDisplayName.trim().isNotEmpty) {
+      candidates.add(rawDisplayName.trim());
+    }
+    final rawCat = r.extraFields['category'];
+    if (rawCat is String && rawCat.trim().isNotEmpty) {
+      candidates.add(rawCat.trim());
+    }
+    final rawSubCat =
+        r.extraFields['subCategory'] ?? r.extraFields['sub_category'];
+    if (rawSubCat is String && rawSubCat.trim().isNotEmpty) {
+      candidates.add(rawSubCat.trim());
+    }
+    final rawCrimeCat = r.extraFields['crime_category'];
+    if (rawCrimeCat is String && rawCrimeCat.trim().isNotEmpty) {
+      candidates.add(rawCrimeCat.trim());
+    }
+    final rawCaseType = r.extraFields['case_type'] ?? r.extraFields['type'];
+    if (rawCaseType is String && rawCaseType.trim().isNotEmpty) {
+      candidates.add(rawCaseType.trim());
+    }
+
+    String normalize(String s) =>
+        s.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+
+    final targetNames = <String>{category, ...(descendants ?? {})};
+    final normalizedTargets =
+        targetNames.map(normalize).where((s) => s.isNotEmpty).toSet();
+
+    for (final cand in candidates) {
+      final normCand = normalize(cand);
+      if (normCand.isEmpty) continue;
+
+      for (final normTarget in normalizedTargets) {
+        if (normCand == normTarget) return true;
+        if (normCand == '${normTarget}s' || '${normCand}s' == normTarget) {
+          return true;
+        }
+        if (normCand.length >= 4 && normTarget.length >= 4) {
+          if (normCand.contains(normTarget) || normTarget.contains(normCand)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   @override
   State<FormIVSelectionScreen> createState() => _FormIVSelectionScreenState();
 }
@@ -89,7 +157,11 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.read<FormIVProvider>().refresh();
+        context.read<FormIVProvider>().ensureInitialized();
+        if (widget.initialCategory?.toLowerCase() == 'accident' ||
+            widget.moduleKey == 'accident') {
+          context.read<AccidentProvider>().ensureInitialized();
+        }
       }
     });
     if (widget.initialCategory != null) {
@@ -121,6 +193,25 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
     }
   }
 
+  static bool _isExcludedFromFormIV(String name) {
+    final lower = name.trim().toLowerCase();
+    const excluded = {
+      'st drugs',
+      'st_drugs',
+      'stdrugs',
+      'prohibition',
+      'gambling',
+      'pocso',
+      'ndps',
+      'gowansh',
+      'it act',
+      'm.v act',
+      'mv act',
+      'uapa',
+    };
+    return excluded.contains(lower);
+  }
+
   Future<void> _loadGroupCategories() async {
     setState(() => _isLoadingApiCategories = true);
     try {
@@ -133,7 +224,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
           final names = targetList
               .map((c) =>
                   (c['category_name'] ?? c['name'] ?? '').toString().trim())
-              .where((n) => n.isNotEmpty)
+              .where((n) => n.isNotEmpty && !_isExcludedFromFormIV(n))
               .toSet()
               .toList();
           setState(() {
@@ -160,13 +251,34 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
 
   List<String> get _currentDisplayCategories {
     if (_categoryBreadcrumb.isEmpty) {
-      return _filterOptions;
+      final options = List<String>.from(_filterOptions)
+          .where((cat) => !_isExcludedFromFormIV(cat))
+          .toList();
+      final provider = context.read<FormIVProvider>();
+      for (final r in provider.records) {
+        final matchesAny = options.any(
+          (opt) => FormIVSelectionScreen.recordMatchesCategory(r, opt),
+        );
+        if (!matchesAny) {
+          final fallbackName = r.subCategory?.trim() ??
+              r.extraFields['category']?.toString().trim() ??
+              r.extraFields['moduleDisplayName']?.toString().trim() ??
+              '';
+          if (fallbackName.isNotEmpty &&
+              !_isExcludedFromFormIV(fallbackName) &&
+              !options
+                  .any((o) => o.toLowerCase() == fallbackName.toLowerCase())) {
+            options.add(fallbackName);
+          }
+        }
+      }
+      return options;
     }
     final parent = _categoryBreadcrumb.last;
     final children = _categoryChildrenCache[parent] ?? [];
     return children
         .map((c) => (c['category_name'] ?? c['name'] ?? '').toString())
-        .where((n) => n.isNotEmpty)
+        .where((n) => n.isNotEmpty && !_isExcludedFromFormIV(n))
         .toList();
   }
 
@@ -941,21 +1053,13 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
     List<ModuleRecord> records,
     String category,
   ) {
+    final descendants = _getDescendantCategoryNames(category);
     final categoryRecords = category == FormIVSelectionScreen.allFilterLabel
         ? records.toList()
-        : records.where((r) {
-            final target = category.trim().toLowerCase();
-            final sub = (r.subCategory ?? '').trim().toLowerCase();
-            final cat = r.category.trim().toLowerCase();
-            final mod = r.moduleKey.trim().toLowerCase();
-            if (sub == target || cat == target || mod == target) return true;
-            final descendants = _getDescendantCategoryNames(category)
-                .map((d) => d.trim().toLowerCase())
-                .toSet();
-            return descendants.contains(sub) ||
-                descendants.contains(cat) ||
-                descendants.contains(mod);
-          }).toList();
+        : records
+            .where((r) => FormIVSelectionScreen.recordMatchesCategory(
+                r, category, descendants))
+            .toList();
 
     final filtered = categoryRecords.where(_recordMatchesDate).toList();
 
@@ -2055,22 +2159,12 @@ class _CategoryGridView extends StatelessWidget {
     if (category == FormIVSelectionScreen.allFilterLabel) {
       return records.length;
     }
-    final target = category.trim().toLowerCase();
-    final descendants = getDescendantNames != null
-        ? getDescendantNames!(category)
-            .map((d) => d.trim().toLowerCase())
-            .toSet()
-        : <String>{target};
-    descendants.add(target);
-
-    return records.where((r) {
-      final sub = (r.subCategory ?? '').trim().toLowerCase();
-      final cat = r.category.trim().toLowerCase();
-      final mod = r.moduleKey.trim().toLowerCase();
-      return descendants.contains(sub) ||
-          descendants.contains(cat) ||
-          descendants.contains(mod);
-    }).length;
+    final descendants =
+        getDescendantNames != null ? getDescendantNames!(category) : {category};
+    return records
+        .where((r) => FormIVSelectionScreen.recordMatchesCategory(
+            r, category, descendants))
+        .length;
   }
 
   IconData _iconForCategory(String category) {

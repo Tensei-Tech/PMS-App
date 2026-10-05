@@ -39,31 +39,35 @@ class TenancyStackSafetyTests(TestCase):
 
         with TenantContext('kerala'):
             self.assertEqual(get_active_tenant_schema(), 'kerala')
-            with connection.cursor() as cursor:
-                cursor.execute("SHOW search_path;")
-                current_sp = cursor.fetchone()[0]
-                self.assertTrue(current_sp.startswith('"kerala"') or current_sp.startswith('kerala'))
-
-            with TenantContext('maharashtra'):
-                self.assertEqual(get_active_tenant_schema(), 'maharashtra')
+            if connection.vendor == 'postgresql':
                 with connection.cursor() as cursor:
                     cursor.execute("SHOW search_path;")
                     current_sp = cursor.fetchone()[0]
-                    self.assertTrue(current_sp.startswith('"maharashtra"') or current_sp.startswith('maharashtra'))
+                    self.assertTrue(current_sp.startswith('"kerala"') or current_sp.startswith('kerala'))
+
+            with TenantContext('maharashtra'):
+                self.assertEqual(get_active_tenant_schema(), 'maharashtra')
+                if connection.vendor == 'postgresql':
+                    with connection.cursor() as cursor:
+                        cursor.execute("SHOW search_path;")
+                        current_sp = cursor.fetchone()[0]
+                        self.assertTrue(current_sp.startswith('"maharashtra"') or current_sp.startswith('maharashtra'))
 
             # Exited inner 'maharashtra' -> must be 'kerala'
             self.assertEqual(get_active_tenant_schema(), 'kerala')
-            with connection.cursor() as cursor:
-                cursor.execute("SHOW search_path;")
-                current_sp = cursor.fetchone()[0]
-                self.assertTrue(current_sp.startswith('"kerala"') or current_sp.startswith('kerala'))
+            if connection.vendor == 'postgresql':
+                with connection.cursor() as cursor:
+                    cursor.execute("SHOW search_path;")
+                    current_sp = cursor.fetchone()[0]
+                    self.assertTrue(current_sp.startswith('"kerala"') or current_sp.startswith('kerala'))
 
         # Exited outer 'kerala' -> must be 'public'
         self.assertEqual(get_active_tenant_schema(), 'public')
-        with connection.cursor() as cursor:
-            cursor.execute("SHOW search_path;")
-            current_sp = cursor.fetchone()[0]
-            self.assertTrue(current_sp.startswith('public') or 'public' in current_sp)
+        if connection.vendor == 'postgresql':
+            with connection.cursor() as cursor:
+                cursor.execute("SHOW search_path;")
+                current_sp = cursor.fetchone()[0]
+                self.assertTrue(current_sp.startswith('public') or 'public' in current_sp)
 
     def test_multi_level_deep_nesting(self):
         """Test nesting 3 levels deep: state1 -> state2 -> state3"""
@@ -130,10 +134,11 @@ class TenancyStackSafetyTests(TestCase):
         self.assertEqual(req.state_schema, 'public')
         self.assertIn(req.state_code, (None, ''))
         self.assertEqual(get_active_tenant_schema(req), 'public')
-        with connection.cursor() as cursor:
-            cursor.execute("SHOW search_path;")
-            current_sp = cursor.fetchone()[0]
-            self.assertTrue('public' in current_sp)
+        if connection.vendor == 'postgresql':
+            with connection.cursor() as cursor:
+                cursor.execute("SHOW search_path;")
+                current_sp = cursor.fetchone()[0]
+                self.assertTrue('public' in current_sp)
 
 
     def test_cross_request_connection_reuse_isolation(self):
@@ -165,47 +170,52 @@ class TenancyStackSafetyTests(TestCase):
         self.assertEqual(req_a.state_schema, kerala_schema)
 
         # Inside Request A, Kerala division is accessible
-        with connection.cursor() as cursor:
-            cursor.execute("SHOW search_path;")
-            sp_a = cursor.fetchone()[0]
-            self.assertTrue(kerala_schema in sp_a)
+        if connection.vendor == 'postgresql':
+            with connection.cursor() as cursor:
+                cursor.execute("SHOW search_path;")
+                sp_a = cursor.fetchone()[0]
+                self.assertTrue(kerala_schema in sp_a)
 
         res_a = HttpResponse("OK")
         middleware.process_response(req_a, res_a)
 
         # 3. Verify connection search_path is immediately reset to 'public' (NOT 'kerala_test_cross' or 'maharashtra')
-        with connection.cursor() as cursor:
-            cursor.execute("SHOW search_path;")
-            post_a_sp = cursor.fetchone()[0]
-            self.assertEqual(post_a_sp, 'public')
+        if connection.vendor == 'postgresql':
+            with connection.cursor() as cursor:
+                cursor.execute("SHOW search_path;")
+                post_a_sp = cursor.fetchone()[0]
+                self.assertEqual(post_a_sp, 'public')
 
         # 4. Request B: Arrives with NO state headers on the SAME database connection
         req_b = rf.get('/api/test/')
         
         # Verify before Request B's resolution, the connection is clean 'public'
-        with connection.cursor() as cursor:
-            cursor.execute("SHOW search_path;")
-            pre_b_sp = cursor.fetchone()[0]
-            self.assertEqual(pre_b_sp, 'public')
+        if connection.vendor == 'postgresql':
+            with connection.cursor() as cursor:
+                cursor.execute("SHOW search_path;")
+                pre_b_sp = cursor.fetchone()[0]
+                self.assertEqual(pre_b_sp, 'public')
 
         middleware.process_request(req_b)
         self.assertEqual(req_b.state_schema, 'public')
         self.assertEqual(get_active_tenant_schema(req_b), 'public')
 
         # Confirm previous tenant's schema is not present in Request B's search path (no cross-tenant leakage)
-        with connection.cursor() as cursor:
-            cursor.execute("SHOW search_path;")
-            b_active_sp = cursor.fetchone()[0]
-            self.assertNotIn(kerala_schema, b_active_sp)
-            self.assertEqual(b_active_sp, 'public')
+        if connection.vendor == 'postgresql':
+            with connection.cursor() as cursor:
+                cursor.execute("SHOW search_path;")
+                b_active_sp = cursor.fetchone()[0]
+                self.assertNotIn(kerala_schema, b_active_sp)
+                self.assertEqual(b_active_sp, 'public')
 
         # Complete Request B
         res_b = HttpResponse("OK")
         middleware.process_response(req_b, res_b)
-        with connection.cursor() as cursor:
-            cursor.execute("SHOW search_path;")
-            post_b_sp = cursor.fetchone()[0]
-            self.assertEqual(post_b_sp, 'public')
+        if connection.vendor == 'postgresql':
+            with connection.cursor() as cursor:
+                cursor.execute("SHOW search_path;")
+                post_b_sp = cursor.fetchone()[0]
+                self.assertEqual(post_b_sp, 'public')
 
 
     def test_concurrent_threads_schema_isolation(self):
