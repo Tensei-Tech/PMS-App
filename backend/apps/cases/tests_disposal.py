@@ -173,30 +173,32 @@ class ADCaseDisposalTests(APITestCase):
     def test_ad_rule(self):
         from apps.cases.utils import get_cases_by_status
         from django.utils import timezone
+        from django.db import transaction
         
-        # 1. AD case with 7 fields is disposed
-        c1 = CaseRecord.objects.create(module_key='ad', extra_fields={'ccStNumber': 'AD-CC'})
-        self.assertTrue(get_cases_by_status('disposal').filter(id=c1.id).exists())
-        
-        # 2. AD case with AD Summary No AND Date is disposed
-        c2 = CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryNo': 'AD-123', 'adSummaryDate': '2023-01-01'})
-        self.assertTrue(get_cases_by_status('disposal').filter(id=c2.id).exists())
-        
-        # 3. AD case with ONLY AD Summary No is pending
-        c3 = CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryNo': 'AD-456'})
-        self.assertTrue(get_cases_by_status('pending').filter(id=c3.id).exists())
-        
-        # 4. AD case with ONLY AD Summary Date is pending
-        c4 = CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryDate': '2023-01-01'})
-        self.assertTrue(get_cases_by_status('pending').filter(id=c4.id).exists())
-        
-        # 5. Non-AD case with AD Summary No and Date is pending (if no 7 fields)
-        c5 = CaseRecord.objects.create(module_key='theft', extra_fields={'adSummaryNo': 'AD-123', 'adSummaryDate': '2023-01-01'})
-        self.assertTrue(get_cases_by_status('pending').filter(id=c5.id).exists())
-        
-        # 6. AD case identified by sub_category
-        c6 = CaseRecord.objects.create(module_key='missing', sub_category='accidental death', extra_fields={'adSummaryNo': 'AD-99', 'adSummaryDate': '2023-01-01'})
-        self.assertTrue(get_cases_by_status('disposal').filter(id=c6.id).exists())
+        with transaction.atomic():
+            # 1. AD case with 7 fields (CC) should be pending as CC does not transition AD cases
+            c1 = CaseRecord.objects.create(module_key='ad', extra_fields={'ccStNumber': 'AD-CC'})
+            self.assertTrue(get_cases_by_status('pending').filter(id=c1.id).exists())
+            
+            # 2. AD case with AD Summary No AND Date is disposed
+            c2 = CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryNo': 'AD-123', 'adSummaryDate': '2023-01-01'})
+            self.assertTrue(get_cases_by_status('disposal').filter(id=c2.id).exists())
+            
+            # 3. AD case with ONLY AD Summary No is pending
+            c3 = CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryNo': 'AD-456'})
+            self.assertTrue(get_cases_by_status('pending').filter(id=c3.id).exists())
+            
+            # 4. AD case with ONLY AD Summary Date is pending
+            c4 = CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryDate': '2023-01-01'})
+            self.assertTrue(get_cases_by_status('pending').filter(id=c4.id).exists())
+            
+            # 5. Non-AD case with AD Summary No and Date is pending (if no 7 fields)
+            c5 = CaseRecord.objects.create(module_key='theft', extra_fields={'adSummaryNo': 'AD-123', 'adSummaryDate': '2023-01-01'})
+            self.assertTrue(get_cases_by_status('pending').filter(id=c5.id).exists())
+            
+            # 6. AD case identified by sub_category
+            c6 = CaseRecord.objects.create(module_key='missing', sub_category='accidental death', extra_fields={'adSummaryNo': 'AD-99', 'adSummaryDate': '2023-01-01'})
+            self.assertTrue(get_cases_by_status('disposal').filter(id=c6.id).exists())
 
         # Verify save() sets disposal_date for AD rule cases
         c2.refresh_from_db()
