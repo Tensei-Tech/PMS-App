@@ -80,6 +80,8 @@ import '../utils/universal_search.dart';
 import '../widgets/app_logo.dart';
 import 'pending_hub_screen.dart';
 import 'undetected_hub_screen.dart';
+import 'detected_hub_screen.dart';
+import 'disposal_hub_screen.dart';
 import '../widgets/bell_icon_widget.dart';
 import '../widgets/form_iv_category_button.dart';
 import '../widgets/searchable_picker_field.dart';
@@ -3877,6 +3879,22 @@ class _HomeTabState extends State<_HomeTab> {
         context,
         AppTheme.fadeSlideRoute(
           page: UndetectedHubScreen(stationName: auth.stationName),
+        ),
+      );
+    } else if (item.name == 'Detected') {
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: DetectedHubScreen(stationName: auth.stationName),
+        ),
+      );
+    } else if (item.name == 'Disposal') {
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: DisposalHubScreen(stationName: auth.stationName),
         ),
       );
     } else if (item.moduleKey == 'service_tool') {

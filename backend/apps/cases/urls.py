@@ -1,6 +1,9 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from apps.cases.views import (
+    DetectedCasesView,
+    IOWiseDetectedView,
+    TimeWiseDetectedView,
     CaseRecordViewSet,
     CrimeTypeListView,
     CasesByCrimeTypeView,
@@ -12,7 +15,10 @@ from apps.cases.views import (
     UndetectedCasesView,
     UndetectedIOWiseView,
     UndetectedTimeWiseView,
-    DisposalCasesView,
+    DisposalCaseWiseView,
+    TimeWiseDisposalView,
+    DesignationWiseDisposalView,
+    DisposalCrimeTypeWiseView,
 )
 
 router = DefaultRouter()
@@ -30,7 +36,13 @@ urlpatterns = [
     path('undetected/', UndetectedCasesView.as_view(), name='undetected-cases'),
     path('undetected/io-wise/', UndetectedIOWiseView.as_view(), name='undetected-io-wise'),
     path('undetected/time-wise/', UndetectedTimeWiseView.as_view(), name='undetected-time-wise'),
-    path('disposal/', DisposalCasesView.as_view(), name='disposal-cases'),
+    path('detected/', DetectedCasesView.as_view(), name='detected-cases'),
+    path('detected/io-wise/', IOWiseDetectedView.as_view(), name='detected-io-wise'),
+    path('detected/time-wise/', TimeWiseDetectedView.as_view(), name='detected-time-wise'),
+    path('disposal/case-wise/', DisposalCaseWiseView.as_view(), name='disposal-case-wise'),
+    path('disposal/time-wise/', TimeWiseDisposalView.as_view(), name='disposal-time-wise'),
+    path('disposal/designation-wise/', DesignationWiseDisposalView.as_view(), name='disposal-designation-wise'),
+    path('disposal/crime-type-wise/', DisposalCrimeTypeWiseView.as_view(), name='disposal-crime-type-wise'),
     # Existing CaseRecordViewSet router (ModelViewSet)
     path('', include(router.urls)),
 ]
