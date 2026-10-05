@@ -118,10 +118,10 @@ class ModuleRecord {
       createdAt: rawCreated != null
           ? (DateTime.tryParse(rawCreated.toString()) ?? DateTime.now())
           : DateTime.now(),
-      extraFields: map['extraFields'] != null
-          ? Map<String, dynamic>.from(map['extraFields'])
-          : (map['extra_fields'] != null
-              ? Map<String, dynamic>.from(map['extra_fields'])
+      extraFields: (map['extraFields'] is Map)
+          ? Map<String, dynamic>.from(map['extraFields'] as Map)
+          : ((map['extra_fields'] is Map)
+              ? Map<String, dynamic>.from(map['extra_fields'] as Map)
               : {}),
       createdBy: map['createdBy'] ?? map['created_by'] ?? '',
       assignedOfficerUid:
