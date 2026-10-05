@@ -7,8 +7,9 @@ from django.db import DatabaseError, OperationalError
 from rest_framework import authentication, exceptions, status
 from rest_framework.exceptions import APIException
 
-from apps.public_master.models import MasterUser, UserRoleMapping
+from apps.public_master.models import MasterUser, UserRoleMapping, StateRegistry
 from apps.users.models import OfficerProfile
+from apps.core.tenancy import TenantContext, set_tenant_schema
 
 logger = logging.getLogger(__name__)
 
