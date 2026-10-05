@@ -12,11 +12,13 @@ class PendingCasesDemoDataTable extends StatelessWidget {
     required this.isAd,
     this.realDataRows,
     this.serialOffset = 0,
+    this.isAbsconded = false,
   });
 
   final bool isAd;
   final List<Map<String, String>>? realDataRows;
   final int serialOffset;
+  final bool isAbsconded;
 
   @override
   Widget build(BuildContext context) {
@@ -28,13 +30,22 @@ class PendingCasesDemoDataTable extends StatelessWidget {
         final double cellFontSize = w < 360 ? 9.5 : (w < 420 ? 10.5 : 11.5);
         final double headerFontSize = w < 360 ? 9.5 : (w < 420 ? 10.5 : 11.5);
 
-        final columnWidths = <int, TableColumnWidth>{
-          0: const IntrinsicColumnWidth(),
-          1: const FlexColumnWidth(1.5),
-          2: const FlexColumnWidth(1.5),
-          3: const FlexColumnWidth(1.5),
-          4: const FlexColumnWidth(2.0),
-        };
+        final columnWidths = isAbsconded
+            ? <int, TableColumnWidth>{
+                0: const IntrinsicColumnWidth(),
+                1: const FlexColumnWidth(1.2),
+                2: const FlexColumnWidth(1.4),
+                3: const FlexColumnWidth(1.4),
+                4: const FlexColumnWidth(1.4),
+                5: const FlexColumnWidth(1.8),
+              }
+            : <int, TableColumnWidth>{
+                0: const IntrinsicColumnWidth(),
+                1: const FlexColumnWidth(1.5),
+                2: const FlexColumnWidth(1.5),
+                3: const FlexColumnWidth(1.5),
+                4: const FlexColumnWidth(2.0),
+              };
 
         Widget headerCell(String s) => Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
@@ -74,6 +85,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
           headerCell('Sr. No'),
           headerCell('Cr. No.'),
           headerCell('SEC & ACT'),
+          if (isAbsconded) headerCell('Accused Name (फरार आरोपी)'),
           headerCell('IO Name'),
           headerCell('Police station name'),
         ];
@@ -86,6 +98,11 @@ class PendingCasesDemoDataTable extends StatelessWidget {
               dataCell('${serialOffset + idx + 1}'),
               dataCell(r['cr']!),
               dataCell(r['sections']!),
+              if (isAbsconded)
+                dataCell(
+                  r['accused']?.isNotEmpty == true ? r['accused']! : '—',
+                  align: Alignment.centerLeft,
+                ),
               dataCell(r['io']!, align: Alignment.centerLeft),
               dataCell(r['station']!, align: Alignment.centerLeft),
             ],

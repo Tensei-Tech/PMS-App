@@ -147,6 +147,7 @@ class _FilteredPendingScreenState extends State<FilteredPendingScreen> {
                               child: PendingCasesDemoDataTable(
                                 isAd: false,
                                 realDataRows: _tableRows,
+                                isAbsconded: widget.isAbsconded,
                               ),
                             ),
             ),

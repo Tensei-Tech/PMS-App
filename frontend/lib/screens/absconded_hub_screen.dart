@@ -189,6 +189,8 @@ class _AbscondedHubScreenState extends State<AbscondedHubScreen>
                 context,
                 AppTheme.fadeSlideRoute(
                   page: PendingSummaryScreen(
+                    title: 'Absconded Cases — Summary',
+                    isAbsconded: true,
                     liveRows: cases,
                     stationName: widget.stationName,
                   ),
