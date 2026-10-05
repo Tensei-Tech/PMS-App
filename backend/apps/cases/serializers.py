@@ -203,7 +203,16 @@ class DisposalCaseRecordSerializer(CaseRecordSerializer):
         # Get crime_type_name from CaseCategory via context map
         cat_map = self.context.get('cat_map', {})
         mk = (instance.module_key or "").strip().lower()
-        data['crime_type_name'] = cat_map.get(mk, instance.module_key)
+        sub = (instance.sub_category or "").strip()
+        
+        # Priority: 
+        # If it's a generic form (like form_1_5), the actual crime name (e.g., Murder, Sand Theft) is in sub_category
+        if mk == 'form_1_5' and sub:
+            data['crime_type_name'] = sub
+        elif sub and not cat_map.get(mk):
+            data['crime_type_name'] = sub
+        else:
+            data['crime_type_name'] = cat_map.get(mk, sub if sub else instance.module_key)
         
         # Extract act and section from acts_sections if present
         acts_sections = extra.get('acts_sections', [])
