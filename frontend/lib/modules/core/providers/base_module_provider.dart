@@ -17,6 +17,9 @@ class BaseModuleProvider extends ChangeNotifier {
   String _uid = '';
   CaseVisibilityMode _visibilityMode = CaseVisibilityMode.ownCasesOnly;
 
+  bool _hasFetched = false;
+  bool get hasFetched => _hasFetched;
+
   BaseModuleProvider(this.moduleKey);
 
   void clearStationContext({bool clearRecords = false}) {
@@ -24,6 +27,7 @@ class BaseModuleProvider extends ChangeNotifier {
     _pollTimer = null;
     _stationId = '';
     _uid = '';
+    _hasFetched = false;
     if (clearRecords) {
       _records = [];
       _deletedIds.clear();
@@ -42,22 +46,26 @@ class BaseModuleProvider extends ChangeNotifier {
     }
 
     final effectiveStation = stationId.isNotEmpty ? stationId : 'ALL';
-    if (_stationId == effectiveStation &&
-        _uid == uid &&
-        _visibilityMode == visibilityMode &&
-        _pollTimer != null) {
-      return;
-    }
-    _stationId = effectiveStation;
-    _uid = uid;
-    _visibilityMode = visibilityMode;
-    _pollTimer?.cancel();
+    final hasChanged = _stationId != effectiveStation ||
+        _uid != uid ||
+        _visibilityMode != visibilityMode;
 
-    _fetchCases();
-    // 30-second periodic background poll for live synchronization with Django backend
-    _pollTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-      _fetchCases();
-    });
+    if (hasChanged) {
+      _stationId = effectiveStation;
+      _uid = uid;
+      _visibilityMode = visibilityMode;
+      _hasFetched = false;
+      _pollTimer?.cancel();
+      _pollTimer = null;
+    }
+  }
+
+  /// Lazy loader: Only fetches data when the module tab or screen is actively viewed.
+  Future<void> ensureInitialized({bool forceRefresh = false}) async {
+    if ((!_hasFetched || forceRefresh) && _uid.isNotEmpty) {
+      _hasFetched = true;
+      await _fetchCases(forceRefresh: forceRefresh);
+    }
   }
 
   Future<void> _fetchCases({bool forceRefresh = false}) async {

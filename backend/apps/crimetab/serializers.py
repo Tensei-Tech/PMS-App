@@ -271,6 +271,18 @@ class FinalVerdictSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class CaseListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CaseRecord
+        fields = [
+            'id', 'module_key', 'title', 'case_number', 'description',
+            'complainant', 'accused', 'location', 'incident_date',
+            'priority', 'status', 'assigned_officer', 'assigned_officer_uid',
+            'sub_category', 'created_by', 'station_name', 'extra_fields',
+            'created_at', 'updated_at'
+        ]
+
+
 # ==========================================
 # 5. Full-Case Detail Serializer
 # ==========================================

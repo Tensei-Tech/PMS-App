@@ -79,6 +79,7 @@ import '../utils/translation_helper.dart';
 import '../utils/universal_search.dart';
 import '../widgets/app_logo.dart';
 import 'pending_hub_screen.dart';
+import 'undetected_hub_screen.dart';
 import 'detected_hub_screen.dart';
 import 'disposal_hub_screen.dart';
 import 'arrested_hub_screen.dart';
@@ -3871,6 +3872,14 @@ class _HomeTabState extends State<_HomeTab> {
         context,
         AppTheme.fadeSlideRoute(
           page: PendingHubScreen(stationName: auth.stationName),
+        ),
+      );
+    } else if (item.name == 'Undetected' || item.moduleKey == 'undetected') {
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: UndetectedHubScreen(stationName: auth.stationName),
         ),
       );
     } else if (item.name == 'Detected') {
