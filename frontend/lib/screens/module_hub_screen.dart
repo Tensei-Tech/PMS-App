@@ -133,6 +133,23 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     if (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected') {
       _filter = 'All';
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _readProvider(context).ensureInitialized();
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(ModuleHubScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.moduleKey != widget.moduleKey) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _readProvider(context).ensureInitialized();
+        }
+      });
+    }
   }
 
   @override

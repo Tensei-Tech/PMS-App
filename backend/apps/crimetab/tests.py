@@ -42,7 +42,7 @@ from apps.crimetab.services.counter_service import get_group_counters, get_categ
 class CommonFormE2ETests(TestCase):
     def setUp(self):
         from django.db import connection
-        if connection.connection and connection.connection.closed:
+        if connection.connection and hasattr(connection.connection, 'closed') and connection.connection.closed:
             connection.connect()
 
         from apps.core.tenancy import TenantContext
@@ -908,6 +908,194 @@ class CommonFormE2ETests(TestCase):
         persons_returned = get_res.data.get('persons', [])
         unk_returned = [p for p in persons_returned if p.get('role') == 'unknown_accused']
         self.assertEqual(len(unk_returned), 2)
+
+    def test_14_twin_categories_and_nested_accident_tabs(self):
+        """
+        Tests for twin category resolution across standalone and group tabs:
+        1. Case saved from standalone row appears under group tab and vice versa.
+        2. Counters count each case once (DISTINCT).
+        3. Tabs with no twins work normally.
+        4. Nested Accident tabs (and sub-tabs) roll up correctly across twin branches.
+        """
+        import uuid
+        from apps.crimetab.services.counter_service import (
+            get_twin_category_ids,
+            get_descendant_category_ids,
+            get_category_counters,
+            get_group_counters,
+        )
+
+        # 1. Setup Twin Theft Categories (Standalone + Group 1-5)
+        theft_group = CaseCategory.objects.create(
+            group=self.group_1to5,
+            category_name='Theft',
+            category_code='119',
+            template=self.baseline_tmpl,
+            display_order=10
+        )
+        theft_standalone = CaseCategory.objects.create(
+            group=None,
+            category_name='Theft',
+            category_code='STAND_THEFT',
+            template=self.baseline_tmpl,
+            display_order=20
+        )
+
+        # Verify helper get_twin_category_ids
+        twins_from_group = get_twin_category_ids(theft_group.category_id)
+        twins_from_stand = get_twin_category_ids(theft_standalone.category_id)
+        self.assertEqual(set(twins_from_group), {theft_group.category_id, theft_standalone.category_id})
+        self.assertEqual(set(twins_from_stand), {theft_group.category_id, theft_standalone.category_id})
+
+        # 2. Case A: Saved from standalone Theft
+        case_a_id = str(uuid.uuid4())
+        case_a = CaseRecord.objects.create(
+            id=case_a_id,
+            case_number=f'CR/THEFT-STAND-{uuid.uuid4().hex[:4]}',
+            title='Standalone Theft Case',
+            station_name='Test Station',
+            status='Pending',
+            sub_category='Theft',
+        )
+        CaseCategoryLink.objects.create(case=case_a, category=theft_standalone, is_primary=True)
+
+        # 3. Case B: Saved from group Theft
+        case_b_id = str(uuid.uuid4())
+        case_b = CaseRecord.objects.create(
+            id=case_b_id,
+            case_number=f'CR/THEFT-GRP-{uuid.uuid4().hex[:4]}',
+            title='Group Theft Case',
+            station_name='Test Station',
+            status='Pending',
+            sub_category='Theft',
+        )
+        CaseCategoryLink.objects.create(case=case_b, category=theft_group, is_primary=True)
+
+        # Test Case A and B appear under BOTH endpoints:
+        # GET /api/categories/{group_id}/cases/
+        res_group_cases = self.client.get(f'/api/categories/{theft_group.category_id}/cases/')
+        self.assertEqual(res_group_cases.status_code, status.HTTP_200_OK)
+        group_case_ids = {c['id'] for c in res_group_cases.data['cases']}
+        self.assertIn(case_a_id, group_case_ids, "Case saved from standalone should appear under group tab")
+        self.assertIn(case_b_id, group_case_ids, "Case saved from group should appear under group tab")
+        self.assertEqual(res_group_cases.data['total_cases'], 2)
+
+        # GET /api/categories/{standalone_id}/cases/
+        res_stand_cases = self.client.get(f'/api/categories/{theft_standalone.category_id}/cases/')
+        self.assertEqual(res_stand_cases.status_code, status.HTTP_200_OK)
+        stand_case_ids = {c['id'] for c in res_stand_cases.data['cases']}
+        self.assertIn(case_a_id, stand_case_ids, "Case saved from standalone should appear under standalone tab")
+        self.assertIn(case_b_id, stand_case_ids, "Case saved from group should appear under standalone tab")
+        self.assertEqual(res_stand_cases.data['total_cases'], 2)
+
+        # Check counters count distinct (each case counted once)
+        cnt_group = get_category_counters(theft_group.category_id)
+        cnt_stand = get_category_counters(theft_standalone.category_id)
+        self.assertEqual(cnt_group['total'], 2)
+        self.assertEqual(cnt_stand['total'], 2)
+
+        # 4. Tab with NO twin (Single tab only)
+        single_cat = CaseCategory.objects.create(
+            group=None,
+            category_name='SingleUnmatchedTab',
+            category_code='STAND_SINGLE',
+            display_order=30
+        )
+        case_c_id = str(uuid.uuid4())
+        case_c = CaseRecord.objects.create(
+            id=case_c_id,
+            case_number=f'CR/SINGLE-{uuid.uuid4().hex[:4]}',
+            title='Single Tab Case',
+            station_name='Test Station',
+            status='Pending',
+            sub_category='SingleUnmatchedTab',
+        )
+        CaseCategoryLink.objects.create(case=case_c, category=single_cat, is_primary=True)
+
+        twins_single = get_twin_category_ids(single_cat.category_id)
+        self.assertEqual(twins_single, [single_cat.category_id])
+
+        res_single = self.client.get(f'/api/categories/{single_cat.category_id}/cases/')
+        self.assertEqual(res_single.status_code, status.HTTP_200_OK)
+        self.assertEqual(res_single.data['total_cases'], 1)
+        self.assertEqual(res_single.data['cases'][0]['id'], case_c_id)
+
+        cnt_single = get_category_counters(single_cat.category_id)
+        self.assertEqual(cnt_single['total'], 1)
+
+        # 5. Nested Accident tabs (Group Accident + Standalone Accident + Child tabs)
+        accident_group = CaseCategory.objects.create(
+            group=self.group_1to5,
+            category_name='Accident',
+            category_code='126',
+            display_order=40
+        )
+        accident_stand = CaseCategory.objects.create(
+            group=None,
+            category_name='Accident',
+            category_code='STAND_ACCIDENT',
+            display_order=50
+        )
+
+        road_acc_group = CaseCategory.objects.create(
+            parent_category=accident_group,
+            category_name='Road Accident',
+            category_code='201',
+            display_order=1
+        )
+        road_acc_stand = CaseCategory.objects.create(
+            parent_category=accident_stand,
+            category_name='Road Accident',
+            category_code='STAND_ROAD_ACC',
+            display_order=1
+        )
+
+        rash_driving_child = CaseCategory.objects.create(
+            parent_category=road_acc_group,
+            category_name='Death Due to Rash Driving',
+            category_code='301',
+            display_order=1
+        )
+
+        # Save an accident case linked to the grandchild "Death Due to Rash Driving"
+        case_d_id = str(uuid.uuid4())
+        case_d = CaseRecord.objects.create(
+            id=case_d_id,
+            case_number=f'CR/ACC-RASH-{uuid.uuid4().hex[:4]}',
+            title='Rash Driving Incident',
+            station_name='Test Station',
+            status='Pending',
+            sub_category='Death Due to Rash Driving',
+        )
+        CaseCategoryLink.objects.create(case=case_d, category=rash_driving_child, is_primary=True)
+
+        # Descendant IDs of standalone Accident must include child & grandchild from both branches
+        descendants_stand_acc = get_descendant_category_ids(accident_stand.category_id)
+        self.assertIn(accident_group.category_id, descendants_stand_acc)
+        self.assertIn(accident_stand.category_id, descendants_stand_acc)
+        self.assertIn(road_acc_group.category_id, descendants_stand_acc)
+        self.assertIn(road_acc_stand.category_id, descendants_stand_acc)
+        self.assertIn(rash_driving_child.category_id, descendants_stand_acc)
+
+        # GET cases on standalone Accident returns case_d
+        res_stand_acc_cases = self.client.get(f'/api/categories/{accident_stand.category_id}/cases/')
+        self.assertEqual(res_stand_acc_cases.status_code, status.HTTP_200_OK)
+        self.assertEqual(res_stand_acc_cases.data['total_cases'], 1)
+        self.assertEqual(res_stand_acc_cases.data['cases'][0]['id'], case_d_id)
+
+        # GET cases on group Accident returns case_d
+        res_grp_acc_cases = self.client.get(f'/api/categories/{accident_group.category_id}/cases/')
+        self.assertEqual(res_grp_acc_cases.status_code, status.HTTP_200_OK)
+        self.assertEqual(res_grp_acc_cases.data['total_cases'], 1)
+
+        # GET /api/categories/{id}/children/ on standalone Accident returns Road Accident
+        res_stand_children = self.client.get(f'/api/categories/{accident_stand.category_id}/children/')
+        self.assertEqual(res_stand_children.status_code, status.HTTP_200_OK)
+        child_names = [c['category_name'] for c in res_stand_children.data]
+        self.assertIn('Road Accident', child_names)
+        self.assertEqual(child_names.count('Road Accident'), 1, "Child should not be duplicated")
+        self.assertTrue(res_stand_children.data[0]['has_children'])
+        self.assertEqual(res_stand_children.data[0]['counters']['total'], 1)
 
     def test_charges_hydration_and_preservation_on_edit(self):
         """

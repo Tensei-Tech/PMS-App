@@ -1,3 +1,4 @@
+
 # Migration to fix crime_case_acts_sections primary key.
 #
 # Background:

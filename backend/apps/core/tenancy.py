@@ -35,6 +35,9 @@ class TenantContext:
         stack = _get_schema_stack()
         stack.append(self.target_schema)
 
+        if connection.vendor != 'postgresql':
+            return self
+
         try:
             with connection.cursor() as cursor:
                 if self.target_schema != 'public':
@@ -54,6 +57,9 @@ class TenantContext:
         # Restore to whatever is on top of the stack, or 'public' if empty
         restore_schema = stack[-1] if stack else 'public'
 
+        if connection.vendor != 'postgresql':
+            return
+
         try:
             with connection.cursor() as cursor:
                 if restore_schema and restore_schema != 'public':
@@ -69,13 +75,26 @@ def set_tenant_schema(schema_name: str):
     """
     Sets search_path on the active database connection.
     """
+    if connection.vendor != 'postgresql':
+        return
     clean_schema = "".join(c for c in (schema_name or 'public') if c.isalnum() or c == '_').lower() or 'public'
-
-    with connection.cursor() as cursor:
-        if clean_schema != 'public':
-            cursor.execute(f'SET search_path TO "{clean_schema}", public;')
-        else:
-            cursor.execute('SET search_path TO public;')
+    try:
+        with connection.cursor() as cursor:
+            if clean_schema != 'public':
+                cursor.execute(f'SET search_path TO "{clean_schema}", public;')
+            else:
+                cursor.execute('SET search_path TO public;')
+    except Exception:
+        # If connection was closed or dropped by the remote pooler, reconnect cleanly
+        try:
+            connection.close()
+            with connection.cursor() as cursor:
+                if clean_schema != 'public':
+                    cursor.execute(f'SET search_path TO "{clean_schema}", public;')
+                else:
+                    cursor.execute('SET search_path TO public;')
+        except Exception as e:
+            logger.warning(f"[Tenancy] Failed to set search_path to {clean_schema}: {e}")
 
 
 def provision_state_schema(schema_name: str, state_code: str = None, state_name: str = None):
@@ -83,6 +102,8 @@ def provision_state_schema(schema_name: str, state_code: str = None, state_name:
     Provisions a new PostgreSQL schema for a state tenant.
     Creates schema and executes DDL tables (users_officerprofile, master_divisions) if not present.
     """
+    if connection.vendor != 'postgresql':
+        return
     clean_schema = "".join(c for c in schema_name if c.isalnum() or c == '_').lower()
     if not clean_schema:
         raise ValueError("Invalid schema name")
