@@ -12,11 +12,13 @@ def get_cases_by_status(tab: str):
     """
     queryset = CaseRecord.objects.all()
     
-    if tab == 'disposal':
+    if tab.lower() == 'disposal':
         return queryset.filter(status__iexact='Disposal')
-    elif tab == 'pending':
+    elif tab.lower() == 'pending':
         # "Pending" includes anything that is not Disposal, Closed, or Resolved
         return queryset.filter(status__iexact='Pending')
+    elif tab.lower() == 'detected':
+        return queryset.filter(status__iexact='Detected')
         
     return queryset
 

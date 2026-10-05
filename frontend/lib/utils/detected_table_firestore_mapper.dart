@@ -26,15 +26,23 @@ String _sectionsLine(ModuleRecord r) {
 }
 
 String _accusedLine(ModuleRecord r) {
-  // Check standard accused field (if mapped to extraFields['accused'])
-  if (r.extraFields.containsKey('accused') && r.extraFields['accused'] != null) {
-      var acc = r.extraFields['accused'];
-      if (acc is List && acc.isNotEmpty && acc[0] is Map) {
-          return acc[0]['name']?.toString() ?? acc[0]['accused_name']?.toString() ?? acc.toString();
-      }
-      return r.extraFields['accused'].toString();
+  // Check the primary accused property on ModuleRecord
+  if (r.accused.trim().isNotEmpty) {
+    return r.accused.trim();
   }
-  
+
+  // Check standard accused field (if mapped to extraFields['accused'])
+  if (r.extraFields.containsKey('accused') &&
+      r.extraFields['accused'] != null) {
+    var acc = r.extraFields['accused'];
+    if (acc is List && acc.isNotEmpty && acc[0] is Map) {
+      return acc[0]['name']?.toString() ??
+          acc[0]['accused_name']?.toString() ??
+          acc.toString();
+    }
+    return r.extraFields['accused'].toString();
+  }
+
   // Check other extra fields
   for (final key in ['AccusedName', 'accused_name', 'accusedName']) {
     final val = r.extraFields[key];

@@ -113,7 +113,8 @@ def is_ad_case_disposed(case) -> bool:
         extra = case.get('extra_fields') or case.get('extraFields') or {}
         num = _extract_first_non_empty(extra, AD_SUMMARY_NO_KEYS) or _extract_first_non_empty(case, AD_SUMMARY_NO_KEYS)
         dt = _extract_first_non_empty(extra, AD_SUMMARY_DATE_KEYS) or _extract_first_non_empty(case, AD_SUMMARY_DATE_KEYS)
-        return bool(num and dt)
+        cc = extra.get('ccStNumber') or extra.get('cc_st_number') or extra.get('ccStNo') or extra.get('cc_st_no')
+        return bool(cc) or bool(num and dt)
 
     mod = str(getattr(case, 'module_key', '')).strip().lower()
     sub = str(getattr(case, 'sub_category', '')).strip().lower()
@@ -123,7 +124,8 @@ def is_ad_case_disposed(case) -> bool:
     extra = getattr(case, 'extra_fields', {}) or {}
     num = _extract_first_non_empty(extra, AD_SUMMARY_NO_KEYS)
     dt = _extract_first_non_empty(extra, AD_SUMMARY_DATE_KEYS)
-    return bool(num and dt)
+    cc = extra.get('ccStNumber') or extra.get('cc_st_number') or extra.get('ccStNo') or extra.get('cc_st_no')
+    return bool(cc) or bool(num and dt)
 
 
 COURT_FILING_DISPOSAL_KEYS = [
@@ -325,8 +327,11 @@ class CaseRecord(models.Model):
         else:
             if has_disposal_key:
                 self.status = CASE_STATUS_DISPOSAL
-            elif self.status == CASE_STATUS_DISPOSAL or self.status == CASE_STATUS_PENDING or self.status == CASE_STATUS_DETECTED:
+            elif self.status == CASE_STATUS_DISPOSAL or self.status == CASE_STATUS_PENDING:
                 self.status = CASE_STATUS_DETECTED if is_detected else CASE_STATUS_PENDING
+            elif self.status == CASE_STATUS_DETECTED:
+                # If it's already Detected, only downgrade if it was a Disposal losing its disposal status
+                pass
 
         super().save(*args, **kwargs)
 

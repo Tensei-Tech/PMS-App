@@ -141,6 +141,29 @@ class CaseRecordSerializer(serializers.ModelSerializer):
 
         return attrs
 
+    def update(self, instance, validated_data):
+        from django.utils import timezone
+        extra_fields = validated_data.get('extra_fields')
+        
+        if extra_fields is not None:
+            old_cc = instance.extra_fields.get('ccStNumber') or instance.extra_fields.get('cc_st_number')
+            new_cc = extra_fields.get('ccStNumber') or extra_fields.get('cc_st_number')
+            
+            # If CC was removed, log it
+            if old_cc and (not new_cc or str(new_cc).strip() == ''):
+                if 'status_logs' not in extra_fields:
+                    extra_fields['status_logs'] = []
+                # Remove any identical action that might have been added by validate()
+                extra_fields['status_logs'] = [log for log in extra_fields['status_logs'] if log.get('action') != 'cc_st_removed']
+                
+                extra_fields['status_logs'].insert(0, {
+                    'action': 'cc_st_removed',
+                    'timestamp': timezone.now().isoformat(),
+                    'user_uid': getattr(self.context, '_current_user_uid', None)
+                })
+        
+        return super().update(instance, validated_data)
+
 
 class DisposalCaseRecordSerializer(CaseRecordSerializer):
     def to_representation(self, instance):

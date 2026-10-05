@@ -33,7 +33,6 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
           1: const FlexColumnWidth(1.5),
           2: const FlexColumnWidth(1.5),
           3: const FlexColumnWidth(1.5),
-          
         };
 
         Widget headerCell(String s) => Container(
@@ -75,7 +74,6 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
           headerCell('Cr. No.'),
           headerCell('SEC & ACT'),
           headerCell('Accused name'),
-          
         ];
 
         TableRow rowFor(int idx, Map<String, String> r) {
@@ -87,7 +85,6 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
               dataCell(r['cr']!),
               dataCell(r['sections']!),
               dataCell(r['accused'] ?? '', align: Alignment.centerLeft),
-              
             ],
           );
         }
