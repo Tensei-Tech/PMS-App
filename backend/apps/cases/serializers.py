@@ -207,8 +207,8 @@ class DisposalCaseRecordSerializer(CaseRecordSerializer):
         
         # Priority: 
         # If it's a generic form (like form_1_5), the actual crime name (e.g., Murder, Sand Theft) is in sub_category
-        if mk == 'form_1_5' and sub:
-            data['crime_type_name'] = sub
+        if mk == 'form_1_5':
+            data['crime_type_name'] = sub if sub else 'Other Crimes'
         elif sub and not cat_map.get(mk):
             data['crime_type_name'] = sub
         else:
