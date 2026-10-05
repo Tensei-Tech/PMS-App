@@ -205,6 +205,17 @@ class DisposalCaseRecordSerializer(CaseRecordSerializer):
         mk = (instance.module_key or "").strip().lower()
         data['crime_type_name'] = cat_map.get(mk, instance.module_key)
         
+        # Extract act and section from acts_sections if present
+        acts_sections = extra.get('acts_sections', [])
+        if isinstance(acts_sections, list) and acts_sections:
+            first_as = acts_sections[0]
+            if isinstance(first_as, dict):
+                data['act'] = first_as.get('act') or extra.get('act') or ''
+                data['section'] = first_as.get('section') or extra.get('section') or ''
+        else:
+            data['act'] = extra.get('act') or ''
+            data['section'] = extra.get('section') or ''
+        
         return data
 
 class CreateCaseSerializer(serializers.Serializer):
