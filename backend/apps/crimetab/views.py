@@ -1523,20 +1523,41 @@ class CaseCountsView(APIView):
     """
     Lightweight single-query counts endpoint for dashboard tiles and module metrics.
     Avoids fetching entire case record lists on login / dashboard load.
+    Enforces strict state tenant resolution to prevent cross-tenant data exposure.
     """
     permission_classes = [AllowAny]
 
     def get(self, request):
-        schema_name = getattr(request, 'state_schema', None)
-        if not schema_name or schema_name == 'public':
-            state_code = getattr(request, 'state_code', None) or 'MH'
-            from apps.core.middleware import _STATE_SCHEMA_CACHE
-            schema_name = _STATE_SCHEMA_CACHE.get(str(state_code).upper(), 'maharashtra')
+        from apps.core.tenancy import TenantContext, get_active_tenant_schema
+        from apps.public_master.models import StateRegistry
+
+        state_id = (request.query_params.get('state_id') or request.query_params.get('state_code') or '').strip().upper()
+        target_schema = None
+
+        if state_id and state_id != 'GLOBAL':
+            state_reg = StateRegistry.objects.filter(Q(state_code__iexact=state_id) | Q(state_name__iexact=state_id)).first()
+            if state_reg and state_reg.schema_name:
+                target_schema = state_reg.schema_name
+
+        if not target_schema:
+            active_schema = get_active_tenant_schema(request)
+            if active_schema and active_schema != 'public':
+                target_schema = active_schema
+
+        # Fail-fast boundary: state tenant context is strictly required to query dashboard metrics
+        if not target_schema or target_schema == 'public':
+            return Response(
+                {
+                    'error': 'State tenant context is required to query dashboard metrics. Please provide authentication token or X-State-Code header.',
+                    'module_counts': {},
+                    'totals': {'total': 0, 'open_count': 0, 'pending_count': 0, 'resolved_count': 0, 'disposal_count': 0},
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         station_name = request.query_params.get('station_name')
-        from apps.core.tenancy import TenantContext
         try:
-            with TenantContext(schema_name):
+            with TenantContext(target_schema):
                 qs = CaseRecord.objects.all()
                 if station_name and station_name.strip().upper() not in ['ALL', '']:
                     qs = qs.filter(station_name__iexact=station_name)
@@ -1556,13 +1577,13 @@ class CaseCountsView(APIView):
                 return Response({
                     'module_counts': counts_by_module,
                     'totals': totals,
-                })
+                }, status=status.HTTP_200_OK)
         except Exception as e:
             logger.exception("Error in CaseCountsView.get: %s", e)
-            return Response({'module_counts': {}, 'totals': {'total': 0}}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        except Exception as e:
-            logger.exception("Error in CaseCountsView.get: %s", e)
-            return Response({'module_counts': {}, 'totals': {'total': 0}}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {'error': f"Failed to retrieve counts for schema '{target_schema}'", 'module_counts': {}, 'totals': {'total': 0}},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class CasePdfView(APIView):
