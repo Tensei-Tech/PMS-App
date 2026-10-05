@@ -19,6 +19,14 @@ def get_cases_by_status(tab: str):
         return queryset.filter(status__iexact='Pending')
     elif tab.lower() == 'detected':
         return queryset.filter(status__iexact='Detected')
+    elif tab.lower() == 'arrested':
+        return queryset.filter(
+            Q(module_key__iexact='arrested') |
+            Q(extra_fields__has_key='arrest_records') |
+            Q(extra_fields__has_key='arrest_datetime') |
+            Q(extra_fields__has_key='arrested_person_name') |
+            Q(extra_fields__has_key='arrests')
+        )
         
     return queryset
 
