@@ -184,6 +184,25 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
     }
   }
 
+  static bool _isExcludedFromFormIV(String name) {
+    final lower = name.trim().toLowerCase();
+    const excluded = {
+      'st drugs',
+      'st_drugs',
+      'stdrugs',
+      'prohibition',
+      'gambling',
+      'pocso',
+      'ndps',
+      'gowansh',
+      'it act',
+      'm.v act',
+      'mv act',
+      'uapa',
+    };
+    return excluded.contains(lower);
+  }
+
   Future<void> _loadGroupCategories() async {
     setState(() => _isLoadingApiCategories = true);
     try {
@@ -196,7 +215,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
           final names = targetList
               .map((c) =>
                   (c['category_name'] ?? c['name'] ?? '').toString().trim())
-              .where((n) => n.isNotEmpty)
+              .where((n) => n.isNotEmpty && !_isExcludedFromFormIV(n))
               .toSet()
               .toList();
           setState(() {
@@ -223,7 +242,9 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
 
   List<String> get _currentDisplayCategories {
     if (_categoryBreadcrumb.isEmpty) {
-      final options = List<String>.from(_filterOptions);
+      final options = List<String>.from(_filterOptions)
+          .where((cat) => !_isExcludedFromFormIV(cat))
+          .toList();
       final provider = context.read<FormIVProvider>();
       for (final r in provider.records) {
         final matchesAny = options.any(
@@ -235,6 +256,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
               r.extraFields['moduleDisplayName']?.toString().trim() ??
               '';
           if (fallbackName.isNotEmpty &&
+              !_isExcludedFromFormIV(fallbackName) &&
               !options.any((o) =>
                   o.toLowerCase() == fallbackName.toLowerCase())) {
             options.add(fallbackName);
@@ -247,7 +269,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
     final children = _categoryChildrenCache[parent] ?? [];
     return children
         .map((c) => (c['category_name'] ?? c['name'] ?? '').toString())
-        .where((n) => n.isNotEmpty)
+        .where((n) => n.isNotEmpty && !_isExcludedFromFormIV(n))
         .toList();
   }
 
