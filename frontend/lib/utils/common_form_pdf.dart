@@ -227,10 +227,12 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
 
   final List<_FD> propWidgets = [];
 
-  final spList = (m['stolenProperties'] is List) ? (m['stolenProperties'] as List) : null;
+  final spList =
+      (m['stolenProperties'] is List) ? (m['stolenProperties'] as List) : null;
   if (spList != null && spList.isNotEmpty) {
     for (int i = 0; i < spList.length; i++) {
-      final item = (spList[i] is Map) ? (spList[i] as Map) : <dynamic, dynamic>{};
+      final item =
+          (spList[i] is Map) ? (spList[i] as Map) : <dynamic, dynamic>{};
       propWidgets.add(
           _f('Stolen Property #${i + 1}', _v(item['property']), full: true));
       if (_v(item['quantity']).isNotEmpty) {
@@ -295,10 +297,13 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
     }
   }
 
-  final rpList = (m['recoveredProperties'] is List) ? (m['recoveredProperties'] as List) : null;
+  final rpList = (m['recoveredProperties'] is List)
+      ? (m['recoveredProperties'] as List)
+      : null;
   if (rpList != null && rpList.isNotEmpty) {
     for (int i = 0; i < rpList.length; i++) {
-      final item = (rpList[i] is Map) ? (rpList[i] as Map) : <dynamic, dynamic>{};
+      final item =
+          (rpList[i] is Map) ? (rpList[i] as Map) : <dynamic, dynamic>{};
       propWidgets.add(
           _f('Recovered Property #${i + 1}', _v(item['property']), full: true));
       if (_v(item['quantity']).isNotEmpty) {
@@ -315,13 +320,14 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
       }
     }
   } else {
-    final recProp = (m['recoveredProperty'] is Map) ? (m['recoveredProperty'] as Map) : null;
-    final stProp = (m['stolenProperty'] is Map) ? (m['stolenProperty'] as Map) : null;
+    final recProp = (m['recoveredProperty'] is Map)
+        ? (m['recoveredProperty'] as Map)
+        : null;
+    final stProp =
+        (m['stolenProperty'] is Map) ? (m['stolenProperty'] as Map) : null;
     final prop = recProp != null
         ? _v(recProp['property'])
-        : (stProp != null
-            ? _v(stProp['recovered'])
-            : '');
+        : (stProp != null ? _v(stProp['recovered']) : '');
     if (prop.isNotEmpty) {
       propWidgets.add(_f('Recovered Property', prop, full: true));
     }
@@ -330,15 +336,13 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
         propWidgets.add(_f('Quantity', _v(recProp['quantity'])));
       }
       if (_v(recProp['estValue']).isNotEmpty) {
-        propWidgets
-            .add(_f('Est. Value', _v(recProp['estValue'])));
+        propWidgets.add(_f('Est. Value', _v(recProp['estValue'])));
       }
       if (_v(recProp['date']).isNotEmpty) {
         propWidgets.add(_f('Date & Time', _v(recProp['date'])));
       }
       if (_v(recProp['from']).isNotEmpty) {
-        propWidgets
-            .add(_f('Recovered From', _v(recProp['from'])));
+        propWidgets.add(_f('Recovered From', _v(recProp['from'])));
       }
     }
   }
@@ -454,7 +458,8 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   );
 
   // ── §6 Suspected Accused ────
-  final suspectedList = (m['suspectedAccused'] is List) ? (m['suspectedAccused'] as List) : [];
+  final suspectedList =
+      (m['suspectedAccused'] is List) ? (m['suspectedAccused'] as List) : [];
   sections.add(
     _card(
       6,
@@ -482,7 +487,8 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   );
 
   // ── §7 Unidentified Accused ─────────────────────────────────────────────────
-  final unidentifiedList = (m['unidentifiedList'] is List) ? (m['unidentifiedList'] as List) : [];
+  final unidentifiedList =
+      (m['unidentifiedList'] is List) ? (m['unidentifiedList'] as List) : [];
   sections.add(
     _card(
       7,
@@ -492,7 +498,8 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
           ? _empty('No unidentified accused added.')
           : pw.Column(
               children: unidentifiedList.asMap().entries.map((e) {
-                final u = (e.value is Map) ? (e.value as Map) : <dynamic, dynamic>{};
+                final u =
+                    (e.value is Map) ? (e.value as Map) : <dynamic, dynamic>{};
                 return _subCard(
                   _grid2([
                     _f('Approximate Age', _v(u['approxAge'])),
@@ -528,7 +535,8 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   );
 
   // ── §9 Case Responsibility ────────────────────────────────────────────────
-  final cr8 = (m['caseResponsibility'] is Map) ? (m['caseResponsibility'] as Map) : {};
+  final cr8 =
+      (m['caseResponsibility'] is Map) ? (m['caseResponsibility'] as Map) : {};
   sections.add(
     _card(
       9,
@@ -544,7 +552,8 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   );
 
   // ── §10 Arrest ────────────────────────────────────────────────────────────
-  final arrests = (m['arrestRelease'] is List) ? (m['arrestRelease'] as List) : [];
+  final arrests =
+      (m['arrestRelease'] is List) ? (m['arrestRelease'] as List) : [];
   sections.add(
     _card(
       10,
@@ -691,12 +700,10 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   );
 
   // ── §13 All Panchanama ────────────────────────────────────────────────────
-  final procChecks = (m['proceduralChecks'] is Map)
-      ? (m['proceduralChecks'] as Map)
-      : {};
-  final procDates = (m['proceduralDates'] is Map)
-      ? (m['proceduralDates'] as Map)
-      : {};
+  final procChecks =
+      (m['proceduralChecks'] is Map) ? (m['proceduralChecks'] as Map) : {};
+  final procDates =
+      (m['proceduralDates'] is Map) ? (m['proceduralDates'] as Map) : {};
   const procLabels = {
     'chkSpotPanchanama': 'Spot Panchanama',
     'chkSeizurePanchanama': 'Seizure Panchanama',
@@ -880,12 +887,10 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   );
 
   // ── §16 Discharge Accused ─────────────────────────────────────────────────
-  final discharge = (m['dischargeByAccused'] is Map)
-      ? (m['dischargeByAccused'] as Map)
-      : {};
-  final disDetails = (m['dischargeDetails'] is Map)
-      ? (m['dischargeDetails'] as Map)
-      : {};
+  final discharge =
+      (m['dischargeByAccused'] is Map) ? (m['dischargeByAccused'] as Map) : {};
+  final disDetails =
+      (m['dischargeDetails'] is Map) ? (m['dischargeDetails'] as Map) : {};
   final customDischarges = (m['customDischargeList'] is List)
       ? (m['customDischargeList'] as List)
       : [];
@@ -904,9 +909,8 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
             ...discharge.entries.map((e) {
               final discharged = e.value == true;
               final name = e.key.toString();
-              final det = (disDetails[name] is Map)
-                  ? (disDetails[name] as Map)
-                  : {};
+              final det =
+                  (disDetails[name] is Map) ? (disDetails[name] as Map) : {};
               return pw.Padding(
                 padding: const pw.EdgeInsets.only(bottom: 6),
                 child: pw.Column(

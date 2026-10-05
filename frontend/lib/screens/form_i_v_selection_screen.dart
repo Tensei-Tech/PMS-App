@@ -2057,7 +2057,9 @@ class _CategoryGridView extends StatelessWidget {
     }
     final target = category.trim().toLowerCase();
     final descendants = getDescendantNames != null
-        ? getDescendantNames!(category).map((d) => d.trim().toLowerCase()).toSet()
+        ? getDescendantNames!(category)
+            .map((d) => d.trim().toLowerCase())
+            .toSet()
         : <String>{target};
     descendants.add(target);
 

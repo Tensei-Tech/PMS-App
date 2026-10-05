@@ -995,15 +995,25 @@ class CommonFormDocumentView extends StatelessWidget {
     final charges = (m['charges'] is Map) ? (m['charges'] as Map) : {};
     final comp = (m['complainant'] is Map) ? (m['complainant'] as Map) : {};
     final u = (m['unidentified'] is Map) ? (m['unidentified'] as Map) : {};
-    final unidList = (m['unidentifiedList'] is List) ? (m['unidentifiedList'] as List) : [];
-    final cr8 = (m['caseResponsibility'] is Map) ? (m['caseResponsibility'] as Map) : {};
-    final procChecks = (m['proceduralChecks'] is Map) ? (m['proceduralChecks'] as Map) : {};
-    final procDates = (m['proceduralDates'] is Map) ? (m['proceduralDates'] as Map) : {};
+    final unidList =
+        (m['unidentifiedList'] is List) ? (m['unidentifiedList'] as List) : [];
+    final cr8 = (m['caseResponsibility'] is Map)
+        ? (m['caseResponsibility'] as Map)
+        : {};
+    final procChecks =
+        (m['proceduralChecks'] is Map) ? (m['proceduralChecks'] as Map) : {};
+    final procDates =
+        (m['proceduralDates'] is Map) ? (m['proceduralDates'] as Map) : {};
     final seizures = (m['seizures'] is List) ? (m['seizures'] as List) : [];
     final prev = (m['preventive'] is Map) ? (m['preventive'] as Map) : {};
-    final discharge = (m['dischargeByAccused'] is Map) ? (m['dischargeByAccused'] as Map) : {};
-    final disDetails = (m['dischargeDetails'] is Map) ? (m['dischargeDetails'] as Map) : {};
-    final court = (m['court'] is Map) ? Map<String, dynamic>.from(m['court'] as Map) : <String, dynamic>{};
+    final discharge = (m['dischargeByAccused'] is Map)
+        ? (m['dischargeByAccused'] as Map)
+        : {};
+    final disDetails =
+        (m['dischargeDetails'] is Map) ? (m['dischargeDetails'] as Map) : {};
+    final court = (m['court'] is Map)
+        ? Map<String, dynamic>.from(m['court'] as Map)
+        : <String, dynamic>{};
     final verdict = (m['verdict'] is Map) ? (m['verdict'] as Map) : {};
     final acquitted = (verdict['acquitted'] is List)
         ? (verdict['acquitted'] as List).map((x) => x.toString()).toList()
@@ -1013,8 +1023,10 @@ class CommonFormDocumentView extends StatelessWidget {
         : <String>[];
     final sc = (m['scrutiny'] is Map) ? (m['scrutiny'] as Map) : {};
     final accusedList = (m['accused'] is List) ? (m['accused'] as List) : [];
-    final suspectedList = (m['suspectedAccused'] is List) ? (m['suspectedAccused'] as List) : [];
-    final arrests = (m['arrestRelease'] is List) ? (m['arrestRelease'] as List) : [];
+    final suspectedList =
+        (m['suspectedAccused'] is List) ? (m['suspectedAccused'] as List) : [];
+    final arrests =
+        (m['arrestRelease'] is List) ? (m['arrestRelease'] as List) : [];
 
     const accent = AppColors.infoBlue;
     int sIdx = 1;
@@ -1165,7 +1177,8 @@ class CommonFormDocumentView extends StatelessWidget {
           )
         else if (unidList.isNotEmpty)
           ...unidList.asMap().entries.map((e) {
-            final row = (e.value is Map) ? (e.value as Map) : <dynamic, dynamic>{};
+            final row =
+                (e.value is Map) ? (e.value as Map) : <dynamic, dynamic>{};
             return Container(
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(AppSpacing.md),
@@ -1624,7 +1637,8 @@ class CommonFormDocumentView extends StatelessWidget {
           )
         else
           ...seizures.asMap().entries.map((e) {
-            final s = (e.value is Map) ? (e.value as Map) : <dynamic, dynamic>{};
+            final s =
+                (e.value is Map) ? (e.value as Map) : <dynamic, dynamic>{};
             return Container(
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(AppSpacing.md),
@@ -1685,9 +1699,12 @@ class CommonFormDocumentView extends StatelessWidget {
         accent,
         [
           if (((prev['items'] is List) && (prev['items'] as List).isNotEmpty) ||
-              ((m['preventive_actions'] is List) && (m['preventive_actions'] as List).isNotEmpty)) ...[
+              ((m['preventive_actions'] is List) &&
+                  (m['preventive_actions'] as List).isNotEmpty)) ...[
             ...(((prev['items'] is List ? prev['items'] as List : null) ??
-                    (m['preventive_actions'] is List ? m['preventive_actions'] as List : null) ??
+                    (m['preventive_actions'] is List
+                        ? m['preventive_actions'] as List
+                        : null) ??
                     []))
                 .map((it) {
               if (it is! Map) return const SizedBox.shrink();
@@ -1767,7 +1784,8 @@ class CommonFormDocumentView extends StatelessWidget {
       // ── Card 16: Discharge Accused ────────────────────────────────────────
       _sectionShell(sIdx++, 'DISCHARGE ACCUSED', accent, [
         if (discharge.isEmpty &&
-            (m['customDischargeList'] is! List || (m['customDischargeList'] as List).isEmpty))
+            (m['customDischargeList'] is! List ||
+                (m['customDischargeList'] as List).isEmpty))
           Text(
             'No discharge data.',
             style: GoogleFonts.poppins(
@@ -1779,7 +1797,8 @@ class CommonFormDocumentView extends StatelessWidget {
           ...discharge.entries.map((e) {
             final ok = e.value == true;
             final name = e.key.toString();
-            final det = (disDetails[name] is Map) ? (disDetails[name] as Map) : {};
+            final det =
+                (disDetails[name] is Map) ? (disDetails[name] as Map) : {};
             return Container(
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(10),
@@ -1853,7 +1872,8 @@ class CommonFormDocumentView extends StatelessWidget {
               ),
             );
           }),
-          if (m['customDischargeList'] is List && (m['customDischargeList'] as List).isNotEmpty) ...[
+          if (m['customDischargeList'] is List &&
+              (m['customDischargeList'] as List).isNotEmpty) ...[
             const SizedBox(height: 6),
             Text(
               'ADDITIONAL DISCHARGED PERSONS',
@@ -1865,7 +1885,8 @@ class CommonFormDocumentView extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             ...((m['customDischargeList'] as List).map((cd) {
-              final cMap = (cd is Map) ? cd : <dynamic, dynamic>{'name': cd.toString()};
+              final cMap =
+                  (cd is Map) ? cd : <dynamic, dynamic>{'name': cd.toString()};
               return Container(
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.all(AppSpacing.md),
