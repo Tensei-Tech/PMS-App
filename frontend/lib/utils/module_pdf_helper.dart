@@ -181,9 +181,10 @@ class ModulePdfHelper {
       if (record.id.trim().isNotEmpty) {
         final pdfBackendData =
             await CaseService().fetchCasePdfData(record.id.trim());
-        if (pdfBackendData != null && pdfBackendData['case_summary'] is Map) {
+        if (pdfBackendData != null &&
+            pdfBackendData['case_summary'] is Map<String, dynamic>) {
           final summary =
-              Map<String, dynamic>.from(pdfBackendData['case_summary'] as Map);
+              pdfBackendData['case_summary'] as Map<String, dynamic>;
           record = record.copyWith(
             caseNumber: summary['case_number']?.toString() ?? record.caseNumber,
             title: summary['title']?.toString() ?? record.title,

@@ -76,11 +76,6 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        context.read<FormVIProvider>().refresh();
-      }
-    });
     _loadGroupCategories();
   }
 
@@ -897,20 +892,9 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
     List<ModuleRecord> records,
     String category,
   ) {
-    final descendants = _getDescendantCategoryNames(category);
     final categoryRecords = category == FormVISelectionScreen.allFilterLabel
         ? records.toList()
-        : records.where((r) {
-            final sub = (r.subCategory ?? '').trim().toLowerCase();
-            final cat = r.category.trim().toLowerCase();
-            final target = category.trim().toLowerCase();
-            return sub == target ||
-                cat == target ||
-                descendants.any((d) {
-                  final dt = d.trim().toLowerCase();
-                  return dt == sub || dt == cat;
-                });
-          }).toList();
+        : records.where((r) => r.subCategory == category).toList();
 
     final filtered = categoryRecords.where(_recordMatchesDate).toList();
 
@@ -932,7 +916,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
         page: DynamicFormScreen(
           categoryId: categoryId,
           moduleLabel: category,
-          moduleKey: 'form_6',
+          moduleKey: 'form_1_5',
           subCategory: category,
           existingRecord: existingRecord,
           readOnly: _readOnly && existingRecord != null,
@@ -1979,17 +1963,12 @@ class _CategoryGridView extends StatelessWidget {
     }
     final descendants =
         getDescendantNames != null ? getDescendantNames!(category) : {category};
-    return records.where((r) {
-      final sub = (r.subCategory ?? '').trim().toLowerCase();
-      final cat = r.category.trim().toLowerCase();
-      final target = category.trim().toLowerCase();
-      return sub == target ||
-          cat == target ||
-          descendants.any((d) {
-            final dt = d.trim().toLowerCase();
-            return dt == sub || dt == cat;
-          });
-    }).length;
+    return records
+        .where((r) =>
+            descendants.any((d) =>
+                d.toLowerCase() == (r.subCategory ?? '').toLowerCase()) ||
+            (r.subCategory ?? '').toLowerCase() == category.toLowerCase())
+        .length;
   }
 
   IconData _iconForCategory(String category) {

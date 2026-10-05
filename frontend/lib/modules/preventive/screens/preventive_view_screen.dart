@@ -120,25 +120,16 @@ class PreventiveViewDocumentView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formMap = (prevMap['preventiveForm'] is Map)
-        ? Map<String, dynamic>.from(prevMap['preventiveForm'] as Map)
+    final formMap = (prevMap['preventiveForm'] is Map<String, dynamic>)
+        ? prevMap['preventiveForm'] as Map<String, dynamic>
         : prevMap;
 
-    final caseRef = (formMap['caseRef'] is Map)
-        ? Map<String, dynamic>.from(formMap['caseRef'] as Map)
-        : <String, dynamic>{};
-    final sections = (formMap['sections'] is Map)
-        ? Map<String, dynamic>.from(formMap['sections'] as Map)
-        : <String, dynamic>{};
-    final accusedList = (formMap['accusedList'] is List)
-        ? (formMap['accusedList'] as List)
-        : <dynamic>[];
-    final istegasha = (formMap['istegasha'] is Map)
-        ? Map<String, dynamic>.from(formMap['istegasha'] as Map)
-        : <String, dynamic>{};
-    final riskAndStatus = (formMap['riskAndStatus'] is Map)
-        ? Map<String, dynamic>.from(formMap['riskAndStatus'] as Map)
-        : <String, dynamic>{};
+    final caseRef = formMap['caseRef'] as Map<String, dynamic>? ?? {};
+    final sections = formMap['sections'] as Map<String, dynamic>? ?? {};
+    final accusedList = formMap['accusedList'] as List<dynamic>? ?? [];
+    final istegasha = formMap['istegasha'] as Map<String, dynamic>? ?? {};
+    final riskAndStatus =
+        formMap['riskAndStatus'] as Map<String, dynamic>? ?? {};
 
     final fallbackCrimeNo =
         record.caseNumber.trim().isNotEmpty ? record.caseNumber : record.title;
