@@ -47,7 +47,12 @@ from apps.crimetab.serializers import (
     ActSectionSerializer,
 )
 from apps.crimetab.services.dynamic_form_service import get_form_definition
-from apps.crimetab.services.counter_service import get_group_counters, get_category_counters
+from apps.crimetab.services.counter_service import (
+    get_group_counters,
+    get_category_counters,
+    get_twin_category_ids,
+    get_descendant_category_ids,
+)
 from apps.crimetab.services.person_service import get_or_create_person_for_case
 
 logger = logging.getLogger(__name__)
@@ -207,7 +212,10 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
             c_data = CaseCategorySerializer(c).data
             if include_counters:
                 c_data['counters'] = get_category_counters(c.category_id, station_name=station_name)
-            c_data['has_children'] = CaseCategory.objects.filter(parent_category_id=c.category_id, is_active=True).exists()
+            c_data['has_children'] = CaseCategory.objects.filter(
+                parent_category_id__in=get_twin_category_ids(c.category_id),
+                is_active=True
+            ).exists()
             results.append(c_data)
         return Response(results)
 
@@ -233,7 +241,10 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
                     {
                         **CaseCategorySerializer(cat).data,
                         'counters': get_category_counters(cat.category_id, station_name=station_name),
-                        'has_children': CaseCategory.objects.filter(parent_category_id=cat.category_id, is_active=True).exists(),
+                        'has_children': CaseCategory.objects.filter(
+                            parent_category_id__in=get_twin_category_ids(cat.category_id),
+                            is_active=True
+                        ).exists(),
                     }
                     for cat in g_cats
                 ]
@@ -249,7 +260,10 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
             {
                 **CaseCategorySerializer(cat).data,
                 'counters': get_category_counters(cat.category_id, station_name=station_name),
-                'has_children': CaseCategory.objects.filter(parent_category_id=cat.category_id, is_active=True).exists(),
+                'has_children': CaseCategory.objects.filter(
+                    parent_category_id__in=get_twin_category_ids(cat.category_id),
+                    is_active=True
+                ).exists(),
             }
             for cat in standalone_cats
         ]
@@ -258,25 +272,6 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
             'groups': groups_data,
             'standalone': standalone_data,
         })
-
-    @action(detail=False, methods=['get'])
-    def standalone(self, request):
-        """
-        GET /api/categories/standalone/
-        Returns all active standalone categories (group_id IS NULL).
-        """
-        station_name = request.query_params.get('station_name') or getattr(request, 'station_name', None)
-        standalone_cats = CaseCategory.objects.filter(
-            group__isnull=True,
-            is_active=True
-        ).order_by('display_order', 'category_id')
-        results = []
-        for cat in standalone_cats:
-            c_data = CaseCategorySerializer(cat).data
-            c_data['counters'] = get_category_counters(cat.category_id, station_name=station_name)
-            c_data['has_children'] = CaseCategory.objects.filter(parent_category_id=cat.category_id, is_active=True).exists()
-            results.append(c_data)
-        return Response(results)
 
     @action(detail=True, methods=['get'])
     def counters(self, request, pk=None):
@@ -296,19 +291,35 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     def children(self, request, pk=None):
         if str(pk).isdigit():
             cat_id = int(pk)
+            cat = CaseCategory.objects.filter(pk=cat_id).first()
         else:
             cat = CaseCategory.objects.filter(category_name__iexact=pk).first()
             if not cat:
                 return Response({'error': f'Category {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
             cat_id = cat.category_id
 
+        if not cat:
+            return Response({'error': f'Category {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
+
         station_name = request.query_params.get('station_name') or getattr(request, 'station_name', None)
-        children_cats = CaseCategory.objects.filter(parent_category_id=cat_id, is_active=True).order_by('display_order', 'category_id')
+        twin_ids = get_twin_category_ids(cat_id)
+        direct_children = list(CaseCategory.objects.filter(parent_category_id=cat_id, is_active=True).order_by('display_order', 'category_id'))
+        seen_names = {c.category_name.strip().lower() for c in direct_children}
+        twin_children = list(CaseCategory.objects.filter(parent_category_id__in=twin_ids, is_active=True).order_by('display_order', 'category_id'))
+
+        combined_children = list(direct_children)
+        for tc in twin_children:
+            name_lower = tc.category_name.strip().lower()
+            if name_lower not in seen_names:
+                seen_names.add(name_lower)
+                combined_children.append(tc)
+
         results = []
-        for c in children_cats:
+        for c in combined_children:
             c_data = CaseCategorySerializer(c).data
             c_data['counters'] = get_category_counters(c.category_id, station_name=station_name)
-            c_data['has_children'] = CaseCategory.objects.filter(parent_category_id=c.category_id, is_active=True).exists()
+            child_twin_ids = get_twin_category_ids(c.category_id)
+            c_data['has_children'] = CaseCategory.objects.filter(parent_category_id__in=child_twin_ids, is_active=True).exists()
             results.append(c_data)
         return Response(results)
 
@@ -362,7 +373,6 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
         status_filter = request.query_params.get('status')
         search = request.query_params.get('search')
 
-        from apps.crimetab.services.counter_service import get_descendant_category_ids
         descendant_ids = get_descendant_category_ids(category_id)
         linked_case_ids = CaseCategoryLink.objects.filter(category_id__in=descendant_ids).values_list('case_id', flat=True)
 
@@ -371,7 +381,7 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
         for name in cat_names:
             q_filter |= Q(sub_category__iexact=name)
 
-        qs = CaseRecord.objects.filter(q_filter)
+        qs = CaseRecord.objects.filter(q_filter).distinct()
 
         if station_name:
             qs = qs.filter(station_name__iexact=station_name)

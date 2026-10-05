@@ -18,6 +18,8 @@ class TenantContext:
         self.previous_schema = 'public'
 
     def __enter__(self):
+        if connection.vendor != 'postgresql':
+            return self
         try:
             with connection.cursor() as cursor:
                 # Sanitize schema name (alphanumeric and underscores only)
@@ -29,6 +31,8 @@ class TenantContext:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        if connection.vendor != 'postgresql':
+            return
         try:
             with connection.cursor() as cursor:
                 cursor.execute('SET search_path TO public;')
@@ -40,6 +44,8 @@ def set_tenant_schema(schema_name: str):
     """
     Sets search_path on the active database connection.
     """
+    if connection.vendor != 'postgresql':
+        return
     if not schema_name:
         schema_name = 'public'
     clean_schema = "".join(c for c in schema_name if c.isalnum() or c == '_').lower()
@@ -52,6 +58,8 @@ def provision_state_schema(schema_name: str):
     Provisions a new PostgreSQL schema for a state tenant.
     Creates schema and executes DDL tables if not present.
     """
+    if connection.vendor != 'postgresql':
+        return
     clean_schema = "".join(c for c in schema_name if c.isalnum() or c == '_').lower()
     if not clean_schema:
         raise ValueError("Invalid schema name")
