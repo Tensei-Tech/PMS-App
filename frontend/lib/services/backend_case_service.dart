@@ -81,6 +81,7 @@ class BackendCaseService {
   /// Fetch pending cases, optionally filtering by time range and category
   Future<List<Map<String, dynamic>>?> fetchPendingCases({
     String? ioUid,
+    String? category,
     String? startDate,
     String? endDate,
   }) async {
@@ -88,6 +89,9 @@ class BackendCaseService {
       final queryParams = <String, dynamic>{};
       if (ioUid != null && ioUid.isNotEmpty) {
         queryParams['io'] = ioUid;
+      }
+      if (category != null && category.isNotEmpty) {
+        queryParams['head'] = category; // 'head' maps to category
       }
       if (startDate != null && startDate.isNotEmpty) {
         queryParams['start_date'] = startDate;
@@ -597,6 +601,103 @@ class BackendCaseService {
     } catch (e) {
       if (kDebugMode) {
         debugPrint('[BackendCaseService] fetchDetectedTimeWise exception: $e');
+      }
+    }
+    return null;
+  }
+
+  // ARRESTED API WRAPPERS
+  Future<List<Map<String, dynamic>>?> fetchArrestedCases({
+    String? ioUid,
+    String? startDate,
+    String? endDate,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (ioUid != null && ioUid.isNotEmpty) {
+        queryParams['io'] = ioUid;
+      }
+      if (startDate != null && startDate.isNotEmpty) {
+        queryParams['start_date'] = startDate;
+      }
+      if (endDate != null && endDate.isNotEmpty) {
+        queryParams['end_date'] = endDate;
+      }
+
+      final url = '${ApiConfig.cases}arrested/case-wise/';
+      final response = await _api.get(url, queryParameters: queryParams);
+
+      if (response.isSuccess) {
+        if (response.data is List) {
+          return List<Map<String, dynamic>>.from(response.data);
+        } else if (response.data is Map &&
+            response.data.containsKey('results')) {
+          return List<Map<String, dynamic>>.from(response.data['results']);
+        }
+      } else {
+        if (kDebugMode) {
+          debugPrint(
+            '[BackendCaseService] fetchArrestedCases error: ${response.errorMessage}',
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] fetchArrestedCases exception: $e');
+      }
+    }
+    return null;
+  }
+
+  Future<List<Map<String, dynamic>>?> fetchArrestedIOWise({
+    String? startDate,
+    String? endDate,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (startDate != null && startDate.isNotEmpty) {
+        queryParams['start_date'] = startDate;
+      }
+      if (endDate != null && endDate.isNotEmpty) {
+        queryParams['end_date'] = endDate;
+      }
+
+      final url = '${ApiConfig.cases}arrested/io-wise/';
+      final response = await _api.get(url, queryParameters: queryParams);
+
+      if (response.isSuccess && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data);
+      } else {
+        if (kDebugMode) {
+          debugPrint(
+            '[BackendCaseService] fetchArrestedIOWise error: ${response.errorMessage}',
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] fetchArrestedIOWise exception: $e');
+      }
+    }
+    return null;
+  }
+
+  Future<List<Map<String, dynamic>>?> fetchArrestedTimeWise() async {
+    try {
+      final url = '${ApiConfig.cases}arrested/time-wise/';
+      final response = await _api.get(url);
+      if (response.isSuccess && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data);
+      } else {
+        if (kDebugMode) {
+          debugPrint(
+            '[BackendCaseService] fetchArrestedTimeWise error: ${response.errorMessage}',
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] fetchArrestedTimeWise exception: $e');
       }
     }
     return null;

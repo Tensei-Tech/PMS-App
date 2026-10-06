@@ -1,3 +1,4 @@
+// ignore_for_file: unused_element, unused_field, unused_local_variable, dead_code, use_build_context_synchronously
 // lib/screens/module_hub_screen.dart
 // Reusable screen for ALL 12 modules — strictly isolated data per module.
 
@@ -8,8 +9,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
-import '../constants/case_status_constants.dart';
 
+import '../constants/case_status_constants.dart';
 import '../modules/absconded/providers/absconded_provider.dart';
 import '../modules/accident/providers/accident_provider.dart';
 import '../modules/accidental_death/providers/accidental_death_provider.dart';
@@ -33,7 +34,6 @@ import '../modules/mcoca/providers/mcoca_provider.dart';
 import '../modules/missing/providers/missing_provider.dart';
 import '../modules/missing/screens/missing_form_screen.dart';
 import '../modules/monthly/providers/monthly_provider.dart';
-
 import '../modules/mpda/providers/mpda_provider.dart';
 import '../modules/mpda/screens/mpda_form_screen.dart';
 import '../modules/muddemal/providers/muddemal_provider.dart';
@@ -48,9 +48,9 @@ import '../modules/preventive/screens/preventive_form_screen.dart';
 import '../modules/preventive/screens/preventive_view_screen.dart';
 import '../modules/sam_warrant/providers/sam_warrant_provider.dart';
 import '../modules/sand_theft/providers/sand_theft_provider.dart';
-import '../modules/theft/providers/theft_provider.dart';
-import '../modules/suicide/providers/suicide_provider.dart';
 import '../modules/st_drugs/providers/st_drugs_provider.dart';
+import '../modules/suicide/providers/suicide_provider.dart';
+import '../modules/theft/providers/theft_provider.dart';
 import '../modules/traffic/providers/traffic_provider.dart';
 import '../modules/two_four_wheeler/providers/two_four_wheeler_provider.dart';
 import '../modules/uapa/providers/uapa_provider.dart';
@@ -61,7 +61,8 @@ import '../theme/app_theme.dart';
 import '../utils/ad_disposal_helper.dart';
 import '../utils/common_form_module.dart';
 import '../utils/module_pdf_helper.dart';
-
+import '../utils/pending_io_wise_logic.dart';
+import '../utils/pdf_auth_gate.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/forms_accordion_list.dart';
 import '../widgets/module_hub_report_card.dart';
@@ -72,11 +73,12 @@ import 'ad_form_screen.dart';
 import 'ad_record_detail_screen.dart';
 import 'common_form_screen.dart';
 import 'form_i_v_selection_screen.dart';
-import 'form_vi_selection_screen.dart';
+import 'form_vi_selection_screen.dart' hide FormIVEmptyCasesState;
 import 'hurt_cases_screen.dart';
 import 'module_form_screen.dart';
 import 'module_record_detail_screen.dart';
-
+import 'filtered_pending_screen.dart';
+import 'pending_io_wise_screens.dart';
 import 'pending_summary_screen.dart';
 import 'report_case_list_screen.dart';
 
@@ -122,6 +124,32 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   bool _showMonthlyClassVTable = false;
   bool _showMonthlyClassVITable = false;
   bool _showMonthlyPreventiveTable = false;
+  DateTimeRange? _selectedDateRange;
+  FormIVDateField _dateField = FormIVDateField.incidentDate;
+  FormIVDateSortOrder _dateSortOrder = FormIVDateSortOrder.newestFirst;
+
+  String? _pendingCategory;
+  String? _pendingTimeRange;
+  String? _pendingViewMode;
+
+  static const List<String> _pendingHubCategories = [
+    ...kPendingDashboardCategoriesForIoWise,
+  ];
+
+  static const List<String> _pendingHubTimeRanges = [
+    'Select time range',
+    'More than 1 year',
+    '6 to 12 months',
+    '3 to 6 months',
+    'More than 3 months',
+    'Within 3 months',
+    '1 month',
+  ];
+
+  static const List<String> _pendingHubViewModes = [
+    'Case Wise',
+    'IO Wise',
+  ];
 
   @override
   void initState() {
@@ -522,91 +550,25 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     final List<ModuleRecord> filtered;
     // Filtering logic combined
     if (widget.moduleKey == 'absconded') {
-      if (_filter == CaseStatus.disposal) {
+      if (_filter == 'Disposal' ||
+          _filter == 'Closed' ||
+          _filter == 'Resolved') {
         filtered = allRecords.where((r) => isAbscondedDisposal(r)).toList();
-      } else if (_filter == CaseStatus.pending) {
+      } else if (_filter == 'Pending' ||
+          _filter == 'Open' ||
+          _filter == 'Active') {
         filtered = allRecords.where((r) => !isAbscondedDisposal(r)).toList();
       } else {
         filtered = allRecords;
       }
-    } else if (widget.moduleKey == 'mpda') {
-      if (_filter == 'Approved') {
-        filtered = allRecords.where((r) {
-          final outcome = r.extraFields['proposalOutcome'] ??
-              r.extraFields['mpdaForm']?['investigation']?['proposalOutcome'];
-          return outcome == 'Granted';
-        }).toList();
-      } else if (_filter == 'Rejected') {
-        filtered = allRecords.where((r) {
-          final outcome = r.extraFields['proposalOutcome'] ??
-              r.extraFields['mpdaForm']?['investigation']?['proposalOutcome'];
-          return outcome == 'Rejected';
-        }).toList();
-      } else if (_filter == 'Detained') {
-        filtered = allRecords.where((r) {
-          final isDet = (r.extraFields['isDetained'] ??
-                  r.extraFields['mpdaForm']?['detention']?['isDetained']) ==
-              'Yes';
-          final isRev = (r.extraFields['detentionRevoked'] ??
-                  r.extraFields['mpdaForm']?['detention']
-                      ?['detentionRevoked']) ==
-              'Yes';
-          return isDet && !isRev;
-        }).toList();
-      } else if (_filter == 'InJail') {
-        filtered = allRecords.where((r) {
-          final isDet = (r.extraFields['isDetained'] ??
-                  r.extraFields['mpdaForm']?['detention']?['isDetained']) ==
-              'Yes';
-          final isRev = (r.extraFields['detentionRevoked'] ??
-                  r.extraFields['mpdaForm']?['detention']
-                      ?['detentionRevoked']) ==
-              'Yes';
-          final jail = (r.extraFields['jailName'] ??
-                      r.extraFields['mpdaForm']?['detention']?['jailName'])
-                  ?.toString()
-                  .trim() ??
-              '';
-          return isDet && !isRev && jail.isNotEmpty;
-        }).toList();
-      } else if (_filter == 'Revoked') {
-        filtered = allRecords.where((r) {
-          return (r.extraFields['detentionRevoked'] ??
-                  r.extraFields['mpdaForm']?['detention']
-                      ?['detentionRevoked']) ==
-              'Yes';
-        }).toList();
-      } else if (_filter == 'NextMonth') {
-        final now = DateTime.now();
-        final nextMonthStart = DateTime(now.year, now.month + 1, 1);
-        final nextMonthEnd = DateTime(now.year, now.month + 2, 0, 23, 59, 59);
-        filtered = allRecords.where((r) {
-          final dateStr = (r.extraFields['detentionCompletionDate'] ??
-                  r.extraFields['mpdaForm']?['detention']
-                      ?['detentionCompletionDate'])
-              ?.toString()
-              .trim();
-          if (dateStr == null || dateStr.isEmpty) return false;
-          final parts = dateStr.split('/');
-          if (parts.length == 3) {
-            final d = int.tryParse(parts[0]);
-            final m = int.tryParse(parts[1]);
-            final y = int.tryParse(parts[2]);
-            if (d != null && m != null && y != null) {
-              final compDate = DateTime(y, m, d);
-              return !compDate.isBefore(nextMonthStart) &&
-                  !compDate.isAfter(nextMonthEnd);
-            }
-          }
-          return false;
-        }).toList();
-      } else {
-        filtered = allRecords;
-      }
     } else {
-      if (_filter == CaseStatus.disposal) {
+      if (_filter == 'Disposal' ||
+          _filter == 'Closed' ||
+          _filter == 'Resolved') {
         filtered = allRecords.where(isRecordDisposal).toList();
-      } else if (_filter == CaseStatus.pending) {
+      } else if (_filter == 'Pending' ||
+          _filter == 'Open' ||
+          _filter == 'Active') {
         filtered = allRecords.where(isRecordPending).toList();
       } else {
         filtered = _filter == 'All'
@@ -614,6 +576,63 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             : allRecords.where((r) => r.status == _filter).toList();
       }
     }
+
+    final bool isTheftOrFormIVStyle = widget.moduleKey == 'theft' ||
+        widget.moduleLabel == 'Theft' ||
+        widget.moduleKey == 'sand_theft' ||
+        widget.moduleKey == 'two_four_wheeler';
+
+    FormIVStatusTab selectedTab;
+    if (_filter == CaseStatus.pending) {
+      selectedTab = FormIVStatusTab.pending;
+    } else if (_filter == CaseStatus.disposal) {
+      selectedTab = FormIVStatusTab.disposal;
+    } else {
+      selectedTab = FormIVStatusTab.total;
+    }
+
+    List<ModuleRecord> displayRecords = List<ModuleRecord>.from(filtered);
+    if (isTheftOrFormIVStyle) {
+      if (_selectedDateRange != null) {
+        final start = DateTime(
+          _selectedDateRange!.start.year,
+          _selectedDateRange!.start.month,
+          _selectedDateRange!.start.day,
+        );
+        final end = DateTime(
+          _selectedDateRange!.end.year,
+          _selectedDateRange!.end.month,
+          _selectedDateRange!.end.day,
+          23,
+          59,
+          59,
+        );
+        displayRecords = displayRecords.where((r) {
+          final targetDate = _dateField == FormIVDateField.incidentDate
+              ? r.incidentDate
+              : r.createdAt;
+          return targetDate
+                  .isAfter(start.subtract(const Duration(seconds: 1))) &&
+              targetDate.isBefore(end.add(const Duration(seconds: 1)));
+        }).toList();
+      }
+      displayRecords.sort((a, b) {
+        final dateA = _dateField == FormIVDateField.incidentDate
+            ? a.incidentDate
+            : a.createdAt;
+        final dateB = _dateField == FormIVDateField.incidentDate
+            ? b.incidentDate
+            : b.createdAt;
+        return _dateSortOrder == FormIVDateSortOrder.newestFirst
+            ? dateB.compareTo(dateA)
+            : dateA.compareTo(dateB);
+      });
+    }
+
+    final bool showAddButton = !(widget.readOnly ||
+        widget.moduleKey == 'detected' ||
+        widget.moduleKey == 'undetected' ||
+        widget.moduleKey == 'disposal');
 
     return Scaffold(
       backgroundColor: AppColors.lightBg,
@@ -626,6 +645,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               widget.moduleKey != 'monthly' &&
               widget.moduleKey != 'pending')
             _buildStatsRow(totalCount, disposalCount, pendingCount),
+          if (isTheftOrFormIVStyle) _buildToolbar(displayRecords.length),
           Expanded(
             child: CustomScrollView(
               physics: const BouncingScrollPhysics(),
@@ -634,30 +654,45 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   // Monthly module is report-only (no records section).
                   SliverToBoxAdapter(
                       child: _buildMonthlyReport(context, allRecords)),
+                ] else if (widget.moduleKey == 'pending') ...[
+                  SliverToBoxAdapter(
+                      child: _buildPendingModuleReportOnly(context)),
                 ] else if (widget.moduleLabel == 'Forms' &&
                     widget.moduleKey == 'form_1_5') ...[
                   SliverToBoxAdapter(
                       child: _buildFormsModuleReportOnly(context)),
                 ] else ...[
-                  if (widget.moduleKey == 'pending')
-                    SliverToBoxAdapter(
-                        child: _buildPendingModuleReportOnly(context)),
                   if (widget.moduleKey == 'disposal')
                     SliverToBoxAdapter(child: _buildModuleTabs()),
                   if (_isReportMode && widget.moduleKey == 'disposal')
                     SliverToBoxAdapter(
                         child: _buildMonthlyReport(context, allRecords))
                   else ...[
-                    if (filtered.isEmpty)
-                      SliverToBoxAdapter(child: _buildEmpty())
+                    if (displayRecords.isEmpty)
+                      SliverToBoxAdapter(
+                        child: isTheftOrFormIVStyle
+                            ? FormIVEmptyCasesState(
+                                category: (widget.subCategory != null &&
+                                        widget.subCategory!.isNotEmpty)
+                                    ? widget.subCategory!
+                                    : widget.moduleLabel,
+                                readOnly: true,
+                                statusTab: selectedTab,
+                                onNewCase: null,
+                                selectedDateRange: _selectedDateRange,
+                                onClearDateFilter: () =>
+                                    setState(() => _selectedDateRange = null),
+                              )
+                            : _buildEmpty(),
+                      )
                     else
                       SliverPadding(
                         padding: const EdgeInsets.all(AppSpacing.lg),
                         sliver: SliverList(
                           delegate: SliverChildBuilderDelegate(
-                            (ctx, i) =>
-                                _buildCard(ctx, filtered[i], index: i + 1),
-                            childCount: filtered.length,
+                            (ctx, i) => _buildCard(ctx, displayRecords[i],
+                                index: i + 1),
+                            childCount: displayRecords.length,
                           ),
                         ),
                       ),
@@ -679,11 +714,25 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     final transRecord = TranslationHelper.translate(context, recordWord);
     final transReg = TranslationHelper.translate(context, 'registered');
 
+    final bool isTheftOrFormIVStyle = widget.moduleKey == 'theft' ||
+        widget.moduleLabel == 'Theft' ||
+        widget.moduleKey == 'sand_theft' ||
+        widget.moduleKey == 'two_four_wheeler';
+
+    final categoryName =
+        (widget.subCategory != null && widget.subCategory!.isNotEmpty)
+            ? TranslationHelper.translate(context, widget.subCategory!)
+            : transTitle;
+    final caseWord = total == 1 ? 'case' : 'cases';
+    final transCase = TranslationHelper.translate(context, caseWord);
+    final subtitle = isTheftOrFormIVStyle
+        ? '$categoryName · $total $transCase'
+        : '$total $transRecord $transReg';
+
     final bool showAddButton = !(widget.readOnly ||
         widget.moduleKey == 'detected' ||
         widget.moduleKey == 'undetected' ||
-        widget.moduleKey == 'disposal' ||
-        widget.moduleKey == 'mpda');
+        widget.moduleKey == 'disposal');
 
     Widget? actionWidget;
     if (showAddButton) {
@@ -711,7 +760,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
     return ModuleHubScreenAppBar(
       title: transTitle,
-      subtitle: '$total $transRecord $transReg',
+      subtitle: subtitle,
       actionWidget: actionWidget,
       backgroundColor: (widget.moduleKey == 'detected' ||
               widget.moduleKey == 'undetected' ||
@@ -785,7 +834,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       }
       catMeta[key]!.count++;
       // Count solved: Resolved or Closed
-      if (r.status == CaseStatus.disposal) {
+      if (r.status == 'Resolved' || r.status == 'Closed') {
         catMeta[key]!.solvedCount++;
       }
     }
@@ -867,18 +916,33 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     );
   }
 
+  String _pendingHubSubtitle(BuildContext context) {
+    if (_pendingCategory == null) {
+      return TranslationHelper.translate(context, 'Select a category');
+    }
+    final transCategory =
+        TranslationHelper.translate(context, _pendingCategory!);
+    if (_pendingTimeRange == null) {
+      final transSelectTime =
+          TranslationHelper.translate(context, 'Select time range');
+      return '$transCategory — $transSelectTime';
+    }
+    final transTimeRange =
+        TranslationHelper.translate(context, _pendingTimeRange!);
+    return '$transCategory — $transTimeRange';
+  }
+
   Widget _buildPendingModuleReportOnly(BuildContext context) {
     final auth = context.read<AuthProvider>();
+    final categoryValue = _pendingCategory ?? _pendingHubCategories.first;
+    final timeRangeValue = _pendingTimeRange ?? 'Select time range';
+    final viewModeValue = _pendingViewMode ?? 'Case Wise';
 
     return ModuleHubReportCard(
-      title:
-          TranslationHelper.translate(context, '${widget.moduleLabel} Reports'),
-      subtitle: TranslationHelper.translate(
-          context, 'Summary of all ${widget.moduleLabel.toLowerCase()} cases'),
+      title: TranslationHelper.translate(context, 'Pending Reports'),
+      subtitle: _pendingHubSubtitle(context),
       showFilterRow: false,
-      showCategoryButtons: false,
       filterRow: const SizedBox.shrink(),
-      categoryButtons: const SizedBox.shrink(),
       onSummaryTap: () {
         Navigator.push(
           context,
@@ -887,6 +951,151 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           ),
         );
       },
+      wrapCategoryButtonsInCard: false,
+      categoryButtons: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final bool isSmallScreen = constraints.maxWidth < 600;
+            final double gap = isSmallScreen ? 12 : 16;
+            final int columns = constraints.maxWidth > 1000
+                ? 4
+                : (constraints.maxWidth > 600 ? 3 : 2);
+            double itemWidth =
+                (constraints.maxWidth - (gap * (columns - 1))) / columns;
+            if (itemWidth < 0) itemWidth = 0; // Prevent negative width crash
+
+            return Wrap(
+              spacing: gap,
+              runSpacing: gap,
+              alignment: WrapAlignment.start,
+              children: _pendingHubCategories.map((cat) {
+                final transCategory = TranslationHelper.translate(context, cat);
+                return SizedBox(
+                  width: itemWidth,
+                  height: 64, // Keep full height on mobile
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border:
+                          Border.all(color: Colors.grey.shade200, width: 1.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.navyDark.withValues(alpha: 0.04),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      child: PopupMenuButton<String>(
+                        offset: const Offset(0, 68),
+                        tooltip: transCategory,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side:
+                              BorderSide(color: Colors.grey.shade200, width: 1),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: isSmallScreen ? 10 : 16),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
+                                decoration: BoxDecoration(
+                                  color:
+                                      AppColors.navyMid.withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  Icons.folder_open_rounded,
+                                  color: AppColors.navyMid,
+                                  size: isSmallScreen ? 16 : 18,
+                                ),
+                              ),
+                              SizedBox(width: isSmallScreen ? 8 : 12),
+                              Expanded(
+                                child: Text(
+                                  transCategory,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: isSmallScreen ? 12 : 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.navyDark,
+                                    height: 1.2,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: isSmallScreen ? 4 : 8),
+                              Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                color:
+                                    AppColors.navyDark.withValues(alpha: 0.5),
+                                size: isSmallScreen ? 18 : 20,
+                              ),
+                            ],
+                          ),
+                        ),
+                        onSelected: (val) {
+                          setState(() {
+                            _pendingCategory = cat;
+                          });
+                          if (val == 'IO Wise') {
+                            Navigator.push(
+                              context,
+                              AppTheme.fadeSlideRoute(
+                                page: PendingIoWiseByCategoryScreen(
+                                    category: cat),
+                              ),
+                            );
+                          } else {
+                            setState(() {
+                              _pendingTimeRange = val;
+                            });
+                            Navigator.push(
+                              context,
+                              AppTheme.fadeSlideRoute(
+                                page: FilteredPendingScreen(
+                                  title: '$cat - $val',
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                        itemBuilder: (BuildContext context) {
+                          final List<String> options = [
+                            ..._pendingHubTimeRanges
+                                .where((t) => t != 'Select time range'),
+                            'IO Wise',
+                          ];
+                          return options.map((String choice) {
+                            return PopupMenuItem<String>(
+                              value: choice,
+                              child: Text(
+                                TranslationHelper.translate(context, choice),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            );
+                          }).toList();
+                        },
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            );
+          },
+        ),
+      ),
       child: null,
     );
   }
@@ -1880,7 +2089,10 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         r.incidentDate.month == selectedMonth;
     bool isInYear(ModuleRecord r) => r.incidentDate.year == selectedYear;
 
-    bool isDetected(ModuleRecord r) => r.moduleKey == 'detected';
+    bool isDetected(ModuleRecord r) =>
+        r.status == 'Resolved' ||
+        r.status == 'Closed' ||
+        r.moduleKey == 'detected';
 
     List<ModuleRecord> monthRecsWhere(bool Function(ModuleRecord) test) =>
         allRecords.where((r) => isInMonth(r) && test(r)).toList();
@@ -2515,7 +2727,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         filterYearToMonth(selectedMonth, selectedYear - 1);
 
     int detected(List<ModuleRecord> recs) =>
-        recs.where((r) => r.status != CaseStatus.pending).length;
+        recs.where((r) => r.status.toLowerCase() != 'open').length;
 
     final tableRows = <Map<String, dynamic>>[];
     int totalcmR = 0, totalcmD = 0;
@@ -2844,7 +3056,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     }
 
     List<ModuleRecord> detRecs(List<ModuleRecord> r) =>
-        r.where((x) => x.status != CaseStatus.pending).toList();
+        r.where((x) => x.status.toLowerCase() != 'open').toList();
 
     Widget buildScreenDataRow(Map<String, dynamic> def) {
       final headKey = def['head'] as String;
@@ -3422,326 +3634,35 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   }
 
   Widget _buildStatsRow(int total, int disposal, int pending) {
-    if (widget.moduleKey == 'mpda') {
-      final provider = _watchProvider(context);
-      final allRecs = provider.records;
-      final totalMpda = allRecs.length;
-      final approvedMpda = allRecs.where((r) {
-        final outcome = r.extraFields['proposalOutcome'] ??
-            r.extraFields['mpdaForm']?['investigation']?['proposalOutcome'];
-        return outcome == 'Granted';
-      }).length;
-      final rejectedMpda = allRecs.where((r) {
-        final outcome = r.extraFields['proposalOutcome'] ??
-            r.extraFields['mpdaForm']?['investigation']?['proposalOutcome'];
-        return outcome == 'Rejected';
-      }).length;
-      final currentlyDetained = allRecs.where((r) {
-        final isDet = (r.extraFields['isDetained'] ??
-                r.extraFields['mpdaForm']?['detention']?['isDetained']) ==
-            'Yes';
-        final isRev = (r.extraFields['detentionRevoked'] ??
-                r.extraFields['mpdaForm']?['detention']?['detentionRevoked']) ==
-            'Yes';
-        return isDet && !isRev;
-      }).length;
-      final inJailMpda = allRecs.where((r) {
-        final isDet = (r.extraFields['isDetained'] ??
-                r.extraFields['mpdaForm']?['detention']?['isDetained']) ==
-            'Yes';
-        final isRev = (r.extraFields['detentionRevoked'] ??
-                r.extraFields['mpdaForm']?['detention']?['detentionRevoked']) ==
-            'Yes';
-        final jail = (r.extraFields['jailName'] ??
-                    r.extraFields['mpdaForm']?['detention']?['jailName'])
-                ?.toString()
-                .trim() ??
-            '';
-        return isDet && !isRev && jail.isNotEmpty;
-      }).length;
-      final revokedMpda = allRecs.where((r) {
-        return (r.extraFields['detentionRevoked'] ??
-                r.extraFields['mpdaForm']?['detention']?['detentionRevoked']) ==
-            'Yes';
-      }).length;
-
-      final now = DateTime.now();
-      final nextMonthStart = DateTime(now.year, now.month + 1, 1);
-      final nextMonthEnd = DateTime(now.year, now.month + 2, 0, 23, 59, 59);
-      final releasedNextMonth = allRecs.where((r) {
-        final dateStr = (r.extraFields['detentionCompletionDate'] ??
-                r.extraFields['mpdaForm']?['detention']
-                    ?['detentionCompletionDate'])
-            ?.toString()
-            .trim();
-        if (dateStr == null || dateStr.isEmpty) return false;
-        final parts = dateStr.split('/');
-        if (parts.length == 3) {
-          final d = int.tryParse(parts[0]);
-          final m = int.tryParse(parts[1]);
-          final y = int.tryParse(parts[2]);
-          if (d != null && m != null && y != null) {
-            final compDate = DateTime(y, m, d);
-            return !compDate.isBefore(nextMonthStart) &&
-                !compDate.isAfter(nextMonthEnd);
-          }
-        }
-        return false;
-      }).length;
-
-      return Column(
-        children: [
-          if (!widget.readOnly) ...[
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => _openNewEntryForm(context),
-                      icon: const Icon(Icons.add_rounded,
-                          color: Colors.white, size: 20),
-                      label: Text(
-                        '+ ${TranslationHelper.translate(context, 'Add New')} MPDA Proposal',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.navyDark,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: const StadiumBorder(),
-                        elevation: 3,
-                        shadowColor: AppColors.navyDark.withValues(alpha: 0.3),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          // Row 1: Total, Approved, Rejected
-          Row(children: [
-            _statCard(
-                'Total MPDA Proposals', totalMpda, AppColors.infoBlue, 'All'),
-            const SizedBox(width: 8),
-            _statCard('Approved MPDA', approvedMpda, AppColors.successGreen,
-                'Approved'),
-            const SizedBox(width: 8),
-            _statCard('Rejected MPDA', rejectedMpda, const Color(0xFFEF4444),
-                'Rejected'),
-          ]),
-          const SizedBox(height: 8),
-          // Row 2: Currently Detained, Total in Jail, MPDA Revoked
-          Row(children: [
-            _statCard('Persons Currently Detained', currentlyDetained,
-                AppColors.warningOrange, 'Detained'),
-            const SizedBox(width: 8),
-            _statCard('Total Persons in Jail under MPDA', inJailMpda,
-                const Color(0xFF7C3AED), 'InJail'),
-            const SizedBox(width: 8),
-            _statCard('Total MPDA Revoked', revokedMpda,
-                const Color(0xFF64748B), 'Revoked'),
-          ]),
-          const SizedBox(height: 8),
-          // Row 3: Released in Next Month
-          Row(children: [
-            _statCard('Released in Next Month', releasedNextMonth,
-                const Color(0xFF0D9488), 'NextMonth'),
-          ]),
-        ],
-      );
+    FormIVStatusTab selectedTab;
+    if (_filter == CaseStatus.pending) {
+      selectedTab = FormIVStatusTab.pending;
+    } else if (_filter == CaseStatus.disposal) {
+      selectedTab = FormIVStatusTab.disposal;
+    } else {
+      selectedTab = FormIVStatusTab.total;
     }
 
-    return _statusTabBar(total, pending, disposal);
-  }
-
-  Widget _statusTabBar(int totalCount, int pendingCount, int disposalCount) {
-    final tabs = [
-      (
-        label: 'Total Cases',
-        count: totalCount,
-        filterKey: 'All',
-        badgeBg: const Color(0xFFE8F1FC),
-        badgeFg: const Color(0xFF1976D2),
-        activeBorder: const Color(0xFF1976D2),
-        labelColor: const Color(0xFF64748B),
-        activeLabelColor: const Color(0xFF1976D2),
-      ),
-      (
-        label: CaseStatus.pending,
-        count: pendingCount,
-        filterKey: CaseStatus.pending,
-        badgeBg: const Color(0xFFFFEBEE),
-        badgeFg: const Color(0xFFD32F2F),
-        activeBorder: const Color(0xFFD32F2F),
-        labelColor: const Color(0xFFD32F2F),
-        activeLabelColor: const Color(0xFFD32F2F),
-      ),
-      (
-        label: CaseStatus.disposal,
-        count: disposalCount,
-        filterKey: CaseStatus.disposal,
-        badgeBg: const Color(0xFFE8F5E9),
-        badgeFg: const Color(0xFF2E7D32),
-        activeBorder: const Color(0xFF2E7D32),
-        labelColor: const Color(0xFF2E7D32),
-        activeLabelColor: const Color(0xFF2E7D32),
-      ),
-    ];
-
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
-        ),
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          children: [
-            ...tabs.map((item) {
-              String currentFilter = _filter;
-              if (currentFilter == CaseStatus.pending) {
-                currentFilter = CaseStatus.pending;
-              }
-              if (currentFilter == CaseStatus.disposal) {
-                currentFilter = CaseStatus.disposal;
-              }
-              final isSelected = currentFilter == item.filterKey;
-
-              return Padding(
-                padding: const EdgeInsets.only(right: 24),
-                child: InkWell(
-                  onTap: () => setState(() => _filter = item.filterKey),
-                  hoverColor: Colors.transparent,
-                  splashColor: AppColors.navyMid.withValues(alpha: 0.08),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: isSelected
-                              ? item.activeBorder
-                              : Colors.transparent,
-                          width: 2.5,
-                        ),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          TranslationHelper.translate(context, item.label),
-                          style: GoogleFonts.poppins(
-                            fontSize: 13.5,
-                            fontWeight:
-                                isSelected ? FontWeight.w700 : FontWeight.w500,
-                            color: isSelected
-                                ? AppColors.navyDark
-                                : AppColors.lightSubText,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: item.badgeBg,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            '${item.count}',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: item.badgeFg,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-              // ignore: unnecessary_to_list_in_spreads, unnecessary_to_list_in_spreadsaA
-            }).toList(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _statCard(String label, int value, Color color, String filterKey) {
-    final isSelected = _filter == filterKey;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _filter = filterKey),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? color.withValues(alpha: 0.22)
-                : color.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Border.all(
-              color: isSelected ? color : color.withValues(alpha: 0.3),
-              width: isSelected ? 2.0 : 1.0,
-            ),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: color.withValues(alpha: 0.18),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
-                    )
-                  ]
-                : null,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '$value',
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: color,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (isSelected) ...[
-                    Icon(Icons.check_circle_rounded, size: 10, color: color),
-                    const SizedBox(width: 3),
-                  ],
-                  Text(
-                    TranslationHelper.translate(context, label),
-                    style: GoogleFonts.poppins(
-                      fontSize: 10,
-                      fontWeight:
-                          isSelected ? FontWeight.w700 : FontWeight.w600,
-                      color: isSelected
-                          ? AppColors.navyDark
-                          : AppColors.lightSubText,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+    return FormIVStatusTabBar(
+      selectedTab: selectedTab,
+      totalCount: total,
+      pendingCount: pending,
+      disposalCount: disposal,
+      onTabChanged: (tab) {
+        setState(() {
+          switch (tab) {
+            case FormIVStatusTab.total:
+              _filter = 'All';
+              break;
+            case FormIVStatusTab.pending:
+              _filter = CaseStatus.pending;
+              break;
+            case FormIVStatusTab.disposal:
+              _filter = CaseStatus.disposal;
+              break;
+          }
+        });
+      },
     );
   }
 
@@ -3807,6 +3728,12 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   }
 
   Widget _buildCard(BuildContext ctx, ModuleRecord record, {int? index}) {
+    if (widget.moduleKey == 'theft' ||
+        widget.moduleLabel == 'Theft' ||
+        widget.moduleKey == 'sand_theft' ||
+        widget.moduleKey == 'two_four_wheeler') {
+      return _buildCompactCaseCard(ctx, record);
+    }
     if (widget.readOnly) {
       return ReadOnlyModuleRecordHubCard(record: record);
     }
@@ -3938,10 +3865,13 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         record.moduleKey == 'detected' ||
         widget.moduleKey == 'undetected' ||
         record.moduleKey == 'undetected';
+    final isThreeStatusModule = isDetectedCard ||
+        widget.moduleKey == 'mpda' ||
+        record.moduleKey == 'mpda';
     final String displayStatus;
     final Color sc;
-    if (isDetectedCard) {
-      final isDisposal = record.status == CaseStatus.disposal;
+    if (isThreeStatusModule) {
+      final isDisposal = isRecordDisposal(record);
       displayStatus = isDisposal ? CaseStatus.disposal : CaseStatus.pending;
       sc = isDisposal ? AppColors.successGreen : AppColors.warningOrange;
     } else {
@@ -4242,6 +4172,1144 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     );
   }
 
+  void _handleEdit(BuildContext ctx, ModuleRecord record) {
+    if (widget.moduleKey == 'ad') {
+      Navigator.push(
+        ctx,
+        AppTheme.fadeSlideRoute(
+          page: ADFormScreen(existingRecord: record),
+        ),
+      );
+      return;
+    }
+    if (widget.moduleKey == 'nc') {
+      Navigator.push(
+        ctx,
+        AppTheme.fadeSlideRoute(
+          page: NcFormScreen(
+            moduleLabel: record.firestoreCategoryDisplayName,
+            subCategory: widget.subCategory,
+            existingRecord: record,
+          ),
+        ),
+      );
+      return;
+    }
+    if (widget.moduleKey == 'missing') {
+      Navigator.push(
+        ctx,
+        AppTheme.fadeSlideRoute(
+          page: MissingFormScreen(
+            moduleLabel: record.firestoreCategoryDisplayName,
+            subCategory: widget.subCategory,
+            existingRecord: record,
+          ),
+        ),
+      );
+      return;
+    }
+    if (widget.moduleKey == 'preventive' || record.moduleKey == 'preventive') {
+      Navigator.push(
+        ctx,
+        AppTheme.fadeSlideRoute(
+          page: PreventiveFormScreen(
+            moduleLabel: record.firestoreCategoryDisplayName,
+            subCategory: widget.subCategory,
+            existingRecord: record,
+          ),
+        ),
+      );
+      return;
+    }
+    if (widget.moduleKey == 'mpda' || record.moduleKey == 'mpda') {
+      Navigator.push(
+        ctx,
+        AppTheme.fadeSlideRoute(
+          page: MpdaFormScreen(
+            moduleLabel: record.firestoreCategoryDisplayName,
+            subCategory: widget.subCategory,
+            existingRecord: record,
+          ),
+        ),
+      );
+      return;
+    }
+    final page = moduleUsesCommonCrimeForm(widget.moduleKey)
+        ? CommonFormScreen(
+            moduleLabel: record.firestoreCategoryDisplayName,
+            moduleKey: widget.moduleKey,
+            subCategory: record.subCategory,
+            existingRecord: record,
+          )
+        : ModuleFormScreen(
+            moduleLabel: record.firestoreCategoryDisplayName,
+            moduleKey: widget.moduleKey,
+            subCategory: record.subCategory,
+            existingRecord: record,
+          );
+    Navigator.push(ctx, AppTheme.fadeSlideRoute(page: page));
+  }
+
+  void _handleView(BuildContext ctx, ModuleRecord record) {
+    Navigator.push(
+      ctx,
+      AppTheme.fadeSlideRoute(
+        page: widget.moduleKey == 'ad'
+            ? AdRecordDetailScreen(record: record)
+            : ModuleRecordDetailScreen(record: record),
+      ),
+    );
+  }
+
+  void _handlePdf(BuildContext ctx, ModuleRecord record) {
+    runWithPdfAuthGate(
+      ctx,
+      () => ModulePdfHelper.generatePdf(record),
+    );
+  }
+
+  Map<String, dynamic> _getDoc(ModuleRecord record) {
+    if (record.extraFields[kCommonFormExtraFieldsKey] is Map) {
+      return Map<String, dynamic>.from(
+        record.extraFields[kCommonFormExtraFieldsKey] as Map,
+      );
+    }
+    return record.extraFields;
+  }
+
+  String _getCrNo(ModuleRecord record, Map<String, dynamic> doc) {
+    if (record.caseNumber.trim().isNotEmpty) {
+      final s = record.caseNumber.trim();
+      return s.startsWith('CR ') ? s.substring(3).trim() : s;
+    }
+    final cr = doc['crNo']?.toString().trim();
+    if (cr != null && cr.isNotEmpty) {
+      return cr.startsWith('CR ') ? cr.substring(3).trim() : cr;
+    }
+    final parts = record.title.split('—');
+    if (parts.length > 1 && parts.last.trim().isNotEmpty) {
+      final s = parts.last.trim();
+      return s.startsWith('CR ') ? s.substring(3).trim() : s;
+    }
+    return record.title.isNotEmpty ? record.title : '—';
+  }
+
+  String _getSectionAct(ModuleRecord record, Map<String, dynamic> doc) {
+    final charges = doc['charges'] ?? record.extraFields['charges'];
+    if (charges is Map && charges.isNotEmpty) {
+      final parts = <String>[];
+      for (final val in charges.values) {
+        if (val is Map) {
+          final act = val['act']?.toString().trim() ?? '';
+          final sections = val['sections'];
+          String secStr = '';
+          if (sections is List && sections.isNotEmpty) {
+            secStr = sections
+                .map((s) => s.toString().trim())
+                .where((s) => s.isNotEmpty && s != '{}' && s != '[]')
+                .join(', ');
+          }
+          if (secStr.isNotEmpty && act.isNotEmpty) {
+            parts.add('$act $secStr');
+          } else if (secStr.isNotEmpty) {
+            parts.add(secStr);
+          } else if (act.isNotEmpty) {
+            parts.add(act);
+          }
+        } else if (val is String) {
+          final s = val.trim();
+          if (s.isNotEmpty && s != '{}' && s != '[]') {
+            parts.add(s);
+          }
+        }
+      }
+      if (parts.isNotEmpty) {
+        return parts.join(' | ');
+      }
+    }
+
+    for (final key in [
+      'bnsSection',
+      'kalam',
+      'sections',
+      'act',
+      'ipc_sections',
+      'section',
+    ]) {
+      final val = doc[key] ?? record.extraFields[key];
+      if (val != null) {
+        final s = val.toString().trim();
+        if (s.isNotEmpty && s != '{}' && s != '[]') {
+          return s;
+        }
+      }
+    }
+
+    return '—';
+  }
+
+  String _getNameOfAccused(ModuleRecord record, Map<String, dynamic> doc) {
+    if (record.accused.trim().isNotEmpty) {
+      return record.accused.trim();
+    }
+    if (doc['isUnknownUntraced'] == true) {
+      return 'Unknown / Untraced';
+    }
+
+    final names = <String>{};
+    if (doc['allAccusedNames'] is List) {
+      for (final n in doc['allAccusedNames']) {
+        if (n is String && n.trim().isNotEmpty) names.add(n.trim());
+      }
+    }
+
+    void addFromList(dynamic list, String key) {
+      if (list is List) {
+        for (final item in list) {
+          if (item is Map && item[key] != null) {
+            final n = item[key].toString().trim();
+            if (n.isNotEmpty) names.add(n);
+          }
+        }
+      }
+    }
+
+    addFromList(doc['accused'], 'name');
+    addFromList(doc['suspectedAccused'], 'name');
+    addFromList(doc['arrestRelease'], 'accusedName');
+
+    if (names.isNotEmpty) return names.join(', ');
+
+    for (final key in [
+      'accusedName',
+      'm1AccusedName',
+      'm_accusedName',
+      'eArrestedName',
+      'accusedNameAddress',
+    ]) {
+      final val = doc[key] ?? record.extraFields[key];
+      if (val != null && val.toString().trim().isNotEmpty) {
+        return val.toString().trim();
+      }
+    }
+    return '—';
+  }
+
+  String _getCrimeDate(ModuleRecord record, Map<String, dynamic> doc) {
+    final regDate = doc['regDate']?.toString().trim();
+    if (regDate != null && regDate.isNotEmpty) {
+      return regDate;
+    }
+    try {
+      return DateFormat('dd/MM/yyyy').format(record.incidentDate);
+    } catch (_) {
+      return DateFormat('dd MMM yyyy').format(record.incidentDate);
+    }
+  }
+
+  Widget _buildCompactCaseCard(BuildContext ctx, ModuleRecord record) {
+    final doc = _getDoc(record);
+    final crNo = _getCrNo(record, doc);
+    final sectionAct = _getSectionAct(record, doc);
+    final accusedName = _getNameOfAccused(record, doc);
+    final crimeDate = _getCrimeDate(record, doc);
+
+    final isDisposal = isRecordDisposal(record);
+    final displayStatus = isDisposal ? CaseStatus.disposal : CaseStatus.pending;
+    final statusColor =
+        isDisposal ? AppColors.successGreen : AppColors.warningOrange;
+
+    final categoryLabel = record.subCategory?.trim().isNotEmpty == true
+        ? TranslationHelper.translate(ctx, record.subCategory!.trim())
+        : TranslationHelper.translate(ctx, record.firestoreCategoryDisplayName);
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1100),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: const Color(0xFFE2E8F0),
+              width: 1.1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth >= 820;
+                if (!isWide) {
+                  return _buildCompactMobileCardContent(
+                    ctx: ctx,
+                    crNo: crNo,
+                    categoryLabel: categoryLabel,
+                    sectionAct: sectionAct,
+                    accusedName: accusedName,
+                    crimeDate: crimeDate,
+                    statusColor: statusColor,
+                    displayStatus: displayStatus,
+                    record: record,
+                  );
+                }
+
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // 1. CR No. Pill
+                    SizedBox(
+                      width: 82,
+                      child: Container(
+                        height: 28,
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: const Color(0xFFCBD5E1)),
+                        ),
+                        alignment: Alignment.center,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'CR ',
+                              style: GoogleFonts.poppins(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF64748B),
+                              ),
+                            ),
+                            Flexible(
+                              child: Text(
+                                crNo,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF0F172A),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    if (categoryLabel.isNotEmpty) ...[
+                      const SizedBox(width: 6),
+                      SizedBox(
+                        width: 86,
+                        child: Container(
+                          height: 28,
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          decoration: BoxDecoration(
+                            color: AppColors.goldPrimary.withValues(
+                              alpha: 0.12,
+                            ),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: AppColors.goldPrimary.withValues(
+                                alpha: 0.35,
+                              ),
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            categoryLabel,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.poppins(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.goldPrimary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+
+                    // Vertical Divider
+                    const SizedBox(width: 8),
+                    Container(
+                      width: 1,
+                      height: 18,
+                      color: const Color(0xFFE2E8F0),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // 2. Section / Act
+                    SizedBox(
+                      width: 140,
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.gavel_rounded,
+                            size: 13,
+                            color: Color(0xFF64748B),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Sec: ',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0xFF64748B),
+                            ),
+                          ),
+                          Expanded(
+                            child: Tooltip(
+                              message: sectionAct,
+                              child: Text(
+                                sectionAct,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF1E293B),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Vertical Divider
+                    const SizedBox(width: 8),
+                    Container(
+                      width: 1,
+                      height: 18,
+                      color: const Color(0xFFE2E8F0),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // 3. Name of Accused
+                    Expanded(
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.person_outline_rounded,
+                            size: 14,
+                            color: Color(0xFF64748B),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Accused: ',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0xFF64748B),
+                            ),
+                          ),
+                          Expanded(
+                            child: Tooltip(
+                              message: accusedName,
+                              child: Text(
+                                accusedName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF0F172A),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Vertical Divider
+                    const SizedBox(width: 8),
+                    Container(
+                      width: 1,
+                      height: 18,
+                      color: const Color(0xFFE2E8F0),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // 4. Crime Date
+                    SizedBox(
+                      width: 106,
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.calendar_today_outlined,
+                            size: 12.5,
+                            color: Color(0xFF64748B),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              crimeDate,
+                              style: GoogleFonts.poppins(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w500,
+                                color: const Color(0xFF334155),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Vertical Divider
+                    const SizedBox(width: 8),
+                    Container(
+                      width: 1,
+                      height: 18,
+                      color: const Color(0xFFE2E8F0),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // 5. Status Badge
+                    Container(
+                      width: 74,
+                      height: 28,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: statusColor.withValues(alpha: 0.35),
+                        ),
+                      ),
+                      child: Text(
+                        TranslationHelper.translate(context, displayStatus),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                          color: statusColor,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // 6. Action Buttons: Edit, View, PDF, Delete
+                    if (!widget.readOnly) ...[
+                      _buildCompactIconBtn(
+                        icon: Icons.edit_outlined,
+                        label: 'Edit',
+                        onTap: () => _handleEdit(ctx, record),
+                      ),
+                      const SizedBox(width: 6),
+                    ],
+                    _buildCompactIconBtn(
+                      icon: Icons.visibility_outlined,
+                      label: 'View',
+                      onTap: () => _handleView(ctx, record),
+                    ),
+                    const SizedBox(width: 6),
+                    _buildCompactIconBtn(
+                      icon: Icons.picture_as_pdf_outlined,
+                      label: 'PDF',
+                      onTap: () => _handlePdf(ctx, record),
+                    ),
+                    if (!widget.readOnly) ...[
+                      const SizedBox(width: 6),
+                      _buildCompactIconBtn(
+                        icon: Icons.delete_outline_rounded,
+                        label: 'Delete',
+                        onTap: () => _confirmDelete(ctx, record),
+                      ),
+                    ],
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompactIconBtn({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    Color? color,
+  }) {
+    final fg = color ?? const Color(0xFF1E293B);
+    return Tooltip(
+      message: TranslationHelper.translate(context, label),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          height: 28,
+          width: 32,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: const Color(0xFFCBD5E1), width: 1.1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 2,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: Icon(icon, size: 15, color: fg),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompactMobileCardContent({
+    required BuildContext ctx,
+    required String crNo,
+    required String categoryLabel,
+    required String sectionAct,
+    required String accusedName,
+    required String crimeDate,
+    required Color statusColor,
+    required String displayStatus,
+    required ModuleRecord record,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0xFFCBD5E1)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'CR ',
+                    style: GoogleFonts.poppins(
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF64748B),
+                    ),
+                  ),
+                  Text(
+                    crNo,
+                    style: GoogleFonts.poppins(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF0F172A),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (categoryLabel.isNotEmpty) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.goldPrimary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: AppColors.goldPrimary.withValues(alpha: 0.35),
+                  ),
+                ),
+                child: Text(
+                  categoryLabel,
+                  style: GoogleFonts.poppins(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.goldPrimary,
+                  ),
+                ),
+              ),
+            ],
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: statusColor.withValues(alpha: 0.35)),
+              ),
+              child: Text(
+                TranslationHelper.translate(ctx, displayStatus),
+                style: GoogleFonts.poppins(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: statusColor,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Sec: $sectionAct',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  color: const Color(0xFF475569),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Accused: $accusedName',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF0F172A),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              crimeDate,
+              style: GoogleFonts.poppins(
+                fontSize: 11,
+                color: const Color(0xFF64748B),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            if (!widget.readOnly) ...[
+              _buildCompactIconBtn(
+                icon: Icons.edit_outlined,
+                label: 'Edit',
+                onTap: () => _handleEdit(ctx, record),
+              ),
+              const SizedBox(width: 6),
+            ],
+            _buildCompactIconBtn(
+              icon: Icons.visibility_outlined,
+              label: 'View',
+              onTap: () => _handleView(ctx, record),
+            ),
+            const SizedBox(width: 6),
+            _buildCompactIconBtn(
+              icon: Icons.picture_as_pdf_outlined,
+              label: 'PDF',
+              onTap: () => _handlePdf(ctx, record),
+            ),
+            if (!widget.readOnly) ...[
+              const SizedBox(width: 6),
+              _buildCompactIconBtn(
+                icon: Icons.delete_outline_rounded,
+                label: 'Delete',
+                onTap: () => _confirmDelete(ctx, record),
+              ),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildToolbar(int count) {
+    final hasDateFilter = _selectedDateRange != null;
+    final dateText = hasDateFilter
+        ? '${DateFormat('dd/MM/yy').format(_selectedDateRange!.start)} - ${DateFormat('dd/MM/yy').format(_selectedDateRange!.end)}'
+        : TranslationHelper.translate(context, 'Date Filter');
+
+    final categoryName =
+        (widget.subCategory != null && widget.subCategory!.isNotEmpty)
+            ? widget.subCategory!
+            : widget.moduleLabel;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+      ),
+      child: Wrap(
+        spacing: 12,
+        runSpacing: 12,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        alignment: WrapAlignment.spaceBetween,
+        children: [
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              // Categories back button
+              InkWell(
+                onTap: () => Navigator.of(context).maybePop(),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFCBD5E1)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.arrow_back_rounded,
+                        size: 14,
+                        color: AppColors.navyDark,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        TranslationHelper.translate(context, 'Categories'),
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.navyDark,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Breadcrumb: Theft / <category> <count badge>
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    TranslationHelper.translate(context, widget.moduleLabel),
+                    style: GoogleFonts.poppins(
+                      color: const Color(0xFF1976D2),
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    child: Text(
+                      '/',
+                      style: GoogleFonts.poppins(
+                        color: AppColors.lightSubText,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    TranslationHelper.translate(context, categoryName),
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyDark,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE8F1FC),
+                      borderRadius: BorderRadius.circular(AppRadius.full),
+                    ),
+                    child: Text(
+                      '$count',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF1976D2),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          // Date Filter & Sort Controls
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Calendar Date Picker Button
+              InkWell(
+                onTap: _pickDateRange,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: EdgeInsets.fromLTRB(
+                    hasDateFilter ? 8 : 10,
+                    6,
+                    hasDateFilter ? 4 : 10,
+                    6,
+                  ),
+                  decoration: BoxDecoration(
+                    color:
+                        hasDateFilter ? const Color(0xFFE8F1FC) : Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: hasDateFilter
+                          ? const Color(0xFF1976D2)
+                          : const Color(0xFFCBD5E1),
+                      width: hasDateFilter ? 1.3 : 1.0,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: hasDateFilter
+                            ? const Color(0xFF1976D2).withValues(alpha: 0.12)
+                            : Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.calendar_month_rounded,
+                        size: 15,
+                        color: hasDateFilter
+                            ? const Color(0xFF1976D2)
+                            : AppColors.navyMid,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        dateText,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight:
+                              hasDateFilter ? FontWeight.w600 : FontWeight.w500,
+                          color: hasDateFilter
+                              ? const Color(0xFF1976D2)
+                              : AppColors.navyDark,
+                        ),
+                      ),
+                      if (hasDateFilter) ...[
+                        const SizedBox(width: 4),
+                        InkWell(
+                          onTap: () =>
+                              setState(() => _selectedDateRange = null),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.all(2),
+                            child: Icon(
+                              Icons.close_rounded,
+                              size: 14,
+                              color: Colors.red.shade700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+
+              // Sort Popup
+              PopupMenuButton<String>(
+                tooltip: TranslationHelper.translate(context, 'Sort by Date'),
+                onSelected: (val) {
+                  setState(() {
+                    switch (val) {
+                      case 'newest_incident':
+                        _dateField = FormIVDateField.incidentDate;
+                        _dateSortOrder = FormIVDateSortOrder.newestFirst;
+                        break;
+                      case 'oldest_incident':
+                        _dateField = FormIVDateField.incidentDate;
+                        _dateSortOrder = FormIVDateSortOrder.oldestFirst;
+                        break;
+                      case 'newest_created':
+                        _dateField = FormIVDateField.createdAt;
+                        _dateSortOrder = FormIVDateSortOrder.newestFirst;
+                        break;
+                      case 'oldest_created':
+                        _dateField = FormIVDateField.createdAt;
+                        _dateSortOrder = FormIVDateSortOrder.oldestFirst;
+                        break;
+                    }
+                  });
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'newest_incident',
+                    child: Row(
+                      children: [
+                        Icon(
+                          _dateField == FormIVDateField.incidentDate &&
+                                  _dateSortOrder ==
+                                      FormIVDateSortOrder.newestFirst
+                              ? Icons.check_circle_rounded
+                              : Icons.radio_button_unchecked_rounded,
+                          size: 16,
+                          color: const Color(0xFF1976D2),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Incident Date (Newest first)',
+                          style: GoogleFonts.poppins(fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'oldest_incident',
+                    child: Row(
+                      children: [
+                        Icon(
+                          _dateField == FormIVDateField.incidentDate &&
+                                  _dateSortOrder ==
+                                      FormIVDateSortOrder.oldestFirst
+                              ? Icons.check_circle_rounded
+                              : Icons.radio_button_unchecked_rounded,
+                          size: 16,
+                          color: const Color(0xFF1976D2),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Incident Date (Oldest first)',
+                          style: GoogleFonts.poppins(fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  PopupMenuItem(
+                    value: 'newest_created',
+                    child: Row(
+                      children: [
+                        Icon(
+                          _dateField == FormIVDateField.createdAt &&
+                                  _dateSortOrder ==
+                                      FormIVDateSortOrder.newestFirst
+                              ? Icons.check_circle_rounded
+                              : Icons.radio_button_unchecked_rounded,
+                          size: 16,
+                          color: const Color(0xFF1976D2),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Filing Date (Newest first)',
+                          style: GoogleFonts.poppins(fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'oldest_created',
+                    child: Row(
+                      children: [
+                        Icon(
+                          _dateField == FormIVDateField.createdAt &&
+                                  _dateSortOrder ==
+                                      FormIVDateSortOrder.oldestFirst
+                              ? Icons.check_circle_rounded
+                              : Icons.radio_button_unchecked_rounded,
+                          size: 16,
+                          color: const Color(0xFF1976D2),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Filing Date (Oldest first)',
+                          style: GoogleFonts.poppins(fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFCBD5E1)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _dateSortOrder == FormIVDateSortOrder.newestFirst
+                            ? Icons.arrow_downward_rounded
+                            : Icons.arrow_upward_rounded,
+                        size: 14,
+                        color: AppColors.navyMid,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _dateSortOrder == FormIVDateSortOrder.newestFirst
+                            ? TranslationHelper.translate(context, 'Newest')
+                            : TranslationHelper.translate(context, 'Oldest'),
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.navyDark,
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      const Icon(
+                        Icons.arrow_drop_down_rounded,
+                        size: 18,
+                        color: AppColors.navyDark,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickDateRange() async {
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      initialDateRange: _selectedDateRange,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+                  primary: const Color(0xFF1976D2),
+                ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() => _selectedDateRange = picked);
+    }
+  }
+
   Color _statusColor(String status) {
     switch (status) {
       case 'Open':
@@ -4539,7 +5607,9 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
     if (ioName.isEmpty) ioName = '—';
 
     // Status Color (Disposal = Green, Pending/Other = Red)
-    final isDisposal = record.status == CaseStatus.disposal ||
+    final isDisposal = record.status == 'Disposal' ||
+        record.status == 'Closed' ||
+        record.status == 'Resolved' ||
         record.status.toLowerCase().contains('completed');
     final Color statusColor =
         isDisposal ? const Color(0xFF2E7D32) : const Color(0xFFD32F2F);

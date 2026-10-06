@@ -11,7 +11,7 @@ class ModuleHubReportCard extends StatelessWidget {
   final VoidCallback? onSummaryTap;
   final bool showSummaryButton;
   final bool showFilterRow;
-  final bool showCategoryButtons;
+  final bool wrapCategoryButtonsInCard;
   final Widget filterRow;
   final Widget categoryButtons;
   final Widget? child;
@@ -25,7 +25,7 @@ class ModuleHubReportCard extends StatelessWidget {
     this.onSummaryTap,
     this.showSummaryButton = true,
     this.showFilterRow = true,
-    this.showCategoryButtons = true,
+    this.wrapCategoryButtonsInCard = true,
     this.child,
   });
 
@@ -99,7 +99,7 @@ class ModuleHubReportCard extends StatelessWidget {
               const SizedBox(height: 14),
             ] else
               const SizedBox(height: 14),
-            if (showCategoryButtons)
+            if (wrapCategoryButtonsInCard)
               Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
@@ -108,7 +108,9 @@ class ModuleHubReportCard extends StatelessWidget {
                   border: Border.all(color: AppColors.lightBorder),
                 ),
                 child: categoryButtons,
-              ),
+              )
+            else
+              categoryButtons,
             if (child != null) ...[
               const SizedBox(height: 14),
               child!,
@@ -251,9 +253,6 @@ class ModuleHubFilterDropdown<T> extends StatelessWidget {
       ),
     );
 
-    if (expanded) {
-      return Expanded(child: dropdown);
-    }
     return dropdown;
   }
 }

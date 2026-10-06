@@ -497,21 +497,6 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
                 color: AppColors.lightSubText,
               ),
             ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: _onNewCase,
-              icon: const Icon(Icons.add_rounded, size: 18),
-              label: Text('Create Case in $_selectedCategory'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.navyMid,
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
           ],
         ),
       );

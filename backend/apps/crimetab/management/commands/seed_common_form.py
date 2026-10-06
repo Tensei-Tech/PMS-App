@@ -88,135 +88,135 @@ class Command(BaseCommand):
 
         common_fields = [
             # 1. Registration Info
-            ('CR Number', 'cr_number', 'common', 'text', True, 10),
-            ('Registration Date & Time', 'registered_datetime', 'common', 'datetime', True, 20),
-            ('Unknown Accused Involved', 'is_unknown_accused', 'common', 'checkbox', False, 30),
+            ('CR Number', 'cr_number', 'common', 'text', True, 10, 'Crime Registration Info'),
+            ('Registered Date (dd/mm/yyyy)', 'registered_datetime', 'common', 'date', True, 20, 'Crime Registration Info'),
+            ('Unknown Accused Involved', 'is_unknown_accused', 'common', 'checkbox', False, 30, 'Unidentified Accused'),
 
             # 2. Crime Spot
-            ('Village / Town', 'village_town', 'common', 'text', False, 40),
-            ('Area Name', 'area_name', 'common', 'text', False, 50),
-            ('Crime Spot Full Address', 'full_address', 'common', 'textarea', False, 60),
-            ('Occurrence Date & Time', 'occurrence_datetime', 'common', 'datetime', False, 70),
+            ('Village / Town', 'village_town', 'common', 'text', False, 40, 'Crime Spot'),
+            ('Area Name', 'area_name', 'common', 'text', False, 50, 'Crime Spot'),
+            ('Crime Spot Full Address', 'full_address', 'common', 'textarea', False, 60, 'Crime Spot'),
+            ('Occurrence Date & Time', 'occurrence_datetime', 'common', 'datetime', False, 70, 'Crime Spot'),
 
             # 3. Acts & Sections (Charges)
-            ('Acts & Sections Filed', 'charges', 'common', 'chips', False, 80),
+            ('Acts & Sections Filed', 'charges', 'common', 'chips', False, 80, 'Acts & Sections Filed'),
 
             # 4. Complainant KYC
-            ('Complainant Name', 'complainant_name', 'common', 'text', False, 90),
-            ('Complainant Age', 'complainant_age', 'common', 'number', False, 100),
-            ('Complainant Gender', 'complainant_gender', 'common', 'dropdown', False, 110),
-            ('Complainant Occupation', 'complainant_occupation', 'common', 'text', False, 120),
-            ('Complainant Mobile', 'complainant_mobile', 'common', 'text', False, 130),
-            ('Complainant Aadhaar', 'complainant_aadhaar', 'common', 'text', False, 140),
-            ('Complainant PAN', 'complainant_pan', 'common', 'text', False, 150),
-            ('Complainant Religion', 'complainant_religion', 'common', 'text', False, 160),
-            ('Complainant Caste', 'complainant_caste', 'common', 'text', False, 170),
-            ('Complainant Address', 'complainant_address', 'common', 'textarea', False, 180),
+            ('Name', 'complainant_name', 'common', 'text', False, 90, 'Complainant'),
+            ('Age', 'complainant_age', 'common', 'number', False, 100, 'Complainant'),
+            ('Gender', 'complainant_gender', 'common', 'gender_toggle', False, 110, 'Complainant'),
+            ('Occupation', 'complainant_occupation', 'common', 'text', False, 120, 'Complainant'),
+            ('Mobile Number', 'complainant_mobile', 'common', 'text', False, 130, 'Complainant'),
+            ('Aadhar Number', 'complainant_aadhaar', 'common', 'text', False, 140, 'Complainant'),
+            ('PAN Number', 'complainant_pan', 'common', 'text', False, 150, 'Complainant'),
+            ('Religion', 'complainant_religion', 'common', 'text', False, 160, 'Complainant'),
+            ('Caste', 'complainant_caste', 'common', 'text', False, 170, 'Complainant'),
+            ('Address', 'complainant_address', 'common', 'textarea', False, 180, 'Complainant'),
 
             # 5. Accused KYC
-            ('Accused Name', 'accused_name', 'common', 'text', False, 190),
-            ('Accused Age', 'accused_age', 'common', 'number', False, 200),
-            ('Accused Gender', 'accused_gender', 'common', 'dropdown', False, 210),
-            ('Accused Occupation', 'accused_occupation', 'common', 'text', False, 220),
-            ('Accused Mobile', 'accused_mobile', 'common', 'text', False, 230),
-            ('Accused Aadhaar', 'accused_aadhaar', 'common', 'text', False, 240),
-            ('Accused PAN', 'accused_pan', 'common', 'text', False, 250),
-            ('Accused Religion', 'accused_religion', 'common', 'text', False, 260),
-            ('Accused Caste', 'accused_caste', 'common', 'text', False, 270),
-            ('Accused Address', 'accused_address', 'common', 'textarea', False, 280),
+            ('Name', 'accused_name', 'common', 'text', False, 190, 'Accused'),
+            ('Age', 'accused_age', 'common', 'number', False, 200, 'Accused'),
+            ('Gender', 'accused_gender', 'common', 'gender_toggle', False, 210, 'Accused'),
+            ('Occupation', 'accused_occupation', 'common', 'text', False, 220, 'Accused'),
+            ('Mobile Number', 'accused_mobile', 'common', 'text', False, 230, 'Accused'),
+            ('Aadhar Number', 'accused_aadhaar', 'common', 'text', False, 240, 'Accused'),
+            ('PAN Number', 'accused_pan', 'common', 'text', False, 250, 'Accused'),
+            ('Religion', 'accused_religion', 'common', 'text', False, 260, 'Accused'),
+            ('Caste', 'accused_caste', 'common', 'text', False, 270, 'Accused'),
+            ('Address', 'accused_address', 'common', 'textarea', False, 280, 'Accused'),
 
             # 6. Unidentified Accused
-            ('Approximate Age', 'approximate_age', 'common', 'text', False, 290),
-            ('Skin Colour', 'skin_colour', 'common', 'text', False, 300),
-            ('Possible Occupation', 'possible_occupation', 'common', 'text', False, 310),
-            ('Identification Mark', 'identification_mark', 'common', 'textarea', False, 320),
-            ('Height', 'height', 'common', 'text', False, 330),
-            ('Physical Description', 'description', 'common', 'textarea', False, 340),
+            ('Approximate Age', 'approximate_age', 'common', 'text', False, 290, 'Unidentified Accused'),
+            ('Skin Colour', 'skin_colour', 'common', 'text', False, 300, 'Unidentified Accused'),
+            ('Possible Occupation', 'possible_occupation', 'common', 'text', False, 310, 'Unidentified Accused'),
+            ('Identification Mark', 'identification_mark', 'common', 'textarea', False, 320, 'Unidentified Accused'),
+            ('Height', 'height', 'common', 'text', False, 330, 'Unidentified Accused'),
+            ('Physical Description', 'description', 'common', 'textarea', False, 340, 'Unidentified Accused'),
 
             # 7. Responsibility
-            ('IO Name', 'io_name', 'common', 'text', False, 350),
-            ('IO Designation', 'io_designation', 'common', 'text', False, 360),
-            ('Registered By Name', 'registered_by_name', 'common', 'text', False, 370),
-            ('Registered By Designation', 'registered_by_designation', 'common', 'text', False, 380),
+            ('IO Name', 'io_name', 'common', 'text', False, 350, 'Officer'),
+            ('IO Designation', 'io_designation', 'common', 'text', False, 360, 'Officer'),
+            ('Registered By Name', 'registered_by_name', 'common', 'text', False, 370, 'Officer'),
+            ('Registered By Designation', 'registered_by_designation', 'common', 'text', False, 380, 'Officer'),
 
             # 8. Arrest & Release Status
-            ('Arrest Date & Time', 'arrest_datetime', 'common', 'datetime', False, 390),
-            ('Sec 47/48 BNSS Complied', 'sec_47_48_bnss', 'common', 'checkbox', False, 400),
-            ('Relative / Friend Informed', 'relative_friend_name', 'common', 'text', False, 410),
-            ('Relative / Friend Relation', 'relative_friend_relation', 'common', 'text', False, 420),
-            ('Release on Notice', 'release_on_notice', 'common', 'checkbox', False, 430),
-            ('Release on Notice Date & Time', 'release_on_notice_datetime', 'common', 'datetime', False, 440),
-            ('Anticipatory Bail', 'anticipatory_bail', 'common', 'checkbox', False, 450),
-            ('Anticipatory Bail Date & Time', 'anticipatory_bail_datetime', 'common', 'datetime', False, 460),
-            ('Death of Accused', 'death_of_accused', 'common', 'checkbox', False, 470),
-            ('Death of Accused Date & Time', 'death_of_accused_datetime', 'common', 'datetime', False, 480),
+            ('Arrest Date & Time', 'arrest_datetime', 'common', 'datetime', False, 390, 'Arrest'),
+            ('Sec 47/48 BNSS Complied', 'sec_47_48_bnss', 'common', 'checkbox', False, 400, 'Arrest'),
+            ('Relative / Friend Informed', 'relative_friend_name', 'common', 'text', False, 410, 'Arrest'),
+            ('Relative / Friend Relation', 'relative_friend_relation', 'common', 'text', False, 420, 'Arrest'),
+            ('Release on Notice', 'release_on_notice', 'common', 'checkbox', False, 430, 'Arrest'),
+            ('Release on Notice Date & Time', 'release_on_notice_datetime', 'common', 'datetime', False, 440, 'Arrest'),
+            ('Anticipatory Bail', 'anticipatory_bail', 'common', 'checkbox', False, 450, 'Arrest'),
+            ('Anticipatory Bail Date & Time', 'anticipatory_bail_datetime', 'common', 'datetime', False, 460, 'Arrest'),
+            ('Death of Accused', 'death_of_accused', 'common', 'checkbox', False, 470, 'Arrest'),
+            ('Death of Accused Date & Time', 'death_of_accused_datetime', 'common', 'datetime', False, 480, 'Arrest'),
 
             # 9. Remand & Custody
-            ('PCR (Days)', 'pcr_days', 'common', 'number', False, 490),
-            ('MCR', 'mcr', 'common', 'checkbox', False, 500),
-            ('PR Bond', 'pr_bond', 'common', 'checkbox', False, 510),
-            ('Bail', 'bail', 'common', 'checkbox', False, 520),
-            ('Surety Name', 'surety_name', 'common', 'text', False, 530),
-            ('Jail', 'jail', 'common', 'checkbox', False, 540),
+            ('PCR (Days)', 'pcr_days', 'common', 'number', False, 490, 'Remand & Custody'),
+            ('MCR', 'mcr', 'common', 'checkbox', False, 500, 'Remand & Custody'),
+            ('PR Bond', 'pr_bond', 'common', 'checkbox', False, 510, 'Remand & Custody'),
+            ('Bail', 'bail', 'common', 'checkbox', False, 520, 'Remand & Custody'),
+            ('Surety Name', 'surety_name', 'common', 'text', False, 530, 'Remand & Custody'),
+            ('Jail', 'jail', 'common', 'checkbox', False, 540, 'Remand & Custody'),
 
             # 10. CCTV & Technical
-            ('CCTV Checked', 'cctv_checked', 'common', 'checkbox', False, 550),
-            ('CDR Sent Date', 'cdr_sent_date', 'common', 'date', False, 560),
-            ('CDR Received Date', 'cdr_received_date', 'common', 'date', False, 570),
+            ('CCTV Checked', 'cctv_checked', 'common', 'checkbox', False, 550, 'CCTV and CDR Investigation'),
+            ('CDR Sent Date', 'cdr_sent_date', 'common', 'date', False, 560, 'CCTV and CDR Investigation'),
+            ('CDR Received Date', 'cdr_received_date', 'common', 'date', False, 570, 'CCTV and CDR Investigation'),
 
             # 11. Procedural Checklist
-            ('Spot Panchanama', 'spot_panchanama', 'common', 'checkbox', False, 580),
-            ('Seizure Panchanama', 'seizure_panchanama', 'common', 'checkbox', False, 590),
-            ('Search Panchanama', 'search_panchanama', 'common', 'checkbox', False, 600),
-            ('Personal Search Panchanama', 'personal_search_panchanama', 'common', 'checkbox', False, 610),
-            ('Memorandum Panchanama', 'memorandum_panchanama', 'common', 'checkbox', False, 620),
-            ('Identification Panchanama', 'identification_panchanama', 'common', 'checkbox', False, 630),
-            ('Identification Parade Panchanama', 'identification_parade_panchanama', 'common', 'checkbox', False, 640),
+            ('Spot Panchanama', 'spot_panchanama', 'common', 'checkbox', False, 580, 'All Panchnama'),
+            ('Seizure Panchanama', 'seizure_panchanama', 'common', 'checkbox', False, 590, 'All Panchnama'),
+            ('Search Panchanama', 'search_panchanama', 'common', 'checkbox', False, 600, 'All Panchnama'),
+            ('Personal Search Panchanama', 'personal_search_panchanama', 'common', 'checkbox', False, 610, 'All Panchnama'),
+            ('Memorandum Panchanama', 'memorandum_panchanama', 'common', 'checkbox', False, 620, 'All Panchnama'),
+            ('Identification Panchanama', 'identification_panchanama', 'common', 'checkbox', False, 630, 'All Panchnama'),
+            ('Identification Parade Panchanama', 'identification_parade_panchanama', 'common', 'checkbox', False, 640, 'All Panchnama'),
 
             # 12. Forensics
-            ('E-Shakshya', 'e_shakshya', 'common', 'checkbox', False, 650),
-            ('Fingerprint Taken', 'fingerprint_taken', 'common', 'checkbox', False, 660),
-            ('NAFIS Fingerprint', 'nafis_fingerprint', 'common', 'checkbox', False, 670),
+            ('E-Shakshya', 'e_shakshya', 'common', 'checkbox', False, 650, 'Evidence'),
+            ('Fingerprint Taken', 'fingerprint_taken', 'common', 'checkbox', False, 660, 'Evidence'),
+            ('NAFIS Fingerprint', 'nafis_fingerprint', 'common', 'checkbox', False, 670, 'Evidence'),
 
             # 13. Seizures
-            ('Object Name', 'object_name', 'common', 'text', False, 675),
-            ('Seizure Description', 'seizure_description', 'common', 'textarea', False, 680),
-            ('Seizure From Whom', 'seizure_person_name', 'common', 'text', False, 690),
+            ('Object Name', 'object_name', 'common', 'text', False, 675, 'Seizure Records'),
+            ('Seizure Description', 'seizure_description', 'common', 'textarea', False, 680, 'Seizure Records'),
+            ('Seizure From Whom', 'seizure_person_name', 'common', 'text', False, 690, 'Seizure Records'),
 
             # 14. Preventive Action Items
-            ('Preventive Action Type', 'preventive_action_type', 'common', 'dropdown', False, 700),
-            ('Preventive Action Date', 'preventive_action_date', 'common', 'date', False, 710),
-            ('Preventive Action Outward No', 'preventive_outward_no', 'common', 'text', False, 720),
+            ('Preventive Action Type', 'preventive_action_type', 'common', 'dropdown', False, 700, 'Preventive Action'),
+            ('Preventive Action Date', 'preventive_action_date', 'common', 'date', False, 710, 'Preventive Action'),
+            ('Preventive Action Outward No', 'preventive_outward_no', 'common', 'text', False, 720, 'Preventive Action'),
 
             # 15. Preventive Bond
-            ('Bond Date', 'bond_date', 'common', 'date', False, 730),
-            ('Bond Cancellation Date', 'bond_cancellation_date', 'common', 'date', False, 740),
+            ('Bond Date', 'bond_date', 'common', 'date', False, 730, 'Bond'),
+            ('Bond Cancellation Date', 'bond_cancellation_date', 'common', 'date', False, 740, 'Bond'),
 
             # 16. Discharge Status
-            ('Discharged Accused', 'is_discharged', 'common', 'checkbox', False, 750),
+            ('Discharged Accused', 'is_discharged', 'common', 'checkbox', False, 750, 'Discharge Accused'),
 
             # 17. Scrutiny Pipeline
-            ('SDPO/ACP Send Date', 'sdpo_acp_send_date', 'common', 'date', False, 760),
-            ('SDPO/ACP Grant Date', 'sdpo_acp_grant_date', 'common', 'date', False, 770),
-            ('Addl SP/DCP Send Date', 'addl_sp_dcp_send_date', 'common', 'date', False, 780),
-            ('Addl SP/DCP Grant Date', 'addl_sp_dcp_grant_date', 'common', 'date', False, 790),
-            ('Addl CP Send Date', 'addl_cp_send_date', 'common', 'date', False, 800),
-            ('Addl CP Grant Date', 'addl_cp_grant_date', 'common', 'date', False, 810),
-            ('APP Send Date', 'app_send_date', 'common', 'date', False, 820),
-            ('APP Grant Date', 'app_grant_date', 'common', 'date', False, 830),
+            ('SDPO/ACP Send Date', 'sdpo_acp_send_date', 'common', 'date', False, 760, 'Scrutiny'),
+            ('SDPO/ACP Grant Date', 'sdpo_acp_grant_date', 'common', 'date', False, 770, 'Scrutiny'),
+            ('Addl SP/DCP Send Date', 'addl_sp_dcp_send_date', 'common', 'date', False, 780, 'Scrutiny'),
+            ('Addl SP/DCP Grant Date', 'addl_sp_dcp_grant_date', 'common', 'date', False, 790, 'Scrutiny'),
+            ('Addl CP Send Date', 'addl_cp_send_date', 'common', 'date', False, 800, 'Scrutiny'),
+            ('Addl CP Grant Date', 'addl_cp_grant_date', 'common', 'date', False, 810, 'Scrutiny'),
+            ('APP Send Date', 'app_send_date', 'common', 'date', False, 820, 'Scrutiny'),
+            ('APP Grant Date', 'app_grant_date', 'common', 'date', False, 830, 'Scrutiny'),
 
             # 18. Final Verdict
-            ('Charge Sheet No', 'charge_sheet_no', 'common', 'text', False, 840),
-            ('A Final Number', 'a_final_number', 'common', 'text', False, 850),
-            ('B Final Number', 'b_final_number', 'common', 'text', False, 860),
-            ('C Final Number', 'c_final_number', 'common', 'text', False, 870),
-            ('NC Final Number', 'nc_final_number', 'common', 'text', False, 880),
-            ('Abeted Summary No', 'abeted_summary_no', 'common', 'text', False, 890),
-            ('Stay by High Court Date', 'stay_by_high_court_date', 'common', 'date', False, 900),
-            ('Quashed by High Court Date', 'quashed_by_high_court_date', 'common', 'date', False, 910),
+            ('Charge Sheet No', 'charge_sheet_no', 'common', 'text', False, 840, 'Court Filing and Final Summary'),
+            ('A Final Number', 'a_final_number', 'common', 'text', False, 850, 'Court Filing and Final Summary'),
+            ('B Final Number', 'b_final_number', 'common', 'text', False, 860, 'Court Filing and Final Summary'),
+            ('C Final Number', 'c_final_number', 'common', 'text', False, 870, 'Court Filing and Final Summary'),
+            ('NC Final Number', 'nc_final_number', 'common', 'text', False, 880, 'Court Filing and Final Summary'),
+            ('Abeted Summary No', 'abeted_summary_no', 'common', 'text', False, 890, 'Court Filing and Final Summary'),
+            ('Stay by High Court Date', 'stay_by_high_court_date', 'common', 'date', False, 900, 'Court Filing and Final Summary'),
+            ('Quashed by High Court Date', 'quashed_by_high_court_date', 'common', 'date', False, 910, 'Court Filing and Final Summary'),
         ]
 
-        for label, key, src, ftype, req, order in common_fields:
+        for label, key, src, ftype, req, order, section in common_fields:
             FieldTemplateField.objects.create(
                 template=baseline_tmpl,
                 field_label=label,
@@ -225,6 +225,7 @@ class Command(BaseCommand):
                 field_type=ftype,
                 is_required=req,
                 display_order=order,
+                section=section,
             )
 
         self.stdout.write(f"  Created {len(common_fields)} fields in Baseline Template.")
@@ -266,14 +267,14 @@ class Command(BaseCommand):
         )
         FieldTemplateField.objects.filter(template=tmpl_murder_extra).delete()
         murder_extra_fields = [
-            ('Deceased Name', 'deceased_name', 'custom', 'text', False, 1000),
-            ('Deceased Age', 'deceased_age', 'custom', 'number', False, 1010),
-            ('Deceased Gender', 'deceased_gender', 'custom', 'dropdown', False, 1020),
-            ('Inquest Panchanama Details', 'inquest_panchanama', 'custom', 'textarea', False, 1030),
-            ('Post-Mortem Report Date', 'pm_report_date', 'custom', 'date', False, 1040),
-            ('Cause of Death', 'cause_of_death', 'custom', 'textarea', False, 1050),
+            ('Deceased Name', 'deceased_name', 'custom', 'text', False, 1000, 'Extra Templates (Trigger A extra & Trigger B dynamic)'),
+            ('Deceased Age', 'deceased_age', 'custom', 'number', False, 1010, 'Extra Templates (Trigger A extra & Trigger B dynamic)'),
+            ('Deceased Gender', 'deceased_gender', 'custom', 'dropdown', False, 1020, 'Extra Templates (Trigger A extra & Trigger B dynamic)'),
+            ('Inquest Panchanama Details', 'inquest_panchanama', 'custom', 'textarea', False, 1030, 'Extra Templates (Trigger A extra & Trigger B dynamic)'),
+            ('Post-Mortem Report Date', 'pm_report_date', 'custom', 'date', False, 1040, 'Extra Templates (Trigger A extra & Trigger B dynamic)'),
+            ('Cause of Death', 'cause_of_death', 'custom', 'textarea', False, 1050, 'Extra Templates (Trigger A extra & Trigger B dynamic)'),
         ]
-        for label, key, src, ftype, req, order in murder_extra_fields:
+        for label, key, src, ftype, req, order, section in murder_extra_fields:
             FieldTemplateField.objects.create(
                 template=tmpl_murder_extra,
                 field_label=label,
@@ -282,6 +283,7 @@ class Command(BaseCommand):
                 field_type=ftype,
                 is_required=req,
                 display_order=order,
+                section=section,
             )
 
         # Hurt Extra Template
@@ -290,12 +292,12 @@ class Command(BaseCommand):
         )
         FieldTemplateField.objects.filter(template=tmpl_hurt_extra).delete()
         hurt_extra_fields = [
-            ('Injured Person Name', 'injured_name', 'custom', 'text', False, 1100),
-            ('Injury Type / Severity', 'injury_type', 'custom', 'text', False, 1110),
-            ('Medical Certificate Date', 'medical_certificate_date', 'custom', 'date', False, 1120),
-            ('Hospital Name', 'hospital_name', 'custom', 'text', False, 1130),
+            ('Injured Person Name', 'injured_name', 'custom', 'text', False, 1100, 'Extra Templates (Trigger A extra & Trigger B dynamic)'),
+            ('Injury Type / Severity', 'injury_type', 'custom', 'text', False, 1110, 'Extra Templates (Trigger A extra & Trigger B dynamic)'),
+            ('Medical Certificate Date', 'medical_certificate_date', 'custom', 'date', False, 1120, 'Extra Templates (Trigger A extra & Trigger B dynamic)'),
+            ('Hospital Name', 'hospital_name', 'custom', 'text', False, 1130, 'Extra Templates (Trigger A extra & Trigger B dynamic)'),
         ]
-        for label, key, src, ftype, req, order in hurt_extra_fields:
+        for label, key, src, ftype, req, order, section in hurt_extra_fields:
             FieldTemplateField.objects.create(
                 template=tmpl_hurt_extra,
                 field_label=label,
@@ -304,6 +306,7 @@ class Command(BaseCommand):
                 field_type=ftype,
                 is_required=req,
                 display_order=order,
+                section=section,
             )
 
         # Trigger A fix: Link Murder category to BOTH Baseline and Murder Extra Template
