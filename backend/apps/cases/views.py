@@ -262,6 +262,11 @@ class PendingCasesView(APIView):
             if io_name:
                 queryset = queryset.filter(assigned_officer=io_name)
 
+            # Apply ?head filter (category)
+            head = request.query_params.get('head')
+            if head:
+                queryset = queryset.filter(head__iexact=head)
+
             # Apply time range filter (start_date, end_date)
             start_date = request.query_params.get('start_date')
             end_date = request.query_params.get('end_date')

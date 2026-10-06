@@ -89,121 +89,8 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
           ? _buildAccessDeniedBody(context)
           : _recordDeleted
               ? _buildDeletedBody()
-              : _buildLiveBody(context),
-      floatingActionButton: widget.showFloatingActions && showContent
-          ? Builder(builder: (ctx) {
-              final canEdit = PoliceRbacHelper.canEditRecord(_record, auth);
-              final canSendReminder = PoliceRbacHelper.canSendReminder(auth);
-
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  FloatingActionButton.extended(
-                    heroTag: 'pdf_btn',
-                    onPressed: () => PdfHelper.generateCasePdf(_record),
-                    backgroundColor: AppColors.dangerRed,
-                    icon: const Icon(Icons.picture_as_pdf_rounded,
-                        color: Colors.white),
-                    label: Text(
-                      'Download PDF',
-                      style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600, color: Colors.white),
-                    ),
-                  ),
-                  if (canSendReminder) ...[
-                    const SizedBox(height: 12),
-                    FloatingActionButton.extended(
-                      heroTag: 'reminder_btn',
-                      onPressed: () =>
-                          SendReminderDialog.show(context, _record),
-                      backgroundColor: AppColors.warningOrange,
-                      icon: const Icon(Icons.notifications_active_rounded,
-                          color: Colors.white),
-                      label: Text(
-                        'Send Reminder to IO',
-                        style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600, color: Colors.white),
-                      ),
-                    ),
-                  ],
-                  if (canEdit) ...[
-                    const SizedBox(height: 12),
-                    FloatingActionButton.extended(
-                      heroTag: 'edit_btn',
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          AppTheme.fadeSlideRoute(
-                            page: CaseFormScreen(
-                              categoryName: _record.category,
-                              existingCase: _record,
-                            ),
-                          ),
-                        );
-                      },
-                      backgroundColor: AppColors.goldPrimary,
-                      icon: const Icon(Icons.edit_note_rounded,
-                          color: AppColors.navyDark),
-                      label: Text(
-                        'Edit Record',
-                        style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.navyDark),
-                      ),
-                    ),
-                  ],
-                  if (_record.status != 'Transferred Out') ...[
-                    const SizedBox(height: 12),
-                    FloatingActionButton.extended(
-                      heroTag: 'transfer_btn',
-                      onPressed: () async {
-                        final result = await Navigator.push(
-                          context,
-                          AppTheme.fadeSlideRoute(
-                            page: TransferCaseFormScreen(record: _record),
-                          ),
-                        );
-                        if (result == true) {
-                          // Mock status update for UI purposes
-                          setState(() {
-                            // Assuming we'd mutate it here or reload, but we'll just mock it
-                            _record = ModuleRecord(
-                              id: _record.id,
-                              moduleKey: _record.moduleKey,
-                              title: _record.title,
-                              caseNumber: _record.caseNumber,
-                              description: _record.description,
-                              complainant: _record.complainant,
-                              accused: _record.accused,
-                              location: _record.location,
-                              incidentDate: _record.incidentDate,
-                              priority: _record.priority,
-                              status: 'Transferred Out',
-                              assignedOfficer: _record.assignedOfficer,
-                              subCategory: _record.subCategory,
-                              createdAt: _record.createdAt,
-                              extraFields: _record.extraFields,
-                              createdBy: _record.createdBy,
-                              assignedOfficerUid: _record.assignedOfficerUid,
-                              stationName: _record.stationName,
-                            );
-                          });
-                        }
-                      },
-                      backgroundColor: Colors.indigo,
-                      icon: const Icon(Icons.swap_horiz_rounded,
-                          color: Colors.white),
-                      label: Text(
-                        'Transfer Case',
-                        style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600, color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ],
-              );
-            })
-          : null,
+              : _buildLiveBody(context, showContent),
+      bottomNavigationBar: widget.showFloatingActions ? _buildStickyBottomActions(context, showContent) : null,
     );
   }
 
@@ -267,7 +154,7 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
     );
   }
 
-  Widget _buildLiveBody(BuildContext context) {
+  Widget _buildLiveBody(BuildContext context, bool showContent) {
     final isTransferred = _record.status == 'Transferred Out';
     return CustomScrollView(
       slivers: [
@@ -336,26 +223,26 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
     return SliverAppBar(
       expandedHeight: 70,
       pinned: true,
-      backgroundColor: AppColors.navyDark,
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1.0),
+        child: Container(color: AppColors.lightBorder, height: 1.0),
+      ),
       leading: IconButton(
         onPressed: () => Navigator.pop(context),
         icon: const Icon(Icons.arrow_back_ios_new_rounded,
-            color: Colors.white, size: 20),
+            color: AppColors.navyDark, size: 20),
       ),
       title: Text(
         _record.caseNumber,
         style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w600, color: Colors.white, fontSize: 15),
+            fontWeight: FontWeight.w700, color: AppColors.navyDark, fontSize: 16),
       ),
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topRight,
-              end: Alignment.bottomLeft,
-              colors: [AppColors.navyDark, AppColors.navyMid],
-            ),
-          ),
+          color: Colors.white,
         ),
       ),
     );
@@ -410,5 +297,125 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
         ],
       ),
     );
+  }
+  Widget? _buildStickyBottomActions(BuildContext context, bool showContent) {
+    if (_recordDeleted || !showContent) return null;
+    
+    return Builder(builder: (ctx) {
+      final auth = context.watch<AuthProvider>();
+      final canEdit = PoliceRbacHelper.canEditRecord(_record, auth);
+      final canSendReminder = PoliceRbacHelper.canSendReminder(auth);
+      
+      Widget actionBtn({
+        required String label,
+        required IconData icon,
+        required VoidCallback onPressed,
+      }) {
+        return SizedBox(
+          width: 220,
+          child: ElevatedButton.icon(
+            onPressed: onPressed,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: AppColors.navyDark,
+              elevation: 0,
+              side: const BorderSide(color: AppColors.lightBorder),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.md),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+            icon: Icon(icon, size: 20),
+            label: Text(
+              label,
+              style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600, fontSize: 14),
+            ),
+          ),
+        );
+      }
+
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.lg),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: AppColors.lightBorder)),
+        ),
+        child: SafeArea(
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              actionBtn(
+                label: 'Download PDF',
+                icon: Icons.picture_as_pdf_rounded,
+                onPressed: () => PdfHelper.generateCasePdf(_record),
+              ),
+              if (canSendReminder)
+                actionBtn(
+                  label: 'Send Reminder',
+                  icon: Icons.notifications_active_rounded,
+                  onPressed: () => SendReminderDialog.show(context, _record),
+                ),
+              if (canEdit)
+                actionBtn(
+                  label: 'Edit Record',
+                  icon: Icons.edit_note_rounded,
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      AppTheme.fadeSlideRoute(
+                        page: CaseFormScreen(
+                          categoryName: _record.category,
+                          existingCase: _record,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              if (_record.status != 'Transferred Out')
+                actionBtn(
+                  label: 'Transfer Case',
+                  icon: Icons.swap_horiz_rounded,
+                  onPressed: () async {
+                    final result = await Navigator.push(
+                      context,
+                      AppTheme.fadeSlideRoute(
+                        page: TransferCaseFormScreen(record: _record),
+                      ),
+                    );
+                    if (result == true) {
+                      setState(() {
+                        _record = ModuleRecord(
+                          id: _record.id,
+                          moduleKey: _record.moduleKey,
+                          title: _record.title,
+                          caseNumber: _record.caseNumber,
+                          description: _record.description,
+                          complainant: _record.complainant,
+                          accused: _record.accused,
+                          location: _record.location,
+                          incidentDate: _record.incidentDate,
+                          priority: _record.priority,
+                          status: 'Transferred Out',
+                          assignedOfficer: _record.assignedOfficer,
+                          subCategory: _record.subCategory,
+                          createdAt: _record.createdAt,
+                          extraFields: _record.extraFields,
+                          createdBy: _record.createdBy,
+                          assignedOfficerUid: _record.assignedOfficerUid,
+                          stationName: _record.stationName,
+                        );
+                      });
+                    }
+                  },
+                ),
+            ],
+          ),
+        ),
+      );
+    });
   }
 }

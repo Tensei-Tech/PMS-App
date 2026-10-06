@@ -8,7 +8,6 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
-import '../constants/case_status_constants.dart';
 
 import '../modules/absconded/providers/absconded_provider.dart';
 import '../modules/accident/providers/accident_provider.dart';
@@ -33,7 +32,6 @@ import '../modules/mcoca/providers/mcoca_provider.dart';
 import '../modules/missing/providers/missing_provider.dart';
 import '../modules/missing/screens/missing_form_screen.dart';
 import '../modules/monthly/providers/monthly_provider.dart';
-
 import '../modules/mpda/providers/mpda_provider.dart';
 import '../modules/mpda/screens/mpda_form_screen.dart';
 import '../modules/muddemal/providers/muddemal_provider.dart';
@@ -61,7 +59,7 @@ import '../theme/app_theme.dart';
 import '../utils/ad_disposal_helper.dart';
 import '../utils/common_form_module.dart';
 import '../utils/module_pdf_helper.dart';
-
+import '../utils/pending_io_wise_logic.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/forms_accordion_list.dart';
 import '../widgets/module_hub_report_card.dart';
@@ -76,7 +74,8 @@ import 'form_vi_selection_screen.dart';
 import 'hurt_cases_screen.dart';
 import 'module_form_screen.dart';
 import 'module_record_detail_screen.dart';
-
+import 'filtered_pending_screen.dart';
+import 'pending_io_wise_screens.dart';
 import 'pending_summary_screen.dart';
 import 'report_case_list_screen.dart';
 
@@ -122,6 +121,29 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   bool _showMonthlyClassVTable = false;
   bool _showMonthlyClassVITable = false;
   bool _showMonthlyPreventiveTable = false;
+
+  String? _pendingCategory;
+  String? _pendingTimeRange;
+  String? _pendingViewMode;
+
+  static const List<String> _pendingHubCategories = [
+    ...kPendingDashboardCategoriesForIoWise,
+  ];
+
+  static const List<String> _pendingHubTimeRanges = [
+    'Select time range',
+    'More than 1 year',
+    '6 to 12 months',
+    '3 to 6 months',
+    'More than 3 months',
+    'Within 3 months',
+    '1 month',
+  ];
+
+  static const List<String> _pendingHubViewModes = [
+    'Case Wise',
+    'IO Wise',
+  ];
 
   @override
   void initState() {
@@ -522,9 +544,13 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     final List<ModuleRecord> filtered;
     // Filtering logic combined
     if (widget.moduleKey == 'absconded') {
-      if (_filter == CaseStatus.disposal) {
+      if (_filter == 'Disposal' ||
+          _filter == 'Closed' ||
+          _filter == 'Resolved') {
         filtered = allRecords.where((r) => isAbscondedDisposal(r)).toList();
-      } else if (_filter == CaseStatus.pending) {
+      } else if (_filter == 'Pending' ||
+          _filter == 'Open' ||
+          _filter == 'Active') {
         filtered = allRecords.where((r) => !isAbscondedDisposal(r)).toList();
       } else {
         filtered = allRecords;
@@ -604,9 +630,13 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         filtered = allRecords;
       }
     } else {
-      if (_filter == CaseStatus.disposal) {
+      if (_filter == 'Disposal' ||
+          _filter == 'Closed' ||
+          _filter == 'Resolved') {
         filtered = allRecords.where(isRecordDisposal).toList();
-      } else if (_filter == CaseStatus.pending) {
+      } else if (_filter == 'Pending' ||
+          _filter == 'Open' ||
+          _filter == 'Active') {
         filtered = allRecords.where(isRecordPending).toList();
       } else {
         filtered = _filter == 'All'
@@ -634,14 +664,14 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   // Monthly module is report-only (no records section).
                   SliverToBoxAdapter(
                       child: _buildMonthlyReport(context, allRecords)),
+                ] else if (widget.moduleKey == 'pending') ...[
+                  SliverToBoxAdapter(
+                      child: _buildPendingModuleReportOnly(context)),
                 ] else if (widget.moduleLabel == 'Forms' &&
                     widget.moduleKey == 'form_1_5') ...[
                   SliverToBoxAdapter(
                       child: _buildFormsModuleReportOnly(context)),
                 ] else ...[
-                  if (widget.moduleKey == 'pending')
-                    SliverToBoxAdapter(
-                        child: _buildPendingModuleReportOnly(context)),
                   if (widget.moduleKey == 'disposal')
                     SliverToBoxAdapter(child: _buildModuleTabs()),
                   if (_isReportMode && widget.moduleKey == 'disposal')
@@ -785,7 +815,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       }
       catMeta[key]!.count++;
       // Count solved: Resolved or Closed
-      if (r.status == CaseStatus.disposal) {
+      if (r.status == 'Resolved' || r.status == 'Closed') {
         catMeta[key]!.solvedCount++;
       }
     }
@@ -867,18 +897,33 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     );
   }
 
+  String _pendingHubSubtitle(BuildContext context) {
+    if (_pendingCategory == null) {
+      return TranslationHelper.translate(context, 'Select a category');
+    }
+    final transCategory =
+        TranslationHelper.translate(context, _pendingCategory!);
+    if (_pendingTimeRange == null) {
+      final transSelectTime =
+          TranslationHelper.translate(context, 'Select time range');
+      return '$transCategory — $transSelectTime';
+    }
+    final transTimeRange =
+        TranslationHelper.translate(context, _pendingTimeRange!);
+    return '$transCategory — $transTimeRange';
+  }
+
   Widget _buildPendingModuleReportOnly(BuildContext context) {
     final auth = context.read<AuthProvider>();
+    final categoryValue = _pendingCategory ?? _pendingHubCategories.first;
+    final timeRangeValue = _pendingTimeRange ?? 'Select time range';
+    final viewModeValue = _pendingViewMode ?? 'Case Wise';
 
     return ModuleHubReportCard(
-      title:
-          TranslationHelper.translate(context, '${widget.moduleLabel} Reports'),
-      subtitle: TranslationHelper.translate(
-          context, 'Summary of all ${widget.moduleLabel.toLowerCase()} cases'),
+      title: TranslationHelper.translate(context, 'Pending Reports'),
+      subtitle: _pendingHubSubtitle(context),
       showFilterRow: false,
-      showCategoryButtons: false,
       filterRow: const SizedBox.shrink(),
-      categoryButtons: const SizedBox.shrink(),
       onSummaryTap: () {
         Navigator.push(
           context,
@@ -887,6 +932,141 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           ),
         );
       },
+      wrapCategoryButtonsInCard: false,
+      categoryButtons: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final bool isSmallScreen = constraints.maxWidth < 600;
+            final double gap = isSmallScreen ? 12 : 16;
+            final int columns = constraints.maxWidth > 1000 ? 4 : (constraints.maxWidth > 600 ? 3 : 2);
+            double itemWidth = (constraints.maxWidth - (gap * (columns - 1))) / columns;
+            if (itemWidth < 0) itemWidth = 0; // Prevent negative width crash
+
+            return Wrap(
+              spacing: gap,
+              runSpacing: gap,
+              alignment: WrapAlignment.start,
+              children: _pendingHubCategories.map((cat) {
+                final transCategory = TranslationHelper.translate(context, cat);
+                return SizedBox(
+                  width: itemWidth,
+                  height: 64, // Keep full height on mobile
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade200, width: 1.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.navyDark.withValues(alpha: 0.04),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      child: PopupMenuButton<String>(
+                        offset: Offset(0, 68),
+                        tooltip: transCategory,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(color: Colors.grey.shade200, width: 1),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 10 : 16),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.navyMid.withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  Icons.folder_open_rounded, 
+                                  color: AppColors.navyMid, 
+                                  size: isSmallScreen ? 16 : 18,
+                                ),
+                              ),
+                              SizedBox(width: isSmallScreen ? 8 : 12),
+                              Expanded(
+                                child: Text(
+                                  transCategory,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: isSmallScreen ? 12 : 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.navyDark,
+                                    height: 1.2,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: isSmallScreen ? 4 : 8),
+                              Icon(
+                                Icons.keyboard_arrow_down_rounded, 
+                                color: AppColors.navyDark.withValues(alpha: 0.5), 
+                                size: isSmallScreen ? 18 : 20,
+                              ),
+                            ],
+                          ),
+                        ),
+                        onSelected: (val) {
+                          setState(() {
+                            _pendingCategory = cat;
+                          });
+                          if (val == 'IO Wise') {
+                            Navigator.push(
+                              context,
+                              AppTheme.fadeSlideRoute(
+                                page: PendingIoWiseByCategoryScreen(category: cat),
+                              ),
+                            );
+                          } else {
+                            setState(() {
+                              _pendingTimeRange = val;
+                            });
+                            Navigator.push(
+                              context,
+                              AppTheme.fadeSlideRoute(
+                                page: FilteredPendingScreen(
+                                  title: '$cat - $val',
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                        itemBuilder: (BuildContext context) {
+                          final List<String> options = [
+                            ..._pendingHubTimeRanges.where((t) => t != 'Select time range'),
+                            'IO Wise',
+                          ];
+                          return options.map((String choice) {
+                            return PopupMenuItem<String>(
+                              value: choice,
+                              child: Text(
+                                TranslationHelper.translate(context, choice),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            );
+                          }).toList();
+                        },
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            );
+          },
+        ),
+      ),
       child: null,
     );
   }
@@ -1880,7 +2060,10 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         r.incidentDate.month == selectedMonth;
     bool isInYear(ModuleRecord r) => r.incidentDate.year == selectedYear;
 
-    bool isDetected(ModuleRecord r) => r.moduleKey == 'detected';
+    bool isDetected(ModuleRecord r) =>
+        r.status == 'Resolved' ||
+        r.status == 'Closed' ||
+        r.moduleKey == 'detected';
 
     List<ModuleRecord> monthRecsWhere(bool Function(ModuleRecord) test) =>
         allRecords.where((r) => isInMonth(r) && test(r)).toList();
@@ -2515,7 +2698,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         filterYearToMonth(selectedMonth, selectedYear - 1);
 
     int detected(List<ModuleRecord> recs) =>
-        recs.where((r) => r.status != CaseStatus.pending).length;
+        recs.where((r) => r.status.toLowerCase() != 'open').length;
 
     final tableRows = <Map<String, dynamic>>[];
     int totalcmR = 0, totalcmD = 0;
@@ -2844,7 +3027,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     }
 
     List<ModuleRecord> detRecs(List<ModuleRecord> r) =>
-        r.where((x) => x.status != CaseStatus.pending).toList();
+        r.where((x) => x.status.toLowerCase() != 'open').toList();
 
     Widget buildScreenDataRow(Map<String, dynamic> def) {
       final headKey = def['head'] as String;
@@ -3572,9 +3755,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         activeLabelColor: const Color(0xFF1976D2),
       ),
       (
-        label: CaseStatus.pending,
+        label: 'Pending',
         count: pendingCount,
-        filterKey: CaseStatus.pending,
+        filterKey: 'Pending',
         badgeBg: const Color(0xFFFFEBEE),
         badgeFg: const Color(0xFFD32F2F),
         activeBorder: const Color(0xFFD32F2F),
@@ -3582,9 +3765,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         activeLabelColor: const Color(0xFFD32F2F),
       ),
       (
-        label: CaseStatus.disposal,
+        label: 'Disposal',
         count: disposalCount,
-        filterKey: CaseStatus.disposal,
+        filterKey: 'Disposal',
         badgeBg: const Color(0xFFE8F5E9),
         badgeFg: const Color(0xFF2E7D32),
         activeBorder: const Color(0xFF2E7D32),
@@ -3607,11 +3790,11 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           children: [
             ...tabs.map((item) {
               String currentFilter = _filter;
-              if (currentFilter == CaseStatus.pending) {
-                currentFilter = CaseStatus.pending;
+              if (currentFilter == 'Open' || currentFilter == 'Active') {
+                currentFilter = 'Pending';
               }
-              if (currentFilter == CaseStatus.disposal) {
-                currentFilter = CaseStatus.disposal;
+              if (currentFilter == 'Closed' || currentFilter == 'Resolved') {
+                currentFilter = 'Disposal';
               }
               final isSelected = currentFilter == item.filterKey;
 
@@ -3941,8 +4124,10 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     final String displayStatus;
     final Color sc;
     if (isDetectedCard) {
-      final isDisposal = record.status == CaseStatus.disposal;
-      displayStatus = isDisposal ? CaseStatus.disposal : CaseStatus.pending;
+      final isDisposal = record.status == 'Disposal' ||
+          record.status == 'Closed' ||
+          record.status == 'Resolved';
+      displayStatus = isDisposal ? 'Disposal' : 'Pending';
       sc = isDisposal ? AppColors.successGreen : AppColors.warningOrange;
     } else {
       displayStatus = record.status;
@@ -4539,7 +4724,9 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
     if (ioName.isEmpty) ioName = '—';
 
     // Status Color (Disposal = Green, Pending/Other = Red)
-    final isDisposal = record.status == CaseStatus.disposal ||
+    final isDisposal = record.status == 'Disposal' ||
+        record.status == 'Closed' ||
+        record.status == 'Resolved' ||
         record.status.toLowerCase().contains('completed');
     final Color statusColor =
         isDisposal ? const Color(0xFF2E7D32) : const Color(0xFFD32F2F);

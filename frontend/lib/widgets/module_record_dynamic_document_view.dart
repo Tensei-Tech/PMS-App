@@ -503,14 +503,7 @@ class ModuleRecordDynamicDocumentView extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionHeader('Module', Icons.category_outlined),
-            const SizedBox(height: 10),
-            _card(
-              children: [
-                _row('Dashboard module', moduleLabel, boldValue: true),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
+
             if (ncFormMap != null) ...[
               NcViewDocumentView(
                 record: record,

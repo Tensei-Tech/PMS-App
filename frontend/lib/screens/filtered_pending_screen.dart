@@ -51,6 +51,7 @@ class _FilteredPendingScreenState extends State<FilteredPendingScreen> {
             )
           : await _backend.fetchPendingCases(
               ioUid: widget.ioUid,
+              category: widget.category,
               startDate: widget.startDate,
               endDate: widget.endDate,
             );

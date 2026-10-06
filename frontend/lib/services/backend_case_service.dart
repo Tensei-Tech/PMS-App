@@ -81,6 +81,7 @@ class BackendCaseService {
   /// Fetch pending cases, optionally filtering by time range and category
   Future<List<Map<String, dynamic>>?> fetchPendingCases({
     String? ioUid,
+    String? category,
     String? startDate,
     String? endDate,
   }) async {
@@ -88,6 +89,9 @@ class BackendCaseService {
       final queryParams = <String, dynamic>{};
       if (ioUid != null && ioUid.isNotEmpty) {
         queryParams['io'] = ioUid;
+      }
+      if (category != null && category.isNotEmpty) {
+        queryParams['head'] = category; // 'head' maps to category
       }
       if (startDate != null && startDate.isNotEmpty) {
         queryParams['start_date'] = startDate;
