@@ -542,10 +542,10 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       totalCount = provider.getFilteredTotalCount(widget.subCategory);
     }
 
-    final int disposalCount = widget.moduleKey == 'absconded'
+    int disposalCount = widget.moduleKey == 'absconded'
         ? allRecords.where((r) => isAbscondedDisposal(r)).length
         : allRecords.where(isRecordDisposal).length;
-    final int pendingCount = allRecords.length - disposalCount;
+    int pendingCount = allRecords.length - disposalCount;
 
     final List<ModuleRecord> filtered;
     // Filtering logic combined
@@ -627,6 +627,15 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             ? dateB.compareTo(dateA)
             : dateA.compareTo(dateB);
       });
+    }
+
+    // Important: keep this so stats match filtered date range
+    if (isTheftOrFormIVStyle && _selectedDateRange != null) {
+      totalCount = displayRecords.length;
+      disposalCount = widget.moduleKey == 'absconded'
+          ? displayRecords.where((r) => isAbscondedDisposal(r)).length
+          : displayRecords.where(isRecordDisposal).length;
+      pendingCount = totalCount - disposalCount;
     }
 
     final bool showAddButton = !(widget.readOnly ||
