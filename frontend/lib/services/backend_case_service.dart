@@ -381,7 +381,8 @@ class BackendCaseService {
         queryParams['status'] = status;
       }
       final url = '${ApiConfig.cases}absconded/time-wise/';
-      final response = await _api.get(url, queryParameters: queryParams.isNotEmpty ? queryParams : null);
+      final response = await _api.get(url,
+          queryParameters: queryParams.isNotEmpty ? queryParams : null);
       if (response.isSuccess && response.data is List) {
         return List<Map<String, dynamic>>.from(response.data);
       } else {
