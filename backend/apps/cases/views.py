@@ -575,7 +575,8 @@ class DisposalCaseWiseView(APIView):
                 
             crime_type = request.query_params.get('crime_type')
             if crime_type:
-                queryset = queryset.filter(module_key=crime_type)
+                from django.db.models import Q
+                queryset = queryset.filter(Q(module_key__iexact=crime_type) | Q(sub_category__iexact=crime_type))
                 
             search = request.query_params.get('search')
             if search:
@@ -749,7 +750,7 @@ class DisposalCrimeTypeWiseView(APIView):
                 stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                 queryset = queryset.filter(station_name__in=stations)
 
-            counts = queryset.values('module_key').annotate(count=Count('id')).order_by('-count')
+            counts = queryset.values('module_key', 'sub_category').annotate(count=Count('id'))
             
             from apps.crimetab.models.groupings import CaseCategory
             cats = CaseCategory.objects.all()
@@ -759,15 +760,28 @@ class DisposalCrimeTypeWiseView(APIView):
                 cat_map[c.category_code.lower()] = name
                 cat_map[name.lower()] = name
 
-            results = []
+            grouped = {}
             for c in counts:
-                mk = (c.get('module_key') or '').lower()
-                display_name = cat_map.get(mk, mk) if mk else 'Other'
-                results.append({
-                    'crime_type': mk,
-                    'crime_type_name': display_name,
-                    'count': c['count']
-                })
+                mk = (c.get('module_key') or '').strip()
+                sc = (c.get('sub_category') or '').strip()
+                
+                # Prioritize sub_category if present
+                raw_key = sc if sc else mk
+                if not raw_key:
+                    raw_key = 'Other'
+                    
+                # Try to map, otherwise use raw_key
+                display_name = cat_map.get(raw_key.lower(), raw_key.title() if sc else raw_key)
+                
+                if raw_key not in grouped:
+                    grouped[raw_key] = {
+                        'crime_type': raw_key,
+                        'crime_type_name': display_name,
+                        'count': 0
+                    }
+                grouped[raw_key]['count'] += c['count']
+
+            results = sorted(grouped.values(), key=lambda x: x['count'], reverse=True)
             return Response(results)
         except Exception as e:
             logger.exception(f"[DisposalCrimeTypeWiseView] Database error: {e}")

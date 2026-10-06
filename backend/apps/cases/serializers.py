@@ -3,6 +3,8 @@ from apps.cases.models import CaseRecord
 
 
 class CaseRecordSerializer(serializers.ModelSerializer):
+    arrest_date = serializers.SerializerMethodField()
+
     class Meta:
         model = CaseRecord
         fields = [
@@ -23,10 +25,21 @@ class CaseRecordSerializer(serializers.ModelSerializer):
             'created_by',
             'station_name',
             'extra_fields',
+            'arrest_date',
             'created_at',
             'updated_at',
         ]
         read_only_fields = ['created_at', 'updated_at']
+
+    def get_arrest_date(self, obj):
+        try:
+            arrests = obj.persons.filter(arrest_status__arrest_datetime__isnull=False)
+            if arrests.exists():
+                return arrests.first().arrest_status.arrest_datetime.isoformat()
+        except Exception:
+            pass
+        ex = obj.extra_fields if isinstance(obj.extra_fields, dict) else {}
+        return ex.get('arrest_datetime') or ex.get('arrest_date')
 
     def to_internal_value(self, data):
         if isinstance(data, dict):

@@ -104,11 +104,7 @@ class FormVISelectionScreen extends StatefulWidget {
         if (normCand == '${normTarget}s' || '${normCand}s' == normTarget) {
           return true;
         }
-        if (normCand.length >= 4 && normTarget.length >= 4) {
-          if (normCand.contains(normTarget) || normTarget.contains(normCand)) {
-            return true;
-          }
-        }
+
       }
     }
     return false;
@@ -1353,13 +1349,39 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
     final provider = context.watch<FormVIProvider>();
     final allRecords = provider.records;
 
-    final totalCount = allRecords.length;
-    final pendingCount = allRecords.where(_isPendingRecord).length;
-    final disposalCount = allRecords.where(_isDisposalRecord).length;
+    List<ModuleRecord> baseRecords = allRecords;
 
-    final statusRecords = _recordsForStatus(allRecords, _selectedStatusTab);
+    if (_selectedCategory != null && _selectedCategory != FormVISelectionScreen.allFilterLabel) {
+      final descendants = _getDescendantCategoryNames(_selectedCategory!);
+      baseRecords = baseRecords
+          .where((r) => FormVISelectionScreen.recordMatchesCategory(r, _selectedCategory!, descendants))
+          .toList();
+    } else if (_categoryBreadcrumb.isNotEmpty) {
+      final currentCategory = _categoryBreadcrumb.last;
+      final descendants = _getDescendantCategoryNames(currentCategory);
+      baseRecords = baseRecords
+          .where((r) => FormVISelectionScreen.recordMatchesCategory(r, currentCategory, descendants))
+          .toList();
+    }
+
+    baseRecords = baseRecords.where(_recordMatchesDate).toList();
+
+    final totalCount = baseRecords.length;
+    final pendingCount = baseRecords.where(_isPendingRecord).length;
+    final disposalCount = baseRecords.where(_isDisposalRecord).length;
+
+    final statusRecords = _recordsForStatus(baseRecords, _selectedStatusTab);
+    
+    statusRecords.sort((a, b) {
+      final dateA = _recordTargetDate(a);
+      final dateB = _recordTargetDate(b);
+      return _dateSortOrder == FormVIDateSortOrder.newestFirst
+          ? dateB.compareTo(dateA)
+          : dateA.compareTo(dateB);
+    });
+
     final visibleRecords = _selectedCategory != null
-        ? _filteredRecordsForCategory(statusRecords, _selectedCategory!)
+        ? statusRecords
         : <ModuleRecord>[];
 
     final dateSuffix = (_selectedCategory != null && _selectedDateRange != null)
