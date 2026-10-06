@@ -66,7 +66,7 @@ class TenantMiddleware(MiddlewareMixin):
         if not state_code:
             state_code = request.GET.get('state_code', '')
 
-        schema_name = 'maharashtra'
+        schema_name = 'public'
         if direct_schema:
             schema_name = "".join(c for c in direct_schema if c.isalnum() or c == '_').lower()
         elif state_code and state_code.upper() != 'GLOBAL':
