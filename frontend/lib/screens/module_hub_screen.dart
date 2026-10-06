@@ -638,7 +638,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       pendingCount = totalCount - disposalCount;
     }
 
-    // ignore: unused_local_variable
     final bool showAddButton = !(widget.readOnly ||
         widget.moduleKey == 'detected' ||
         widget.moduleKey == 'undetected' ||
