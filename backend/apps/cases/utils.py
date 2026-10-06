@@ -16,20 +16,51 @@ def get_cases_by_status(tab: str):
         return queryset.filter(status__iexact='Disposal')
     elif tab.lower() == 'pending':
         # "Pending" includes anything that is not Disposal, Closed, or Resolved
-        return queryset.filter(status__iexact='Pending')
+        return queryset.exclude(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved'])
     elif tab.lower() == 'detected':
         return queryset.filter(status__iexact='Detected')
         
     return queryset
 
 
+def _has_arrest_date(extra: dict) -> bool:
+    """
+    Returns True if an arrest date is recorded in any of the common arrest fields.
+    If no arrest date exists (or is null/empty), returns False.
+    """
+    if not isinstance(extra, dict):
+        return False
+
+    cf = extra.get('commonForm', {})
+    if not isinstance(cf, dict):
+        cf = {}
+
+    # 1. Direct arrest datetime fields on commonForm or extra_fields
+    for field in ['arrest_datetime', 'arrest_date', 'arrestDt', 'arrest_date_time']:
+        val = str(cf.get(field, '') or extra.get(field, '')).strip()
+        if val and val.lower() not in ['null', 'none', '']:
+            return True
+
+    # 2. Check lists of arrest records (arrestRelease, arrest_records, arrests)
+    for list_key in ['arrestRelease', 'arrest_records', 'arrests']:
+        records = cf.get(list_key, []) or extra.get(list_key, [])
+        if isinstance(records, list):
+            for row in records:
+                if isinstance(row, dict):
+                    for field in ['arrestDt', 'arrest_datetime', 'arrest_date', 'date']:
+                        dt_val = str(row.get(field, '')).strip()
+                        if dt_val and dt_val.lower() not in ['null', 'none', '']:
+                            return True
+    return False
+
+
 def get_absconded_cases():
     """
     Returns absconded cases. 
-    A case is absconded if it is a detected case (has accused), is not disposed, 
-    and the accused has not been arrested (no arrestDt in extra_fields).
-    
-    Logic: arrested date is null → case is absconded.
+    Rule: A case is considered Absconded when the Arrested Date is missing.
+    Accused must be identified (not unknown/empty).
+    Cases with CC ST Number are included (and will appear under Disposal as well).
+    Cases without CC ST Number are included (and will appear under Pending as well).
     """
     from apps.core.tenancy import get_active_tenant_schema, set_tenant_schema
     
@@ -46,34 +77,12 @@ def get_absconded_cases():
         ~Q(accused__iexact='unidentified')
     )
     
-    queryset = CaseRecord.objects.filter(detected_q).exclude(
-        status__in=['Disposal', 'Disposed', 'Closed', 'Resolved']
-    )
+    queryset = CaseRecord.objects.filter(detected_q)
     
-    # Fetch all matching cases and filter by arrest date in Python
-    # Use list() to force evaluation in a single DB round-trip
+    # Check arrest date: if arrested date is null/missing -> absconded
     absconded_ids = []
     for case in list(queryset.only('id', 'extra_fields')):
-        extra = case.extra_fields
-        if isinstance(extra, dict):
-            cf = extra.get('commonForm', {})
-            if isinstance(cf, dict):
-                ar = cf.get('arrestRelease', [])
-                if isinstance(ar, list) and len(ar) > 0:
-                    has_arrest = any(
-                        str(row.get('arrestDt', '')).strip()
-                        for row in ar if isinstance(row, dict)
-                    )
-                    if not has_arrest:
-                        absconded_ids.append(case.id)
-                else:
-                    # No arrestRelease data → no arrest → absconded
-                    absconded_ids.append(case.id)
-            else:
-                # No commonForm → no arrest info → absconded
-                absconded_ids.append(case.id)
-        else:
-            # No extra_fields → no arrest info → absconded
+        if not _has_arrest_date(case.extra_fields):
             absconded_ids.append(case.id)
 
     # Re-set schema before the final query (connection pool safety)

@@ -129,6 +129,10 @@ class CaseRecordViewSet(viewsets.ModelViewSet):
                     ~Q(accused__iexact='unidentified')
                 )
                 queryset = queryset.filter(detected_q).exclude(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved'])
+            elif mod_lower == 'absconded':
+                from apps.cases.utils import get_absconded_cases
+                absconded_qs = get_absconded_cases()
+                queryset = queryset.filter(id__in=absconded_qs.values_list('id', flat=True))
             elif mod_lower in ['form_1_5', 'form_iv', 'form_i_v', '1_to_5']:
                 # Group 1 (Form I to V / Parts 1–5): Form 1-5 + all Group 1 categories
                 group_1_cats = list(CaseCategory.objects.filter(
@@ -561,6 +565,15 @@ class AbscondedCasesView(APIView):
                     Q(category_links__category__category_code__iexact=category)
                 ).distinct()
 
+            # Apply ?status filter (pending or disposal)
+            status_param = request.query_params.get('status')
+            if status_param:
+                st_lower = status_param.lower().strip()
+                if st_lower in ['disposal', 'disposed', 'closed', 'resolved']:
+                    queryset = queryset.filter(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved'])
+                elif st_lower in ['pending', 'open', 'active']:
+                    queryset = queryset.exclude(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved'])
+
             # Apply time range filter (start_date, end_date)
             start_date = request.query_params.get('start_date')
             end_date = request.query_params.get('end_date')
@@ -596,6 +609,14 @@ class AbscondedIOWiseView(APIView):
             if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
                 stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                 queryset = queryset.filter(station_name__in=stations)
+
+            status_param = request.query_params.get('status')
+            if status_param:
+                st_lower = status_param.lower().strip()
+                if st_lower in ['disposal', 'disposed', 'closed', 'resolved']:
+                    queryset = queryset.filter(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved'])
+                elif st_lower in ['pending', 'open', 'active']:
+                    queryset = queryset.exclude(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved'])
 
             start_date = request.query_params.get('start_date')
             end_date = request.query_params.get('end_date')
@@ -637,6 +658,14 @@ class AbscondedTimeWiseView(APIView):
             if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
                 stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                 queryset = queryset.filter(station_name__in=stations)
+
+            status_param = request.query_params.get('status')
+            if status_param:
+                st_lower = status_param.lower().strip()
+                if st_lower in ['disposal', 'disposed', 'closed', 'resolved']:
+                    queryset = queryset.filter(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved'])
+                elif st_lower in ['pending', 'open', 'active']:
+                    queryset = queryset.exclude(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved'])
 
             now = timezone.now()
             month_1 = now - timedelta(days=30)

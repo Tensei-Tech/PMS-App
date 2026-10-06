@@ -290,6 +290,7 @@ class BackendCaseService {
     String? category,
     String? startDate,
     String? endDate,
+    String? status,
   }) async {
     try {
       final queryParams = <String, dynamic>{};
@@ -304,6 +305,9 @@ class BackendCaseService {
       }
       if (endDate != null && endDate.isNotEmpty) {
         queryParams['end_date'] = endDate;
+      }
+      if (status != null && status.isNotEmpty) {
+        queryParams['status'] = status;
       }
 
       final url = '${ApiConfig.cases}absconded/';
@@ -334,6 +338,7 @@ class BackendCaseService {
   Future<List<Map<String, dynamic>>?> fetchAbscondedIOWise({
     String? startDate,
     String? endDate,
+    String? status,
   }) async {
     try {
       final queryParams = <String, dynamic>{};
@@ -342,6 +347,9 @@ class BackendCaseService {
       }
       if (endDate != null && endDate.isNotEmpty) {
         queryParams['end_date'] = endDate;
+      }
+      if (status != null && status.isNotEmpty) {
+        queryParams['status'] = status;
       }
 
       final url = '${ApiConfig.cases}absconded/io-wise/';
@@ -364,10 +372,16 @@ class BackendCaseService {
     return null;
   }
 
-  Future<List<Map<String, dynamic>>?> fetchAbscondedTimeWise() async {
+  Future<List<Map<String, dynamic>>?> fetchAbscondedTimeWise({
+    String? status,
+  }) async {
     try {
+      final queryParams = <String, dynamic>{};
+      if (status != null && status.isNotEmpty) {
+        queryParams['status'] = status;
+      }
       final url = '${ApiConfig.cases}absconded/time-wise/';
-      final response = await _api.get(url);
+      final response = await _api.get(url, queryParameters: queryParams.isNotEmpty ? queryParams : null);
       if (response.isSuccess && response.data is List) {
         return List<Map<String, dynamic>>.from(response.data);
       } else {
