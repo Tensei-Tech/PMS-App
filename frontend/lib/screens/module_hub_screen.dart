@@ -515,10 +515,10 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       totalCount = provider.getFilteredTotalCount(widget.subCategory);
     }
 
-    final int disposalCount = widget.moduleKey == 'absconded'
+    int disposalCount = widget.moduleKey == 'absconded'
         ? allRecords.where((r) => isAbscondedDisposal(r)).length
         : allRecords.where(isRecordDisposal).length;
-    final int pendingCount = allRecords.length - disposalCount;
+    int pendingCount = allRecords.length - disposalCount;
 
     final List<ModuleRecord> filtered;
     // Filtering logic combined
@@ -555,7 +555,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     } else {
       selectedTab = FormIVStatusTab.total;
     }
-
     List<ModuleRecord> displayRecords = List<ModuleRecord>.from(filtered);
     if (isTheftOrFormIVStyle) {
       if (_selectedDateRange != null) {
@@ -577,7 +576,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               ? r.incidentDate
               : r.createdAt;
           return targetDate
-                  .isAfter(start.subtract(const Duration(seconds: 1))) &&
+                  .isAfter(start.subtract(const Duration(seconds: 1))) &
               targetDate.isBefore(end.add(const Duration(seconds: 1)));
         }).toList();
       }
@@ -594,7 +593,16 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       });
     }
 
-    // ignore: unused_local_variable
+    // When a date filter is active, rebase stats off the filtered list so
+    // the header, stats row, and tab counts match what the user sees.
+    if (isTheftOrFormIVStyle && _selectedDateRange != null) {
+      totalCount = displayRecords.length;
+      disposalCount = widget.moduleKey == 'absconded'
+          ? displayRecords.where((r) => isAbscondedDisposal(r)).length
+          : displayRecords.where(isRecordDisposal).length;
+      pendingCount = totalCount - disposalCount;
+    }
+
     final bool showAddButton = !(widget.readOnly ||
         widget.moduleKey == 'detected' ||
         widget.moduleKey == 'undetected' ||
