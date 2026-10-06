@@ -9,16 +9,14 @@
 // - Balanced paragraph spacing, statutory note banner, and official signature/stamp boxes on Page 2
 // - Static font caching and preloading for instant (< 150ms) generation speed.
 
-import 'dart:ui' as ui;
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
+import 'form_image_pdf_helper.dart';
 import 'pdf_font_cache.dart';
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -35,6 +33,7 @@ Future<void> preloadReasonOfArrestPdfFonts() async {
   } catch (_) {}
 }
 
+const _kInkColor = Color(0xFF0D47A1);
 final _kPdfInkColor = PdfColor.fromHex('#0D47A1');
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -52,181 +51,16 @@ Future<void> previewReasonOfArrestPdf(
       (section.contains('main') && !section.contains('continuation'));
   final showCont = section.isEmpty || section.contains('continuation');
 
-  final overlay = Overlay.of(context);
+  final pages = <Widget>[];
+  if (showMain) pages.add(_buildPg1Widget(doc));
+  if (showCont) pages.add(_buildPg2Widget(doc));
 
-  try {
-    await GoogleFonts.pendingFonts().timeout(const Duration(milliseconds: 600));
-  } catch (_) {}
-
-  final keys = <GlobalKey>[];
-  final boundaries = <Widget>[];
-
-  if (showMain) {
-    final k = GlobalKey();
-    keys.add(k);
-    boundaries.add(RepaintBoundary(key: k, child: _buildPg1Widget(doc)));
-  }
-  if (showCont) {
-    final k = GlobalKey();
-    keys.add(k);
-    boundaries.add(RepaintBoundary(key: k, child: _buildPg2Widget(doc)));
-  }
-
-  if (boundaries.isEmpty) {
-    final k = GlobalKey();
-    keys.add(k);
-    boundaries.add(RepaintBoundary(key: k, child: _buildPg1Widget(doc)));
-  }
-
-  final entry = OverlayEntry(
-    builder: (_) => Positioned(
-      left: -3500,
-      top: 0,
-      child: Material(
-        color: Colors.white,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: boundaries,
-        ),
-      ),
-    ),
+  await FormImagePdfHelper.previewImageBasedPdf(
+    context,
+    fileName: fileName,
+    pages: pages,
+    fallbackPdfGenerator: () => generateReasonOfArrestPdf(doc),
   );
-
-  overlay.insert(entry);
-
-  final total = keys.length;
-  final statusNotifier =
-      ValueNotifier<String>('Generating page 1 of $total...');
-  var dialogShown = false;
-  if (context.mounted) {
-    dialogShown = true;
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.black38,
-      builder: (_) => PopScope(
-        canPop: false,
-        child: Center(
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 16,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: ValueListenableBuilder<String>(
-                valueListenable: statusNotifier,
-                builder: (_, msg, __) => Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(Color(0xFF1976D2)),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Text(
-                      msg,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  try {
-    WidgetsBinding.instance.scheduleFrame();
-    await Future.any([
-      WidgetsBinding.instance.endOfFrame,
-      Future.delayed(const Duration(milliseconds: 180)),
-    ]);
-    await Future.delayed(const Duration(milliseconds: 140));
-
-    final pdf = pw.Document();
-
-    for (int i = 0; i < keys.length; i++) {
-      statusNotifier.value = 'Generating page ${i + 1} of $total...';
-      final k = keys[i];
-      RenderRepaintBoundary? rb =
-          k.currentContext?.findRenderObject() as RenderRepaintBoundary?;
-
-      if (rb == null || !rb.hasSize) {
-        WidgetsBinding.instance.scheduleFrame();
-        await Future.any([
-          WidgetsBinding.instance.endOfFrame,
-          Future.delayed(const Duration(milliseconds: 150)),
-        ]);
-        rb = k.currentContext?.findRenderObject() as RenderRepaintBoundary?;
-      }
-
-      if (rb == null) {
-        throw StateError(
-            'Could not find RenderRepaintBoundary for Reason of Arrest page ${i + 1}');
-      }
-      final img = await rb.toImage(pixelRatio: 3.0);
-      final bd = await img.toByteData(format: ui.ImageByteFormat.png);
-      img.dispose();
-      if (bd == null) {
-        throw StateError('Failed to encode page ${i + 1} to PNG');
-      }
-      final bytes = bd.buffer.asUint8List();
-      pdf.addPage(
-        pw.Page(
-          pageFormat: PdfPageFormat.a4,
-          margin: pw.EdgeInsets.zero,
-          build: (_) => pw.Image(
-            pw.MemoryImage(bytes),
-            fit: pw.BoxFit.fill,
-            width: PdfPageFormat.a4.width,
-            height: PdfPageFormat.a4.height,
-          ),
-        ),
-      );
-    }
-
-    final pdfBytes = await pdf.save();
-
-    if (kIsWeb) {
-      await Printing.sharePdf(bytes: pdfBytes, filename: fileName);
-    } else {
-      await Printing.layoutPdf(onLayout: (_) async => pdfBytes, name: fileName);
-    }
-  } catch (e, st) {
-    debugPrint('Error in previewReasonOfArrestPdf: $e\n$st');
-    final fallbackBytes = await generateReasonOfArrestPdf(doc);
-    if (kIsWeb) {
-      await Printing.sharePdf(bytes: fallbackBytes, filename: fileName);
-    } else {
-      await Printing.layoutPdf(
-          onLayout: (_) async => fallbackBytes, name: fileName);
-    }
-  } finally {
-    if (dialogShown && context.mounted) {
-      Navigator.of(context, rootNavigator: true).pop();
-    }
-    entry.remove();
-  }
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -908,313 +742,32 @@ Future<Uint8List> generateReasonOfArrestPdf(Map<String, dynamic> doc) async {
 // ── NATIVE FLUTTER WIDGET BUILDERS (100% Devanagari Font Shaping) ──
 // ══════════════════════════════════════════════════════════════════════════════
 
-TextStyle _mReg(double size, [double height = 1.45]) =>
-    GoogleFonts.notoSansDevanagari(
-      fontSize: size,
-      fontWeight: FontWeight.normal,
-      color: Colors.black87,
-      height: height,
-    );
-
-TextStyle _mBld(double size, [double height = 1.45]) =>
-    GoogleFonts.notoSansDevanagari(
-      fontSize: size,
-      fontWeight: FontWeight.bold,
-      color: Colors.black87,
-      height: height,
-    );
-
-TextStyle _valStyle(double size, [double height = 1.45]) =>
-    GoogleFonts.notoSansDevanagari(
-      fontSize: size,
-      fontWeight: FontWeight.w600,
-      color: const Color(0xFF0D47A1),
-      height: height,
-    );
-
-String _insertZeroWidthSpaces(String text) {
-  if (text.isEmpty) return text;
-  return text.split(' ').map((word) {
-    if (word.length > 20) {
-      final buffer = StringBuffer();
-      for (int i = 0; i < word.length; i++) {
-        buffer.write(word[i]);
-        if ((i + 1) % 18 == 0 && i + 1 < word.length) {
-          buffer.write('\u200B');
-        }
-      }
-      return buffer.toString();
-    }
-    return word;
-  }).join(' ');
-}
-
-String _formatDate(String raw) {
-  final trimmed = raw.trim();
-  if (trimmed.isEmpty) return '';
-  try {
-    final parts = trimmed.split(RegExp(r'[-/.]'));
-    if (parts.length == 3) {
-      if (parts[0].length == 4) {
-        return '${parts[2].padLeft(2, '0')}/${parts[1].padLeft(2, '0')}/${parts[0]}';
-      } else {
-        return '${parts[0].padLeft(2, '0')}/${parts[1].padLeft(2, '0')}/${parts[2]}';
-      }
-    }
-  } catch (_) {}
-  return trimmed;
-}
-
-String _formatTime(String raw) {
-  final trimmed = raw.trim();
-  if (trimmed.isEmpty) return '';
-  try {
-    final match = RegExp(r'^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?$',
-            caseSensitive: false)
-        .firstMatch(trimmed);
-    if (match != null) {
-      int h = int.parse(match.group(1)!);
-      final int m = int.parse(match.group(2)!);
-      final ampm = match.group(3)?.toUpperCase();
-      if (ampm != null) {
-        return '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')} $ampm';
-      }
-      final period = h >= 12 ? 'PM' : 'AM';
-      if (h == 0) {
-        h = 12;
-      } else if (h > 12) {
-        h -= 12;
-      }
-      return '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')} $period';
-    }
-  } catch (_) {}
-  return trimmed;
-}
-
-class _PdfLinedPainter extends CustomPainter {
-  final int lineCount;
+class _PdfRuledLinesPainter extends CustomPainter {
   final double lineHeight;
   final Color lineColor;
 
-  _PdfLinedPainter({
-    required this.lineCount,
-    required this.lineHeight,
-    required this.lineColor,
+  const _PdfRuledLinesPainter({
+    this.lineHeight = 26.0,
+    this.lineColor = const Color(0xFFD0D7DE),
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = lineColor
-      ..strokeWidth = 1.0
+      ..strokeWidth = 0.7
       ..style = PaintingStyle.stroke;
 
-    for (int i = 1; i <= lineCount; i++) {
-      final y = i * lineHeight - 1.5;
+    final count = (size.height / lineHeight).floor();
+    for (int i = 1; i <= count; i++) {
+      final y = i * lineHeight;
       canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
     }
   }
 
   @override
-  bool shouldRepaint(covariant _PdfLinedPainter oldDelegate) =>
-      oldDelegate.lineCount != lineCount ||
-      oldDelegate.lineHeight != lineHeight ||
-      oldDelegate.lineColor != lineColor;
+  bool shouldRepaint(covariant _PdfRuledLinesPainter oldDelegate) => false;
 }
-
-Widget _buildLinedText(
-  String text, {
-  required TextStyle style,
-  double lineHeight = 26.0,
-  int minLines = 1,
-  double indent = 0.0,
-}) {
-  final wrappedText = _insertZeroWidthSpaces(text.trim());
-  return LayoutBuilder(
-    builder: (context, constraints) {
-      final maxWidth = constraints.maxWidth.isFinite && constraints.maxWidth > 0
-          ? constraints.maxWidth
-          : (794.0 - 80.0 - indent);
-
-      int lineCount = minLines;
-      if (wrappedText.isNotEmpty && maxWidth > 0) {
-        final tp = TextPainter(
-          text: TextSpan(text: wrappedText, style: style),
-          textDirection: ui.TextDirection.ltr,
-          maxLines: null,
-        )..layout(maxWidth: maxWidth);
-        lineCount = tp.computeLineMetrics().length;
-        if (lineCount < minLines) lineCount = minLines;
-      }
-
-      final totalHeight = lineCount * lineHeight;
-
-      return Padding(
-        padding: EdgeInsets.only(left: indent),
-        child: CustomPaint(
-          painter: _PdfLinedPainter(
-            lineCount: lineCount,
-            lineHeight: lineHeight,
-            lineColor: Colors.black87,
-          ),
-          child: SizedBox(
-            width: double.infinity,
-            height: totalHeight,
-            child: Text(
-              wrappedText.isNotEmpty ? wrappedText : ' ',
-              style: style.copyWith(
-                height: lineHeight / (style.fontSize ?? 13.5),
-                color: Colors.black87,
-              ),
-              softWrap: true,
-              overflow: TextOverflow.visible,
-            ),
-          ),
-        ),
-      );
-    },
-  );
-}
-
-Widget _buildAddressBlock(
-  String address,
-  TextStyle labelStyle,
-  TextStyle textStyle,
-) {
-  final fullText = _insertZeroWidthSpaces(address.trim());
-
-  return LayoutBuilder(
-    builder: (context, constraints) {
-      final totalWidth =
-          constraints.maxWidth.isFinite && constraints.maxWidth > 0
-              ? constraints.maxWidth
-              : 714.0;
-
-      final labelSpan = TextSpan(text: 'नाव व पत्ता :- ', style: labelStyle);
-      final labelTp =
-          TextPainter(text: labelSpan, textDirection: ui.TextDirection.ltr)
-            ..layout();
-      final labelWidth = labelTp.size.width;
-      final firstLineWidth = totalWidth - labelWidth;
-
-      if (fullText.isEmpty) {
-        return Column(
-          children: [
-            Row(
-              children: [
-                Text('नाव व पत्ता :- ', style: labelStyle),
-                Expanded(
-                    child: _buildLinedText('', style: textStyle, minLines: 1)),
-              ],
-            ),
-          ],
-        );
-      }
-
-      final tp = TextPainter(
-        text: TextSpan(text: fullText, style: textStyle),
-        textDirection: ui.TextDirection.ltr,
-      )..layout(maxWidth: firstLineWidth);
-
-      if (tp.computeLineMetrics().length <= 1) {
-        return Column(
-          children: [
-            Row(
-              children: [
-                Text('नाव व पत्ता :- ', style: labelStyle),
-                Expanded(
-                    child: _buildLinedText(fullText,
-                        style: textStyle, minLines: 1)),
-              ],
-            ),
-          ],
-        );
-      }
-
-      final pos = tp.getPositionForOffset(Offset(firstLineWidth, 0));
-      int splitIndex = pos.offset;
-      if (splitIndex <= 0 || splitIndex > fullText.length) {
-        splitIndex = fullText.length;
-      }
-      final lastSpace = fullText.lastIndexOf(RegExp(r'[\s\u200B]'), splitIndex);
-      if (lastSpace > 10) splitIndex = lastSpace;
-
-      final firstLineText = fullText.substring(0, splitIndex).trim();
-      final restText = fullText.substring(splitIndex).trim();
-
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Text('नाव व पत्ता :- ', style: labelStyle),
-              Expanded(
-                  child: _buildLinedText(firstLineText,
-                      style: textStyle, minLines: 1)),
-            ],
-          ),
-          const SizedBox(height: 3),
-          _buildLinedText(restText, style: textStyle, minLines: 1),
-        ],
-      );
-    },
-  );
-}
-
-Widget _buildReasonItem(
-  String numStr,
-  String reasonText,
-  TextStyle boldStyle,
-  TextStyle textStyle,
-) {
-  final text = _insertZeroWidthSpaces(reasonText.trim());
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 8),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 2),
-          child: Text(numStr, style: boldStyle),
-        ),
-        const SizedBox(width: 4),
-        Expanded(
-          child: _buildLinedText(
-            text,
-            style: textStyle,
-            minLines: 2,
-            lineHeight: 26.0,
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-Widget _buildPgWrapper(Widget pageContent) {
-  return Container(
-    width: 794.0,
-    height: 1123.0,
-    color: Colors.white,
-    child: FittedBox(
-      fit: BoxFit.scaleDown,
-      alignment: Alignment.topCenter,
-      child: SizedBox(
-        width: 794.0,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 34.0),
-          child: pageContent,
-        ),
-      ),
-    ),
-  );
-}
-
-Widget reasonOfArrestPg1Widget(Map<String, dynamic> doc, [Key? key]) =>
-    KeyedSubtree(key: key, child: _buildPg1Widget(doc));
-
-Widget reasonOfArrestPg2Widget(Map<String, dynamic> doc, [Key? key]) =>
-    KeyedSubtree(key: key, child: _buildPg2Widget(doc));
 
 Widget _buildPg1Widget(Map<String, dynamic> doc) {
   String v(String key, [String fallback = '']) {
@@ -1227,21 +780,25 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
   final policeStation = v('policeStation', v('subjectPs'));
   final taluka = v('taluka', v('ioTaluka'));
   final district = v('district', v('ioDistrict'));
-  final noticeDate = _formatDate(v('noticeDate'));
+  final noticeDate = v('noticeDate');
   final accusedNameAddress = v('accusedNameAddress');
   final subjectPs = v('subjectPs', policeStation);
   final subjectCrNo = v('subjectCrNo');
   final subjectSection = v('subjectSection');
   final ioName = v('ioName', v('ioNameRank'));
 
-  final reg = _mReg(13.5, 1.45);
-  final bld = _mBld(13.5, 1.45);
-  final valStyle = _valStyle(13.5, 1.45);
-  final headerStyle = _mBld(14.0, 1.3);
-  final titleStyle = _mBld(18.0, 1.2);
+  final reg = FormImagePdfHelper.mReg(11, 1.5);
+  final bld = FormImagePdfHelper.mBld(11, 1.5);
+  final valStyle = FormImagePdfHelper.mBld(11, 1.5).copyWith(color: _kInkColor);
+  final headerStyle = FormImagePdfHelper.mBld(12.5, 1.3);
+  final titleStyle = FormImagePdfHelper.mBld(18, 1.2);
 
-  return _buildPgWrapper(
-    Column(
+  return Container(
+    width: FormImagePdfHelper.a4Width,
+    height: FormImagePdfHelper.a4Height,
+    color: Colors.white,
+    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 34),
+    child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Center(
@@ -1265,7 +822,7 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
         Align(
           alignment: Alignment.topRight,
           child: SizedBox(
-            width: 280,
+            width: 260,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1276,8 +833,8 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
                       child: Container(
                         decoration: const BoxDecoration(
                           border: Border(
-                            bottom:
-                                BorderSide(color: Colors.black87, width: 0.8),
+                            bottom: BorderSide(
+                                color: Color(0xFFB0BEC5), width: 0.8),
                           ),
                         ),
                         child: Text(
@@ -1290,7 +847,7 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Row(
                   children: [
                     Text('पोलीस स्टेशन ', style: bld),
@@ -1298,8 +855,8 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
                       child: Container(
                         decoration: const BoxDecoration(
                           border: Border(
-                            bottom:
-                                BorderSide(color: Colors.black87, width: 0.8),
+                            bottom: BorderSide(
+                                color: Color(0xFFB0BEC5), width: 0.8),
                           ),
                         ),
                         child: Text(
@@ -1310,7 +867,7 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Row(
                   children: [
                     Text('ता. ', style: bld),
@@ -1319,8 +876,8 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
                       child: Container(
                         decoration: const BoxDecoration(
                           border: Border(
-                            bottom:
-                                BorderSide(color: Colors.black87, width: 0.8),
+                            bottom: BorderSide(
+                                color: Color(0xFFB0BEC5), width: 0.8),
                           ),
                         ),
                         child: Text(
@@ -1335,8 +892,8 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
                       child: Container(
                         decoration: const BoxDecoration(
                           border: Border(
-                            bottom:
-                                BorderSide(color: Colors.black87, width: 0.8),
+                            bottom: BorderSide(
+                                color: Color(0xFFB0BEC5), width: 0.8),
                           ),
                         ),
                         child: Text(
@@ -1347,7 +904,7 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Row(
                   children: [
                     Text('दिनांक:- ', style: bld),
@@ -1355,8 +912,8 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
                       child: Container(
                         decoration: const BoxDecoration(
                           border: Border(
-                            bottom:
-                                BorderSide(color: Colors.black87, width: 0.8),
+                            bottom: BorderSide(
+                                color: Color(0xFFB0BEC5), width: 0.8),
                           ),
                         ),
                         child: Text(
@@ -1375,8 +932,27 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
 
         // Recipient block
         Text('प्रति,', style: bld),
-        const SizedBox(height: 4),
-        _buildAddressBlock(accusedNameAddress, bld, valStyle),
+        const SizedBox(height: 3),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('नाव व पत्ता :- ', style: bld),
+            Expanded(
+              child: Container(
+                constraints: const BoxConstraints(minHeight: 22),
+                decoration: const BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: Color(0xFFB0BEC5), width: 0.8),
+                  ),
+                ),
+                child: Text(
+                  accusedNameAddress.isNotEmpty ? accusedNameAddress : ' ',
+                  style: accusedNameAddress.isNotEmpty ? valStyle : reg,
+                ),
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 14),
 
         // Subject block
@@ -1385,17 +961,17 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
           text: TextSpan(
             style: reg,
             children: [
-              TextSpan(text: 'विषय:- पोलीस स्टेशन ', style: bld),
+              const TextSpan(text: 'विषय:- पोलीस स्टेशन '),
               TextSpan(
                 text: subjectPs.isNotEmpty ? ' $subjectPs ' : ' --------- ',
                 style: subjectPs.isNotEmpty ? valStyle : bld,
               ),
-              TextSpan(text: ' गुन्हा रजि.क्र. ', style: bld),
+              const TextSpan(text: ' गुन्हा रजि.क्र. '),
               TextSpan(
                 text: subjectCrNo.isNotEmpty ? ' $subjectCrNo ' : ' ------- ',
                 style: subjectCrNo.isNotEmpty ? valStyle : bld,
               ),
-              TextSpan(text: ' कलम ', style: bld),
+              const TextSpan(text: ' कलम '),
               TextSpan(
                 text:
                     subjectSection.isNotEmpty ? ' $subjectSection ' : ' ----- ',
@@ -1426,7 +1002,7 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
                     : ' ------------- ',
                 style: policeStation.isNotEmpty ? valStyle : bld,
               ),
-              const TextSpan(text: ' येथे गुन्हा रजि.क्र. '),
+              const TextSpan(text: 'येथे गुन्हा रजि.क्र. '),
               TextSpan(
                 text: subjectCrNo.isNotEmpty ? ' $subjectCrNo ' : ' ------- ',
                 style: subjectCrNo.isNotEmpty ? valStyle : bld,
@@ -1448,7 +1024,7 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
               ),
               const TextSpan(
                 text:
-                    ' तपासी अधिकारी म्हणून सदर गुन्ह्यांचा तपास करीत आहोत. सदर गुन्ह्यांचे तपासकामी आपणास अटक करणे गरजेचे असून भारतीय नागरीक सुरक्षा संहिता २०२३ चे कलम ३५ (१)(ब)(ii) नुसार अटकेची कारणे खालील प्रमाणे आहेत.',
+                    'तपासी अधिकारी म्हणून सदर गुन्ह्यांचा तपास करीत आहोत. सदर गुन्ह्यांचे तपासकामी आपणास अटक करणे गरजेचे असून भारतीय नागरीक सुरक्षा संहिता २०२३ चे कलम ३५ (१)(ब)(ii) नुसार अटकेची कारणे खालील प्रमाणे आहेत.',
               ),
             ],
           ),
@@ -1459,24 +1035,63 @@ Widget _buildPg1Widget(Map<String, dynamic> doc) {
         Center(
           child: Text(
             'अटकेची कारणे (REASONS FOR ARREST)',
-            style: _mBld(14.5),
+            style: bld.copyWith(fontSize: 12.5),
             textAlign: TextAlign.center,
           ),
         ),
         const SizedBox(height: 10),
 
-        // Reasons 1 to 5
-        _buildReasonItem('१.', v('reason1'), bld, valStyle),
-        _buildReasonItem('२.', v('reason2'), bld, valStyle),
-        _buildReasonItem('३.', v('reason3'), bld, valStyle),
-        _buildReasonItem('४.', v('reason4'), bld, valStyle),
-        _buildReasonItem('५.', v('reason5'), bld, valStyle),
-        const SizedBox(height: 10),
+        // Reasons 1 to 5 (Ruled entry blocks)
+        for (var i = 1; i <= 5; i++) ...[
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${['१', '२', '३', '४', '५'][i - 1]}. ',
+                  style: bld,
+                ),
+                Expanded(
+                  child: Container(
+                    constraints: const BoxConstraints(minHeight: 52),
+                    child: Stack(
+                      children: [
+                        const Positioned.fill(
+                          child: CustomPaint(
+                            painter: _PdfRuledLinesPainter(
+                              lineHeight: 26.0,
+                              lineColor: Color(0xFFB0BEC5),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 2),
+                          child: Text(
+                            v('reason$i').isNotEmpty ? v('reason$i') : ' ',
+                            style: (v('reason$i').isNotEmpty ? valStyle : reg)
+                                .copyWith(height: 26.0 / 11.0),
+                            strutStyle: const StrutStyle(
+                              fontSize: 11.0,
+                              height: 26.0 / 11.0,
+                              forceStrutHeight: true,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: 12),
 
         // Bottom right continuation marker
         Align(
           alignment: Alignment.bottomRight,
-          child: Text('२..', style: bld.copyWith(fontSize: 13)),
+          child: Text('२..', style: bld.copyWith(fontSize: 12)),
         ),
       ],
     ),
@@ -1494,33 +1109,33 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
   final relativePhone = v('relativePhone');
   final accusedSig = v('accusedSig');
   final accusedNameSig = v('accusedNameSig');
-  final accusedDateOnly =
-      _formatDate(v('accusedDateOnly', v('accusedDateTime')));
-  final accusedTimeOnly = _formatTime(v('accusedTimeOnly'));
-  final accusedDateTime =
-      [accusedDateOnly, accusedTimeOnly].where((s) => s.isNotEmpty).join('  ');
-
+  final accusedDateTime = v('accusedDateTime');
   final ioNameRank = v('ioNameRank');
   final ioPs = v('ioPs');
   final ioTaluka = v('ioTaluka');
   final ioDistrict = v('ioDistrict');
 
-  final reg = _mReg(13.5, 1.55);
-  final bld = _mBld(13.5, 1.55);
-  final valStyle = _valStyle(13.5, 1.55);
+  final reg = FormImagePdfHelper.mReg(11.5, 1.65);
+  final bld = FormImagePdfHelper.mBld(11.5, 1.65);
+  final valStyle =
+      FormImagePdfHelper.mBld(11.5, 1.65).copyWith(color: _kInkColor);
 
-  return _buildPgWrapper(
-    Column(
+  return Container(
+    width: FormImagePdfHelper.a4Width,
+    height: FormImagePdfHelper.a4Height,
+    color: Colors.white,
+    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 34),
+    child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Center(
           child: Text(
             '.. २ ..',
-            style: _mBld(16),
+            style: FormImagePdfHelper.mBld(13),
             textAlign: TextAlign.center,
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
 
         // Paragraph 1
         RichText(
@@ -1535,7 +1150,7 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
             ],
           ),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 22),
 
         // Paragraph 2
         RichText(
@@ -1560,7 +1175,7 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
                 style: relativeAddress.isNotEmpty ? valStyle : bld,
               ),
               const TextSpan(
-                text: ' यांना लेखी सुचनेव्दारे/फोन क्रमांक ',
+                text: 'यांना लेखी सुचनेव्दारे/फोन क्रमांक ',
               ),
               TextSpan(
                 text: relativePhone.isNotEmpty
@@ -1569,12 +1184,12 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
                 style: relativePhone.isNotEmpty ? valStyle : bld,
               ),
               const TextSpan(
-                text: ' यावर संपर्क करुन देण्यांत आली आहे.',
+                text: 'यावर संपर्क करुन देण्यांत आली आहे.',
               ),
             ],
           ),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 22),
 
         // Paragraph 3
         RichText(
@@ -1587,7 +1202,7 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
             ],
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 28),
 
         // Official Note Banner
         Container(
@@ -1596,17 +1211,18 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
           decoration: BoxDecoration(
             color: const Color(0xFFF8FAFC),
             borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: Colors.black26, width: 0.8),
+            border: Border.all(color: const Color(0xFFB0BEC5), width: 0.8),
           ),
           child: Text(
             'टीप :- सदर सुचनापत्राची मूळ प्रत आरोपीस प्रत्यक्ष समजवून देऊन बजावण्यात आली असून, त्याची स्वाक्षरी / अंगठ्याचा ठसा घेऊन रीतसर पोच घेण्यात आली आहे. सदर दस्तऐवज तपास अभिलेखात समाविष्ट करण्यात आला आहे.',
-            style: _mReg(12.5, 1.5).copyWith(color: Colors.black87),
+            style: reg.copyWith(
+                fontSize: 10.5, height: 1.5, color: Colors.black87),
             textAlign: TextAlign.justify,
           ),
         ),
-        const SizedBox(height: 28),
+        const SizedBox(height: 36),
 
-        // Signatures (Two Columns with Official Signature Boxes) - Follows content, no Spacer/Expanded
+        // Signatures (Two Dignified Columns with Official Signature Boxes)
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1618,16 +1234,17 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
                 children: [
                   Text(
                     'मला सुचनापत्र प्राप्त झाले (आरोपीची पोच)',
-                    style: bld.copyWith(fontSize: 13),
+                    style: bld.copyWith(fontSize: 12.5),
                   ),
                   const SizedBox(height: 10),
                   Container(
-                    height: 80,
+                    height: 85,
                     width: double.infinity,
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      border: Border.all(color: Colors.black38, width: 0.8),
-                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(
+                          color: const Color(0xFF90A4AE), width: 0.8),
+                      borderRadius: BorderRadius.circular(3),
                     ),
                     alignment: Alignment.center,
                     child: Text(
@@ -1636,8 +1253,7 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
                           : '(येथे आरोपीची सही / डाव्या हाताच्या अंगठ्याचा ठसा)',
                       style: accusedSig.isNotEmpty
                           ? valStyle
-                          : reg.copyWith(color: Colors.black38, fontSize: 11),
-                      textAlign: TextAlign.center,
+                          : reg.copyWith(color: Colors.black38, fontSize: 10),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -1648,8 +1264,8 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
                         child: Container(
                           decoration: const BoxDecoration(
                             border: Border(
-                              bottom:
-                                  BorderSide(color: Colors.black87, width: 0.8),
+                              bottom: BorderSide(
+                                  color: Color(0xFFB0BEC5), width: 0.8),
                             ),
                           ),
                           child: Text(
@@ -1668,8 +1284,8 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
                         child: Container(
                           decoration: const BoxDecoration(
                             border: Border(
-                              bottom:
-                                  BorderSide(color: Colors.black87, width: 0.8),
+                              bottom: BorderSide(
+                                  color: Color(0xFFB0BEC5), width: 0.8),
                             ),
                           ),
                           child: Text(
@@ -1683,7 +1299,7 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
                 ],
               ),
             ),
-            const SizedBox(width: 32),
+            const SizedBox(width: 36),
 
             // Right Column (Investigating Officer)
             Expanded(
@@ -1692,22 +1308,22 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
                 children: [
                   Text(
                     'तपास अधिकारी स्वाक्षरी व शिक्का',
-                    style: bld.copyWith(fontSize: 13),
+                    style: bld.copyWith(fontSize: 12.5),
                   ),
                   const SizedBox(height: 10),
                   Container(
-                    height: 80,
+                    height: 85,
                     width: double.infinity,
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      border: Border.all(color: Colors.black38, width: 0.8),
-                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(
+                          color: const Color(0xFF90A4AE), width: 0.8),
+                      borderRadius: BorderRadius.circular(3),
                     ),
                     alignment: Alignment.center,
                     child: Text(
                       '(तपास अधिकारी स्वाक्षरी व पोलीस स्टेशनचा शिक्का)',
-                      style: reg.copyWith(color: Colors.black38, fontSize: 11),
-                      textAlign: TextAlign.center,
+                      style: reg.copyWith(color: Colors.black38, fontSize: 10),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -1718,8 +1334,8 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
                         child: Container(
                           decoration: const BoxDecoration(
                             border: Border(
-                              bottom:
-                                  BorderSide(color: Colors.black87, width: 0.8),
+                              bottom: BorderSide(
+                                  color: Color(0xFFB0BEC5), width: 0.8),
                             ),
                           ),
                           child: Text(
@@ -1738,8 +1354,8 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
                         child: Container(
                           decoration: const BoxDecoration(
                             border: Border(
-                              bottom:
-                                  BorderSide(color: Colors.black87, width: 0.8),
+                              bottom: BorderSide(
+                                  color: Color(0xFFB0BEC5), width: 0.8),
                             ),
                           ),
                           child: Text(
@@ -1759,8 +1375,8 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
                         child: Container(
                           decoration: const BoxDecoration(
                             border: Border(
-                              bottom:
-                                  BorderSide(color: Colors.black87, width: 0.8),
+                              bottom: BorderSide(
+                                  color: Color(0xFFB0BEC5), width: 0.8),
                             ),
                           ),
                           child: Text(
@@ -1775,8 +1391,8 @@ Widget _buildPg2Widget(Map<String, dynamic> doc) {
                         child: Container(
                           decoration: const BoxDecoration(
                             border: Border(
-                              bottom:
-                                  BorderSide(color: Colors.black87, width: 0.8),
+                              bottom: BorderSide(
+                                  color: Color(0xFFB0BEC5), width: 0.8),
                             ),
                           ),
                           child: Text(

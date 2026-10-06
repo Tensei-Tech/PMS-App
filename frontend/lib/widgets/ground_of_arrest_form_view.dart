@@ -425,34 +425,21 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
             Text('प्रति,', style: boldLabelStyle),
             const SizedBox(height: 8),
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 2.0),
-                  child: Text('नाव व पत्ता ', style: headerLabelStyle),
-                ),
+                Text('नाव व पत्ता ', style: headerLabelStyle),
                 Expanded(
-                  child: GroundLinedMultilineInput(
+                  child: BilingualSimpleUnderlineInput(
                     controller: _accusedNameAddressCtrl,
                     serifStyle: serif,
                   ),
                 ),
               ],
             ),
-            AnimatedBuilder(
-              animation: _accusedNameAddressLine2Ctrl,
-              builder: (context, _) {
-                if (_accusedNameAddressLine2Ctrl.text.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-                return Padding(
-                  padding: const EdgeInsets.only(top: 6),
-                  child: GroundLinedMultilineInput(
-                    controller: _accusedNameAddressLine2Ctrl,
-                    serifStyle: serif,
-                  ),
-                );
-              },
+            const SizedBox(height: 8),
+            BilingualSimpleUnderlineInput(
+              controller: _accusedNameAddressLine2Ctrl,
+              serifStyle: serif,
             ),
             const SizedBox(height: 24),
 
@@ -463,7 +450,7 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
               runSpacing: 10,
               children: [
                 Text('विषय:- पोलीस स्टेशन', style: boldLabelStyle),
-                GroundLinedMultilineInput(
+                BilingualSimpleUnderlineInput(
                   minWidth: 140,
                   controller: _subjectPsCtrl,
                   serifStyle: serif,
@@ -499,7 +486,7 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
                   '        आपणास या सुचनापत्राद्वारे कळविण्यात येते की,आपल्या विरुद्ध पोलीस ठाणे',
                   style: bodyTextStyle,
                 ),
-                GroundLinedMultilineInput(
+                BilingualSimpleUnderlineInput(
                   minWidth: 150,
                   controller: _firPsCtrl,
                   serifStyle: serif,
@@ -526,7 +513,7 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
                   'भारतीय न्याय संहिता २०२३ अन्वये गुन्हा नोंद करण्यात आला असुन, आम्ही',
                   style: bodyTextStyle,
                 ),
-                GroundLinedMultilineInput(
+                BilingualSimpleUnderlineInput(
                   minWidth: 200,
                   controller: _ioNameCtrl,
                   serifStyle: serif,
@@ -541,65 +528,37 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
 
             // ── गुन्ह्यांचे संक्षीप्त विवरण ──
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 2.0),
-                  child: Text('गुन्ह्यांचे संक्षीप्त विवरण :-',
-                      style: boldLabelStyle),
-                ),
+                Text('गुन्ह्यांचे संक्षीप्त विवरण :-', style: boldLabelStyle),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: GroundLinedMultilineInput(
+                  child: BilingualSimpleUnderlineInput(
                     controller: _briefDescriptionCtrl,
                     serifStyle: serif,
                   ),
                 ),
               ],
             ),
-            AnimatedBuilder(
-              animation: Listenable.merge([
-                _briefDescLine2Ctrl,
-                _briefDescLine3Ctrl,
-                _briefDescLine4Ctrl,
-                _briefDescLine5Ctrl,
-              ]),
-              builder: (context, _) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (_briefDescLine2Ctrl.text.isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      GroundLinedMultilineInput(
-                        controller: _briefDescLine2Ctrl,
-                        serifStyle: serif,
-                      ),
-                    ],
-                    if (_briefDescLine3Ctrl.text.isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      GroundLinedMultilineInput(
-                        controller: _briefDescLine3Ctrl,
-                        serifStyle: serif,
-                      ),
-                    ],
-                    if (_briefDescLine4Ctrl.text.isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      GroundLinedMultilineInput(
-                        controller: _briefDescLine4Ctrl,
-                        serifStyle: serif,
-                      ),
-                    ],
-                    if (_briefDescLine5Ctrl.text.isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      GroundLinedMultilineInput(
-                        controller: _briefDescLine5Ctrl,
-                        serifStyle: serif,
-                      ),
-                    ],
-                  ],
-                );
-              },
+            const SizedBox(height: 8),
+            BilingualSimpleUnderlineInput(
+              controller: _briefDescLine2Ctrl,
+              serifStyle: serif,
+            ),
+            const SizedBox(height: 8),
+            BilingualSimpleUnderlineInput(
+              controller: _briefDescLine3Ctrl,
+              serifStyle: serif,
+            ),
+            const SizedBox(height: 8),
+            BilingualSimpleUnderlineInput(
+              controller: _briefDescLine4Ctrl,
+              serifStyle: serif,
+            ),
+            const SizedBox(height: 8),
+            BilingualSimpleUnderlineInput(
+              controller: _briefDescLine5Ctrl,
+              serifStyle: serif,
             ),
             const SizedBox(height: 24),
 
@@ -658,166 +617,116 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
             // ── GROUNDS 1 TO 5 ──
             // Ground 1
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 2.0),
-                  child: Text('१. ', style: boldLabelStyle),
-                ),
+                Text('१. ', style: boldLabelStyle),
                 Expanded(
-                  child: GroundLinedMultilineInput(
+                  child: BilingualSimpleUnderlineInput(
                     controller: _ground1Ctrl,
                     serifStyle: serif,
                   ),
                 ),
               ],
             ),
-            AnimatedBuilder(
-              animation: _ground1Line2Ctrl,
-              builder: (context, _) {
-                if (_ground1Line2Ctrl.text.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-                return Padding(
-                  padding: const EdgeInsets.only(left: 20, top: 6),
-                  child: GroundLinedMultilineInput(
-                    controller: _ground1Line2Ctrl,
-                    serifStyle: serif,
-                  ),
-                );
-              },
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.only(left: 20),
+              child: BilingualSimpleUnderlineInput(
+                controller: _ground1Line2Ctrl,
+                serifStyle: serif,
+              ),
             ),
             const SizedBox(height: 14),
 
             // Ground 2
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 2.0),
-                  child: Text('२. ', style: boldLabelStyle),
-                ),
+                Text('२. ', style: boldLabelStyle),
                 Expanded(
-                  child: GroundLinedMultilineInput(
+                  child: BilingualSimpleUnderlineInput(
                     controller: _ground2Ctrl,
                     serifStyle: serif,
                   ),
                 ),
               ],
             ),
-            AnimatedBuilder(
-              animation: _ground2Line2Ctrl,
-              builder: (context, _) {
-                if (_ground2Line2Ctrl.text.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-                return Padding(
-                  padding: const EdgeInsets.only(left: 20, top: 6),
-                  child: GroundLinedMultilineInput(
-                    controller: _ground2Line2Ctrl,
-                    serifStyle: serif,
-                  ),
-                );
-              },
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.only(left: 20),
+              child: BilingualSimpleUnderlineInput(
+                controller: _ground2Line2Ctrl,
+                serifStyle: serif,
+              ),
             ),
             const SizedBox(height: 14),
 
             // Ground 3
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 2.0),
-                  child: Text('३. ', style: boldLabelStyle),
-                ),
+                Text('३. ', style: boldLabelStyle),
                 Expanded(
-                  child: GroundLinedMultilineInput(
+                  child: BilingualSimpleUnderlineInput(
                     controller: _ground3Ctrl,
                     serifStyle: serif,
                   ),
                 ),
               ],
             ),
-            AnimatedBuilder(
-              animation: _ground3Line2Ctrl,
-              builder: (context, _) {
-                if (_ground3Line2Ctrl.text.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-                return Padding(
-                  padding: const EdgeInsets.only(left: 20, top: 6),
-                  child: GroundLinedMultilineInput(
-                    controller: _ground3Line2Ctrl,
-                    serifStyle: serif,
-                  ),
-                );
-              },
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.only(left: 20),
+              child: BilingualSimpleUnderlineInput(
+                controller: _ground3Line2Ctrl,
+                serifStyle: serif,
+              ),
             ),
             const SizedBox(height: 14),
 
             // Ground 4
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 2.0),
-                  child: Text('४. ', style: boldLabelStyle),
-                ),
+                Text('४. ', style: boldLabelStyle),
                 Expanded(
-                  child: GroundLinedMultilineInput(
+                  child: BilingualSimpleUnderlineInput(
                     controller: _ground4Ctrl,
                     serifStyle: serif,
                   ),
                 ),
               ],
             ),
-            AnimatedBuilder(
-              animation: _ground4Line2Ctrl,
-              builder: (context, _) {
-                if (_ground4Line2Ctrl.text.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-                return Padding(
-                  padding: const EdgeInsets.only(left: 20, top: 6),
-                  child: GroundLinedMultilineInput(
-                    controller: _ground4Line2Ctrl,
-                    serifStyle: serif,
-                  ),
-                );
-              },
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.only(left: 20),
+              child: BilingualSimpleUnderlineInput(
+                controller: _ground4Line2Ctrl,
+                serifStyle: serif,
+              ),
             ),
             const SizedBox(height: 14),
 
             // Ground 5
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 2.0),
-                  child: Text('५. ', style: boldLabelStyle),
-                ),
+                Text('५. ', style: boldLabelStyle),
                 Expanded(
-                  child: GroundLinedMultilineInput(
+                  child: BilingualSimpleUnderlineInput(
                     controller: _ground5Ctrl,
                     serifStyle: serif,
                   ),
                 ),
               ],
             ),
-            AnimatedBuilder(
-              animation: _ground5Line2Ctrl,
-              builder: (context, _) {
-                if (_ground5Line2Ctrl.text.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-                return Padding(
-                  padding: const EdgeInsets.only(left: 20, top: 6),
-                  child: GroundLinedMultilineInput(
-                    controller: _ground5Line2Ctrl,
-                    serifStyle: serif,
-                  ),
-                );
-              },
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.only(left: 20),
+              child: BilingualSimpleUnderlineInput(
+                controller: _ground5Line2Ctrl,
+                serifStyle: serif,
+              ),
             ),
             const SizedBox(height: 28),
 
@@ -907,22 +816,21 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
                           ),
                         ],
                       ),
-                      Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        spacing: 4,
-                        runSpacing: 4,
+                      const SizedBox(height: 10),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text('दिनांक:व वेळ ', style: headerLabelStyle),
                           formDatePickerField(
                             context,
                             controller: _accusedDateTimeCtrl,
-                            width: 120,
+                            width: 140,
                             readOnly: widget.readOnly,
                           ),
                           formTimePickerField(
                             context,
                             controller: _accusedTimeCtrl,
-                            width: 95,
+                            width: 110,
                             readOnly: widget.readOnly,
                           ),
                         ],
@@ -990,216 +898,5 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
         ),
       ],
     );
-  }
-}
-
-class GroundLinedMultilineInput extends StatefulWidget {
-  final TextEditingController? controller;
-  final TextStyle serifStyle;
-  final String? hintText;
-  final double minWidth;
-  final int minLines;
-  final double lineHeight;
-
-  const GroundLinedMultilineInput({
-    super.key,
-    this.controller,
-    required this.serifStyle,
-    this.hintText,
-    this.minWidth = 50,
-    this.minLines = 1,
-    this.lineHeight = 26.0,
-  });
-
-  @override
-  State<GroundLinedMultilineInput> createState() =>
-      _GroundLinedMultilineInputState();
-}
-
-class _GroundLinedMultilineInputState extends State<GroundLinedMultilineInput> {
-  late final FocusNode _focusNode;
-  bool _isFocused = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _focusNode = FocusNode();
-    _focusNode.addListener(() {
-      if (mounted) {
-        setState(() => _isFocused = _focusNode.hasFocus);
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _focusNode.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return ListenableBuilder(
-          listenable: widget.controller ?? ValueNotifier(''),
-          builder: (context, _) {
-            final text = widget.controller?.text ?? '';
-
-            // Calculate width:
-            // When constraints.maxWidth is finite (e.g. inside Expanded), take full available width.
-            // When unbounded (e.g. inside Wrap), measure single-line text and clamp between minWidth and 650.
-            double effectiveWidth = widget.minWidth;
-            if (constraints.maxWidth.isFinite && constraints.maxWidth > 0) {
-              effectiveWidth = constraints.maxWidth;
-            } else {
-              if (text.isNotEmpty) {
-                final tp = TextPainter(
-                  text: TextSpan(
-                    text: text,
-                    style: widget.serifStyle.copyWith(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  textDirection: TextDirection.ltr,
-                  maxLines: 1,
-                )..layout(minWidth: 0, maxWidth: double.infinity);
-                final calculatedWidth = tp.size.width + 16.0;
-                effectiveWidth = calculatedWidth > widget.minWidth
-                    ? calculatedWidth.clamp(widget.minWidth, 650.0)
-                    : widget.minWidth;
-              }
-            }
-
-            int lineCount = widget.minLines;
-            if (text.isNotEmpty && effectiveWidth > 0) {
-              final tp = TextPainter(
-                text: TextSpan(
-                  text: text,
-                  style: widget.serifStyle.copyWith(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                textDirection: TextDirection.ltr,
-                maxLines: null,
-              )..layout(maxWidth: effectiveWidth);
-              final metrics = tp.computeLineMetrics();
-              if (metrics.length > lineCount) {
-                lineCount = metrics.length;
-              }
-            }
-
-            final totalHeight = lineCount * widget.lineHeight;
-
-            final lineColor =
-                _isFocused ? Colors.black87 : const Color(0x8A000000);
-            final strokeWidth = _isFocused ? 1.2 : 0.8;
-
-            return CustomPaint(
-              painter: _GroundFormLinedPainter(
-                lineCount: lineCount,
-                lineHeight: widget.lineHeight,
-                lineColor: lineColor,
-                strokeWidth: strokeWidth,
-              ),
-              child: SizedBox(
-                width: constraints.maxWidth.isFinite
-                    ? double.infinity
-                    : effectiveWidth,
-                height: totalHeight,
-                child: Theme(
-                  data: Theme.of(context).copyWith(
-                    inputDecorationTheme: const InputDecorationTheme(
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      disabledBorder: InputBorder.none,
-                      errorBorder: InputBorder.none,
-                      focusedErrorBorder: InputBorder.none,
-                      filled: false,
-                      fillColor: Colors.transparent,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
-                  child: TextField(
-                    focusNode: _focusNode,
-                    controller: widget.controller,
-                    minLines: 1,
-                    maxLines: null,
-                    keyboardType: TextInputType.multiline,
-                    cursorColor: Colors.black87,
-                    strutStyle: StrutStyle(
-                      fontSize: 14.0,
-                      height: widget.lineHeight / 14.0,
-                      forceStrutHeight: true,
-                    ),
-                    style: widget.serifStyle.copyWith(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      height: widget.lineHeight / 14.0,
-                      color: Colors.black87,
-                    ),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      filled: false,
-                      fillColor: Colors.transparent,
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      disabledBorder: InputBorder.none,
-                      errorBorder: InputBorder.none,
-                      focusedErrorBorder: InputBorder.none,
-                      contentPadding: const EdgeInsets.only(bottom: 3, top: 0),
-                      hintText: widget.hintText,
-                      hintStyle: widget.serifStyle.copyWith(
-                        color: Colors.grey.shade400,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-}
-
-class _GroundFormLinedPainter extends CustomPainter {
-  final int lineCount;
-  final double lineHeight;
-  final Color lineColor;
-  final double strokeWidth;
-
-  _GroundFormLinedPainter({
-    required this.lineCount,
-    required this.lineHeight,
-    required this.lineColor,
-    this.strokeWidth = 0.8,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = lineColor
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke;
-
-    for (int i = 1; i <= lineCount; i++) {
-      final y = i * lineHeight - 1.5;
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _GroundFormLinedPainter oldDelegate) {
-    return oldDelegate.lineCount != lineCount ||
-        oldDelegate.lineHeight != lineHeight ||
-        oldDelegate.lineColor != lineColor ||
-        oldDelegate.strokeWidth != strokeWidth;
   }
 }

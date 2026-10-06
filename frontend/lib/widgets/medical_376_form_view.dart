@@ -1,9 +1,6 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../utils/medical_376_form_pdf_v2.dart';
 import 'bilingual_field.dart';
 import 'form_paper_page.dart';
 import 'form_table_helpers.dart';
@@ -28,104 +25,6 @@ class Medical376FormView extends StatefulWidget {
 }
 
 class Medical376FormViewState extends State<Medical376FormView> {
-  final Map<String, GlobalKey> _blockKeys = {};
-  GlobalKey _getBlockKey(String id) =>
-      _blockKeys.putIfAbsent(id, () => GlobalKey(debugLabel: id));
-
-  Map<String, double> _measuredHeights = {};
-  Timer? _repaginationTimer;
-  List<Medical376Block> _allBlocks = [];
-  List<List<Medical376Block>> _pages = [];
-
-  void _debounceRepaginate() {
-    _repaginationTimer?.cancel();
-    _repaginationTimer = Timer(const Duration(milliseconds: 150), () {
-      if (!mounted) return;
-      _updateBlockHeightsAndRepack();
-    });
-  }
-
-  void _initBaselineHeights() {
-    _measuredHeights = {
-      'f_header_title': 88.0,
-      'f_sec_1_11_header': 36.0,
-      'f_hospital_opd': 48.0,
-      'f_inpatient': 48.0,
-      'f_name_parent': 48.0,
-      'f_address': 72.0,
-      'f_age_dob_sex': 48.0,
-      'f_arrival_exam': 48.0,
-      'f_brought_by': 48.0,
-      'f_mlc_ps': 48.0,
-      'f_conscious_disability': 152.0,
-      'f_sec_12_header': 36.0,
-      'f_consent_preamble': 180.0,
-      'f_consent_police': 230.0,
-      'f_survivor_sig': 115.0,
-      'f_witness_sig': 115.0,
-      'f_sec_13_header': 36.0,
-      'f_id_marks_thumb': 105.0,
-      'f_sec_14_header': 36.0,
-      'f_med_history_box': 220.0,
-    };
-  }
-
-  void _updateBlockHeightsAndRepack() {
-    if (!mounted) return;
-    bool changed = false;
-    for (final block in _allBlocks) {
-      final key = _blockKeys[block.id];
-      final ctx = key?.currentContext;
-      if (ctx != null) {
-        final rb = ctx.findRenderObject() as RenderBox?;
-        if (rb != null && rb.hasSize && rb.size.height > 0) {
-          final currentH = _measuredHeights[block.id];
-          final liveH = rb.size.height;
-          if (currentH == null || (currentH - liveH).abs() > 2.0) {
-            _measuredHeights[block.id] = liveH;
-            changed = true;
-          }
-        }
-      }
-    }
-
-    if (!changed && _pages.isNotEmpty) return;
-
-    final newPages = packMedical376Blocks(
-      blocks: _allBlocks,
-      heights: _measuredHeights,
-    );
-    if (_pages.isEmpty || _hasPagesChanged(_pages, newPages)) {
-      setState(() {
-        _pages = newPages;
-      });
-    }
-  }
-
-  bool _hasPagesChanged(List<List<Medical376Block>> oldPages,
-      List<List<Medical376Block>> newPages) {
-    if (oldPages.length != newPages.length) return true;
-    for (int p = 0; p < oldPages.length; p++) {
-      if (oldPages[p].length != newPages[p].length) return true;
-      for (int b = 0; b < oldPages[p].length; b++) {
-        if (oldPages[p][b].id != newPages[p][b].id) return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _initBaselineHeights();
-    _fAddressCtrl.addListener(_debounceRepaginate);
-    _fConsciousCtrl.addListener(_debounceRepaginate);
-    _fDisabilityCtrl.addListener(_debounceRepaginate);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateBlockHeightsAndRepack();
-    });
-  }
-
   bool get _showFemale {
     final s = widget.formSection?.toLowerCase() ?? '';
     if (s.isEmpty) return true;
@@ -398,10 +297,6 @@ class Medical376FormViewState extends State<Medical376FormView> {
 
   @override
   void dispose() {
-    _repaginationTimer?.cancel();
-    _fAddressCtrl.removeListener(_debounceRepaginate);
-    _fConsciousCtrl.removeListener(_debounceRepaginate);
-    _fDisabilityCtrl.removeListener(_debounceRepaginate);
     for (final c in [
       _fHospitalCtrl,
       _fOpdCtrl,
@@ -657,7 +552,6 @@ class Medical376FormViewState extends State<Medical376FormView> {
     return {
       'formSection': widget.formSection ?? '',
       'pageRange': widget.pageRange ?? '',
-      'measuredHeights': Map<String, double>.from(_measuredHeights),
       'variant': _showFemale && _showMale
           ? 'both'
           : _showFemale
@@ -1724,18 +1618,15 @@ class Medical376FormViewState extends State<Medical376FormView> {
 
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 1.0),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                opt('Y'),
-                const SizedBox(width: 3),
-                opt('N'),
-                const SizedBox(width: 3),
-                opt('DNK'),
-              ],
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              opt('Y'),
+              const SizedBox(width: 3),
+              opt('N'),
+              const SizedBox(width: 3),
+              opt('DNK'),
+            ],
           ),
         );
       },
@@ -2208,6 +2099,7 @@ class Medical376FormViewState extends State<Medical376FormView> {
     'Blood for grouping, testing drug/alcohol intoxication (plain vial)',
     'Blood for alcohol levels (Sodium fluoride vial)',
     'Blood for DNA analysis (EDTA vial)',
+    'Urine (drug testing)',
     'Any other (tampon/sanitary napkin/condom/object)',
   ];
 
@@ -2235,794 +2127,546 @@ class Medical376FormViewState extends State<Medical376FormView> {
     'Other',
   ];
 
-  List<Medical376Block> _buildFemalePhaseABlocks(
-      TextStyle style, TextStyle marathi) {
-    final blocks = <Medical376Block>[];
-
-    // Block 1: Header / Confidential / Title
-    blocks.add(Medical376Block(
-      id: 'f_header_title',
-      estimatedHeight: 88.0,
-      widget: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.black54),
-            ),
-            child: Text(
-              'महाराष्ट्र शासन — सार्वजनिक आरोग्य विभाग. परिपत्रक क्रमांक: संकीर्ण-२०१४/प्र.क्र.२७०/आरोग्य-३. '
-              'दिनांक: ०७ ऑगस्ट, २०१५.',
-              style: GoogleFonts.notoSansDevanagari(fontSize: 9, height: 1.35),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text('CONFIDENTIAL',
-                    style: style.copyWith(fontWeight: FontWeight.bold)),
-                Text('गोपनीय',
-                    style: marathi.copyWith(
-                        fontSize: 10, fontWeight: FontWeight.bold)),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Center(
-            child: Column(
-              children: [
-                Text(
-                  'Medico-legal Examination Report of Sexual Violence',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.lora(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-                Text(
-                  'लैंगिक हिंसाचाराचा वैद्यकीय-कायदेशीर तपासणी अहवाल',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.notoSansDevanagari(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-        ],
-      ),
-    ));
-
-    // Block 2: Section 1-11 Header
-    blocks.add(Medical376Block(
-      id: 'f_sec_1_11_header',
-      estimatedHeight: 36.0,
-      keepWithNext: true,
-      widget: _bilingualSection(
-          '1–11. Basic Information', '१–११. मूलभूत माहिती', style, marathi),
-    ));
-
-    // Block 3: Hospital & OPD
-    blocks.add(Medical376Block(
-      id: 'f_hospital_opd',
-      estimatedHeight: 48.0,
-      widget: BilingualFieldRow(fields: [
-        _bilingualField('1. Hospital', '१. रुग्णालयाचे नाव', _fHospitalCtrl,
-            style, marathi),
-        _bilingualField(
-            'OPD No.', 'बाह्य रुग्ण क्र.', _fOpdCtrl, style, marathi),
-      ]),
-    ));
-
-    // Block 4: Inpatient No.
-    blocks.add(Medical376Block(
-      id: 'f_inpatient',
-      estimatedHeight: 48.0,
-      widget: _bilingualField('Inpatient No.', 'अंतर्गत रुग्ण क्र.',
-          _fInpatientCtrl, style, marathi),
-    ));
-
-    // Block 5: Name & Parent
-    blocks.add(Medical376Block(
-      id: 'f_name_parent',
-      estimatedHeight: 48.0,
-      widget: BilingualFieldRow(fields: [
-        _bilingualField('2. Name', '२. नाव', _fNameCtrl, style, marathi),
-        _bilingualField('D/o or S/o (where known)',
-            'मुलगी / मुलगा (माहित असल्यास)', _fParentCtrl, style, marathi),
-      ]),
-    ));
-
-    // Block 6: Address
-    blocks.add(Medical376Block(
-      id: 'f_address',
-      estimatedHeight: 72.0,
-      widget: _bilingualField(
-          '3. Address', '३. पत्ता', _fAddressCtrl, style, marathi,
-          minLines: 2),
-    ));
-
-    // Block 7: Age, DOB, Sex
-    blocks.add(Medical376Block(
-      id: 'f_age_dob_sex',
-      estimatedHeight: 48.0,
-      widget: BilingualFieldRow(fields: [
-        _bilingualField('4. Age (as reported)', '४. वय (सांगितले)', _fAgeCtrl,
-            style, marathi),
-        _bilingualField(
-            'Date of Birth', 'जन्मतारीख', _fDobCtrl, style, marathi),
-        _bilingualField('5. Sex (M/F/Others)', '५. लिंग (पु/स्त्री/इ.)',
-            _fSexCtrl, style, marathi),
-      ]),
-    ));
-
-    // Block 8: Arrival & Exam Start
-    blocks.add(Medical376Block(
-      id: 'f_arrival_exam',
-      estimatedHeight: 48.0,
-      widget: BilingualFieldRow(fields: [
-        _bilingualField('6. Date and Time of arrival',
-            '६. रुग्णालयात आगमन दिनांक व वेळ', _fArrivalDtCtrl, style, marathi),
-        _bilingualField('7. Date and Time of commencement of examination',
-            '७. तपासणी सुरू दिनांक व वेळ', _fExamStartCtrl, style, marathi),
-      ]),
-    ));
-
-    // Block 9: Brought by
-    blocks.add(Medical376Block(
-      id: 'f_brought_by',
-      estimatedHeight: 48.0,
-      widget: _bilingualField('8. Brought by (Name & signatures)',
-          '८. कोणी आणले (नाव व सही)', _fBroughtByCtrl, style, marathi),
-    ));
-
-    // Block 10: MLC No. & Police Station
-    blocks.add(Medical376Block(
-      id: 'f_mlc_ps',
-      estimatedHeight: 48.0,
-      widget: BilingualFieldRow(fields: [
-        _bilingualField(
-            '9. MLC No.', '९. एम.एल.सी. क्र.', _fMlcCtrl, style, marathi),
-        _bilingualField(
-            'Police Station', 'पोलीस ठाणे', _fPsCtrl, style, marathi),
-      ]),
-    ));
-
-    // Block 11: Conscious & Disability
-    blocks.add(Medical376Block(
-      id: 'f_conscious_disability',
-      estimatedHeight: 152.0,
-      widget: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _bilingualField(
-            '10. Whether conscious, oriented in time and place and person',
-            '१०. जागरूक, वेळ/ठिकाण/व्यक्ती ओळखणारी आहे का',
-            _fConsciousCtrl,
-            style,
-            marathi,
-          ),
-          _bilingualField(
-            '11. Any physical/intellectual/psychosocial disability',
-            '११. शारीरिक / बौद्धिक / मानसिक अपंगत्व',
-            _fDisabilityCtrl,
-            style,
-            marathi,
-            minLines: 2,
-          ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 4),
-            child: Text(
-              '(Interpreters or special educators will be needed where the survivor has special needs such as hearing/speech disability, language barriers, intellectual or psychosocial disability.)',
-              style: style.copyWith(fontSize: 9, fontStyle: FontStyle.italic),
-            ),
-          ),
-          Text(
-            '(श्रवण/वाक् अपंगत्व, भाषा अडथळा, बौद्धिक/मानसिक अपंगत्व असल्यास दुभाषी / विशेष शिक्षक आवश्यक.)',
-            style: marathi.copyWith(fontSize: 9),
-          ),
-        ],
-      ),
-    ));
-
-    // Block 12: Section 12 Header
-    blocks.add(Medical376Block(
-      id: 'f_sec_12_header',
-      estimatedHeight: 36.0,
-      keepWithNext: true,
-      widget: _bilingualSection('12. Informed Consent/refusal',
-          '१२. माहितीपूर्ण संमती / नकार', style, marathi),
-    ));
-
-    // Block 13: Consent preamble
-    blocks.add(Medical376Block(
-      id: 'f_consent_preamble',
-      estimatedHeight: 180.0,
-      widget: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text('I ',
-                  style: style.copyWith(
-                      fontSize: 12, fontWeight: FontWeight.w600)),
-              Expanded(
-                flex: 5,
-                child: BilingualSimpleUnderlineInput(
-                  controller: _fConsentNameCtrl,
-                  serifStyle: style,
-                  hintText: 'Name of survivor',
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(' D/o or S/o ',
-                  style: style.copyWith(
-                      fontSize: 12, fontWeight: FontWeight.w600)),
-              Expanded(
-                flex: 5,
-                child: BilingualSimpleUnderlineInput(
-                  controller: _fConsentParentCtrl,
-                  serifStyle: style,
-                  hintText: 'Father / Mother / Guardian name',
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 2),
-          Text('मी ... मुलगी किंवा मुलगा ... यांची',
-              style: marathi.copyWith(fontSize: 10)),
-          const SizedBox(height: 6),
-          Text(
-            'hereby give my consent for / येथे खालील बाबींसाठी संमती देतो/देते:',
-            style: style.copyWith(fontSize: 12, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 8),
-          _buildConsentYesNoRow(
-            labelEn: 'a)  medical examination for treatment',
-            labelMr: 'अ)  उपचारासाठी वैद्यकीय तपासणी',
-            controller: _fConsentTreatmentCtrl,
-            serifStyle: style,
-            marathiStyle: marathi,
-          ),
-          _buildConsentYesNoRow(
-            labelEn: 'b)  this medico legal examination',
-            labelMr: 'ब)  ही वैद्यकीय-कायदेशीर तपासणी',
-            controller: _fConsentMedicoLegalCtrl,
-            serifStyle: style,
-            marathiStyle: marathi,
-          ),
-          _buildConsentYesNoRow(
-            labelEn:
-                'c)  sample collection for clinical & forensic examination',
-            labelMr: 'क)  नैदानिक व फॉरेन्सिक नमुने गोळा करणे',
-            controller: _fConsentSampleCtrl,
-            serifStyle: style,
-            marathiStyle: marathi,
-          ),
-        ],
-      ),
-    ));
-
-    // Block 14: Consent Police Revelation & Explanation
-    blocks.add(Medical376Block(
-      id: 'f_consent_police',
-      estimatedHeight: 230.0,
-      widget: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 8),
-          Text(
-            'I also understand that as per law the hospital is required to inform police and this has been explained to me.',
-            style: style.copyWith(fontSize: 11, height: 1.35),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            'कायद्यानुसार रुग्णालयाने पोलिसांना कळवणे आवश्यक आहे आणि हे मला समजावून सांगितले आहे हे मला समजते.',
-            style: marathi.copyWith(fontSize: 10, height: 1.35),
-          ),
-          const SizedBox(height: 8),
-          _buildConsentYesNoRow(
-            labelEn: 'I want the information to be revealed to the police',
-            labelMr: 'माहिती पोलिसांना दिली जावी अशी माझी इच्छा आहे',
-            controller: _fConsentPoliceInfoCtrl,
-            serifStyle: style,
-            marathiStyle: marathi,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'I have understood the purpose and the procedure of the examination including the risk and benefit, explained to me by the examining doctor. My right to refuse the examination at any stage and the consequence of such refusal, including that my medical treatment will not be affected by my refusal, has also been explained and may be recorded.',
-            style: style.copyWith(fontSize: 11, height: 1.35),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            'तपासणीचा उद्देश, कार्यपद्धती, धोके आणि फायदे तपासणी करणाऱ्या डॉक्टरांनी मला समजावून सांगितले असून ते मला समजले आहेत. कोणत्याही टप्प्यावर तपासणी नाकारण्याचा माझा अधिकार आणि अशा नकाराचा परिणाम, ज्यामध्ये माझ्या वैद्यकीय उपचारांवर परिणाम होणार नाही, हे देखील मला समजावून सांगितले आहे.',
-            style: marathi.copyWith(fontSize: 10, height: 1.35),
-          ),
-          const SizedBox(height: 6),
-          Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Text('Contents of the above have been explained to me in ',
-                  style: style.copyWith(fontSize: 11)),
-              BilingualSimpleUnderlineInput(
-                minWidth: 140,
-                controller: _fConsentLanguageCtrl,
-                serifStyle: style,
-                hintText: 'e.g. Marathi / Hindi',
-              ),
-              Text(
-                  ' language with the help of a special educator/interpreter/support person (circle as appropriate) ',
-                  style: style.copyWith(fontSize: 11)),
-              BilingualSimpleUnderlineInput(
-                minWidth: 160,
-                controller: _fConsentSupportRoleCtrl,
-                serifStyle: style,
-                hintText: 'Role / Person details',
-              ),
-            ],
-          ),
-          const SizedBox(height: 2),
-          Text(
-            'वरील मजकूर मला विशेष शिक्षक / दुभाषी / मदतनीस यांच्या मदतीने वरील भाषेत समजावून सांगितला गेला आहे.',
-            style: marathi.copyWith(fontSize: 10),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                flex: 5,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'If special educator/interpreter/support person has helped, then his/her name and signature:',
-                      style: style.copyWith(
-                          fontSize: 11, fontStyle: FontStyle.italic),
-                    ),
-                    const SizedBox(height: 1),
-                    Text(
-                      'विशेष शिक्षक/दुभाषी/मदतनीस यांनी मदत केली असल्यास त्यांचे नाव व सही:',
-                      style: marathi.copyWith(fontSize: 10),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 4,
-                child: BilingualSimpleUnderlineInput(
-                  controller: _fConsentHelperSigCtrl,
-                  serifStyle: style,
-                  hintText: 'Name & Signature',
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    ));
-
-    // Block 15: Survivor Signature Block
-    blocks.add(Medical376Block(
-      id: 'f_survivor_sig',
-      estimatedHeight: 115.0,
-      widget: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _bilingualSection(
-            'Name & signature of survivor or parent/Guardian/person in whom the child reposes trust in case of child (<12 yrs)',
-            'पीडित किंवा पालक/पाल्य (<१२ वर्षे असल्यास ज्या व्यक्तीवर विश्वास आहे) यांचे नाव व सही',
-            style,
-            marathi,
-          ),
-          BilingualDynamicLinedTextField(
-            controller: _fSurvivorSigCtrl,
-            minLines: 3,
-            serifStyle: style,
-          ),
-          const SizedBox(height: 2),
-          Text(
-            'With date, time & place / दिनांक, वेळ आणि ठिकाणासह',
-            style: style.copyWith(fontSize: 10, fontStyle: FontStyle.italic),
-          ),
-        ],
-      ),
-    ));
-
-    // Block 16: Witness Signature Block
-    blocks.add(Medical376Block(
-      id: 'f_witness_sig',
-      estimatedHeight: 115.0,
-      widget: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _bilingualSection(
-            'Name & signature/thumb impression of Witness',
-            'साक्षीदाराचे नाव आणि सही / अंगठ्याचा ठसा',
-            style,
-            marathi,
-          ),
-          BilingualDynamicLinedTextField(
-            controller: _fWitnessSigCtrl,
-            minLines: 3,
-            serifStyle: style,
-          ),
-          const SizedBox(height: 2),
-          Text(
-            'With Date, time and place / दिनांक, वेळ आणि ठिकाणासह',
-            style: style.copyWith(fontSize: 10, fontStyle: FontStyle.italic),
-          ),
-        ],
-      ),
-    ));
-
-    // Block 17: Section 13 Header
-    blocks.add(Medical376Block(
-      id: 'f_sec_13_header',
-      estimatedHeight: 36.0,
-      keepWithNext: true,
-      widget: _bilingualSection(
-        '13. Marks of identification (Any scar/mole)',
-        '१३. ओळखीच्या खुणा (कोणताही व्रण/तीळ)',
-        style,
-        marathi,
-      ),
-    ));
-
-    // Block 18: Identification marks and thumb impression
-    blocks.add(Medical376Block(
-      id: 'f_id_marks_thumb',
-      estimatedHeight: 105.0,
-      widget: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 7,
-            child: Column(
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('(1) ',
-                        style: style.copyWith(
-                            fontSize: 12, fontWeight: FontWeight.bold)),
-                    Expanded(
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _fIdMark1Ctrl,
-                        serifStyle: style,
-                        hintText: 'First identification mark',
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('(2) ',
-                        style: style.copyWith(
-                            fontSize: 12, fontWeight: FontWeight.bold)),
-                    Expanded(
-                      child: BilingualSimpleUnderlineInput(
-                        controller: _fIdMark2Ctrl,
-                        serifStyle: style,
-                        hintText: 'Second identification mark',
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 24),
-          Column(
-            children: [
-              Container(
-                width: 140,
-                height: 70,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black87, width: 1.0),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Left Thumb impression',
-                style:
-                    style.copyWith(fontSize: 11, fontWeight: FontWeight.bold),
-              ),
-              Text(
-                'डाव्या हाताचा अंगठ्याचा ठसा',
-                style: marathi.copyWith(fontSize: 9),
-              ),
-            ],
-          ),
-        ],
-      ),
-    ));
-
-    // Block 19: Section 14 Header
-    blocks.add(Medical376Block(
-      id: 'f_sec_14_header',
-      estimatedHeight: 36.0,
-      keepWithNext: true,
-      widget: _bilingualSection(
-        '14. Relevant Medical/Surgical history',
-        '१४. संबंधित वैद्यकीय / शस्त्रक्रिया इतिहास',
-        style,
-        marathi,
-      ),
-    ));
-
-    // Block 20: Medical history box
-    blocks.add(Medical376Block(
-      id: 'f_med_history_box',
-      estimatedHeight: 220.0,
-      widget: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.black87, width: 1.0),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildFemalePages(TextStyle style, TextStyle marathi) {
+    return Column(
+      children: [
+        FormPaperPage(
+          formLabel: 'Pages 1–2 / पृ. १–२',
           children: [
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Text(
-                  'Onset of menarche (in case of girls)  ',
-                  style: style.copyWith(fontSize: 11),
-                ),
-                _buildInlineYesNo(_fMenarcheYesNoCtrl, style),
-                const SizedBox(width: 24),
-                Text('  Age of onset: ', style: style.copyWith(fontSize: 11)),
-                BilingualSimpleUnderlineInput(
-                  minWidth: 110,
-                  controller: _fMenarcheAgeCtrl,
-                  serifStyle: style,
-                  hintText: 'e.g. 13 years',
-                ),
-              ],
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.black54),
+              ),
+              child: Text(
+                'महाराष्ट्र शासन — सार्वजनिक आरोग्य विभाग. परिपत्रक क्रमांक: संकीर्ण-२०१४/प्र.क्र.२७०/आरोग्य-३. '
+                'दिनांक: ०७ ऑगस्ट, २०१५.',
+                style:
+                    GoogleFonts.notoSansDevanagari(fontSize: 9, height: 1.35),
+                textAlign: TextAlign.center,
+              ),
             ),
-            const Divider(color: Colors.black26, height: 16),
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Text(
-                  'Menstrual history – Cycle length and duration: ',
-                  style: style.copyWith(fontSize: 11),
-                ),
-                BilingualSimpleUnderlineInput(
-                  minWidth: 130,
-                  controller: _fMenstrualCycleCtrl,
-                  serifStyle: style,
-                  hintText: 'e.g. 28 days / 4-5 days',
-                ),
-                const SizedBox(width: 16),
-                Text(
-                  'Last menstrual period (LMP): ',
-                  style: style.copyWith(fontSize: 11),
-                ),
-                BilingualSimpleUnderlineInput(
-                  minWidth: 120,
-                  controller: _fLastMenstrualPeriodCtrl,
-                  serifStyle: style,
-                  hintText: 'DD/MM/YYYY',
-                ),
-              ],
-            ),
-            const Divider(color: Colors.black26, height: 16),
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Text(
-                  'Menstruation at the time of incident - ',
-                  style: style.copyWith(fontSize: 11),
-                ),
-                _buildInlineYesNo(_fMenstruationAtIncidentCtrl, style),
-                const SizedBox(width: 20),
-                Text(
-                  'Menstruation at the time of examination - ',
-                  style: style.copyWith(fontSize: 11),
-                ),
-                _buildInlineYesNo(_fMenstruationAtExamCtrl, style),
-              ],
-            ),
-            const Divider(color: Colors.black26, height: 16),
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Text(
-                  'Was the survivor pregnant at time of incident - ',
-                  style: style.copyWith(fontSize: 11),
-                ),
-                _buildInlineYesNo(_fPregnantAtIncidentCtrl, style),
-                const SizedBox(width: 16),
-                Text(
-                  'If yes, duration of pregnancy: ',
-                  style: style.copyWith(fontSize: 11),
-                ),
-                BilingualSimpleUnderlineInput(
-                  minWidth: 90,
-                  controller: _fPregnancyDurationCtrl,
-                  serifStyle: style,
-                  hintText: '... weeks',
-                ),
-              ],
-            ),
-            const Divider(color: Colors.black26, height: 16),
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Text('Contraception use: ',
-                    style: style.copyWith(fontSize: 11)),
-                _buildInlineYesNo(_fContraceptionUseCtrl, style),
-                const SizedBox(width: 16),
-                Text('  If yes – method used: ',
-                    style: style.copyWith(fontSize: 11)),
-                BilingualSimpleUnderlineInput(
-                  minWidth: 200,
-                  controller: _fContraceptionMethodCtrl,
-                  serifStyle: style,
-                  hintText: 'OCP / Copper-T / Barrier / etc.',
-                ),
-              ],
-            ),
-            const Divider(color: Colors.black26, height: 16),
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Text(
-                  'Vaccination status – Tetanus: ',
-                  style: style.copyWith(fontSize: 11),
-                ),
-                BilingualSimpleUnderlineInput(
-                  minWidth: 150,
-                  controller: _fVaccinationTetanusCtrl,
-                  serifStyle: style,
-                  hintText: 'Vaccinated / Not vaccinated',
-                ),
-                const SizedBox(width: 16),
-                Text(
-                  'Hepatitis B: ',
-                  style: style.copyWith(fontSize: 11),
-                ),
-                BilingualSimpleUnderlineInput(
-                  minWidth: 150,
-                  controller: _fVaccinationHepBCtrl,
-                  serifStyle: style,
-                  hintText: 'Vaccinated / Not vaccinated',
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    ));
-
-    return blocks;
-  }
-
-  Widget _buildFormPageCard({
-    required int pageNumber,
-    required int totalPages,
-    required List<Medical376Block> pageBlocks,
-    required double targetWidth,
-    required double cardHeight,
-  }) {
-    return Center(
-      child: Container(
-        width: targetWidth,
-        height: cardHeight,
-        margin: const EdgeInsets.only(bottom: 24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: Colors.grey.shade400, width: 1.0),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x1A000000),
-              blurRadius: 8,
-              offset: Offset(0, 3),
-            ),
-          ],
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: FittedBox(
-          fit: BoxFit.contain,
-          alignment: Alignment.topCenter,
-          child: SizedBox(
-            width: 794.0,
-            height: 1123.0,
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 36.0, vertical: 32.0),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      physics: const NeverScrollableScrollPhysics(),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          for (final block in pageBlocks)
-                            KeyedSubtree(
-                              key: _getBlockKey(block.id),
-                              child: Padding(
-                                padding: const EdgeInsets.only(bottom: 4.0),
-                                child: block.widget,
-                              ),
-                            ),
-                        ],
-                      ),
+                  Text('CONFIDENTIAL',
+                      style: style.copyWith(fontWeight: FontWeight.bold)),
+                  Text('गोपनीय',
+                      style: marathi.copyWith(
+                          fontSize: 10, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Center(
+              child: Column(
+                children: [
+                  Text(
+                    'Medico-legal Examination Report of Sexual Violence',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.lora(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.underline,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    height: 22.0,
-                    child: Center(
-                      child: Text(
-                        'Page $pageNumber of $totalPages  /  पृष्ठ $pageNumber पैकी $totalPages  •  Build 2026-10-03-v2.2',
-                        style: GoogleFonts.notoSansDevanagari(
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
-                        ),
-                      ),
+                  Text(
+                    'लैंगिक हिंसाचाराचा वैद्यकीय-कायदेशीर तपासणी अहवाल',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.notoSansDevanagari(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.underline,
                     ),
                   ),
                 ],
               ),
             ),
-          ),
+            const SizedBox(height: 16),
+            _bilingualSection('1–11. Basic Information', '१–११. मूलभूत माहिती',
+                style, marathi),
+            BilingualFieldRow(fields: [
+              _bilingualField('1. Hospital', '१. रुग्णालयाचे नाव',
+                  _fHospitalCtrl, style, marathi),
+              _bilingualField(
+                  'OPD No.', 'बाह्य रुग्ण क्र.', _fOpdCtrl, style, marathi),
+            ]),
+            _bilingualField('Inpatient No.', 'अंतर्गत रुग्ण क्र.',
+                _fInpatientCtrl, style, marathi),
+            _bilingualField('2. Name', '२. नाव', _fNameCtrl, style, marathi),
+            _bilingualField('D/o or S/o (where known)',
+                'मुलगी / मुलगा (माहित असल्यास)', _fParentCtrl, style, marathi),
+            _bilingualField(
+                '3. Address', '३. पत्ता', _fAddressCtrl, style, marathi,
+                minLines: 2),
+            BilingualFieldRow(fields: [
+              _bilingualField('4. Age (as reported)', '४. वय (सांगितले)',
+                  _fAgeCtrl, style, marathi),
+              _bilingualField(
+                  'Date of Birth', 'जन्मतारीख', _fDobCtrl, style, marathi),
+            ]),
+            _bilingualField('5. Sex (M/F/Others)', '५. लिंग (पु/स्त्री/इ.)',
+                _fSexCtrl, style, marathi),
+            _bilingualField(
+                '6. Date and Time of arrival',
+                '६. रुग्णालयात आगमन दिनांक व वेळ',
+                _fArrivalDtCtrl,
+                style,
+                marathi),
+            _bilingualField('7. Date and Time of commencement of examination',
+                '७. तपासणी सुरू दिनांक व वेळ', _fExamStartCtrl, style, marathi),
+            _bilingualField('8. Brought by (Name & signatures)',
+                '८. कोणी आणले (नाव व सही)', _fBroughtByCtrl, style, marathi),
+            BilingualFieldRow(fields: [
+              _bilingualField(
+                  '9. MLC No.', '९. एम.एल.सी. क्र.', _fMlcCtrl, style, marathi),
+              _bilingualField(
+                  'Police Station', 'पोलीस ठाणे', _fPsCtrl, style, marathi),
+            ]),
+            _bilingualField(
+              '10. Whether conscious, oriented in time and place and person',
+              '१०. जागरूक, वेळ/ठिकाण/व्यक्ती ओळखणारी आहे का',
+              _fConsciousCtrl,
+              style,
+              marathi,
+            ),
+            _bilingualField(
+              '11. Any physical/intellectual/psychosocial disability',
+              '११. शारीरिक / बौद्धिक / मानसिक अपंगत्व',
+              _fDisabilityCtrl,
+              style,
+              marathi,
+              minLines: 2,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                '(Interpreters or special educators will be needed where the survivor has special needs such as hearing/speech disability, language barriers, intellectual or psychosocial disability.)',
+                style: style.copyWith(fontSize: 9, fontStyle: FontStyle.italic),
+              ),
+            ),
+            Text(
+              '(श्रवण/वाक् अपंगत्व, भाषा अडथळा, बौद्धिक/मानसिक अपंगत्व असल्यास दुभाषी / विशेष शिक्षक आवश्यक.)',
+              style: marathi.copyWith(fontSize: 9),
+            ),
+            _bilingualSection('12. Informed Consent/refusal',
+                '१२. माहितीपूर्ण संमती / नकार', style, marathi),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text('I ',
+                    style: style.copyWith(
+                        fontSize: 12, fontWeight: FontWeight.w600)),
+                Expanded(
+                  flex: 5,
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _fConsentNameCtrl,
+                    serifStyle: style,
+                    hintText: 'Name of survivor',
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(' D/o or S/o ',
+                    style: style.copyWith(
+                        fontSize: 12, fontWeight: FontWeight.w600)),
+                Expanded(
+                  flex: 5,
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _fConsentParentCtrl,
+                    serifStyle: style,
+                    hintText: 'Father / Mother / Guardian name',
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'मी ... मुलगी किंवा मुलगा ... यांची',
+              style: marathi.copyWith(fontSize: 10),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'hereby give my consent for / येथे खालील बाबींसाठी संमती देतो/देते:',
+              style: style.copyWith(fontSize: 12, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            _buildConsentYesNoRow(
+              labelEn: 'a)  medical examination for treatment',
+              labelMr: 'अ)  उपचारासाठी वैद्यकीय तपासणी',
+              controller: _fConsentTreatmentCtrl,
+              serifStyle: style,
+              marathiStyle: marathi,
+            ),
+            _buildConsentYesNoRow(
+              labelEn: 'b)  this medico legal examination',
+              labelMr: 'ब)  ही वैद्यकीय-कायदेशीर तपासणी',
+              controller: _fConsentMedicoLegalCtrl,
+              serifStyle: style,
+              marathiStyle: marathi,
+            ),
+            _buildConsentYesNoRow(
+              labelEn:
+                  'c)  sample collection for clinical & forensic examination',
+              labelMr: 'क)  नैदानिक व फॉरेन्सिक नमुने गोळा करणे',
+              controller: _fConsentSampleCtrl,
+              serifStyle: style,
+              marathiStyle: marathi,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'I also understand that as per law the hospital is required to inform police and this has been explained to me.',
+              style: style.copyWith(fontSize: 11, height: 1.35),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'कायद्यानुसार रुग्णालयाने पोलिसांना कळवणे आवश्यक आहे आणि हे मला समजावून सांगितले आहे हे मला समजते.',
+              style: marathi.copyWith(fontSize: 10, height: 1.35),
+            ),
+            const SizedBox(height: 8),
+            _buildConsentYesNoRow(
+              labelEn: 'I want the information to be revealed to the police',
+              labelMr: 'माहिती पोलिसांना दिली जावी अशी माझी इच्छा आहे',
+              controller: _fConsentPoliceInfoCtrl,
+              serifStyle: style,
+              marathiStyle: marathi,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'I have understood the purpose and the procedure of the examination including the risk and benefit, explained to me by the examining doctor. My right to refuse the examination at any stage and the consequence of such refusal, including that my medical treatment will not be affected by my refusal, has also been explained and may be recorded.',
+              style: style.copyWith(fontSize: 11, height: 1.35),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'तपासणीचा उद्देश, कार्यपद्धती, धोके आणि फायदे तपासणी करणाऱ्या डॉक्टरांनी मला समजावून सांगितले असून ते मला समजले आहेत. कोणत्याही टप्प्यावर तपासणी नाकारण्याचा माझा अधिकार आणि अशा नकाराचा परिणाम, ज्यामध्ये माझ्या वैद्यकीय उपचारांवर परिणाम होणार नाही, हे देखील मला समजावून सांगितले आहे.',
+              style: marathi.copyWith(fontSize: 10, height: 1.35),
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  'Contents of the above have been explained to me in ',
+                  style: style.copyWith(fontSize: 11),
+                ),
+                BilingualSimpleUnderlineInput(
+                  minWidth: 140,
+                  controller: _fConsentLanguageCtrl,
+                  serifStyle: style,
+                  hintText: 'e.g. Marathi / Hindi',
+                ),
+                Text(
+                  ' language with the help of a special educator/interpreter/support person (circle as appropriate) ',
+                  style: style.copyWith(fontSize: 11),
+                ),
+                BilingualSimpleUnderlineInput(
+                  minWidth: 160,
+                  controller: _fConsentSupportRoleCtrl,
+                  serifStyle: style,
+                  hintText: 'Role / Person details',
+                ),
+              ],
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'वरील मजकूर मला विशेष शिक्षक / दुभाषी / मदतनीस यांच्या मदतीने वरील भाषेत समजावून सांगितला गेला आहे.',
+              style: marathi.copyWith(fontSize: 10),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  flex: 5,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'If special educator/interpreter/support person has helped, then his/her name and signature:',
+                        style: style.copyWith(
+                            fontSize: 11, fontStyle: FontStyle.italic),
+                      ),
+                      const SizedBox(height: 1),
+                      Text(
+                        'विशेष शिक्षक/दुभाषी/मदतनीस यांनी मदत केली असल्यास त्यांचे नाव व सही:',
+                        style: marathi.copyWith(fontSize: 10),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 4,
+                  child: BilingualSimpleUnderlineInput(
+                    controller: _fConsentHelperSigCtrl,
+                    serifStyle: style,
+                    hintText: 'Name & Signature',
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _bilingualSection(
+              'Name & signature of survivor or parent/Guardian/person in whom the child reposes trust in case of child (<12 yrs)',
+              'पीडित किंवा पालक/पाल्य (<१२ वर्षे असल्यास ज्या व्यक्तीवर विश्वास आहे) यांचे नाव व सही',
+              style,
+              marathi,
+            ),
+            BilingualDynamicLinedTextField(
+              controller: _fSurvivorSigCtrl,
+              minLines: 3,
+              serifStyle: style,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'With date, time & place / दिनांक, वेळ आणि ठिकाणासह',
+              style: style.copyWith(fontSize: 10, fontStyle: FontStyle.italic),
+            ),
+            const SizedBox(height: 12),
+            _bilingualSection(
+              'Name & signature/thumb impression of Witness',
+              'साक्षीदाराचे नाव आणि सही / अंगठ्याचा ठसा',
+              style,
+              marathi,
+            ),
+            BilingualDynamicLinedTextField(
+              controller: _fWitnessSigCtrl,
+              minLines: 3,
+              serifStyle: style,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'With Date, time and place / दिनांक, वेळ आणि ठिकाणासह',
+              style: style.copyWith(fontSize: 10, fontStyle: FontStyle.italic),
+            ),
+            const SizedBox(height: 16),
+            _bilingualSection(
+              '13. Marks of identification (Any scar/mole)',
+              '१३. ओळखीच्या खुणा (कोणताही व्रण/तीळ)',
+              style,
+              marathi,
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 7,
+                  child: Column(
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('(1) ',
+                              style: style.copyWith(
+                                  fontSize: 12, fontWeight: FontWeight.bold)),
+                          Expanded(
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _fIdMark1Ctrl,
+                              serifStyle: style,
+                              hintText: 'First identification mark',
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('(2) ',
+                              style: style.copyWith(
+                                  fontSize: 12, fontWeight: FontWeight.bold)),
+                          Expanded(
+                            child: BilingualSimpleUnderlineInput(
+                              controller: _fIdMark2Ctrl,
+                              serifStyle: style,
+                              hintText: 'Second identification mark',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 24),
+                Column(
+                  children: [
+                    Container(
+                      width: 140,
+                      height: 70,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black87, width: 1.0),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Left Thumb impression',
+                      style: style.copyWith(
+                          fontSize: 11, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      'डाव्या हाताचा अंगठ्याचा ठसा',
+                      style: marathi.copyWith(fontSize: 9),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _bilingualSection(
+              '14. Relevant Medical/Surgical history',
+              '१४. संबंधित वैद्यकीय / शस्त्रक्रिया इतिहास',
+              style,
+              marathi,
+            ),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.black87, width: 1.0),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        'Onset of menarche (in case of girls)  ',
+                        style: style.copyWith(fontSize: 11),
+                      ),
+                      _buildInlineYesNo(_fMenarcheYesNoCtrl, style),
+                      const SizedBox(width: 24),
+                      Text('  Age of onset: ',
+                          style: style.copyWith(fontSize: 11)),
+                      BilingualSimpleUnderlineInput(
+                        minWidth: 110,
+                        controller: _fMenarcheAgeCtrl,
+                        serifStyle: style,
+                        hintText: 'e.g. 13 years',
+                      ),
+                    ],
+                  ),
+                  const Divider(color: Colors.black26, height: 16),
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        'Menstrual history – Cycle length and duration: ',
+                        style: style.copyWith(fontSize: 11),
+                      ),
+                      BilingualSimpleUnderlineInput(
+                        minWidth: 130,
+                        controller: _fMenstrualCycleCtrl,
+                        serifStyle: style,
+                        hintText: 'e.g. 28 days / 4-5 days',
+                      ),
+                      const SizedBox(width: 16),
+                      Text(
+                        'Last menstrual period (LMP): ',
+                        style: style.copyWith(fontSize: 11),
+                      ),
+                      BilingualSimpleUnderlineInput(
+                        minWidth: 120,
+                        controller: _fLastMenstrualPeriodCtrl,
+                        serifStyle: style,
+                        hintText: 'DD/MM/YYYY',
+                      ),
+                    ],
+                  ),
+                  const Divider(color: Colors.black26, height: 16),
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        'Menstruation at the time of incident - ',
+                        style: style.copyWith(fontSize: 11),
+                      ),
+                      _buildInlineYesNo(_fMenstruationAtIncidentCtrl, style),
+                      const SizedBox(width: 20),
+                      Text(
+                        'Menstruation at the time of examination - ',
+                        style: style.copyWith(fontSize: 11),
+                      ),
+                      _buildInlineYesNo(_fMenstruationAtExamCtrl, style),
+                    ],
+                  ),
+                  const Divider(color: Colors.black26, height: 16),
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        'Was the survivor pregnant at time of incident - ',
+                        style: style.copyWith(fontSize: 11),
+                      ),
+                      _buildInlineYesNo(_fPregnantAtIncidentCtrl, style),
+                      const SizedBox(width: 16),
+                      Text(
+                        'If yes, duration of pregnancy: ',
+                        style: style.copyWith(fontSize: 11),
+                      ),
+                      BilingualSimpleUnderlineInput(
+                        minWidth: 90,
+                        controller: _fPregnancyDurationCtrl,
+                        serifStyle: style,
+                        hintText: '... weeks',
+                      ),
+                    ],
+                  ),
+                  const Divider(color: Colors.black26, height: 16),
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text('Contraception use: ',
+                          style: style.copyWith(fontSize: 11)),
+                      _buildInlineYesNo(_fContraceptionUseCtrl, style),
+                      const SizedBox(width: 16),
+                      Text('  If yes – method used: ',
+                          style: style.copyWith(fontSize: 11)),
+                      BilingualSimpleUnderlineInput(
+                        minWidth: 200,
+                        controller: _fContraceptionMethodCtrl,
+                        serifStyle: style,
+                        hintText: 'OCP / Copper-T / Barrier / etc.',
+                      ),
+                    ],
+                  ),
+                  const Divider(color: Colors.black26, height: 16),
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        'Vaccination status – Tetanus: ',
+                        style: style.copyWith(fontSize: 11),
+                      ),
+                      BilingualSimpleUnderlineInput(
+                        minWidth: 150,
+                        controller: _fVaccinationTetanusCtrl,
+                        serifStyle: style,
+                        hintText: 'Vaccinated / Not vaccinated',
+                      ),
+                      const SizedBox(width: 16),
+                      Text(
+                        'Hepatitis B: ',
+                        style: style.copyWith(fontSize: 11),
+                      ),
+                      BilingualSimpleUnderlineInput(
+                        minWidth: 150,
+                        controller: _fVaccinationHepBCtrl,
+                        serifStyle: style,
+                        hintText: 'Vaccinated / Not vaccinated',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildFemalePages(TextStyle style, TextStyle marathi,
-      double targetWidth, double cardHeight) {
-    _allBlocks = _buildFemalePhaseABlocks(style, marathi);
-    if (_pages.isEmpty) {
-      _pages = packMedical376Blocks(
-        blocks: _allBlocks,
-        heights: _measuredHeights,
-      );
-    }
-
-    return Column(
-      children: [
-        for (int i = 0; i < _pages.length; i++)
-          _buildFormPageCard(
-            pageNumber: i + 1,
-            totalPages: _pages.length,
-            pageBlocks: _pages[i],
-            targetWidth: targetWidth,
-            cardHeight: cardHeight,
-          ),
         const SizedBox(height: 24),
-        _buildFemaleRemainingSections(style, marathi),
-      ],
-    );
-  }
-
-  Widget _buildFemaleRemainingSections(TextStyle style, TextStyle marathi) {
-    return Column(
-      children: [
         FormPaperPage(
+          formLabel: 'Pages 3–5 / पृ. ३–५',
           children: [
             _bilingualSection('15 A. History of Sexual Violence',
                 '१५ अ. लैंगिक हिंसाचाराचा इतिहास', style, marathi),
@@ -3255,15 +2899,22 @@ class Medical376FormViewState extends State<Medical376FormView> {
                               fontSize: 11, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          'Narrator of the incident: survivor/informant (specify name and relation to survivor):',
-                          style: style.copyWith(fontSize: 11),
-                        ),
-                        const SizedBox(height: 2),
-                        BilingualSimpleUnderlineInput(
-                          controller: _fNarratorDetailsCtrl,
-                          serifStyle: style,
-                          hintText: 'Survivor / Informant name & relation',
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              'Narrator of the incident: survivor/informant (specify name and relation to survivor): ',
+                              style: style.copyWith(fontSize: 11),
+                            ),
+                            Expanded(
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _fNarratorDetailsCtrl,
+                                serifStyle: style,
+                                hintText:
+                                    'Survivor / Informant name & relation',
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 8),
                         BilingualDynamicLinedTextField(
@@ -4086,6 +3737,15 @@ class Medical376FormViewState extends State<Medical376FormView> {
                 fontStyle: FontStyle.italic,
               ),
             ),
+            const SizedBox(height: 6),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                '4',
+                style:
+                    style.copyWith(fontSize: 11, fontWeight: FontWeight.bold),
+              ),
+            ),
             const SizedBox(height: 16),
             // Page 5 Begins:
             Table(
@@ -4344,11 +4004,21 @@ class Medical376FormViewState extends State<Medical376FormView> {
                 ),
               ],
             ),
+            const SizedBox(height: 6),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                '5',
+                style:
+                    style.copyWith(fontSize: 11, fontWeight: FontWeight.bold),
+              ),
+            ),
             const SizedBox(height: 12),
           ],
         ),
         const SizedBox(height: 24),
         FormPaperPage(
+          formLabel: 'Pages 6–8 / पृ. ६–८',
           children: [
             Text(
               '17. Examination for injuries on the body if any',
@@ -4438,6 +4108,7 @@ class Medical376FormViewState extends State<Medical376FormView> {
         ),
         const SizedBox(height: 24),
         FormPaperPage(
+          formLabel: 'Pages 9–10 / पृ. ९–१०',
           children: [
             Text(
               '18. Local examination of genital parts/other orifices*:',
@@ -4710,6 +4381,15 @@ class Medical376FormViewState extends State<Medical376FormView> {
                 ),
               ],
             ),
+            const SizedBox(height: 6),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                '9',
+                style:
+                    style.copyWith(fontSize: 11, fontWeight: FontWeight.bold),
+              ),
+            ),
             const SizedBox(height: 16),
             Text(
               '20. Sample collection/investigations for hospital laboratory/ Clinical laboratory',
@@ -4779,6 +4459,7 @@ class Medical376FormViewState extends State<Medical376FormView> {
         ),
         const SizedBox(height: 24),
         FormPaperPage(
+          formLabel: 'Pages 11–13 / पृ. ११–१३',
           children: [
             Text(
               '21. Samples Collection for Central/ State Forensic Science Laboratory',
@@ -5521,6 +5202,7 @@ class Medical376FormViewState extends State<Medical376FormView> {
     return Column(
       children: [
         FormPaperPage(
+          formLabel: 'Page 1 / पृ. १',
           children: [
             Center(
               child: Column(
@@ -5646,6 +5328,7 @@ class Medical376FormViewState extends State<Medical376FormView> {
         ),
         const SizedBox(height: 24),
         FormPaperPage(
+          formLabel: 'Page 2 / पृ. २',
           children: [
             _bilingualSection('(III) Medical and Surgical History',
                 '(३) वैद्यकीय व शस्त्रक्रिया इतिहास', style, marathi),
@@ -5666,6 +5349,7 @@ class Medical376FormViewState extends State<Medical376FormView> {
         ),
         const SizedBox(height: 24),
         FormPaperPage(
+          formLabel: 'Page 3 / पृ. ३',
           children: [
             _bilingualSection('(VI) Systemic Examination',
                 '(६) प्रणालीगत तपासणी', style, marathi),
@@ -5721,6 +5405,7 @@ class Medical376FormViewState extends State<Medical376FormView> {
         ),
         const SizedBox(height: 24),
         FormPaperPage(
+          formLabel: 'Page 4 / पृ. ४',
           children: [
             _bilingualSection(
               'PROVISIONAL OPINION: **',
@@ -5992,24 +5677,13 @@ class Medical376FormViewState extends State<Medical376FormView> {
     final style = FormTypography.serifStyle();
     final marathi = FormTypography.marathiLabelStyle();
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final availableWidth = constraints.maxWidth;
-        final targetWidth = availableWidth >= 826.0
-            ? 794.0
-            : (availableWidth - 24.0).clamp(280.0, 794.0);
-        final cardHeight = targetWidth * (1123.0 / 794.0);
-
-        return FormViewScaffold(
-          readOnly: widget.readOnly,
-          children: [
-            if (_showFemale)
-              _buildFemalePages(style, marathi, targetWidth, cardHeight),
-            if (_showFemale && _showMale) const SizedBox(height: 24),
-            if (_showMale) _buildMalePages(style, marathi),
-          ],
-        );
-      },
+    return FormViewScaffold(
+      readOnly: widget.readOnly,
+      children: [
+        if (_showFemale) _buildFemalePages(style, marathi),
+        if (_showFemale && _showMale) const SizedBox(height: 24),
+        if (_showMale) _buildMalePages(style, marathi),
+      ],
     );
   }
 }

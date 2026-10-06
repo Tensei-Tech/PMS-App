@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../utils/order_section_47_48_pdf.dart';
@@ -293,15 +292,14 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
     bool readOnly = false,
     double bottomPadding = 8,
   }) {
-    final hasPrefix = prefix != null && prefix.isNotEmpty;
     return Padding(
       padding: EdgeInsets.only(bottom: bottomPadding),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (hasPrefix)
+          if (prefix != null && prefix.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(top: 2, right: 6),
+              padding: const EdgeInsets.only(bottom: 2, right: 6),
               child: Text(
                 prefix,
                 style: GoogleFonts.notoSansDevanagari(
@@ -312,12 +310,10 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
               ),
             ),
           Expanded(
-            child: OrderSectionLinedMultilineInput(
+            child: _UnderlineInput(
               controller: controller,
-              serifStyle: FormTypography.serifStyle(),
               hintText: hintText,
               readOnly: readOnly,
-              lineHeight: 24.0,
             ),
           ),
         ],
@@ -412,14 +408,11 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
               readOnly: widget.readOnly,
             ),
             Text('भा.न्या.सं.कलम', style: marathiBody),
-            OrderSectionLinedMultilineInput(
+            _UnderlineInput(
               controller: _bnsSectionCtrl,
-              serifStyle: serif,
-              minWidth: 180,
-              maxWidth: 450,
+              width: 210,
               hintText: 'कलम उदा. १०३, ३(५)',
               readOnly: widget.readOnly,
-              lineHeight: 24.0,
             ),
             Text(
               'या गुन्ह्याचे तपासात निष्पन्न झालेल्या पुराव्यावरून आपणास दिनांक',
@@ -573,15 +566,12 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                OrderSectionLinedMultilineInput(
+                _UnderlineInput(
                   controller: _p1AccusedSigCtrl,
-                  serifStyle: serif,
-                  minWidth: 200,
-                  maxWidth: 220,
-                  textAlign: TextAlign.center,
+                  width: 220,
                   hintText: '[आरोपीचे नाव/स्वाक्षरी]',
+                  textAlign: TextAlign.center,
                   readOnly: widget.readOnly,
-                  lineHeight: 20.0,
                 ),
                 const SizedBox(height: 4),
                 Text('आरोपीची स्वाक्षरी / अंगठा', style: marathiBold),
@@ -610,15 +600,12 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                OrderSectionLinedMultilineInput(
+                _UnderlineInput(
                   controller: _p1IoSigCtrl,
-                  serifStyle: serif,
-                  minWidth: 200,
-                  maxWidth: 220,
-                  textAlign: TextAlign.center,
+                  width: 220,
                   hintText: '[अधिकारी नाव/हुद्दा]',
+                  textAlign: TextAlign.center,
                   readOnly: widget.readOnly,
-                  lineHeight: 20.0,
                 ),
                 const SizedBox(height: 4),
                 Text('तपासणी अधिकारी / अंमलदार', style: marathiBold),
@@ -718,27 +705,21 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
               readOnly: widget.readOnly,
             ),
             Text('भा.न्या.सं.कलम', style: marathiBody),
-            OrderSectionLinedMultilineInput(
+            _UnderlineInput(
               controller: _bnsSectionCtrl,
-              serifStyle: serif,
-              minWidth: 180,
-              maxWidth: 450,
+              width: 210,
               hintText: 'कलम उदा. १०३, ३(५)',
               readOnly: widget.readOnly,
-              lineHeight: 24.0,
             ),
             Text(
               'या गुन्ह्यात आपले नातेवाईक / मित्र / आप्तेष्ठ नामे',
               style: marathiBody,
             ),
-            OrderSectionLinedMultilineInput(
+            _UnderlineInput(
               controller: _p2AccusedNameCtrl,
-              serifStyle: serif,
-              minWidth: 200,
-              maxWidth: 450,
+              width: 260,
               hintText: '[अटक व्यक्तीचे नाव]',
               readOnly: widget.readOnly,
-              lineHeight: 24.0,
             ),
             Text('यांना दिनांक', style: marathiBody),
             formDatePickerField(
@@ -886,15 +867,12 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                OrderSectionLinedMultilineInput(
+                _UnderlineInput(
                   controller: _p2RelativeSigCtrl,
-                  serifStyle: serif,
-                  minWidth: 200,
-                  maxWidth: 220,
-                  textAlign: TextAlign.center,
+                  width: 220,
                   hintText: '[नातेवाईकाचे नाव/स्वाक्षरी]',
+                  textAlign: TextAlign.center,
                   readOnly: widget.readOnly,
-                  lineHeight: 20.0,
                 ),
                 const SizedBox(height: 4),
                 Text('नातेवाईकाची स्वाक्षरी / अंगठा', style: marathiBold),
@@ -923,15 +901,12 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                OrderSectionLinedMultilineInput(
+                _UnderlineInput(
                   controller: _p2IoSigCtrl,
-                  serifStyle: serif,
-                  minWidth: 200,
-                  maxWidth: 220,
-                  textAlign: TextAlign.center,
+                  width: 220,
                   hintText: '[अधिकारी नाव/हुद्दा]',
+                  textAlign: TextAlign.center,
                   readOnly: widget.readOnly,
-                  lineHeight: 20.0,
                 ),
                 const SizedBox(height: 4),
                 Text('तपासणी अधिकारी / अंमलदार', style: marathiBold),
@@ -981,14 +956,72 @@ class OrderSection4748FormViewState extends State<OrderSection4748FormView> {
     double? maxWidth,
     String? hintText,
   }) {
-    return OrderSectionLinedMultilineInput(
-      controller: controller,
-      serifStyle: FormTypography.serifStyle(),
-      minWidth: minWidth,
-      maxWidth: maxWidth ?? 450,
-      hintText: hintText,
-      readOnly: widget.readOnly,
-      lineHeight: 24.0,
+    final baseMin = minWidth;
+    final baseMax = maxWidth ?? 500.0;
+    const double baseFontSize = 13.0;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final hasFiniteWidth = constraints.maxWidth.isFinite;
+        final availableWidth = hasFiniteWidth ? constraints.maxWidth : baseMax;
+
+        return ListenableBuilder(
+          listenable: controller,
+          builder: (context, _) {
+            final text =
+                controller.text.isEmpty ? (hintText ?? '') : controller.text;
+            final tp = TextPainter(
+              text: TextSpan(
+                text: text,
+                style: GoogleFonts.notoSansDevanagari(
+                  fontWeight: FontWeight.w600,
+                  fontSize: baseFontSize,
+                ),
+              ),
+              textDirection: TextDirection.ltr,
+              maxLines: 1,
+            )..layout();
+
+            final double textW = tp.width + 12.0;
+            final widthToUse =
+                hasFiniteWidth ? availableWidth : textW.clamp(baseMin, baseMax);
+
+            return SizedBox(
+              width: widthToUse,
+              child: TextFormField(
+                controller: controller,
+                readOnly: widget.readOnly,
+                minLines: 1,
+                maxLines: null,
+                keyboardType: TextInputType.multiline,
+                style: GoogleFonts.notoSansDevanagari(
+                  fontSize: baseFontSize,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                  height: 1.35,
+                ),
+                decoration: InputDecoration(
+                  isDense: true,
+                  contentPadding: const EdgeInsets.only(bottom: 2, top: 2),
+                  hintText: hintText,
+                  hintStyle: GoogleFonts.notoSansDevanagari(
+                    fontSize: 12,
+                    color: Colors.black38,
+                  ),
+                  border: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.black54, width: 1),
+                  ),
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.black54, width: 1),
+                  ),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.black87, width: 1.5),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -1014,16 +1047,16 @@ class _UnderlineInput extends StatelessWidget {
       controller: controller,
       readOnly: readOnly,
       textAlign: textAlign,
-      maxLines: 1,
+      maxLines: null,
+      scrollPhysics: const NeverScrollableScrollPhysics(),
+      scrollPadding: EdgeInsets.zero,
       style: GoogleFonts.notoSansDevanagari(
-        fontSize: 13.5,
-        fontWeight: FontWeight.w600,
-        color: Colors.black87,
+        fontSize: 13,
+        fontWeight: FontWeight.bold,
+        color: const Color(0xFF0D47A1),
       ),
       decoration: InputDecoration(
         isDense: true,
-        filled: false,
-        fillColor: Colors.transparent,
         contentPadding: const EdgeInsets.only(bottom: 2, top: 2),
         hintText: hintText,
         hintStyle: GoogleFonts.notoSansDevanagari(
@@ -1035,10 +1068,10 @@ class _UnderlineInput extends StatelessWidget {
           borderSide: BorderSide(color: Colors.black54, width: 0.8),
         ),
         enabledBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.black54, width: 0.8),
+          borderSide: BorderSide(color: Colors.black45, width: 0.8),
         ),
         focusedBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.black87, width: 1.2),
+          borderSide: BorderSide(color: Colors.black87, width: 1.5),
         ),
       ),
     );
@@ -1047,254 +1080,5 @@ class _UnderlineInput extends StatelessWidget {
       return SizedBox(width: width, child: field);
     }
     return field;
-  }
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// ── SOLID LINED MULTILINE INPUT FOR ORDER SECTION 47 FORM UI ──
-// ══════════════════════════════════════════════════════════════════════════════
-
-String _insertZeroWidthSpaces(String text) {
-  if (text.isEmpty) return text;
-  return text.split(' ').map((word) {
-    if (word.length >= 20 && !word.contains('\u200B')) {
-      final buffer = StringBuffer();
-      for (int i = 0; i < word.length; i++) {
-        buffer.write(word[i]);
-        if ((i + 1) % 18 == 0 && i + 1 < word.length) {
-          buffer.write('\u200B');
-        }
-      }
-      return buffer.toString();
-    }
-    return word;
-  }).join(' ');
-}
-
-class _ZeroWidthSpaceFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    final text = newValue.text;
-    final processed = _insertZeroWidthSpaces(text);
-    if (processed == text) return newValue;
-
-    final newSelectionIndex = newValue.selection.end.clamp(0, processed.length);
-
-    return TextEditingValue(
-      text: processed,
-      selection: TextSelection.collapsed(offset: newSelectionIndex),
-    );
-  }
-}
-
-class OrderSectionLinedMultilineInput extends StatefulWidget {
-  final TextEditingController controller;
-  final TextStyle serifStyle;
-  final String? hintText;
-  final double lineHeight;
-  final double? minWidth;
-  final double? maxWidth;
-  final bool readOnly;
-  final TextAlign textAlign;
-
-  const OrderSectionLinedMultilineInput({
-    super.key,
-    required this.controller,
-    required this.serifStyle,
-    this.hintText,
-    this.lineHeight = 24.0,
-    this.minWidth,
-    this.maxWidth,
-    this.readOnly = false,
-    this.textAlign = TextAlign.start,
-  });
-
-  @override
-  State<OrderSectionLinedMultilineInput> createState() =>
-      _OrderSectionLinedMultilineInputState();
-}
-
-class _OrderSectionLinedMultilineInputState
-    extends State<OrderSectionLinedMultilineInput> {
-  final FocusNode _focusNode = FocusNode();
-
-  @override
-  void initState() {
-    super.initState();
-    _focusNode.addListener(() {
-      if (mounted) setState(() {});
-    });
-  }
-
-  @override
-  void dispose() {
-    _focusNode.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final bool isUnconstrained = constraints.maxWidth.isInfinite;
-
-        return ValueListenableBuilder<TextEditingValue>(
-          valueListenable: widget.controller,
-          builder: (context, value, _) {
-            final text = value.text;
-
-            double measuredWidth = widget.minWidth ?? 120.0;
-            if (isUnconstrained) {
-              final tp = TextPainter(
-                text: TextSpan(
-                  text: text.isEmpty
-                      ? (widget.hintText ?? '   ')
-                      : _insertZeroWidthSpaces(text),
-                  style: widget.serifStyle.copyWith(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                textDirection: TextDirection.ltr,
-              )..layout();
-              measuredWidth = (tp.width + 24.0)
-                  .clamp(widget.minWidth ?? 120.0, widget.maxWidth ?? 500.0);
-            }
-
-            final effectiveWidth =
-                isUnconstrained ? measuredWidth : constraints.maxWidth;
-
-            int lineCount = 1;
-            if (text.isNotEmpty && effectiveWidth > 0) {
-              final tp = TextPainter(
-                text: TextSpan(
-                  text: _insertZeroWidthSpaces(text),
-                  style: widget.serifStyle.copyWith(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w600,
-                    height: widget.lineHeight / 13.5,
-                  ),
-                ),
-                textDirection: TextDirection.ltr,
-              )..layout(maxWidth: effectiveWidth);
-              final metrics = tp.computeLineMetrics();
-              lineCount = metrics.isEmpty ? 1 : metrics.length;
-            }
-
-            final totalHeight = lineCount * widget.lineHeight;
-
-            return CustomPaint(
-              painter: _OrderSectionLinedPainter(
-                lineCount: lineCount,
-                lineHeight: widget.lineHeight,
-                lineColor:
-                    _focusNode.hasFocus ? Colors.black87 : Colors.grey.shade600,
-                strokeWidth: _focusNode.hasFocus ? 1.2 : 0.8,
-              ),
-              child: SizedBox(
-                width: isUnconstrained
-                    ? (widget.maxWidth != null
-                        ? effectiveWidth.clamp(0.0, widget.maxWidth!)
-                        : effectiveWidth)
-                    : effectiveWidth,
-                height: totalHeight,
-                child: Theme(
-                  data: Theme.of(context).copyWith(
-                    inputDecorationTheme: const InputDecorationTheme(
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      disabledBorder: InputBorder.none,
-                      errorBorder: InputBorder.none,
-                      focusedErrorBorder: InputBorder.none,
-                      filled: false,
-                      fillColor: Colors.transparent,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
-                  child: TextField(
-                    focusNode: _focusNode,
-                    controller: widget.controller,
-                    readOnly: widget.readOnly,
-                    textAlign: widget.textAlign,
-                    minLines: 1,
-                    maxLines: null,
-                    keyboardType: TextInputType.multiline,
-                    cursorColor: Colors.black87,
-                    inputFormatters: [_ZeroWidthSpaceFormatter()],
-                    strutStyle: StrutStyle(
-                      fontSize: 13.5,
-                      height: widget.lineHeight / 13.5,
-                      forceStrutHeight: true,
-                    ),
-                    style: widget.serifStyle.copyWith(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w600,
-                      height: widget.lineHeight / 13.5,
-                      color: Colors.black87,
-                    ),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      filled: false,
-                      fillColor: Colors.transparent,
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      disabledBorder: InputBorder.none,
-                      errorBorder: InputBorder.none,
-                      focusedErrorBorder: InputBorder.none,
-                      contentPadding: const EdgeInsets.only(bottom: 3, top: 0),
-                      hintText: widget.hintText,
-                      hintStyle: widget.serifStyle.copyWith(
-                        color: Colors.grey.shade400,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-}
-
-class _OrderSectionLinedPainter extends CustomPainter {
-  final int lineCount;
-  final double lineHeight;
-  final Color lineColor;
-  final double strokeWidth;
-
-  _OrderSectionLinedPainter({
-    required this.lineCount,
-    required this.lineHeight,
-    required this.lineColor,
-    this.strokeWidth = 0.8,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = lineColor
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke;
-
-    for (int i = 1; i <= lineCount; i++) {
-      final y = i * lineHeight - 1.5;
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _OrderSectionLinedPainter oldDelegate) {
-    return oldDelegate.lineCount != lineCount ||
-        oldDelegate.lineHeight != lineHeight ||
-        oldDelegate.lineColor != lineColor ||
-        oldDelegate.strokeWidth != strokeWidth;
   }
 }

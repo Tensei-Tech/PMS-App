@@ -370,14 +370,11 @@ class DraftGroundOfArrestFormViewState
         const SizedBox(height: 8),
 
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 2.0),
-              child: Text('अटक केलेल्या आरोपीचे नाव: ', style: marathiBold),
-            ),
+            Text('अटक केलेल्या आरोपीचे नाव: ', style: marathiBold),
             Expanded(
-              child: DraftLinedMultilineInput(
+              child: BilingualSimpleUnderlineInput(
                 controller: _accusedNameCtrl,
                 serifStyle: serif,
               ),
@@ -387,23 +384,17 @@ class DraftGroundOfArrestFormViewState
         const SizedBox(height: 8),
 
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 2.0),
-              child: Text('वय: ', style: marathiBold),
-            ),
+            Text('वय: ', style: marathiBold),
             BilingualSimpleUnderlineInput(
-              minWidth: 50,
+              minWidth: 60,
               controller: _accusedAgeCtrl,
               serifStyle: serif,
             ),
-            Padding(
-              padding: const EdgeInsets.only(top: 2.0),
-              child: Text(' वर्ष, पत्ता: ', style: marathiBold),
-            ),
+            Text(' वर्ष, पत्ता: ', style: marathiBold),
             Expanded(
-              child: DraftLinedMultilineInput(
+              child: BilingualSimpleUnderlineInput(
                 controller: _accusedAddressCtrl,
                 serifStyle: serif,
               ),
@@ -422,7 +413,7 @@ class DraftGroundOfArrestFormViewState
               'या नोटीसद्वारे तुम्हाला माहिती करण्यात येते की, तुम्हाला पोलीस ठाणे',
               style: marathiBody,
             ),
-            DraftLinedMultilineInput(
+            BilingualSimpleUnderlineInput(
               minWidth: 140,
               controller: _psNameCtrl,
               serifStyle: serif,
@@ -468,10 +459,21 @@ class DraftGroundOfArrestFormViewState
         // Brief facts
         Text('गुन्ह्याची थोडक्यात हकीकत :-', style: marathiBold),
         const SizedBox(height: 4),
-        DraftLinedMultilineInput(
+        TextField(
           controller: _briefFactsCtrl,
-          serifStyle: serif,
-          minLines: 1,
+          maxLines: 2,
+          style: marathiBody.copyWith(
+            color: Colors.black87,
+            fontWeight: FontWeight.w600,
+          ),
+          decoration: const InputDecoration(
+            isDense: true,
+            contentPadding: EdgeInsets.symmetric(vertical: 4),
+            border: UnderlineInputBorder(),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.black54),
+            ),
+          ),
         ),
         const SizedBox(height: 16),
 
@@ -531,7 +533,7 @@ class DraftGroundOfArrestFormViewState
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text('प्रत्यक्षदर्शी साक्षीदार ', style: marathiBody),
-                      DraftLinedMultilineInput(
+                      BilingualSimpleUnderlineInput(
                         minWidth: 140,
                         controller: _witnessNameCtrl,
                         serifStyle: serif,
@@ -601,7 +603,7 @@ class DraftGroundOfArrestFormViewState
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text('गुन्ह्यातील सहआरोपी ', style: marathiBody),
-                      DraftLinedMultilineInput(
+                      BilingualSimpleUnderlineInput(
                         minWidth: 140,
                         controller: _coAccusedNameCtrl,
                         serifStyle: serif,
@@ -705,7 +707,7 @@ class DraftGroundOfArrestFormViewState
                         'तुमच्या अटकेची आणि तुम्हाला ज्या ठिकाणी कोठडीत ठेवण्यात आले आहे त्या ठिकाणाची माहिती तुमच्याद्वारे नामांकित केलेले नातेवाईक/मित्र ',
                         style: marathiBody,
                       ),
-                      DraftLinedMultilineInput(
+                      BilingualSimpleUnderlineInput(
                         minWidth: 170,
                         controller: _relativeNameCtrl,
                         serifStyle: serif,
@@ -740,7 +742,7 @@ class DraftGroundOfArrestFormViewState
             ),
             Column(
               children: [
-                DraftLinedMultilineInput(
+                BilingualSimpleUnderlineInput(
                   minWidth: 180,
                   controller: _officerNameCtrl,
                   serifStyle: serif,
@@ -755,15 +757,12 @@ class DraftGroundOfArrestFormViewState
               children: [
                 SizedBox(
                   width: 160,
-                  child: AnimatedBuilder(
-                    animation: _accusedNameCtrl,
-                    builder: (context, _) => Text(
-                      _accusedNameCtrl.text.isNotEmpty
-                          ? _accusedNameCtrl.text
-                          : '',
-                      style: marathiBold.copyWith(color: Colors.black87),
-                      textAlign: TextAlign.center,
-                    ),
+                  child: Text(
+                    _accusedNameCtrl.text.isNotEmpty
+                        ? _accusedNameCtrl.text
+                        : '',
+                    style: marathiBold.copyWith(color: Colors.black87),
+                    textAlign: TextAlign.center,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -819,41 +818,28 @@ class DraftGroundOfArrestFormViewState
         const SizedBox(height: 8),
 
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 2.0),
-              child: Text('नातेवाईक/मित्राचे नाव:- ', style: marathiBold),
-            ),
+            Text('नातेवाईक/मित्राचे नाव:- ', style: marathiBold),
             Expanded(
-              child: DraftLinedMultilineInput(
+              flex: 3,
+              child: BilingualSimpleUnderlineInput(
                 controller: _relativeNameCtrl,
                 serifStyle: serif,
               ),
             ),
-          ],
-        ),
-        const SizedBox(height: 8),
-
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 2.0),
-              child: Text('वय :- ', style: marathiBold),
-            ),
+            const SizedBox(width: 8),
+            Text('वय :- ', style: marathiBold),
             BilingualSimpleUnderlineInput(
               minWidth: 50,
               controller: _relativeAgeCtrl,
               serifStyle: serif,
             ),
             const SizedBox(width: 8),
-            Padding(
-              padding: const EdgeInsets.only(top: 2.0),
-              child: Text(' वर्ष, पत्ता:- ', style: marathiBold),
-            ),
+            Text('पत्ता:- ', style: marathiBold),
             Expanded(
-              child: DraftLinedMultilineInput(
+              flex: 4,
+              child: BilingualSimpleUnderlineInput(
                 controller: _relativeAddressCtrl,
                 serifStyle: serif,
               ),
@@ -863,14 +849,11 @@ class DraftGroundOfArrestFormViewState
         const SizedBox(height: 8),
 
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 2.0),
-              child: Text('आरोपीशी असलेले नाते: ', style: marathiBold),
-            ),
+            Text('आरोपीशी असलेले नाते: ', style: marathiBold),
             Expanded(
-              child: DraftLinedMultilineInput(
+              child: BilingualSimpleUnderlineInput(
                 controller: _relationshipCtrl,
                 serifStyle: serif,
               ),
@@ -889,7 +872,7 @@ class DraftGroundOfArrestFormViewState
               'या नोटीसद्वारे तुम्हाला, भारतीय नागरिक सुरक्षा संहिता, २०२३ (BNSS) च्या कलम ४८(१) मधील कायदेशीर तरतुदींनुसार अधिकृतपणे सूचित करण्यात येते की, तुमचे/तुमच्या आरोपीचे नाव: ',
               style: marathiBody,
             ),
-            DraftLinedMultilineInput(
+            BilingualSimpleUnderlineInput(
               minWidth: 170,
               controller: _accusedNameCtrl,
               serifStyle: serif,
@@ -901,13 +884,13 @@ class DraftGroundOfArrestFormViewState
               serifStyle: serif,
             ),
             Text('वर्ष, पत्ता:- ', style: marathiBody),
-            DraftLinedMultilineInput(
+            BilingualSimpleUnderlineInput(
               minWidth: 160,
               controller: _accusedAddressCtrl,
               serifStyle: serif,
             ),
             Text('यांना पोलीस ठाणे ', style: marathiBody),
-            DraftLinedMultilineInput(
+            BilingualSimpleUnderlineInput(
               minWidth: 140,
               controller: _psNameCtrl,
               serifStyle: serif,
@@ -956,10 +939,21 @@ class DraftGroundOfArrestFormViewState
         // Brief facts
         Text('गुन्ह्याची थोडक्यात हकीकत :-', style: marathiBold),
         const SizedBox(height: 4),
-        DraftLinedMultilineInput(
+        TextField(
           controller: _briefFactsCtrl,
-          serifStyle: serif,
-          minLines: 1,
+          maxLines: 2,
+          style: marathiBody.copyWith(
+            color: Colors.black87,
+            fontWeight: FontWeight.w600,
+          ),
+          decoration: const InputDecoration(
+            isDense: true,
+            contentPadding: EdgeInsets.symmetric(vertical: 4),
+            border: UnderlineInputBorder(),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.black54),
+            ),
+          ),
         ),
         const SizedBox(height: 14),
 
@@ -1032,7 +1026,7 @@ class DraftGroundOfArrestFormViewState
                         ' अन्वये नोंदवलेल्या गुन्ह्याच्या तपासाच्या अनुषंगाने कायदेशीररीत्या अटक करण्यात आली असून सदर आरोपीला सध्या [पोलीस ठाण्याचे नाव ',
                         style: marathiBody,
                       ),
-                      DraftLinedMultilineInput(
+                      BilingualSimpleUnderlineInput(
                         minWidth: 140,
                         controller: _custodyPsCtrl,
                         serifStyle: serif,
@@ -1134,7 +1128,7 @@ class DraftGroundOfArrestFormViewState
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text('प्रत्यक्षदर्शी साक्षीदार ', style: marathiBody),
-                      DraftLinedMultilineInput(
+                      BilingualSimpleUnderlineInput(
                         minWidth: 140,
                         controller: _witnessNameCtrl,
                         serifStyle: serif,
@@ -1189,7 +1183,7 @@ class DraftGroundOfArrestFormViewState
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text('गुन्ह्यातील सहआरोपी ', style: marathiBody),
-                      DraftLinedMultilineInput(
+                      BilingualSimpleUnderlineInput(
                         minWidth: 140,
                         controller: _coAccusedNameCtrl,
                         serifStyle: serif,
@@ -1244,7 +1238,7 @@ class DraftGroundOfArrestFormViewState
             ),
             Column(
               children: [
-                DraftLinedMultilineInput(
+                BilingualSimpleUnderlineInput(
                   minWidth: 180,
                   controller: _officerNameCtrl,
                   serifStyle: serif,
@@ -1256,7 +1250,7 @@ class DraftGroundOfArrestFormViewState
             ),
             Column(
               children: [
-                DraftLinedMultilineInput(
+                BilingualSimpleUnderlineInput(
                   minWidth: 180,
                   controller: _relativeSigCtrl,
                   serifStyle: serif,
@@ -1315,14 +1309,11 @@ class DraftGroundOfArrestFormViewState
         const SizedBox(height: 8),
 
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 2.0),
-              child: Text('अटक केलेल्या आरोपीचे नाव:- ', style: marathiBold),
-            ),
+            Text('अटक केलेल्या आरोपीचे नाव:- ', style: marathiBold),
             Expanded(
-              child: DraftLinedMultilineInput(
+              child: BilingualSimpleUnderlineInput(
                 controller: _accusedNameCtrl,
                 serifStyle: serif,
               ),
@@ -1332,23 +1323,17 @@ class DraftGroundOfArrestFormViewState
         const SizedBox(height: 8),
 
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 2.0),
-              child: Text('वय:- ', style: marathiBold),
-            ),
+            Text('वय:- ', style: marathiBold),
             BilingualSimpleUnderlineInput(
-              minWidth: 50,
+              minWidth: 60,
               controller: _accusedAgeCtrl,
               serifStyle: serif,
             ),
-            Padding(
-              padding: const EdgeInsets.only(top: 2.0),
-              child: Text(' वर्ष, पत्ता:- ', style: marathiBold),
-            ),
+            Text(' वर्ष, पत्ता:- ', style: marathiBold),
             Expanded(
-              child: DraftLinedMultilineInput(
+              child: BilingualSimpleUnderlineInput(
                 controller: _accusedAddressCtrl,
                 serifStyle: serif,
               ),
@@ -1367,7 +1352,7 @@ class DraftGroundOfArrestFormViewState
               'या नोटीसद्वारे तुम्हाला सूचित करण्यात येते की, पोलीस ठाणे',
               style: marathiBody,
             ),
-            DraftLinedMultilineInput(
+            BilingualSimpleUnderlineInput(
               minWidth: 140,
               controller: _psNameCtrl,
               serifStyle: serif,
@@ -1417,10 +1402,21 @@ class DraftGroundOfArrestFormViewState
           style: marathiBold.copyWith(decoration: TextDecoration.underline),
         ),
         const SizedBox(height: 4),
-        DraftLinedMultilineInput(
+        TextField(
           controller: _briefFactsCtrl,
-          serifStyle: serif,
-          minLines: 1,
+          maxLines: 3,
+          style: marathiBody.copyWith(
+            color: Colors.black87,
+            fontWeight: FontWeight.w600,
+          ),
+          decoration: const InputDecoration(
+            isDense: true,
+            contentPadding: EdgeInsets.symmetric(vertical: 4),
+            border: UnderlineInputBorder(),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.black54),
+            ),
+          ),
         ),
         const SizedBox(height: 16),
 
@@ -1573,7 +1569,7 @@ class DraftGroundOfArrestFormViewState
             ),
             Column(
               children: [
-                DraftLinedMultilineInput(
+                BilingualSimpleUnderlineInput(
                   minWidth: 180,
                   controller: _officerNameCtrl,
                   serifStyle: serif,
@@ -1608,219 +1604,5 @@ class DraftGroundOfArrestFormViewState
         ),
       ],
     );
-  }
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// ── SOLID LINED MULTILINE INPUT FOR DRAFT FORM UI ──
-// ══════════════════════════════════════════════════════════════════════════════
-
-class DraftLinedMultilineInput extends StatefulWidget {
-  final TextEditingController controller;
-  final TextStyle serifStyle;
-  final String? hintText;
-  final double minWidth;
-  final int minLines;
-  final double lineHeight;
-
-  const DraftLinedMultilineInput({
-    super.key,
-    required this.controller,
-    required this.serifStyle,
-    this.hintText,
-    this.minWidth = 50.0,
-    this.minLines = 1,
-    this.lineHeight = 26.0,
-  });
-
-  @override
-  State<DraftLinedMultilineInput> createState() =>
-      _DraftLinedMultilineInputState();
-}
-
-class _DraftLinedMultilineInputState extends State<DraftLinedMultilineInput> {
-  final FocusNode _focusNode = FocusNode();
-  bool _isFocused = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _focusNode.addListener(_onFocusChange);
-  }
-
-  void _onFocusChange() {
-    if (mounted) {
-      setState(() => _isFocused = _focusNode.hasFocus);
-    }
-  }
-
-  @override
-  void dispose() {
-    _focusNode.removeListener(_onFocusChange);
-    _focusNode.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: widget.controller,
-      builder: (context, _) {
-        final text = widget.controller.text;
-
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            double effectiveWidth = widget.minWidth;
-            if (constraints.maxWidth.isFinite) {
-              if (constraints.minWidth == constraints.maxWidth) {
-                effectiveWidth = constraints.maxWidth;
-              } else {
-                final tp = TextPainter(
-                  text: TextSpan(
-                    text: text.isNotEmpty ? text : (widget.hintText ?? ''),
-                    style: widget.serifStyle.copyWith(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  textDirection: TextDirection.ltr,
-                  maxLines: 1,
-                )..layout(minWidth: 0, maxWidth: double.infinity);
-                final calculatedWidth = tp.size.width + 16.0;
-                effectiveWidth = calculatedWidth > widget.minWidth
-                    ? calculatedWidth.clamp(widget.minWidth, 650.0)
-                    : widget.minWidth;
-              }
-            }
-
-            int lineCount = widget.minLines;
-            if (text.isNotEmpty && effectiveWidth > 0) {
-              final tp = TextPainter(
-                text: TextSpan(
-                  text: text,
-                  style: widget.serifStyle.copyWith(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                textDirection: TextDirection.ltr,
-                maxLines: null,
-              )..layout(maxWidth: effectiveWidth);
-              final metrics = tp.computeLineMetrics();
-              if (metrics.length > lineCount) {
-                lineCount = metrics.length;
-              }
-            }
-
-            final totalHeight = lineCount * widget.lineHeight;
-
-            final lineColor =
-                _isFocused ? Colors.black87 : const Color(0x8A000000);
-            final strokeWidth = _isFocused ? 1.2 : 0.8;
-
-            return CustomPaint(
-              painter: _DraftFormLinedPainter(
-                lineCount: lineCount,
-                lineHeight: widget.lineHeight,
-                lineColor: lineColor,
-                strokeWidth: strokeWidth,
-              ),
-              child: SizedBox(
-                width: constraints.maxWidth.isFinite
-                    ? double.infinity
-                    : effectiveWidth,
-                height: totalHeight,
-                child: Theme(
-                  data: Theme.of(context).copyWith(
-                    inputDecorationTheme: const InputDecorationTheme(
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      disabledBorder: InputBorder.none,
-                      errorBorder: InputBorder.none,
-                      focusedErrorBorder: InputBorder.none,
-                      filled: false,
-                      fillColor: Colors.transparent,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
-                  child: TextField(
-                    focusNode: _focusNode,
-                    controller: widget.controller,
-                    minLines: 1,
-                    maxLines: null,
-                    keyboardType: TextInputType.multiline,
-                    cursorColor: Colors.black87,
-                    strutStyle: StrutStyle(
-                      fontSize: 14.0,
-                      height: widget.lineHeight / 14.0,
-                      forceStrutHeight: true,
-                    ),
-                    style: widget.serifStyle.copyWith(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      height: widget.lineHeight / 14.0,
-                      color: Colors.black87,
-                    ),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      filled: false,
-                      fillColor: Colors.transparent,
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      disabledBorder: InputBorder.none,
-                      errorBorder: InputBorder.none,
-                      focusedErrorBorder: InputBorder.none,
-                      contentPadding: const EdgeInsets.only(bottom: 3, top: 0),
-                      hintText: widget.hintText,
-                      hintStyle: widget.serifStyle.copyWith(
-                        color: Colors.grey.shade400,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-}
-
-class _DraftFormLinedPainter extends CustomPainter {
-  final int lineCount;
-  final double lineHeight;
-  final Color lineColor;
-  final double strokeWidth;
-
-  _DraftFormLinedPainter({
-    required this.lineCount,
-    required this.lineHeight,
-    required this.lineColor,
-    this.strokeWidth = 0.8,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = lineColor
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke;
-
-    for (int i = 1; i <= lineCount; i++) {
-      final y = i * lineHeight - 1.5;
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DraftFormLinedPainter oldDelegate) {
-    return oldDelegate.lineCount != lineCount ||
-        oldDelegate.lineHeight != lineHeight ||
-        oldDelegate.lineColor != lineColor ||
-        oldDelegate.strokeWidth != strokeWidth;
   }
 }
