@@ -1,4 +1,4 @@
-CC_ST_KEYS = ['ccStNumber', 'cc_number', 'ccNumber', 'cc_no', 'st_number', 'stNumber', 'disposedCcStNumber']
+CC_ST_KEYS = ['ccStNumber', 'cc_number', 'ccNumber', 'cc_no', 'st_number', 'stNumber', 'disposedCcStNumber', 'cc_st_number', 'cc_st_no', 'ccStNo']
 DISPOSAL_KEYS = [
     'ccStNumber',
     'chargeSheetNumber',
