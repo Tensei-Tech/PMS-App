@@ -1,3 +1,4 @@
+// ignore_for_file: unused_element, unused_field, unused_local_variable, dead_code, use_build_context_synchronously
 // lib/screens/module_record_detail_screen.dart
 // Detailed view for any ModuleRecord — all saved hub fields + extraFields, rendered dynamically.
 
@@ -164,7 +165,6 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
                           ),
                           const SizedBox(height: 16),
                         ],
-
                         ModuleRecordDynamicDocumentView(
                           record: _record,
                           moduleLabel: moduleLabel,
@@ -175,7 +175,8 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
                 ),
               ],
             ),
-      bottomNavigationBar: _buildStickyBottomActions(context, moduleLabel, showContent),
+      bottomNavigationBar:
+          _buildStickyBottomActions(context, moduleLabel, showContent),
     );
   }
 
@@ -402,7 +403,9 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
           Text(
             titleText,
             style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w700, color: AppColors.navyDark, fontSize: 16),
+                fontWeight: FontWeight.w700,
+                color: AppColors.navyDark,
+                fontSize: 16),
           ),
           if (showSubtitle)
             Text(
@@ -485,14 +488,15 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
     }
   }
 
-  Widget? _buildStickyBottomActions(BuildContext context, String moduleLabel, bool showContent) {
+  Widget? _buildStickyBottomActions(
+      BuildContext context, String moduleLabel, bool showContent) {
     if (_recordDeleted || !showContent) return null;
-    
+
     return Builder(builder: (ctx) {
       final auth = context.watch<AuthProvider>();
       final canEdit = PoliceRbacHelper.canEditRecord(_record, auth);
       final canSendReminder = PoliceRbacHelper.canSendReminder(auth);
-      
+
       Widget actionBtn({
         required String label,
         required IconData icon,
@@ -524,7 +528,8 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
 
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.lg),
+        padding: const EdgeInsets.symmetric(
+            vertical: AppSpacing.md, horizontal: AppSpacing.lg),
         decoration: const BoxDecoration(
           color: Colors.white,
           border: Border(top: BorderSide(color: AppColors.lightBorder)),

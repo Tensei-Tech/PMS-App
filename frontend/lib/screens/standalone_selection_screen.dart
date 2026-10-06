@@ -497,7 +497,6 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
                 color: AppColors.lightSubText,
               ),
             ),
-
           ],
         ),
       );

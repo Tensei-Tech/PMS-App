@@ -1,3 +1,4 @@
+// ignore_for_file: unused_element, unused_field, unused_local_variable, dead_code, use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
@@ -22,20 +23,21 @@ class PendingHubScreen extends StatefulWidget {
 
 class _PendingHubScreenState extends State<PendingHubScreen> {
   List<String> get categories => [
-    'I to V',
-    'Class VI',
-    'Prohibition',
-    'Gambling',
-    'AD',
-    'Missing',
-    'Application',
-    'MV Act',
-    'RTI',
-    'Preventive',
-    'IT Act/Cyber',
-  ];
+        'I to V',
+        'Class VI',
+        'Prohibition',
+        'Gambling',
+        'AD',
+        'Missing',
+        'Application',
+        'MV Act',
+        'RTI',
+        'Preventive',
+        'IT Act/Cyber',
+      ];
 
-  void _showCategoryMenu(BuildContext context, String category, TapDownDetails details) {
+  void _showCategoryMenu(
+      BuildContext context, String category, TapDownDetails details) {
     showMenu(
       context: context,
       position: RelativeRect.fromLTRB(
@@ -49,21 +51,55 @@ class _PendingHubScreenState extends State<PendingHubScreen> {
       items: <PopupMenuEntry<String>>[
         PopupMenuItem<String>(
           value: 'all',
-          child: Text('All Cases', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: AppColors.navyDark)),
+          child: Text('All Cases',
+              style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600, color: AppColors.navyDark)),
         ),
         const PopupMenuDivider(),
         PopupMenuItem<String>(
           enabled: false,
-          child: Text('Select time range', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: AppColors.lightSubText, fontSize: 12)),
+          child: Text('Select time range',
+              style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.lightSubText,
+                  fontSize: 12)),
         ),
-        PopupMenuItem<String>(value: 'time_1', child: Text('Under 1 month', style: GoogleFonts.poppins(fontSize: 13, color: AppColors.navyDark))),
-        PopupMenuItem<String>(value: 'time_2', child: Text('1 to 3 months', style: GoogleFonts.poppins(fontSize: 13, color: AppColors.navyDark))),
-        PopupMenuItem<String>(value: 'time_3', child: Text('3 to 6 months', style: GoogleFonts.poppins(fontSize: 13, color: AppColors.navyDark))),
-        PopupMenuItem<String>(value: 'time_4', child: Text('6 to 12 months', style: GoogleFonts.poppins(fontSize: 13, color: AppColors.navyDark))),
-        PopupMenuItem<String>(value: 'time_5', child: Text('More than 1 year', style: GoogleFonts.poppins(fontSize: 13, color: AppColors.navyDark))),
-        PopupMenuItem<String>(value: 'time_6', child: Text('Under 3 months (Total)', style: GoogleFonts.poppins(fontSize: 13, color: AppColors.navyDark))),
+        PopupMenuItem<String>(
+            value: 'time_1',
+            child: Text('Under 1 month',
+                style: GoogleFonts.poppins(
+                    fontSize: 13, color: AppColors.navyDark))),
+        PopupMenuItem<String>(
+            value: 'time_2',
+            child: Text('1 to 3 months',
+                style: GoogleFonts.poppins(
+                    fontSize: 13, color: AppColors.navyDark))),
+        PopupMenuItem<String>(
+            value: 'time_3',
+            child: Text('3 to 6 months',
+                style: GoogleFonts.poppins(
+                    fontSize: 13, color: AppColors.navyDark))),
+        PopupMenuItem<String>(
+            value: 'time_4',
+            child: Text('6 to 12 months',
+                style: GoogleFonts.poppins(
+                    fontSize: 13, color: AppColors.navyDark))),
+        PopupMenuItem<String>(
+            value: 'time_5',
+            child: Text('More than 1 year',
+                style: GoogleFonts.poppins(
+                    fontSize: 13, color: AppColors.navyDark))),
+        PopupMenuItem<String>(
+            value: 'time_6',
+            child: Text('Under 3 months (Total)',
+                style: GoogleFonts.poppins(
+                    fontSize: 13, color: AppColors.navyDark))),
         const PopupMenuDivider(),
-        PopupMenuItem<String>(value: 'io_wise', child: Text('IO wise', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: AppColors.navyDark))),
+        PopupMenuItem<String>(
+            value: 'io_wise',
+            child: Text('IO wise',
+                style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w600, color: AppColors.navyDark))),
       ],
     ).then((value) {
       if (value != null) {
@@ -72,7 +108,8 @@ class _PendingHubScreenState extends State<PendingHubScreen> {
     });
   }
 
-  void _handleMenuSelection(BuildContext context, String category, String value) {
+  void _handleMenuSelection(
+      BuildContext context, String category, String value) {
     if (value == 'all') {
       Navigator.push(
         context,
@@ -192,21 +229,25 @@ class _PendingHubScreenState extends State<PendingHubScreen> {
                       Navigator.push(
                         context,
                         AppTheme.fadeSlideRoute(
-                          page: PendingSummaryScreen(stationName: widget.stationName),
+                          page: PendingSummaryScreen(
+                              stationName: widget.stationName),
                         ),
                       );
                     },
-                    icon: const Icon(Icons.download_rounded, color: Colors.white, size: 18),
+                    icon: const Icon(Icons.download_rounded,
+                        color: Colors.white, size: 18),
                     label: Text(
                       'Summary',
-                      style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white),
+                      style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w600, color: Colors.white),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1E2875),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                     ),
                   ),
                 ],
@@ -231,10 +272,11 @@ class _PendingHubScreenState extends State<PendingHubScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                          border: Border.all(
+                              color: Colors.grey.withValues(alpha: 0.2)),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.02),
+                              color: Colors.black.withValues(alpha: 0.02),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -249,7 +291,8 @@ class _PendingHubScreenState extends State<PendingHubScreen> {
                                 color: const Color(0xFFF0F2FA),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Icon(Icons.folder_open_rounded, color: Color(0xFF334195), size: 18),
+                              child: const Icon(Icons.folder_open_rounded,
+                                  color: Color(0xFF334195), size: 18),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -262,7 +305,8 @@ class _PendingHubScreenState extends State<PendingHubScreen> {
                                 ),
                               ),
                             ),
-                            const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.grey, size: 20),
+                            const Icon(Icons.keyboard_arrow_down_rounded,
+                                color: Colors.grey, size: 20),
                           ],
                         ),
                       ),
@@ -283,10 +327,12 @@ class PendingCategoryIOWiseScreen extends StatefulWidget {
   const PendingCategoryIOWiseScreen({super.key, required this.category});
 
   @override
-  State<PendingCategoryIOWiseScreen> createState() => _PendingCategoryIOWiseScreenState();
+  State<PendingCategoryIOWiseScreen> createState() =>
+      _PendingCategoryIOWiseScreenState();
 }
 
-class _PendingCategoryIOWiseScreenState extends State<PendingCategoryIOWiseScreen> {
+class _PendingCategoryIOWiseScreenState
+    extends State<PendingCategoryIOWiseScreen> {
   final _backend = BackendCaseService();
   bool _isLoading = true;
   String? _error;
@@ -300,12 +346,13 @@ class _PendingCategoryIOWiseScreenState extends State<PendingCategoryIOWiseScree
 
   Future<void> _loadData() async {
     try {
-      final dataList = await _backend.fetchPendingCases(category: widget.category);
+      final dataList =
+          await _backend.fetchPendingCases(category: widget.category);
       if (!mounted) return;
 
       if (dataList != null) {
         final records = dataList.map((m) => ModuleRecord.fromMap(m)).toList();
-        
+
         setState(() {
           _filtered = records;
           _isLoading = false;
@@ -332,13 +379,17 @@ class _PendingCategoryIOWiseScreenState extends State<PendingCategoryIOWiseScree
 
     Widget buildBody() {
       if (_isLoading) {
-        return const Center(child: CircularProgressIndicator(color: AppColors.navyMid));
+        return const Center(
+            child: CircularProgressIndicator(color: AppColors.navyMid));
       }
       if (_error != null) {
         return Center(
           child: Text(
             _error!,
-            style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.lightSubText),
+            style: GoogleFonts.poppins(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.lightSubText),
           ),
         );
       }
@@ -356,7 +407,10 @@ class _PendingCategoryIOWiseScreenState extends State<PendingCategoryIOWiseScree
           child: Text(
             'No IO Wise pending cases for this category',
             textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.lightSubText),
+            style: GoogleFonts.poppins(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.lightSubText),
           ),
         );
       }
@@ -392,7 +446,8 @@ class _PendingCategoryIOWiseScreenState extends State<PendingCategoryIOWiseScree
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: AppColors.lightBorder),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
                   child: Row(
                     children: [
                       Expanded(
@@ -442,7 +497,8 @@ class _PendingCategoryIOWiseScreenState extends State<PendingCategoryIOWiseScree
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.lightBorder),
                       ),
-                      child: const Icon(Icons.arrow_back_rounded, color: AppColors.navyMid, size: 20),
+                      child: const Icon(Icons.arrow_back_rounded,
+                          color: AppColors.navyMid, size: 20),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -508,7 +564,8 @@ class PendingCategoryIOWiseDetailScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.lightBorder),
                       ),
-                      child: const Icon(Icons.arrow_back_rounded, color: AppColors.navyMid, size: 20),
+                      child: const Icon(Icons.arrow_back_rounded,
+                          color: AppColors.navyMid, size: 20),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -543,7 +600,8 @@ class PendingCategoryIOWiseDetailScreen extends StatelessWidget {
                   : ListView.builder(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                       itemCount: mine.length,
-                      itemBuilder: (_, i) => ReadOnlyModuleRecordHubCard(record: mine[i]),
+                      itemBuilder: (_, i) =>
+                          ReadOnlyModuleRecordHubCard(record: mine[i]),
                     ),
             ),
           ],

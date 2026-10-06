@@ -606,9 +606,8 @@ class BackendCaseService {
     return null;
   }
 
-
   // ARRESTED API WRAPPERS
-Future<List<Map<String, dynamic>>?> fetchArrestedCases({
+  Future<List<Map<String, dynamic>>?> fetchArrestedCases({
     String? ioUid,
     String? startDate,
     String? endDate,
@@ -650,7 +649,7 @@ Future<List<Map<String, dynamic>>?> fetchArrestedCases({
     return null;
   }
 
-Future<List<Map<String, dynamic>>?> fetchArrestedIOWise({
+  Future<List<Map<String, dynamic>>?> fetchArrestedIOWise({
     String? startDate,
     String? endDate,
   }) async {
@@ -683,7 +682,7 @@ Future<List<Map<String, dynamic>>?> fetchArrestedIOWise({
     return null;
   }
 
-Future<List<Map<String, dynamic>>?> fetchArrestedTimeWise() async {
+  Future<List<Map<String, dynamic>>?> fetchArrestedTimeWise() async {
     try {
       final url = '${ApiConfig.cases}arrested/time-wise/';
       final response = await _api.get(url);

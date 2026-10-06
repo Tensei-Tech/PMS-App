@@ -74,14 +74,17 @@ class DynamicControlFactory extends StatelessWidget {
         Wrap(
           spacing: 12.0,
           children: options.map((opt) {
-            final isSelected = controller?.text.toLowerCase() == opt.toLowerCase() ||
-                value?.toString().toLowerCase() == opt.toLowerCase();
+            final isSelected =
+                controller?.text.toLowerCase() == opt.toLowerCase() ||
+                    value?.toString().toLowerCase() == opt.toLowerCase();
             return ChoiceChip(
               label: Text(
                 opt,
                 style: GoogleFonts.poppins(
                   fontSize: 13,
-                  color: isSelected ? const Color(0xFF0EA5E9) : AppColors.lightSubText,
+                  color: isSelected
+                      ? const Color(0xFF0EA5E9)
+                      : AppColors.lightSubText,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 ),
               ),
@@ -99,7 +102,9 @@ class DynamicControlFactory extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
                 side: BorderSide(
-                  color: isSelected ? const Color(0xFF0EA5E9) : const Color(0xFFE2E8F0),
+                  color: isSelected
+                      ? const Color(0xFF0EA5E9)
+                      : const Color(0xFFE2E8F0),
                   width: isSelected ? 1.5 : 1,
                 ),
               ),

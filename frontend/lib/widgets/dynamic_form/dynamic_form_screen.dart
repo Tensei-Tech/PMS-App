@@ -1,3 +1,4 @@
+// ignore_for_file: unused_element, unused_field, unused_local_variable, dead_code, use_build_context_synchronously
 // lib/widgets/dynamic_form/dynamic_form_screen.dart
 // Single Source of Truth Dynamic Smart Form Screen driven by PostgreSQL Database.
 
@@ -624,7 +625,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             index: sectionIndex++,
             title: secKey,
             icon: _iconForSection(secKey),
-            fields: [
+            fields: const [
               DynamicFieldDef(
                   fieldDefId: -1,
                   fieldKey: 'is_unknown_accused',
@@ -729,21 +730,19 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               customBody: Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final itemWidth = (constraints.maxWidth - 12) / 2;
-                    return Wrap(
-                      spacing: 12,
-                      runSpacing: 0,
-                      children: secFields.map((field) {
-                        return SizedBox(
-                          width: itemWidth,
-                          child: _buildPanchnamaCheckbox(field),
-                        );
-                      }).toList(),
-                    );
-                  }
-                ),
+                child: LayoutBuilder(builder: (context, constraints) {
+                  final itemWidth = (constraints.maxWidth - 12) / 2;
+                  return Wrap(
+                    spacing: 12,
+                    runSpacing: 0,
+                    children: secFields.map((field) {
+                      return SizedBox(
+                        width: itemWidth,
+                        child: _buildPanchnamaCheckbox(field),
+                      );
+                    }).toList(),
+                  );
+                }),
               ),
             ),
           );
@@ -774,7 +773,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         );
       } else if (secKey == 'Preventive Action') {
         final preventiveFields = [
-          DynamicFieldDef(
+          const DynamicFieldDef(
               fieldDefId: -1,
               fieldKey: 'preventive_action_type',
               fieldLabel: 'Preventive Action Type',
@@ -795,7 +794,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                 '93 prohibition act'
               ],
               displayOrder: 1),
-          DynamicFieldDef(
+          const DynamicFieldDef(
               fieldDefId: -1,
               fieldKey: 'preventive_action_date',
               fieldLabel: 'Preventive Action Date',
@@ -803,7 +802,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               fieldType: 'date',
               isRequired: true,
               displayOrder: 2),
-          DynamicFieldDef(
+          const DynamicFieldDef(
               fieldDefId: -1,
               fieldKey: 'preventive_action_outward_no',
               fieldLabel: 'Preventive Action Outward No',
@@ -811,7 +810,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               fieldType: 'text',
               isRequired: false,
               displayOrder: 3),
-          DynamicFieldDef(
+          const DynamicFieldDef(
               fieldDefId: -1,
               fieldKey: 'bond_date',
               fieldLabel: 'Bond date',
@@ -819,7 +818,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               fieldType: 'date',
               isRequired: false,
               displayOrder: 4),
-          DynamicFieldDef(
+          const DynamicFieldDef(
               fieldDefId: -1,
               fieldKey: 'bond_cancellation_date',
               fieldLabel: 'Bond cancellation date',
@@ -859,7 +858,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         );
       } else if (secKey == 'Court Filing and Final Summary') {
         final courtFilingFields = [
-          DynamicFieldDef(
+          const DynamicFieldDef(
               fieldDefId: -1,
               fieldKey: 'charge_sheet_no',
               fieldLabel: 'Charge Sheet No',
@@ -867,7 +866,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               fieldType: 'text',
               isRequired: false,
               displayOrder: 1),
-          DynamicFieldDef(
+          const DynamicFieldDef(
               fieldDefId: -1,
               fieldKey: 'charge_sheet_date',
               fieldLabel: 'Charge Sheet Date',
@@ -875,7 +874,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               fieldType: 'date',
               isRequired: false,
               displayOrder: 2),
-          DynamicFieldDef(
+          const DynamicFieldDef(
               fieldDefId: -1,
               fieldKey: 'a_final_number',
               fieldLabel: 'A Final Number',
@@ -883,7 +882,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               fieldType: 'text',
               isRequired: false,
               displayOrder: 3),
-          DynamicFieldDef(
+          const DynamicFieldDef(
               fieldDefId: -1,
               fieldKey: 'b_final_number',
               fieldLabel: 'B Final Number',
@@ -891,7 +890,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               fieldType: 'text',
               isRequired: false,
               displayOrder: 4),
-          DynamicFieldDef(
+          const DynamicFieldDef(
               fieldDefId: -1,
               fieldKey: 'c_final_number',
               fieldLabel: 'C Final Number',
@@ -899,7 +898,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               fieldType: 'text',
               isRequired: false,
               displayOrder: 5),
-          DynamicFieldDef(
+          const DynamicFieldDef(
               fieldDefId: -1,
               fieldKey: 'nc_final_number',
               fieldLabel: 'NC Final Number',
@@ -907,7 +906,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               fieldType: 'text',
               isRequired: false,
               displayOrder: 6),
-          DynamicFieldDef(
+          const DynamicFieldDef(
               fieldDefId: -1,
               fieldKey: 'abeted_summary_no',
               fieldLabel: 'Abeted summary no.',
@@ -915,7 +914,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               fieldType: 'full_text',
               isRequired: false,
               displayOrder: 7),
-          DynamicFieldDef(
+          const DynamicFieldDef(
               fieldDefId: -1,
               fieldKey: 'cc_st_number',
               fieldLabel: 'CC / ST Number',
@@ -923,7 +922,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               fieldType: 'full_text',
               isRequired: false,
               displayOrder: 8),
-          DynamicFieldDef(
+          const DynamicFieldDef(
               fieldDefId: -1,
               fieldKey: 'stay_by_high_court_date',
               fieldLabel: 'Stay by High Court Date',
@@ -931,7 +930,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               fieldType: 'date',
               isRequired: false,
               displayOrder: 9),
-          DynamicFieldDef(
+          const DynamicFieldDef(
               fieldDefId: -1,
               fieldKey: 'quashed_by_high_court_date',
               fieldLabel: 'Quashed by High Court',
@@ -1619,7 +1618,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     final dateKey = '${field.fieldKey}_datetime';
     _controllers.putIfAbsent(dateKey,
         () => TextEditingController(text: _values[dateKey]?.toString() ?? ''));
-        
+
     final dateText = _controllers[dateKey]?.text ?? '';
 
     void handleCheck(bool? newVal) {
@@ -1706,7 +1705,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w600,
-                        color: isChecked ? const Color(0xFF0288D1) : const Color(0xFF1E293B),
+                        color: isChecked
+                            ? const Color(0xFF0288D1)
+                            : const Color(0xFF1E293B),
                         height: 1.2,
                       ),
                     ),
@@ -1752,14 +1753,13 @@ class _ArrestPerAccusedBlock extends StatefulWidget {
   final bool readOnly;
 
   const _ArrestPerAccusedBlock({
-    Key? key,
     required this.accusedName,
     required this.suffix,
     required this.controllers,
     required this.values,
     required this.onValueChanged,
     required this.readOnly,
-  }) : super(key: key);
+  });
 
   @override
   State<_ArrestPerAccusedBlock> createState() => _ArrestPerAccusedBlockState();
@@ -2037,7 +2037,6 @@ class _CustodyPerAccusedBlock extends StatefulWidget {
   final bool readOnly;
 
   const _CustodyPerAccusedBlock({
-    super.key,
     required this.accusedName,
     required this.suffix,
     required this.controllers,
@@ -2640,13 +2639,12 @@ class _EvidenceAndSeizureBlock extends StatefulWidget {
   final List<String>? accusedOptions;
 
   const _EvidenceAndSeizureBlock({
-    Key? key,
     required this.controllers,
     required this.values,
     required this.onValueChanged,
     required this.readOnly,
     this.accusedOptions,
-  }) : super(key: key);
+  });
 
   @override
   State<_EvidenceAndSeizureBlock> createState() =>
@@ -3031,7 +3029,7 @@ class _EvidenceAndSeizureBlockState extends State<_EvidenceAndSeizureBlock> {
                               child: SizedBox(
                                 height: 42,
                                 child: DropdownButtonFormField<String>(
-                                  value: widget.accusedOptions
+                                  initialValue: widget.accusedOptions
                                               ?.contains(obj['from_whom']) ==
                                           true
                                       ? obj['from_whom']
@@ -3140,12 +3138,11 @@ class _ScrutinyBlock extends StatefulWidget {
   final bool readOnly;
 
   const _ScrutinyBlock({
-    Key? key,
     required this.index,
     required this.values,
     required this.onValueChanged,
     this.readOnly = false,
-  }) : super(key: key);
+  });
 
   @override
   State<_ScrutinyBlock> createState() => _ScrutinyBlockState();
@@ -3442,12 +3439,11 @@ class _SuspectedAccusedBlock extends StatefulWidget {
   final bool readOnly;
 
   const _SuspectedAccusedBlock({
-    Key? key,
     required this.index,
     required this.values,
     required this.onValueChanged,
     required this.readOnly,
-  }) : super(key: key);
+  });
 
   @override
   State<_SuspectedAccusedBlock> createState() => _SuspectedAccusedBlockState();
@@ -3788,12 +3784,11 @@ class _UnidentifiedAccusedBlock extends StatefulWidget {
   final bool readOnly;
 
   const _UnidentifiedAccusedBlock({
-    Key? key,
     required this.index,
     required this.values,
     required this.onValueChanged,
     required this.readOnly,
-  }) : super(key: key);
+  });
 
   @override
   State<_UnidentifiedAccusedBlock> createState() =>
@@ -4117,12 +4112,11 @@ class _AccusedBlock extends StatefulWidget {
   final bool readOnly;
 
   const _AccusedBlock({
-    Key? key,
     required this.index,
     required this.values,
     required this.onValueChanged,
     required this.readOnly,
-  }) : super(key: key);
+  });
 
   @override
   State<_AccusedBlock> createState() => _AccusedBlockState();
@@ -4418,7 +4412,8 @@ class _AccusedBlockState extends State<_AccusedBlock> {
                                 style: GoogleFonts.poppins(fontSize: 12)),
                             style: TextButton.styleFrom(
                               foregroundColor: AppColors.dangerRed,
-                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8),
                               minimumSize: Size.zero,
                             ),
                           ),
@@ -4440,8 +4435,8 @@ class _AccusedBlockState extends State<_AccusedBlock> {
                     Row(
                       children: [
                         Expanded(
-                            child:
-                                _buildTextField(idx, 'occupation', 'Occupation')),
+                            child: _buildTextField(
+                                idx, 'occupation', 'Occupation')),
                         const SizedBox(width: 16),
                         Expanded(
                             child: _buildTextField(
@@ -4456,21 +4451,23 @@ class _AccusedBlockState extends State<_AccusedBlock> {
                                 idx, 'aadhar_number', 'Aadhar Number')),
                         const SizedBox(width: 16),
                         Expanded(
-                            child:
-                                _buildTextField(idx, 'pan_number', 'PAN Number')),
+                            child: _buildTextField(
+                                idx, 'pan_number', 'PAN Number')),
                       ],
                     ),
                     const SizedBox(height: 12),
                     Row(
                       children: [
                         Expanded(
-                            child: _buildTextField(idx, 'religion', 'Religion')),
+                            child:
+                                _buildTextField(idx, 'religion', 'Religion')),
                         const SizedBox(width: 16),
                         Expanded(child: _buildTextField(idx, 'caste', 'Caste')),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    _buildTextField(idx, 'address', 'Address', isFullWidth: true),
+                    _buildTextField(idx, 'address', 'Address',
+                        isFullWidth: true),
                   ],
                 ],
               ),

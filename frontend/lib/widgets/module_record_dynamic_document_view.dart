@@ -503,7 +503,6 @@ class ModuleRecordDynamicDocumentView extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             if (ncFormMap != null) ...[
               NcViewDocumentView(
                 record: record,

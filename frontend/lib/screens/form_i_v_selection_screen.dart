@@ -1,3 +1,4 @@
+// ignore_for_file: unused_element, unused_field, unused_local_variable, dead_code, use_build_context_synchronously
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -115,7 +116,6 @@ class FormIVSelectionScreen extends StatefulWidget {
         if (normCand == '${normTarget}s' || '${normCand}s' == normTarget) {
           return true;
         }
-
       }
     }
     return false;
@@ -405,7 +405,6 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
     });
   }
 
-  // ignore: unused_element
   void _toggleSortOrder() {
     setState(() {
       _dateSortOrder = _dateSortOrder == FormIVDateSortOrder.newestFirst
@@ -1435,16 +1434,19 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
 
     List<ModuleRecord> baseRecords = allRecords;
 
-    if (_selectedCategory != null && _selectedCategory != FormIVSelectionScreen.allFilterLabel) {
+    if (_selectedCategory != null &&
+        _selectedCategory != FormIVSelectionScreen.allFilterLabel) {
       final descendants = _getDescendantCategoryNames(_selectedCategory!);
       baseRecords = baseRecords
-          .where((r) => FormIVSelectionScreen.recordMatchesCategory(r, _selectedCategory!, descendants))
+          .where((r) => FormIVSelectionScreen.recordMatchesCategory(
+              r, _selectedCategory!, descendants))
           .toList();
     } else if (_categoryBreadcrumb.isNotEmpty) {
       final currentCategory = _categoryBreadcrumb.last;
       final descendants = _getDescendantCategoryNames(currentCategory);
       baseRecords = baseRecords
-          .where((r) => FormIVSelectionScreen.recordMatchesCategory(r, currentCategory, descendants))
+          .where((r) => FormIVSelectionScreen.recordMatchesCategory(
+              r, currentCategory, descendants))
           .toList();
     }
 
@@ -1455,7 +1457,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
     final disposalCount = baseRecords.where(_isDisposalRecord).length;
 
     final statusRecords = _recordsForStatus(baseRecords, _selectedStatusTab);
-    
+
     statusRecords.sort((a, b) {
       final dateA = _recordTargetDate(a);
       final dateB = _recordTargetDate(b);
@@ -1464,9 +1466,8 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
           : dateA.compareTo(dateB);
     });
 
-    final visibleRecords = _selectedCategory != null
-        ? statusRecords
-        : <ModuleRecord>[];
+    final visibleRecords =
+        _selectedCategory != null ? statusRecords : <ModuleRecord>[];
 
     final dateSuffix = (_selectedCategory != null && _selectedDateRange != null)
         ? ' · ${_datePresetLabel ?? _formatDateRangeShort(_selectedDateRange!)}'
@@ -3622,7 +3623,6 @@ class FormIVEmptyCasesState extends StatelessWidget {
                       style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
                     ),
                   ),
-
               ],
             ),
           ],

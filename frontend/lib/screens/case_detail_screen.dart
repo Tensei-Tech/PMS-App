@@ -90,7 +90,9 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
           : _recordDeleted
               ? _buildDeletedBody()
               : _buildLiveBody(context, showContent),
-      bottomNavigationBar: widget.showFloatingActions ? _buildStickyBottomActions(context, showContent) : null,
+      bottomNavigationBar: widget.showFloatingActions
+          ? _buildStickyBottomActions(context, showContent)
+          : null,
     );
   }
 
@@ -238,7 +240,9 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
       title: Text(
         _record.caseNumber,
         style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w700, color: AppColors.navyDark, fontSize: 16),
+            fontWeight: FontWeight.w700,
+            color: AppColors.navyDark,
+            fontSize: 16),
       ),
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
@@ -298,14 +302,15 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
       ),
     );
   }
+
   Widget? _buildStickyBottomActions(BuildContext context, bool showContent) {
     if (_recordDeleted || !showContent) return null;
-    
+
     return Builder(builder: (ctx) {
       final auth = context.watch<AuthProvider>();
       final canEdit = PoliceRbacHelper.canEditRecord(_record, auth);
       final canSendReminder = PoliceRbacHelper.canSendReminder(auth);
-      
+
       Widget actionBtn({
         required String label,
         required IconData icon,
@@ -337,7 +342,8 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
 
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.lg),
+        padding: const EdgeInsets.symmetric(
+            vertical: AppSpacing.md, horizontal: AppSpacing.lg),
         decoration: const BoxDecoration(
           color: Colors.white,
           border: Border(top: BorderSide(color: AppColors.lightBorder)),

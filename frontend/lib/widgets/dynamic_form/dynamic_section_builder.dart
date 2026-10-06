@@ -57,7 +57,9 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.fields.isEmpty && widget.customBody == null) return const SizedBox.shrink();
+    if (widget.fields.isEmpty && widget.customBody == null) {
+      return const SizedBox.shrink();
+    }
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.md),

@@ -261,7 +261,8 @@ class _LiveArrestedSummaryLoader extends StatefulWidget {
       _LiveArrestedSummaryLoaderState();
 }
 
-class _LiveArrestedSummaryLoaderState extends State<_LiveArrestedSummaryLoader> {
+class _LiveArrestedSummaryLoaderState
+    extends State<_LiveArrestedSummaryLoader> {
   final _backend = BackendCaseService();
   String _boundStation = '';
   List<ModuleRecord> _modules = const [];
@@ -372,8 +373,9 @@ class _LiveArrestedSummaryLoaderState extends State<_LiveArrestedSummaryLoader> 
 
     final exclusive = modules.isNotEmpty;
     final now = DateTime.now();
-    final dataset =
-        exclusive ? arrestedTableRowsAll(modules, now) : <Map<String, String>>[];
+    final dataset = exclusive
+        ? arrestedTableRowsAll(modules, now)
+        : <Map<String, String>>[];
     const showDemoNote = false;
 
     return widget.buildContent(

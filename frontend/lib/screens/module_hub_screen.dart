@@ -1,3 +1,4 @@
+// ignore_for_file: unused_element, unused_field, unused_local_variable, dead_code, use_build_context_synchronously
 // lib/screens/module_hub_screen.dart
 // Reusable screen for ALL 12 modules — strictly isolated data per module.
 
@@ -628,7 +629,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       });
     }
 
-    // ignore: unused_local_variable
     final bool showAddButton = !(widget.readOnly ||
         widget.moduleKey == 'detected' ||
         widget.moduleKey == 'undetected' ||
@@ -958,8 +958,11 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           builder: (context, constraints) {
             final bool isSmallScreen = constraints.maxWidth < 600;
             final double gap = isSmallScreen ? 12 : 16;
-            final int columns = constraints.maxWidth > 1000 ? 4 : (constraints.maxWidth > 600 ? 3 : 2);
-            double itemWidth = (constraints.maxWidth - (gap * (columns - 1))) / columns;
+            final int columns = constraints.maxWidth > 1000
+                ? 4
+                : (constraints.maxWidth > 600 ? 3 : 2);
+            double itemWidth =
+                (constraints.maxWidth - (gap * (columns - 1))) / columns;
             if (itemWidth < 0) itemWidth = 0; // Prevent negative width crash
 
             return Wrap(
@@ -975,7 +978,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200, width: 1.5),
+                      border:
+                          Border.all(color: Colors.grey.shade200, width: 1.5),
                       boxShadow: [
                         BoxShadow(
                           color: AppColors.navyDark.withValues(alpha: 0.04),
@@ -989,25 +993,28 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       color: Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
                       child: PopupMenuButton<String>(
-                        offset: Offset(0, 68),
+                        offset: const Offset(0, 68),
                         tooltip: transCategory,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(color: Colors.grey.shade200, width: 1),
+                          side:
+                              BorderSide(color: Colors.grey.shade200, width: 1),
                         ),
                         child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 10 : 16),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: isSmallScreen ? 10 : 16),
                           child: Row(
                             children: [
                               Container(
                                 padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
                                 decoration: BoxDecoration(
-                                  color: AppColors.navyMid.withValues(alpha: 0.08),
+                                  color:
+                                      AppColors.navyMid.withValues(alpha: 0.08),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Icon(
-                                  Icons.folder_open_rounded, 
-                                  color: AppColors.navyMid, 
+                                  Icons.folder_open_rounded,
+                                  color: AppColors.navyMid,
                                   size: isSmallScreen ? 16 : 18,
                                 ),
                               ),
@@ -1027,8 +1034,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                               ),
                               SizedBox(width: isSmallScreen ? 4 : 8),
                               Icon(
-                                Icons.keyboard_arrow_down_rounded, 
-                                color: AppColors.navyDark.withValues(alpha: 0.5), 
+                                Icons.keyboard_arrow_down_rounded,
+                                color:
+                                    AppColors.navyDark.withValues(alpha: 0.5),
                                 size: isSmallScreen ? 18 : 20,
                               ),
                             ],
@@ -1042,7 +1050,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                             Navigator.push(
                               context,
                               AppTheme.fadeSlideRoute(
-                                page: PendingIoWiseByCategoryScreen(category: cat),
+                                page: PendingIoWiseByCategoryScreen(
+                                    category: cat),
                               ),
                             );
                           } else {
@@ -1061,7 +1070,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                         },
                         itemBuilder: (BuildContext context) {
                           final List<String> options = [
-                            ..._pendingHubTimeRanges.where((t) => t != 'Select time range'),
+                            ..._pendingHubTimeRanges
+                                .where((t) => t != 'Select time range'),
                             'IO Wise',
                           ];
                           return options.map((String choice) {

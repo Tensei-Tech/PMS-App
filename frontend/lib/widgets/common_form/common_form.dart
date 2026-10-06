@@ -1,3 +1,4 @@
+// ignore_for_file: unused_element, unused_field, unused_local_variable, dead_code, use_build_context_synchronously
 // lib/widgets/common_form/common_form.dart
 // ─────────────────────────────────────────────────────────────────────────────
 // KHAKHI DIARY — Shared Common Form (Sections 1–17)
@@ -3762,9 +3763,9 @@ class CommonFormState extends State<CommonForm> {
                   ),
                 ),
                 if (isExpanded)
-                  Icon(Icons.keyboard_arrow_up, size: 20, color: _kSec)
+                  const Icon(Icons.keyboard_arrow_up, size: 20, color: _kSec)
                 else
-                  Icon(Icons.keyboard_arrow_down, size: 20, color: _kSec),
+                  const Icon(Icons.keyboard_arrow_down, size: 20, color: _kSec),
                 const SizedBox(width: 8),
                 TextButton(
                   onPressed: onRemove,
@@ -4583,8 +4584,6 @@ class CommonFormState extends State<CommonForm> {
         ],
       );
 
-
-
   Widget _checkboxTile(
     String label,
     bool value,
@@ -4661,7 +4660,8 @@ class CommonFormState extends State<CommonForm> {
                 return SizedBox(
                   width: itemWidth,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
                     decoration: BoxDecoration(
                       color: on ? _kTeal.withValues(alpha: 0.04) : _kInputBg,
                       borderRadius: BorderRadius.circular(8),
@@ -4679,10 +4679,12 @@ class CommonFormState extends State<CommonForm> {
                           child: Checkbox(
                             value: on,
                             onChanged: (v) {
-                              setState(() => toggleProcedural(e.key, v ?? false));
+                              setState(
+                                  () => toggleProcedural(e.key, v ?? false));
                             },
                             activeColor: _kTeal,
-                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -4719,10 +4721,13 @@ class CommonFormState extends State<CommonForm> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    TranslationHelper.translate(context, e.value),
+                                    TranslationHelper.translate(
+                                        context, e.value),
                                     style: TextStyle(
                                       fontSize: 12,
-                                      fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+                                      fontWeight: on
+                                          ? FontWeight.w700
+                                          : FontWeight.w500,
                                       color: on ? _kDark : _kSec,
                                     ),
                                   ),
@@ -4952,7 +4957,7 @@ class CommonFormState extends State<CommonForm> {
                     if (isExpanded) ...[
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
-                        value:
+                        initialValue:
                             _kPreventiveItems.contains(action) ? action : null,
                         dropdownColor: Colors.white,
                         isExpanded: true,

@@ -1,3 +1,4 @@
+// ignore_for_file: unused_element, unused_field, unused_local_variable, dead_code, use_build_context_synchronously
 // lib/widgets/common_form_document_view.dart
 // Read-only UI: mirrors [CommonFormState.buildDocumentMap] §1–§17 + dynamic [extraMap]
 // (same contract as common_form_pdf). Category-specific keys in [extraMap] render automatically.
@@ -1054,7 +1055,7 @@ class CommonFormDocumentView extends StatelessWidget {
   }
 
   Widget _buildDetailColumn(BuildContext context) {
-    Map<String, dynamic> _safeMap(dynamic v) {
+    Map<String, dynamic> safeMap(dynamic v) {
       if (v == null) return {};
       if (v is Map) return Map<String, dynamic>.from(v);
       if (v is List) {
@@ -1063,7 +1064,7 @@ class CommonFormDocumentView extends StatelessWidget {
       return {};
     }
 
-    List<dynamic> _safeList(dynamic v) {
+    List<dynamic> safeList(dynamic v) {
       if (v == null) return [];
       if (v is List) return v;
       if (v is Map) return v.values.toList();
@@ -1072,27 +1073,27 @@ class CommonFormDocumentView extends StatelessWidget {
 
     final m = commonMap;
     final isUnknown = m['isUnknownUntraced'] == true;
-    final charges = _safeMap(m['charges']);
-    final comp = _safeMap(m['complainant']);
-    final u = _safeMap(m['unidentified']);
-    final unidList = _safeList(m['unidentifiedList']);
-    final cr8 = _safeMap(m['caseResponsibility']);
-    final procChecks = _safeMap(m['proceduralChecks']);
-    final procDates = _safeMap(m['proceduralDates']);
-    final seizures = _safeList(m['seizures']);
-    final prev = _safeMap(m['preventive']);
-    final discharge = _safeMap(m['dischargeByAccused']);
-    final disDetails = _safeMap(m['dischargeDetails']);
-    final court = _safeMap(m['court']);
-    final verdict = _safeMap(m['verdict']);
+    final charges = safeMap(m['charges']);
+    final comp = safeMap(m['complainant']);
+    final u = safeMap(m['unidentified']);
+    final unidList = safeList(m['unidentifiedList']);
+    final cr8 = safeMap(m['caseResponsibility']);
+    final procChecks = safeMap(m['proceduralChecks']);
+    final procDates = safeMap(m['proceduralDates']);
+    final seizures = safeList(m['seizures']);
+    final prev = safeMap(m['preventive']);
+    final discharge = safeMap(m['dischargeByAccused']);
+    final disDetails = safeMap(m['dischargeDetails']);
+    final court = safeMap(m['court']);
+    final verdict = safeMap(m['verdict']);
     final acquitted =
-        _safeList(verdict['acquitted']).map((x) => x.toString()).toList();
+        safeList(verdict['acquitted']).map((x) => x.toString()).toList();
     final convicted =
-        _safeList(verdict['convicted']).map((x) => x.toString()).toList();
-    final sc = _safeMap(m['scrutiny']);
-    final accusedList = _safeList(m['accused']);
-    final suspectedList = _safeList(m['suspectedAccused']);
-    final arrests = _safeList(m['arrestRelease']);
+        safeList(verdict['convicted']).map((x) => x.toString()).toList();
+    final sc = safeMap(m['scrutiny']);
+    final accusedList = safeList(m['accused']);
+    final suspectedList = safeList(m['suspectedAccused']);
+    final arrests = safeList(m['arrestRelease']);
 
     const accent = AppColors.infoBlue;
     int sIdx = 1;
@@ -1135,7 +1136,7 @@ class CommonFormDocumentView extends StatelessWidget {
         else
           ...charges.entries.toList().asMap().entries.map((e) {
             final i = e.key + 1;
-            final data = _safeMap(e.value.value);
+            final data = safeMap(e.value.value);
             return _chargeCard(i, data);
           }),
       ]),
@@ -1200,7 +1201,7 @@ class CommonFormDocumentView extends StatelessWidget {
                     return _personCard(
                       context,
                       'Accused #${e.key + 1}',
-                      _safeMap(e.value),
+                      safeMap(e.value),
                     );
                   }).toList(),
                 ),
@@ -1221,7 +1222,7 @@ class CommonFormDocumentView extends StatelessWidget {
                     return _personCard(
                       context,
                       'Suspected #${e.key + 1}',
-                      _safeMap(e.value),
+                      safeMap(e.value),
                     );
                   }).toList(),
                 ),
@@ -1237,7 +1238,7 @@ class CommonFormDocumentView extends StatelessWidget {
           )
         else if (unidList.isNotEmpty)
           ...unidList.asMap().entries.map((e) {
-            final row = _safeMap(e.value);
+            final row = safeMap(e.value);
             return Container(
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(AppSpacing.md),
@@ -1391,7 +1392,7 @@ class CommonFormDocumentView extends StatelessWidget {
           )
         else
           ...arrests.map((r) {
-            final row = _safeMap(r);
+            final row = safeMap(r);
             final isDeceased = row['isDeceased'] == true;
             final sec47 = row['sec47_48'] == true;
             final relNotice = row['relOnNotice'] == true;
@@ -1463,8 +1464,8 @@ class CommonFormDocumentView extends StatelessWidget {
       _sectionShell(sIdx++, 'CUSTODY & REMAND (PCR / MCR)', accent, [
         Builder(
           builder: (ctx) {
-            final custody = _safeMap(m['custody']);
-            final surety = _safeMap(m['surety']);
+            final custody = safeMap(m['custody']);
+            final surety = safeMap(m['surety']);
             final isMcr = custody['mcr'] == true || m['mcr'] == true;
             final isBail =
                 custody['bail'] == true || custody['bailGranted'] == true;
@@ -1677,7 +1678,7 @@ class CommonFormDocumentView extends StatelessWidget {
           )
         else
           ...seizures.asMap().entries.map((e) {
-            final s = _safeMap(e.value);
+            final s = safeMap(e.value);
             return Container(
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(AppSpacing.md),
@@ -1785,7 +1786,7 @@ class CommonFormDocumentView extends StatelessWidget {
           ...discharge.entries.map((e) {
             final ok = e.value == true;
             final name = e.key.toString();
-            final det = _safeMap(disDetails[name]);
+            final det = safeMap(disDetails[name]);
             return Container(
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(10),
@@ -1871,7 +1872,7 @@ class CommonFormDocumentView extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             ...((m['customDischargeList'] as List).map((cd) {
-              final cMap = _safeMap(cd);
+              final cMap = safeMap(cd);
               return Container(
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.all(AppSpacing.md),
