@@ -2969,40 +2969,47 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                         ),
                         const SizedBox(width: 8),
 
-                        // 6. Action Buttons: Edit, View, PDF & Chevron
-                        if (!widget.readOnly &&
-                            record.status != 'Disposal') ...[
-                          _buildCompactActionButton(
-                            icon: Icons.fact_check_outlined,
-                            label: 'Dispose',
-                            onTap: () =>
-                                _showQuickDisposeDialog(context, record),
+                        // 6. Action Buttons: Edit, View, PDF (Fixed slot so Date & Status never shift)
+                        SizedBox(
+                          width: 146,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              if (!widget.readOnly &&
+                                  record.status != 'Disposal') ...[
+                                _buildCompactActionButton(
+                                  icon: Icons.fact_check_outlined,
+                                  label: 'Dispose',
+                                  onTap: () =>
+                                      _showQuickDisposeDialog(context, record),
+                                ),
+                                const SizedBox(width: 6),
+                              ],
+                              if (!widget.readOnly) ...[
+                                _buildCompactActionButton(
+                                  icon: Icons.edit_outlined,
+                                  label: 'Edit',
+                                  onTap: widget.onEdit,
+                                ),
+                                const SizedBox(width: 6),
+                              ],
+                              _buildCompactActionButton(
+                                icon: Icons.visibility_outlined,
+                                label: 'View',
+                                onTap: widget.onView,
+                              ),
+                              const SizedBox(width: 6),
+                              _buildCompactActionButton(
+                                icon: Icons.picture_as_pdf_outlined,
+                                label: 'PDF',
+                                onTap: () => runWithPdfAuthGate(
+                                  context,
+                                  () => ModulePdfHelper.generatePdf(record),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 6),
-                        ],
-                        if (!widget.readOnly) ...[
-                          _buildCompactActionButton(
-                            icon: Icons.edit_outlined,
-                            label: 'Edit',
-                            onTap: widget.onEdit,
-                          ),
-                          const SizedBox(width: 6),
-                        ],
-                        _buildCompactActionButton(
-                          icon: Icons.visibility_outlined,
-                          label: 'View',
-                          onTap: widget.onView,
                         ),
-                        const SizedBox(width: 6),
-                        _buildCompactActionButton(
-                          icon: Icons.picture_as_pdf_outlined,
-                          label: 'PDF',
-                          onTap: () => runWithPdfAuthGate(
-                            context,
-                            () => ModulePdfHelper.generatePdf(record),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
                       ],
                     );
                   },
