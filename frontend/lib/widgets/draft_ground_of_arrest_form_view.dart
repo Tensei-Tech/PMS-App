@@ -1615,6 +1615,39 @@ class DraftGroundOfArrestFormViewState
 // ── SOLID LINED MULTILINE INPUT FOR DRAFT FORM UI ──
 // ══════════════════════════════════════════════════════════════════════════════
 
+String _insertZeroWidthSpaces(String text, {int maxChunk = 8}) {
+  if (text.isEmpty) return text;
+  final buffer = StringBuffer();
+  int runLength = 0;
+
+  for (final char in text.runes) {
+    final s = String.fromCharCode(char);
+    if (s == ' ' || s == '\n' || s == '\t' || s == '\r') {
+      runLength = 0;
+      buffer.write(s);
+      continue;
+    }
+
+    final isDevanagariMark = (char >= 0x0901 && char <= 0x0903) ||
+        char == 0x093C ||
+        (char >= 0x093E && char <= 0x094F) ||
+        (char >= 0x0951 && char <= 0x0954) ||
+        (char >= 0x0962 && char <= 0x0963);
+
+    if (runLength >= maxChunk && !isDevanagariMark) {
+      buffer.write('\u200B');
+      runLength = 0;
+    }
+
+    buffer.write(s);
+    if (!isDevanagariMark) {
+      runLength++;
+    }
+  }
+
+  return buffer.toString();
+}
+
 class DraftLinedMultilineInput extends StatefulWidget {
   final TextEditingController controller;
   final TextStyle serifStyle;
@@ -1695,9 +1728,10 @@ class _DraftLinedMultilineInputState extends State<DraftLinedMultilineInput> {
 
             int lineCount = widget.minLines;
             if (text.isNotEmpty && effectiveWidth > 0) {
+              final processed = _insertZeroWidthSpaces(text, maxChunk: 8);
               final tp = TextPainter(
                 text: TextSpan(
-                  text: text,
+                  text: processed,
                   style: widget.serifStyle.copyWith(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
