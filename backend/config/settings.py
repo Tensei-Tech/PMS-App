@@ -161,10 +161,10 @@ elif os.getenv('DB_NAME') and os.getenv('DB_PASSWORD') and os.getenv('DB_PASSWOR
         },
     }
 else:
-    DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    from django.core.exceptions import ImproperlyConfigured
+    raise ImproperlyConfigured(
+        "No PostgreSQL database configured. Set DATABASE_URL (or DB_NAME and DB_PASSWORD) in backend/.env."
+    )
 
 DATABASES['default'].setdefault('TEST', {})['MIGRATE'] = False
 

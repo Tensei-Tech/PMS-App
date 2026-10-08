@@ -82,6 +82,7 @@ import 'pending_hub_screen.dart';
 import 'undetected_hub_screen.dart';
 import 'detected_hub_screen.dart';
 import 'disposal_hub_screen.dart';
+import 'arrested_hub_screen.dart';
 import '../widgets/bell_icon_widget.dart';
 import '../widgets/form_iv_category_button.dart';
 import '../widgets/searchable_picker_field.dart';
@@ -3895,6 +3896,14 @@ class _HomeTabState extends State<_HomeTab> {
         context,
         AppTheme.fadeSlideRoute(
           page: DisposalHubScreen(stationName: auth.stationName),
+        ),
+      );
+    } else if (item.name == 'Arrested') {
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: ArrestedHubScreen(stationName: auth.stationName),
         ),
       );
     } else if (item.moduleKey == 'service_tool') {

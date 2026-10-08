@@ -3,6 +3,8 @@ from apps.cases.models import CaseRecord
 
 
 class CaseRecordSerializer(serializers.ModelSerializer):
+    arrest_date = serializers.SerializerMethodField()
+
     class Meta:
         model = CaseRecord
         fields = [
@@ -23,10 +25,21 @@ class CaseRecordSerializer(serializers.ModelSerializer):
             'created_by',
             'station_name',
             'extra_fields',
+            'arrest_date',
             'created_at',
             'updated_at',
         ]
         read_only_fields = ['created_at', 'updated_at']
+
+    def get_arrest_date(self, obj):
+        try:
+            arrests = obj.persons.filter(arrest_status__arrest_datetime__isnull=False)
+            if arrests.exists():
+                return arrests.first().arrest_status.arrest_datetime.isoformat()
+        except Exception:
+            pass
+        ex = obj.extra_fields if isinstance(obj.extra_fields, dict) else {}
+        return ex.get('arrest_datetime') or ex.get('arrest_date')
 
     def to_internal_value(self, data):
         if isinstance(data, dict):
@@ -203,7 +216,27 @@ class DisposalCaseRecordSerializer(CaseRecordSerializer):
         # Get crime_type_name from CaseCategory via context map
         cat_map = self.context.get('cat_map', {})
         mk = (instance.module_key or "").strip().lower()
-        data['crime_type_name'] = cat_map.get(mk, instance.module_key)
+        sub = (instance.sub_category or "").strip()
+        
+        # Priority: 
+        # If it's a generic form (like form_1_5), the actual crime name (e.g., Murder, Sand Theft) is in sub_category
+        if mk == 'form_1_5':
+            data['crime_type_name'] = sub if sub else 'Other Crimes'
+        elif sub and not cat_map.get(mk):
+            data['crime_type_name'] = sub
+        else:
+            data['crime_type_name'] = cat_map.get(mk, sub if sub else instance.module_key)
+        
+        # Extract act and section from acts_sections if present
+        acts_sections = extra.get('acts_sections', [])
+        if isinstance(acts_sections, list) and acts_sections:
+            first_as = acts_sections[0]
+            if isinstance(first_as, dict):
+                data['act'] = first_as.get('act') or extra.get('act') or ''
+                data['section'] = first_as.get('section') or extra.get('section') or ''
+        else:
+            data['act'] = extra.get('act') or ''
+            data['section'] = extra.get('section') or ''
         
         return data
 
