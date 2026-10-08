@@ -187,7 +187,7 @@ Future<Uint8List> generateCrimespotSeizurePdf(Map<String, dynamic> doc) async {
 
           // --- Panch Names ---
           pw.Row(
-            crossAxisAlignment: pw.CrossAxisAlignment.end,
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               _mLbl(cache, 'lbl_panch_name'),
               pw.Text(' : 1) ', style: englishBold),
@@ -198,6 +198,8 @@ Future<Uint8List> generateCrimespotSeizurePdf(Map<String, dynamic> doc) async {
                   valueStyle: valueStyle,
                   cache: cache,
                   expanded: true,
+                  minLines: 2,
+                  maxCharsPerLine: 50,
                 ),
               ),
             ],
@@ -206,7 +208,7 @@ Future<Uint8List> generateCrimespotSeizurePdf(Map<String, dynamic> doc) async {
           pw.Padding(
             padding: const pw.EdgeInsets.only(left: 80),
             child: pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 pw.Text('2) ', style: englishBold),
                 pw.Expanded(
@@ -216,6 +218,8 @@ Future<Uint8List> generateCrimespotSeizurePdf(Map<String, dynamic> doc) async {
                     valueStyle: valueStyle,
                     cache: cache,
                     expanded: true,
+                    minLines: 2,
+                    maxCharsPerLine: 50,
                   ),
                 ),
               ],
@@ -353,10 +357,47 @@ pw.Widget _buildPdfUnderlineField({
   required MarathiImageCache cache,
   double? width,
   bool expanded = false,
+  int minLines = 1,
+  int maxCharsPerLine = 50,
 }) {
+  final cleanVal = fallbackValue.trim();
+  final lines = _splitTextIntoLines(cleanVal, maxCharsPerLine);
+  final totalLines = lines.length < minLines ? minLines : lines.length;
+
+  if (expanded || totalLines > 1) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        for (int i = 0; i < totalLines; i++) ...[
+          if (i > 0) pw.SizedBox(height: 3),
+          pw.Container(
+            width: double.infinity,
+            height: 14,
+            decoration: const pw.BoxDecoration(
+              border: pw.Border(
+                bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+              ),
+            ),
+            alignment: pw.Alignment.bottomLeft,
+            padding: const pw.EdgeInsets.only(left: 2, bottom: 1),
+            child: cache.has('${valKey}_line_$i')
+                ? cache.img('${valKey}_line_$i')
+                : (i == 0 && lines.length <= 1 && cache.has(valKey))
+                    ? cache.img(valKey)
+                    : pw.Text(
+                        i < lines.length ? lines[i] : '',
+                        style: valueStyle,
+                      ),
+          ),
+        ],
+      ],
+    );
+  }
+
   final hasValImg = cache.has(valKey);
-  final child = pw.Container(
-    width: expanded ? null : (width ?? 60),
+  return pw.Container(
+    width: width,
+    height: 14,
     decoration: const pw.BoxDecoration(
       border: pw.Border(
         bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
@@ -368,7 +409,6 @@ pw.Widget _buildPdfUnderlineField({
         ? cache.img(valKey)
         : pw.Text(fallbackValue, style: valueStyle),
   );
-  return expanded ? pw.SizedBox(width: double.infinity, child: child) : child;
 }
 
 List<String> _splitTextIntoLines(String text, int maxChars) {
@@ -384,7 +424,18 @@ List<String> _splitTextIntoLines(String text, int maxChars) {
     final words = para.split(' ');
     var currentLine = '';
     for (final word in words) {
-      if (currentLine.isEmpty) {
+      if (word.length > maxChars) {
+        if (currentLine.isNotEmpty) {
+          result.add(currentLine);
+          currentLine = '';
+        }
+        var remaining = word;
+        while (remaining.length > maxChars) {
+          result.add(remaining.substring(0, maxChars));
+          remaining = remaining.substring(maxChars);
+        }
+        currentLine = remaining;
+      } else if (currentLine.isEmpty) {
         currentLine = word;
       } else if ('$currentLine $word'.length <= maxChars) {
         currentLine = '$currentLine $word';

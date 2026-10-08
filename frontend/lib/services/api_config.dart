@@ -12,8 +12,9 @@ class ApiConfig {
   );
 
   /// Environment flag: --dart-define=IS_DEV=true (Switches to Local Dev Server).
-  /// Default is false (Render Cloud Backend).
-  static const bool isDev = bool.fromEnvironment('IS_DEV', defaultValue: false);
+  /// Defaults to true in debug mode (kDebugMode), or false in release/production.
+  static const bool isDev =
+      bool.fromEnvironment('IS_DEV', defaultValue: kDebugMode);
 
   /// Default Render Cloud Backend URL (Hardcoded Default)
   static const String renderBackendUrl =

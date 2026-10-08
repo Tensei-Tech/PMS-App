@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'bilingual_field.dart';
+import 'responsive_field_row.dart';
 import 'form_paper_page.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
@@ -818,157 +819,196 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
               ),
               const Divider(color: Colors.black87, thickness: 2, height: 32),
 
-              // 1. Dist / P.S. / FIR / Year / Date
-              Wrap(
-                spacing: 12,
-                runSpacing: 10,
-                crossAxisAlignment: WrapCrossAlignment.end,
+              // --- SECTION 1 ---
+              // Row 1: District and P.S.
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text('1.Dist.',
-                              style: serifStyle.copyWith(
-                                  fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            width: 90,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _distCtrl,
-                              serifStyle: serifStyle,
-                            ),
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('1.Dist.',
+                                  style: serifStyle.copyWith(
+                                      fontWeight: FontWeight.bold)),
+                              Text('जिल्हा :-',
+                                  style: marathiLabelStyle.copyWith(
+                                      fontSize: 10, fontWeight: FontWeight.bold)),
+                            ],
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text('जिल्हा :-', style: marathiLabelStyle),
-                    ],
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: BilingualDynamicLinedTextField(
+                            controller: _distCtrl,
+                            minLines: 1,
+                            serifStyle: serifStyle,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text('P.S.:-',
-                              style: serifStyle.copyWith(
-                                  fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            width: 100,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _psCtrl,
-                              serifStyle: serifStyle,
-                            ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('P.S.:-',
+                                  style: serifStyle.copyWith(
+                                      fontWeight: FontWeight.bold)),
+                              Text('पो.स्टे.',
+                                  style: marathiLabelStyle.copyWith(
+                                      fontSize: 10, fontWeight: FontWeight.bold)),
+                            ],
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text('पो.स्टे.', style: marathiLabelStyle),
-                    ],
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: BilingualDynamicLinedTextField(
+                            controller: _psCtrl,
+                            minLines: 1,
+                            serifStyle: serifStyle,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text('FIR/Proceeding/G.D.No:-',
-                              style: serifStyle.copyWith(
-                                  fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            width: 100,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _firNoCtrl,
-                              serifStyle: serifStyle,
-                            ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              // Row 2: FIR/Proceeding/G.D.No:-, Year, Date
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 45,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('FIR/Proceeding/G.D.No:-',
+                                  style: serifStyle.copyWith(
+                                      fontWeight: FontWeight.bold)),
+                              Text('पहिली खबर क/ कार्यवाही क.',
+                                  style: marathiLabelStyle.copyWith(
+                                      fontSize: 10, fontWeight: FontWeight.bold)),
+                            ],
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text('पहिली खबर क/ कार्यवाही क.',
-                          style: marathiLabelStyle),
-                    ],
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: BilingualDynamicLinedTextField(
+                            controller: _firNoCtrl,
+                            minLines: 1,
+                            serifStyle: serifStyle,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text('Year:-20',
-                              style: serifStyle.copyWith(
-                                  fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _yearCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'YY',
-                            ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    flex: 22,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Year:-20',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
+                            Text('वर्ष',
+                                style: marathiLabelStyle.copyWith(
+                                    fontSize: 10, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: BilingualSimpleUnderlineInput(
+                            controller: _yearCtrl,
+                            serifStyle: serifStyle,
+                            hintText: 'YY',
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text('वर्ष', style: marathiLabelStyle),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text('Date',
-                              style: serifStyle.copyWith(
-                                  fontWeight: FontWeight.bold)),
-                          const SizedBox(width: 4),
-                          SizedBox(
-                            width: 32,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _dateDayCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'DD',
-                            ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    flex: 33,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Date',
+                                style: serifStyle.copyWith(
+                                    fontWeight: FontWeight.bold)),
+                            Text('दिनांक',
+                                style: marathiLabelStyle.copyWith(
+                                    fontSize: 10, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: BilingualSimpleUnderlineInput(
+                                  controller: _dateDayCtrl,
+                                  serifStyle: serifStyle,
+                                  hintText: 'DD',
+                                ),
+                              ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 2.0),
+                                child: Text('/',
+                                    style: serifStyle.copyWith(
+                                        fontWeight: FontWeight.bold)),
+                              ),
+                              Expanded(
+                                child: BilingualSimpleUnderlineInput(
+                                  controller: _dateMonthCtrl,
+                                  serifStyle: serifStyle,
+                                  hintText: 'MM',
+                                ),
+                              ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 2.0),
+                                child: Text('/20',
+                                    style: serifStyle.copyWith(
+                                        fontWeight: FontWeight.bold)),
+                              ),
+                              Expanded(
+                                child: BilingualSimpleUnderlineInput(
+                                  controller: _dateYearCtrl,
+                                  serifStyle: serifStyle,
+                                  hintText: 'YY',
+                                ),
+                              ),
+                            ],
                           ),
-                          Text('/',
-                              style: serifStyle.copyWith(
-                                  fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            width: 32,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _dateMonthCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'MM',
-                            ),
-                          ),
-                          Text('/20',
-                              style: serifStyle.copyWith(
-                                  fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            width: 32,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _dateYearCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'YY',
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text('दिनांक', style: marathiLabelStyle),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -1140,83 +1180,100 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
               const SizedBox(height: 14),
 
               // Place of Arrest: - P.S. ... Dist. ... State. ...
-              Wrap(
-                spacing: 16,
-                runSpacing: 10,
-                crossAxisAlignment: WrapCrossAlignment.end,
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text('Place of Arrest: - P.S.',
-                              style: serifStyle.copyWith(
-                                  fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            width: 120,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _arrestPlaceCtrl,
-                              serifStyle: serifStyle,
-                            ),
+                  Expanded(
+                    flex: 4,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Place of Arrest: - P.S.',
+                                  style: serifStyle.copyWith(
+                                      fontWeight: FontWeight.bold)),
+                              Text('अटकेची जागा : पोलीस ठाणे',
+                                  style: marathiLabelStyle.copyWith(
+                                      fontSize: 10, fontWeight: FontWeight.bold)),
+                            ],
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text('अटकेची जागा : पोलीस ठाणे',
-                          style: marathiLabelStyle),
-                    ],
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: BilingualDynamicLinedTextField(
+                            controller: _arrestPlaceCtrl,
+                            minLines: 1,
+                            serifStyle: serifStyle,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text('Dist.',
-                              style: serifStyle.copyWith(
-                                  fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            width: 120,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _arrestDistCtrl,
-                              serifStyle: serifStyle,
-                            ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    flex: 3,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Dist.',
+                                  style: serifStyle.copyWith(
+                                      fontWeight: FontWeight.bold)),
+                              Text('जिल्हा',
+                                  style: marathiLabelStyle.copyWith(
+                                      fontSize: 10, fontWeight: FontWeight.bold)),
+                            ],
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text('जिल्हा', style: marathiLabelStyle),
-                    ],
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: BilingualDynamicLinedTextField(
+                            controller: _arrestDistCtrl,
+                            minLines: 1,
+                            serifStyle: serifStyle,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text('State.',
-                              style: serifStyle.copyWith(
-                                  fontWeight: FontWeight.bold)),
-                          SizedBox(
-                            width: 120,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _arrestStateCtrl,
-                              serifStyle: serifStyle,
-                            ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    flex: 3,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('State.',
+                                  style: serifStyle.copyWith(
+                                      fontWeight: FontWeight.bold)),
+                              Text('राज्य',
+                                  style: marathiLabelStyle.copyWith(
+                                      fontSize: 10, fontWeight: FontWeight.bold)),
+                            ],
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text('राज्य', style: marathiLabelStyle),
-                    ],
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: BilingualDynamicLinedTextField(
+                            controller: _arrestStateCtrl,
+                            minLines: 1,
+                            serifStyle: serifStyle,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -1227,23 +1284,32 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        '3. Name of the Court ( if surrendered) :- ',
-                        style: serifStyle.copyWith(fontWeight: FontWeight.bold),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '3. Name of the Court ( if surrendered) :- ',
+                              style: serifStyle.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            Text('न्यायालयाचे नाव ( स्वाधीन झाल्यास ) :-',
+                                style: marathiLabelStyle),
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       Expanded(
-                        child: BilingualSimpleUnderlineInput(
+                        child: BilingualDynamicLinedTextField(
                           controller: _courtNameCtrl,
+                          minLines: 1,
                           serifStyle: serifStyle,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 2),
-                  Text('न्यायालयाचे नाव ( स्वाधीन झाल्यास ) :-',
-                      style: marathiLabelStyle),
                 ],
               ),
               const SizedBox(height: 20),
@@ -1253,22 +1319,31 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        '4. Acts and sections:- ',
-                        style: serifStyle.copyWith(fontWeight: FontWeight.bold),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '4. Acts and sections:- ',
+                              style: serifStyle.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            Text('अधिनियम व कलमे :', style: marathiLabelStyle),
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       Expanded(
-                        child: BilingualSimpleUnderlineInput(
+                        child: BilingualDynamicLinedTextField(
                           controller: _actsSectionsCtrl,
+                          minLines: 1,
                           serifStyle: serifStyle,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 2),
-                  Text('अधिनियम व कलमे :', style: marathiLabelStyle),
                 ],
               ),
               const SizedBox(height: 24),
@@ -1394,6 +1469,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           controller: _accusedVoterCtrl,
                           serifStyle: serifStyle,
                           marathiLabelStyle: marathiLabelStyle,
+                          multiline: true,
                         ),
                         BilingualField(
                           label: '(b) *Passport No: - ',
@@ -1401,6 +1477,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           controller: _accusedPassportCtrl,
                           serifStyle: serifStyle,
                           marathiLabelStyle: marathiLabelStyle,
+                          multiline: true,
                         ),
                       ],
                     ),
@@ -1413,6 +1490,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           controller: _accusedDateIssueCtrl,
                           serifStyle: serifStyle,
                           marathiLabelStyle: marathiLabelStyle,
+                          multiline: true,
                         ),
                         BilingualField(
                           label: '(d) *Place of Issue :- ',
@@ -1420,6 +1498,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           controller: _accusedPlaceIssueCtrl,
                           serifStyle: serifStyle,
                           marathiLabelStyle: marathiLabelStyle,
+                          multiline: true,
                         ),
                       ],
                     ),
@@ -1432,6 +1511,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           controller: _accusedReligionCtrl,
                           serifStyle: serifStyle,
                           marathiLabelStyle: marathiLabelStyle,
+                          multiline: true,
                         ),
                         BilingualField(
                           label: '(viii) *Cast/Tribe: - ',
@@ -1439,6 +1519,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           controller: _accusedCasteCtrl,
                           serifStyle: serifStyle,
                           marathiLabelStyle: marathiLabelStyle,
+                          multiline: true,
                         ),
                       ],
                     ),
@@ -1451,6 +1532,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           controller: _accusedScStCtrl,
                           serifStyle: serifStyle,
                           marathiLabelStyle: marathiLabelStyle,
+                          multiline: true,
                         ),
                         BilingualField(
                           label: '(x) *Occupation :- ',
@@ -1458,6 +1540,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           controller: _accusedOccupationCtrl,
                           serifStyle: serifStyle,
                           marathiLabelStyle: marathiLabelStyle,
+                          multiline: true,
                         ),
                       ],
                     ),
@@ -1479,6 +1562,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           controller: _permStateCtrl,
                           serifStyle: serifStyle,
                           marathiLabelStyle: marathiLabelStyle,
+                          multiline: true,
                         ),
                         BilingualField(
                           label: 'Dist.:- ',
@@ -1486,6 +1570,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           controller: _permDistCtrl,
                           serifStyle: serifStyle,
                           marathiLabelStyle: marathiLabelStyle,
+                          multiline: true,
                         ),
                         BilingualField(
                           label: 'P.S. :- ',
@@ -1493,6 +1578,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           controller: _permPsCtrl,
                           serifStyle: serifStyle,
                           marathiLabelStyle: marathiLabelStyle,
+                          multiline: true,
                         ),
                       ],
                     ),
@@ -1514,6 +1600,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           controller: _presStateCtrl,
                           serifStyle: serifStyle,
                           marathiLabelStyle: marathiLabelStyle,
+                          multiline: true,
                         ),
                         BilingualField(
                           label: 'Dist.:- ',
@@ -1521,6 +1608,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           controller: _presDistCtrl,
                           serifStyle: serifStyle,
                           marathiLabelStyle: marathiLabelStyle,
+                          multiline: true,
                         ),
                         BilingualField(
                           label: 'P.S. :- ',
@@ -1528,6 +1616,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           controller: _presPsCtrl,
                           serifStyle: serifStyle,
                           marathiLabelStyle: marathiLabelStyle,
+                          multiline: true,
                         ),
                       ],
                     ),
@@ -1596,6 +1685,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                     controller: _custodyPlaceCtrl,
                     serifStyle: serifStyle,
                     marathiLabelStyle: marathiLabelStyle,
+                    multiline: true,
                   ),
                 ],
               ),
@@ -1613,6 +1703,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                     controller: _article1Ctrl,
                     serifStyle: serifStyle,
                     marathiLabelStyle: marathiLabelStyle,
+                    multiline: true,
                   ),
                   BilingualField(
                     label: '2) ',
@@ -1620,6 +1711,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                     controller: _article2Ctrl,
                     serifStyle: serifStyle,
                     marathiLabelStyle: marathiLabelStyle,
+                    multiline: true,
                   ),
                 ],
               ),
@@ -1632,6 +1724,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                     controller: _article3Ctrl,
                     serifStyle: serifStyle,
                     marathiLabelStyle: marathiLabelStyle,
+                    multiline: true,
                   ),
                   BilingualField(
                     label: '4) ',
@@ -1639,6 +1732,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                     controller: _article4Ctrl,
                     serifStyle: serifStyle,
                     marathiLabelStyle: marathiLabelStyle,
+                    multiline: true,
                   ),
                 ],
               ),
@@ -1651,6 +1745,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                     controller: _article5Ctrl,
                     serifStyle: serifStyle,
                     marathiLabelStyle: marathiLabelStyle,
+                    multiline: true,
                   ),
                   BilingualField(
                     label: '6) ',
@@ -1658,6 +1753,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                     controller: _article6Ctrl,
                     serifStyle: serifStyle,
                     marathiLabelStyle: marathiLabelStyle,
+                    multiline: true,
                   ),
                 ],
               ),
@@ -1684,6 +1780,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                     controller: _intimationNameCtrl,
                     serifStyle: serifStyle,
                     marathiLabelStyle: marathiLabelStyle,
+                    multiline: true,
                   ),
                   BilingualField(
                     label: '(Relationship): ',
@@ -1691,6 +1788,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                     controller: _intimationRelCtrl,
                     serifStyle: serifStyle,
                     marathiLabelStyle: marathiLabelStyle,
+                    multiline: true,
                   ),
                 ],
               ),
@@ -1844,6 +1942,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           controller: _eduQualCtrl,
                           serifStyle: serifStyle,
                           marathiLabelStyle: marathiLabelStyle,
+                          multiline: true,
                         ),
                         BilingualField(
                           label: '(c) occupation: ',
@@ -1851,6 +1950,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           controller: _occupation2Ctrl,
                           serifStyle: serifStyle,
                           marathiLabelStyle: marathiLabelStyle,
+                          multiline: true,
                         ),
                       ],
                     ),
@@ -2119,6 +2219,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           controller: _ioSigCtrl,
                           serifStyle: serifStyle,
                           marathiLabelStyle: marathiLabelStyle,
+                          multiline: true,
                         ),
                         BilingualField(
                           label: 'Name: ',
@@ -2126,6 +2227,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                           controller: _finalNameCtrl,
                           serifStyle: serifStyle,
                           marathiLabelStyle: marathiLabelStyle,
+                          multiline: true,
                         ),
                         BilingualFieldRow(
                           fields: [
@@ -2135,6 +2237,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                               controller: _finalRankCtrl,
                               serifStyle: serifStyle,
                               marathiLabelStyle: marathiLabelStyle,
+                              multiline: true,
                             ),
                             BilingualField(
                               label: 'No: ',
@@ -2142,6 +2245,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                               controller: _finalNoCtrl,
                               serifStyle: serifStyle,
                               marathiLabelStyle: marathiLabelStyle,
+                              multiline: true,
                             ),
                           ],
                         ),
@@ -2161,6 +2265,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                     controller: _finalPlaceCtrl,
                     serifStyle: serifStyle,
                     marathiLabelStyle: marathiLabelStyle,
+                    multiline: true,
                   ),
                   BilingualField(
                     label: 'Date: ..../..../20.... ',
@@ -2168,6 +2273,7 @@ class ArrestSurrenderFormViewState extends State<ArrestSurrenderFormView> {
                     controller: _finalDateCtrl,
                     serifStyle: serifStyle,
                     marathiLabelStyle: marathiLabelStyle,
+                    multiline: true,
                   ),
                 ],
               ),

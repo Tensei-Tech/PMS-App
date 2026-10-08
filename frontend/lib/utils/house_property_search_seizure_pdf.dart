@@ -86,7 +86,40 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
     String fallback, {
     bool expanded = false,
     double? width,
+    int minLines = 1,
+    int maxCharsPerLine = 50,
   }) {
+    final cleanVal = fallback.trim();
+    final lines = _splitTextIntoLines(cleanVal, maxCharsPerLine);
+    final totalLines = lines.length < minLines ? minLines : lines.length;
+
+    if (expanded && (totalLines > 1 || lines.isNotEmpty)) {
+      final col = pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          for (int i = 0; i < totalLines; i++) ...[
+            if (i > 0) pw.SizedBox(height: 2),
+            pw.Container(
+              width: double.infinity,
+              padding: const pw.EdgeInsets.only(left: 4, right: 4, bottom: 2),
+              decoration: const pw.BoxDecoration(
+                border: pw.Border(bottom: pw.BorderSide(width: 0.5)),
+              ),
+              child: cache.has('${valKey}_$i')
+                  ? cache.img('${valKey}_$i')
+                  : (i == 0 && lines.length <= 1 && cache.has(valKey))
+                      ? cache.img(valKey)
+                      : pw.Text(
+                          i < lines.length ? lines[i] : '',
+                          style: valueStyle,
+                        ),
+            ),
+          ],
+        ],
+      );
+      return pw.Expanded(child: col);
+    }
+
     final child = pw.Container(
       width: expanded ? null : (width ?? 60),
       padding: const pw.EdgeInsets.only(left: 4, right: 4, bottom: 2),
@@ -117,6 +150,7 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
             mLbl(mKey),
           ],
         ),
+        pw.SizedBox(width: 4),
         underlineField(valKey, fallback, width: width, expanded: expanded),
       ],
     );
@@ -126,12 +160,14 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
     String enLabel,
     String mKey,
     String valKey,
-    String fallback,
-  ) {
+    String fallback, {
+    int minLines = 2,
+    int maxCharsPerLine = 50,
+  }) {
     return pw.Padding(
       padding: const pw.EdgeInsets.only(bottom: 4),
       child: pw.Row(
-        crossAxisAlignment: pw.CrossAxisAlignment.end,
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -140,7 +176,11 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
               mLbl(mKey),
             ],
           ),
-          underlineField(valKey, fallback, expanded: true),
+          pw.SizedBox(width: 4),
+          underlineField(valKey, fallback,
+              expanded: true,
+              minLines: minLines,
+              maxCharsPerLine: maxCharsPerLine),
         ],
       ),
     );
@@ -357,32 +397,44 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
               ),
             ),
             pw.SizedBox(height: 10),
-            pw.Wrap(
-              spacing: 6,
-              runSpacing: 4,
-              crossAxisAlignment: pw.WrapCrossAlignment.end,
+            // Row 1: District and P.S.
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
               children: [
-                inlineField(
-                  '1.Dist : ',
-                  'lbl_dist',
-                  'val_dist',
-                  doc['dist']?.toString() ?? '',
-                  width: 55,
+                pw.Expanded(
+                  child: inlineField(
+                    '1.Dist : ',
+                    'lbl_dist',
+                    'val_dist',
+                    doc['dist']?.toString() ?? '',
+                    expanded: true,
+                  ),
                 ),
-                inlineField(
-                  'P.S: ',
-                  'lbl_ps',
-                  'val_ps',
-                  doc['ps']?.toString() ?? '',
-                  width: 55,
+                pw.SizedBox(width: 14),
+                pw.Expanded(
+                  child: inlineField(
+                    'P.S: ',
+                    'lbl_ps',
+                    'val_ps',
+                    doc['ps']?.toString() ?? '',
+                    expanded: true,
+                  ),
                 ),
+              ],
+            ),
+            pw.SizedBox(height: 6),
+            // Row 2: Year, FIR No, Date
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              children: [
                 inlineField(
                   'Year : ',
                   'lbl_year',
                   'val_year',
                   doc['year']?.toString() ?? '',
-                  width: 35,
+                  width: 55,
                 ),
+                pw.SizedBox(width: 12),
                 pw.Row(
                   mainAxisSize: pw.MainAxisSize.min,
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
@@ -392,22 +444,23 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
                       'lbl_fir',
                       'val_firNo',
                       doc['firNo']?.toString() ?? '',
-                      width: 40,
+                      width: 50,
                     ),
                     pw.Text('/20', style: englishBold),
                     underlineField(
                       'val_firYearSuffix',
                       doc['firYearSuffix']?.toString() ?? '',
-                      width: 22,
+                      width: 25,
                     ),
                   ],
                 ),
+                pw.SizedBox(width: 12),
                 inlineField(
                   'Date : ',
                   'lbl_header_date',
                   'val_headerDate',
                   doc['headerDate']?.toString() ?? '',
-                  width: 55,
+                  width: 70,
                 ),
               ],
             ),
@@ -455,23 +508,23 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
               'val_profReceiver',
               doc['profReceiver']?.toString() ?? '',
             ),
+            pw.SizedBox(height: 2),
+            wideField(
+              'Name : - ',
+              'lbl_person_name',
+              'val_personName',
+              doc['personName']?.toString() ?? '',
+            ),
+            pw.SizedBox(height: 2),
+            wideField(
+              'Father\'s/Husband\'s Name : ',
+              'lbl_person_father',
+              'val_personFather',
+              doc['personFather']?.toString() ?? '',
+            ),
+            pw.SizedBox(height: 2),
             pw.Row(
               children: [
-                inlineField(
-                  'Name : - ',
-                  'lbl_person_name',
-                  'val_personName',
-                  doc['personName']?.toString() ?? '',
-                  width: 70,
-                ),
-                pw.SizedBox(width: 6),
-                inlineField(
-                  'Father\'s/Husband\'s Name : ',
-                  'lbl_person_father',
-                  'val_personFather',
-                  doc['personFather']?.toString() ?? '',
-                  width: 70,
-                ),
                 inlineField(
                   'Sex- ',
                   'lbl_person_sex',
@@ -479,10 +532,7 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
                   doc['personSex']?.toString() ?? '',
                   width: 40,
                 ),
-              ],
-            ),
-            pw.Row(
-              children: [
+                pw.SizedBox(width: 10),
                 inlineField(
                   'Age : ',
                   'lbl_person_age',
@@ -490,30 +540,25 @@ Future<Uint8List> generateHousePropertySearchSeizurePdf(
                   doc['personAge']?.toString() ?? '',
                   width: 35,
                 ),
-                pw.SizedBox(width: 6),
+                pw.SizedBox(width: 10),
                 inlineField(
                   'Occupation : ',
                   'lbl_person_occ',
                   'val_personOccupation',
                   doc['personOccupation']?.toString() ?? '',
-                  width: 60,
-                ),
-                inlineField(
-                  'Address : ',
-                  'lbl_person_addr',
-                  'val_personAddress',
-                  doc['personAddress']?.toString() ?? '',
                   width: 80,
                 ),
               ],
             ),
-            pw.Padding(
-              padding: const pw.EdgeInsets.only(left: 8),
-              child: underlineField(
-                'val_personAddressLine2',
-                doc['personAddressLine2']?.toString() ?? '',
-                expanded: true,
-              ),
+            pw.SizedBox(height: 2),
+            wideField(
+              'Address : ',
+              'lbl_person_addr',
+              'val_personAddress',
+              _joinNonEmpty([
+                doc['personAddress'],
+                doc['personAddressLine2'],
+              ]),
             ),
             multiline(
               '6. Action taken/recommended for disposal of perishable property: -',
@@ -785,7 +830,18 @@ List<String> _splitTextIntoLines(String text, int maxChars) {
     final words = para.split(' ');
     var currentLine = '';
     for (final word in words) {
-      if (currentLine.isEmpty) {
+      if (word.length > maxChars) {
+        if (currentLine.isNotEmpty) {
+          result.add(currentLine);
+          currentLine = '';
+        }
+        var remaining = word;
+        while (remaining.length > maxChars) {
+          result.add(remaining.substring(0, maxChars));
+          remaining = remaining.substring(maxChars);
+        }
+        currentLine = remaining;
+      } else if (currentLine.isEmpty) {
         currentLine = word;
       } else if ('$currentLine $word'.length <= maxChars) {
         currentLine = '$currentLine $word';
@@ -890,54 +946,87 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     'जर मालमत्ता अशा ठिकाणीून जप्त केली की कोणालाही पावती देण्याची आवश्यकता नसेल तर वाक्याचा हा भाग काढून टाकावा.',
   );
 
-  const valueKeys = [
-    'dist',
-    'ps',
-    'year',
-    'firNo',
-    'firYearSuffix',
-    'headerDate',
-    'actSections',
-    'natureProperty',
-    'accusedNameAddress',
-    'placeSeized',
-    'placeDescription',
-    'profReceiver',
-    'personName',
-    'personFather',
-    'personSex',
-    'personAge',
-    'personOccupation',
-    'personAddress',
-    'personAddressLine2',
-    'perishableDisposal',
-    'valuableKeeping',
-    'identificationRequired',
-    'propertyDetails',
-    'propertyDetailsAttach',
-    'circumstances',
-    'propertyPacked',
-    'seizeDate',
-    'seizeTimeFrom',
-    'seizeTimeTo',
-    'witness1Line1',
-    'witness1Line2',
-    'witness1Line3',
-    'witness1Sig',
-    'witness2Line1',
-    'witness2Line2',
-    'witness2Line3',
-    'witness2Sig',
-    'sealSampleDate',
-    'seizedPersonSig',
-    'ioName',
-    'ioRank',
-    'ioNo',
-    'ioPosting',
-  ];
-  for (final key in valueKeys) {
-    await addVal('val_$key', doc[key]?.toString());
+  Future<void> addSplitVal(
+    String key,
+    String? val,
+    int maxChars, {
+    double maxWidth = 500,
+  }) async {
+    final text = val?.trim() ?? '';
+    if (text.isEmpty) return;
+    if (containsDevanagari(text)) {
+      final lines = _splitTextIntoLines(text, maxChars);
+      if (lines.length <= 1) {
+        await cache.add(key, text, valueStyle, maxWidth: maxWidth);
+        await cache.add('${key}_0', text, valueStyle, maxWidth: maxWidth);
+      } else {
+        for (int i = 0; i < lines.length; i++) {
+          await cache.add(
+            '${key}_$i',
+            lines[i],
+            valueStyle,
+            maxWidth: maxWidth,
+          );
+        }
+      }
+    }
   }
+
+  await addSplitVal('val_dist', doc['dist']?.toString(), 35);
+  await addSplitVal('val_ps', doc['ps']?.toString(), 35);
+  await addVal('val_year', doc['year']?.toString());
+  await addVal('val_firNo', doc['firNo']?.toString());
+  await addVal('val_firYearSuffix', doc['firYearSuffix']?.toString());
+  await addVal('val_headerDate', doc['headerDate']?.toString());
+  await addSplitVal('val_actSections', doc['actSections']?.toString(), 50);
+  await addSplitVal(
+      'val_natureProperty', doc['natureProperty']?.toString(), 50);
+  await addSplitVal(
+      'val_accusedNameAddress', doc['accusedNameAddress']?.toString(), 50);
+  await addSplitVal('val_placeSeized', doc['placeSeized']?.toString(), 50);
+  await addSplitVal(
+      'val_placeDescription', doc['placeDescription']?.toString(), 50);
+  await addVal('val_profReceiver', doc['profReceiver']?.toString());
+  await addSplitVal('val_personName', doc['personName']?.toString(), 50);
+  await addSplitVal('val_personFather', doc['personFather']?.toString(), 50);
+  await addVal('val_personSex', doc['personSex']?.toString());
+  await addVal('val_personAge', doc['personAge']?.toString());
+  await addVal('val_personOccupation', doc['personOccupation']?.toString());
+  await addSplitVal(
+    'val_personAddress',
+    _joinNonEmpty([doc['personAddress'], doc['personAddressLine2']]),
+    50,
+  );
+  await addVal('val_personAddressLine2', doc['personAddressLine2']?.toString());
+  await addSplitVal(
+      'val_perishableDisposal', doc['perishableDisposal']?.toString(), 50);
+  await addSplitVal(
+      'val_valuableKeeping', doc['valuableKeeping']?.toString(), 50);
+  await addVal(
+      'val_identificationRequired', doc['identificationRequired']?.toString());
+  await addSplitVal(
+      'val_propertyDetails', doc['propertyDetails']?.toString(), 50);
+  await addSplitVal('val_propertyDetailsAttach',
+      doc['propertyDetailsAttach']?.toString(), 50);
+  await addSplitVal('val_circumstances', doc['circumstances']?.toString(), 50);
+  await addVal('val_propertyPacked', doc['propertyPacked']?.toString());
+  await addVal('val_seizeDate', doc['seizeDate']?.toString());
+  await addVal('val_seizeTimeFrom', doc['seizeTimeFrom']?.toString());
+  await addVal('val_seizeTimeTo', doc['seizeTimeTo']?.toString());
+  await addSplitVal('val_witness1Line1', doc['witness1Line1']?.toString(), 75);
+  await addSplitVal('val_witness1Line2', doc['witness1Line2']?.toString(), 75);
+  await addSplitVal('val_witness1Line3', doc['witness1Line3']?.toString(), 75);
+  await addSplitVal('val_witness1Sig', doc['witness1Sig']?.toString(), 40);
+  await addSplitVal('val_witness2Line1', doc['witness2Line1']?.toString(), 75);
+  await addSplitVal('val_witness2Line2', doc['witness2Line2']?.toString(), 75);
+  await addSplitVal('val_witness2Line3', doc['witness2Line3']?.toString(), 75);
+  await addSplitVal('val_witness2Sig', doc['witness2Sig']?.toString(), 40);
+  await addVal('val_sealSampleDate', doc['sealSampleDate']?.toString());
+  await addSplitVal('val_seizedPersonSig', doc['seizedPersonSig']?.toString(), 50);
+  await addSplitVal('val_ioName', doc['ioName']?.toString(), 50);
+  await addSplitVal('val_ioRank', doc['ioRank']?.toString(), 30);
+  await addSplitVal('val_ioNo', doc['ioNo']?.toString(), 30);
+  await addSplitVal('val_ioPosting', doc['ioPosting']?.toString(), 50);
 
   for (final entry in [
     ('nature', doc['natureProperty']?.toString() ?? ''),
@@ -973,4 +1062,11 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   }
 
   return cache;
+}
+
+String _joinNonEmpty(List<dynamic> parts) {
+  return parts
+      .map((part) => part?.toString().trim() ?? '')
+      .where((part) => part.isNotEmpty)
+      .join('\n');
 }

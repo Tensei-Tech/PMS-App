@@ -983,7 +983,18 @@ List<String> _splitTextIntoLines(String text, int maxCharsPerLine) {
       final words = raw.split(' ');
       var current = '';
       for (final word in words) {
-        if (current.isEmpty) {
+        if (word.length > maxCharsPerLine) {
+          if (current.isNotEmpty) {
+            result.add(current);
+            current = '';
+          }
+          var remaining = word;
+          while (remaining.length > maxCharsPerLine) {
+            result.add(remaining.substring(0, maxCharsPerLine));
+            remaining = remaining.substring(maxCharsPerLine);
+          }
+          current = remaining;
+        } else if (current.isEmpty) {
           current = word;
         } else if ((current.length + word.length + 1) <= maxCharsPerLine) {
           current += ' $word';

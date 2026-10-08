@@ -419,7 +419,7 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                           child: BilingualSimpleUnderlineInput(
                             controller: _p1DateDayCtrl,
                             serifStyle: serif,
-                            hintText: '.......',
+                            hintText: 'DD',
                           ),
                         ),
                         Text('/', style: serifBold),
@@ -428,7 +428,7 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                           child: BilingualSimpleUnderlineInput(
                             controller: _p1DateMonthCtrl,
                             serifStyle: serif,
-                            hintText: '.......',
+                            hintText: 'MM',
                           ),
                         ),
                         Text('/ २०', style: headerLabelStyle),
@@ -437,7 +437,7 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                           child: BilingualSimpleUnderlineInput(
                             controller: _p1DateYearCtrl,
                             serifStyle: serif,
-                            hintText: '...',
+                            hintText: 'YY',
                           ),
                         ),
                       ],
@@ -767,7 +767,7 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                           child: BilingualSimpleUnderlineInput(
                             controller: _p2DateDayCtrl,
                             serifStyle: serif,
-                            hintText: '.......',
+                            hintText: 'DD',
                           ),
                         ),
                         Text('/', style: serifBold),
@@ -776,7 +776,7 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                           child: BilingualSimpleUnderlineInput(
                             controller: _p2DateMonthCtrl,
                             serifStyle: serif,
-                            hintText: '.......',
+                            hintText: 'MM',
                           ),
                         ),
                         Text('/ २०', style: headerLabelStyle),
@@ -785,7 +785,7 @@ class BnssPanchNoticeFormViewState extends State<BnssPanchNoticeFormView> {
                           child: BilingualSimpleUnderlineInput(
                             controller: _p2DateYearCtrl,
                             serifStyle: serif,
-                            hintText: '...',
+                            hintText: 'YY',
                           ),
                         ),
                       ],

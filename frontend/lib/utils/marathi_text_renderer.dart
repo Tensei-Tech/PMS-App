@@ -88,13 +88,17 @@ class MarathiImageCache {
     TextAlign textAlign = TextAlign.left,
   }) async {
     if (text.trim().isEmpty) return;
-    _cache[key] = await renderTextToImage(
-      text,
-      style: style,
-      maxWidth: maxWidth,
-      pixelRatio: pixelRatio,
-      textAlign: textAlign,
-    );
+    try {
+      _cache[key] = await renderTextToImage(
+        text,
+        style: style,
+        maxWidth: maxWidth,
+        pixelRatio: pixelRatio,
+        textAlign: textAlign,
+      );
+    } catch (_) {
+      // In offline or headless test environments where fonts or canvases cannot render, fail gracefully.
+    }
   }
 
   /// Get a `pw.Image` widget for a pre-rendered text.

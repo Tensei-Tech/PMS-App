@@ -140,6 +140,7 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
                             child: BilingualSimpleUnderlineInput(
                               controller: _dateDayCtrl,
                               serifStyle: serifStyle,
+                              hintText: 'DD',
                             ),
                           ),
                           Text(' / ', style: serifStyle),
@@ -148,6 +149,7 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
                             child: BilingualSimpleUnderlineInput(
                               controller: _dateMonthCtrl,
                               serifStyle: serifStyle,
+                              hintText: 'MM',
                             ),
                           ),
                           Text(
@@ -159,6 +161,7 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
                             child: BilingualSimpleUnderlineInput(
                               controller: _dateYearCtrl,
                               serifStyle: serifStyle,
+                              hintText: 'YY',
                             ),
                           ),
                         ],

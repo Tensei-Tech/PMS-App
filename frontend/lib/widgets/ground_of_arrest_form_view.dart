@@ -420,6 +420,7 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
                           child: BilingualSimpleUnderlineInput(
                             controller: _dateDayCtrl,
                             serifStyle: serif,
+                            hintText: 'DD',
                           ),
                         ),
                         Text('/', style: serifBold),
@@ -428,6 +429,7 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
                           child: BilingualSimpleUnderlineInput(
                             controller: _dateMonthCtrl,
                             serifStyle: serif,
+                            hintText: 'MM',
                           ),
                         ),
                         Text('/२०', style: headerLabelStyle),
@@ -436,6 +438,7 @@ class GroundOfArrestFormViewState extends State<GroundOfArrestFormView> {
                           child: BilingualSimpleUnderlineInput(
                             controller: _dateYearCtrl,
                             serifStyle: serif,
+                            hintText: 'YY',
                           ),
                         ),
                       ],

@@ -473,75 +473,91 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
               const SizedBox(height: 32),
 
               // --- SECTION 1 ---
+              // Row 1: District and P.S.
               ResponsiveFieldRow(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    flex: 22,
                     child: BilingualField(
                       label: '1) District: ',
                       marathiLabel: 'जिल्हा',
                       controller: _districtCtrl,
                       serifStyle: serifStyle,
                       marathiLabelStyle: marathiLabelStyle,
+                      multiline: true,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 16),
                   Expanded(
-                    flex: 28,
                     child: BilingualField(
                       label: 'P.S.: ',
                       marathiLabel: 'पोलीस स्टेशन',
                       controller: _psCtrl,
                       serifStyle: serifStyle,
                       marathiLabelStyle: marathiLabelStyle,
+                      multiline: true,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // Row 2: Year, FIR No, Date
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Expanded(
-                    flex: 15,
+                    flex: 18,
                     child: BilingualField(
                       label: 'Year: ',
                       marathiLabel: 'वर्ष',
                       controller: _yearCtrl,
                       serifStyle: serifStyle,
                       marathiLabelStyle: marathiLabelStyle,
+                      multiline: true,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 16),
                   Expanded(
-                    flex: 22,
-                    child: ResponsiveFieldRow(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    flex: 32,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Expanded(
-                          child: BilingualField(
-                            label: 'FIR No: ',
-                            marathiLabel: 'पहिली खबर क्र.',
-                            controller: _firNoCtrl,
-                            serifStyle: serifStyle,
-                            marathiLabelStyle: marathiLabelStyle,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              top: 2.0, left: 2, right: 2),
-                          child: Text('/20', style: serifStyle),
-                        ),
-                        SizedBox(
-                          width: 35,
-                          child: BilingualSimpleUnderlineInput(
-                            controller: _firYearSuffixCtrl,
-                            serifStyle: serifStyle,
-                            hintText: 'YY',
-                          ),
+                        Text('FIR No: ', style: serifStyle),
+                        const SizedBox(height: 2),
+                        Text('पहिली खबर क्र.', style: marathiLabelStyle),
+                        const SizedBox(height: 4),
+                        ResponsiveFieldRow(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: BilingualDynamicLinedTextField(
+                                controller: _firNoCtrl,
+                                minLines: 1,
+                                serifStyle: serifStyle,
+                                marathiLabelStyle: marathiLabelStyle,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                  top: 2.0, left: 2, right: 2),
+                              child: Text('/20', style: serifStyle),
+                            ),
+                            SizedBox(
+                              width: 35,
+                              child: BilingualSimpleUnderlineInput(
+                                controller: _firYearSuffixCtrl,
+                                serifStyle: serifStyle,
+                                hintText: 'YY',
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 16),
                   Expanded(
-                    flex: 28,
+                    flex: 36,
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -612,31 +628,20 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                 ),
               ),
               const SizedBox(height: 12),
-              ResponsiveFieldRow(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 5,
-                    child: BilingualField(
-                      label: 'Name: ',
-                      marathiLabel: 'नांव',
-                      controller: _shownByNameCtrl,
-                      serifStyle: serifStyle,
-                      marathiLabelStyle: marathiLabelStyle,
-                    ),
-                  ),
-                  const SizedBox(width: 24),
-                  Expanded(
-                    flex: 5,
-                    child: BilingualField(
-                      label: 'Father\'s/ Husband\'s Name: ',
-                      marathiLabel: 'पित्याचे/ पतीचे नांव',
-                      controller: _shownByFatherHusbandCtrl,
-                      serifStyle: serifStyle,
-                      marathiLabelStyle: marathiLabelStyle,
-                    ),
-                  ),
-                ],
+              BilingualWideField(
+                label: 'Name: ',
+                marathiLabel: 'नांव',
+                controller: _shownByNameCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
+              ),
+              const SizedBox(height: 16),
+              BilingualWideField(
+                label: 'Father\'s/ Husband\'s Name: ',
+                marathiLabel: 'पित्याचे/ पतीचे नांव',
+                controller: _shownByFatherHusbandCtrl,
+                serifStyle: serifStyle,
+                marathiLabelStyle: marathiLabelStyle,
               ),
               const SizedBox(height: 16),
               BilingualWideField(
@@ -667,6 +672,7 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                       controller: _majorHeadCtrl,
                       serifStyle: serifStyle,
                       marathiLabelStyle: marathiLabelStyle,
+                      multiline: true,
                     ),
                   ),
                   const SizedBox(width: 24),
@@ -677,6 +683,7 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                       controller: _minorHeadCtrl,
                       serifStyle: serifStyle,
                       marathiLabelStyle: marathiLabelStyle,
+                      multiline: true,
                     ),
                   ),
                 ],
@@ -783,6 +790,7 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                       serifStyle: serifStyle,
                       marathiLabelStyle: marathiLabelStyle,
                       showMarathiLabel: false,
+                      multiline: true,
                     ),
                   ),
                   const SizedBox(width: 24),
@@ -794,6 +802,7 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                       serifStyle: serifStyle,
                       marathiLabelStyle: marathiLabelStyle,
                       showMarathiLabel: false,
+                      multiline: true,
                     ),
                   ),
                 ],
@@ -810,6 +819,7 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                       serifStyle: serifStyle,
                       marathiLabelStyle: marathiLabelStyle,
                       showMarathiLabel: false,
+                      multiline: true,
                     ),
                   ),
                   const SizedBox(width: 24),
@@ -821,6 +831,7 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                       serifStyle: serifStyle,
                       marathiLabelStyle: marathiLabelStyle,
                       showMarathiLabel: false,
+                      multiline: true,
                     ),
                   ),
                 ],

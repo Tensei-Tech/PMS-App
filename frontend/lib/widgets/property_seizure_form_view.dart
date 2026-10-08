@@ -325,33 +325,43 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
       _personSexCtrl.text = data['personSex']?.toString() ?? '';
       _personAgeCtrl.text = data['personAge']?.toString() ?? '';
       _personOccupationCtrl.text = data['personOccupation']?.toString() ?? '';
-      _personAddressCtrl.text = data['personAddress']?.toString() ?? '';
-      _personAddressLine2Ctrl.text =
-          data['personAddressLine2']?.toString() ?? '';
+      final pa1 = data['personAddress']?.toString() ?? '';
+      final pa2 = data['personAddressLine2']?.toString() ?? '';
+      _personAddressCtrl.text =
+          [pa1, pa2].where((s) => s.isNotEmpty).join('\n');
+      _personAddressLine2Ctrl.text = pa2;
       _w1NameCtrl.text = data['w1Name']?.toString() ?? '';
       _w1FatherCtrl.text = data['w1Father']?.toString() ?? '';
       _w1SexCtrl.text = data['w1Sex']?.toString() ?? '';
       _w1AgeCtrl.text = data['w1Age']?.toString() ?? '';
       _w1OccupationCtrl.text = data['w1Occupation']?.toString() ?? '';
-      _w1AddressCtrl.text = data['w1Address']?.toString() ?? '';
-      _w1AddressLine2Ctrl.text = data['w1AddressLine2']?.toString() ?? '';
+      final w1a1 = data['w1Address']?.toString() ?? '';
+      final w1a2 = data['w1AddressLine2']?.toString() ?? '';
+      _w1AddressCtrl.text =
+          [w1a1, w1a2].where((s) => s.isNotEmpty).join('\n');
+      _w1AddressLine2Ctrl.text = w1a2;
       _w2NameCtrl.text = data['w2Name']?.toString() ?? '';
       _w2FatherCtrl.text = data['w2Father']?.toString() ?? '';
       _w2SexCtrl.text = data['w2Sex']?.toString() ?? '';
       _w2AgeCtrl.text = data['w2Age']?.toString() ?? '';
       _w2OccupationCtrl.text = data['w2Occupation']?.toString() ?? '';
-      _w2AddressCtrl.text = data['w2Address']?.toString() ?? '';
-      _w2AddressLine2Ctrl.text = data['w2AddressLine2']?.toString() ?? '';
+      final w2a1 = data['w2Address']?.toString() ?? '';
+      final w2a2 = data['w2AddressLine2']?.toString() ?? '';
+      _w2AddressCtrl.text =
+          [w2a1, w2a2].where((s) => s.isNotEmpty).join('\n');
+      _w2AddressLine2Ctrl.text = w2a2;
       _perishableDisposalCtrl.text =
           data['perishableDisposal']?.toString() ?? '';
       _valuableKeepingCtrl.text = data['valuableKeeping']?.toString() ?? '';
       _identificationRequired =
           data['identificationRequired']?.toString() ?? 'नाही';
-      _circumstancesCtrl.text = data['circumstances']?.toString() ?? '';
-      _circumstancesLine2Ctrl.text =
-          data['circumstancesLine2']?.toString() ?? '';
-      _circumstancesLine3Ctrl.text =
-          data['circumstancesLine3']?.toString() ?? '';
+      final c1 = data['circumstances']?.toString() ?? '';
+      final c2 = data['circumstancesLine2']?.toString() ?? '';
+      final c3 = data['circumstancesLine3']?.toString() ?? '';
+      _circumstancesCtrl.text =
+          [c1, c2, c3].where((s) => s.isNotEmpty).join('\n');
+      _circumstancesLine2Ctrl.text = c2;
+      _circumstancesLine3Ctrl.text = c3;
       _pancha1NameCtrl.text = data['pancha1Name']?.toString() ?? '';
       _pancha1Addr1Ctrl.text = data['pancha1Addr1']?.toString() ?? '';
       _pancha1Addr2Ctrl.text = data['pancha1Addr2']?.toString() ?? '';
@@ -477,27 +487,52 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
               const SizedBox(height: 16),
 
               // --- SECTION 1 ---
+              // Row 1: District and P.S.
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text('१) *जिल्हा:', style: marathiStyle),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: BilingualDynamicLinedTextField(
+                            controller: _districtCtrl,
+                            minLines: 1,
+                            serifStyle: marathiStyle,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text('*पोलीस ठाणे:', style: marathiStyle),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: BilingualDynamicLinedTextField(
+                            controller: _psCtrl,
+                            minLines: 1,
+                            serifStyle: marathiStyle,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              // Row 2: Year, FIR No, Date
               Wrap(
                 crossAxisAlignment: WrapCrossAlignment.end,
                 spacing: 4,
                 runSpacing: 8,
                 children: [
-                  Text('१) *जिल्हा:', style: marathiStyle),
-                  SizedBox(
-                    width: 80,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _districtCtrl,
-                      serifStyle: marathiStyle,
-                    ),
-                  ),
-                  Text('*पोलीस ठाणे:', style: marathiStyle),
-                  SizedBox(
-                    width: 120,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _psCtrl,
-                      serifStyle: marathiStyle,
-                    ),
-                  ),
                   Text('वर्षे:', style: marathiStyle),
                   SizedBox(
                     width: 60,
@@ -506,6 +541,7 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                       serifStyle: marathiStyle,
                     ),
                   ),
+                  const SizedBox(width: 8),
                   Text('*पहिली खबर क/कार्यवाही', style: marathiStyle),
                   SizedBox(
                     width: 50,
@@ -516,18 +552,21 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                   ),
                   Text('/', style: marathiStyle),
                   SizedBox(
-                    width: 50,
+                    width: 35,
                     child: BilingualSimpleUnderlineInput(
                       controller: _firYearSuffixCtrl,
                       serifStyle: marathiStyle,
+                      hintText: 'YY',
                     ),
                   ),
+                  const SizedBox(width: 8),
                   Text('*दि', style: marathiStyle),
                   SizedBox(
                     width: 35,
                     child: BilingualSimpleUnderlineInput(
                       controller: _dateDayCtrl,
                       serifStyle: marathiStyle,
+                      hintText: 'DD',
                     ),
                   ),
                   Text('/', style: marathiStyle),
@@ -536,6 +575,7 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                     child: BilingualSimpleUnderlineInput(
                       controller: _dateMonthCtrl,
                       serifStyle: marathiStyle,
+                      hintText: 'MM',
                     ),
                   ),
                   Text('/२०', style: marathiStyle),
@@ -544,6 +584,7 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                     child: BilingualSimpleUnderlineInput(
                       controller: _dateYearCtrl,
                       serifStyle: marathiStyle,
+                      hintText: 'YY',
                     ),
                   ),
                 ],
@@ -552,12 +593,13 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
 
               // --- SECTION 2 ---
               ResponsiveFieldRow(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('२) अधिनियम व कलमे : ', style: marathiStyle),
                   Expanded(
-                    child: BilingualSimpleUnderlineInput(
+                    child: BilingualDynamicLinedTextField(
                       controller: _actSectionCtrl,
+                      minLines: 1,
                       serifStyle: marathiStyle,
                     ),
                   ),
@@ -585,6 +627,7 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                     child: BilingualSimpleUnderlineInput(
                       controller: _seizureDateDayCtrl,
                       serifStyle: marathiStyle,
+                      hintText: 'DD',
                     ),
                   ),
                   Text('/', style: marathiStyle),
@@ -593,6 +636,7 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                     child: BilingualSimpleUnderlineInput(
                       controller: _seizureDateMonthCtrl,
                       serifStyle: marathiStyle,
+                      hintText: 'MM',
                     ),
                   ),
                   Text('/२०', style: marathiStyle),
@@ -601,6 +645,7 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                     child: BilingualSimpleUnderlineInput(
                       controller: _seizureDateYearCtrl,
                       serifStyle: marathiStyle,
+                      hintText: 'YY',
                     ),
                   ),
                   Text('(ब) वेळ :', style: marathiStyle),
@@ -615,13 +660,14 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
               ),
               const SizedBox(height: 12),
               ResponsiveFieldRow(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('(क) जेथून जप्त केली/परत मिळवली ती जागा : ',
                       style: marathiStyle),
                   Expanded(
-                    child: BilingualSimpleUnderlineInput(
+                    child: BilingualDynamicLinedTextField(
                       controller: _seizurePlaceCtrl,
+                      minLines: 1,
                       serifStyle: marathiStyle,
                     ),
                   ),
@@ -629,13 +675,14 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
               ),
               const SizedBox(height: 12),
               ResponsiveFieldRow(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('(ड) जप्तीच्या/परत मिळवल्याची जागेचे वर्णन: ',
                       style: marathiStyle),
                   Expanded(
-                    child: BilingualSimpleUnderlineInput(
+                    child: BilingualDynamicLinedTextField(
                       controller: _seizurePlaceDescCtrl,
+                      minLines: 1,
                       serifStyle: marathiStyle,
                     ),
                   ),
@@ -645,12 +692,13 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
 
               // --- SECTION 5 ---
               ResponsiveFieldRow(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('५) कोणाकडून जप्त केली : ', style: marathiStyle),
                   Expanded(
-                    child: BilingualSimpleUnderlineInput(
+                    child: BilingualDynamicLinedTextField(
                       controller: _seizedFromCtrl,
+                      minLines: 1,
                       serifStyle: marathiStyle,
                     ),
                   ),
@@ -674,32 +722,28 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                 ],
               ),
               const SizedBox(height: 12),
-              Wrap(
-                crossAxisAlignment: WrapCrossAlignment.end,
-                spacing: 8,
-                runSpacing: 8,
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('नाव :', style: marathiStyle),
-                  SizedBox(
-                    width: 140,
-                    child: BilingualSimpleUnderlineInput(
+                  Text('नाव : ', style: marathiStyle),
+                  Expanded(
+                    child: BilingualDynamicLinedTextField(
                       controller: _personNameCtrl,
+                      minLines: 1,
                       serifStyle: marathiStyle,
                     ),
                   ),
-                  Text('पित्याचे/पतीचे नाव :', style: marathiStyle),
-                  SizedBox(
-                    width: 140,
-                    child: BilingualSimpleUnderlineInput(
+                ],
+              ),
+              const SizedBox(height: 12),
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('पित्याचे/पतीचे नाव : ', style: marathiStyle),
+                  Expanded(
+                    child: BilingualDynamicLinedTextField(
                       controller: _personFatherCtrl,
-                      serifStyle: marathiStyle,
-                    ),
-                  ),
-                  Text('लिंग :', style: marathiStyle),
-                  SizedBox(
-                    width: 80,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _personSexCtrl,
+                      minLines: 1,
                       serifStyle: marathiStyle,
                     ),
                   ),
@@ -711,6 +755,14 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
+                  Text('लिंग :', style: marathiStyle),
+                  SizedBox(
+                    width: 80,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _personSexCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
                   Text('वय :', style: marathiStyle),
                   SizedBox(
                     width: 60,
@@ -721,17 +773,23 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                   ),
                   Text('व्यवसाय :', style: marathiStyle),
                   SizedBox(
-                    width: 120,
+                    width: 140,
                     child: BilingualSimpleUnderlineInput(
                       controller: _personOccupationCtrl,
                       serifStyle: marathiStyle,
                     ),
                   ),
-                  Text('पत्ता :', style: marathiStyle),
-                  SizedBox(
-                    width: 200,
-                    child: BilingualSimpleUnderlineInput(
+                ],
+              ),
+              const SizedBox(height: 12),
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('पत्ता : ', style: marathiStyle),
+                  Expanded(
+                    child: BilingualDynamicLinedTextField(
                       controller: _personAddressCtrl,
+                      minLines: 1,
                       serifStyle: marathiStyle,
                     ),
                   ),
@@ -742,32 +800,28 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
               // --- SECTION 6 ---
               Text('६) साक्षीदार', style: marathiStyle),
               const SizedBox(height: 12),
-              Wrap(
-                crossAxisAlignment: WrapCrossAlignment.end,
-                spacing: 8,
-                runSpacing: 8,
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('(i) नाव :', style: marathiStyle),
-                  SizedBox(
-                    width: 140,
-                    child: BilingualSimpleUnderlineInput(
+                  Text('(i) नाव : ', style: marathiStyle),
+                  Expanded(
+                    child: BilingualDynamicLinedTextField(
                       controller: _w1NameCtrl,
+                      minLines: 1,
                       serifStyle: marathiStyle,
                     ),
                   ),
-                  Text('पित्याचे/पतीचे नाव :', style: marathiStyle),
-                  SizedBox(
-                    width: 140,
-                    child: BilingualSimpleUnderlineInput(
+                ],
+              ),
+              const SizedBox(height: 12),
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('पित्याचे/पतीचे नाव : ', style: marathiStyle),
+                  Expanded(
+                    child: BilingualDynamicLinedTextField(
                       controller: _w1FatherCtrl,
-                      serifStyle: marathiStyle,
-                    ),
-                  ),
-                  Text('लिंग :', style: marathiStyle),
-                  SizedBox(
-                    width: 80,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _w1SexCtrl,
+                      minLines: 1,
                       serifStyle: marathiStyle,
                     ),
                   ),
@@ -779,6 +833,14 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
+                  Text('लिंग :', style: marathiStyle),
+                  SizedBox(
+                    width: 80,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _w1SexCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
                   Text('वय :', style: marathiStyle),
                   SizedBox(
                     width: 60,
@@ -789,17 +851,23 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                   ),
                   Text('व्यवसाय :', style: marathiStyle),
                   SizedBox(
-                    width: 120,
+                    width: 140,
                     child: BilingualSimpleUnderlineInput(
                       controller: _w1OccupationCtrl,
                       serifStyle: marathiStyle,
                     ),
                   ),
-                  Text('पत्ता :', style: marathiStyle),
-                  SizedBox(
-                    width: 200,
-                    child: BilingualSimpleUnderlineInput(
+                ],
+              ),
+              const SizedBox(height: 12),
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('पत्ता : ', style: marathiStyle),
+                  Expanded(
+                    child: BilingualDynamicLinedTextField(
                       controller: _w1AddressCtrl,
+                      minLines: 1,
                       serifStyle: marathiStyle,
                     ),
                   ),
@@ -808,32 +876,28 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
               const SizedBox(height: 20),
 
               // --- WITNESS (ii) ---
-              Wrap(
-                crossAxisAlignment: WrapCrossAlignment.end,
-                spacing: 8,
-                runSpacing: 8,
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('(ii) नाव :', style: marathiStyle),
-                  SizedBox(
-                    width: 140,
-                    child: BilingualSimpleUnderlineInput(
+                  Text('(ii) नाव : ', style: marathiStyle),
+                  Expanded(
+                    child: BilingualDynamicLinedTextField(
                       controller: _w2NameCtrl,
+                      minLines: 1,
                       serifStyle: marathiStyle,
                     ),
                   ),
-                  Text('पित्याचे/पतीचे नाव :', style: marathiStyle),
-                  SizedBox(
-                    width: 140,
-                    child: BilingualSimpleUnderlineInput(
+                ],
+              ),
+              const SizedBox(height: 12),
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('पित्याचे/पतीचे नाव : ', style: marathiStyle),
+                  Expanded(
+                    child: BilingualDynamicLinedTextField(
                       controller: _w2FatherCtrl,
-                      serifStyle: marathiStyle,
-                    ),
-                  ),
-                  Text('लिंग :', style: marathiStyle),
-                  SizedBox(
-                    width: 80,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _w2SexCtrl,
+                      minLines: 1,
                       serifStyle: marathiStyle,
                     ),
                   ),
@@ -845,6 +909,14 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
+                  Text('लिंग :', style: marathiStyle),
+                  SizedBox(
+                    width: 80,
+                    child: BilingualSimpleUnderlineInput(
+                      controller: _w2SexCtrl,
+                      serifStyle: marathiStyle,
+                    ),
+                  ),
                   Text('वय :', style: marathiStyle),
                   SizedBox(
                     width: 60,
@@ -855,40 +927,42 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                   ),
                   Text('व्यवसाय :', style: marathiStyle),
                   SizedBox(
-                    width: 120,
+                    width: 140,
                     child: BilingualSimpleUnderlineInput(
                       controller: _w2OccupationCtrl,
                       serifStyle: marathiStyle,
                     ),
                   ),
-                  Text('पत्ता :', style: marathiStyle),
-                  SizedBox(
-                    width: 200,
-                    child: BilingualSimpleUnderlineInput(
+                ],
+              ),
+              const SizedBox(height: 12),
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('पत्ता : ', style: marathiStyle),
+                  Expanded(
+                    child: BilingualDynamicLinedTextField(
                       controller: _w2AddressCtrl,
+                      minLines: 1,
                       serifStyle: marathiStyle,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              BilingualSimpleUnderlineInput(
-                controller: _w2AddressLine2Ctrl,
-                serifStyle: marathiStyle,
-              ),
               const SizedBox(height: 20),
 
               // --- SECTION 7 ---
               ResponsiveFieldRow(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     '७) नाशवंत मालमत्तेच्या विल्हेवाटीसाठी केलेली शिफारस/केलेली कार्यवाही : ',
                     style: marathiStyle,
                   ),
                   Expanded(
-                    child: BilingualSimpleUnderlineInput(
+                    child: BilingualDynamicLinedTextField(
                       controller: _perishableDisposalCtrl,
+                      minLines: 1,
                       serifStyle: marathiStyle,
                     ),
                   ),
@@ -898,15 +972,16 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
 
               // --- SECTION 8 ---
               ResponsiveFieldRow(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     '८) मौल्यवान मालमत्ता ठेवण्यासाठी केलेली शिफारस/केलेली कार्यवाही : ',
                     style: marathiStyle,
                   ),
                   Expanded(
-                    child: BilingualSimpleUnderlineInput(
+                    child: BilingualDynamicLinedTextField(
                       controller: _valuableKeepingCtrl,
+                      minLines: 1,
                       serifStyle: marathiStyle,
                     ),
                   ),
@@ -940,8 +1015,8 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
               const SizedBox(height: 20),
 
               // --- SECTION 11 ---
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   RichText(
                     text: TextSpan(
@@ -960,22 +1035,13 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                     ),
                   ),
                   Expanded(
-                    child: BilingualSimpleUnderlineInput(
+                    child: BilingualDynamicLinedTextField(
                       controller: _circumstancesCtrl,
+                      minLines: 3,
                       serifStyle: marathiStyle,
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 8),
-              BilingualSimpleUnderlineInput(
-                controller: _circumstancesLine2Ctrl,
-                serifStyle: marathiStyle,
-              ),
-              const SizedBox(height: 8),
-              BilingualSimpleUnderlineInput(
-                controller: _circumstancesLine3Ctrl,
-                serifStyle: marathiStyle,
               ),
               const SizedBox(height: 16),
               FormMrwFooter(
@@ -1116,75 +1182,61 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                         Text('पंचाची नांवे :', style: marathiStyle),
                         const SizedBox(height: 8),
                         ResponsiveFieldRow(
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('(1) ', style: serifStyle),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2.0),
+                              child: Text('(1) ', style: serifStyle),
+                            ),
                             Expanded(
-                              child: BilingualSimpleUnderlineInput(
+                              child: BilingualDynamicLinedTextField(
                                 controller: _pancha1NameCtrl,
+                                minLines: 1,
                                 serifStyle: serifStyle,
+                                marathiLabelStyle: marathiStyle,
                               ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 8),
-                        ResponsiveFieldRow(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text('Full Address: ', style: serifStyle),
-                            Expanded(
-                              child: BilingualSimpleUnderlineInput(
-                                controller: _pancha1Addr1Ctrl,
-                                serifStyle: serifStyle,
-                              ),
-                            ),
-                          ],
-                        ),
+                        Text('Full Address: ', style: serifStyle),
+                        const SizedBox(height: 2),
                         Text('पत्ता', style: marathiStyle),
-                        BilingualSimpleUnderlineInput(
-                          controller: _pancha1Addr2Ctrl,
-                          serifStyle: serifStyle,
-                        ),
                         const SizedBox(height: 4),
-                        BilingualSimpleUnderlineInput(
-                          controller: _pancha1Addr3Ctrl,
+                        BilingualDynamicLinedTextField(
+                          controller: _pancha1Addr1Ctrl,
+                          minLines: 2,
                           serifStyle: serifStyle,
+                          marathiLabelStyle: marathiStyle,
                         ),
                         const SizedBox(height: 16),
                         ResponsiveFieldRow(
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('(2) ', style: serifStyle),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2.0),
+                              child: Text('(2) ', style: serifStyle),
+                            ),
                             Expanded(
-                              child: BilingualSimpleUnderlineInput(
+                              child: BilingualDynamicLinedTextField(
                                 controller: _pancha2NameCtrl,
+                                minLines: 1,
                                 serifStyle: serifStyle,
+                                marathiLabelStyle: marathiStyle,
                               ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 8),
-                        ResponsiveFieldRow(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text('Full Address: ', style: serifStyle),
-                            Expanded(
-                              child: BilingualSimpleUnderlineInput(
-                                controller: _pancha2Addr1Ctrl,
-                                serifStyle: serifStyle,
-                              ),
-                            ),
-                          ],
-                        ),
+                        Text('Full Address: ', style: serifStyle),
+                        const SizedBox(height: 2),
                         Text('पत्ता', style: marathiStyle),
-                        BilingualSimpleUnderlineInput(
-                          controller: _pancha2Addr2Ctrl,
-                          serifStyle: serifStyle,
-                        ),
                         const SizedBox(height: 4),
-                        BilingualSimpleUnderlineInput(
-                          controller: _pancha2Addr3Ctrl,
+                        BilingualDynamicLinedTextField(
+                          controller: _pancha2Addr1Ctrl,
+                          minLines: 2,
                           serifStyle: serifStyle,
+                          marathiLabelStyle: marathiStyle,
                         ),
                         const SizedBox(height: 24),
                         Row(
@@ -1192,26 +1244,29 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                           children: [
                             Text('Date: ', style: serifStyle),
                             SizedBox(
-                              width: 50,
+                              width: 35,
                               child: BilingualSimpleUnderlineInput(
                                 controller: _panchaDateDayCtrl,
                                 serifStyle: serifStyle,
+                                hintText: 'DD',
                               ),
                             ),
                             Text(' / ', style: serifStyle),
                             SizedBox(
-                              width: 50,
+                              width: 35,
                               child: BilingualSimpleUnderlineInput(
                                 controller: _panchaDateMonthCtrl,
                                 serifStyle: serifStyle,
+                                hintText: 'MM',
                               ),
                             ),
-                            Text(' / ', style: serifStyle),
+                            Text(' / 20', style: serifStyle),
                             SizedBox(
-                              width: 60,
+                              width: 35,
                               child: BilingualSimpleUnderlineInput(
                                 controller: _panchaDateYearCtrl,
                                 serifStyle: serifStyle,
+                                hintText: 'YY',
                               ),
                             ),
                           ],
@@ -1229,31 +1284,41 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                         Text('पंचाच्या सह्या :', style: marathiStyle),
                         const SizedBox(height: 8),
                         ResponsiveFieldRow(
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('1) ', style: serifStyle),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2.0),
+                              child: Text('1) ', style: serifStyle),
+                            ),
                             Expanded(
-                              child: BilingualSimpleUnderlineInput(
+                              child: BilingualDynamicLinedTextField(
                                 controller: _pancha1SigCtrl,
+                                minLines: 1,
                                 serifStyle: serifStyle,
+                                marathiLabelStyle: marathiStyle,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 40),
+                        const SizedBox(height: 24),
                         ResponsiveFieldRow(
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('2) ', style: serifStyle),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2.0),
+                              child: Text('2) ', style: serifStyle),
+                            ),
                             Expanded(
-                              child: BilingualSimpleUnderlineInput(
+                              child: BilingualDynamicLinedTextField(
                                 controller: _pancha2SigCtrl,
+                                minLines: 1,
                                 serifStyle: serifStyle,
+                                marathiLabelStyle: marathiStyle,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 48),
+                        const SizedBox(height: 32),
                         Text(
                           'Name and Signature of Investigation Officer',
                           style: serifStyle,
@@ -1264,13 +1329,18 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                         ),
                         const SizedBox(height: 8),
                         ResponsiveFieldRow(
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Name: ', style: serifStyle),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2.0),
+                              child: Text('Name: ', style: serifStyle),
+                            ),
                             Expanded(
-                              child: BilingualSimpleUnderlineInput(
+                              child: BilingualDynamicLinedTextField(
                                 controller: _ioNameCtrl,
+                                minLines: 1,
                                 serifStyle: serifStyle,
+                                marathiLabelStyle: marathiStyle,
                               ),
                             ),
                           ],
@@ -1281,21 +1351,31 @@ class PropertySeizureFormViewState extends State<PropertySeizureFormView> {
                         ),
                         const SizedBox(height: 8),
                         ResponsiveFieldRow(
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Rank: ', style: serifStyle),
-                            SizedBox(
-                              width: 80,
-                              child: BilingualSimpleUnderlineInput(
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2.0),
+                              child: Text('Rank: ', style: serifStyle),
+                            ),
+                            Expanded(
+                              child: BilingualDynamicLinedTextField(
                                 controller: _ioRankCtrl,
+                                minLines: 1,
                                 serifStyle: serifStyle,
+                                marathiLabelStyle: marathiStyle,
                               ),
                             ),
-                            Text(' B.No.if any: ', style: serifStyle),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.only(top: 2.0, left: 8.0),
+                              child: Text('B.No.if any: ', style: serifStyle),
+                            ),
                             Expanded(
-                              child: BilingualSimpleUnderlineInput(
+                              child: BilingualDynamicLinedTextField(
                                 controller: _ioBuckleNoCtrl,
+                                minLines: 1,
                                 serifStyle: serifStyle,
+                                marathiLabelStyle: marathiStyle,
                               ),
                             ),
                           ],

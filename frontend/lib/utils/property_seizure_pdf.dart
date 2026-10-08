@@ -106,40 +106,72 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
             pw.SizedBox(height: 12),
 
             // --- SECTION 1 ---
+            // Row 1: District and P.S.
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Expanded(
+                  child: pw.Row(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      _mLbl(cache, 'lbl_s1_district'),
+                      pw.SizedBox(width: 4),
+                      pw.Expanded(
+                        child: _buildPdfUnderlineField(
+                          valKey: 'val_district',
+                          fallbackValue: doc['district']?.toString() ?? '',
+                          valueStyle: valueStyle,
+                          cache: cache,
+                          expanded: true,
+                          maxCharsPerLine: 35,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                pw.SizedBox(width: 16),
+                pw.Expanded(
+                  child: pw.Row(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      _mLbl(cache, 'lbl_ps'),
+                      pw.SizedBox(width: 4),
+                      pw.Expanded(
+                        child: _buildPdfUnderlineField(
+                          valKey: 'val_ps',
+                          fallbackValue: doc['ps'] ?? '',
+                          valueStyle: valueStyle,
+                          cache: cache,
+                          expanded: true,
+                          maxCharsPerLine: 35,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 8),
+            // Row 2: Year, FIR No, Date
             pw.Wrap(
               spacing: 4,
               runSpacing: 6,
               crossAxisAlignment: pw.WrapCrossAlignment.end,
               children: [
-                _mLbl(cache, 'lbl_s1_district'),
-                _buildPdfUnderlineField(
-                  valKey: 'val_district',
-                  fallbackValue: doc['district']?.toString() ?? '',
-                  width: 50,
-                  valueStyle: valueStyle,
-                  cache: cache,
-                ),
-                _mLbl(cache, 'lbl_ps'),
-                _buildPdfUnderlineField(
-                  valKey: 'val_ps',
-                  fallbackValue: doc['ps'] ?? '',
-                  width: 70,
-                  valueStyle: valueStyle,
-                  cache: cache,
-                ),
                 _mLbl(cache, 'lbl_year'),
                 _buildPdfUnderlineField(
                   valKey: 'val_year',
                   fallbackValue: doc['year'] ?? '',
-                  width: 35,
+                  width: 50,
                   valueStyle: valueStyle,
                   cache: cache,
                 ),
+                pw.SizedBox(width: 8),
                 _mLbl(cache, 'lbl_fir'),
                 _buildPdfUnderlineField(
                   valKey: 'val_firNo',
                   fallbackValue: doc['firNo'] ?? '',
-                  width: 30,
+                  width: 40,
                   valueStyle: valueStyle,
                   cache: cache,
                 ),
@@ -147,15 +179,16 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
                 _buildPdfUnderlineField(
                   valKey: 'val_firYearSuffix',
                   fallbackValue: doc['firYearSuffix'] ?? '',
-                  width: 30,
+                  width: 40,
                   valueStyle: valueStyle,
                   cache: cache,
                 ),
+                pw.SizedBox(width: 8),
                 _mLbl(cache, 'lbl_di'),
                 _buildPdfUnderlineField(
                   valKey: 'val_dateDay',
                   fallbackValue: doc['dateDay'] ?? '',
-                  width: 18,
+                  width: 25,
                   valueStyle: valueStyle,
                   cache: cache,
                 ),
@@ -163,7 +196,7 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
                 _buildPdfUnderlineField(
                   valKey: 'val_dateMonth',
                   fallbackValue: doc['dateMonth'] ?? '',
-                  width: 18,
+                  width: 25,
                   valueStyle: valueStyle,
                   cache: cache,
                 ),
@@ -171,7 +204,7 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
                 _buildPdfUnderlineField(
                   valKey: 'val_dateYear',
                   fallbackValue: doc['dateYear'] ?? '',
-                  width: 18,
+                  width: 25,
                   valueStyle: valueStyle,
                   cache: cache,
                 ),
@@ -181,7 +214,7 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
 
             // --- SECTION 2 ---
             pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 _mLbl(cache, 'lbl_s2'),
                 pw.Expanded(
@@ -191,6 +224,8 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
                     valueStyle: valueStyle,
                     cache: cache,
                     expanded: true,
+                    minLines: 2,
+                    maxCharsPerLine: 50,
                   ),
                 ),
               ],
@@ -243,7 +278,7 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
             ),
             pw.SizedBox(height: 8),
             pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 _mLbl(cache, 'lbl_s4_place'),
                 pw.Expanded(
@@ -253,13 +288,15 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
                     valueStyle: valueStyle,
                     cache: cache,
                     expanded: true,
+                    minLines: 2,
+                    maxCharsPerLine: 50,
                   ),
                 ),
               ],
             ),
             pw.SizedBox(height: 8),
             pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 _mLbl(cache, 'lbl_s4_desc'),
                 pw.Expanded(
@@ -269,6 +306,8 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
                     valueStyle: valueStyle,
                     cache: cache,
                     expanded: true,
+                    minLines: 2,
+                    maxCharsPerLine: 50,
                   ),
                 ),
               ],
@@ -277,7 +316,7 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
 
             // --- SECTION 5 ---
             pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 _mLbl(cache, 'lbl_s5'),
                 pw.Expanded(
@@ -287,6 +326,8 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
                     valueStyle: valueStyle,
                     cache: cache,
                     expanded: true,
+                    minLines: 2,
+                    maxCharsPerLine: 50,
                   ),
                 ),
               ],
@@ -305,34 +346,40 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
               ],
             ),
             pw.SizedBox(height: 8),
-            pw.Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              crossAxisAlignment: pw.WrapCrossAlignment.end,
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 _mLbl(cache, 'lbl_nav'),
-                _buildPdfUnderlineField(
-                  valKey: 'val_personName',
-                  fallbackValue: doc['personName'] ?? '',
-                  width: 80,
-                  valueStyle: valueStyle,
-                  cache: cache,
+                pw.SizedBox(width: 4),
+                pw.Expanded(
+                  child: _buildPdfUnderlineField(
+                    valKey: 'val_personName',
+                    fallbackValue: doc['personName'] ?? '',
+                    valueStyle: valueStyle,
+                    cache: cache,
+                    expanded: true,
+                    minLines: 2,
+                    maxCharsPerLine: 50,
+                  ),
                 ),
+              ],
+            ),
+            pw.SizedBox(height: 8),
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
                 _mLbl(cache, 'lbl_father'),
-                _buildPdfUnderlineField(
-                  valKey: 'val_personFather',
-                  fallbackValue: doc['personFather'] ?? '',
-                  width: 80,
-                  valueStyle: valueStyle,
-                  cache: cache,
-                ),
-                _mLbl(cache, 'lbl_gender'),
-                _buildPdfUnderlineField(
-                  valKey: 'val_personSex',
-                  fallbackValue: doc['personSex'] ?? '',
-                  width: 40,
-                  valueStyle: valueStyle,
-                  cache: cache,
+                pw.SizedBox(width: 4),
+                pw.Expanded(
+                  child: _buildPdfUnderlineField(
+                    valKey: 'val_personFather',
+                    fallbackValue: doc['personFather'] ?? '',
+                    valueStyle: valueStyle,
+                    cache: cache,
+                    expanded: true,
+                    minLines: 2,
+                    maxCharsPerLine: 50,
+                  ),
                 ),
               ],
             ),
@@ -342,6 +389,14 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
               runSpacing: 6,
               crossAxisAlignment: pw.WrapCrossAlignment.end,
               children: [
+                _mLbl(cache, 'lbl_gender'),
+                _buildPdfUnderlineField(
+                  valKey: 'val_personSex',
+                  fallbackValue: doc['personSex'] ?? '',
+                  width: 40,
+                  valueStyle: valueStyle,
+                  cache: cache,
+                ),
                 _mLbl(cache, 'lbl_age'),
                 _buildPdfUnderlineField(
                   valKey: 'val_personAge',
@@ -354,17 +409,31 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
                 _buildPdfUnderlineField(
                   valKey: 'val_personOccupation',
                   fallbackValue: doc['personOccupation'] ?? '',
-                  width: 60,
+                  width: 100,
                   valueStyle: valueStyle,
                   cache: cache,
                 ),
+              ],
+            ),
+            pw.SizedBox(height: 8),
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
                 _mLbl(cache, 'lbl_address'),
-                _buildPdfUnderlineField(
-                  valKey: 'val_personAddress',
-                  fallbackValue: doc['personAddress'] ?? '',
-                  width: 120,
-                  valueStyle: valueStyle,
-                  cache: cache,
+                pw.SizedBox(width: 4),
+                pw.Expanded(
+                  child: _buildPdfUnderlineField(
+                    valKey: 'val_personAddress',
+                    fallbackValue: _joinNonEmpty([
+                      doc['personAddress'],
+                      doc['personAddressLine2'],
+                    ]),
+                    valueStyle: valueStyle,
+                    cache: cache,
+                    expanded: true,
+                    minLines: 2,
+                    maxCharsPerLine: 50,
+                  ),
                 ),
               ],
             ),
@@ -373,34 +442,40 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
             // --- SECTION 6 ---
             _mLbl(cache, 'lbl_s6'),
             pw.SizedBox(height: 8),
-            pw.Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              crossAxisAlignment: pw.WrapCrossAlignment.end,
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 _mLbl(cache, 'lbl_witness_i'),
-                _buildPdfUnderlineField(
-                  valKey: 'val_w1Name',
-                  fallbackValue: doc['w1Name'] ?? '',
-                  width: 80,
-                  valueStyle: valueStyle,
-                  cache: cache,
+                pw.SizedBox(width: 4),
+                pw.Expanded(
+                  child: _buildPdfUnderlineField(
+                    valKey: 'val_w1Name',
+                    fallbackValue: doc['w1Name'] ?? '',
+                    valueStyle: valueStyle,
+                    cache: cache,
+                    expanded: true,
+                    minLines: 2,
+                    maxCharsPerLine: 50,
+                  ),
                 ),
+              ],
+            ),
+            pw.SizedBox(height: 8),
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
                 _mLbl(cache, 'lbl_father'),
-                _buildPdfUnderlineField(
-                  valKey: 'val_w1Father',
-                  fallbackValue: doc['w1Father'] ?? '',
-                  width: 80,
-                  valueStyle: valueStyle,
-                  cache: cache,
-                ),
-                _mLbl(cache, 'lbl_gender'),
-                _buildPdfUnderlineField(
-                  valKey: 'val_w1Sex',
-                  fallbackValue: doc['w1Sex'] ?? '',
-                  width: 40,
-                  valueStyle: valueStyle,
-                  cache: cache,
+                pw.SizedBox(width: 4),
+                pw.Expanded(
+                  child: _buildPdfUnderlineField(
+                    valKey: 'val_w1Father',
+                    fallbackValue: doc['w1Father'] ?? '',
+                    valueStyle: valueStyle,
+                    cache: cache,
+                    expanded: true,
+                    minLines: 2,
+                    maxCharsPerLine: 50,
+                  ),
                 ),
               ],
             ),
@@ -410,6 +485,14 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
               runSpacing: 6,
               crossAxisAlignment: pw.WrapCrossAlignment.end,
               children: [
+                _mLbl(cache, 'lbl_gender'),
+                _buildPdfUnderlineField(
+                  valKey: 'val_w1Sex',
+                  fallbackValue: doc['w1Sex'] ?? '',
+                  width: 40,
+                  valueStyle: valueStyle,
+                  cache: cache,
+                ),
                 _mLbl(cache, 'lbl_age'),
                 _buildPdfUnderlineField(
                   valKey: 'val_w1Age',
@@ -422,51 +505,71 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
                 _buildPdfUnderlineField(
                   valKey: 'val_w1Occupation',
                   fallbackValue: doc['w1Occupation'] ?? '',
-                  width: 60,
+                  width: 100,
                   valueStyle: valueStyle,
                   cache: cache,
                 ),
+              ],
+            ),
+            pw.SizedBox(height: 8),
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
                 _mLbl(cache, 'lbl_address'),
-                _buildPdfUnderlineField(
-                  valKey: 'val_w1Address',
-                  fallbackValue: doc['w1Address'] ?? '',
-                  width: 120,
-                  valueStyle: valueStyle,
-                  cache: cache,
+                pw.SizedBox(width: 4),
+                pw.Expanded(
+                  child: _buildPdfUnderlineField(
+                    valKey: 'val_w1Address',
+                    fallbackValue: _joinNonEmpty([
+                      doc['w1Address'],
+                      doc['w1AddressLine2'],
+                    ]),
+                    valueStyle: valueStyle,
+                    cache: cache,
+                    expanded: true,
+                    minLines: 2,
+                    maxCharsPerLine: 50,
+                  ),
                 ),
               ],
             ),
             pw.SizedBox(height: 14),
 
             // --- WITNESS (ii) ---
-            pw.Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              crossAxisAlignment: pw.WrapCrossAlignment.end,
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 _mLbl(cache, 'lbl_witness_ii'),
-                _buildPdfUnderlineField(
-                  valKey: 'val_w2Name',
-                  fallbackValue: doc['w2Name'] ?? '',
-                  width: 80,
-                  valueStyle: valueStyle,
-                  cache: cache,
+                pw.SizedBox(width: 4),
+                pw.Expanded(
+                  child: _buildPdfUnderlineField(
+                    valKey: 'val_w2Name',
+                    fallbackValue: doc['w2Name'] ?? '',
+                    valueStyle: valueStyle,
+                    cache: cache,
+                    expanded: true,
+                    minLines: 2,
+                    maxCharsPerLine: 50,
+                  ),
                 ),
+              ],
+            ),
+            pw.SizedBox(height: 8),
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
                 _mLbl(cache, 'lbl_father'),
-                _buildPdfUnderlineField(
-                  valKey: 'val_w2Father',
-                  fallbackValue: doc['w2Father'] ?? '',
-                  width: 80,
-                  valueStyle: valueStyle,
-                  cache: cache,
-                ),
-                _mLbl(cache, 'lbl_gender'),
-                _buildPdfUnderlineField(
-                  valKey: 'val_w2Sex',
-                  fallbackValue: doc['w2Sex'] ?? '',
-                  width: 40,
-                  valueStyle: valueStyle,
-                  cache: cache,
+                pw.SizedBox(width: 4),
+                pw.Expanded(
+                  child: _buildPdfUnderlineField(
+                    valKey: 'val_w2Father',
+                    fallbackValue: doc['w2Father'] ?? '',
+                    valueStyle: valueStyle,
+                    cache: cache,
+                    expanded: true,
+                    minLines: 2,
+                    maxCharsPerLine: 50,
+                  ),
                 ),
               ],
             ),
@@ -476,6 +579,14 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
               runSpacing: 6,
               crossAxisAlignment: pw.WrapCrossAlignment.end,
               children: [
+                _mLbl(cache, 'lbl_gender'),
+                _buildPdfUnderlineField(
+                  valKey: 'val_w2Sex',
+                  fallbackValue: doc['w2Sex'] ?? '',
+                  width: 40,
+                  valueStyle: valueStyle,
+                  cache: cache,
+                ),
                 _mLbl(cache, 'lbl_age'),
                 _buildPdfUnderlineField(
                   valKey: 'val_w2Age',
@@ -488,33 +599,39 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
                 _buildPdfUnderlineField(
                   valKey: 'val_w2Occupation',
                   fallbackValue: doc['w2Occupation'] ?? '',
-                  width: 60,
-                  valueStyle: valueStyle,
-                  cache: cache,
-                ),
-                _mLbl(cache, 'lbl_address'),
-                _buildPdfUnderlineField(
-                  valKey: 'val_w2Address',
-                  fallbackValue: doc['w2Address'] ?? '',
-                  width: 120,
+                  width: 100,
                   valueStyle: valueStyle,
                   cache: cache,
                 ),
               ],
             ),
-            pw.SizedBox(height: 6),
-            _buildPdfUnderlineField(
-              valKey: 'val_w2AddressLine2',
-              fallbackValue: doc['w2AddressLine2'] ?? '',
-              valueStyle: valueStyle,
-              cache: cache,
-              expanded: true,
+            pw.SizedBox(height: 8),
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                _mLbl(cache, 'lbl_address'),
+                pw.SizedBox(width: 4),
+                pw.Expanded(
+                  child: _buildPdfUnderlineField(
+                    valKey: 'val_w2Address',
+                    fallbackValue: _joinNonEmpty([
+                      doc['w2Address'],
+                      doc['w2AddressLine2'],
+                    ]),
+                    valueStyle: valueStyle,
+                    cache: cache,
+                    expanded: true,
+                    minLines: 2,
+                    maxCharsPerLine: 50,
+                  ),
+                ),
+              ],
             ),
             pw.SizedBox(height: 12),
 
             // --- SECTION 7 ---
             pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 _mLbl(cache, 'lbl_s7'),
                 pw.Expanded(
@@ -524,6 +641,8 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
                     valueStyle: valueStyle,
                     cache: cache,
                     expanded: true,
+                    minLines: 2,
+                    maxCharsPerLine: 50,
                   ),
                 ),
               ],
@@ -532,7 +651,7 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
 
             // --- SECTION 8 ---
             pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 _mLbl(cache, 'lbl_s8'),
                 pw.Expanded(
@@ -542,6 +661,8 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
                     valueStyle: valueStyle,
                     cache: cache,
                     expanded: true,
+                    minLines: 2,
+                    maxCharsPerLine: 50,
                   ),
                 ),
               ],
@@ -570,35 +691,25 @@ Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {
 
             // --- SECTION 11 ---
             pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 _mLbl(cache, 'lbl_s11'),
                 pw.Expanded(
                   child: _buildPdfUnderlineField(
                     valKey: 'val_circumstances',
-                    fallbackValue: doc['circumstances'] ?? '',
+                    fallbackValue: _joinNonEmpty([
+                      doc['circumstances'],
+                      doc['circumstancesLine2'],
+                      doc['circumstancesLine3'],
+                    ]),
                     valueStyle: valueStyle,
                     cache: cache,
                     expanded: true,
+                    minLines: 3,
+                    maxCharsPerLine: 50,
                   ),
                 ),
               ],
-            ),
-            pw.SizedBox(height: 6),
-            _buildPdfUnderlineField(
-              valKey: 'val_circumstancesLine2',
-              fallbackValue: doc['circumstancesLine2'] ?? '',
-              valueStyle: valueStyle,
-              cache: cache,
-              expanded: true,
-            ),
-            pw.SizedBox(height: 6),
-            _buildPdfUnderlineField(
-              valKey: 'val_circumstancesLine3',
-              fallbackValue: doc['circumstancesLine3'] ?? '',
-              valueStyle: valueStyle,
-              cache: cache,
-              expanded: true,
             ),
             pw.SizedBox(height: 10),
           ],
@@ -832,10 +943,47 @@ pw.Widget _buildPdfUnderlineField({
   required MarathiImageCache cache,
   double? width,
   bool expanded = false,
+  int minLines = 1,
+  int maxCharsPerLine = 60,
 }) {
+  final cleanVal = fallbackValue.trim();
+  final lines = _splitTextIntoLines(cleanVal, maxCharsPerLine);
+  final totalLines = lines.length < minLines ? minLines : lines.length;
+
+  if (expanded || totalLines > 1) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        for (int i = 0; i < totalLines; i++) ...[
+          if (i > 0) pw.SizedBox(height: 3),
+          pw.Container(
+            width: double.infinity,
+            height: 14,
+            decoration: const pw.BoxDecoration(
+              border: pw.Border(
+                bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+              ),
+            ),
+            alignment: pw.Alignment.bottomLeft,
+            padding: const pw.EdgeInsets.only(left: 2, bottom: 1),
+            child: cache.has('${valKey}_line_$i')
+                ? cache.img('${valKey}_line_$i')
+                : (i == 0 && lines.length <= 1 && cache.has(valKey))
+                    ? cache.img(valKey)
+                    : pw.Text(
+                        i < lines.length ? lines[i] : '',
+                        style: valueStyle,
+                      ),
+          ),
+        ],
+      ],
+    );
+  }
+
   final hasValImg = cache.has(valKey);
-  final child = pw.Container(
-    width: expanded ? null : width,
+  return pw.Container(
+    width: width,
+    height: 14,
     decoration: const pw.BoxDecoration(
       border: pw.Border(
         bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
@@ -847,7 +995,6 @@ pw.Widget _buildPdfUnderlineField({
         ? cache.img(valKey)
         : pw.Text(fallbackValue, style: valueStyle),
   );
-  return expanded ? pw.SizedBox(width: double.infinity, child: child) : child;
 }
 
 pw.Widget _mLbl(MarathiImageCache cache, String key) {
@@ -961,7 +1108,18 @@ List<String> _splitTextIntoLines(String text, int maxChars) {
     final words = para.split(' ');
     var currentLine = '';
     for (final word in words) {
-      if (currentLine.isEmpty) {
+      if (word.length > maxChars) {
+        if (currentLine.isNotEmpty) {
+          result.add(currentLine);
+          currentLine = '';
+        }
+        var remaining = word;
+        while (remaining.length > maxChars) {
+          result.add(remaining.substring(0, maxChars));
+          remaining = remaining.substring(maxChars);
+        }
+        currentLine = remaining;
+      } else if (currentLine.isEmpty) {
         currentLine = word;
       } else if ('$currentLine $word'.length <= maxChars) {
         currentLine = '$currentLine $word';
@@ -979,8 +1137,8 @@ List<String> _splitTextIntoLines(String text, int maxChars) {
 
 Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   final cache = MarathiImageCache();
-
-  final headerStyle = GoogleFonts.notoSansDevanagari(
+  try {
+    final headerStyle = GoogleFonts.notoSansDevanagari(
     fontSize: 11,
     fontWeight: FontWeight.bold,
     color: Colors.black,
@@ -1026,6 +1184,32 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     final text = val?.trim() ?? '';
     if (containsDevanagari(text)) {
       await cache.add(key, text, valueStyle, maxWidth: maxWidth);
+    }
+  }
+
+  Future<void> addSplitVal(
+    String key,
+    String? val,
+    int maxChars, {
+    double maxWidth = 500,
+  }) async {
+    final text = val?.trim() ?? '';
+    if (text.isEmpty) return;
+    if (containsDevanagari(text)) {
+      final lines = _splitTextIntoLines(text, maxChars);
+      if (lines.length <= 1) {
+        await cache.add(key, text, valueStyle, maxWidth: maxWidth);
+        await cache.add('${key}_line_0', text, valueStyle, maxWidth: maxWidth);
+      } else {
+        for (int i = 0; i < lines.length; i++) {
+          await cache.add(
+            '${key}_line_$i',
+            lines[i],
+            valueStyle,
+            maxWidth: maxWidth,
+          );
+        }
+      }
     }
   }
 
@@ -1198,56 +1382,76 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   await addLbl('lbl_io_buckle', "B.No.if any:\nबक्कल नंबर :", boldLabelStyle);
 
   // Pre-render dynamic values
-  await addVal('val_district', doc['district']?.toString() ?? '');
-  await addVal('val_ps', doc['ps']);
-  await addVal('val_year', doc['year']);
-  await addVal('val_firNo', doc['firNo']);
-  await addVal('val_firYearSuffix', doc['firYearSuffix']);
-  await addVal('val_dateDay', doc['dateDay']);
-  await addVal('val_dateMonth', doc['dateMonth']);
-  await addVal('val_dateYear', doc['dateYear']);
-  await addVal('val_actSection', doc['actSection']);
-  await addVal('val_natureOfProperty', doc['natureOfProperty']);
-  await addVal('val_seizureDateDay', doc['seizureDateDay']);
-  await addVal('val_seizureDateMonth', doc['seizureDateMonth']);
-  await addVal('val_seizureDateYear', doc['seizureDateYear']);
-  await addVal('val_seizureTime', doc['seizureTime']);
-  await addVal('val_seizurePlace', doc['seizurePlace']);
-  await addVal('val_seizurePlaceDesc', doc['seizurePlaceDesc']);
-  await addVal('val_seizedFrom', doc['seizedFrom']);
+  await addSplitVal('val_district', doc['district']?.toString(), 35);
+  await addSplitVal('val_ps', doc['ps']?.toString(), 35);
+  await addVal('val_year', doc['year']?.toString());
+  await addVal('val_firNo', doc['firNo']?.toString());
+  await addVal('val_firYearSuffix', doc['firYearSuffix']?.toString());
+  await addVal('val_dateDay', doc['dateDay']?.toString());
+  await addVal('val_dateMonth', doc['dateMonth']?.toString());
+  await addVal('val_dateYear', doc['dateYear']?.toString());
+  await addSplitVal('val_actSection', doc['actSection']?.toString(), 50);
+  await addVal('val_natureOfProperty', doc['natureOfProperty']?.toString());
+  await addVal('val_seizureDateDay', doc['seizureDateDay']?.toString());
+  await addVal('val_seizureDateMonth', doc['seizureDateMonth']?.toString());
+  await addVal('val_seizureDateYear', doc['seizureDateYear']?.toString());
+  await addVal('val_seizureTime', doc['seizureTime']?.toString());
+  await addSplitVal('val_seizurePlace', doc['seizurePlace']?.toString(), 50);
+  await addSplitVal(
+      'val_seizurePlaceDesc', doc['seizurePlaceDesc']?.toString(), 50);
+  await addSplitVal('val_seizedFrom', doc['seizedFrom']?.toString(), 50);
   await addVal(
     'val_isProfessionalReceiver',
     (doc['isProfessionalReceiver'] ?? 'नाही').toString(),
   );
-  await addVal('val_personName', doc['personName']);
-  await addVal('val_personFather', doc['personFather']);
-  await addVal('val_personSex', doc['personSex']);
-  await addVal('val_personAge', doc['personAge']);
-  await addVal('val_personOccupation', doc['personOccupation']);
-  await addVal('val_personAddress', doc['personAddress']);
-  await addVal('val_w1Name', doc['w1Name']);
-  await addVal('val_w1Father', doc['w1Father']);
-  await addVal('val_w1Sex', doc['w1Sex']);
-  await addVal('val_w1Age', doc['w1Age']);
-  await addVal('val_w1Occupation', doc['w1Occupation']);
-  await addVal('val_w1Address', doc['w1Address']);
-  await addVal('val_w2Name', doc['w2Name']);
-  await addVal('val_w2Father', doc['w2Father']);
-  await addVal('val_w2Sex', doc['w2Sex']);
-  await addVal('val_w2Age', doc['w2Age']);
-  await addVal('val_w2Occupation', doc['w2Occupation']);
-  await addVal('val_w2Address', doc['w2Address']);
-  await addVal('val_w2AddressLine2', doc['w2AddressLine2']);
-  await addVal('val_perishableDisposal', doc['perishableDisposal']);
-  await addVal('val_valuableKeeping', doc['valuableKeeping']);
+  await addSplitVal('val_personName', doc['personName']?.toString(), 50);
+  await addSplitVal('val_personFather', doc['personFather']?.toString(), 50);
+  await addVal('val_personSex', doc['personSex']?.toString());
+  await addVal('val_personAge', doc['personAge']?.toString());
+  await addVal('val_personOccupation', doc['personOccupation']?.toString());
+  await addSplitVal(
+    'val_personAddress',
+    _joinNonEmpty([doc['personAddress'], doc['personAddressLine2']]),
+    50,
+  );
+  await addSplitVal('val_w1Name', doc['w1Name']?.toString(), 50);
+  await addSplitVal('val_w1Father', doc['w1Father']?.toString(), 50);
+  await addVal('val_w1Sex', doc['w1Sex']?.toString());
+  await addVal('val_w1Age', doc['w1Age']?.toString());
+  await addVal('val_w1Occupation', doc['w1Occupation']?.toString());
+  await addSplitVal(
+    'val_w1Address',
+    _joinNonEmpty([doc['w1Address'], doc['w1AddressLine2']]),
+    50,
+  );
+  await addSplitVal('val_w2Name', doc['w2Name']?.toString(), 50);
+  await addSplitVal('val_w2Father', doc['w2Father']?.toString(), 50);
+  await addVal('val_w2Sex', doc['w2Sex']?.toString());
+  await addVal('val_w2Age', doc['w2Age']?.toString());
+  await addVal('val_w2Occupation', doc['w2Occupation']?.toString());
+  await addSplitVal(
+    'val_w2Address',
+    _joinNonEmpty([doc['w2Address'], doc['w2AddressLine2']]),
+    50,
+  );
+  await addSplitVal(
+      'val_perishableDisposal', doc['perishableDisposal']?.toString(), 50);
+  await addSplitVal(
+      'val_valuableKeeping', doc['valuableKeeping']?.toString(), 50);
   await addVal(
     'val_identificationRequired',
     (doc['identificationRequired'] ?? 'नाही').toString(),
   );
-  await addVal('val_circumstances', doc['circumstances']);
-  await addVal('val_circumstancesLine2', doc['circumstancesLine2']);
-  await addVal('val_circumstancesLine3', doc['circumstancesLine3']);
-  await addVal('val_pancha1Name', doc['pancha1Name']?.toString());
+  await addSplitVal(
+    'val_circumstances',
+    _joinNonEmpty([
+      doc['circumstances'],
+      doc['circumstancesLine2'],
+      doc['circumstancesLine3'],
+    ]),
+    50,
+  );
+  await addLinedBlock('val_pancha1Name', doc['pancha1Name']?.toString(), 40);
   await addLinedBlock(
     'val_pancha1Address',
     _joinNonEmpty([
@@ -1257,7 +1461,7 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     ]),
     40,
   );
-  await addVal('val_pancha2Name', doc['pancha2Name']?.toString());
+  await addLinedBlock('val_pancha2Name', doc['pancha2Name']?.toString(), 40);
   await addLinedBlock(
     'val_pancha2Address',
     _joinNonEmpty([
@@ -1267,8 +1471,8 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     ]),
     40,
   );
-  await addVal('val_pancha1Sig', doc['pancha1Sig']?.toString());
-  await addVal('val_pancha2Sig', doc['pancha2Sig']?.toString());
+  await addLinedBlock('val_pancha1Sig', doc['pancha1Sig']?.toString(), 40);
+  await addLinedBlock('val_pancha2Sig', doc['pancha2Sig']?.toString(), 40);
   await addVal(
     'val_panchaDate',
     _formatSlashDate(
@@ -1277,10 +1481,10 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
       doc['panchaDateYear'],
     ),
   );
-  await addVal('val_ioName', doc['ioName']?.toString());
-  await addVal('val_ioRank', doc['ioRank']?.toString());
-  await addVal('val_ioBuckleNo', doc['ioBuckleNo']?.toString());
-  await addVal('val_ioPosting', doc['ioPosting']?.toString());
+  await addLinedBlock('val_ioName', doc['ioName']?.toString(), 40);
+  await addLinedBlock('val_ioRank', doc['ioRank']?.toString(), 40);
+  await addLinedBlock('val_ioBuckleNo', doc['ioBuckleNo']?.toString(), 40);
+  await addLinedBlock('val_ioPosting', doc['ioPosting']?.toString(), 40);
 
   // Table rows
   final props = doc['properties'];
@@ -1326,6 +1530,7 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
       }
     }
   }
+  } catch (_) {}
 
   return cache;
 }

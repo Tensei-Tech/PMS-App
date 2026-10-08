@@ -218,12 +218,12 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
             ),
             pw.SizedBox(height: 12),
 
-            // --- SECTION 1 (Row 1 - District, P.S., Year, FIR No, Date) ---
+            // --- SECTION 1 ---
+            // Row 1: District and P.S.
             pw.Row(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 pw.Expanded(
-                  flex: 22,
                   child: _buildPdfInlineField(
                     label: '1) District: ',
                     marathiLabelKey: 'lbl_district',
@@ -233,11 +233,11 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                     marathiStyle: marathiStyle,
                     valueStyle: valueStyle,
                     cache: cache,
+                    maxCharsPerLine: 45,
                   ),
                 ),
-                pw.SizedBox(width: 8),
+                pw.SizedBox(width: 16),
                 pw.Expanded(
-                  flex: 28,
                   child: _buildPdfInlineField(
                     label: 'P.S.: ',
                     marathiLabelKey: 'lbl_ps',
@@ -247,11 +247,18 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                     marathiStyle: marathiStyle,
                     valueStyle: valueStyle,
                     cache: cache,
+                    maxCharsPerLine: 45,
                   ),
                 ),
-                pw.SizedBox(width: 8),
+              ],
+            ),
+            pw.SizedBox(height: 8),
+            // Row 2: Year, FIR No, Date
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
                 pw.Expanded(
-                  flex: 15,
+                  flex: 20,
                   child: _buildPdfInlineField(
                     label: 'Year: ',
                     marathiLabelKey: 'lbl_year',
@@ -261,19 +268,59 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                     marathiStyle: marathiStyle,
                     valueStyle: valueStyle,
                     cache: cache,
+                    maxCharsPerLine: 15,
                   ),
                 ),
-                pw.SizedBox(width: 8),
+                pw.SizedBox(width: 16),
                 pw.Expanded(
-                  flex: 22,
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Row(
-                        children: [
-                          pw.Text('FIR No: ', style: englishStyle),
-                          pw.Expanded(
-                            child: pw.Container(
+                  flex: 38,
+                  child: () {
+                    final firVal = (doc['firNo'] ?? '').toString().trim();
+                    final firLines = _splitTextIntoLines(firVal, 15);
+                    final totalFirLines =
+                        firLines.isEmpty ? 1 : firLines.length;
+                    return pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text('FIR No: ', style: englishStyle),
+                        if (cache.has('lbl_fir_no'))
+                          cache.img('lbl_fir_no')
+                        else
+                          pw.Text('पहिली खबर क्र.', style: marathiStyle),
+                        pw.SizedBox(height: 3),
+                        pw.Row(
+                          crossAxisAlignment: pw.CrossAxisAlignment.end,
+                          children: [
+                            pw.Expanded(
+                              child: pw.Container(
+                                height: 14,
+                                decoration: const pw.BoxDecoration(
+                                  border: pw.Border(
+                                    bottom: pw.BorderSide(
+                                      color: PdfColors.black,
+                                      width: 0.8,
+                                    ),
+                                  ),
+                                ),
+                                alignment: pw.Alignment.bottomLeft,
+                                padding:
+                                    const pw.EdgeInsets.only(left: 2, bottom: 1),
+                                child: cache.has('val_firNo_line_0')
+                                    ? cache.img('val_firNo_line_0')
+                                    : (cache.has('val_firNo')
+                                        ? cache.img('val_firNo')
+                                        : pw.Text(
+                                            firLines.isNotEmpty
+                                                ? firLines[0]
+                                                : (doc['firNo'] ?? ''),
+                                            style: valueStyle,
+                                          )),
+                              ),
+                            ),
+                            pw.Text('/20', style: englishStyle),
+                            pw.Container(
+                              width: 15,
+                              height: 14,
                               decoration: const pw.BoxDecoration(
                                 border: pw.Border(
                                   bottom: pw.BorderSide(
@@ -283,17 +330,21 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                                 ),
                               ),
                               alignment: pw.Alignment.bottomCenter,
-                              child: cache.has('val_firNo')
-                                  ? cache.img('val_firNo')
+                              padding: const pw.EdgeInsets.only(bottom: 1),
+                              child: cache.has('val_firYearSuffix')
+                                  ? cache.img('val_firYearSuffix')
                                   : pw.Text(
-                                      doc['firNo'] ?? '',
+                                      doc['firYearSuffix'] ?? '',
                                       style: valueStyle,
                                     ),
                             ),
-                          ),
-                          pw.Text('/20', style: englishStyle),
+                          ],
+                        ),
+                        for (int i = 1; i < totalFirLines; i++) ...[
+                          pw.SizedBox(height: 3),
                           pw.Container(
-                            width: 15,
+                            width: double.infinity,
+                            height: 14,
                             decoration: const pw.BoxDecoration(
                               border: pw.Border(
                                 bottom: pw.BorderSide(
@@ -302,37 +353,39 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                                 ),
                               ),
                             ),
-                            alignment: pw.Alignment.bottomCenter,
-                            child: cache.has('val_firYearSuffix')
-                                ? cache.img('val_firYearSuffix')
+                            alignment: pw.Alignment.bottomLeft,
+                            padding:
+                                const pw.EdgeInsets.only(left: 2, bottom: 1),
+                            child: cache.has('val_firNo_line_$i')
+                                ? cache.img('val_firNo_line_$i')
                                 : pw.Text(
-                                    doc['firYearSuffix'] ?? '',
+                                    i < firLines.length ? firLines[i] : '',
                                     style: valueStyle,
                                   ),
                           ),
                         ],
-                      ),
-                      pw.SizedBox(height: 2),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.only(left: 4.0),
-                        child: cache.has('lbl_fir_no')
-                            ? cache.img('lbl_fir_no')
-                            : pw.Text('पहिली खबर क्र.', style: marathiStyle),
-                      ),
-                    ],
-                  ),
+                      ],
+                    );
+                  }(),
                 ),
-                pw.SizedBox(width: 8),
+                pw.SizedBox(width: 16),
                 pw.Expanded(
-                  flex: 28,
+                  flex: 42,
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
+                      pw.Text('Date : ', style: englishStyle),
+                      if (cache.has('lbl_date'))
+                        cache.img('lbl_date')
+                      else
+                        pw.Text('तारीख', style: marathiStyle),
+                      pw.SizedBox(height: 3),
                       pw.Row(
+                        crossAxisAlignment: pw.CrossAxisAlignment.end,
                         children: [
-                          pw.Text('Date : ', style: englishStyle),
                           pw.Container(
-                            width: 18,
+                            width: 22,
+                            height: 14,
                             decoration: const pw.BoxDecoration(
                               border: pw.Border(
                                 bottom: pw.BorderSide(
@@ -342,6 +395,7 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                               ),
                             ),
                             alignment: pw.Alignment.bottomCenter,
+                            padding: const pw.EdgeInsets.only(bottom: 1),
                             child: cache.has('val_dateDay')
                                 ? cache.img('val_dateDay')
                                 : pw.Text(
@@ -351,7 +405,8 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                           ),
                           pw.Text('/', style: englishStyle),
                           pw.Container(
-                            width: 18,
+                            width: 22,
+                            height: 14,
                             decoration: const pw.BoxDecoration(
                               border: pw.Border(
                                 bottom: pw.BorderSide(
@@ -361,6 +416,7 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                               ),
                             ),
                             alignment: pw.Alignment.bottomCenter,
+                            padding: const pw.EdgeInsets.only(bottom: 1),
                             child: cache.has('val_dateMonth')
                                 ? cache.img('val_dateMonth')
                                 : pw.Text(
@@ -370,7 +426,8 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                           ),
                           pw.Text('/20', style: englishStyle),
                           pw.Container(
-                            width: 18,
+                            width: 22,
+                            height: 14,
                             decoration: const pw.BoxDecoration(
                               border: pw.Border(
                                 bottom: pw.BorderSide(
@@ -380,6 +437,7 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                               ),
                             ),
                             alignment: pw.Alignment.bottomCenter,
+                            padding: const pw.EdgeInsets.only(bottom: 1),
                             child: cache.has('val_dateYear')
                                 ? cache.img('val_dateYear')
                                 : pw.Text(
@@ -388,13 +446,6 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                                   ),
                           ),
                         ],
-                      ),
-                      pw.SizedBox(height: 2),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.only(left: 4.0),
-                        child: cache.has('lbl_date')
-                            ? cache.img('lbl_date')
-                            : pw.Text('तारीख', style: marathiStyle),
                       ),
                     ],
                   ),
@@ -433,35 +484,28 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                 ),
               ),
             pw.SizedBox(height: 4),
-            pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Expanded(
-                  child: _buildPdfInlineField(
-                    label: 'Name: ',
-                    marathiLabelKey: 'lbl_name',
-                    valKey: 'val_shownByName',
-                    fallbackValue: doc['shownByName'] ?? '',
-                    englishStyle: englishStyle,
-                    marathiStyle: marathiStyle,
-                    valueStyle: valueStyle,
-                    cache: cache,
-                  ),
-                ),
-                pw.SizedBox(width: 20),
-                pw.Expanded(
-                  child: _buildPdfInlineField(
-                    label: 'Father\'s/ Husband\'s Name: ',
-                    marathiLabelKey: 'lbl_father_husband',
-                    valKey: 'val_shownByFatherHusband',
-                    fallbackValue: doc['shownByFatherHusband'] ?? '',
-                    englishStyle: englishStyle,
-                    marathiStyle: marathiStyle,
-                    valueStyle: valueStyle,
-                    cache: cache,
-                  ),
-                ),
-              ],
+            _buildPdfWideField(
+              label: 'Name: ',
+              marathiLabelKey: 'lbl_name',
+              valKey: 'val_shownByName',
+              fallbackValue: doc['shownByName'] ?? '',
+              englishStyle: englishStyle,
+              marathiStyle: marathiStyle,
+              valueStyle: valueStyle,
+              cache: cache,
+              maxCharsPerLine: 85,
+            ),
+            pw.SizedBox(height: 6),
+            _buildPdfWideField(
+              label: 'Father\'s/ Husband\'s Name: ',
+              marathiLabelKey: 'lbl_father_husband',
+              valKey: 'val_shownByFatherHusband',
+              fallbackValue: doc['shownByFatherHusband'] ?? '',
+              englishStyle: englishStyle,
+              marathiStyle: marathiStyle,
+              valueStyle: valueStyle,
+              cache: cache,
+              maxCharsPerLine: 85,
             ),
             pw.SizedBox(height: 6),
             _buildPdfWideField(
@@ -646,6 +690,7 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
             ),
             pw.SizedBox(height: 4),
             pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 pw.Expanded(
                   child: _buildPdfInlineField(
@@ -658,6 +703,7 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                     valueStyle: valueStyle,
                     cache: cache,
                     showMarathiLabel: false,
+                    maxCharsPerLine: 35,
                   ),
                 ),
                 pw.SizedBox(width: 20),
@@ -672,12 +718,14 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                     valueStyle: valueStyle,
                     cache: cache,
                     showMarathiLabel: false,
+                    maxCharsPerLine: 35,
                   ),
                 ),
               ],
             ),
             pw.SizedBox(height: 4),
             pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 pw.Expanded(
                   child: _buildPdfInlineField(
@@ -690,6 +738,7 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                     valueStyle: valueStyle,
                     cache: cache,
                     showMarathiLabel: false,
+                    maxCharsPerLine: 35,
                   ),
                 ),
                 pw.SizedBox(width: 20),
@@ -704,6 +753,7 @@ Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {
                     valueStyle: valueStyle,
                     cache: cache,
                     showMarathiLabel: false,
+                    maxCharsPerLine: 35,
                   ),
                 ),
               ],
@@ -1420,6 +1470,99 @@ pw.Widget _buildPdfValueCell(
   );
 }
 
+List<String> _splitTextIntoLines(String text, int maxChars) {
+  if (text.isEmpty) return [];
+  final paragraphs = text.split('\n');
+  final result = <String>[];
+
+  for (final para in paragraphs) {
+    if (para.isEmpty) {
+      result.add('');
+      continue;
+    }
+    final words = para.split(' ');
+    var currentLine = '';
+    for (final word in words) {
+      if (word.length > maxChars) {
+        if (currentLine.isNotEmpty) {
+          result.add(currentLine);
+          currentLine = '';
+        }
+        var remaining = word;
+        while (remaining.length > maxChars) {
+          result.add(remaining.substring(0, maxChars));
+          remaining = remaining.substring(maxChars);
+        }
+        currentLine = remaining;
+      } else if (currentLine.isEmpty) {
+        currentLine = word;
+      } else if ('$currentLine $word'.length <= maxChars) {
+        currentLine = '$currentLine $word';
+      } else {
+        result.add(currentLine);
+        currentLine = word;
+      }
+    }
+    if (currentLine.isNotEmpty) {
+      result.add(currentLine);
+    }
+  }
+  return result;
+}
+
+List<String> _splitTextForField(
+  String text,
+  int line0Chars,
+  int subsequentChars,
+) {
+  if (text.isEmpty) return [];
+  final paragraphs = text.split('\n');
+  final result = <String>[];
+  bool isFirstLine = true;
+
+  for (final para in paragraphs) {
+    if (para.isEmpty) {
+      result.add('');
+      isFirstLine = false;
+      continue;
+    }
+    final words = para.split(' ');
+    var currentLine = '';
+    for (final word in words) {
+      final maxChars = isFirstLine ? line0Chars : subsequentChars;
+      if (word.length > maxChars) {
+        if (currentLine.isNotEmpty) {
+          result.add(currentLine);
+          isFirstLine = false;
+          currentLine = '';
+        }
+        var remaining = word;
+        while (
+            remaining.length > (isFirstLine ? line0Chars : subsequentChars)) {
+          final curLimit = isFirstLine ? line0Chars : subsequentChars;
+          result.add(remaining.substring(0, curLimit));
+          isFirstLine = false;
+          remaining = remaining.substring(curLimit);
+        }
+        currentLine = remaining;
+      } else if (currentLine.isEmpty) {
+        currentLine = word;
+      } else if ('$currentLine $word'.length <= maxChars) {
+        currentLine = '$currentLine $word';
+      } else {
+        result.add(currentLine);
+        isFirstLine = false;
+        currentLine = word;
+      }
+    }
+    if (currentLine.isNotEmpty) {
+      result.add(currentLine);
+      isFirstLine = false;
+    }
+  }
+  return result;
+}
+
 pw.Widget _buildPdfInlineField({
   required String label,
   required String marathiLabelKey,
@@ -1430,37 +1573,120 @@ pw.Widget _buildPdfInlineField({
   required pw.TextStyle valueStyle,
   required MarathiImageCache cache,
   bool showMarathiLabel = true,
+  int minLines = 1,
+  int maxCharsPerLine = 35,
 }) {
-  final hasValImg = cache.has(valKey);
-  return pw.Column(
-    crossAxisAlignment: pw.CrossAxisAlignment.start,
-    children: [
-      pw.Row(
+  final cleanVal = fallbackValue.trim();
+  final lines = _splitTextIntoLines(cleanVal, maxCharsPerLine);
+  final totalLines = lines.length < minLines ? minLines : lines.length;
+
+  if (!showMarathiLabel || marathiLabelKey.isEmpty) {
+    if (totalLines <= 1) {
+      return pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.end,
         children: [
-          pw.Text(label, style: englishStyle),
+          if (label.isNotEmpty) pw.Text(label, style: englishStyle),
+          pw.SizedBox(width: 4),
           pw.Expanded(
             child: pw.Container(
+              height: 14,
               decoration: const pw.BoxDecoration(
                 border: pw.Border(
                   bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
                 ),
               ),
               alignment: pw.Alignment.bottomLeft,
-              padding: const pw.EdgeInsets.only(left: 2),
-              child: hasValImg
+              padding: const pw.EdgeInsets.only(left: 2, bottom: 1),
+              child: cache.has(valKey)
                   ? cache.img(valKey)
                   : pw.Text(fallbackValue, style: valueStyle),
             ),
           ),
         ],
-      ),
-      if (showMarathiLabel &&
-          marathiLabelKey.isNotEmpty &&
-          cache.has(marathiLabelKey)) ...[
-        pw.SizedBox(height: 2),
-        pw.Padding(
-          padding: const pw.EdgeInsets.only(left: 4.0),
-          child: cache.img(marathiLabelKey),
+      );
+    } else {
+      return pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
+            children: [
+              if (label.isNotEmpty) pw.Text(label, style: englishStyle),
+              pw.SizedBox(width: 4),
+              pw.Expanded(
+                child: pw.Container(
+                  height: 14,
+                  decoration: const pw.BoxDecoration(
+                    border: pw.Border(
+                      bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+                    ),
+                  ),
+                  alignment: pw.Alignment.bottomLeft,
+                  padding: const pw.EdgeInsets.only(left: 2, bottom: 1),
+                  child: cache.has('${valKey}_line_0')
+                      ? cache.img('${valKey}_line_0')
+                      : (cache.has(valKey)
+                          ? cache.img(valKey)
+                          : pw.Text(lines.isNotEmpty ? lines[0] : '',
+                              style: valueStyle)),
+                ),
+              ),
+            ],
+          ),
+          for (int i = 1; i < totalLines; i++) ...[
+            pw.SizedBox(height: 3),
+            pw.Container(
+              width: double.infinity,
+              height: 14,
+              decoration: const pw.BoxDecoration(
+                border: pw.Border(
+                  bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+                ),
+              ),
+              alignment: pw.Alignment.bottomLeft,
+              padding: const pw.EdgeInsets.only(left: 2, bottom: 1),
+              child: cache.has('${valKey}_line_$i')
+                  ? cache.img('${valKey}_line_$i')
+                  : pw.Text(
+                      i < lines.length ? lines[i] : '',
+                      style: valueStyle,
+                    ),
+            ),
+          ],
+        ],
+      );
+    }
+  }
+
+  return pw.Column(
+    crossAxisAlignment: pw.CrossAxisAlignment.start,
+    children: [
+      if (label.isNotEmpty) pw.Text(label, style: englishStyle),
+      if (cache.has(marathiLabelKey)) ...[
+        pw.SizedBox(height: 1),
+        cache.img(marathiLabelKey),
+      ],
+      pw.SizedBox(height: 3),
+      for (int i = 0; i < totalLines; i++) ...[
+        if (i > 0) pw.SizedBox(height: 3),
+        pw.Container(
+          width: double.infinity,
+          height: 14,
+          decoration: const pw.BoxDecoration(
+            border: pw.Border(
+              bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+            ),
+          ),
+          alignment: pw.Alignment.bottomLeft,
+          padding: const pw.EdgeInsets.only(left: 2, bottom: 1),
+          child: cache.has('${valKey}_line_$i')
+              ? cache.img('${valKey}_line_$i')
+              : (i == 0 && lines.length <= 1 && cache.has(valKey))
+                  ? cache.img(valKey)
+                  : pw.Text(
+                      i < lines.length ? lines[i] : '',
+                      style: valueStyle,
+                    ),
         ),
       ],
     ],
@@ -1476,36 +1702,44 @@ pw.Widget _buildPdfWideField({
   required pw.TextStyle marathiStyle,
   required pw.TextStyle valueStyle,
   required MarathiImageCache cache,
+  int minLines = 2,
+  int maxCharsPerLine = 60,
 }) {
-  final hasValImg = cache.has(valKey);
+  final cleanVal = fallbackValue.trim();
+  final lines = _splitTextIntoLines(cleanVal, maxCharsPerLine);
+  final totalLines = lines.length < minLines ? minLines : lines.length;
+
   return pw.Column(
     crossAxisAlignment: pw.CrossAxisAlignment.start,
     children: [
-      pw.Row(
-        children: [
-          pw.Text(label, style: englishStyle),
-          pw.Expanded(
-            child: pw.Container(
-              decoration: const pw.BoxDecoration(
-                border: pw.Border(
-                  bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
-                ),
-              ),
-              alignment: pw.Alignment.bottomLeft,
-              padding: const pw.EdgeInsets.only(left: 2),
-              child: hasValImg
-                  ? cache.img(valKey)
-                  : pw.Text(fallbackValue, style: valueStyle),
+      if (label.isNotEmpty) pw.Text(label, style: englishStyle),
+      if (marathiLabelKey.isNotEmpty && cache.has(marathiLabelKey)) ...[
+        pw.SizedBox(height: 1),
+        cache.img(marathiLabelKey),
+      ],
+      pw.SizedBox(height: 3),
+      for (int i = 0; i < totalLines; i++) ...[
+        if (i > 0) pw.SizedBox(height: 3),
+        pw.Container(
+          width: double.infinity,
+          height: 14,
+          decoration: const pw.BoxDecoration(
+            border: pw.Border(
+              bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
             ),
           ),
-        ],
-      ),
-      pw.SizedBox(height: 2),
-      if (marathiLabelKey.isNotEmpty && cache.has(marathiLabelKey))
-        pw.Padding(
-          padding: const pw.EdgeInsets.only(left: 4.0),
-          child: cache.img(marathiLabelKey),
+          alignment: pw.Alignment.bottomLeft,
+          padding: const pw.EdgeInsets.only(left: 2, bottom: 1),
+          child: cache.has('${valKey}_line_$i')
+              ? cache.img('${valKey}_line_$i')
+              : (i == 0 && lines.length <= 1 && cache.has(valKey))
+                  ? cache.img(valKey)
+                  : pw.Text(
+                      i < lines.length ? lines[i] : '',
+                      style: valueStyle,
+                    ),
         ),
+      ],
     ],
   );
 }
@@ -1518,32 +1752,34 @@ pw.Widget _buildPdfLinedField({
   required pw.TextStyle style,
   required pw.Font font,
   required MarathiImageCache cache,
+  int maxCharsPerLine = 40,
 }) {
-  final lines = _splitTextIntoLines(fallbackValue, 40);
+  final cleanVal = fallbackValue.trim();
+  final lines = _splitTextIntoLines(cleanVal, maxCharsPerLine);
   final total = lines.length < linesCount ? linesCount : lines.length;
 
   return pw.Column(
     crossAxisAlignment: pw.CrossAxisAlignment.start,
     children: [
-      // Render label parts (skip if empty)
       if (labelKey.isNotEmpty && cache.has(labelKey)) ...[cache.img(labelKey)],
       pw.SizedBox(height: 3),
-      // Render underlined value lines
       for (var i = 0; i < total; i++) ...[
         if (i > 0) pw.SizedBox(height: 4),
         pw.Container(
           width: double.infinity,
-          height: 16,
+          height: 14,
           decoration: const pw.BoxDecoration(
             border: pw.Border(
               bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
             ),
           ),
           alignment: pw.Alignment.bottomLeft,
-          padding: const pw.EdgeInsets.only(left: 4, bottom: 2),
+          padding: const pw.EdgeInsets.only(left: 4, bottom: 1),
           child: cache.has('${valKeyPrefix}_line_$i')
               ? cache.img('${valKeyPrefix}_line_$i')
-              : pw.Text(i < lines.length ? lines[i] : '', style: style),
+              : (i == 0 && lines.length <= 1 && cache.has(valKeyPrefix))
+                  ? cache.img(valKeyPrefix)
+                  : pw.Text(i < lines.length ? lines[i] : '', style: style),
         ),
       ],
     ],
@@ -1557,25 +1793,59 @@ pw.Widget _buildNumberedMethodPdfField({
   required pw.Font devanagariRegular,
   required pw.TextStyle valueStyle,
   required MarathiImageCache cache,
+  int line0MaxChars = 70,
+  int subsequentMaxChars = 80,
 }) {
-  return pw.Row(
+  final cleanVal = fallbackValue.trim();
+  final lines = _splitTextForField(cleanVal, line0MaxChars, subsequentMaxChars);
+  final line0 = lines.isNotEmpty ? lines[0] : '';
+  final hasMultipleLines = lines.length > 1;
+
+  return pw.Column(
+    crossAxisAlignment: pw.CrossAxisAlignment.start,
     children: [
-      if (cache.has(numberKey)) cache.img(numberKey),
-      pw.SizedBox(width: 4),
-      pw.Expanded(
-        child: pw.Container(
-          decoration: const pw.BoxDecoration(
-            border: pw.Border(
-              bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+      pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.end,
+        children: [
+          if (cache.has(numberKey)) cache.img(numberKey),
+          pw.SizedBox(width: 4),
+          pw.Expanded(
+            child: pw.Container(
+              height: 14,
+              decoration: const pw.BoxDecoration(
+                border: pw.Border(
+                  bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+                ),
+              ),
+              alignment: pw.Alignment.bottomLeft,
+              padding: const pw.EdgeInsets.only(left: 2, bottom: 1),
+              child: cache.has('${valKey}_line_0')
+                  ? cache.img('${valKey}_line_0')
+                  : (!hasMultipleLines && cache.has(valKey))
+                      ? cache.img(valKey)
+                      : pw.Text(line0, style: valueStyle),
             ),
           ),
-          alignment: pw.Alignment.bottomLeft,
-          padding: const pw.EdgeInsets.only(left: 2),
-          child: cache.has(valKey)
-              ? cache.img(valKey)
-              : pw.Text(fallbackValue, style: valueStyle),
-        ),
+        ],
       ),
+      if (hasMultipleLines)
+        for (int i = 1; i < lines.length; i++) ...[
+          pw.SizedBox(height: 3),
+          pw.Container(
+            width: double.infinity,
+            height: 14,
+            decoration: const pw.BoxDecoration(
+              border: pw.Border(
+                bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+              ),
+            ),
+            alignment: pw.Alignment.bottomLeft,
+            padding: const pw.EdgeInsets.only(left: 2, bottom: 1),
+            child: cache.has('${valKey}_line_$i')
+                ? cache.img('${valKey}_line_$i')
+                : pw.Text(lines[i], style: valueStyle),
+          ),
+        ],
     ],
   );
 }
@@ -1614,77 +1884,71 @@ List<pw.Widget> _buildPdfLinedBlock(
   });
 }
 
-List<String> _splitTextIntoLines(String text, int maxChars) {
-  if (text.isEmpty) return [];
-  final paragraphs = text.split('\n');
-  final result = <String>[];
-
-  for (final para in paragraphs) {
-    if (para.isEmpty) {
-      result.add('');
-      continue;
-    }
-    final words = para.split(' ');
-    var currentLine = '';
-    for (final word in words) {
-      if (currentLine.isEmpty) {
-        currentLine = word;
-      } else if ('$currentLine $word'.length <= maxChars) {
-        currentLine = '$currentLine $word';
-      } else {
-        result.add(currentLine);
-        currentLine = word;
-      }
-    }
-    if (currentLine.isNotEmpty) {
-      result.add(currentLine);
-    }
-  }
-  return result;
-}
 
 Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   final cache = MarathiImageCache(pixelRatio: 3.0);
 
+  TextStyle safeGoogleFont({
+    required double fontSize,
+    FontWeight fontWeight = FontWeight.normal,
+    Color color = Colors.black,
+  }) {
+    try {
+      return GoogleFonts.notoSansDevanagari(
+        fontSize: fontSize,
+        fontWeight: fontWeight,
+        color: color,
+      );
+    } catch (_) {
+      return TextStyle(
+        fontSize: fontSize,
+        fontWeight: fontWeight,
+        color: color,
+      );
+    }
+  }
+
   // Setup styles using GoogleFonts for high-quality Devanagari text rendering
-  final headerStyle = GoogleFonts.notoSansDevanagari(
+  final headerStyle = safeGoogleFont(
     fontSize: 12,
     fontWeight: FontWeight.bold,
     color: Colors.black,
   );
 
-  final boldLabelStyle = GoogleFonts.notoSansDevanagari(
+  final boldLabelStyle = safeGoogleFont(
     fontSize: 10,
     fontWeight: FontWeight.bold,
     color: Colors.black,
   );
 
-  final marathiLabelStyle = GoogleFonts.notoSansDevanagari(
+  final marathiLabelStyle = safeGoogleFont(
     fontSize: 8.5,
     fontWeight: FontWeight.bold,
     color: Colors.black,
   );
 
-  final valueStyle = GoogleFonts.notoSansDevanagari(
+  final valueStyle = safeGoogleFont(
     fontSize: 10,
     fontWeight: FontWeight.bold,
     color: Colors.blue.shade900,
   );
 
-  final tableHeaderStyle = GoogleFonts.notoSansDevanagari(
+  final tableHeaderStyle = safeGoogleFont(
     fontSize: 7.5,
     fontWeight: FontWeight.bold,
     color: Colors.black,
   );
 
-  final victimValueStyle = GoogleFonts.notoSansDevanagari(
+  final victimValueStyle = safeGoogleFont(
     fontSize: 8,
     fontWeight: FontWeight.bold,
     color: Colors.blue.shade900,
   );
 
   // Ensure fonts are ready
-  await GoogleFonts.pendingFonts();
+  try {
+    await GoogleFonts.pendingFonts();
+  } catch (_) {}
 
   // Helper to add label
   Future<void> addLbl(
@@ -1701,6 +1965,60 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     final text = val?.trim() ?? '';
     if (containsDevanagari(text)) {
       await cache.add(key, text, valueStyle, maxWidth: maxWidth);
+    }
+  }
+
+  // Helper to add split values for multiline fields
+  Future<void> addSplitVal(
+    String key,
+    String? val,
+    int maxChars, {
+    double maxWidth = 500,
+  }) async {
+    final text = val?.trim() ?? '';
+    if (text.isEmpty) return;
+    if (containsDevanagari(text)) {
+      final lines = _splitTextIntoLines(text, maxChars);
+      if (lines.length <= 1) {
+        await cache.add(key, text, valueStyle, maxWidth: maxWidth);
+        await cache.add('${key}_line_0', text, valueStyle, maxWidth: maxWidth);
+      } else {
+        for (int i = 0; i < lines.length; i++) {
+          await cache.add(
+            '${key}_line_$i',
+            lines[i],
+            valueStyle,
+            maxWidth: maxWidth,
+          );
+        }
+      }
+    }
+  }
+
+  // Helper to add split values for simple/inline multiline fields
+  Future<void> addSimpleSplitVal(
+    String key,
+    String? val,
+    int maxChars, {
+    double maxWidth = 500,
+  }) async {
+    final text = val?.trim() ?? '';
+    if (text.isEmpty) return;
+    if (containsDevanagari(text)) {
+      final lines = _splitTextIntoLines(text, maxChars);
+      if (lines.length <= 1) {
+        await cache.add(key, text, valueStyle, maxWidth: maxWidth);
+        await cache.add('${key}_line_0', text, valueStyle, maxWidth: maxWidth);
+      } else {
+        for (int i = 0; i < lines.length; i++) {
+          await cache.add(
+            '${key}_line_$i',
+            lines[i],
+            valueStyle,
+            maxWidth: maxWidth,
+          );
+        }
+      }
     }
   }
 
@@ -1909,46 +2227,48 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   await addLbl('lbl_io_buckle', "B.No. if any\nबक्कल नंबर", boldLabelStyle);
 
   // Pre-render dynamic user values
-  await addVal('val_district', doc['district']?.toString());
-  await addVal('val_ps', doc['ps']?.toString());
-  await addVal('val_year', doc['year']?.toString());
-  await addVal('val_firNo', doc['firNo']?.toString());
+  await addSimpleSplitVal('val_district', doc['district']?.toString(), 35);
+  await addSimpleSplitVal('val_ps', doc['ps']?.toString(), 35);
+  await addSimpleSplitVal('val_year', doc['year']?.toString(), 15);
+  await addSimpleSplitVal('val_firNo', doc['firNo']?.toString(), 15);
   await addVal('val_firYearSuffix', doc['firYearSuffix']?.toString());
   await addVal('val_dateDay', doc['dateDay']?.toString());
   await addVal('val_dateMonth', doc['dateMonth']?.toString());
   await addVal('val_dateYear', doc['dateYear']?.toString());
-  await addVal('val_actSection', doc['actSection']?.toString());
+  await addSplitVal('val_actSection', doc['actSection']?.toString(), 60);
 
-  await addVal('val_shownByName', doc['shownByName']?.toString());
-  await addVal(
+  await addSplitVal('val_shownByName', doc['shownByName']?.toString(), 60);
+  await addSplitVal(
     'val_shownByFatherHusband',
     doc['shownByFatherHusband']?.toString(),
+    60,
   );
-  await addVal('val_shownByAddress', doc['shownByAddress']?.toString());
+  await addSplitVal('val_shownByAddress', doc['shownByAddress']?.toString(), 60);
 
-  await addVal('val_typeOfCrime', doc['typeOfCrime']?.toString());
-  await addVal('val_majorHead', doc['majorHead']?.toString());
-  await addVal('val_minorHead', doc['minorHead']?.toString());
-  await addVal('val_method', doc['method']?.toString());
-  await addVal('val_method1', doc['method1']?.toString());
-  await addVal('val_method2', doc['method2']?.toString());
-  await addVal('val_method3', doc['method3']?.toString());
+  await addSplitVal('val_typeOfCrime', doc['typeOfCrime']?.toString(), 60);
+  await addSimpleSplitVal('val_majorHead', doc['majorHead']?.toString(), 35);
+  await addSimpleSplitVal('val_minorHead', doc['minorHead']?.toString(), 35);
+  await addSplitVal('val_method', doc['method']?.toString(), 60);
+  await addSplitVal('val_method1', doc['method1']?.toString(), 60);
+  await addSplitVal('val_method2', doc['method2']?.toString(), 60);
+  await addSplitVal('val_method3', doc['method3']?.toString(), 60);
 
-  await addVal('val_conveyances', doc['conveyances']?.toString());
-  await addVal('val_characterAssumed', doc['characterAssumed']?.toString());
-  await addVal('val_languageSlang', doc['languageSlang']?.toString());
-  await addVal('val_specialFeature1', doc['specialFeature1']?.toString());
-  await addVal('val_specialFeature2', doc['specialFeature2']?.toString());
-  await addVal('val_specialFeature3', doc['specialFeature3']?.toString());
-  await addVal(
+  await addSplitVal('val_conveyances', doc['conveyances']?.toString(), 60);
+  await addSplitVal('val_characterAssumed', doc['characterAssumed']?.toString(), 60);
+  await addSplitVal('val_languageSlang', doc['languageSlang']?.toString(), 60);
+  await addSplitVal('val_specialFeature1', doc['specialFeature1']?.toString(), 60);
+  await addSplitVal('val_specialFeature2', doc['specialFeature2']?.toString(), 60);
+  await addSplitVal('val_specialFeature3', doc['specialFeature3']?.toString(), 60);
+  await addSplitVal(
     'val_placeOfOccurrenceType',
     doc['placeOfOccurrenceType']?.toString(),
+    60,
   );
-  await addVal('val_propertyInvolved', doc['propertyInvolved']?.toString());
-  await addVal('val_propertyType1', doc['propertyType1']?.toString());
-  await addVal('val_propertyType2', doc['propertyType2']?.toString());
-  await addVal('val_propertyType3', doc['propertyType3']?.toString());
-  await addVal('val_propertyType4', doc['propertyType4']?.toString());
+  await addSplitVal('val_propertyInvolved', doc['propertyInvolved']?.toString(), 60);
+  await addSimpleSplitVal('val_propertyType1', doc['propertyType1']?.toString(), 35);
+  await addSimpleSplitVal('val_propertyType2', doc['propertyType2']?.toString(), 35);
+  await addSimpleSplitVal('val_propertyType3', doc['propertyType3']?.toString(), 35);
+  await addSimpleSplitVal('val_propertyType4', doc['propertyType4']?.toString(), 35);
   await addVal('val_motiveOfCrime', doc['motiveOfCrime']?.toString());
 
   // Lined blocks
@@ -2009,9 +2329,9 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   // Signature section values
   await addVal('val_panchnamaDate', doc['panchnamaDate']?.toString());
   await addVal('val_pancha1Name', doc['pancha1Name']?.toString());
-  await addVal('val_pancha1Address', doc['pancha1Address']?.toString());
+  await addSimpleSplitVal('val_pancha1Address', doc['pancha1Address']?.toString(), 40);
   await addVal('val_pancha2Name', doc['pancha2Name']?.toString());
-  await addVal('val_pancha2Address', doc['pancha2Address']?.toString());
+  await addSimpleSplitVal('val_pancha2Address', doc['pancha2Address']?.toString(), 40);
   await addVal('val_panchnamaFormDate', doc['panchnamaFormDate']?.toString());
   await addVal('val_panchnamaTime', doc['panchnamaTime']?.toString());
   await addVal('val_pancha1Sig', doc['pancha1Sig']?.toString());

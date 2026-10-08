@@ -341,7 +341,7 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
                           child: BilingualSimpleUnderlineInput(
                             controller: _dateDayCtrl,
                             serifStyle: serif,
-                            hintText: '.......',
+                            hintText: 'DD',
                           ),
                         ),
                         Text('/', style: serifBold),
@@ -350,7 +350,7 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
                           child: BilingualSimpleUnderlineInput(
                             controller: _dateMonthCtrl,
                             serifStyle: serif,
-                            hintText: '........',
+                            hintText: 'MM',
                           ),
                         ),
                         Text('/ २०', style: headerLabelStyle),
@@ -359,7 +359,7 @@ class NoticeToAccusedFormViewState extends State<NoticeToAccusedFormView> {
                           child: BilingualSimpleUnderlineInput(
                             controller: _dateYearCtrl,
                             serifStyle: serif,
-                            hintText: '....',
+                            hintText: 'YY',
                           ),
                         ),
                       ],
