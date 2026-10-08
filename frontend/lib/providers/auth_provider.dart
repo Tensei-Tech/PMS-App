@@ -605,16 +605,21 @@ class AuthProvider extends ChangeNotifier {
       final sanitizedEmail = email.trim().toLowerCase();
       final sanitizedPin = pin.trim();
 
-      final response = await http
-          .post(
-            Uri.parse(ApiConfig.authLogin),
-            headers: {'Content-Type': 'application/json'},
-            body: json.encode({
-              'email': sanitizedEmail,
-              'password': sanitizedPin,
-            }),
-          )
-          .timeout(const Duration(seconds: 25));
+      http.Response response;
+      try {
+        response = await http
+            .post(
+              Uri.parse(ApiConfig.authLogin),
+              headers: {'Content-Type': 'application/json'},
+              body: json.encode({
+                'email': sanitizedEmail,
+                'password': sanitizedPin,
+              }),
+            )
+            .timeout(const Duration(seconds: 25));
+      } catch (err) {
+        rethrow;
+      }
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);

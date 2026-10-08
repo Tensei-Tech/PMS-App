@@ -2,38 +2,34 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'form_image_pdf_helper.dart';
 import 'marathi_text_renderer.dart';
+import 'pdf_font_cache.dart';
 
 Future<void> previewMobileSealLabelPdf(
   BuildContext context,
   Map<String, dynamic> doc,
 ) async {
-  final bytes = await generateMobileSealLabelPdf(doc);
-  if (!context.mounted) return;
   final fileName =
       'Mobile_Seal_Label_${DateTime.now().millisecondsSinceEpoch}.pdf';
-  try {
-    if (kIsWeb) {
-      await Printing.sharePdf(bytes: bytes, filename: fileName);
-    } else {
-      await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
-    }
-  } catch (_) {
-    await Printing.sharePdf(bytes: bytes, filename: fileName);
-  }
+  await FormImagePdfHelper.previewImageBasedPdf(
+    context,
+    fileName: fileName,
+    pages: [_buildPgWidget(doc)],
+    fallbackPdfGenerator: () => generateMobileSealLabelPdf(doc),
+  );
 }
 
 Future<Uint8List> generateMobileSealLabelPdf(Map<String, dynamic> doc) async {
   final pdf = pw.Document();
-  final loraBold = await PdfGoogleFonts.loraBold();
+  final loraBold = await PdfFontCache.loraBold();
   final cache = await _preRenderAllMarathi(doc);
 
   final pw.TextStyle valueStyle = pw.TextStyle(
     font: loraBold,
-    fontSize: 8.5,
-    color: PdfColors.blue900,
+    fontSize: 10.0,
+    color: PdfColors.black,
   );
 
   pw.Widget renderText(String key, String? val, pw.TextStyle engStyle) {
@@ -61,7 +57,7 @@ Future<Uint8List> generateMobileSealLabelPdf(Map<String, dynamic> doc) async {
       {pw.Alignment alignment = pw.Alignment.centerLeft}) {
     return pw.Container(
       alignment: alignment,
-      padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+      padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 4.5),
       child: renderText(valKey, value, valueStyle),
     );
   }
@@ -70,7 +66,7 @@ Future<Uint8List> generateMobileSealLabelPdf(Map<String, dynamic> doc) async {
     return pw.TableRow(
       children: [
         pw.Padding(
-          padding: const pw.EdgeInsets.all(4),
+          padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 4.5),
           child: mLbl(labelKey),
         ),
         tableCell(valKey, val(valKey, value)),
@@ -82,12 +78,25 @@ Future<Uint8List> generateMobileSealLabelPdf(Map<String, dynamic> doc) async {
     return pw.TableRow(
       children: [
         pw.Padding(
-          padding: const pw.EdgeInsets.symmetric(horizontal: 3, vertical: 2.5),
+          padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 3.5),
           child: mLbl(labelKey),
         ),
         tableCell(valKey, val(valKey, value)),
       ],
     );
+  }
+
+  String ps = doc['policeStation']?.toString().trim() ?? '';
+  String dist = doc['district']?.toString().trim() ?? '';
+  if (ps.isEmpty && dist.isEmpty) {
+    final psDist = doc['psDistrict']?.toString().trim() ?? '';
+    if (psDist.contains(',')) {
+      final parts = psDist.split(',');
+      ps = parts[0].trim();
+      dist = parts.sublist(1).join(',').trim();
+    } else {
+      ps = psDist;
+    }
   }
 
   pdf.addPage(
@@ -118,8 +127,34 @@ Future<Uint8List> generateMobileSealLabelPdf(Map<String, dynamic> doc) async {
                 1: pw.FlexColumnWidth(3.2),
               },
               children: [
-                buildFormRow('lbl_ps_district', 'val_psDistrict',
-                    doc['psDistrict'] ?? doc['policeStation']),
+                pw.TableRow(
+                  children: [
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(4),
+                      child: mLbl('lbl_ps_district'),
+                    ),
+                    pw.Container(
+                      alignment: pw.Alignment.centerLeft,
+                      padding: const pw.EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 3),
+                      child: pw.Row(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          mLbl('lbl_ps_label'),
+                          pw.SizedBox(width: 4),
+                          pw.Expanded(
+                            child:
+                                renderText('val_policeStation', ps, valueStyle),
+                          ),
+                          pw.SizedBox(width: 24),
+                          mLbl('lbl_district_label'),
+                          pw.SizedBox(width: 4),
+                          renderText('val_district', dist, valueStyle),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
                 buildFormRow(
                     'lbl_crime_sec',
                     'val_crimeNoSection',
@@ -300,6 +335,17 @@ Future<Uint8List> generateMobileSealLabelPdf(Map<String, dynamic> doc) async {
                 ),
               ],
             ),
+            pw.Spacer(),
+            pw.Align(
+              alignment: pw.Alignment.bottomRight,
+              child: pw.Text(
+                'M.R.W',
+                style: const pw.TextStyle(
+                  fontSize: 8,
+                  color: PdfColors.grey700,
+                ),
+              ),
+            ),
           ],
         );
       },
@@ -316,6 +362,8 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     'hdr_notice':
         'सुचना :— जप्ती नंतर हॅश व्हॅल्यु किंवा निरीक्षण पंचनामा झाला असेल तर मुद्देमालाच्या लेबल व पहिल्या जप्तीची तारीख त्यानंतर झालेली पंचनामा नंतर सिलबंद केल्याचा तारखा नमुद कराव्यात',
     'lbl_ps_district': 'पोलीस स्टेशन जिल्हा',
+    'lbl_ps_label': 'पोस्टे : ',
+    'lbl_district_label': 'जिल्हा : ',
     'lbl_crime_sec': 'अपराध क्रमांक व कलम',
     'lbl_seizing_officer': 'जप्त करणारे अधिकारी नांव हुद्दा पोस्टे',
     'lbl_seized_from': 'कोणाकडुन जप्त केले त्याचे नांव पत्ता',
@@ -358,6 +406,21 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     }
   }
 
+  String prePs = doc['policeStation']?.toString().trim() ?? '';
+  String preDist = doc['district']?.toString().trim() ?? '';
+  if (prePs.isEmpty && preDist.isEmpty) {
+    final psDist = doc['psDistrict']?.toString().trim() ?? '';
+    if (psDist.contains(',')) {
+      final parts = psDist.split(',');
+      prePs = parts[0].trim();
+      preDist = parts.sublist(1).join(',').trim();
+    } else {
+      prePs = psDist;
+    }
+  }
+  addIfDevanagari('val_policeStation', prePs);
+  addIfDevanagari('val_district', preDist);
+
   doc.forEach((key, value) {
     addIfDevanagari('val_$key', value);
   });
@@ -366,6 +429,8 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
     'hdr_title',
     'hdr_subtitle',
     'lbl_ps_district',
+    'lbl_ps_label',
+    'lbl_district_label',
     'lbl_crime_sec',
     'lbl_seizing_officer',
     'lbl_seized_from',
@@ -386,12 +451,11 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   for (final entry in pairs.entries) {
     final isBold = boldKeys.contains(entry.key);
     final double fs = entry.key == 'hdr_title'
-        ? 13.0
+        ? 15.0
         : (entry.key == 'hdr_subtitle'
-            ? 11.0
-            : (entry.key == 'hdr_notice' ? 8.0 : 8.5));
-    final color =
-        entry.key.startsWith('val_') ? const Color(0xFF0D47A1) : Colors.black87;
+            ? 12.5
+            : (entry.key == 'hdr_notice' ? 9.0 : 10.0));
+    const color = Colors.black;
 
     await cache.add(
       entry.key,
@@ -410,4 +474,261 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   }
 
   return cache;
+}
+
+Widget _buildPgWidget(Map<String, dynamic> doc) {
+  String v(String key, [String fallback = '']) {
+    final val = doc[key]?.toString().trim() ?? '';
+    return val.isEmpty ? fallback : val;
+  }
+
+  final reg = FormImagePdfHelper.mBld(10.0, 1.35);
+  final bld = FormImagePdfHelper.mBld(10.0, 1.35);
+  final valStyle = FormImagePdfHelper.valStyle(10.0);
+
+  Widget cell(Widget child,
+      {EdgeInsets padding =
+          const EdgeInsets.symmetric(horizontal: 5, vertical: 4.5),
+      Alignment alignment = Alignment.centerLeft}) {
+    return Container(
+      alignment: alignment,
+      padding: padding,
+      child: child,
+    );
+  }
+
+  TableRow formRow(String label, String value) {
+    return TableRow(
+      children: [
+        cell(Text(label, style: bld)),
+        cell(
+            Text(value.isEmpty ? ' ' : value, style: valStyle, softWrap: true)),
+      ],
+    );
+  }
+
+  TableRow subRow(String label, String value) {
+    return TableRow(
+      children: [
+        cell(Text(label, style: bld),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3.5)),
+        cell(Text(value.isEmpty ? ' ' : value, style: valStyle, softWrap: true),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3.5)),
+      ],
+    );
+  }
+
+  String psVal = v('policeStation');
+  String distVal = v('district');
+  if (psVal.isEmpty && distVal.isEmpty) {
+    final combined = v('psDistrict');
+    if (combined.contains(',')) {
+      final parts = combined.split(',');
+      psVal = parts[0].trim();
+      distVal = parts.sublist(1).join(',').trim();
+    } else {
+      psVal = combined;
+    }
+  }
+  final crimeSec = v('crimeNoSection', '${v('crNo')} ${v('section')}'.trim());
+  final seizingOff = v('seizingOfficer', v('ioName'));
+  final seizedFrom = v('seizedFrom');
+  final accusedName = v('accusedName');
+  final seizurePlaceDt = v('seizurePlaceDateTime', () {
+    final pl = v('seizurePlace');
+    final dt = v('seizureDate');
+    final tm = v('seizureTime');
+    final pts = <String>[];
+    if (pl.isNotEmpty) pts.add(pl);
+    if (dt.isNotEmpty) pts.add('दि. $dt');
+    if (tm.isNotEmpty) pts.add('वेळ $tm');
+    return pts.isNotEmpty ? pts.join(', ') : v('seizedDate');
+  }());
+  final exhibitNo = v('exhibitNoLetter', v('labelNo'));
+  final seizedPersonSign = v('seizedPersonSign');
+  final panch1Sign = v('panch1Sign');
+  final panch2Sign = v('panch2Sign');
+  final ioSignStamp = v('ioNameSignStamp', v('ioName'));
+  final sealSample = v('sealSample', v('remarks'));
+
+  return FormImagePdfHelper.buildA4Page(
+    padding: const EdgeInsets.all(24),
+    children: [
+      Center(
+        child:
+            Text('मोबाईल सिल लेबल नमुना', style: FormImagePdfHelper.mBld(15)),
+      ),
+      const SizedBox(height: 3),
+      Center(
+        child: Text('Exhibit च्या पाकीट वरील लेबल चा नमुना',
+            style: FormImagePdfHelper.mBld(12.5)),
+      ),
+      const SizedBox(height: 8),
+      Text(
+        'सुचना :— जप्ती नंतर हॅश व्हॅल्यु किंवा निरीक्षण पंचनामा झाला असेल तर मुद्देमालाच्या लेबल व पहिल्या जप्तीची तारीख त्यानंतर झालेली पंचनामा नंतर सिलबंद केल्याचा तारखा नमुद कराव्यात',
+        style: reg.copyWith(fontSize: 9),
+      ),
+      const SizedBox(height: 10),
+      Table(
+        border: TableBorder.all(color: Colors.black, width: 0.6),
+        columnWidths: const {
+          0: FlexColumnWidth(1.8),
+          1: FlexColumnWidth(3.2),
+        },
+        children: [
+          TableRow(
+            children: [
+              cell(Text('पोलीस स्टेशन जिल्हा', style: bld)),
+              cell(Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('पोस्टे : ', style: bld),
+                  Expanded(
+                    child: Text(psVal, style: valStyle, softWrap: true),
+                  ),
+                  const SizedBox(width: 24),
+                  Text('जिल्हा : ', style: bld),
+                  Text(distVal, style: valStyle),
+                ],
+              )),
+            ],
+          ),
+          formRow('अपराध क्रमांक व कलम', crimeSec),
+          formRow('जप्त करणारे अधिकारी नांव हुद्दा पोस्टे', seizingOff),
+          formRow('कोणाकडुन जप्त केले त्याचे नांव पत्ता', seizedFrom),
+          formRow('आरोपीचे नाव', accusedName),
+          formRow('जप्तीचे ठिकाण तारीख वेळ', seizurePlaceDt),
+          TableRow(
+            children: [
+              Container(
+                alignment: Alignment.center,
+                padding: const EdgeInsets.all(8),
+                child: Text('पोलीस स्टेशन शिक्का',
+                    style: bld, textAlign: TextAlign.center),
+              ),
+              Table(
+                border: TableBorder.all(color: Colors.black, width: 0.5),
+                columnWidths: const {
+                  0: FlexColumnWidth(1.8),
+                  1: FlexColumnWidth(1.8),
+                },
+                children: [
+                  TableRow(
+                    children: [
+                      cell(
+                          Text(
+                              'जप्त मालाचे वर्णन जप्तीपत्रकानुसार मोबाईलच्या बाबतीत',
+                              style: bld),
+                          padding: const EdgeInsets.all(3)),
+                      const SizedBox(),
+                    ],
+                  ),
+                  subRow('मो कंपनी', v('mobileCompany', v('mobileMake'))),
+                  subRow('IMEI 1', v('imei1')),
+                  subRow('IMEI 2', v('imei2')),
+                  subRow('मोबाईल सिरियल क्र.',
+                      v('mobileSerialNo', v('mobileModel'))),
+                  subRow('पासवर्ड/ पॅटर्न/ पिन (असल्यास नमूद करणे)',
+                      v('passwordPatternPin')),
+                  subRow('मोबाईल स्थिती (चालु / बंद)', v('mobileCondition')),
+                  subRow('स्विच ऑफ (होय / नाही)', v('switchOffStatus')),
+                  subRow(
+                      'सिम कार्ड आहे किं नाही असल्यास खालील माहिती (होय / नाही)',
+                      v('simCardPresent')),
+                  subRow('सिम कंपनी', v('simCompany')),
+                  subRow('सिमचा कॉलींग क्रमांक', v('simCallingNo', v('simNo'))),
+                  subRow('सिमकार्डवर दिसणारा सीरीयल क्र', v('simCardSerialNo')),
+                  subRow(
+                      'मेमरी कार्ड आहे किं नाही असल्यास खालील माहिती (होय / नाही)',
+                      v('memoryCardPresent')),
+                  subRow('मेमरीकार्ड कंपनी नांव', v('memoryCardCompany')),
+                  subRow('मेमरी कार्ड ची क्षमता', v('memoryCardCapacity')),
+                  subRow('मेमरी कार्डवर दिसणारा सिरीयल क्र',
+                      v('memoryCardSerialNo')),
+                ],
+              ),
+            ],
+          ),
+          formRow(
+              'एक्झिबीट क्र तपासी अधिकारी यांच्या पत्रानुसार (उदा “Exhibit – A”)',
+              exhibitNo),
+          TableRow(
+            children: [
+              cell(
+                Column(
+                  children: [
+                    Text('ज्यांचेकडुन जप्त केले त्यांची सही',
+                        style: bld, textAlign: TextAlign.center),
+                    const SizedBox(height: 28),
+                    Text(seizedPersonSign, style: valStyle),
+                  ],
+                ),
+                padding: const EdgeInsets.all(6),
+                alignment: Alignment.center,
+              ),
+              cell(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(child: Text('पंचाच्या सह्या', style: bld)),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Text('१) ', style: bld),
+                        Expanded(child: Text(panch1Sign, style: valStyle)),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Text('२) ', style: bld),
+                        Expanded(child: Text(panch2Sign, style: valStyle)),
+                      ],
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(6),
+              ),
+            ],
+          ),
+          TableRow(
+            children: [
+              cell(
+                Column(
+                  children: [
+                    Text('तपासी अधिकारी यांचे नाव सही शिक्का',
+                        style: bld, textAlign: TextAlign.center),
+                    const SizedBox(height: 28),
+                    Text(ioSignStamp, style: valStyle),
+                  ],
+                ),
+                padding: const EdgeInsets.all(6),
+                alignment: Alignment.center,
+              ),
+              cell(
+                Column(
+                  children: [
+                    Text('सिल नमुना', style: bld, textAlign: TextAlign.center),
+                    const SizedBox(height: 28),
+                    Text(sealSample, style: valStyle),
+                  ],
+                ),
+                padding: const EdgeInsets.all(6),
+                alignment: Alignment.center,
+              ),
+            ],
+          ),
+        ],
+      ),
+      const Spacer(),
+      Align(
+        alignment: Alignment.bottomRight,
+        child: Text(
+          'M.R.W',
+          style: FormImagePdfHelper.mReg(8.0)
+              .copyWith(color: Colors.grey.shade700),
+        ),
+      ),
+    ],
+  );
 }

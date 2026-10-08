@@ -2,31 +2,28 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
+
+import 'form_image_pdf_helper.dart';
+import 'pdf_font_cache.dart';
 
 Future<void> previewBnssPanchNoticePdf(
   BuildContext context,
   Map<String, dynamic> doc,
 ) async {
-  final bytes = await generateBnssPanchNoticePdf(doc);
-  if (!context.mounted) return;
   final fileName =
       'BNSS_Panch_Notice_${DateTime.now().millisecondsSinceEpoch}.pdf';
-  try {
-    if (kIsWeb) {
-      await Printing.sharePdf(bytes: bytes, filename: fileName);
-    } else {
-      await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
-    }
-  } catch (_) {
-    await Printing.sharePdf(bytes: bytes, filename: fileName);
-  }
+  await FormImagePdfHelper.previewImageBasedPdf(
+    context,
+    fileName: fileName,
+    pages: [_buildPg1Widget(doc), _buildPg2Widget(doc)],
+    fallbackPdfGenerator: () => generateBnssPanchNoticePdf(doc),
+  );
 }
 
 Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
   final pdf = pw.Document();
-  final devanagari = await PdfGoogleFonts.notoSansDevanagariRegular();
-  final devanagariBold = await PdfGoogleFonts.notoSansDevanagariBold();
+  final devanagari = await PdfFontCache.devanagariRegular();
+  final devanagariBold = await PdfFontCache.devanagariBold();
 
   final regular = pw.TextStyle(
     font: devanagari,
@@ -62,7 +59,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.symmetric(horizontal: 44, vertical: 40),
       build: (pw.Context context) {
-        final ps = v('p1_policeStation', v('policeStation', '--------'));
+        final ps = v('p1_policeStation', v('policeStation'));
         final dateStr = v('p1_date', v('date', '......./ ......./२०...'));
 
         final panch1 = v('p1_panch1', v('panch1'));
@@ -70,7 +67,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
         final panch2 = v('p1_panch2', v('panch2'));
         final panch2Line2 = v('p1_panch2Line2');
 
-        final firPs = v('p1_firPs', v('firPs', '-----------'));
+        final firPs = v('p1_firPs', v('firPs'));
         final crimeNo = v('p1_crimeNo', v('crimeNo', '........'));
         final crimeYear = v('p1_crimeYear', '.....');
         final actSec = v(
@@ -85,8 +82,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
             v('complainantResidence', '-----------'));
         final complainantTah =
             v('p1_complainantTah', v('complainantTah', '-----------'));
-        final complainantDist =
-            v('p1_complainantDist', v('complainantDist', 'यवतमाळ'));
+        final complainantDist = v('p1_complainantDist', v('complainantDist'));
 
         final ioNameSig = v('p1_ioNameSig', v('ioNameSig'));
         final panch1Receipt = v(
@@ -254,7 +250,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                 style: regular,
               ),
             ),
-            pw.Spacer(),
+            pw.SizedBox(height: 36),
 
             // Signature block (Right)
             pw.Align(
@@ -270,7 +266,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                 ],
               ),
             ),
-            pw.SizedBox(height: 18),
+            pw.SizedBox(height: 24),
 
             // Receipt Acknowledgement (Left)
             pw.Column(
@@ -283,7 +279,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                 pw.Text('२) $panch2Receipt', style: regular),
               ],
             ),
-            pw.SizedBox(height: 12),
+            pw.Spacer(),
 
             // MRW Footer
             pw.Align(
@@ -292,7 +288,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                 'M.R.W',
                 style: pw.TextStyle(
                   font: devanagari,
-                  fontSize: 8,
+                  fontSize: 8.5,
                   color: PdfColors.grey700,
                 ),
               ),
@@ -311,7 +307,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.symmetric(horizontal: 44, vertical: 40),
       build: (pw.Context context) {
-        final ps = v('p2_policeStation', v('policeStation', '--------'));
+        final ps = v('p2_policeStation', v('policeStation'));
         final dateStr = v('p2_date', v('date', '......./ ......./२०...'));
 
         final panch1 = v('p2_panch1', v('panch1'));
@@ -328,7 +324,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
         final suspectResidence =
             v('p2_suspectResidence', v('suspectResidence', '--------------'));
         final suspectTah = v('p2_suspectTah', v('suspectTah', '-----------'));
-        final suspectDist = v('p2_suspectDist', v('suspectDist', 'यवतमाळ'));
+        final suspectDist = v('p2_suspectDist', v('suspectDist'));
 
         final ioNameSig = v('p2_ioNameSig', v('ioNameSig'));
         final panch1Receipt = v(
@@ -467,12 +463,15 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                   pw.TextSpan(text: '$raidDate ', style: bold),
                   const pw.TextSpan(text: 'रोजी ग्राम'),
                   pw.TextSpan(text: '$village ', style: bold),
-                  const pw.TextSpan(text: 'येथीलनामे'),
+                  const pw.TextSpan(text: 'येथीलनामे '),
                   pw.TextSpan(text: '$suspectName ', style: bold),
-                  const pw.TextSpan(text: 'वय'),
+                  const pw.TextSpan(text: 'वय '),
                   pw.TextSpan(text: '$suspectAge ', style: bold),
-                  const pw.TextSpan(text: 'वर्ष'),
-                  const pw.TextSpan(text: '----------- रा.'),
+                  pw.TextSpan(
+                    text: suspectAge.contains('वर्ष')
+                        ? '----------- रा. '
+                        : 'वर्ष ----------- रा. ',
+                  ),
                   pw.TextSpan(text: '$suspectResidence ', style: bold),
                   const pw.TextSpan(text: 'ता '),
                   pw.TextSpan(text: '$suspectTah ', style: bold),
@@ -494,7 +493,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                 style: regular,
               ),
             ),
-            pw.Spacer(),
+            pw.SizedBox(height: 36),
 
             // Signature block (Right)
             pw.Align(
@@ -510,7 +509,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                 ],
               ),
             ),
-            pw.SizedBox(height: 18),
+            pw.SizedBox(height: 24),
 
             // Receipt Acknowledgement (Left)
             pw.Column(
@@ -523,7 +522,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                 pw.Text('२) $panch2Receipt', style: regular),
               ],
             ),
-            pw.SizedBox(height: 12),
+            pw.Spacer(),
 
             // MRW Footer
             pw.Align(
@@ -532,7 +531,7 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
                 'M.R.W',
                 style: pw.TextStyle(
                   font: devanagari,
-                  fontSize: 8,
+                  fontSize: 8.5,
                   color: PdfColors.grey700,
                 ),
               ),
@@ -544,4 +543,592 @@ Future<Uint8List> generateBnssPanchNoticePdf(Map<String, dynamic> doc) async {
   );
 
   return pdf.save();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── NATIVE FLUTTER WIDGET BUILDERS (100% Devanagari Font Shaping) ──
+// ══════════════════════════════════════════════════════════════════════════════
+
+Widget _buildPg1Widget(Map<String, dynamic> doc) {
+  String v(String key, [String fallback = '']) {
+    final val = doc[key]?.toString().trim() ?? '';
+    return val.isEmpty ? fallback : val;
+  }
+
+  final rawPs = v('p1_policeStation', v('policeStation'));
+  final ps = rawPs;
+  final rawDate = v('p1_date', v('date'));
+  final dateStr = rawDate.isNotEmpty ? rawDate : '......./ ......./२०...';
+
+  final panch1 = v('p1_panch1', v('panch1'));
+  final panch1Line2 = v('p1_panch1Line2');
+  final panch2 = v('p1_panch2', v('panch2'));
+  final panch2Line2 = v('p1_panch2Line2');
+
+  final rawFirPs = v('p1_firPs', v('firPs'));
+  final firPs = rawFirPs.isNotEmpty ? rawFirPs : ps;
+  final rawCrimeNo = v('p1_crimeNo', v('crimeNo'));
+  final crimeNo = rawCrimeNo.isNotEmpty ? rawCrimeNo : '....';
+  final rawCrimeYear = v('p1_crimeYear', v('crimeYear'));
+  final crimeYear = rawCrimeYear.isNotEmpty ? rawCrimeYear : '..';
+  final rawActSec = v('p1_actSec', v('actSec'));
+  final actSec = rawActSec.isNotEmpty ? rawActSec : '------------';
+  final rawComplainantName = v('p1_complainantName', v('complainantName'));
+  final complainantName = rawComplainantName.isNotEmpty
+      ? rawComplainantName
+      : '---------------------------------------';
+  final rawComplainantResidence =
+      v('p1_complainantResidence', v('complainantResidence'));
+  final complainantResidence = rawComplainantResidence.isNotEmpty
+      ? rawComplainantResidence
+      : '------------------';
+  final rawComplainantTah = v('p1_complainantTah', v('complainantTah'));
+  final complainantTah =
+      rawComplainantTah.isNotEmpty ? rawComplainantTah : '-----------';
+  final rawComplainantDist = v('p1_complainantDist', v('complainantDist'));
+  final complainantDist = rawComplainantDist;
+
+  final ioNameSig = v('p1_ioNameSig', v('ioNameSig'));
+  final rawPanch1Receipt = v('p1_panch1Receipt', v('panch1Receipt'));
+  final panch1Receipt = rawPanch1Receipt.isNotEmpty
+      ? rawPanch1Receipt
+      : '-----------------------';
+  final rawPanch2Receipt = v('p1_panch2Receipt', v('panch2Receipt'));
+  final panch2Receipt = rawPanch2Receipt.isNotEmpty
+      ? rawPanch2Receipt
+      : '-----------------------';
+
+  final reg = FormImagePdfHelper.mBld(11.5, 1.85);
+  final bld = FormImagePdfHelper.mBld(11.5, 1.85);
+  final headerTitle = FormImagePdfHelper.mBld(17, 1.3);
+  final headerSub = FormImagePdfHelper.mBld(12, 1.3);
+
+  TextStyle valBld(String raw) => bld.copyWith(
+        decoration:
+            raw.isNotEmpty ? TextDecoration.underline : TextDecoration.none,
+      );
+
+  return FormImagePdfHelper.buildA4Page(
+    padding: const EdgeInsets.symmetric(horizontal: 44, vertical: 40),
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      Align(
+        alignment: Alignment.topRight,
+        child: SizedBox(
+          width: 300,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 1.0),
+                    child: Text('पोलीस स्टेशन : ', style: reg),
+                  ),
+                  Expanded(
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(width: 0.8, color: Colors.black87),
+                        ),
+                      ),
+                      padding: const EdgeInsets.only(bottom: 1),
+                      child: Text(
+                        ps.isEmpty ? ' ' : ps,
+                        softWrap: true,
+                        style: bld,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 5),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text('दिनांक : ', style: reg),
+                  Expanded(
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(width: 0.8, color: Colors.black87),
+                        ),
+                      ),
+                      padding: const EdgeInsets.only(bottom: 1),
+                      child: Text(
+                        dateStr,
+                        style: bld,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      const SizedBox(height: 22),
+      Center(
+        child: Column(
+          children: [
+            Text('—:: पंच सुचनापत्र ::—', style: headerTitle),
+            const SizedBox(height: 4),
+            Text(
+              '(कलम १७९ भारतीय नागरीक सुरक्षा संहिता २०२३ अन्वये)',
+              style: headerSub.copyWith(decoration: TextDecoration.underline),
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 26),
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 90,
+            child: Text('पंच नांव', style: bld),
+          ),
+          Text(':-   ', style: bld),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('१) ', style: bld),
+                    Expanded(
+                      child: Text(
+                        panch1.isNotEmpty
+                            ? panch1
+                            : '--------------------------------------------------------',
+                        style: panch1.isNotEmpty
+                            ? bld.copyWith(decoration: TextDecoration.underline)
+                            : reg,
+                      ),
+                    ),
+                  ],
+                ),
+                if (panch1Line2.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 18),
+                    child: Text(
+                      panch1Line2,
+                      style: bld.copyWith(decoration: TextDecoration.underline),
+                    ),
+                  ),
+                const SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('२) ', style: bld),
+                    Expanded(
+                      child: Text(
+                        panch2.isNotEmpty
+                            ? panch2
+                            : '--------------------------------------------------------',
+                        style: panch2.isNotEmpty
+                            ? bld.copyWith(decoration: TextDecoration.underline)
+                            : reg,
+                      ),
+                    ),
+                  ],
+                ),
+                if (panch2Line2.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 18),
+                    child: Text(
+                      panch2Line2,
+                      style: bld.copyWith(decoration: TextDecoration.underline),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 22),
+      Center(
+        child: Text(
+          '००००',
+          style: bld.copyWith(fontSize: 13, letterSpacing: 4),
+        ),
+      ),
+      const SizedBox(height: 22),
+      Text.rich(
+        TextSpan(
+          style: reg.copyWith(height: 1.95),
+          children: [
+            const TextSpan(
+              text: '      आपणास या सुचनापत्र देण्यात येते की, पोलीस स्टेशन ',
+            ),
+            TextSpan(text: '$firPs ', style: valBld(rawFirPs)),
+            const TextSpan(text: 'येथील अप / मर्ग/ स्टे.डा क्रमांक '),
+            TextSpan(
+                text: '$crimeNo/२०$crimeYear ',
+                style:
+                    valBld(rawCrimeNo.isNotEmpty ? rawCrimeNo : rawCrimeYear)),
+            const TextSpan(text: 'कलम '),
+            TextSpan(text: '$actSec ', style: valBld(rawActSec)),
+            const TextSpan(text: 'मधील फिर्यादी नामे '),
+            TextSpan(
+                text: '$complainantName ', style: valBld(rawComplainantName)),
+            const TextSpan(text: 'रा '),
+            TextSpan(
+                text: '$complainantResidence ',
+                style: valBld(rawComplainantResidence)),
+            const TextSpan(text: 'ता '),
+            TextSpan(
+                text: '$complainantTah ', style: valBld(rawComplainantTah)),
+            const TextSpan(text: 'जिल्हा '),
+            TextSpan(
+                text: '$complainantDist ', style: valBld(rawComplainantDist)),
+            const TextSpan(
+              text:
+                  'यांनी तक्रार दिली वरून सदरचा गुन्हा नोंद होउन तपासात आहे. तरी सदर गुन्ह्यामधील घटनास्थळाचा/ जप्ती पंचनामा करावयाचा असल्याने आपण पंच म्हणुन हजर राहा असे सांगीतल्या वरून पंच हजर आले आहे.',
+            ),
+          ],
+        ),
+        textAlign: TextAlign.justify,
+      ),
+      const SizedBox(height: 26),
+      Center(
+        child: Text('करीता सुचनापत्र देण्यात येत आहे.', style: reg),
+      ),
+      const SizedBox(height: 40),
+      Align(
+        alignment: Alignment.topRight,
+        child: Column(
+          children: [
+            Text('तपासी अधिकारी नांव व सही', style: bld),
+            const SizedBox(height: 8),
+            Text(
+              ioNameSig.isNotEmpty ? ioNameSig : '____________________',
+              style: ioNameSig.isNotEmpty
+                  ? bld.copyWith(decoration: TextDecoration.underline)
+                  : reg,
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 28),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('सुचनापत्र मिळाले आहे.', style: bld),
+          const SizedBox(height: 10),
+          Text(
+            '१) $panch1Receipt',
+            style: rawPanch1Receipt.isNotEmpty
+                ? bld.copyWith(decoration: TextDecoration.underline)
+                : reg,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '२) $panch2Receipt',
+            style: rawPanch2Receipt.isNotEmpty
+                ? bld.copyWith(decoration: TextDecoration.underline)
+                : reg,
+          ),
+        ],
+      ),
+      const Spacer(),
+      Align(
+        alignment: Alignment.bottomRight,
+        child: Text('M.R.W',
+            style: reg.copyWith(fontSize: 8.5, color: Colors.grey.shade700)),
+      ),
+    ],
+  );
+}
+
+Widget _buildPg2Widget(Map<String, dynamic> doc) {
+  String v(String key, [String fallback = '']) {
+    final val = doc[key]?.toString().trim() ?? '';
+    return val.isEmpty ? fallback : val;
+  }
+
+  final rawPs = v('p2_policeStation', v('policeStation'));
+  final ps = rawPs;
+  final rawDate = v('p2_date', v('date'));
+  final dateStr = rawDate.isNotEmpty ? rawDate : '......./ ......./२०...';
+
+  final panch1 = v('p2_panch1', v('panch1'));
+  final panch1Line2 = v('p2_panch1Line2');
+  final panch2 = v('p2_panch2', v('panch2'));
+  final panch2Line2 = v('p2_panch2Line2');
+
+  final rawRaidDate = v('p2_raidDate', v('raidDate'));
+  final raidDate =
+      rawRaidDate.isNotEmpty ? rawRaidDate : '......./ ......./२०.....';
+  final rawVillage = v('p2_village', v('village'));
+  final village = rawVillage.isNotEmpty ? rawVillage : '-------------';
+  final rawSuspectName = v('p2_suspectName', v('suspectName'));
+  final suspectName = rawSuspectName.isNotEmpty
+      ? rawSuspectName
+      : '---------------------------------------';
+  final rawSuspectAge = v('p2_suspectAge', v('suspectAge'));
+  final suspectAge = rawSuspectAge.isNotEmpty ? rawSuspectAge : '........';
+  final rawSuspectResidence = v('p2_suspectResidence', v('suspectResidence'));
+  final suspectResidence =
+      rawSuspectResidence.isNotEmpty ? rawSuspectResidence : '--------------';
+  final rawSuspectTah = v('p2_suspectTah', v('suspectTah'));
+  final suspectTah = rawSuspectTah.isNotEmpty ? rawSuspectTah : '-----------';
+  final rawSuspectDist = v('p2_suspectDist', v('suspectDist'));
+  final suspectDist = rawSuspectDist;
+
+  final ioNameSig = v('p2_ioNameSig', v('ioNameSig'));
+  final rawPanch1Receipt = v('p2_panch1Receipt', v('panch1Receipt'));
+  final panch1Receipt = rawPanch1Receipt.isNotEmpty
+      ? rawPanch1Receipt
+      : '-----------------------';
+  final rawPanch2Receipt = v('p2_panch2Receipt', v('panch2Receipt'));
+  final panch2Receipt = rawPanch2Receipt.isNotEmpty
+      ? rawPanch2Receipt
+      : '-----------------------';
+
+  final reg = FormImagePdfHelper.mBld(11.5, 1.85);
+  final bld = FormImagePdfHelper.mBld(11.5, 1.85);
+  final headerTitle = FormImagePdfHelper.mBld(17, 1.3);
+  final headerSub = FormImagePdfHelper.mBld(12, 1.3);
+
+  TextStyle valBld(String raw) => bld.copyWith(
+        decoration:
+            raw.isNotEmpty ? TextDecoration.underline : TextDecoration.none,
+      );
+
+  return FormImagePdfHelper.buildA4Page(
+    padding: const EdgeInsets.symmetric(horizontal: 44, vertical: 40),
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      Align(
+        alignment: Alignment.topRight,
+        child: SizedBox(
+          width: 300,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 1.0),
+                    child: Text('पोलीस स्टेशन : ', style: reg),
+                  ),
+                  Expanded(
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(width: 0.8, color: Colors.black87),
+                        ),
+                      ),
+                      padding: const EdgeInsets.only(bottom: 1),
+                      child: Text(
+                        ps.isEmpty ? ' ' : ps,
+                        softWrap: true,
+                        style: bld,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 5),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text('दिनांक : ', style: reg),
+                  Expanded(
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(width: 0.8, color: Colors.black87),
+                        ),
+                      ),
+                      padding: const EdgeInsets.only(bottom: 1),
+                      child: Text(
+                        dateStr,
+                        style: bld,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      const SizedBox(height: 22),
+      Center(
+        child: Column(
+          children: [
+            Text('—:: पंच सुचनापत्र ::—', style: headerTitle),
+            const SizedBox(height: 4),
+            Text(
+              '(कलम १७९ भारतीय नागरीक सुरक्षा संहिता २०२३ अन्वये)',
+              style: headerSub.copyWith(decoration: TextDecoration.underline),
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 26),
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 90,
+            child: Text('पंच नांव', style: bld),
+          ),
+          Text(':-   ', style: bld),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('१) ', style: bld),
+                    Expanded(
+                      child: Text(
+                        panch1.isNotEmpty
+                            ? panch1
+                            : '--------------------------------------------------------',
+                        style: panch1.isNotEmpty
+                            ? bld.copyWith(decoration: TextDecoration.underline)
+                            : reg,
+                      ),
+                    ),
+                  ],
+                ),
+                if (panch1Line2.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 18),
+                    child: Text(
+                      panch1Line2,
+                      style: bld.copyWith(decoration: TextDecoration.underline),
+                    ),
+                  ),
+                const SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('२) ', style: bld),
+                    Expanded(
+                      child: Text(
+                        panch2.isNotEmpty
+                            ? panch2
+                            : '--------------------------------------------------------',
+                        style: panch2.isNotEmpty
+                            ? bld.copyWith(decoration: TextDecoration.underline)
+                            : reg,
+                      ),
+                    ),
+                  ],
+                ),
+                if (panch2Line2.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 18),
+                    child: Text(
+                      panch2Line2,
+                      style: bld.copyWith(decoration: TextDecoration.underline),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 22),
+      Center(
+        child: Text(
+          '००००',
+          style: bld.copyWith(fontSize: 13, letterSpacing: 4),
+        ),
+      ),
+      const SizedBox(height: 22),
+      Text.rich(
+        TextSpan(
+          style: reg.copyWith(height: 1.95),
+          children: [
+            const TextSpan(
+              text: '      आपणास या सुचनापत्र देण्यात येते की, आज दिनांक ',
+            ),
+            TextSpan(text: '$raidDate ', style: valBld(rawRaidDate)),
+            const TextSpan(text: 'रोजी पोलीस स्टेशन हद्दीत मौजे '),
+            TextSpan(text: '$village ', style: valBld(rawVillage)),
+            const TextSpan(
+              text:
+                  'येथे प्रोहिबीशन रेड कारवाई करणे बाबत खात्रीशिर बातमी मिळाल्या वरून आम्ही पोलीस पथकासह प्रोहिबीशन रेड कारवाई करणे करीता जात असतांना इसम नामे ',
+            ),
+            TextSpan(text: '$suspectName ', style: valBld(rawSuspectName)),
+            const TextSpan(text: 'वय '),
+            TextSpan(text: '$suspectAge ', style: valBld(rawSuspectAge)),
+            TextSpan(
+              text: suspectAge.contains('वर्ष')
+                  ? '----------- रा. '
+                  : 'वर्ष ----------- रा. ',
+            ),
+            TextSpan(
+                text: '$suspectResidence ', style: valBld(rawSuspectResidence)),
+            const TextSpan(text: 'ता '),
+            TextSpan(text: '$suspectTah ', style: valBld(rawSuspectTah)),
+            const TextSpan(text: 'जिल्हा '),
+            TextSpan(text: '$suspectDist ', style: valBld(rawSuspectDist)),
+            const TextSpan(
+              text:
+                  'याचे घराची / जागेची / वाहनाची झडती घेवुन प्रोहिबीशन कारवाई करावयाची असल्याने आपण पंच म्हणुन हजर राहा असे सांगीतल्या वरून पंच हजर आले आहे.',
+            ),
+          ],
+        ),
+        textAlign: TextAlign.justify,
+      ),
+      const SizedBox(height: 26),
+      Center(
+        child: Text('करीता सुचनापत्र देण्यात येत आहे.', style: reg),
+      ),
+      const SizedBox(height: 40),
+      Align(
+        alignment: Alignment.topRight,
+        child: Column(
+          children: [
+            Text('तपासी अधिकारी नांव व सही', style: bld),
+            const SizedBox(height: 8),
+            Text(
+              ioNameSig.isNotEmpty ? ioNameSig : '____________________',
+              style: ioNameSig.isNotEmpty
+                  ? bld.copyWith(decoration: TextDecoration.underline)
+                  : reg,
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 28),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('सुचनापत्र मिळाले आहे.', style: bld),
+          const SizedBox(height: 10),
+          Text(
+            '१) $panch1Receipt',
+            style: rawPanch1Receipt.isNotEmpty
+                ? bld.copyWith(decoration: TextDecoration.underline)
+                : reg,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '२) $panch2Receipt',
+            style: rawPanch2Receipt.isNotEmpty
+                ? bld.copyWith(decoration: TextDecoration.underline)
+                : reg,
+          ),
+        ],
+      ),
+      const Spacer(),
+      Align(
+        alignment: Alignment.bottomRight,
+        child: Text('M.R.W',
+            style: reg.copyWith(fontSize: 8.5, color: Colors.grey.shade700)),
+      ),
+    ],
+  );
 }

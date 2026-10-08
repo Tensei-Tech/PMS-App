@@ -144,7 +144,7 @@ class FormEViewState extends State<FormEView> {
           child: TextField(
             controller: controller,
             minLines: minLines ?? 1,
-            maxLines: minLines != null ? null : 1,
+            maxLines: null,
             style: englishStyle,
             decoration: const InputDecoration(
               border: InputBorder.none,

@@ -1,13 +1,27 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from apps.cases.views import (
+    DetectedCasesView,
+    IOWiseDetectedView,
+    TimeWiseDetectedView,
     CaseRecordViewSet,
     CrimeTypeListView,
     CasesByCrimeTypeView,
     SectionsByCrimeTypeView,
     CreateCaseView,
     PendingCasesView,
-    DisposalCasesView,
+    IOWisePendingView,
+    TimeWisePendingView,
+    UndetectedCasesView,
+    UndetectedIOWiseView,
+    UndetectedTimeWiseView,
+    DisposalCaseWiseView,
+    TimeWiseDisposalView,
+    DesignationWiseDisposalView,
+    DisposalCrimeTypeWiseView,
+    ArrestedCaseWiseView,
+    TimeWiseArrestedView,
+    IOWiseArrestedView,
 )
 
 router = DefaultRouter()
@@ -20,7 +34,22 @@ urlpatterns = [
     path('crime-types/<str:crime_type>/sections/', SectionsByCrimeTypeView.as_view(), name='sections-by-crime-type'),
     path('create/', CreateCaseView.as_view(), name='case-create'),
     path('pending/', PendingCasesView.as_view(), name='pending-cases'),
-    path('disposal/', DisposalCasesView.as_view(), name='disposal-cases'),
+    path('pending/io-wise/', IOWisePendingView.as_view(), name='pending-io-wise'),
+    path('pending/time-wise/', TimeWisePendingView.as_view(), name='pending-time-wise'),
+    path('undetected/', UndetectedCasesView.as_view(), name='undetected-cases'),
+    path('undetected/io-wise/', UndetectedIOWiseView.as_view(), name='undetected-io-wise'),
+    path('undetected/time-wise/', UndetectedTimeWiseView.as_view(), name='undetected-time-wise'),
+    path('detected/', DetectedCasesView.as_view(), name='detected-cases'),
+    path('detected/io-wise/', IOWiseDetectedView.as_view(), name='detected-io-wise'),
+    path('detected/time-wise/', TimeWiseDetectedView.as_view(), name='detected-time-wise'),
+    path('disposal/case-wise/', DisposalCaseWiseView.as_view(), name='disposal-case-wise'),
+    path('disposal/time-wise/', TimeWiseDisposalView.as_view(), name='disposal-time-wise'),
+    path('disposal/designation-wise/', DesignationWiseDisposalView.as_view(), name='disposal-designation-wise'),
+    path('disposal/crime-type-wise/', DisposalCrimeTypeWiseView.as_view(), name='disposal-crime-type-wise'),
+    
+    path('arrested/case-wise/', ArrestedCaseWiseView.as_view(), name='arrested-case-wise'),
+    path('arrested/time-wise/', TimeWiseArrestedView.as_view(), name='arrested-time-wise'),
+    path('arrested/io-wise/', IOWiseArrestedView.as_view(), name='arrested-io-wise'),
 
     # Existing CaseRecordViewSet router (ModelViewSet)
     path('', include(router.urls)),

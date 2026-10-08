@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'bilingual_field.dart';
 import 'form_paper_page.dart';
 import 'form_table_helpers.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
+import 'form_date_pickers.dart';
 
 /// -:: मुद्देमाल पावती ::- (Muddemal Pavti)
 class MuddemalPavtiFormView extends StatefulWidget {
@@ -247,6 +247,42 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
     if (mounted) setState(() {});
   }
 
+  Widget _wrappingUnderlineInput({
+    required TextEditingController controller,
+    required TextStyle style,
+    double minWidth = 100,
+    double? maxWidth,
+    String? hintText,
+    TextInputType? keyboardType,
+  }) {
+    return _MuddemalDynamicUnderlineField(
+      controller: controller,
+      style: style,
+      minWidth: minWidth,
+      maxWidth: maxWidth,
+      hintText: hintText,
+      keyboardType: keyboardType,
+      readOnly: widget.readOnly,
+    );
+  }
+
+  Widget _policeStationField({
+    required TextEditingController controller,
+    required TextStyle style,
+    double minWidth = 140,
+    double? maxWidth,
+    String? hintText,
+  }) {
+    return _MuddemalDynamicUnderlineField(
+      controller: controller,
+      style: style,
+      minWidth: minWidth,
+      maxWidth: maxWidth,
+      hintText: hintText,
+      readOnly: widget.readOnly,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final serif = FormTypography.serifStyle();
@@ -272,7 +308,10 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
             const SizedBox(height: 24),
 
             // ── ROW 1: पोलीस स्टेशन ──
-            Row(
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 6,
+              runSpacing: 10,
               children: [
                 Text(
                   '१) पोलीस स्टेशन   :-  ',
@@ -281,13 +320,13 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                     fontSize: 13,
                   ),
                 ),
-                Expanded(
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _psCtrl,
-                    serifStyle: serif,
-                  ),
+                _policeStationField(
+                  controller: _psCtrl,
+                  style: serif,
+                  minWidth: 150,
+                  maxWidth: 350,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 Text(
                   'जिल्हा :- ',
                   style: marathi.copyWith(
@@ -295,18 +334,21 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                     fontSize: 13,
                   ),
                 ),
-                Expanded(
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _distCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _distCtrl,
+                  style: serif,
+                  minWidth: 120,
+                  maxWidth: 300,
                 ),
               ],
             ),
             const SizedBox(height: 12),
 
             // ── ROW 2: अप क्रमांक व कलम ──
-            Row(
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 6,
+              runSpacing: 10,
               children: [
                 Text(
                   '२) अप क्रमांक :- ',
@@ -315,13 +357,12 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                     fontSize: 13,
                   ),
                 ),
-                SizedBox(
-                  width: 140,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _crimeNoCtrl,
-                    serifStyle: serif,
-                    hintText: '........../२०......',
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _crimeNoCtrl,
+                  style: serif,
+                  minWidth: 120,
+                  maxWidth: 260,
+                  hintText: '........../२०......',
                 ),
                 const SizedBox(width: 12),
                 Text(
@@ -331,18 +372,21 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                     fontSize: 13,
                   ),
                 ),
-                Expanded(
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _actSecCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _actSecCtrl,
+                  style: serif,
+                  minWidth: 200,
+                  maxWidth: 600,
                 ),
               ],
             ),
             const SizedBox(height: 12),
 
             // ── ROW 3: अन्वेषन अधिकारी ──
-            Row(
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 6,
+              runSpacing: 10,
               children: [
                 Text(
                   '३) अन्वेषन अधिकारी:- ',
@@ -351,11 +395,11 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                     fontSize: 13,
                   ),
                 ),
-                Expanded(
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _ioNameCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _ioNameCtrl,
+                  style: serif,
+                  minWidth: 160,
+                  maxWidth: 350,
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -365,14 +409,13 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                     fontSize: 13,
                   ),
                 ),
-                SizedBox(
-                  width: 120,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _ioPsCtrl,
-                    serifStyle: serif,
-                  ),
+                _policeStationField(
+                  controller: _ioPsCtrl,
+                  style: serif,
+                  minWidth: 130,
+                  maxWidth: 300,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 Text(
                   'जिल्हा :- ',
                   style: marathi.copyWith(
@@ -380,19 +423,21 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                     fontSize: 13,
                   ),
                 ),
-                SizedBox(
-                  width: 120,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _ioDistCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _ioDistCtrl,
+                  style: serif,
+                  minWidth: 120,
+                  maxWidth: 260,
                 ),
               ],
             ),
             const SizedBox(height: 12),
 
             // ── ROW 4: आरोपी नांव ──
-            Row(
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 6,
+              runSpacing: 10,
               children: [
                 Text(
                   '४) आरोपी नांव :- ',
@@ -401,18 +446,21 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                     fontSize: 13,
                   ),
                 ),
-                Expanded(
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _accusedNameCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _accusedNameCtrl,
+                  style: serif,
+                  minWidth: 260,
+                  maxWidth: 700,
                 ),
               ],
             ),
             const SizedBox(height: 12),
 
             // ── ROW 5: जप्त माल दिनांक व माल नंबर ──
-            Row(
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 6,
+              runSpacing: 10,
               children: [
                 Text(
                   '५) जप्त माल दिनांक :- ',
@@ -421,13 +469,11 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                     fontSize: 13,
                   ),
                 ),
-                SizedBox(
-                  width: 160,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _seizureDateCtrl,
-                    serifStyle: serif,
-                    hintText: '......./ ........./२०.....',
-                  ),
+                formDatePickerField(
+                  context,
+                  controller: _seizureDateCtrl,
+                  width: 140,
+                  readOnly: widget.readOnly,
                 ),
                 const SizedBox(width: 24),
                 Text(
@@ -437,13 +483,12 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                     fontSize: 13,
                   ),
                 ),
-                SizedBox(
-                  width: 140,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _propertyNoCtrl,
-                    serifStyle: serif,
-                    hintText: '........../२०......',
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _propertyNoCtrl,
+                  style: serif,
+                  minWidth: 120,
+                  maxWidth: 260,
+                  hintText: '........../२०......',
                 ),
               ],
             ),
@@ -581,7 +626,7 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                                   style: serif.copyWith(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.blue.shade900,
+                                    color: Colors.black87,
                                   ),
                                   decoration: InputDecoration(
                                     border: InputBorder.none,
@@ -611,7 +656,7 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                                   style: serif.copyWith(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.blue.shade900,
+                                    color: Colors.black87,
                                   ),
                                   decoration: InputDecoration(
                                     border: InputBorder.none,
@@ -639,7 +684,7 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                                   style: serif.copyWith(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.blue.shade900,
+                                    color: Colors.black87,
                                   ),
                                   decoration: InputDecoration(
                                     border: InputBorder.none,
@@ -663,7 +708,7 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                                   style: serif.copyWith(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.blue.shade900,
+                                    color: Colors.black87,
                                   ),
                                   decoration: InputDecoration(
                                     border: InputBorder.none,
@@ -722,9 +767,11 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      BilingualSimpleUnderlineInput(
+                      _wrappingUnderlineInput(
                         controller: _headMohararSigCtrl,
-                        serifStyle: serif,
+                        style: serif,
+                        minWidth: 160,
+                        maxWidth: 200,
                       ),
                     ],
                   ),
@@ -741,9 +788,11 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      BilingualSimpleUnderlineInput(
+                      _wrappingUnderlineInput(
                         controller: _investigatingOfficerSigCtrl,
-                        serifStyle: serif,
+                        style: serif,
+                        minWidth: 160,
+                        maxWidth: 200,
                       ),
                     ],
                   ),
@@ -755,6 +804,243 @@ class MuddemalPavtiFormViewState extends State<MuddemalPavtiFormView> {
           ],
         ),
       ],
+    );
+  }
+}
+
+class _MuddemalDynamicUnderlinePainter extends CustomPainter {
+  final int lines;
+  final double lineHeight;
+  final Color color;
+  final double thickness;
+
+  const _MuddemalDynamicUnderlinePainter({
+    required this.lines,
+    required this.lineHeight,
+    required this.color,
+    this.thickness = 1.0,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = thickness
+      ..style = PaintingStyle.stroke;
+
+    for (int i = 1; i <= lines; i++) {
+      final y = ((i * lineHeight) - 1.0).clamp(1.0, size.height - 0.5);
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _MuddemalDynamicUnderlinePainter oldDelegate) {
+    return oldDelegate.lines != lines ||
+        oldDelegate.lineHeight != lineHeight ||
+        oldDelegate.color != color ||
+        oldDelegate.thickness != thickness;
+  }
+}
+
+class _MuddemalDynamicUnderlineField extends StatefulWidget {
+  final TextEditingController controller;
+  final TextStyle style;
+  final double minWidth;
+  final double? maxWidth;
+  final String? hintText;
+  final TextInputType? keyboardType;
+  final bool readOnly;
+
+  const _MuddemalDynamicUnderlineField({
+    required this.controller,
+    required this.style,
+    this.minWidth = 100,
+    this.maxWidth,
+    this.hintText,
+    this.keyboardType,
+    this.readOnly = false,
+  });
+
+  @override
+  State<_MuddemalDynamicUnderlineField> createState() =>
+      _MuddemalDynamicUnderlineFieldState();
+}
+
+class _MuddemalDynamicUnderlineFieldState
+    extends State<_MuddemalDynamicUnderlineField> {
+  late final FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode();
+    _focusNode.addListener(_onFocusChange);
+  }
+
+  void _onFocusChange() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _focusNode.removeListener(_onFocusChange);
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const double lineHeight = 26.0;
+    const double baseFontSize = 13.5;
+    const double horizontalPadding = 3.0;
+
+    final effectiveTextStyle = widget.style.copyWith(
+      fontWeight: FontWeight.w600,
+      fontSize: baseFontSize,
+      color: const Color(0xFF0D47A1),
+      height: lineHeight / baseFontSize,
+    );
+
+    const effectiveStrutStyle = StrutStyle(
+      fontSize: baseFontSize,
+      height: lineHeight / baseFontSize,
+      forceStrutHeight: true,
+    );
+
+    final bool isFocused = _focusNode.hasFocus;
+    final Color lineColor =
+        isFocused ? const Color(0xFF1976D2) : const Color(0xFF555555);
+    final double lineThickness = isFocused ? 1.5 : 1.0;
+
+    final effectiveMin = widget.minWidth;
+    final effectiveMax = widget.maxWidth ?? 800.0;
+
+    return ListenableBuilder(
+      listenable: widget.controller,
+      builder: (context, _) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final hasFiniteWidth =
+                constraints.maxWidth.isFinite && constraints.maxWidth > 0;
+            final double availableWidth =
+                hasFiniteWidth ? constraints.maxWidth : effectiveMax;
+            final text = widget.controller.text;
+
+            final singleLinePainter = TextPainter(
+              text: TextSpan(
+                text: text.isEmpty ? (widget.hintText ?? '') : text,
+                style: effectiveTextStyle,
+              ),
+              textDirection: TextDirection.ltr,
+              strutStyle: effectiveStrutStyle,
+              maxLines: 1,
+            )..layout(maxWidth: double.infinity);
+
+            final double measuredWidth = singleLinePainter.width + 16.0;
+
+            double computedWidth;
+            int lineCount = 1;
+
+            if (measuredWidth <= availableWidth &&
+                measuredWidth <= effectiveMax &&
+                !text.contains('\n')) {
+              computedWidth =
+                  measuredWidth < effectiveMin ? effectiveMin : measuredWidth;
+              lineCount = 1;
+            } else {
+              computedWidth =
+                  availableWidth < effectiveMax ? availableWidth : effectiveMax;
+              if (computedWidth < effectiveMin) computedWidth = effectiveMin;
+
+              final double textMaxWidth =
+                  (computedWidth - (horizontalPadding * 2) - 2.0)
+                      .clamp(20.0, computedWidth);
+
+              final multilinePainter = TextPainter(
+                text: TextSpan(
+                  text: text.isEmpty ? ' ' : text,
+                  style: effectiveTextStyle,
+                ),
+                textDirection: TextDirection.ltr,
+                strutStyle: effectiveStrutStyle,
+              )..layout(maxWidth: textMaxWidth);
+
+              final metrics = multilinePainter.computeLineMetrics();
+              lineCount = metrics.length;
+              if (lineCount < 1) lineCount = 1;
+
+              final newlineCount = '\n'.allMatches(text).length + 1;
+              if (newlineCount > lineCount) {
+                lineCount = newlineCount;
+              }
+            }
+
+            final double totalHeight = lineCount * lineHeight;
+
+            return RepaintBoundary(
+              child: SizedBox(
+                width: computedWidth,
+                height: totalHeight,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: CustomPaint(
+                          size: Size(computedWidth, totalHeight),
+                          painter: _MuddemalDynamicUnderlinePainter(
+                            lines: lineCount,
+                            lineHeight: lineHeight,
+                            color: lineColor,
+                            thickness: lineThickness,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned.fill(
+                      child: TextFormField(
+                        controller: widget.controller,
+                        focusNode: _focusNode,
+                        readOnly: widget.readOnly,
+                        minLines: lineCount,
+                        maxLines: null,
+                        keyboardType:
+                            widget.keyboardType ?? TextInputType.multiline,
+                        style: effectiveTextStyle,
+                        strutStyle: effectiveStrutStyle,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          isCollapsed: true,
+                          border: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          disabledBorder: InputBorder.none,
+                          contentPadding: const EdgeInsets.only(
+                            left: horizontalPadding,
+                            right: horizontalPadding,
+                            top: 0,
+                            bottom: 2,
+                          ),
+                          fillColor: Colors.transparent,
+                          filled: false,
+                          hintText: widget.hintText,
+                          hintStyle: widget.style.copyWith(
+                            color: Colors.grey.shade400,
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic,
+                            height: lineHeight / 12.0,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

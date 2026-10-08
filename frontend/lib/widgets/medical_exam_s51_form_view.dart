@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'bilingual_field.dart';
 import 'form_paper_page.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
+import 'form_date_pickers.dart';
 
 /// वैद्यकीय तपासणी (भारतीय नागरीक सुरक्षा संहिता २०२३ कलम ५१)
 /// Medical Examination Request under Section 51 BNSS
@@ -33,14 +33,51 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
   final _dateYearCtrl = TextEditingController();
 
   String get _dateCombined {
+    if (_dateCtrl.text.trim().isNotEmpty) {
+      return _dateCtrl.text.trim();
+    }
     final d = _dateDayCtrl.text.trim();
     final m = _dateMonthCtrl.text.trim();
     final y = _dateYearCtrl.text.trim();
     if (d.isEmpty && m.isEmpty && y.isEmpty) {
-      return _dateCtrl.text.trim();
+      return '';
     }
     final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
     return '$d/$m/$yFull'.replaceAll(RegExp(r'/+$'), '');
+  }
+
+  Widget _wrappingUnderlineInput({
+    required TextEditingController controller,
+    double minWidth = 100,
+    double maxWidth = 350,
+    String? hintText,
+    TextInputType? keyboardType,
+  }) {
+    return _MedicalExamDynamicUnderlineField(
+      controller: controller,
+      style: FormTypography.serifStyle(),
+      minWidth: minWidth,
+      maxWidth: maxWidth,
+      hintText: hintText,
+      keyboardType: keyboardType,
+      readOnly: widget.readOnly,
+    );
+  }
+
+  Widget _policeStationField({
+    required TextEditingController controller,
+    double minWidth = 100,
+    double? maxWidth,
+    String? hintText,
+  }) {
+    return _MedicalExamDynamicUnderlineField(
+      controller: controller,
+      style: FormTypography.serifStyle(),
+      minWidth: minWidth,
+      maxWidth: maxWidth,
+      hintText: hintText,
+      readOnly: widget.readOnly,
+    );
   }
 
   final _toOfficerCtrl = TextEditingController();
@@ -126,6 +163,12 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
         if (yr.startsWith('20') && yr.length == 4) yr = yr.substring(2);
         _dateYearCtrl.text = yr;
       }
+    } else if (_dateCtrl.text.isEmpty && _dateDayCtrl.text.isNotEmpty) {
+      final d = _dateDayCtrl.text.trim();
+      final m = _dateMonthCtrl.text.trim();
+      final y = _dateYearCtrl.text.trim();
+      final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
+      _dateCtrl.text = '$d/$m/$yFull';
     }
     if (data.containsKey('toOfficer')) {
       _toOfficerCtrl.text = data['toOfficer']?.toString() ?? '';
@@ -170,7 +213,6 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
 
   @override
   Widget build(BuildContext context) {
-    final serif = FormTypography.serifStyle();
     final marathi = FormTypography.marathiLabelStyle();
 
     final bodyTextStyle = marathi.copyWith(
@@ -181,10 +223,6 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
     final headerLabelStyle = marathi.copyWith(
       fontSize: 13,
       fontWeight: FontWeight.w600,
-      color: Colors.black87,
-    );
-    final serifBold = serif.copyWith(
-      fontWeight: FontWeight.bold,
       color: Colors.black87,
     );
 
@@ -227,29 +265,38 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
             Align(
               alignment: Alignment.centerRight,
               child: SizedBox(
-                width: 280,
+                width: 380,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('पोलीस दुरक्षेत्र ', style: headerLabelStyle),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2.0),
+                          child: Text('पोलीस दुरक्षेत्र ',
+                              style: headerLabelStyle),
+                        ),
                         Expanded(
-                          child: BilingualSimpleUnderlineInput(
+                          child: _policeStationField(
                             controller: _outpostCtrl,
-                            serifStyle: serif,
+                            minWidth: 100,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 6),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('पोलीस स्टेशन ', style: headerLabelStyle),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2.0),
+                          child: Text('पोलीस स्टेशन ', style: headerLabelStyle),
+                        ),
                         Expanded(
-                          child: BilingualSimpleUnderlineInput(
+                          child: _policeStationField(
                             controller: _psCtrl,
-                            serifStyle: serif,
+                            minWidth: 100,
                           ),
                         ),
                       ],
@@ -258,31 +305,14 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
                     Row(
                       children: [
                         Text('दिनांक : ', style: headerLabelStyle),
-                        SizedBox(
-                          width: 32,
-                          child: BilingualSimpleUnderlineInput(
-                            controller: _dateDayCtrl,
-                            serifStyle: serif,
-                            hintText: 'DD',
-                          ),
-                        ),
-                        Text('/', style: serifBold),
-                        SizedBox(
-                          width: 32,
-                          child: BilingualSimpleUnderlineInput(
-                            controller: _dateMonthCtrl,
-                            serifStyle: serif,
-                            hintText: 'MM',
-                          ),
-                        ),
-                        Text('/ २०', style: headerLabelStyle),
-                        SizedBox(
-                          width: 36,
-                          child: BilingualSimpleUnderlineInput(
-                            controller: _dateYearCtrl,
-                            serifStyle: serif,
-                            hintText: 'YY',
-                          ),
+                        formDatePickerField(
+                          context,
+                          controller: _dateCtrl,
+                          dayCtrl: _dateDayCtrl,
+                          monthCtrl: _dateMonthCtrl,
+                          yearCtrl: _dateYearCtrl,
+                          width: 140,
+                          readOnly: widget.readOnly,
                         ),
                       ],
                     ),
@@ -306,28 +336,22 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(
-                    width: 340,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _toOfficerCtrl,
-                      serifStyle: serif,
-                    ),
+                  _wrappingUnderlineInput(
+                    controller: _toOfficerCtrl,
+                    minWidth: 260,
+                    maxWidth: 500,
                   ),
                   const SizedBox(height: 6),
-                  SizedBox(
-                    width: 340,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _toHospitalCtrl,
-                      serifStyle: serif,
-                    ),
+                  _wrappingUnderlineInput(
+                    controller: _toHospitalCtrl,
+                    minWidth: 260,
+                    maxWidth: 500,
                   ),
                   const SizedBox(height: 6),
-                  SizedBox(
-                    width: 340,
-                    child: BilingualSimpleUnderlineInput(
-                      controller: _toTahDistCtrl,
-                      serifStyle: serif,
-                    ),
+                  _wrappingUnderlineInput(
+                    controller: _toTahDistCtrl,
+                    minWidth: 260,
+                    maxWidth: 500,
                   ),
                 ],
               ),
@@ -338,11 +362,13 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('पासुन  :-    ', style: headerLabelStyle),
+                Padding(
+                  padding: const EdgeInsets.only(top: 2.0),
+                  child: Text('पासुन  :-    ', style: headerLabelStyle),
+                ),
                 Expanded(
-                  child: BilingualSimpleUnderlineInput(
+                  child: _policeStationField(
                     controller: _fromLocationCtrl,
-                    serifStyle: serif,
                   ),
                 ),
               ],
@@ -355,9 +381,10 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
               children: [
                 Text('विषय   :-    ', style: headerLabelStyle),
                 Expanded(
-                  child: BilingualSimpleUnderlineInput(
+                  child: _wrappingUnderlineInput(
                     controller: _subjectCtrl,
-                    serifStyle: serif,
+                    minWidth: 280,
+                    maxWidth: 600,
                   ),
                 ),
               ],
@@ -388,55 +415,44 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
                   '        उपरोक्त विषयान्वये सादर आहे की, जखमी नामे ',
                   style: bodyTextStyle,
                 ),
-                SizedBox(
-                  width: 280,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _victimNameCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _victimNameCtrl,
+                  minWidth: 200,
+                  maxWidth: 400,
                 ),
                 Text(', वय ', style: bodyTextStyle),
-                SizedBox(
-                  width: 44,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _victimAgeCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _victimAgeCtrl,
+                  minWidth: 44,
+                  maxWidth: 80,
+                  keyboardType: TextInputType.number,
                 ),
                 Text(' वर्ष रा ', style: bodyTextStyle),
-                SizedBox(
-                  width: 180,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _victimResidenceCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _victimResidenceCtrl,
+                  minWidth: 160,
+                  maxWidth: 400,
                 ),
                 Text(' ता ', style: bodyTextStyle),
-                SizedBox(
-                  width: 130,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _victimTahCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _victimTahCtrl,
+                  minWidth: 110,
+                  maxWidth: 250,
                 ),
                 Text(' जिल्हा ', style: bodyTextStyle),
-                SizedBox(
-                  width: 100,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _victimDistCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _victimDistCtrl,
+                  minWidth: 100,
+                  maxWidth: 250,
                 ),
                 Text(
                   ' यांना गैरअर्जदार/ आरोपी यांनी भांडणात मारहाण केल्याचे ',
                   style: bodyTextStyle,
                 ),
-                SizedBox(
-                  width: 280,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _assaultDetailsCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _assaultDetailsCtrl,
+                  minWidth: 240,
+                  maxWidth: 550,
                 ),
                 Text(
                   ' मारलागल्याचे सांगत आहे. तरी मार कशाचा व किती वेळ पुर्विचा आहे, सदर माराची तपासणी होउन आपला अभिप्राय मिळणेस विनंती आहे.',
@@ -461,6 +477,244 @@ class MedicalExamS51FormViewState extends State<MedicalExamS51FormView> {
           ],
         ),
       ],
+    );
+  }
+}
+
+class _MedicalExamDynamicUnderlinePainter extends CustomPainter {
+  final int lines;
+  final double lineHeight;
+  final Color color;
+  final double thickness;
+
+  const _MedicalExamDynamicUnderlinePainter({
+    required this.lines,
+    required this.lineHeight,
+    required this.color,
+    this.thickness = 1.0,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = thickness
+      ..style = PaintingStyle.stroke;
+
+    for (int i = 1; i <= lines; i++) {
+      final y = ((i * lineHeight) - 1.0).clamp(1.0, size.height - 0.5);
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(
+      covariant _MedicalExamDynamicUnderlinePainter oldDelegate) {
+    return oldDelegate.lines != lines ||
+        oldDelegate.lineHeight != lineHeight ||
+        oldDelegate.color != color ||
+        oldDelegate.thickness != thickness;
+  }
+}
+
+class _MedicalExamDynamicUnderlineField extends StatefulWidget {
+  final TextEditingController controller;
+  final TextStyle style;
+  final double minWidth;
+  final double? maxWidth;
+  final String? hintText;
+  final TextInputType? keyboardType;
+  final bool readOnly;
+
+  const _MedicalExamDynamicUnderlineField({
+    required this.controller,
+    required this.style,
+    this.minWidth = 100,
+    this.maxWidth,
+    this.hintText,
+    this.keyboardType,
+    this.readOnly = false,
+  });
+
+  @override
+  State<_MedicalExamDynamicUnderlineField> createState() =>
+      _MedicalExamDynamicUnderlineFieldState();
+}
+
+class _MedicalExamDynamicUnderlineFieldState
+    extends State<_MedicalExamDynamicUnderlineField> {
+  late final FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode();
+    _focusNode.addListener(_onFocusChange);
+  }
+
+  void _onFocusChange() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _focusNode.removeListener(_onFocusChange);
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const double lineHeight = 26.0;
+    const double baseFontSize = 13.0;
+    const double horizontalPadding = 3.0;
+
+    final effectiveTextStyle = widget.style.copyWith(
+      fontWeight: FontWeight.w600,
+      fontSize: baseFontSize,
+      color: const Color(0xFF0D47A1),
+      height: lineHeight / baseFontSize,
+    );
+
+    const effectiveStrutStyle = StrutStyle(
+      fontSize: baseFontSize,
+      height: lineHeight / baseFontSize,
+      forceStrutHeight: true,
+    );
+
+    final bool isFocused = _focusNode.hasFocus;
+    final Color lineColor =
+        isFocused ? const Color(0xFF1976D2) : const Color(0xFF555555);
+    final double lineThickness = isFocused ? 1.5 : 1.0;
+
+    final effectiveMin = widget.minWidth;
+    final effectiveMax = widget.maxWidth ?? 800.0;
+
+    return ListenableBuilder(
+      listenable: widget.controller,
+      builder: (context, _) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final hasFiniteWidth =
+                constraints.maxWidth.isFinite && constraints.maxWidth > 0;
+            final double availableWidth =
+                hasFiniteWidth ? constraints.maxWidth : effectiveMax;
+            final text = widget.controller.text;
+
+            final singleLinePainter = TextPainter(
+              text: TextSpan(
+                text: text.isEmpty ? (widget.hintText ?? '') : text,
+                style: effectiveTextStyle,
+              ),
+              textDirection: TextDirection.ltr,
+              strutStyle: effectiveStrutStyle,
+              maxLines: 1,
+            )..layout(maxWidth: double.infinity);
+
+            final double measuredWidth = singleLinePainter.width + 16.0;
+
+            double computedWidth;
+            int lineCount = 1;
+
+            if (measuredWidth <= availableWidth &&
+                measuredWidth <= effectiveMax &&
+                !text.contains('\n')) {
+              computedWidth =
+                  measuredWidth < effectiveMin ? effectiveMin : measuredWidth;
+              lineCount = 1;
+            } else {
+              computedWidth =
+                  availableWidth < effectiveMax ? availableWidth : effectiveMax;
+              if (computedWidth < effectiveMin) computedWidth = effectiveMin;
+
+              final double textMaxWidth =
+                  (computedWidth - (horizontalPadding * 2) - 2.0)
+                      .clamp(20.0, computedWidth);
+
+              final multilinePainter = TextPainter(
+                text: TextSpan(
+                  text: text.isEmpty ? ' ' : text,
+                  style: effectiveTextStyle,
+                ),
+                textDirection: TextDirection.ltr,
+                strutStyle: effectiveStrutStyle,
+              )..layout(maxWidth: textMaxWidth);
+
+              final metrics = multilinePainter.computeLineMetrics();
+              lineCount = metrics.length;
+              if (lineCount < 1) lineCount = 1;
+
+              final newlineCount = '\n'.allMatches(text).length + 1;
+              if (newlineCount > lineCount) {
+                lineCount = newlineCount;
+              }
+            }
+
+            final double totalHeight = lineCount * lineHeight;
+
+            return RepaintBoundary(
+              child: SizedBox(
+                width: computedWidth,
+                height: totalHeight,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: CustomPaint(
+                          size: Size(computedWidth, totalHeight),
+                          painter: _MedicalExamDynamicUnderlinePainter(
+                            lines: lineCount,
+                            lineHeight: lineHeight,
+                            color: lineColor,
+                            thickness: lineThickness,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned.fill(
+                      child: TextFormField(
+                        controller: widget.controller,
+                        focusNode: _focusNode,
+                        readOnly: widget.readOnly,
+                        minLines: lineCount,
+                        maxLines: null,
+                        keyboardType:
+                            widget.keyboardType ?? TextInputType.multiline,
+                        style: effectiveTextStyle,
+                        strutStyle: effectiveStrutStyle,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          isCollapsed: true,
+                          border: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          disabledBorder: InputBorder.none,
+                          contentPadding: const EdgeInsets.only(
+                            left: horizontalPadding,
+                            right: horizontalPadding,
+                            top: 0,
+                            bottom: 2,
+                          ),
+                          fillColor: Colors.transparent,
+                          filled: false,
+                          hintText: widget.hintText,
+                          hintStyle: widget.style.copyWith(
+                            color: Colors.grey.shade400,
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic,
+                            height: lineHeight / 12.0,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

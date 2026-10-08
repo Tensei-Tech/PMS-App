@@ -9,10 +9,14 @@ import 'package:provider/provider.dart';
 
 import '../modules/absconded/providers/absconded_provider.dart';
 import '../modules/accident/providers/accident_provider.dart';
+import '../modules/accidental_death/providers/accidental_death_provider.dart';
 import '../modules/application/providers/application_provider.dart';
 import '../modules/arrested/providers/arrested_provider.dart';
 import '../modules/bnss/providers/bnss_provider.dart';
 import '../modules/coin/providers/coin_provider.dart';
+import '../modules/suicide/providers/suicide_provider.dart';
+import '../modules/st_drugs/providers/st_drugs_provider.dart';
+import '../services/case_service.dart';
 import '../modules/core/models/base_record.dart';
 import '../modules/core/providers/base_module_provider.dart';
 import '../modules/crime_women/providers/crime_women_provider.dart';
@@ -91,8 +95,10 @@ import '../widgets/reason_of_arrest_form_view.dart';
 import '../widgets/transit_remand_form_view.dart';
 import 'bnss_dedicated_forms.dart';
 import 'module_hub_screen.dart';
+import '../widgets/dynamic_form/dynamic_form_screen.dart';
 
 class CommonFormScreen extends StatefulWidget {
+  final dynamic categoryId;
   final String moduleLabel;
   final String moduleKey;
   final String? subCategory;
@@ -107,6 +113,7 @@ class CommonFormScreen extends StatefulWidget {
 
   const CommonFormScreen({
     super.key,
+    this.categoryId,
     required this.moduleLabel,
     required this.moduleKey,
     this.subCategory,
@@ -163,6 +170,8 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       GlobalKey<SandTheftExtraFieldsState>();
   final GlobalKey<PocsoExtraFieldsState> _pocsoKey =
       GlobalKey<PocsoExtraFieldsState>();
+
+  bool _isExportingPdf = false;
 
   bool get _isEdit => widget.existingRecord != null;
   bool get _isAbForm => widget.subCategory == 'AB Form';
@@ -541,8 +550,14 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
         return context.read<MpdaProvider>();
       case 'coin':
         return context.read<CoinProvider>();
+      case 'ad':
+        return context.read<AdProvider>();
+      case 'suicide':
+        return context.read<SuicideProvider>();
+      case 'st_drugs':
+        return context.read<StDrugsProvider>();
       default:
-        return context.read<NcProvider>();
+        return context.read<FormIVProvider>();
     }
   }
 
@@ -567,15 +582,30 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
 
   String _accusedSummary(Map<String, dynamic> doc) {
     if (doc['isUnknownUntraced'] == true) return 'Unknown / Untraced';
-    final list = doc['accused'];
-    if (list is! List || list.isEmpty) return '';
-    final names = <String>[];
-    for (final item in list) {
-      if (item is Map && item['name'] != null) {
-        final n = item['name'].toString().trim();
-        if (n.isNotEmpty) names.add(n);
+
+    final names = <String>{};
+
+    if (doc['allAccusedNames'] is List) {
+      for (final n in doc['allAccusedNames']) {
+        if (n is String && n.trim().isNotEmpty) names.add(n.trim());
       }
     }
+
+    void addFromList(dynamic list, String key) {
+      if (list is List) {
+        for (final item in list) {
+          if (item is Map && item[key] != null) {
+            final n = item[key].toString().trim();
+            if (n.isNotEmpty) names.add(n);
+          }
+        }
+      }
+    }
+
+    addFromList(doc['accused'], 'name');
+    addFromList(doc['suspectedAccused'], 'name');
+    addFromList(doc['arrestRelease'], 'accusedName');
+
     return names.join(', ');
   }
 
@@ -588,6 +618,8 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
   }
 
   Future<void> _exportPdf() async {
+    if (_isExportingPdf) return;
+    setState(() => _isExportingPdf = true);
     try {
       if (!mounted) return;
       if (_isCrimeDetailForm) {
@@ -757,6 +789,10 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
           ],
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() => _isExportingPdf = false);
+      }
     }
   }
 
@@ -1738,8 +1774,9 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       status: targetStatus,
       assignedOfficer:
           _isEdit ? widget.existingRecord!.assignedOfficer : auth.displayName,
-      subCategory:
-          _isEdit ? widget.existingRecord!.subCategory : widget.subCategory,
+      subCategory: _isEdit
+          ? widget.existingRecord!.subCategory
+          : (widget.subCategory ?? widget.moduleLabel),
       createdAt: _isEdit ? widget.existingRecord!.createdAt : DateTime.now(),
       extraFields: extra,
       stationName: stationName,
@@ -1749,10 +1786,24 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
     );
 
     try {
-      if (_isEdit) {
-        await provider.updateRecord(record);
+      if (provider.moduleKey == record.moduleKey) {
+        if (_isEdit) {
+          await provider.updateRecord(record);
+        } else {
+          await provider.addRecord(record);
+        }
       } else {
-        await provider.addRecord(record);
+        final enriched = record.copyWith(
+          stationName: stationName,
+          createdBy: createdBy,
+          assignedOfficerUid:
+              _isEdit ? widget.existingRecord!.assignedOfficerUid : auth.uid,
+        );
+        final success =
+            await CaseService().saveCase(enriched, isCreate: !_isEdit);
+        if (!success) {
+          throw Exception('Backend failed to save case record.');
+        }
       }
 
       if (!mounted) return;
@@ -1787,6 +1838,35 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDedicatedSubCategoryForm = _isCrimeDetailForm ||
+        _isPropertySeizureForm ||
+        _isCrimespotSeizureForm ||
+        _isFormE ||
+        _isArrestSurrenderForm ||
+        _isInquestPanchanamaForm ||
+        _isAccusedMemorandumForm ||
+        _isAccusedInterrogationForm ||
+        _isFinalReportForm ||
+        _isAbForm ||
+        _is376MedicalForm ||
+        _isInterrogationForm ||
+        _isDraftGroundOfArrestForm ||
+        _isGroundOfArrestForm ||
+        _isReasonOfArrestForm ||
+        _isTransitRemandForm ||
+        _isBnssDedicatedForm;
+
+    if (!isDedicatedSubCategoryForm) {
+      return DynamicFormScreen(
+        categoryId: widget.categoryId,
+        moduleLabel: widget.moduleLabel,
+        moduleKey: widget.moduleKey,
+        subCategory: widget.subCategory,
+        existingRecord: widget.existingRecord,
+        readOnly: widget.readOnly == true,
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.lightBg,
       appBar: AppBar(
@@ -1800,17 +1880,23 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
             size: 20,
           ),
         ),
-        title: Text(
-          widget.readOnly == true
-              ? '${TranslationHelper.translate(context, 'View')} ${TranslationHelper.translate(context, widget.moduleLabel)}'
-              : (_isEdit
-                  ? '${TranslationHelper.translate(context, 'Edit')} ${TranslationHelper.translate(context, widget.moduleLabel)}'
-                  : '${TranslationHelper.translate(context, 'New')} ${TranslationHelper.translate(context, widget.moduleLabel)} ${TranslationHelper.translate(context, 'Entry')}'),
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: AppColors.navyDark,
-          ),
+        title: Builder(
+          builder: (context) {
+            final label = widget.subCategory ?? widget.moduleLabel;
+            final isForm = widget.subCategory != null;
+            return Text(
+              widget.readOnly == true
+                  ? '${TranslationHelper.translate(context, 'View')} ${TranslationHelper.translate(context, label)}'
+                  : (_isEdit
+                      ? '${TranslationHelper.translate(context, 'Edit')} ${TranslationHelper.translate(context, label)}'
+                      : '${TranslationHelper.translate(context, 'New')} ${TranslationHelper.translate(context, label)}${isForm ? '' : ' ${TranslationHelper.translate(context, 'Entry')}'}'),
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.navyDark,
+              ),
+            );
+          },
         ),
       ),
       body: _isCrimeDetailForm
@@ -1996,23 +2082,34 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                                                                 )
                                                                               : CommonForm(
                                                                                   key: _formKey,
+                                                                                  categoryId: widget.categoryId,
                                                                                   moduleKey: widget.moduleKey,
                                                                                   moduleLabel: widget.moduleLabel,
-                                                                                  subCategory: widget.subCategory,
-                                                                                  middleSlot: _hasKidnappingExtras
-                                                                                      ? KidnappingExtraFields(key: _kidnappingKey)
+                                                                                                     ? KidnappingExtraFields(
+                                                                                          key: _kidnappingKey,
+                                                                                          onActiveFieldTap: (label, ctrl, [section = '']) {
+                                                                                            _formKey.currentState?.setActiveVoiceField(label, ctrl, section);
+                                                                                          },
+                                                                                        )
                                                                                       : _hasSandTheftExtras
                                                                                           ? SandTheftExtraFields(key: _sandTheftKey)
                                                                                           : _hasTheftExtras
-                                                                                              ? TheftExtraFields(key: _theftKey)
+                                                                                              ? TheftExtraFields(
+                                                                                                  key: _theftKey,
+                                                                                                  onActiveFieldTap: (label, ctrl, [section = '']) {
+                                                                                                    _formKey.currentState?.setActiveVoiceField(label, ctrl, section);
+                                                                                                  },
+                                                                                                )
                                                                                               : _hasPocsoExtras
                                                                                                   ? PocsoExtraFields(
                                                                                                       key: _pocsoKey,
                                                                                                       onVictimNameChanged: (v) {
                                                                                                         _formKey.currentState?.setVictimName(v);
                                                                                                       },
-                                                                                                    )
-                                                                                                  : null,
+                                                                                                      onActiveFieldTap: (label, ctrl, [section = '']) {
+                                                                                                        _formKey.currentState?.setActiveVoiceField(label, ctrl, section);
+                                                                                                      },
+                                                                                                   : null,
                                                                                 ),
       bottomNavigationBar: SafeArea(
         child: Padding(
@@ -2053,10 +2150,10 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                 width: widget.readOnly == true ? 180 : 110,
                 height: 46,
                 child: OutlinedButton(
-                  onPressed: _exportPdf,
+                  onPressed: _isExportingPdf ? null : _exportPdf,
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(
-                      color: AppColors.navyMid,
+                    side: BorderSide(
+                      color: _isExportingPdf ? Colors.grey : AppColors.navyMid,
                       width: 1.5,
                     ),
                     shape: RoundedRectangleBorder(
@@ -2064,32 +2161,43 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.picture_as_pdf_outlined,
-                        color: AppColors.navyMid,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        TranslationHelper.translate(
-                          context,
-                          widget.readOnly == true ? 'Download PDF' : 'PDF',
+                  child: _isExportingPdf
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.grey,
+                          ),
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.picture_as_pdf_outlined,
+                              color: AppColors.navyMid,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              TranslationHelper.translate(
+                                context,
+                                widget.readOnly == true
+                                    ? 'Download PDF'
+                                    : 'PDF',
+                              ),
+                              maxLines: 1,
+                              softWrap: false,
+                              overflow: TextOverflow.visible,
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.navyMid,
+                              ),
+                            ),
+                          ],
                         ),
-                        maxLines: 1,
-                        softWrap: false,
-                        overflow: TextOverflow.visible,
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.navyMid,
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
               ),
               if (widget.readOnly != true) ...[

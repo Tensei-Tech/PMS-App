@@ -25,6 +25,16 @@ class HurtCasesScreen extends StatefulWidget {
 class _HurtCasesScreenState extends State<HurtCasesScreen> {
   FormIVStatusTab _selectedStatusTab = FormIVStatusTab.total;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<HurtProvider>().ensureInitialized();
+      }
+    });
+  }
+
   // Date filtering & sorting state
   DateTimeRange? _selectedDateRange;
   String? _datePresetLabel;
@@ -1075,24 +1085,32 @@ class _HurtCasesScreenState extends State<HurtCasesScreen> {
       appBar: ModuleHubScreenAppBar(
         title: TranslationHelper.translate(context, 'Hurt'),
         subtitle: subtitle,
+        actionWidget: _showNewCaseFab
+            ? ElevatedButton.icon(
+                onPressed: _onNewCase,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.navyMid,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                icon: const Icon(Icons.add_rounded, size: 16),
+                label: Text(
+                  TranslationHelper.translate(context, 'Add Case'),
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              )
+            : null,
         onBackPressed: () => Navigator.pop(context),
       ),
-      floatingActionButton: _showNewCaseFab
-          ? FloatingActionButton.extended(
-              onPressed: _onNewCase,
-              backgroundColor: AppColors.navyMid,
-              foregroundColor: Colors.white,
-              elevation: 6,
-              icon: const Icon(Icons.add_rounded),
-              label: Text(
-                TranslationHelper.translate(context, 'New Case'),
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            )
-          : null,
+      floatingActionButton: null,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1104,6 +1122,7 @@ class _HurtCasesScreenState extends State<HurtCasesScreen> {
             onTabChanged: (tab) {
               setState(() => _selectedStatusTab = tab);
             },
+            trailingWidget: null,
           ),
           Container(
             padding: const EdgeInsets.symmetric(

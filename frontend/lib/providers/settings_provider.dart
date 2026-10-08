@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/app_constants.dart';
+import '../utils/translation_helper.dart';
 
 enum FontSize { small, medium, large }
 
@@ -70,6 +71,7 @@ class SettingsProvider extends ChangeNotifier {
 
       final langCode = prefs.getString(StorageKeys.language) ?? 'en';
       _locale = Locale(langCode);
+      TranslationHelper.activeLanguageCode = langCode;
       _isBiometricEnabled = prefs.getBool('isBiometricEnabled') ?? false;
       _isBiometricSkipped = prefs.getBool('isBiometricSkipped') ?? false;
       notifyListeners();
@@ -94,6 +96,7 @@ class SettingsProvider extends ChangeNotifier {
 
   Future<void> setLanguage(String langCode) async {
     _locale = Locale(langCode);
+    TranslationHelper.activeLanguageCode = langCode;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(StorageKeys.language, langCode);
     notifyListeners();

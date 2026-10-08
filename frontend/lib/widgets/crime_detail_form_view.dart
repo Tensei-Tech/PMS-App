@@ -11,6 +11,7 @@ import 'form_typography.dart';
 import 'form_view_scaffold.dart';
 import '../utils/form_io_terminology.dart';
 import 'form_section_utils.dart';
+import 'form_date_pickers.dart';
 
 class CrimeDetailFormView extends StatefulWidget {
   final bool readOnly;
@@ -53,6 +54,7 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
   final _dateDayCtrl = TextEditingController();
   final _dateMonthCtrl = TextEditingController();
   final _dateYearCtrl = TextEditingController();
+  final _dateCombinedCtrl = TextEditingController();
 
   final _actSectionCtrl = TextEditingController();
 
@@ -151,12 +153,23 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
   TextEditingController get _physicalEvidenceCtrl =>
       __physicalEvidenceCtrl ??= TextEditingController();
   String? _mapImagePath;
+  Uint8List? _mapImageBytes;
 
   @override
   void initState() {
     super.initState();
     _victimRows = [VictimRow()];
     _motiveOfCrimeCtrl = TextEditingController();
+    final now = DateTime.now();
+    final d = now.day.toString().padLeft(2, '0');
+    final m = now.month.toString().padLeft(2, '0');
+    final y = (now.year % 100).toString().padLeft(2, '0');
+    final yFull = now.year.toString();
+    _panchnamaDateCtrl.text = '$d/$m/$yFull';
+    _panchnamaDateDayCtrl.text = d;
+    _panchnamaDateMonthCtrl.text = m;
+    _panchnamaDateYearCtrl.text = y;
+    _panchnamaFormDateCtrl.text = '$d/$m/$yFull';
   }
 
   @override
@@ -169,6 +182,7 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
     _dateDayCtrl.dispose();
     _dateMonthCtrl.dispose();
     _dateYearCtrl.dispose();
+    _dateCombinedCtrl.dispose();
     _actSectionCtrl.dispose();
     _shownByNameCtrl.dispose();
     _shownByFatherHusbandCtrl.dispose();
@@ -263,6 +277,7 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
       'propertyDetails': _propertyDetailsCtrl.text.trim(),
       'placeDescriptionCont': _placeDescriptionContCtrl.text.trim(),
       'mapImagePath': _mapImagePath,
+      'mapImageBytes': _mapImageBytes,
       'physicalEvidence': _physicalEvidenceCtrl.text.trim(),
       'panchnamaDate': _panchnamaDateCombined,
       'panchnamaDateDay': _panchnamaDateDayCtrl.text.trim(),
@@ -299,6 +314,9 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
       _dateDayCtrl.text = data['dateDay']?.toString() ?? '';
       _dateMonthCtrl.text = data['dateMonth']?.toString() ?? '';
       _dateYearCtrl.text = data['dateYear']?.toString() ?? '';
+      _dateCombinedCtrl.text =
+          "\${_dateDayCtrl.text}/\${_dateMonthCtrl.text}/\${_dateYearCtrl.text}"
+              .replaceAll(RegExp(r'^/|/$|//'), '');
       _actSectionCtrl.text = data['actSection']?.toString() ?? '';
       _shownByNameCtrl.text = data['shownByName']?.toString() ?? '';
       _shownByFatherHusbandCtrl.text =
@@ -357,6 +375,9 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
           if (yr.startsWith('20') && yr.length == 4) yr = yr.substring(2);
           _panchnamaDateYearCtrl.text = yr;
         }
+      } else if (_panchnamaDateCtrl.text.isEmpty &&
+          _panchnamaDateDayCtrl.text.isNotEmpty) {
+        _panchnamaDateCtrl.text = _panchnamaDateCombined;
       }
 
       // Legacy fallback for panchnamaTime:
@@ -473,52 +494,44 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
               const SizedBox(height: 32),
 
               // --- SECTION 1 ---
-              // Row 1: District and P.S.
               ResponsiveFieldRow(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
+                    flex: 22,
                     child: BilingualField(
                       label: '1) District: ',
                       marathiLabel: 'जिल्हा',
                       controller: _districtCtrl,
                       serifStyle: serifStyle,
                       marathiLabelStyle: marathiLabelStyle,
-                      multiline: true,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   Expanded(
+                    flex: 28,
                     child: BilingualField(
                       label: 'P.S.: ',
                       marathiLabel: 'पोलीस स्टेशन',
                       controller: _psCtrl,
                       serifStyle: serifStyle,
                       marathiLabelStyle: marathiLabelStyle,
-                      multiline: true,
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              // Row 2: Year, FIR No, Date
-              ResponsiveFieldRow(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                  const SizedBox(width: 12),
                   Expanded(
-                    flex: 18,
+                    flex: 15,
                     child: BilingualField(
                       label: 'Year: ',
                       marathiLabel: 'वर्ष',
                       controller: _yearCtrl,
                       serifStyle: serifStyle,
                       marathiLabelStyle: marathiLabelStyle,
-                      multiline: true,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   Expanded(
-                    flex: 32,
+                    flex: 22,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -526,79 +539,51 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                         const SizedBox(height: 2),
                         Text('पहिली खबर क्र.', style: marathiLabelStyle),
                         const SizedBox(height: 4),
-                        ResponsiveFieldRow(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Expanded(
-                              child: BilingualDynamicLinedTextField(
+                              child: BilingualSimpleUnderlineInput(
                                 controller: _firNoCtrl,
-                                minLines: 1,
                                 serifStyle: serifStyle,
-                                marathiLabelStyle: marathiLabelStyle,
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.only(
-                                  top: 2.0, left: 2, right: 2),
+                              padding: const EdgeInsets.only(left: 2, right: 2),
                               child: Text('/20', style: serifStyle),
                             ),
-                            SizedBox(
-                              width: 35,
-                              child: BilingualSimpleUnderlineInput(
-                                controller: _firYearSuffixCtrl,
-                                serifStyle: serifStyle,
-                                hintText: 'YY',
-                              ),
+                            BilingualSimpleUnderlineInput(
+                              minWidth: 35,
+                              controller: _firYearSuffixCtrl,
+                              serifStyle: serifStyle,
+                              hintText: 'YY',
                             ),
                           ],
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   Expanded(
-                    flex: 36,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    flex: 28,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text('Date : ', style: serifStyle),
-                        const SizedBox(width: 4),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
+                        const SizedBox(height: 2),
+                        Text('तारीख', style: marathiLabelStyle),
+                        const SizedBox(height: 4),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(
-                                  width: 35,
-                                  child: BilingualSimpleUnderlineInput(
-                                    controller: _dateDayCtrl,
-                                    serifStyle: serifStyle,
-                                    hintText: 'DD',
-                                  ),
-                                ),
-                                Text('/', style: serifStyle),
-                                SizedBox(
-                                  width: 35,
-                                  child: BilingualSimpleUnderlineInput(
-                                    controller: _dateMonthCtrl,
-                                    serifStyle: serifStyle,
-                                    hintText: 'MM',
-                                  ),
-                                ),
-                                Text('/20', style: serifStyle),
-                                SizedBox(
-                                  width: 35,
-                                  child: BilingualSimpleUnderlineInput(
-                                    controller: _dateYearCtrl,
-                                    serifStyle: serifStyle,
-                                    hintText: 'YY',
-                                  ),
-                                ),
-                              ],
+                            formDatePickerField(
+                              context,
+                              controller: _dateCombinedCtrl,
+                              dayCtrl: _dateDayCtrl,
+                              monthCtrl: _dateMonthCtrl,
+                              yearCtrl: _dateYearCtrl,
+                              width: 140,
                             ),
-                            const SizedBox(height: 2),
-                            Text('तारीख', style: marathiLabelStyle),
                           ],
                         ),
                       ],
@@ -628,20 +613,31 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                 ),
               ),
               const SizedBox(height: 12),
-              BilingualWideField(
-                label: 'Name: ',
-                marathiLabel: 'नांव',
-                controller: _shownByNameCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
-              ),
-              const SizedBox(height: 16),
-              BilingualWideField(
-                label: 'Father\'s/ Husband\'s Name: ',
-                marathiLabel: 'पित्याचे/ पतीचे नांव',
-                controller: _shownByFatherHusbandCtrl,
-                serifStyle: serifStyle,
-                marathiLabelStyle: marathiLabelStyle,
+              ResponsiveFieldRow(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 5,
+                    child: BilingualField(
+                      label: 'Name: ',
+                      marathiLabel: 'नांव',
+                      controller: _shownByNameCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                  ),
+                  const SizedBox(width: 24),
+                  Expanded(
+                    flex: 5,
+                    child: BilingualField(
+                      label: 'Father\'s/ Husband\'s Name: ',
+                      marathiLabel: 'पित्याचे/ पतीचे नांव',
+                      controller: _shownByFatherHusbandCtrl,
+                      serifStyle: serifStyle,
+                      marathiLabelStyle: marathiLabelStyle,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               BilingualWideField(
@@ -672,7 +668,6 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                       controller: _majorHeadCtrl,
                       serifStyle: serifStyle,
                       marathiLabelStyle: marathiLabelStyle,
-                      multiline: true,
                     ),
                   ),
                   const SizedBox(width: 24),
@@ -683,7 +678,6 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                       controller: _minorHeadCtrl,
                       serifStyle: serifStyle,
                       marathiLabelStyle: marathiLabelStyle,
-                      multiline: true,
                     ),
                   ),
                 ],
@@ -790,7 +784,6 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                       serifStyle: serifStyle,
                       marathiLabelStyle: marathiLabelStyle,
                       showMarathiLabel: false,
-                      multiline: true,
                     ),
                   ),
                   const SizedBox(width: 24),
@@ -802,7 +795,6 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                       serifStyle: serifStyle,
                       marathiLabelStyle: marathiLabelStyle,
                       showMarathiLabel: false,
-                      multiline: true,
                     ),
                   ),
                 ],
@@ -819,7 +811,6 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                       serifStyle: serifStyle,
                       marathiLabelStyle: marathiLabelStyle,
                       showMarathiLabel: false,
-                      multiline: true,
                     ),
                   ),
                   const SizedBox(width: 24),
@@ -831,7 +822,6 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                       serifStyle: serifStyle,
                       marathiLabelStyle: marathiLabelStyle,
                       showMarathiLabel: false,
-                      multiline: true,
                     ),
                   ),
                 ],
@@ -906,7 +896,7 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                       _buildHeaderCell(
                         "Whether\nSC/ ST\n\nजाती\n/जमाती\n\n(*7)",
                       ),
-                      _buildHeaderCell("Ocupetion\n\nव्यवसाय\n\n(*8)"),
+                      _buildHeaderCell("Occupation\n\nव्यवसाय\n\n(*8)"),
                       _buildHeaderCell("Address\n\nपत्ता\n\n(*9)"),
                       _buildHeaderCell(
                         "Injury:\ngrievous/\nSimple\n\nदुखापत\nगंभीर/साधी\n\n(10)",
@@ -1127,8 +1117,10 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                   final picker = ImagePicker();
                   final x = await picker.pickImage(source: ImageSource.gallery);
                   if (x != null) {
+                    final bytes = await x.readAsBytes();
                     setState(() {
                       _mapImagePath = x.path;
+                      _mapImageBytes = bytes;
                     });
                   }
                 },
@@ -1193,6 +1185,7 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                                   onPressed: () {
                                     setState(() {
                                       _mapImagePath = null;
+                                      _mapImageBytes = null;
                                     });
                                   },
                                 ),
@@ -1241,39 +1234,13 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                           children: [
                             Text('घटनास्थळ पंचनाम्याची दिनांक : ',
                                 style: marathiLabelStyle),
-                            SizedBox(
-                              width: 35,
-                              child: BilingualSimpleUnderlineInput(
-                                controller: _panchnamaDateDayCtrl,
-                                serifStyle: serifStyle,
-                                hintText: 'DD',
-                              ),
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 2),
-                              child: Text('/', style: serifStyle),
-                            ),
-                            SizedBox(
-                              width: 35,
-                              child: BilingualSimpleUnderlineInput(
-                                controller: _panchnamaDateMonthCtrl,
-                                serifStyle: serifStyle,
-                                hintText: 'MM',
-                              ),
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 2),
-                              child: Text('/20', style: serifStyle),
-                            ),
-                            SizedBox(
-                              width: 35,
-                              child: BilingualSimpleUnderlineInput(
-                                controller: _panchnamaDateYearCtrl,
-                                serifStyle: serifStyle,
-                                hintText: 'YY',
-                              ),
+                            formDatePickerField(
+                              context,
+                              controller: _panchnamaDateCtrl,
+                              dayCtrl: _panchnamaDateDayCtrl,
+                              monthCtrl: _panchnamaDateMonthCtrl,
+                              yearCtrl: _panchnamaDateYearCtrl,
+                              width: 140,
                             ),
                           ],
                         ),
@@ -1355,56 +1322,10 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
                           crossAxisAlignment: WrapCrossAlignment.end,
                           children: [
                             Text('वेळ : ', style: marathiLabelStyle),
-                            SizedBox(
-                              width: 35,
-                              child: BilingualSimpleUnderlineInput(
-                                controller: _panchnamaTimeFromHoursCtrl,
-                                serifStyle: serifStyle,
-                                hintText: 'HH',
-                              ),
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 2),
-                              child: Text('/', style: serifStyle),
-                            ),
-                            SizedBox(
-                              width: 35,
-                              child: BilingualSimpleUnderlineInput(
-                                controller: _panchnamaTimeFromMinutesCtrl,
-                                serifStyle: serifStyle,
-                                hintText: 'MM',
-                              ),
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 4),
-                              child: Text('ते :', style: marathiLabelStyle),
-                            ),
-                            SizedBox(
-                              width: 35,
-                              child: BilingualSimpleUnderlineInput(
-                                controller: _panchnamaTimeToHoursCtrl,
-                                serifStyle: serifStyle,
-                                hintText: 'HH',
-                              ),
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 2),
-                              child: Text('/', style: serifStyle),
-                            ),
-                            SizedBox(
-                              width: 35,
-                              child: BilingualSimpleUnderlineInput(
-                                controller: _panchnamaTimeToMinutesCtrl,
-                                serifStyle: serifStyle,
-                                hintText: 'MM',
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 4),
-                              child: Text('पर्यंत', style: marathiLabelStyle),
+                            formTimePickerField(
+                              context,
+                              controller: _panchnamaTimeCtrl,
+                              width: 100,
                             ),
                           ],
                         ),
@@ -1519,7 +1440,7 @@ class CrimeDetailFormViewState extends State<CrimeDetailFormView> {
         keyboardType: TextInputType.multiline,
         style: style.copyWith(
           fontSize: 11,
-          color: Colors.blue.shade900,
+          color: Colors.black87,
           fontWeight: FontWeight.bold,
         ),
         decoration: InputDecoration(

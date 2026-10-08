@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../utils/reason_of_arrest_pdf.dart';
+import 'form_date_pickers.dart';
 import 'form_paper_page.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
@@ -23,6 +25,12 @@ class ReasonOfArrestFormView extends StatefulWidget {
 }
 
 class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
+  @override
+  void initState() {
+    super.initState();
+    preloadReasonOfArrestPdfFonts();
+  }
+
   bool get _showMain {
     final s = widget.formSection?.toLowerCase() ?? '';
     if (s.isEmpty) return true;
@@ -36,7 +44,7 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
   }
 
   final _outwardNoCtrl = TextEditingController();
-  final _outwardYearCtrl = TextEditingController(text: '2025');
+  final _outwardYearCtrl = TextEditingController();
   final _policeStationCtrl = TextEditingController();
   final _talukaCtrl = TextEditingController();
   final _districtCtrl = TextEditingController();
@@ -59,6 +67,7 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
   final _accusedSigCtrl = TextEditingController();
   final _accusedNameSigCtrl = TextEditingController();
   final _accusedDateTimeCtrl = TextEditingController();
+  final _accusedTimeCtrl = TextEditingController();
   final _ioSigCtrl = TextEditingController();
   final _ioNameRankCtrl = TextEditingController();
   final _ioPsCtrl = TextEditingController();
@@ -92,6 +101,7 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
       _accusedSigCtrl,
       _accusedNameSigCtrl,
       _accusedDateTimeCtrl,
+      _accusedTimeCtrl,
       _ioSigCtrl,
       _ioNameRankCtrl,
       _ioPsCtrl,
@@ -130,7 +140,11 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
       'relativePhone': _relativePhoneCtrl.text.trim(),
       'accusedSig': _accusedSigCtrl.text.trim(),
       'accusedNameSig': _accusedNameSigCtrl.text.trim(),
-      'accusedDateTime': _accusedDateTimeCtrl.text.trim(),
+      'accusedDateTime':
+          '${_accusedDateTimeCtrl.text.trim()} ${_accusedTimeCtrl.text.trim()}'
+              .trim(),
+      'accusedDateOnly': _accusedDateTimeCtrl.text.trim(),
+      'accusedTimeOnly': _accusedTimeCtrl.text.trim(),
       'ioSig': _ioSigCtrl.text.trim(),
       'ioNameRank': _ioNameRankCtrl.text.trim(),
       'ioPs': _ioPsCtrl.text.trim(),
@@ -165,6 +179,8 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
       'accusedSig': _accusedSigCtrl,
       'accusedNameSig': _accusedNameSigCtrl,
       'accusedDateTime': _accusedDateTimeCtrl,
+      'accusedDateOnly': _accusedDateTimeCtrl,
+      'accusedTimeOnly': _accusedTimeCtrl,
       'ioSig': _ioSigCtrl,
       'ioNameRank': _ioNameRankCtrl,
       'ioPs': _ioPsCtrl,
@@ -266,9 +282,11 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text('दिनांक:- ', style: marathiBold),
-                  _UnderlineInput(
+                  const SizedBox(width: 4),
+                  formDatePickerField(
+                    context,
                     controller: _noticeDateCtrl,
-                    width: 120,
+                    width: 140,
                     readOnly: widget.readOnly,
                   ),
                 ],
@@ -289,9 +307,10 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
               child: Text('नाव व पत्ता: ', style: marathiBold),
             ),
             Expanded(
-              child: _UnderlineInput(
+              child: ReasonLinedMultilineInput(
                 controller: _accusedNameAddressCtrl,
                 readOnly: widget.readOnly,
+                serifStyle: marathiBody,
               ),
             ),
           ],
@@ -399,16 +418,19 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 2),
-                  child: Text('${item.$1} ', style: marathiBold),
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text('${item.$1} ',
+                      style: marathiBold.copyWith(fontSize: 15)),
                 ),
                 Expanded(
-                  child: _UnderlineInput(
+                  child: ReasonLinedMultilineInput(
                     controller: item.$2,
                     readOnly: widget.readOnly,
+                    serifStyle: marathiBody,
+                    hintText: 'अटकेचे कारण प्रविष्ट करा...',
                   ),
                 ),
               ],
@@ -505,136 +527,178 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
             ),
           ],
         ),
+        const SizedBox(height: 28),
+
+        // Official Note Banner
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: Colors.black26, width: 0.8),
+          ),
+          child: Text(
+            'टीप :- सदर सुचनापत्राची मूळ प्रत आरोपीस प्रत्यक्ष समजवून देऊन बजावण्यात आली असून, त्याची स्वाक्षरी / अंगठ्याचा ठसा घेऊन रीतसर पोच घेण्यात आली आहे. सदर दस्तऐवज तपास अभिलेखात समाविष्ट करण्यात आला आहे.',
+            style: marathiBody.copyWith(
+                fontSize: 13, height: 1.6, color: Colors.black87),
+            textAlign: TextAlign.justify,
+          ),
+        ),
         const SizedBox(height: 36),
 
-        // Signatures (Two Columns)
+        // Signatures (Two Columns with Official Signature & Stamp Boxes)
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Left Column (Accused)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('मला सुचनापत्र प्राप्त झाले', style: marathiBold),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
-                      child: Text('(आरोपीची सही', style: marathiBold),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('मला सुचनापत्र प्राप्त झाले (आरोपीची पोच)',
+                      style: marathiBold),
+                  const SizedBox(height: 10),
+                  Container(
+                    height: 85,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.black38, width: 0.8),
+                      borderRadius: BorderRadius.circular(4),
                     ),
-                    _UnderlineInput(
-                      controller: _accusedSigCtrl,
-                      width: 130,
-                      readOnly: widget.readOnly,
+                    alignment: Alignment.center,
+                    child: Text(
+                      _accusedSigCtrl.text.isNotEmpty
+                          ? _accusedSigCtrl.text
+                          : '(येथे आरोपीची सही किंवा डाव्या हाताच्या अंगठ्याचा ठसा)',
+                      style: _accusedSigCtrl.text.isNotEmpty
+                          ? marathiBold.copyWith(color: Colors.black87)
+                          : marathiBody.copyWith(
+                              color: Colors.black38, fontSize: 12),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
-                      child: Text(')', style: marathiBold),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
-                      child: Text('आरोपीचे नांव ', style: marathiBold),
-                    ),
-                    _UnderlineInput(
-                      controller: _accusedNameSigCtrl,
-                      width: 150,
-                      readOnly: widget.readOnly,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
-                      child: Text('दिनांक:व वेळ ', style: marathiBold),
-                    ),
-                    _UnderlineInput(
-                      controller: _accusedDateTimeCtrl,
-                      width: 160,
-                      readOnly: widget.readOnly,
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Text('आरोपीचे नांव :- ', style: marathiBold),
+                      ),
+                      Expanded(
+                        child: _UnderlineInput(
+                          controller: _accusedNameSigCtrl,
+                          readOnly: widget.readOnly,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Text('दिनांक व वेळ :- ', style: marathiBold),
+                      formDatePickerField(
+                        context,
+                        controller: _accusedDateTimeCtrl,
+                        width: 130,
+                        readOnly: widget.readOnly,
+                      ),
+                      const SizedBox(width: 6),
+                      formTimePickerField(
+                        context,
+                        controller: _accusedTimeCtrl,
+                        width: 100,
+                        readOnly: widget.readOnly,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
+            const SizedBox(width: 32),
 
             // Right Column (IO)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('तपास अधि सही/-', style: marathiBold),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
-                      child: Text('नाव/हुद्दा', style: marathiBold),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('तपास अधिकारी स्वाक्षरी व शिक्का', style: marathiBold),
+                  const SizedBox(height: 10),
+                  Container(
+                    height: 85,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.black38, width: 0.8),
+                      borderRadius: BorderRadius.circular(4),
                     ),
-                    _UnderlineInput(
-                      controller: _ioNameRankCtrl,
-                      width: 140,
-                      readOnly: widget.readOnly,
+                    alignment: Alignment.center,
+                    child: Text(
+                      '(तपास अधिकारी स्वाक्षरी व पोलीस स्टेशनचा शिक्का)',
+                      style: marathiBody.copyWith(
+                          color: Colors.black38, fontSize: 12),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
-                      child: Text('पोलीस स्टेशन', style: marathiBold),
-                    ),
-                    _UnderlineInput(
-                      controller: _ioPsCtrl,
-                      width: 140,
-                      readOnly: widget.readOnly,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
-                      child: Text('ता.', style: marathiBold),
-                    ),
-                    _UnderlineInput(
-                      controller: _ioTalukaCtrl,
-                      width: 75,
-                      readOnly: widget.readOnly,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
-                      child: Text(' जिल्हा', style: marathiBold),
-                    ),
-                    _UnderlineInput(
-                      controller: _ioDistrictCtrl,
-                      width: 75,
-                      readOnly: widget.readOnly,
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Text('नाव/हुद्दा :- ', style: marathiBold),
+                      ),
+                      Expanded(
+                        child: _UnderlineInput(
+                          controller: _ioNameRankCtrl,
+                          readOnly: widget.readOnly,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Text('पोलीस स्टेशन :- ', style: marathiBold),
+                      ),
+                      Expanded(
+                        child: _UnderlineInput(
+                          controller: _ioPsCtrl,
+                          readOnly: widget.readOnly,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Text('ता. ', style: marathiBold),
+                      ),
+                      Expanded(
+                        flex: 5,
+                        child: _UnderlineInput(
+                          controller: _ioTalukaCtrl,
+                          readOnly: widget.readOnly,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Text(' -जिल्हा ', style: marathiBold),
+                      ),
+                      Expanded(
+                        flex: 5,
+                        child: _UnderlineInput(
+                          controller: _ioDistrictCtrl,
+                          readOnly: widget.readOnly,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -685,34 +749,51 @@ class _UnderlineInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final field = TextField(
-      controller: controller,
-      readOnly: readOnly,
-      maxLines: 1,
-      textAlign: TextAlign.start,
-      scrollPhysics: const NeverScrollableScrollPhysics(),
-      scrollPadding: EdgeInsets.zero,
-      style: GoogleFonts.notoSansDevanagari(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        color: Colors.blue.shade900,
+    final field = Theme(
+      data: Theme.of(context).copyWith(
+        inputDecorationTheme: const InputDecorationTheme(
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          disabledBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+          focusedErrorBorder: InputBorder.none,
+          filled: false,
+          fillColor: Colors.transparent,
+          contentPadding: EdgeInsets.zero,
+        ),
       ),
-      decoration: InputDecoration(
-        isDense: true,
-        contentPadding: const EdgeInsets.only(bottom: 0, top: 2),
-        hintText: hintText,
-        hintStyle: GoogleFonts.notoSansDevanagari(
-          fontSize: 13,
-          color: Colors.black38,
+      child: TextField(
+        controller: controller,
+        readOnly: readOnly,
+        maxLines: 1,
+        textAlign: TextAlign.start,
+        scrollPhysics: const NeverScrollableScrollPhysics(),
+        scrollPadding: EdgeInsets.zero,
+        style: GoogleFonts.notoSansDevanagari(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: Colors.black87,
         ),
-        border: const UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.black54, width: 1),
-        ),
-        enabledBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.black54, width: 1),
-        ),
-        focusedBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.blue, width: 1.5),
+        decoration: InputDecoration(
+          isDense: true,
+          filled: false,
+          fillColor: Colors.transparent,
+          contentPadding: const EdgeInsets.only(bottom: 2, top: 2),
+          hintText: hintText,
+          hintStyle: GoogleFonts.notoSansDevanagari(
+            fontSize: 13,
+            color: Colors.black38,
+          ),
+          border: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.black54, width: 0.8),
+          ),
+          enabledBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.black54, width: 0.8),
+          ),
+          focusedBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.black87, width: 1.2),
+          ),
         ),
       ),
     );
@@ -721,5 +802,211 @@ class _UnderlineInput extends StatelessWidget {
       return SizedBox(width: width, child: field);
     }
     return field;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── SOLID LINED MULTILINE INPUT FOR REASON FORM UI ──
+// ══════════════════════════════════════════════════════════════════════════════
+
+class ReasonLinedMultilineInput extends StatefulWidget {
+  final TextEditingController controller;
+  final TextStyle serifStyle;
+  final String? hintText;
+  final double lineHeight;
+  final double? minWidth;
+  final double? maxWidth;
+  final bool readOnly;
+
+  const ReasonLinedMultilineInput({
+    super.key,
+    required this.controller,
+    required this.serifStyle,
+    this.hintText,
+    this.lineHeight = 24.0,
+    this.minWidth,
+    this.maxWidth,
+    this.readOnly = false,
+  });
+
+  @override
+  State<ReasonLinedMultilineInput> createState() =>
+      _ReasonLinedMultilineInputState();
+}
+
+class _ReasonLinedMultilineInputState extends State<ReasonLinedMultilineInput> {
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(() {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isUnconstrained = constraints.maxWidth.isInfinite;
+
+        return ValueListenableBuilder<TextEditingValue>(
+          valueListenable: widget.controller,
+          builder: (context, value, _) {
+            final text = value.text;
+
+            double measuredWidth = widget.minWidth ?? 120.0;
+            if (isUnconstrained) {
+              final tp = TextPainter(
+                text: TextSpan(
+                  text: text.isEmpty ? (widget.hintText ?? '   ') : text,
+                  style: widget.serifStyle.copyWith(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                textDirection: TextDirection.ltr,
+              )..layout();
+              measuredWidth = (tp.width + 24.0)
+                  .clamp(widget.minWidth ?? 120.0, widget.maxWidth ?? 500.0);
+            }
+
+            final effectiveWidth =
+                isUnconstrained ? measuredWidth : constraints.maxWidth;
+
+            int lineCount = 1;
+            if (text.isNotEmpty && effectiveWidth > 0) {
+              final tp = TextPainter(
+                text: TextSpan(
+                  text: text,
+                  style: widget.serifStyle.copyWith(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    height: widget.lineHeight / 14.0,
+                  ),
+                ),
+                textDirection: TextDirection.ltr,
+              )..layout(maxWidth: effectiveWidth);
+              final metrics = tp.computeLineMetrics();
+              lineCount = metrics.isEmpty ? 1 : metrics.length;
+            }
+
+            final totalHeight = lineCount * widget.lineHeight;
+
+            return CustomPaint(
+              painter: _ReasonFormLinedPainter(
+                lineCount: lineCount,
+                lineHeight: widget.lineHeight,
+                lineColor:
+                    _focusNode.hasFocus ? Colors.black87 : Colors.grey.shade600,
+                strokeWidth: _focusNode.hasFocus ? 1.2 : 0.8,
+              ),
+              child: SizedBox(
+                width: isUnconstrained
+                    ? (widget.maxWidth != null
+                        ? effectiveWidth.clamp(0.0, widget.maxWidth!)
+                        : effectiveWidth)
+                    : effectiveWidth,
+                height: totalHeight,
+                child: Theme(
+                  data: Theme.of(context).copyWith(
+                    inputDecorationTheme: const InputDecorationTheme(
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      disabledBorder: InputBorder.none,
+                      errorBorder: InputBorder.none,
+                      focusedErrorBorder: InputBorder.none,
+                      filled: false,
+                      fillColor: Colors.transparent,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                  child: TextField(
+                    focusNode: _focusNode,
+                    controller: widget.controller,
+                    readOnly: widget.readOnly,
+                    minLines: 1,
+                    maxLines: null,
+                    keyboardType: TextInputType.multiline,
+                    cursorColor: Colors.black87,
+                    strutStyle: StrutStyle(
+                      fontSize: 14.0,
+                      height: widget.lineHeight / 14.0,
+                      forceStrutHeight: true,
+                    ),
+                    style: widget.serifStyle.copyWith(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      height: widget.lineHeight / 14.0,
+                      color: Colors.black87,
+                    ),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      filled: false,
+                      fillColor: Colors.transparent,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      disabledBorder: InputBorder.none,
+                      errorBorder: InputBorder.none,
+                      focusedErrorBorder: InputBorder.none,
+                      contentPadding: const EdgeInsets.only(bottom: 3, top: 0),
+                      hintText: widget.hintText,
+                      hintStyle: widget.serifStyle.copyWith(
+                        color: Colors.grey.shade400,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _ReasonFormLinedPainter extends CustomPainter {
+  final int lineCount;
+  final double lineHeight;
+  final Color lineColor;
+  final double strokeWidth;
+
+  _ReasonFormLinedPainter({
+    required this.lineCount,
+    required this.lineHeight,
+    required this.lineColor,
+    this.strokeWidth = 0.8,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = lineColor
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke;
+
+    for (int i = 1; i <= lineCount; i++) {
+      final y = i * lineHeight - 1.5;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _ReasonFormLinedPainter oldDelegate) {
+    return oldDelegate.lineCount != lineCount ||
+        oldDelegate.lineHeight != lineHeight ||
+        oldDelegate.lineColor != lineColor ||
+        oldDelegate.strokeWidth != strokeWidth;
   }
 }

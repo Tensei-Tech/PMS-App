@@ -38,6 +38,11 @@ class _A4ZoomableViewState extends State<A4ZoomableView> {
   }
 
   void _onFocusChange() {
+    // On desktop/wide viewports, desktop uses plain SingleChildScrollView without
+    // InteractiveViewer, so _editingText is unused. Short-circuit here to prevent
+    // rebuilding the entire multi-page form tree every time an input gains or loses focus.
+    if (_lastViewportWidth >= FormLayout.wideBreakpoint) return;
+
     final focus = FocusManager.instance.primaryFocus;
     final editing = _isEditableTextFocus(focus);
     if (editing == _editingText || !mounted) return;
@@ -96,6 +101,7 @@ class _A4ZoomableViewState extends State<A4ZoomableView> {
         // Desktop / wide: plain vertical scroll, no zoom/pan.
         if (isWide) {
           return SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
             child: Center(
               child: Padding(
                 padding: FormLayout.desktopOuterPadding(),

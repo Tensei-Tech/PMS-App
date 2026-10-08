@@ -10,7 +10,7 @@ import '../modules/form_iv/providers/form_iv_provider.dart';
 import '../modules/form_vi/providers/form_vi_provider.dart';
 import '../modules/nc/providers/nc_provider.dart';
 import '../modules/preventive/providers/preventive_provider.dart';
-import '../modules/ad/providers/ad_provider.dart';
+import '../modules/accidental_death/providers/accidental_death_provider.dart';
 import '../modules/missing/providers/missing_provider.dart';
 import '../modules/kidnapping/providers/kidnapping_provider.dart';
 import '../modules/theft/providers/theft_provider.dart';
@@ -42,6 +42,8 @@ import '../modules/mcoca/providers/mcoca_provider.dart';
 import '../modules/uapa/providers/uapa_provider.dart';
 import '../modules/mpda/providers/mpda_provider.dart';
 import '../modules/coin/providers/coin_provider.dart';
+import '../modules/suicide/providers/suicide_provider.dart';
+import '../modules/st_drugs/providers/st_drugs_provider.dart';
 
 // ── Helper macro — wires AuthProvider → any BaseModuleProvider subclass ──────
 ChangeNotifierProxyProvider<AuthProvider, T>
@@ -104,6 +106,8 @@ List<SingleChildWidget> moduleProviders = [
   _wired<UapaProvider>(() => UapaProvider()),
   _wired<MpdaProvider>(() => MpdaProvider()),
   _wired<CoinProvider>(() => CoinProvider()),
+  _wired<SuicideProvider>(() => SuicideProvider()),
+  _wired<StDrugsProvider>(() => StDrugsProvider()),
 ];
 
 // ── rest unchanged ─────────────────────────────────────────────────────────
@@ -149,12 +153,14 @@ const Map<String, String> labelToModuleKey = {
   'CRPC 156(3) / BNSS 175(3)': 'bnss',
   'Passport /PVR / License': 'passport',
   'NDPS': 'ndps',
-  'Gowans': 'gowans',
+  'Gowansh': 'gowans',
   'IT Act': 'it_act',
   'MCOCA': 'mcoca',
   'UAPA': 'uapa',
   'MPDA': 'mpda',
   'COIN': 'coin',
+  'Suicide': 'suicide',
+  'ST Drugs': 'st_drugs',
 };
 
 final List<Type> allDataProviders = [
@@ -189,6 +195,8 @@ final List<Type> allDataProviders = [
   UapaProvider,
   MpdaProvider,
   CoinProvider,
+  SuicideProvider,
+  StDrugsProvider,
 ];
 
 BaseModuleProvider getProvider(BuildContext context, String label) {
@@ -267,6 +275,10 @@ BaseModuleProvider getProvider(BuildContext context, String label) {
       return context.read<MpdaProvider>();
     case 'coin':
       return context.read<CoinProvider>();
+    case 'suicide':
+      return context.read<SuicideProvider>();
+    case 'st_drugs':
+      return context.read<StDrugsProvider>();
     default:
       return context.read<NcProvider>();
   }
@@ -310,5 +322,7 @@ List<BaseModuleProvider> getModuleProviders(BuildContext context) {
     context.read<UapaProvider>(),
     context.read<MpdaProvider>(),
     context.read<CoinProvider>(),
+    context.read<SuicideProvider>(),
+    context.read<StDrugsProvider>(),
   ];
 }

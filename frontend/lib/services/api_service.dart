@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -43,6 +44,11 @@ class ApiService {
 
   final _secureStorage = SecureStorage.instance;
   static String? _cachedAuthToken;
+  static Future<bool>? _refreshFuture;
+
+  /// Optional HTTP client for unit and widget testing
+  @visibleForTesting
+  static http.Client? clientForTesting;
 
   /// Explicitly set the active JWT token in-memory and in secure storage
   Future<void> setAuthToken(String token) async {
@@ -89,13 +95,21 @@ class ApiService {
     }
   }
 
-  /// Refresh access token using stored refresh token
+  /// Refresh access token using stored refresh token with single-flight mutex deduplication
   Future<bool> refreshAccessToken() async {
+    if (_refreshFuture != null) {
+      return await _refreshFuture!;
+    }
+
+    final completer = Completer<bool>();
+    _refreshFuture = completer.future;
+
     try {
       final refreshToken = await _secureStorage.read(
         key: ApiConstants.jwtRefreshTokenKey,
       );
       if (refreshToken == null || refreshToken.isEmpty) {
+        completer.complete(false);
         return false;
       }
 
@@ -118,14 +132,21 @@ class ApiService {
           if (kDebugMode) {
             debugPrint('[ApiService] JWT Access Token refreshed successfully.');
           }
+          completer.complete(true);
           return true;
         }
       }
+      await clearAuthToken();
+      completer.complete(false);
+      return false;
     } catch (e) {
       if (kDebugMode) debugPrint('[ApiService] Token refresh error: $e');
+      await clearAuthToken();
+      completer.complete(false);
+      return false;
+    } finally {
+      _refreshFuture = null;
     }
-    await clearAuthToken();
-    return false;
   }
 
   /// Retrieve active Auth token (backend JWT token), refreshing if expired
@@ -191,47 +212,62 @@ class ApiService {
     Map<String, dynamic>? queryParameters,
     bool isRetry = false,
   }) async {
-    try {
-      Uri uri = Uri.parse(url);
-      if (queryParameters != null && queryParameters.isNotEmpty) {
-        uri = uri.replace(
-          queryParameters: queryParameters.map(
-            (k, v) => MapEntry(k, v.toString()),
-          ),
-        );
-      }
+    Uri uri = Uri.parse(url);
+    if (queryParameters != null && queryParameters.isNotEmpty) {
+      uri = uri.replace(
+        queryParameters: queryParameters.map(
+          (k, v) => MapEntry(k, v.toString()),
+        ),
+      );
+    }
 
-      final requestHeaders = await _buildHeaders(customHeaders: headers);
-      final response = await http
-          .get(uri, headers: requestHeaders)
-          .timeout(ApiConstants.receiveTimeout);
+    int attempt = 0;
+    while (attempt <= 1) {
+      try {
+        final requestHeaders = await _buildHeaders(customHeaders: headers);
+        final client = clientForTesting;
+        final response = await (client != null
+                ? client.get(uri, headers: requestHeaders)
+                : http.get(uri, headers: requestHeaders))
+            .timeout(ApiConstants.receiveTimeout);
 
-      final apiRes = _processResponse(response);
-      if ((apiRes.statusCode == 401 || apiRes.statusCode == 403) && !isRetry) {
-        final refreshed = await refreshAccessToken();
-        if (refreshed) {
-          return await get(
-            url,
-            headers: headers,
-            queryParameters: queryParameters,
-            isRetry: true,
+        final apiRes = _processResponse(response);
+        if (apiRes.statusCode == 401 && !isRetry) {
+          final refreshed = await refreshAccessToken();
+          if (refreshed) {
+            return await get(
+              url,
+              headers: headers,
+              queryParameters: queryParameters,
+              isRetry: true,
+            );
+          }
+        }
+        // Do NOT retry on 500, 429, or other HTTP error codes
+        return apiRes;
+      } on SocketException {
+        attempt++;
+        if (attempt > 1) {
+          return ApiResponse.error(
+            'No Internet connection or server unavailable.',
+            statusCode: 503,
           );
         }
+        await Future.delayed(Duration(milliseconds: 300 * attempt));
+      } on http.ClientException catch (e) {
+        attempt++;
+        if (attempt > 1) {
+          return ApiResponse.error(
+            'Network client error: ${e.message}',
+            statusCode: 500,
+          );
+        }
+        await Future.delayed(Duration(milliseconds: 300 * attempt));
+      } catch (e) {
+        return ApiResponse.error('Unexpected error: $e', statusCode: 500);
       }
-      return apiRes;
-    } on SocketException {
-      return ApiResponse.error(
-        'No Internet connection or server unavailable.',
-        statusCode: 503,
-      );
-    } on http.ClientException catch (e) {
-      return ApiResponse.error(
-        'Network client error: ${e.message}',
-        statusCode: 500,
-      );
-    } catch (e) {
-      return ApiResponse.error('Unexpected error: $e', statusCode: 500);
     }
+    return ApiResponse.error('Request failed.', statusCode: 500);
   }
 
   /// Perform a POST request
@@ -242,38 +278,49 @@ class ApiService {
     dynamic data,
     bool isRetry = false,
   }) async {
-    try {
-      final uri = Uri.parse(url);
-      final requestHeaders = await _buildHeaders(customHeaders: headers);
-      final rawBody = data ?? body;
-      final encodedBody = rawBody != null ? jsonEncode(rawBody) : null;
+    final uri = Uri.parse(url);
+    final rawBody = data ?? body;
+    final encodedBody = rawBody != null ? jsonEncode(rawBody) : null;
 
-      final response = await http
-          .post(uri, headers: requestHeaders, body: encodedBody)
-          .timeout(ApiConstants.receiveTimeout);
+    int attempt = 0;
+    while (attempt <= 1) {
+      try {
+        final requestHeaders = await _buildHeaders(customHeaders: headers);
+        final client = clientForTesting;
+        final response = await (client != null
+                ? client.post(uri, headers: requestHeaders, body: encodedBody)
+                : http.post(uri, headers: requestHeaders, body: encodedBody))
+            .timeout(ApiConstants.receiveTimeout);
 
-      final apiRes = _processResponse(response);
-      if ((apiRes.statusCode == 401 || apiRes.statusCode == 403) && !isRetry) {
-        final refreshed = await refreshAccessToken();
-        if (refreshed) {
-          return await post(
-            url,
-            headers: headers,
-            body: body,
-            data: data,
-            isRetry: true,
+        final apiRes = _processResponse(response);
+        if (apiRes.statusCode == 401 && !isRetry) {
+          final refreshed = await refreshAccessToken();
+          if (refreshed) {
+            return await post(
+              url,
+              headers: headers,
+              body: body,
+              data: data,
+              isRetry: true,
+            );
+          }
+        }
+        // Do NOT retry on 500, 429, or other HTTP error codes
+        return apiRes;
+      } on SocketException {
+        attempt++;
+        if (attempt > 1) {
+          return ApiResponse.error(
+            'No Internet connection or server unavailable.',
+            statusCode: 503,
           );
         }
+        await Future.delayed(Duration(milliseconds: 300 * attempt));
+      } catch (e) {
+        return ApiResponse.error('Unexpected error: $e', statusCode: 500);
       }
-      return apiRes;
-    } on SocketException {
-      return ApiResponse.error(
-        'No Internet connection or server unavailable.',
-        statusCode: 503,
-      );
-    } catch (e) {
-      return ApiResponse.error('Unexpected error: $e', statusCode: 500);
     }
+    return ApiResponse.error('Request failed.', statusCode: 500);
   }
 
   /// Perform a PUT request
@@ -289,8 +336,10 @@ class ApiService {
       final rawBody = data ?? body;
       final encodedBody = rawBody != null ? jsonEncode(rawBody) : null;
 
-      final response = await http
-          .put(uri, headers: requestHeaders, body: encodedBody)
+      final client = clientForTesting;
+      final response = await (client != null
+              ? client.put(uri, headers: requestHeaders, body: encodedBody)
+              : http.put(uri, headers: requestHeaders, body: encodedBody))
           .timeout(ApiConstants.receiveTimeout);
 
       return _processResponse(response);
@@ -317,8 +366,10 @@ class ApiService {
       final rawBody = data ?? body;
       final encodedBody = rawBody != null ? jsonEncode(rawBody) : null;
 
-      final response = await http
-          .patch(uri, headers: requestHeaders, body: encodedBody)
+      final client = clientForTesting;
+      final response = await (client != null
+              ? client.patch(uri, headers: requestHeaders, body: encodedBody)
+              : http.patch(uri, headers: requestHeaders, body: encodedBody))
           .timeout(ApiConstants.receiveTimeout);
 
       return _processResponse(response);
@@ -338,8 +389,10 @@ class ApiService {
       final uri = Uri.parse(url);
       final requestHeaders = await _buildHeaders(customHeaders: headers);
 
-      final response = await http
-          .delete(uri, headers: requestHeaders)
+      final client = clientForTesting;
+      final response = await (client != null
+              ? client.delete(uri, headers: requestHeaders)
+              : http.delete(uri, headers: requestHeaders))
           .timeout(ApiConstants.receiveTimeout);
 
       return _processResponse(response);

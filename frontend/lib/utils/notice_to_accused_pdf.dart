@@ -2,7 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
+
+import 'form_image_pdf_helper.dart';
+import 'pdf_font_cache.dart';
 
 import 'pdf_layout_constants.dart';
 
@@ -10,25 +12,20 @@ Future<void> previewNoticeToAccusedPdf(
   BuildContext context,
   Map<String, dynamic> doc,
 ) async {
-  final bytes = await generateNoticeToAccusedPdf(doc);
-  if (!context.mounted) return;
   final fileName =
       'Notice_To_Accused_${DateTime.now().millisecondsSinceEpoch}.pdf';
-  try {
-    if (kIsWeb) {
-      await Printing.sharePdf(bytes: bytes, filename: fileName);
-    } else {
-      await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
-    }
-  } catch (_) {
-    await Printing.sharePdf(bytes: bytes, filename: fileName);
-  }
+  await FormImagePdfHelper.previewImageBasedPdf(
+    context,
+    fileName: fileName,
+    pages: [_buildPgWidget(doc)],
+    fallbackPdfGenerator: () => generateNoticeToAccusedPdf(doc),
+  );
 }
 
 Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
   final pdf = pw.Document();
-  final devanagari = await PdfGoogleFonts.notoSansDevanagariRegular();
-  final devanagariBold = await PdfGoogleFonts.notoSansDevanagariBold();
+  final devanagari = await PdfFontCache.devanagariRegular();
+  final devanagariBold = await PdfFontCache.devanagariBold();
 
   final regular = pw.TextStyle(
     font: devanagari,
@@ -63,7 +60,7 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
       pageFormat: PdfPageFormat.a4,
       margin: PdfLayoutConstants.pageMargin,
       build: (pw.Context context) {
-        final ps = v('policeStation', '--------');
+        final ps = v('policeStation');
         final dateStr = v('date', '......./ ......../२०....');
 
         final accusedLine1 = v('accusedName', v('accusedNameAddress'));
@@ -74,8 +71,8 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
         final email = v('email',
             '.........................................................................');
 
-        final firPs = v('firPs', '...................');
-        final firDist = v('firDist', 'यवतमाळ');
+        final firPs = v('firPs');
+        final firDist = v('firDist');
         final crimeNo = v('crimeNumberOnly', v('crimeNo', '............'));
         final crimeYear = v('crimeYear', '२५');
         final actSec = v('actSec', '...................................');
@@ -101,15 +98,22 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Row(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        pw.Text('पोलीस स्टेशन ', style: bold),
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.only(top: 1.0),
+                          child: pw.Text('पोलीस स्टेशन ', style: bold),
+                        ),
                         pw.Expanded(
                           child: pw.Container(
                             decoration: const pw.BoxDecoration(
                               border: pw.Border(bottom: borderLine),
                             ),
                             alignment: pw.Alignment.centerLeft,
-                            child: pw.Text(ps, style: regular),
+                            child: pw.Text(ps.isEmpty ? ' ' : ps,
+                                style: regular.copyWith(
+                                    decoration: pw.TextDecoration.underline),
+                                softWrap: true),
                           ),
                         ),
                       ],
@@ -171,16 +175,18 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
                           style: regular,
                         ),
                       ),
-                      pw.SizedBox(height: 8),
-                      pw.Container(
-                        decoration: const pw.BoxDecoration(
-                          border: pw.Border(bottom: borderLine),
+                      if (accusedLine2.isNotEmpty) ...[
+                        pw.SizedBox(height: 8),
+                        pw.Container(
+                          decoration: const pw.BoxDecoration(
+                            border: pw.Border(bottom: borderLine),
+                          ),
+                          child: pw.Text(
+                            accusedLine2,
+                            style: regular,
+                          ),
                         ),
-                        child: pw.Text(
-                          accusedLine2.isNotEmpty ? accusedLine2 : ' ',
-                          style: regular,
-                        ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -245,7 +251,8 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
                     text:
                         '        आपणास याद्वारे सुचीत करण्यात येते की,आपणा विरूध्द पोलीस स्टेशन ',
                   ),
-                  pw.TextSpan(text: '$firPs ', style: bold),
+                  pw.TextSpan(
+                      text: firPs.isNotEmpty ? '$firPs  ' : ' ', style: bold),
                   pw.TextSpan(text: 'जिल्हा $firDist येथे अपराध क्रमांक'),
                   pw.TextSpan(text: ' $crimeNo / २०$crimeYear ', style: bold),
                   const pw.TextSpan(text: 'कलम '),
@@ -338,7 +345,7 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
                 ),
               ],
             ),
-            pw.SizedBox(height: 24),
+            pw.Spacer(),
 
             // ── MRW FOOTER ──
             pw.Align(
@@ -347,7 +354,7 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
                 'M.R.W',
                 style: pw.TextStyle(
                   font: devanagari,
-                  fontSize: 8,
+                  fontSize: 8.5,
                   color: PdfColors.grey700,
                 ),
               ),
@@ -359,4 +366,367 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
   );
 
   return pdf.save();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── NATIVE FLUTTER WIDGET BUILDER (100% Devanagari Font Shaping) ──
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _NoticeLinePainter extends CustomPainter {
+  final int lines;
+  final double lineHeight;
+
+  const _NoticeLinePainter({
+    required this.lines,
+    required this.lineHeight,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black87
+      ..strokeWidth = 0.8
+      ..style = PaintingStyle.stroke;
+
+    for (int i = 1; i <= lines; i++) {
+      final y = (i * lineHeight) - 1.5;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _NoticeLinePainter oldDelegate) =>
+      oldDelegate.lines != lines || oldDelegate.lineHeight != lineHeight;
+}
+
+class _DynamicNoticeUnderlineField extends StatelessWidget {
+  final String text;
+  final TextStyle style;
+  final int minLines;
+  final double lineHeight;
+
+  const _DynamicNoticeUnderlineField({
+    required this.text,
+    required this.style,
+    this.minLines = 1,
+    this.lineHeight = 22.0,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final trimmed = text.trim();
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxW =
+            constraints.maxWidth.isFinite ? constraints.maxWidth : 500.0;
+        int lines = minLines;
+        if (trimmed.isNotEmpty) {
+          final tp = TextPainter(
+            text: TextSpan(text: trimmed, style: style),
+            textDirection: TextDirection.ltr,
+          )..layout(maxWidth: maxW > 0 ? maxW : 500.0);
+          final metrics = tp.computeLineMetrics();
+          lines = metrics.isEmpty ? 1 : metrics.length;
+          if (lines < minLines) lines = minLines;
+        }
+
+        final h = lines * lineHeight;
+        return CustomPaint(
+          size: Size(maxW, h),
+          painter: _NoticeLinePainter(lines: lines, lineHeight: lineHeight),
+          child: Container(
+            width: maxW,
+            height: h,
+            padding: const EdgeInsets.only(left: 2, right: 2),
+            child: trimmed.isEmpty
+                ? const SizedBox()
+                : Text(
+                    trimmed,
+                    style: style.copyWith(
+                      height: lineHeight / (style.fontSize ?? 11.5),
+                    ),
+                  ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+Widget _buildPgWidget(Map<String, dynamic> doc) {
+  String v(String key, [String fallback = '']) {
+    final val = doc[key]?.toString().trim() ?? '';
+    return val.isEmpty ? fallback : val;
+  }
+
+  const borderLine = BorderSide(color: Colors.black87, width: 0.8);
+
+  final ps = v('policeStation');
+  final dateStr = v('date');
+
+  final accusedLine1 = v('accusedName', v('accusedNameAddress'));
+  final accusedLine2 = v('accusedNameLine2');
+  final fullAccusedName =
+      [accusedLine1, accusedLine2].where((s) => s.isNotEmpty).join(' ');
+
+  final mobileNo = v('mobileNo');
+  final aadhaarNo = v('aadhaarNo');
+  final email = v('email');
+
+  final firPs = v('firPs');
+  final firDist = v('firDist');
+  final crimeNo = v('crimeNumberOnly', v('crimeNo'));
+  final crimeYear = v('crimeYear', '२५');
+  final actSec = v('actSec');
+  final coActSec = v('coActSec');
+  final firDate = v('firDate');
+
+  final bailType = v('bailType', 'अजमीनपात्र/ जामीनपात्र');
+  final relativeDetails = v('relativeDetails');
+
+  final accusedSig = v('accusedSig');
+  final ioNameSig = v('ioNameSig');
+
+  final reg = FormImagePdfHelper.mBld(11.5, 1.85);
+  final bld = FormImagePdfHelper.mBld(11.5, 1.85);
+  final headerTitle = FormImagePdfHelper.mBld(17, 1.3);
+  final headerSub = FormImagePdfHelper.mBld(12, 1.3);
+
+  return FormImagePdfHelper.buildA4Page(
+    padding: const EdgeInsets.symmetric(horizontal: 44, vertical: 36),
+    children: [
+      Align(
+        alignment: Alignment.topRight,
+        child: SizedBox(
+          width: 290,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 1.0),
+                    child: Text('पोलीस स्टेशन ', style: bld),
+                  ),
+                  Expanded(
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        border: Border(bottom: borderLine),
+                      ),
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        ps.isEmpty ? ' ' : ps,
+                        softWrap: true,
+                        style: reg.copyWith(
+                          decoration: TextDecoration.underline,
+                          decorationColor: Colors.black87,
+                          decorationThickness: 0.8,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 5),
+              Row(
+                children: [
+                  Text('दिनांक :', style: bld),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        border: Border(bottom: borderLine),
+                      ),
+                      alignment: Alignment.centerLeft,
+                      child: Text(dateStr.isEmpty ? ' ' : dateStr, style: reg),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      const SizedBox(height: 22),
+      Center(
+        child: Column(
+          children: [
+            Text('-:: आरोपीस सुचनापत्र ::-', style: headerTitle),
+            const SizedBox(height: 4),
+            Text(
+              '(भारतीय नागरी सुरक्षा संहिता २०२३ कलम ४७ (१)(२))',
+              style: headerSub.copyWith(decoration: TextDecoration.underline),
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 28),
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 2.0),
+            child: Text('नांव :- ', style: bld),
+          ),
+          Expanded(
+            child: _DynamicNoticeUnderlineField(
+              text: fullAccusedName,
+              style: reg,
+              minLines: 1,
+              lineHeight: 22.0,
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 16),
+      Row(
+        children: [
+          Text('मो.नं.:-', style: bld),
+          const SizedBox(width: 4),
+          Expanded(
+            flex: 5,
+            child: Container(
+              decoration: const BoxDecoration(
+                border: Border(bottom: borderLine),
+              ),
+              child: Text(mobileNo, style: reg),
+            ),
+          ),
+          const SizedBox(width: 20),
+          Text('आधार क्र :-', style: bld),
+          const SizedBox(width: 4),
+          Expanded(
+            flex: 5,
+            child: Container(
+              decoration: const BoxDecoration(
+                border: Border(bottom: borderLine),
+              ),
+              child: Text(aadhaarNo, style: reg),
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 14),
+      Row(
+        children: [
+          Text('ईमेल :-', style: bld),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Container(
+              decoration: const BoxDecoration(
+                border: Border(bottom: borderLine),
+              ),
+              child: Text(email, style: reg),
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 26),
+      RichText(
+        textAlign: TextAlign.justify,
+        text: TextSpan(
+          style: reg.copyWith(height: 1.95),
+          children: [
+            const TextSpan(
+              text:
+                  '        आपणास याद्वारे सुचीत करण्यात येते की,आपणा विरूध्द पोलीस स्टेशन ',
+            ),
+            TextSpan(text: firPs.isNotEmpty ? '$firPs  ' : ' ', style: bld),
+            TextSpan(text: 'जिल्हा $firDist येथे अपराध क्रमांक'),
+            TextSpan(text: ' $crimeNo / २०$crimeYear ', style: bld),
+            const TextSpan(text: 'कलम '),
+            TextSpan(text: '$actSec ', style: bld),
+            const TextSpan(
+              text: 'भा.न्या.संहिता २०२३ व सह कलम ',
+            ),
+            TextSpan(text: '$coActSec ', style: bld),
+            const TextSpan(text: 'प्रमाणे दिनांक '),
+            TextSpan(text: '$firDate ', style: bld),
+            const TextSpan(
+              text:
+                  'गुन्हा दाखल असुन सदर गुन्ह्याचा तपास आम्ही स्वतः करत आहोत. सदर गुन्ह्याच्या तपासकामी आपणास अटक करण्यात येत आहे.',
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 22),
+      RichText(
+        textAlign: TextAlign.justify,
+        text: TextSpan(
+          style: reg.copyWith(height: 1.95),
+          children: [
+            const TextSpan(
+              text: '        सदर गुन्हा दखलपात्र असुन ',
+            ),
+            TextSpan(text: '$bailType ', style: bld),
+            const TextSpan(
+              text:
+                  'आहे. आपल्या अटकेबाबतची माहित भारतीय नागरीक सुरक्षा संहिता २०२३ कलम (४८) प्रमाणे आपले नातेवाईक/ मित्र..... ',
+            ),
+            TextSpan(text: '$relativeDetails ', style: bld),
+            const TextSpan(
+              text:
+                  'यांना समक्ष/फोनद्वारे देण्यात आली असुन अटक पंचनाम्यावर त्यांची स्वाक्षरी घेण्यात आली आहे.',
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 22),
+      Padding(
+        padding: const EdgeInsets.only(left: 28),
+        child: Text(
+          'करीता आपणास सुचनापत्र देण्यात येत आहे.',
+          style: reg,
+        ),
+      ),
+      const Spacer(),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Column(
+            children: [
+              Text('आरोपीची स्वाक्षरी', style: bld),
+              const SizedBox(height: 18),
+              if (accusedSig.isNotEmpty)
+                Text(accusedSig, style: reg)
+              else
+                Container(
+                  width: 150,
+                  decoration: const BoxDecoration(
+                    border: Border(bottom: borderLine),
+                  ),
+                  height: 1,
+                ),
+            ],
+          ),
+          Column(
+            children: [
+              Text('तपासी अधिकारी नांव व सही', style: bld),
+              const SizedBox(height: 18),
+              if (ioNameSig.isNotEmpty)
+                Text(ioNameSig, style: reg)
+              else
+                Container(
+                  width: 170,
+                  decoration: const BoxDecoration(
+                    border: Border(bottom: borderLine),
+                  ),
+                  height: 1,
+                ),
+            ],
+          ),
+        ],
+      ),
+      const SizedBox(height: 12),
+      Align(
+        alignment: Alignment.bottomRight,
+        child: Text(
+          'M.R.W',
+          style: reg.copyWith(fontSize: 8.5, color: Colors.grey.shade700),
+        ),
+      ),
+    ],
+  );
 }

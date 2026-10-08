@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'bilingual_field.dart';
 import 'form_paper_page.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
+import 'form_date_pickers.dart';
 
 /// Witness Notice (—:: साक्षीदार सुचनापत्र ::—).
 class WitnessNoticeFormView extends StatefulWidget {
@@ -150,20 +150,39 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
     };
   }
 
-  Widget _inlineInput(
-    TextEditingController ctrl,
-    TextStyle serifStyle, {
-    String? hintText,
+  Widget _wrappingUnderlineInput({
+    required TextEditingController controller,
+    required TextStyle style,
     double minWidth = 100,
+    double? maxWidth,
+    String? hintText,
+    TextInputType? keyboardType,
   }) {
-    return Container(
-      constraints: BoxConstraints(minWidth: minWidth),
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: BilingualSimpleUnderlineInput(
-        controller: ctrl,
-        hintText: hintText,
-        serifStyle: serifStyle.copyWith(fontSize: 13),
-      ),
+    return _WitnessDynamicUnderlineField(
+      controller: controller,
+      style: style,
+      minWidth: minWidth,
+      maxWidth: maxWidth,
+      hintText: hintText,
+      keyboardType: keyboardType,
+      readOnly: widget.readOnly,
+    );
+  }
+
+  Widget _policeStationField({
+    required TextEditingController controller,
+    required TextStyle style,
+    double minWidth = 140,
+    double? maxWidth,
+    String? hintText,
+  }) {
+    return _WitnessDynamicUnderlineField(
+      controller: controller,
+      style: style,
+      minWidth: minWidth,
+      maxWidth: maxWidth,
+      hintText: hintText,
+      readOnly: widget.readOnly,
     );
   }
 
@@ -187,15 +206,22 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('पोलीस स्टेशन',
-                            style:
-                                marathi.copyWith(fontWeight: FontWeight.bold)),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2.0),
+                          child: Text('पोलीस स्टेशन',
+                              style: marathi.copyWith(
+                                  fontWeight: FontWeight.bold)),
+                        ),
                         const SizedBox(width: 6),
                         Expanded(
-                            child: _inlineInput(_policeStationCtrl, serif)),
+                          child: _policeStationField(
+                            controller: _policeStationCtrl,
+                            style: serif,
+                            minWidth: 100,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -207,12 +233,11 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
                             style:
                                 marathi.copyWith(fontWeight: FontWeight.bold)),
                         const SizedBox(width: 6),
-                        Expanded(
-                          child: _inlineInput(
-                            _noticeDateCtrl,
-                            serif,
-                            hintText: '......./......./२०...',
-                          ),
+                        formDatePickerField(
+                          context,
+                          controller: _noticeDateCtrl,
+                          width: 140,
+                          readOnly: widget.readOnly,
                         ),
                       ],
                     ),
@@ -256,17 +281,40 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
                 Text(':—', style: marathi),
                 const SizedBox(width: 8),
                 Expanded(
-                    child:
-                        _inlineInput(_panchNameCtrl, serif, hintText: 'नाव')),
+                  child: _wrappingUnderlineInput(
+                    controller: _panchNameCtrl,
+                    style: serif,
+                    minWidth: 260,
+                    maxWidth: 700,
+                    hintText: 'नाव',
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 12),
-            _inlineInput(_panchAddressLine1Ctrl, serif,
-                hintText: 'पत्ता / व्यवसाय / वय ओळ १'),
+            _wrappingUnderlineInput(
+              controller: _panchAddressLine1Ctrl,
+              style: serif,
+              minWidth: 260,
+              maxWidth: 700,
+              hintText: 'पत्ता / व्यवसाय / वय ओळ १',
+            ),
             const SizedBox(height: 12),
-            _inlineInput(_panchAddressLine2Ctrl, serif, hintText: 'ओळ २'),
+            _wrappingUnderlineInput(
+              controller: _panchAddressLine2Ctrl,
+              style: serif,
+              minWidth: 260,
+              maxWidth: 700,
+              hintText: 'ओळ २',
+            ),
             const SizedBox(height: 12),
-            _inlineInput(_panchAddressLine3Ctrl, serif, hintText: 'ओळ ३'),
+            _wrappingUnderlineInput(
+              controller: _panchAddressLine3Ctrl,
+              style: serif,
+              minWidth: 260,
+              maxWidth: 700,
+              hintText: 'ओळ ३',
+            ),
             const SizedBox(height: 24),
 
             // Centered Symbol "००००"
@@ -285,64 +333,63 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
             // Body Paragraph with Inline Fields
             Wrap(
               crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 4,
+              runSpacing: 10,
               children: [
                 Text(
                   'आपणास या सुचनापत्र देण्यात येते की, पोलीस स्टेशन ',
                   style: marathi.copyWith(fontSize: 13.5, height: 1.8),
                 ),
-                SizedBox(
-                  width: 160,
-                  child: _inlineInput(
-                    _bodyPoliceStationCtrl,
-                    serif,
-                    hintText: _policeStationCtrl.text.isNotEmpty
-                        ? _policeStationCtrl.text
-                        : 'पोलीस स्टेशन',
-                  ),
+                _policeStationField(
+                  controller: _bodyPoliceStationCtrl,
+                  style: serif,
+                  minWidth: 140,
+                  maxWidth: 300,
+                  hintText: _policeStationCtrl.text.isNotEmpty
+                      ? _policeStationCtrl.text
+                      : null,
                 ),
                 Text(
                   ' येथे अपराध क्रमांक ',
                   style: marathi.copyWith(fontSize: 13.5, height: 1.8),
                 ),
-                SizedBox(
-                  width: 140,
-                  child: _inlineInput(
-                    _crNoYearCtrl,
-                    serif,
-                    hintText: '......... / २०.....',
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _crNoYearCtrl,
+                  style: serif,
+                  minWidth: 120,
+                  maxWidth: 240,
+                  hintText: '......... / २०.....',
                 ),
                 Text(
                   ' कलम ',
                   style: marathi.copyWith(fontSize: 13.5, height: 1.8),
                 ),
-                SizedBox(
-                  width: 220,
-                  child: _inlineInput(_sectionCtrl, serif, hintText: 'कलम'),
+                _wrappingUnderlineInput(
+                  controller: _sectionCtrl,
+                  style: serif,
+                  minWidth: 160,
+                  maxWidth: 500,
+                  hintText: 'कलम',
                 ),
                 Text(
                   ' अन्वये गुन्हा नोंद असुन सदर गुन्ह्याचे तपासकामी आपणाकडे चौकशी करून आपला जबाब नोंदविणे आवश्यक असल्याने, आपण दिनांक : ',
                   style: marathi.copyWith(fontSize: 13.5, height: 1.8),
                 ),
-                SizedBox(
-                  width: 150,
-                  child: _inlineInput(
-                    _appearanceDateCtrl,
-                    serif,
-                    hintText: '......./......./२०.....',
-                  ),
+                formDatePickerField(
+                  context,
+                  controller: _appearanceDateCtrl,
+                  width: 140,
+                  readOnly: widget.readOnly,
                 ),
                 Text(
                   ' रोजी ',
                   style: marathi.copyWith(fontSize: 13.5, height: 1.8),
                 ),
-                SizedBox(
-                  width: 110,
-                  child: _inlineInput(
-                    _appearanceTimeCtrl,
-                    serif,
-                    hintText: '......./.......',
-                  ),
+                formTimePickerField(
+                  context,
+                  controller: _appearanceTimeCtrl,
+                  width: 100,
+                  readOnly: widget.readOnly,
                 ),
                 Text(
                   ' वाजता आमचे समक्ष न चुकता हजर राहावे.',
@@ -365,10 +412,12 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  SizedBox(
-                    width: 200,
-                    child:
-                        _inlineInput(_ioSignCtrl, serif, hintText: 'नाव / सही'),
+                  _wrappingUnderlineInput(
+                    controller: _ioSignCtrl,
+                    style: serif,
+                    minWidth: 160,
+                    maxWidth: 220,
+                    hintText: 'नाव / सही',
                   ),
                   const SizedBox(height: 6),
                   Text(
@@ -395,26 +444,34 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                SizedBox(
-                  width: 220,
-                  child: _inlineInput(_ackLine1Ctrl, serif,
-                      hintText: 'स्वाक्षरी / नाव'),
+                _wrappingUnderlineInput(
+                  controller: _ackLine1Ctrl,
+                  style: serif,
+                  minWidth: 160,
+                  maxWidth: 260,
+                  hintText: 'स्वाक्षरी / नाव',
                 ),
                 const SizedBox(height: 8),
-                SizedBox(
-                  width: 220,
-                  child: _inlineInput(_ackLine2Ctrl, serif,
-                      hintText: 'दिनांक व वेळ'),
+                _wrappingUnderlineInput(
+                  controller: _ackLine2Ctrl,
+                  style: serif,
+                  minWidth: 160,
+                  maxWidth: 260,
+                  hintText: 'दिनांक व वेळ',
                 ),
                 const SizedBox(height: 8),
-                SizedBox(
-                  width: 220,
-                  child: _inlineInput(_ackLine3Ctrl, serif),
+                _wrappingUnderlineInput(
+                  controller: _ackLine3Ctrl,
+                  style: serif,
+                  minWidth: 160,
+                  maxWidth: 260,
                 ),
                 const SizedBox(height: 8),
-                SizedBox(
-                  width: 220,
-                  child: _inlineInput(_ackLine4Ctrl, serif),
+                _wrappingUnderlineInput(
+                  controller: _ackLine4Ctrl,
+                  style: serif,
+                  minWidth: 160,
+                  maxWidth: 260,
                 ),
               ],
             ),
@@ -422,6 +479,243 @@ class WitnessNoticeFormViewState extends State<WitnessNoticeFormView> {
           ],
         ),
       ],
+    );
+  }
+}
+
+class _WitnessDynamicUnderlinePainter extends CustomPainter {
+  final int lines;
+  final double lineHeight;
+  final Color color;
+  final double thickness;
+
+  const _WitnessDynamicUnderlinePainter({
+    required this.lines,
+    required this.lineHeight,
+    required this.color,
+    this.thickness = 1.0,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = thickness
+      ..style = PaintingStyle.stroke;
+
+    for (int i = 1; i <= lines; i++) {
+      final y = ((i * lineHeight) - 1.0).clamp(1.0, size.height - 0.5);
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _WitnessDynamicUnderlinePainter oldDelegate) {
+    return oldDelegate.lines != lines ||
+        oldDelegate.lineHeight != lineHeight ||
+        oldDelegate.color != color ||
+        oldDelegate.thickness != thickness;
+  }
+}
+
+class _WitnessDynamicUnderlineField extends StatefulWidget {
+  final TextEditingController controller;
+  final TextStyle style;
+  final double minWidth;
+  final double? maxWidth;
+  final String? hintText;
+  final TextInputType? keyboardType;
+  final bool readOnly;
+
+  const _WitnessDynamicUnderlineField({
+    required this.controller,
+    required this.style,
+    this.minWidth = 100,
+    this.maxWidth,
+    this.hintText,
+    this.keyboardType,
+    this.readOnly = false,
+  });
+
+  @override
+  State<_WitnessDynamicUnderlineField> createState() =>
+      _WitnessDynamicUnderlineFieldState();
+}
+
+class _WitnessDynamicUnderlineFieldState
+    extends State<_WitnessDynamicUnderlineField> {
+  late final FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode();
+    _focusNode.addListener(_onFocusChange);
+  }
+
+  void _onFocusChange() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _focusNode.removeListener(_onFocusChange);
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const double lineHeight = 26.0;
+    const double baseFontSize = 13.5;
+    const double horizontalPadding = 3.0;
+
+    final effectiveTextStyle = widget.style.copyWith(
+      fontWeight: FontWeight.w600,
+      fontSize: baseFontSize,
+      color: const Color(0xFF0D47A1),
+      height: lineHeight / baseFontSize,
+    );
+
+    const effectiveStrutStyle = StrutStyle(
+      fontSize: baseFontSize,
+      height: lineHeight / baseFontSize,
+      forceStrutHeight: true,
+    );
+
+    final bool isFocused = _focusNode.hasFocus;
+    final Color lineColor =
+        isFocused ? const Color(0xFF1976D2) : const Color(0xFF555555);
+    final double lineThickness = isFocused ? 1.5 : 1.0;
+
+    final effectiveMin = widget.minWidth;
+    final effectiveMax = widget.maxWidth ?? 800.0;
+
+    return ListenableBuilder(
+      listenable: widget.controller,
+      builder: (context, _) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final hasFiniteWidth =
+                constraints.maxWidth.isFinite && constraints.maxWidth > 0;
+            final double availableWidth =
+                hasFiniteWidth ? constraints.maxWidth : effectiveMax;
+            final text = widget.controller.text;
+
+            final singleLinePainter = TextPainter(
+              text: TextSpan(
+                text: text.isEmpty ? (widget.hintText ?? '') : text,
+                style: effectiveTextStyle,
+              ),
+              textDirection: TextDirection.ltr,
+              strutStyle: effectiveStrutStyle,
+              maxLines: 1,
+            )..layout(maxWidth: double.infinity);
+
+            final double measuredWidth = singleLinePainter.width + 16.0;
+
+            double computedWidth;
+            int lineCount = 1;
+
+            if (measuredWidth <= availableWidth &&
+                measuredWidth <= effectiveMax &&
+                !text.contains('\n')) {
+              computedWidth =
+                  measuredWidth < effectiveMin ? effectiveMin : measuredWidth;
+              lineCount = 1;
+            } else {
+              computedWidth =
+                  availableWidth < effectiveMax ? availableWidth : effectiveMax;
+              if (computedWidth < effectiveMin) computedWidth = effectiveMin;
+
+              final double textMaxWidth =
+                  (computedWidth - (horizontalPadding * 2) - 2.0)
+                      .clamp(20.0, computedWidth);
+
+              final multilinePainter = TextPainter(
+                text: TextSpan(
+                  text: text.isEmpty ? ' ' : text,
+                  style: effectiveTextStyle,
+                ),
+                textDirection: TextDirection.ltr,
+                strutStyle: effectiveStrutStyle,
+              )..layout(maxWidth: textMaxWidth);
+
+              final metrics = multilinePainter.computeLineMetrics();
+              lineCount = metrics.length;
+              if (lineCount < 1) lineCount = 1;
+
+              final newlineCount = '\n'.allMatches(text).length + 1;
+              if (newlineCount > lineCount) {
+                lineCount = newlineCount;
+              }
+            }
+
+            final double totalHeight = lineCount * lineHeight;
+
+            return RepaintBoundary(
+              child: SizedBox(
+                width: computedWidth,
+                height: totalHeight,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: CustomPaint(
+                          size: Size(computedWidth, totalHeight),
+                          painter: _WitnessDynamicUnderlinePainter(
+                            lines: lineCount,
+                            lineHeight: lineHeight,
+                            color: lineColor,
+                            thickness: lineThickness,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned.fill(
+                      child: TextFormField(
+                        controller: widget.controller,
+                        focusNode: _focusNode,
+                        readOnly: widget.readOnly,
+                        minLines: lineCount,
+                        maxLines: null,
+                        keyboardType:
+                            widget.keyboardType ?? TextInputType.multiline,
+                        style: effectiveTextStyle,
+                        strutStyle: effectiveStrutStyle,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          isCollapsed: true,
+                          border: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          disabledBorder: InputBorder.none,
+                          contentPadding: const EdgeInsets.only(
+                            left: horizontalPadding,
+                            right: horizontalPadding,
+                            top: 0,
+                            bottom: 2,
+                          ),
+                          fillColor: Colors.transparent,
+                          filled: false,
+                          hintText: widget.hintText,
+                          hintStyle: widget.style.copyWith(
+                            color: Colors.grey.shade400,
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic,
+                            height: lineHeight / 12.0,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

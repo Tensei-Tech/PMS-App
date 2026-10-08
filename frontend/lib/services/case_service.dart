@@ -1,15 +1,45 @@
 // lib/services/case_service.dart
 // PostgreSQL & Django REST powered Case Service replacing Cloud Firestore for module records.
 
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../modules/core/models/base_record.dart';
 import 'api_config.dart';
 import 'api_service.dart';
 
+/// Concurrency gate limiting in-flight requests to PostgreSQL backend to [maxConcurrent]
+class _ConcurrencyGate {
+  final int maxConcurrent;
+  int _running = 0;
+  final List<Completer<void>> _waiters = [];
+
+  _ConcurrencyGate({this.maxConcurrent = 4});
+
+  Future<T> run<T>(Future<T> Function() task) async {
+    while (_running >= maxConcurrent) {
+      final completer = Completer<void>();
+      _waiters.add(completer);
+      await completer.future;
+    }
+    _running++;
+    try {
+      return await task();
+    } finally {
+      _running--;
+      if (_waiters.isNotEmpty) {
+        final next = _waiters.removeAt(0);
+        next.complete();
+      }
+    }
+  }
+}
+
 class CaseService {
   static final CaseService _instance = CaseService._internal();
   factory CaseService() => _instance;
   CaseService._internal();
+
+  static final _ConcurrencyGate _gate = _ConcurrencyGate(maxConcurrent: 4);
 
   final ApiService _api = ApiService();
   final Map<String, List<ModuleRecord>> _casesCache = {};
@@ -37,45 +67,66 @@ class CaseService {
       return _casesCache[cacheKey] ?? [];
     }
 
-    try {
-      final response = await _api.get(
-        ApiConfig.cases,
-        queryParameters: {'module_key': moduleKey, 'station_name': stationId},
-      );
+    return _gate.run(() async {
+      try {
+        final response = await _api.get(
+          ApiConfig.cases,
+          queryParameters: {'module_key': moduleKey, 'station_name': stationId},
+        );
 
-      if (response.isSuccess) {
-        final data = response.data;
-        List<dynamic> list = [];
-        if (data is List) {
-          list = data;
-        } else if (data is Map<String, dynamic> && data['results'] is List) {
-          list = data['results'] as List;
+        if (response.isSuccess) {
+          final data = response.data;
+          List<dynamic> list = [];
+          if (data is List) {
+            list = data;
+          } else if (data is Map<String, dynamic>) {
+            list = (data['results'] as List?) ?? (data['cases'] as List?) ?? [];
+          }
+
+          final records = list
+              .map(
+                (item) => ModuleRecord.fromMap(
+                  Map<String, dynamic>.from(item as Map),
+                  item['id']?.toString(),
+                ),
+              )
+              .toList();
+          _casesCache[cacheKey] = records;
+          _casesCacheTime[cacheKey] = DateTime.now();
+          return records;
         }
-
-        final records = list
-            .map(
-              (item) => ModuleRecord.fromMap(
-                Map<String, dynamic>.from(item as Map),
-                item['id']?.toString(),
-              ),
-            )
-            .toList();
-        _casesCache[cacheKey] = records;
-        _casesCacheTime[cacheKey] = DateTime.now();
-        return records;
-      } else {
-        if (kDebugMode && response.statusCode != 401) {
-          debugPrint(
-            '[$moduleKey] CaseService.fetchCases failed: ${response.errorMessage}',
-          );
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('[$moduleKey] CaseService.fetchCases exception: $e');
         }
       }
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('[$moduleKey] CaseService.fetchCases exception: $e');
-      }
+      return _casesCache[cacheKey] ?? [];
+    });
+  }
+
+  /// Fetch single-query aggregated counts for dashboard tiles
+  Future<Map<String, dynamic>> fetchCounts({String? stationName}) async {
+    final token = await _api.getAuthToken();
+    if (token == null || token.isEmpty || _api.isTokenExpired(token)) {
+      return {};
     }
-    return [];
+
+    return _gate.run(() async {
+      try {
+        final response = await _api.get(
+          '${ApiConfig.baseUrl}/cases/counts/',
+          queryParameters: stationName != null && stationName.isNotEmpty
+              ? {'station_name': stationName}
+              : null,
+        );
+        if (response.isSuccess && response.data is Map) {
+          return Map<String, dynamic>.from(response.data as Map);
+        }
+      } catch (e) {
+        if (kDebugMode) debugPrint('[CaseService] fetchCounts error: $e');
+      }
+      return {};
+    });
   }
 
   /// Fetch all cases for an entire station from Django backend (for dashboard stats)
@@ -87,36 +138,38 @@ class CaseService {
       return [];
     }
 
-    try {
-      final response = await _api.get(
-        ApiConfig.cases,
-        queryParameters: {'station_name': stationId.trim()},
-      );
+    return _gate.run(() async {
+      try {
+        final response = await _api.get(
+          ApiConfig.cases,
+          queryParameters: {'station_name': stationId.trim()},
+        );
 
-      if (response.isSuccess) {
-        final data = response.data;
-        List<dynamic> list = [];
-        if (data is List) {
-          list = data;
-        } else if (data is Map<String, dynamic> && data['results'] is List) {
-          list = data['results'] as List;
+        if (response.isSuccess) {
+          final data = response.data;
+          List<dynamic> list = [];
+          if (data is List) {
+            list = data;
+          } else if (data is Map<String, dynamic>) {
+            list = (data['results'] as List?) ?? (data['cases'] as List?) ?? [];
+          }
+
+          return list
+              .map(
+                (item) => ModuleRecord.fromMap(
+                  Map<String, dynamic>.from(item as Map),
+                  item['id']?.toString(),
+                ),
+              )
+              .toList();
         }
-
-        return list
-            .map(
-              (item) => ModuleRecord.fromMap(
-                Map<String, dynamic>.from(item as Map),
-                item['id']?.toString(),
-              ),
-            )
-            .toList();
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('[CaseService] fetchStationCases exception: $e');
+        }
       }
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('[CaseService] fetchStationCases exception: $e');
-      }
-    }
-    return [];
+      return [];
+    });
   }
 
   /// Fetch cases assigned to the current officer from Django backend
@@ -139,8 +192,8 @@ class CaseService {
         List<dynamic> list = [];
         if (data is List) {
           list = data;
-        } else if (data is Map<String, dynamic> && data['results'] is List) {
-          list = data['results'] as List;
+        } else if (data is Map<String, dynamic>) {
+          list = (data['results'] as List?) ?? (data['cases'] as List?) ?? [];
         }
 
         return list
@@ -215,5 +268,393 @@ class CaseService {
       }
       return false;
     }
+  }
+
+  /// Fetch Case PDF report payload from Django backend: GET /api/cases/{id}/pdf/
+  Future<Map<String, dynamic>?> fetchCasePdfData(String caseId) async {
+    if (caseId.trim().isEmpty) return null;
+    try {
+      final url = '${ApiConfig.cases}$caseId/pdf/';
+      final response = await _api.get(url);
+      if (response.isSuccess && response.data is Map<String, dynamic>) {
+        return response.data as Map<String, dynamic>;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchCasePdfData exception: $e');
+      }
+    }
+    return null;
+  }
+
+  final Map<String, List<Map<String, dynamic>>> _childrenCache = {};
+
+  /// Fetch child categories for a category ID or name: GET /api/categories/{id}/children/
+  Future<List<Map<String, dynamic>>> fetchCategoryChildren(
+    String categoryIdOrName, {
+    String? stationName,
+    bool forceRefresh = false,
+  }) async {
+    final key = '$categoryIdOrName:${stationName ?? ''}';
+    if (!forceRefresh && _childrenCache.containsKey(key)) {
+      return _childrenCache[key]!;
+    }
+    try {
+      final encoded = Uri.encodeComponent(categoryIdOrName.trim());
+      final url = '${ApiConfig.baseUrl}/categories/$encoded/children/';
+      final response = await _api.get(
+        url,
+        queryParameters: stationName != null && stationName.isNotEmpty
+            ? {'station_name': stationName}
+            : null,
+      );
+      if (response.isSuccess && response.data is List) {
+        final list = (response.data as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+        _childrenCache[key] = list;
+        return list;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchCategoryChildren exception: $e');
+      }
+    }
+    return [];
+  }
+
+  /// Fetch unified dashboard tabs (Groups 1-5 & Part 6 + All Standalone Tabs):
+  /// GET /api/categories/dashboard-tabs/?station_name=...
+  Future<Map<String, dynamic>?> fetchDashboardTabs({
+    String? stationName,
+  }) async {
+    try {
+      final url = '${ApiConfig.baseUrl}/categories/dashboard-tabs/';
+      final response = await _api.get(
+        url,
+        queryParameters: stationName != null && stationName.isNotEmpty
+            ? {'station_name': stationName}
+            : null,
+      );
+      if (response.isSuccess && response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchDashboardTabs exception: $e');
+      }
+    }
+    return null;
+  }
+
+  /// Fetch standalone categories: GET /api/categories/standalone/?station_name=...
+  Future<List<Map<String, dynamic>>> fetchStandaloneCategories({
+    String? stationName,
+  }) async {
+    try {
+      final url = '${ApiConfig.baseUrl}/categories/standalone/';
+      final response = await _api.get(
+        url,
+        queryParameters: stationName != null && stationName.isNotEmpty
+            ? {'station_name': stationName}
+            : null,
+      );
+      if (response.isSuccess && response.data is List) {
+        return (response.data as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchStandaloneCategories exception: $e');
+      }
+    }
+    return [];
+  }
+
+  /// Fetch all category groups: GET /api/groups/
+  Future<List<Map<String, dynamic>>> fetchGroups({
+    String? stationName,
+  }) async {
+    try {
+      final url = '${ApiConfig.baseUrl}/groups/';
+      final response = await _api.get(
+        url,
+        queryParameters: stationName != null && stationName.isNotEmpty
+            ? {'station_name': stationName}
+            : null,
+      );
+      if (response.isSuccess && response.data is List) {
+        return (response.data as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchGroups exception: $e');
+      }
+    }
+    return [];
+  }
+
+  /// Fetch categories for a specific group (e.g. 1 for '1 to 5', 2 for 'Part 6'):
+  /// GET /api/groups/{groupId}/categories/
+  Future<List<Map<String, dynamic>>> fetchGroupCategories(
+    int groupId, {
+    String? stationName,
+  }) async {
+    try {
+      final url = '${ApiConfig.baseUrl}/groups/$groupId/categories/';
+      final response = await _api.get(
+        url,
+        queryParameters: stationName != null && stationName.isNotEmpty
+            ? {'station_name': stationName}
+            : null,
+      );
+      if (response.isSuccess && response.data is List) {
+        return (response.data as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchGroupCategories exception: $e');
+      }
+    }
+    return [];
+  }
+
+  /// Priority 3: Fetch all administrative divisions: GET /api/divisions/
+  Future<List<Map<String, dynamic>>> fetchDivisions({String? stateId}) async {
+    try {
+      final url = '${ApiConfig.baseUrl}/divisions/';
+      final response = await _api.get(
+        url,
+        queryParameters: stateId != null && stateId.isNotEmpty
+            ? {'state_id': stateId}
+            : null,
+      );
+      if (response.isSuccess && response.data is List) {
+        return (response.data as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchDivisions exception: $e');
+      }
+    }
+    return [];
+  }
+
+  /// Priority 3: Fetch districts, optionally filtered by division: GET /api/districts/?division_id=...
+  Future<List<Map<String, dynamic>>> fetchDistricts(
+      {dynamic divisionId}) async {
+    try {
+      final url = '${ApiConfig.baseUrl}/districts/';
+      final response = await _api.get(
+        url,
+        queryParameters: divisionId != null && divisionId.toString().isNotEmpty
+            ? {'division_id': divisionId.toString()}
+            : null,
+      );
+      if (response.isSuccess && response.data is List) {
+        return (response.data as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchDistricts exception: $e');
+      }
+    }
+    return [];
+  }
+
+  /// Priority 3: Fetch police stations, optionally filtered by district: GET /api/stations/?district_id=...
+  Future<List<Map<String, dynamic>>> fetchStations({dynamic districtId}) async {
+    try {
+      final url = '${ApiConfig.baseUrl}/stations/';
+      final response = await _api.get(
+        url,
+        queryParameters: districtId != null && districtId.toString().isNotEmpty
+            ? {'district_id': districtId.toString()}
+            : null,
+      );
+      if (response.isSuccess && response.data is List) {
+        return (response.data as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchStations exception: $e');
+      }
+    }
+    return [];
+  }
+
+  /// Fetch cases for a specific category: GET /api/categories/{id}/cases/
+  Future<List<ModuleRecord>> fetchCategoryCases(
+    String categoryIdOrName, {
+    String? stationName,
+    String? status,
+    String? search,
+  }) async {
+    try {
+      final url = '${ApiConfig.baseUrl}/categories/$categoryIdOrName/cases/';
+      final params = <String, dynamic>{};
+      if (stationName != null && stationName.isNotEmpty) {
+        params['station_name'] = stationName;
+      }
+      if (status != null && status.isNotEmpty) {
+        params['status'] = status;
+      }
+      if (search != null && search.isNotEmpty) {
+        params['search'] = search;
+      }
+
+      final response = await _api.get(
+        url,
+        queryParameters: params.isNotEmpty ? params : null,
+      );
+
+      if (response.isSuccess && response.data is Map) {
+        final data = response.data as Map;
+        final rawCases = data['cases'];
+        if (rawCases is List) {
+          return rawCases
+              .map(
+                (item) => ModuleRecord.fromMap(
+                  Map<String, dynamic>.from(item as Map),
+                  item['id']?.toString(),
+                ),
+              )
+              .toList();
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchCategoryCases exception: $e');
+      }
+    }
+    return [];
+  }
+
+  final Map<String, Map<String, dynamic>> _formDefCache = {};
+
+  /// Fetch dynamic form definition for a category: GET /api/categories/{id}/form-definition/
+  Future<Map<String, dynamic>?> fetchFormDefinition(
+    dynamic categoryIdOrName, {
+    String? caseId,
+    List<dynamic>? sectionIds,
+    List<dynamic>? sections,
+    bool forceRefresh = false,
+  }) async {
+    final secList = sections ?? sectionIds;
+    final cacheKey =
+        '$categoryIdOrName:${caseId ?? ''}:${secList?.map((s) => s.toString()).join(',') ?? ''}';
+    if (!forceRefresh && _formDefCache.containsKey(cacheKey)) {
+      return _formDefCache[cacheKey];
+    }
+    try {
+      final url =
+          '${ApiConfig.baseUrl}/categories/$categoryIdOrName/form-definition/';
+      final params = <String, dynamic>{};
+      if (caseId != null && caseId.isNotEmpty) {
+        params['case_id'] = caseId;
+      }
+      if (secList != null && secList.isNotEmpty) {
+        final secJoined = secList
+            .map((s) => s.toString().trim())
+            .where((s) => s.isNotEmpty)
+            .join(',');
+        if (secJoined.isNotEmpty) {
+          params['sections'] = secJoined;
+        }
+      }
+
+      final response = await _api.get(
+        url,
+        queryParameters: params.isNotEmpty ? params : null,
+      );
+
+      if (response.isSuccess && response.data is Map) {
+        final def = Map<String, dynamic>.from(response.data as Map);
+        _formDefCache[cacheKey] = def;
+        return def;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchFormDefinition exception: $e');
+      }
+    }
+    return null;
+  }
+
+  /// Fetch reference list of all Acts
+  Future<List<Map<String, dynamic>>> fetchActs() async {
+    try {
+      final response = await _api.get(ApiConfig.acts);
+      if (response.isSuccess && response.data is List) {
+        return (response.data as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchActs exception: $e');
+      }
+    }
+    return [];
+  }
+
+  /// Fetch reference list of Sections, optionally filtered by actId
+  Future<List<Map<String, dynamic>>> fetchActSections({dynamic actId}) async {
+    try {
+      final params = <String, dynamic>{};
+      if (actId != null && actId.toString().trim().isNotEmpty) {
+        params['act_id'] = actId.toString().trim();
+      }
+      final response = await _api.get(
+        ApiConfig.actSections,
+        queryParameters: params.isNotEmpty ? params : null,
+      );
+      if (response.isSuccess && response.data is List) {
+        return (response.data as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchActSections exception: $e');
+      }
+    }
+    return [];
+  }
+
+  /// Fetch reference list of Subsections, optionally filtered by sectionId
+  Future<List<Map<String, dynamic>>> fetchActSubsections(
+      {dynamic sectionId}) async {
+    try {
+      final params = <String, dynamic>{};
+      if (sectionId != null && sectionId.toString().trim().isNotEmpty) {
+        params['section_id'] = sectionId.toString().trim();
+      }
+      final response = await _api.get(
+        ApiConfig.actSubsections,
+        queryParameters: params.isNotEmpty ? params : null,
+      );
+      if (response.isSuccess && response.data is List) {
+        return (response.data as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchActSubsections exception: $e');
+      }
+    }
+    return [];
   }
 }

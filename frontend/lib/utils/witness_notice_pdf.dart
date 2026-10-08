@@ -1,41 +1,35 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import 'form_image_pdf_helper.dart';
 import 'marathi_text_renderer.dart';
-import 'pdf_layout_constants.dart';
+import 'pdf_font_cache.dart';
 
 Future<void> previewWitnessNoticePdf(
   BuildContext context,
   Map<String, dynamic> doc,
 ) async {
-  final bytes = await generateWitnessNoticePdf(doc);
-  if (!context.mounted) return;
   final fileName =
       'Witness_Notice_${DateTime.now().millisecondsSinceEpoch}.pdf';
-  try {
-    if (kIsWeb) {
-      await Printing.sharePdf(bytes: bytes, filename: fileName);
-    } else {
-      await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
-    }
-  } catch (_) {
-    await Printing.sharePdf(bytes: bytes, filename: fileName);
-  }
+  await FormImagePdfHelper.previewImageBasedPdf(
+    context,
+    fileName: fileName,
+    pages: [_buildPgWidget(doc)],
+    fallbackPdfGenerator: () => generateWitnessNoticePdf(doc),
+  );
 }
 
 Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
   final pdf = pw.Document();
-
-  final loraRegular = await PdfGoogleFonts.loraRegular();
+  final loraBold = await PdfFontCache.loraBold();
   final cache = await _preRenderAllMarathi(doc);
 
-  final pw.TextStyle englishStyle = pw.TextStyle(
-    font: loraRegular,
-    fontSize: 10,
+  final pw.TextStyle englishValueStyle = pw.TextStyle(
+    font: loraBold,
+    fontSize: 9.5,
     color: PdfColors.black,
   );
 
@@ -47,7 +41,7 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
     if (cache.has(key)) {
       return cache.img(key);
     }
-    return pw.Text(text, style: englishStyle);
+    return pw.Text(text, style: englishValueStyle);
   }
 
   pw.Widget mLbl(String key) {
@@ -63,7 +57,7 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
   pdf.addPage(
     pw.Page(
       pageFormat: PdfPageFormat.a4,
-      margin: PdfLayoutConstants.pageMargin,
+      margin: const pw.EdgeInsets.symmetric(horizontal: 40, vertical: 40),
       build: (pw.Context context) {
         return pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.stretch,
@@ -77,9 +71,12 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Row(
-                      crossAxisAlignment: pw.CrossAxisAlignment.end,
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        mLbl('lbl_top_ps'),
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.only(top: 1.0),
+                          child: mLbl('lbl_top_ps'),
+                        ),
                         pw.SizedBox(width: 4),
                         pw.Expanded(
                           child: pw.Container(
@@ -188,30 +185,38 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
             pw.SizedBox(height: 8),
 
             // Address Line 2
-            pw.Container(
-              decoration: const pw.BoxDecoration(
-                border: pw.Border(
-                  bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+            if ((doc['panchAddressLine2']?.toString() ?? '')
+                .trim()
+                .isNotEmpty) ...[
+              pw.Container(
+                decoration: const pw.BoxDecoration(
+                  border: pw.Border(
+                    bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+                  ),
                 ),
+                padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
+                child: renderField('val_panchAddressLine2',
+                    doc['panchAddressLine2']?.toString()),
               ),
-              padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
-              child: renderField('val_panchAddressLine2',
-                  doc['panchAddressLine2']?.toString()),
-            ),
-            pw.SizedBox(height: 8),
+              pw.SizedBox(height: 8),
+            ],
 
             // Address Line 3
-            pw.Container(
-              decoration: const pw.BoxDecoration(
-                border: pw.Border(
-                  bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+            if ((doc['panchAddressLine3']?.toString() ?? '')
+                .trim()
+                .isNotEmpty) ...[
+              pw.Container(
+                decoration: const pw.BoxDecoration(
+                  border: pw.Border(
+                    bottom: pw.BorderSide(color: PdfColors.black, width: 0.8),
+                  ),
                 ),
+                padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
+                child: renderField('val_panchAddressLine3',
+                    doc['panchAddressLine3']?.toString()),
               ),
-              padding: const pw.EdgeInsets.only(bottom: 2, left: 4),
-              child: renderField('val_panchAddressLine3',
-                  doc['panchAddressLine3']?.toString()),
-            ),
-            pw.SizedBox(height: 20),
+              pw.SizedBox(height: 8),
+            ],
 
             // Centered Symbol "००००"
             pw.Center(
@@ -222,9 +227,12 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
             // Notice Body Lines
             // Line 1: आपणास या सुचनापत्र देण्यात येते की, पोलीस स्टेशन [PS] येथे अपराध
             pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                mLbl('body_p1_1'),
+                pw.Padding(
+                  padding: const pw.EdgeInsets.only(top: 1.0),
+                  child: mLbl('body_p1_1'),
+                ),
                 pw.SizedBox(width: 4),
                 pw.Expanded(
                   child: pw.Container(
@@ -239,7 +247,10 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
                   ),
                 ),
                 pw.SizedBox(width: 4),
-                mLbl('body_p1_2'),
+                pw.Padding(
+                  padding: const pw.EdgeInsets.only(top: 1.0),
+                  child: mLbl('body_p1_2'),
+                ),
               ],
             ),
             pw.SizedBox(height: 8),
@@ -419,6 +430,18 @@ Future<Uint8List> generateWitnessNoticePdf(Map<String, dynamic> doc) async {
                 ),
               ],
             ),
+            pw.Spacer(),
+            pw.Align(
+              alignment: pw.Alignment.bottomRight,
+              child: pw.Text(
+                'M.R.W',
+                style: pw.TextStyle(
+                  font: loraBold,
+                  fontSize: 8.5,
+                  color: PdfColors.grey700,
+                ),
+              ),
+            ),
           ],
         );
       },
@@ -501,8 +524,7 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
                 ? 10.5
                 : 9.5));
 
-    final color =
-        entry.key.startsWith('val_') ? const Color(0xFF0D47A1) : Colors.black87;
+    const color = Colors.black;
 
     final double maxW = entry.key == 'title' || entry.key == 'body_p3'
         ? 500
@@ -521,4 +543,426 @@ Future<MarathiImageCache> _preRenderAllMarathi(Map<String, dynamic> doc) async {
   }
 
   return cache;
+}
+
+class _WitnessLinePainter extends CustomPainter {
+  final int lines;
+  final double lineHeight;
+
+  const _WitnessLinePainter({
+    required this.lines,
+    required this.lineHeight,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black
+      ..strokeWidth = 0.8
+      ..style = PaintingStyle.stroke;
+
+    for (int i = 1; i <= lines; i++) {
+      final y = (i * lineHeight) - 1.5;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _WitnessLinePainter oldDelegate) =>
+      oldDelegate.lines != lines || oldDelegate.lineHeight != lineHeight;
+}
+
+class _DynamicWitnessUnderlineField extends StatelessWidget {
+  final String text;
+  final TextStyle style;
+  final int minLines;
+  final double lineHeight;
+
+  const _DynamicWitnessUnderlineField({
+    required this.text,
+    required this.style,
+    this.minLines = 1,
+    this.lineHeight = 22.0,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final trimmed = text.trim();
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxW =
+            constraints.maxWidth.isFinite ? constraints.maxWidth : 500.0;
+        int lines = minLines;
+        if (trimmed.isNotEmpty) {
+          final tp = TextPainter(
+            text: TextSpan(text: trimmed, style: style),
+            textDirection: TextDirection.ltr,
+          )..layout(maxWidth: maxW > 0 ? maxW : 500.0);
+          final metrics = tp.computeLineMetrics();
+          lines = metrics.isEmpty ? 1 : metrics.length;
+          if (lines < minLines) lines = minLines;
+        }
+
+        final h = lines * lineHeight;
+        return CustomPaint(
+          size: Size(maxW, h),
+          painter: _WitnessLinePainter(lines: lines, lineHeight: lineHeight),
+          child: Container(
+            width: maxW,
+            height: h,
+            padding: const EdgeInsets.only(left: 2, right: 2),
+            child: trimmed.isEmpty
+                ? const SizedBox()
+                : Text(
+                    trimmed,
+                    style: style.copyWith(
+                      height: lineHeight / (style.fontSize ?? 11.5),
+                    ),
+                  ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+Widget _buildPgWidget(Map<String, dynamic> doc) {
+  String v(String key, [String fallback = '']) {
+    final val = doc[key]?.toString().trim() ?? '';
+    return val.isEmpty ? fallback : val;
+  }
+
+  final psName = v('policeStation');
+  final bodyPs = v('bodyPoliceStation', psName);
+  final noticeDate = v('noticeDate', v('date'));
+  final panchName = v('panchName', v('witnessName', v('witnessNameAddress')));
+  final addr1 = v('panchAddressLine1', v('address'));
+  final addr2 = v('panchAddressLine2');
+  final addr3 = v('panchAddressLine3');
+  final crNo = v('crNoYear', v('crNo'));
+  final section = v('section');
+  final appDate = v('appearanceDate');
+  final appTime = v('appearanceTime');
+  final ioSign = v('ioSign', v('ioName'));
+  final ack1 = v('ackLine1', v('witnessSig'));
+  final ack2 = v('ackLine2', v('witnessReceiptDate'));
+  final ack3 = v('ackLine3');
+  final ack4 = v('ackLine4');
+
+  final addrList = [addr1, addr2, addr3].where((s) => s.isNotEmpty).toList();
+  final fullAddress = addrList.join(' ');
+
+  final reg = FormImagePdfHelper.mBld(11.5, 1.85);
+  final bld = FormImagePdfHelper.mBld(11.5, 1.85);
+  final titleStyle = FormImagePdfHelper.mBld(17, 1.3);
+
+  return FormImagePdfHelper.buildA4Page(
+    padding: const EdgeInsets.symmetric(horizontal: 44, vertical: 38),
+    children: [
+      Align(
+        alignment: Alignment.topRight,
+        child: SizedBox(
+          width: 290,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 1.0),
+                    child: Text('पोलीस स्टेशन', style: bld),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: _DynamicWitnessUnderlineField(
+                      text: psName,
+                      style: FormImagePdfHelper.valStyle(10.5),
+                      minLines: 1,
+                      lineHeight: 20.0,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text('दिनांक :', style: bld),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: _DynamicWitnessUnderlineField(
+                      text: noticeDate,
+                      style: FormImagePdfHelper.valStyle(10.5),
+                      minLines: 1,
+                      lineHeight: 20.0,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      const SizedBox(height: 24),
+      Center(
+        child: Column(
+          children: [
+            Text('—:: साक्षीदार सुचनापत्र ::—', style: titleStyle),
+            const SizedBox(height: 2),
+            Container(width: 190, height: 1, color: Colors.black),
+          ],
+        ),
+      ),
+      const SizedBox(height: 24),
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 2.0),
+            child: Text('पंच नांव :—', style: bld),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: _DynamicWitnessUnderlineField(
+              text: panchName,
+              style: FormImagePdfHelper.valStyle(11.5),
+              minLines: 1,
+              lineHeight: 22.0,
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 10),
+      _DynamicWitnessUnderlineField(
+        text: fullAddress,
+        style: FormImagePdfHelper.valStyle(11),
+        minLines: 1,
+        lineHeight: 22.0,
+      ),
+      const SizedBox(height: 24),
+      Center(
+        child: Text('० ० ० ०',
+            style: bld.copyWith(fontSize: 13, letterSpacing: 4)),
+      ),
+      const SizedBox(height: 20),
+      if (bodyPs.length > 15) ...[
+        Text('आपणास या सुचनापत्र देण्यात येते की, पोलीस स्टेशन :', style: reg),
+        const SizedBox(height: 4),
+        _DynamicWitnessUnderlineField(
+          text: bodyPs,
+          style: FormImagePdfHelper.valStyle(11.5),
+          minLines: 1,
+          lineHeight: 22.0,
+        ),
+        const SizedBox(height: 6),
+        Text('येथे अपराध', style: reg),
+      ] else ...[
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 1.0),
+              child: Text('आपणास या सुचनापत्र देण्यात येते की, पोलीस स्टेशन',
+                  style: reg),
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: _DynamicWitnessUnderlineField(
+                text: bodyPs,
+                style: FormImagePdfHelper.valStyle(11.5),
+                minLines: 1,
+                lineHeight: 22.0,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Padding(
+              padding: const EdgeInsets.only(top: 1.0),
+              child: Text('येथे अपराध', style: reg),
+            ),
+          ],
+        ),
+      ],
+      const SizedBox(height: 10),
+      if (section.length > 25) ...[
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text('क्रमांक', style: reg),
+            const SizedBox(width: 4),
+            SizedBox(
+              width: 140,
+              child: _DynamicWitnessUnderlineField(
+                text: crNo,
+                style: FormImagePdfHelper.valStyle(11.5),
+                minLines: 1,
+                lineHeight: 22.0,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text('कलम :', style: reg),
+          ],
+        ),
+        const SizedBox(height: 4),
+        _DynamicWitnessUnderlineField(
+          text: section,
+          style: FormImagePdfHelper.valStyle(11.5),
+          minLines: 1,
+          lineHeight: 22.0,
+        ),
+      ] else ...[
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text('क्रमांक', style: reg),
+            const SizedBox(width: 4),
+            SizedBox(
+              width: 120,
+              child: _DynamicWitnessUnderlineField(
+                text: crNo,
+                style: FormImagePdfHelper.valStyle(11.5),
+                minLines: 1,
+                lineHeight: 22.0,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text('कलम', style: reg),
+            const SizedBox(width: 4),
+            Expanded(
+              child: _DynamicWitnessUnderlineField(
+                text: section,
+                style: FormImagePdfHelper.valStyle(11.5),
+                minLines: 1,
+                lineHeight: 22.0,
+              ),
+            ),
+          ],
+        ),
+      ],
+      const SizedBox(height: 10),
+      Text(
+        'अन्वये गुन्हा नोंद असुन सदर गुन्ह्याचे तपासकामी आपणाकडे चौकशी करून आपला जबाब',
+        style: reg,
+      ),
+      const SizedBox(height: 10),
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text('नोंदविणे आवश्यक असल्याने, आपण दिनांक :', style: reg),
+          const SizedBox(width: 4),
+          SizedBox(
+            width: 120,
+            child: _DynamicWitnessUnderlineField(
+              text: appDate,
+              style: FormImagePdfHelper.valStyle(11.5),
+              minLines: 1,
+              lineHeight: 22.0,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text('रोजी', style: reg),
+          const SizedBox(width: 4),
+          SizedBox(
+            width: 90,
+            child: _DynamicWitnessUnderlineField(
+              text: appTime,
+              style: FormImagePdfHelper.valStyle(11.5),
+              minLines: 1,
+              lineHeight: 22.0,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text('वाजता', style: reg),
+        ],
+      ),
+      const SizedBox(height: 10),
+      Text('आमचे समक्ष न चुकता हजर राहावे.', style: reg),
+      const SizedBox(height: 16),
+      Text('करीता सुचनापत्र देण्यात येत आहे.', style: reg),
+      const SizedBox(height: 36),
+      Align(
+        alignment: Alignment.centerRight,
+        child: Column(
+          children: [
+            SizedBox(
+              width: 180,
+              child: Center(
+                child: Text(
+                  ioSign.isEmpty ? ' ' : ioSign,
+                  softWrap: true,
+                  textAlign: TextAlign.center,
+                  style: FormImagePdfHelper.valStyle(11),
+                ),
+              ),
+            ),
+            Container(
+                width: 180,
+                height: 0.8,
+                color: Colors.black,
+                margin: const EdgeInsets.only(top: 2, bottom: 6)),
+            Text('तपासी अधिकारी नांव व सही', style: bld),
+          ],
+        ),
+      ),
+      const SizedBox(height: 32),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('सुचनापत्र मिळाले आहे.', style: bld),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: 220,
+            child: _DynamicWitnessUnderlineField(
+              text: ack1,
+              style: FormImagePdfHelper.valStyle(11),
+              minLines: 1,
+              lineHeight: 22.0,
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: 220,
+            child: _DynamicWitnessUnderlineField(
+              text: ack2,
+              style: FormImagePdfHelper.valStyle(11),
+              minLines: 1,
+              lineHeight: 22.0,
+            ),
+          ),
+          if (ack3.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              width: 220,
+              child: _DynamicWitnessUnderlineField(
+                text: ack3,
+                style: FormImagePdfHelper.valStyle(11),
+                minLines: 1,
+                lineHeight: 22.0,
+              ),
+            ),
+          ],
+          if (ack4.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              width: 220,
+              child: _DynamicWitnessUnderlineField(
+                text: ack4,
+                style: FormImagePdfHelper.valStyle(11),
+                minLines: 1,
+                lineHeight: 22.0,
+              ),
+            ),
+          ],
+        ],
+      ),
+      const Spacer(),
+      Align(
+        alignment: Alignment.bottomRight,
+        child: Text(
+          'M.R.W',
+          style: FormImagePdfHelper.mReg(9).copyWith(color: Colors.black54),
+        ),
+      ),
+    ],
+  );
 }

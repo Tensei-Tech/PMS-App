@@ -468,8 +468,8 @@ class ModuleRecordDynamicDocumentView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final raw = Map<String, dynamic>.from(record.toMap());
-    final extra = raw['extraFields'] != null
-        ? Map<String, dynamic>.from(raw['extraFields'] as Map? ?? {})
+    final extra = (raw['extraFields'] is Map)
+        ? Map<String, dynamic>.from(raw['extraFields'] as Map)
         : <String, dynamic>{};
     raw.remove('extraFields');
 
@@ -503,14 +503,6 @@ class ModuleRecordDynamicDocumentView extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionHeader('Module', Icons.category_outlined),
-            const SizedBox(height: 10),
-            _card(
-              children: [
-                _row('Dashboard module', moduleLabel, boldValue: true),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
             if (ncFormMap != null) ...[
               NcViewDocumentView(
                 record: record,

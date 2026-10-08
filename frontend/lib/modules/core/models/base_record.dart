@@ -118,11 +118,16 @@ class ModuleRecord {
       createdAt: rawCreated != null
           ? (DateTime.tryParse(rawCreated.toString()) ?? DateTime.now())
           : DateTime.now(),
-      extraFields: map['extraFields'] != null
-          ? Map<String, dynamic>.from(map['extraFields'])
-          : (map['extra_fields'] != null
-              ? Map<String, dynamic>.from(map['extra_fields'])
-              : {}),
+      extraFields: () {
+        var ex = <String, dynamic>{};
+        if (map['extraFields'] is Map) {
+          ex = Map<String, dynamic>.from(map['extraFields'] as Map);
+        } else if (map['extra_fields'] is Map) {
+          ex = Map<String, dynamic>.from(map['extra_fields'] as Map);
+        }
+        if (map['arrest_date'] != null) ex['arrest_date'] = map['arrest_date'];
+        return ex;
+      }(),
       createdBy: map['createdBy'] ?? map['created_by'] ?? '',
       assignedOfficerUid:
           (map['assignedOfficerUid'] ?? map['assigned_officer_uid']) as String?,

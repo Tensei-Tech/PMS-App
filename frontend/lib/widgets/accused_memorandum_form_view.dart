@@ -8,6 +8,7 @@ import 'form_table_helpers.dart';
 import 'form_typography.dart';
 import 'form_view_scaffold.dart';
 import 'responsive_field_row.dart';
+import 'form_date_pickers.dart';
 
 /// Accused Memorandum Form (आरोपीचे निवेदन पंचनामा)
 /// Under Section 23(2) Bhartiya Sakshya Adhiniyam, 2023 कलम २३ (२) भारतीय साक्ष अधिनियम २०२३
@@ -169,9 +170,11 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
       );
 
   String get _arrestTimeCombined {
+    final t = _arrestTimeCtrl.text.trim();
+    if (t.isNotEmpty) return t;
     final h = _arrestTimeHoursCtrl.text.trim();
     final m = _arrestTimeMinutesCtrl.text.trim();
-    if (h.isEmpty && m.isEmpty) return _arrestTimeCtrl.text.trim();
+    if (h.isEmpty && m.isEmpty) return '';
     if (h.isNotEmpty && m.isNotEmpty) return '$h:$m';
     return h.isNotEmpty ? h : m;
   }
@@ -378,8 +381,19 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
     _populateDate(_arrestDateCtrl.text, _arrestDateDayCtrl,
         _arrestDateMonthCtrl, _arrestDateYearCtrl);
     setField(_arrestTimeCtrl, 'arrestTime');
-    _populateTime(
-        _arrestTimeCtrl.text, _arrestTimeHoursCtrl, _arrestTimeMinutesCtrl);
+    if (_arrestTimeCtrl.text.isNotEmpty) {
+      _populateTime(
+          _arrestTimeCtrl.text, _arrestTimeHoursCtrl, _arrestTimeMinutesCtrl);
+    } else if (data.containsKey('arrestTimeHours') ||
+        data.containsKey('arrestTimeMinutes')) {
+      final h = data['arrestTimeHours']?.toString() ?? '';
+      final m = data['arrestTimeMinutes']?.toString() ?? '';
+      if (h.isNotEmpty && m.isNotEmpty) {
+        _arrestTimeCtrl.text = '$h:$m';
+      }
+      _arrestTimeHoursCtrl.text = h;
+      _arrestTimeMinutesCtrl.text = m;
+    }
 
     // Memorandum
     setField(_accusedMemorandumCtrl, 'accusedMemorandum');
@@ -733,125 +747,288 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
     );
   }
 
+  Widget _multilineUnderlineField({
+    required TextEditingController controller,
+    required TextStyle style,
+    String? hintText,
+    int minLines = 1,
+  }) {
+    return TextFormField(
+      controller: controller,
+      readOnly: widget.readOnly,
+      minLines: minLines,
+      maxLines: null,
+      keyboardType: TextInputType.multiline,
+      style: style.copyWith(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: const Color(0xFF0D47A1),
+      ),
+      decoration: InputDecoration(
+        isDense: true,
+        filled: false,
+        fillColor: Colors.transparent,
+        contentPadding: const EdgeInsets.only(bottom: 2, top: 4),
+        border: const UnderlineInputBorder(
+          borderSide: BorderSide(color: Colors.black54, width: 1.0),
+        ),
+        enabledBorder: const UnderlineInputBorder(
+          borderSide: BorderSide(color: Colors.black54, width: 0.8),
+        ),
+        focusedBorder: const UnderlineInputBorder(
+          borderSide: BorderSide(color: Color(0xFF1976D2), width: 1.5),
+        ),
+        hintText: hintText,
+        hintStyle: style.copyWith(
+          color: Colors.grey.shade400,
+          fontSize: 11.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDatePickerField({
+    required BuildContext context,
+    required TextEditingController controller,
+    TextEditingController? dayCtrl,
+    TextEditingController? monthCtrl,
+    TextEditingController? yearCtrl,
+    required TextStyle style,
+    String hintText = 'DD/MM/YYYY',
+  }) {
+    if (controller.text.isEmpty &&
+        dayCtrl != null &&
+        dayCtrl.text.isNotEmpty &&
+        monthCtrl != null &&
+        monthCtrl.text.isNotEmpty) {
+      final y = yearCtrl?.text.trim() ?? '';
+      final yFull = y.isNotEmpty ? (y.length == 2 ? '20$y' : y) : '';
+      final d = dayCtrl.text.padLeft(2, '0');
+      final m = monthCtrl.text.padLeft(2, '0');
+      controller.text = yFull.isNotEmpty ? '$d/$m/$yFull' : '$d/$m';
+    } else if (controller.text.isNotEmpty &&
+        dayCtrl != null &&
+        dayCtrl.text.isEmpty) {
+      final parts = controller.text.split(RegExp(r'[/.-]'));
+      if (parts.length >= 3) {
+        dayCtrl.text = parts[0].trim();
+        if (monthCtrl != null) monthCtrl.text = parts[1].trim();
+        if (yearCtrl != null) {
+          var yr = parts[2].trim();
+          if (yr.startsWith('20') && yr.length == 4) yr = yr.substring(2);
+          yearCtrl.text = yr;
+        }
+      }
+    }
+
+    return InkWell(
+      onTap: widget.readOnly
+          ? null
+          : () async {
+              DateTime initialDate = DateTime.now();
+              if (controller.text.isNotEmpty) {
+                try {
+                  final parts = controller.text.split(RegExp(r'[/.-]'));
+                  if (parts.length >= 3) {
+                    int d = int.parse(parts[0]);
+                    int m = int.parse(parts[1]);
+                    int y = int.parse(parts[2]);
+                    if (y < 100) y += 2000;
+                    initialDate = DateTime(y, m, d);
+                  }
+                } catch (_) {}
+              }
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: initialDate,
+                firstDate: DateTime(1900),
+                lastDate: DateTime(2100),
+              );
+              if (picked != null) {
+                final d = picked.day.toString().padLeft(2, '0');
+                final m = picked.month.toString().padLeft(2, '0');
+                final y = picked.year.toString();
+                controller.text = '$d/$m/$y';
+                if (dayCtrl != null) dayCtrl.text = d;
+                if (monthCtrl != null) monthCtrl.text = m;
+                if (yearCtrl != null) yearCtrl.text = y;
+              }
+            },
+      child: IgnorePointer(
+        child: TextFormField(
+          controller: controller,
+          readOnly: true,
+          style: style.copyWith(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF0D47A1),
+          ),
+          decoration: InputDecoration(
+            isDense: true,
+            filled: false,
+            fillColor: Colors.transparent,
+            contentPadding: const EdgeInsets.only(bottom: 2, top: 4),
+            hintText: hintText,
+            hintStyle: style.copyWith(
+              color: Colors.grey.shade400,
+              fontSize: 11.5,
+            ),
+            suffixIcon: const Icon(Icons.calendar_today,
+                size: 14, color: Colors.black54),
+            suffixIconConstraints:
+                const BoxConstraints(minWidth: 20, minHeight: 20),
+            border: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.black54, width: 1.0),
+            ),
+            enabledBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.black54, width: 0.8),
+            ),
+            focusedBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF1976D2), width: 1.5),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   // ──────────────────────────────────────────────────────────────────────────
   // SUB-SECTION BUILDERS
   // ──────────────────────────────────────────────────────────────────────────
 
-  /// 1) District / जिल्हा | P.S. / पोलीस स्टेशन | Year / वर्ष | FIR No / पहिली खबर क्र. /20 YY | Date / तारीख
+  /// 1) Row 1: District / जिल्हा | P.S. / पोलीस स्टेशन
+  ///    Row 2: Year / वर्ष | FIR No / पहिली खबर क्र. ____ /20 YY | Date / तारीख
   Widget _buildSection1(TextStyle serifStyle, TextStyle marathiLabelStyle) {
-    return ResponsiveFieldRow(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Expanded(
-          flex: 22,
-          child: BilingualField(
-            label: '1) District: ',
-            marathiLabel: 'जिल्हा',
-            controller: _distCtrl,
-            serifStyle: serifStyle,
-            marathiLabelStyle: marathiLabelStyle,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          flex: 28,
-          child: BilingualField(
-            label: 'P.S.: ',
-            marathiLabel: 'पोलीस स्टेशन',
-            controller: _psCtrl,
-            serifStyle: serifStyle,
-            marathiLabelStyle: marathiLabelStyle,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          flex: 15,
-          child: BilingualField(
-            label: 'Year: ',
-            marathiLabel: 'वर्ष',
-            controller: _yearCtrl,
-            serifStyle: serifStyle,
-            marathiLabelStyle: marathiLabelStyle,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          flex: 22,
-          child: ResponsiveFieldRow(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: BilingualField(
-                  label: 'FIR No: ',
-                  marathiLabel: 'पहिली खबर क्र.',
-                  controller: _firNoCtrl,
-                  serifStyle: serifStyle,
-                  marathiLabelStyle: marathiLabelStyle,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 2.0, left: 2, right: 2),
-                child: Text('/20', style: serifStyle),
-              ),
-              SizedBox(
-                width: 35,
-                child: BilingualSimpleUnderlineInput(
-                  controller: _firYearSuffixCtrl,
-                  serifStyle: serifStyle,
-                  hintText: 'YY',
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          flex: 28,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Date : ', style: serifStyle),
-              const SizedBox(width: 4),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
+        // Row 1: District and P.S.
+        ResponsiveFieldRow(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 40,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  Text('1) District: ', style: serifStyle),
+                  const SizedBox(height: 2),
+                  Text('जिल्हा', style: marathiLabelStyle),
+                  const SizedBox(height: 4),
+                  _multilineUnderlineField(
+                    controller: _distCtrl,
+                    style: serifStyle,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 24),
+            Expanded(
+              flex: 60,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text('P.S.: ', style: serifStyle),
+                  const SizedBox(height: 2),
+                  Text('पोलीस स्टेशन', style: marathiLabelStyle),
+                  const SizedBox(height: 4),
+                  _multilineUnderlineField(
+                    controller: _psCtrl,
+                    style: serifStyle,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        // Row 2: Year, FIR No, Date
+        ResponsiveFieldRow(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              flex: 20,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text('Year: ', style: serifStyle),
+                  const SizedBox(height: 2),
+                  Text('वर्ष', style: marathiLabelStyle),
+                  const SizedBox(height: 4),
+                  _multilineUnderlineField(
+                    controller: _yearCtrl,
+                    style: serifStyle,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 20),
+            Expanded(
+              flex: 48,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text('FIR No: ', style: serifStyle),
+                  const SizedBox(height: 2),
+                  Text('पहिली खबर क्र.', style: marathiLabelStyle),
+                  const SizedBox(height: 4),
                   Row(
-                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      SizedBox(
-                        width: 35,
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _firDateDayCtrl,
-                          serifStyle: serifStyle,
-                          hintText: 'DD',
+                      Expanded(
+                        child: _multilineUnderlineField(
+                          controller: _firNoCtrl,
+                          style: serifStyle,
                         ),
                       ),
-                      Text('/', style: serifStyle),
-                      SizedBox(
-                        width: 35,
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _firDateMonthCtrl,
-                          serifStyle: serifStyle,
-                          hintText: 'MM',
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            bottom: 2.0, left: 4, right: 4),
+                        child: Text(
+                          '/20',
+                          style: serifStyle.copyWith(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
                         ),
                       ),
-                      Text('/20', style: serifStyle),
                       SizedBox(
-                        width: 35,
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _firDateYearCtrl,
-                          serifStyle: serifStyle,
+                        width: 36,
+                        child: _multilineUnderlineField(
+                          controller: _firYearSuffixCtrl,
+                          style: serifStyle,
                           hintText: 'YY',
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 2),
-                  Text('तारीख', style: marathiLabelStyle),
                 ],
               ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 20),
+            Expanded(
+              flex: 32,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text('Date: ', style: serifStyle),
+                  const SizedBox(height: 2),
+                  Text('तारीख', style: marathiLabelStyle),
+                  const SizedBox(height: 4),
+                  _buildDatePickerField(
+                    context: context,
+                    controller: _firDateCtrl,
+                    dayCtrl: _firDateDayCtrl,
+                    monthCtrl: _firDateMonthCtrl,
+                    yearCtrl: _firDateYearCtrl,
+                    style: serifStyle,
+                    hintText: 'DD/MM/YYYY',
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -864,12 +1041,18 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
       children: [
         Expanded(
           flex: 55,
-          child: BilingualField(
-            label: '2) Name of Accused: ',
-            marathiLabel: 'आरोपीचे नाव व पत्ता',
-            controller: _accusedNameCtrl,
-            serifStyle: serifStyle,
-            marathiLabelStyle: marathiLabelStyle,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('2) Name of Accused: ', style: serifStyle),
+              const SizedBox(height: 2),
+              Text('आरोपीचे नाव व पत्ता', style: marathiLabelStyle),
+              const SizedBox(height: 4),
+              _multilineUnderlineField(
+                controller: _accusedNameCtrl,
+                style: serifStyle,
+              ),
+            ],
           ),
         ),
         const SizedBox(width: 16),
@@ -921,41 +1104,23 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Date : ', style: serifStyle),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text('Date : ', style: serifStyle),
+                  ),
                   const SizedBox(width: 4),
                   Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _arrestDateDayCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'DD',
-                            ),
-                          ),
-                          Text('/', style: serifStyle),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _arrestDateMonthCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'MM',
-                            ),
-                          ),
-                          Text('/20', style: serifStyle),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _arrestDateYearCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'YY',
-                            ),
-                          ),
-                        ],
+                      formDatePickerField(
+                        context,
+                        controller: _arrestDateCtrl,
+                        dayCtrl: _arrestDateDayCtrl,
+                        monthCtrl: _arrestDateMonthCtrl,
+                        yearCtrl: _arrestDateYearCtrl,
+                        width: 140,
+                        hintText: 'DD/MM/YYYY',
+                        readOnly: widget.readOnly,
                       ),
                       const SizedBox(height: 2),
                       Text('तारीख', style: marathiLabelStyle),
@@ -985,40 +1150,20 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Time : ', style: serifStyle),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text('Time : ', style: serifStyle),
+                  ),
                   const SizedBox(width: 4),
                   Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _arrestTimeHoursCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'HH',
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 2),
-                            child: Text(':', style: serifStyle),
-                          ),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _arrestTimeMinutesCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'MM',
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 4),
-                            child: Text('Hrs',
-                                style: serifStyle.copyWith(fontSize: 11)),
-                          ),
-                        ],
+                      formTimePickerField(
+                        context,
+                        controller: _arrestTimeCtrl,
+                        width: 140,
+                        hintText: 'Select Time',
+                        readOnly: widget.readOnly,
                       ),
                       const SizedBox(height: 2),
                       Text('वेळ', style: marathiLabelStyle),
@@ -1050,12 +1195,18 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        BilingualWideField(
-          label: '5) Place of Memorandum :-',
-          marathiLabel: 'पंचनाम्याचे / निवेदनाचे ठिकाण',
-          controller: _placeOfMemorandumCtrl,
-          serifStyle: serifStyle,
-          marathiLabelStyle: marathiLabelStyle,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('5) Place of Memorandum :- ', style: serifStyle),
+            const SizedBox(height: 2),
+            Text('पंचनाम्याचे / निवेदनाचे ठिकाण', style: marathiLabelStyle),
+            const SizedBox(height: 4),
+            _multilineUnderlineField(
+              controller: _placeOfMemorandumCtrl,
+              style: serifStyle,
+            ),
+          ],
         ),
         const SizedBox(height: 12),
         ResponsiveFieldRow(
@@ -1067,41 +1218,23 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Date : ', style: serifStyle),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text('Date : ', style: serifStyle),
+                  ),
                   const SizedBox(width: 4),
                   Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _memDateDayCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'DD',
-                            ),
-                          ),
-                          Text('/', style: serifStyle),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _memDateMonthCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'MM',
-                            ),
-                          ),
-                          Text('/20', style: serifStyle),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _memDateYearCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'YY',
-                            ),
-                          ),
-                        ],
+                      formDatePickerField(
+                        context,
+                        controller: _memDateCtrl,
+                        dayCtrl: _memDateDayCtrl,
+                        monthCtrl: _memDateMonthCtrl,
+                        yearCtrl: _memDateYearCtrl,
+                        width: 140,
+                        hintText: 'DD/MM/YYYY',
+                        readOnly: widget.readOnly,
                       ),
                       const SizedBox(height: 2),
                       Text('तारीख', style: marathiLabelStyle),
@@ -1125,49 +1258,41 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _memTimeFromHoursCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'HH',
-                            ),
+                          BilingualSimpleUnderlineInput(
+                            minWidth: 35,
+                            controller: _memTimeFromHoursCtrl,
+                            serifStyle: serifStyle,
+                            hintText: 'HH',
                           ),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2),
                             child: Text(':', style: serifStyle),
                           ),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _memTimeFromMinutesCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'MM',
-                            ),
+                          BilingualSimpleUnderlineInput(
+                            minWidth: 35,
+                            controller: _memTimeFromMinutesCtrl,
+                            serifStyle: serifStyle,
+                            hintText: 'MM',
                           ),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 4),
                             child: Text('ते :', style: marathiLabelStyle),
                           ),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _memTimeToHoursCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'HH',
-                            ),
+                          BilingualSimpleUnderlineInput(
+                            minWidth: 35,
+                            controller: _memTimeToHoursCtrl,
+                            serifStyle: serifStyle,
+                            hintText: 'HH',
                           ),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2),
                             child: Text(':', style: serifStyle),
                           ),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _memTimeToMinutesCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'MM',
-                            ),
+                          BilingualSimpleUnderlineInput(
+                            minWidth: 35,
+                            controller: _memTimeToMinutesCtrl,
+                            serifStyle: serifStyle,
+                            hintText: 'MM',
                           ),
                           Padding(
                             padding: const EdgeInsets.only(left: 4),
@@ -1211,41 +1336,23 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Date : ', style: serifStyle),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text('Date : ', style: serifStyle),
+                  ),
                   const SizedBox(width: 4),
                   Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _furtherDateDayCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'DD',
-                            ),
-                          ),
-                          Text('/', style: serifStyle),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _furtherDateMonthCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'MM',
-                            ),
-                          ),
-                          Text('/20', style: serifStyle),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _furtherDateYearCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'YY',
-                            ),
-                          ),
-                        ],
+                      formDatePickerField(
+                        context,
+                        controller: _furtherDateCtrl,
+                        dayCtrl: _furtherDateDayCtrl,
+                        monthCtrl: _furtherDateMonthCtrl,
+                        yearCtrl: _furtherDateYearCtrl,
+                        width: 140,
+                        hintText: 'DD/MM/YYYY',
+                        readOnly: widget.readOnly,
                       ),
                       const SizedBox(height: 2),
                       Text('तारीख', style: marathiLabelStyle),
@@ -1269,49 +1376,41 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _furtherTimeFromHoursCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'HH',
-                            ),
+                          BilingualSimpleUnderlineInput(
+                            minWidth: 35,
+                            controller: _furtherTimeFromHoursCtrl,
+                            serifStyle: serifStyle,
+                            hintText: 'HH',
                           ),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2),
                             child: Text(':', style: serifStyle),
                           ),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _furtherTimeFromMinutesCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'MM',
-                            ),
+                          BilingualSimpleUnderlineInput(
+                            minWidth: 35,
+                            controller: _furtherTimeFromMinutesCtrl,
+                            serifStyle: serifStyle,
+                            hintText: 'MM',
                           ),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 4),
                             child: Text('ते :', style: marathiLabelStyle),
                           ),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _furtherTimeToHoursCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'HH',
-                            ),
+                          BilingualSimpleUnderlineInput(
+                            minWidth: 35,
+                            controller: _furtherTimeToHoursCtrl,
+                            serifStyle: serifStyle,
+                            hintText: 'HH',
                           ),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2),
                             child: Text(':', style: serifStyle),
                           ),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _furtherTimeToMinutesCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'MM',
-                            ),
+                          BilingualSimpleUnderlineInput(
+                            minWidth: 35,
+                            controller: _furtherTimeToMinutesCtrl,
+                            serifStyle: serifStyle,
+                            hintText: 'MM',
                           ),
                           Padding(
                             padding: const EdgeInsets.only(left: 4),
@@ -1490,7 +1589,7 @@ class AccusedMemorandumFormViewState extends State<AccusedMemorandumFormView> {
                     maxLines: 4,
                     style: serifStyle.copyWith(
                       fontSize: 12.5,
-                      color: Colors.blue.shade900,
+                      color: Colors.black87,
                     ),
                     decoration: InputDecoration(
                       hintText:

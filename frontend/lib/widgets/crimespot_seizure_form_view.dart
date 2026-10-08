@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:khakhi_diary/widgets/form_date_pickers.dart';
+
 import 'bilingual_field.dart';
 import 'form_paper_page.dart';
 import 'form_table_helpers.dart';
@@ -22,6 +24,7 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
   final _dateDayCtrl = TextEditingController();
   final _dateMonthCtrl = TextEditingController();
   final _dateYearCtrl = TextEditingController();
+  final _dateCombinedCtrl = TextEditingController();
   final _panch1NameCtrl = TextEditingController();
   final _panch2NameCtrl = TextEditingController();
   final _bodyCtrl = TextEditingController();
@@ -30,11 +33,26 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
   final _panchSig2Ctrl = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    final d = now.day.toString().padLeft(2, '0');
+    final m = now.month.toString().padLeft(2, '0');
+    final y = (now.year % 100).toString().padLeft(2, '0');
+    final yFull = now.year.toString();
+    _dateCombinedCtrl.text = '$d/$m/$yFull';
+    _dateDayCtrl.text = d;
+    _dateMonthCtrl.text = m;
+    _dateYearCtrl.text = y;
+  }
+
+  @override
   void dispose() {
     _campNoCtrl.dispose();
     _dateDayCtrl.dispose();
     _dateMonthCtrl.dispose();
     _dateYearCtrl.dispose();
+    _dateCombinedCtrl.dispose();
     _panch1NameCtrl.dispose();
     _panch2NameCtrl.dispose();
     _bodyCtrl.dispose();
@@ -67,6 +85,36 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
       _dateDayCtrl.text = data['dateDay']?.toString() ?? '';
       _dateMonthCtrl.text = data['dateMonth']?.toString() ?? '';
       _dateYearCtrl.text = data['dateYear']?.toString() ?? '';
+      if (data['date'] != null && data['date'].toString().isNotEmpty) {
+        final dStr = data['date'].toString();
+        _dateCombinedCtrl.text = dStr;
+        final parts = dStr.split(RegExp(r'[-/]'));
+        if (parts.length >= 3) {
+          if (parts[0].length == 4) {
+            _dateYearCtrl.text = parts[0];
+            _dateMonthCtrl.text = parts[1];
+            _dateDayCtrl.text = parts[2];
+          } else {
+            _dateDayCtrl.text = parts[0];
+            _dateMonthCtrl.text = parts[1];
+            _dateYearCtrl.text = parts[2];
+          }
+        }
+      } else {
+        final combined =
+            "${_dateDayCtrl.text}/${_dateMonthCtrl.text}/${_dateYearCtrl.text}"
+                .replaceAll(RegExp(r'^/|/$|//'), '');
+        if (combined.isNotEmpty) {
+          _dateCombinedCtrl.text = combined;
+        } else {
+          final now = DateTime.now();
+          _dateDayCtrl.text = now.day.toString().padLeft(2, '0');
+          _dateMonthCtrl.text = now.month.toString().padLeft(2, '0');
+          _dateYearCtrl.text = now.year.toString();
+          _dateCombinedCtrl.text =
+              "${_dateDayCtrl.text}/${_dateMonthCtrl.text}/${_dateYearCtrl.text}";
+        }
+      }
       _panch1NameCtrl.text = data['panch1Name']?.toString() ?? '';
       _panch2NameCtrl.text = data['panch2Name']?.toString() ?? '';
       _bodyCtrl.text = data['body']?.toString() ?? '';
@@ -135,34 +183,13 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
                             style: marathiLabelStyle.copyWith(fontSize: 12),
                           ),
                           const SizedBox(width: 4),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _dateDayCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'DD',
-                            ),
-                          ),
-                          Text(' / ', style: serifStyle),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _dateMonthCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'MM',
-                            ),
-                          ),
-                          Text(
-                            ' / २०',
-                            style: marathiLabelStyle.copyWith(fontSize: 12),
-                          ),
-                          SizedBox(
-                            width: 35,
-                            child: BilingualSimpleUnderlineInput(
-                              controller: _dateYearCtrl,
-                              serifStyle: serifStyle,
-                              hintText: 'YY',
-                            ),
+                          formDatePickerField(
+                            context,
+                            controller: _dateCombinedCtrl,
+                            dayCtrl: _dateDayCtrl,
+                            monthCtrl: _dateMonthCtrl,
+                            yearCtrl: _dateYearCtrl,
+                            width: 140,
                           ),
                         ],
                       ),
@@ -252,12 +279,10 @@ class CrimespotSeizureFormViewState extends State<CrimespotSeizureFormView> {
                         style: marathiLabelStyle.copyWith(fontSize: 12),
                       ),
                       const SizedBox(height: 8),
-                      SizedBox(
-                        width: 200,
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _ioNameCtrl,
-                          serifStyle: serifStyle,
-                        ),
+                      BilingualSimpleUnderlineInput(
+                        minWidth: 200,
+                        controller: _ioNameCtrl,
+                        serifStyle: serifStyle,
                       ),
                     ],
                   ),

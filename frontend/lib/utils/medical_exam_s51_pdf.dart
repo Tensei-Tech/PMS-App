@@ -2,50 +2,47 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
+
+import 'form_image_pdf_helper.dart';
+import 'pdf_font_cache.dart';
 
 Future<void> previewMedicalExamS51Pdf(
   BuildContext context,
   Map<String, dynamic> doc,
 ) async {
-  final bytes = await generateMedicalExamS51Pdf(doc);
-  if (!context.mounted) return;
   final fileName =
       'Medical_Exam_Request_${DateTime.now().millisecondsSinceEpoch}.pdf';
-  try {
-    if (kIsWeb) {
-      await Printing.sharePdf(bytes: bytes, filename: fileName);
-    } else {
-      await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
-    }
-  } catch (_) {
-    await Printing.sharePdf(bytes: bytes, filename: fileName);
-  }
+  await FormImagePdfHelper.previewImageBasedPdf(
+    context,
+    fileName: fileName,
+    pages: [_buildPgWidget(doc)],
+    fallbackPdfGenerator: () => generateMedicalExamS51Pdf(doc),
+  );
 }
 
 Future<Uint8List> generateMedicalExamS51Pdf(Map<String, dynamic> doc) async {
   final pdf = pw.Document();
-  final devanagari = await PdfGoogleFonts.notoSansDevanagariRegular();
-  final devanagariBold = await PdfGoogleFonts.notoSansDevanagariBold();
+  final devanagari = await PdfFontCache.devanagariRegular();
+  final devanagariBold = await PdfFontCache.devanagariBold();
 
   final regular = pw.TextStyle(
     font: devanagari,
-    fontSize: 11,
-    lineSpacing: 4,
+    fontSize: 11.5,
+    lineSpacing: 5,
   );
   final bold = pw.TextStyle(
     font: devanagariBold,
-    fontSize: 11,
+    fontSize: 11.5,
     fontWeight: pw.FontWeight.bold,
   );
   final headerTitle = pw.TextStyle(
     font: devanagariBold,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: pw.FontWeight.bold,
   );
   final headerSub = pw.TextStyle(
     font: devanagariBold,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: pw.FontWeight.bold,
   );
 
@@ -59,8 +56,8 @@ Future<Uint8List> generateMedicalExamS51Pdf(Map<String, dynamic> doc) async {
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.symmetric(horizontal: 48, vertical: 48),
       build: (pw.Context context) {
-        final outpost = v('outpost', '____________');
-        final ps = v('policeStation', '____________');
+        final outpost = v('outpost');
+        final ps = v('policeStation');
         final dateStr = v('date', '......./ ......../२०...');
 
         final toOfficer = v('toOfficer', '________________________');
@@ -111,9 +108,15 @@ Future<Uint8List> generateMedicalExamS51Pdf(Map<String, dynamic> doc) async {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text('पोलीस दुरक्षेत्र $outpost', style: regular),
+                    pw.Text(
+                        outpost.isNotEmpty
+                            ? 'पोलीस दुरक्षेत्र $outpost'
+                            : 'पोलीस दुरक्षेत्र ',
+                        style: regular),
                     pw.SizedBox(height: 2),
-                    pw.Text('पोलीस स्टेशन $ps', style: regular),
+                    pw.Text(
+                        ps.isNotEmpty ? 'पोलीस स्टेशन $ps' : 'पोलीस स्टेशन ',
+                        style: regular),
                     pw.SizedBox(height: 2),
                     pw.Text('दिनांक : $dateStr', style: regular),
                   ],
@@ -247,4 +250,364 @@ Future<Uint8List> generateMedicalExamS51Pdf(Map<String, dynamic> doc) async {
   );
 
   return pdf.save();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── NATIVE FLUTTER WIDGET BUILDER (100% Devanagari Font Shaping) ──
+// ══════════════════════════════════════════════════════════════════════════════
+
+Widget _buildPgWidget(Map<String, dynamic> doc) {
+  String v(String key, [String fallback = '']) {
+    final val = doc[key]?.toString().trim() ?? '';
+    return val.isEmpty ? fallback : val;
+  }
+
+  final rawOutpost = v('outpost');
+  final outpost = rawOutpost;
+  final rawPs = v('policeStation');
+  final ps = rawPs;
+  final rawDate = v('date');
+  final dateStr = rawDate.isNotEmpty ? rawDate : '......./ ......../२०...';
+
+  final rawToOfficer = v('toOfficer');
+  final toOfficer =
+      rawToOfficer.isNotEmpty ? rawToOfficer : '________________________';
+  final rawToHospital = v('toHospital');
+  final toHospital = rawToHospital.isNotEmpty
+      ? rawToHospital
+      : '________________________________';
+  final rawToTahDist = v('toTahDist');
+  final toTahDist =
+      rawToTahDist.isNotEmpty ? rawToTahDist : '________________________';
+
+  final rawFromLocation = v('fromLocation');
+  final fromLocation = rawFromLocation.isNotEmpty
+      ? rawFromLocation
+      : '________________________________________________________';
+
+  final rawSubject = v('subject');
+  final subject = rawSubject.isNotEmpty
+      ? rawSubject
+      : '________________________________________________________';
+
+  final rawVictimName = v('victimName');
+  final victimName =
+      rawVictimName.isNotEmpty ? rawVictimName : '____________________________';
+  final rawVictimAge = v('victimAge');
+  final victimAge = rawVictimAge.isNotEmpty ? rawVictimAge : '..........';
+  final rawVictimResidence = v('victimResidence');
+  final victimResidence =
+      rawVictimResidence.isNotEmpty ? rawVictimResidence : '__________________';
+  final rawVictimTah = v('victimTah');
+  final victimTah = rawVictimTah.isNotEmpty ? rawVictimTah : '____________';
+  final rawVictimDist = v('victimDist');
+  final victimDist = rawVictimDist.isNotEmpty ? rawVictimDist : '____________';
+  final rawAssaultDetails = v('assaultDetails');
+  final assaultDetails = rawAssaultDetails.isNotEmpty
+      ? rawAssaultDetails
+      : '___________________________';
+
+  return FormImagePdfHelper.buildA4Page(
+    padding: const EdgeInsets.symmetric(horizontal: 52, vertical: 48),
+    children: [
+      // Header
+      Center(
+        child: Column(
+          children: [
+            Text('वैद्यकीय तपासणी', style: FormImagePdfHelper.mBld(18)),
+            const SizedBox(height: 4),
+            Text(
+              '(भारतीय नागरीक सुरक्षा संहिता २०२३ कलम ५१)',
+              style: FormImagePdfHelper.mBld(13),
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 30),
+
+      // Top Right
+      Align(
+        alignment: Alignment.topRight,
+        child: SizedBox(
+          width: 300,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 1.0),
+                    child: Text('पोलीस दुरक्षेत्र ',
+                        style: FormImagePdfHelper.mBld(12)),
+                  ),
+                  Expanded(
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(width: 0.8, color: Colors.black87),
+                        ),
+                      ),
+                      padding: const EdgeInsets.only(bottom: 1),
+                      child: Text(
+                        outpost.isEmpty ? ' ' : outpost,
+                        softWrap: true,
+                        style: FormImagePdfHelper.valStyle(12),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 1.0),
+                    child: Text('पोलीस स्टेशन : ',
+                        style: FormImagePdfHelper.mBld(12)),
+                  ),
+                  Expanded(
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(width: 0.8, color: Colors.black87),
+                        ),
+                      ),
+                      padding: const EdgeInsets.only(bottom: 1),
+                      child: Text(
+                        ps.isEmpty ? ' ' : ps,
+                        softWrap: true,
+                        style: FormImagePdfHelper.valStyle(12).copyWith(
+                          decoration: TextDecoration.underline,
+                          decorationColor: Colors.black87,
+                          decorationThickness: 0.8,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text('दिनांक : ', style: FormImagePdfHelper.mBld(12)),
+                  Expanded(
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(width: 0.8, color: Colors.black87),
+                        ),
+                      ),
+                      padding: const EdgeInsets.only(bottom: 1),
+                      child: Text(
+                        dateStr,
+                        style: FormImagePdfHelper.valStyle(12),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      const SizedBox(height: 28),
+
+      // Recipient
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 60,
+            child: Text('प्रति,', style: FormImagePdfHelper.mBld(13)),
+          ),
+        ],
+      ),
+      const SizedBox(height: 4),
+      Padding(
+        padding: const EdgeInsets.only(left: 60),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              toOfficer,
+              style: FormImagePdfHelper.mBld(12.5).copyWith(
+                decoration: rawToOfficer.isNotEmpty
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              toHospital,
+              style: FormImagePdfHelper.mBld(12.5).copyWith(
+                decoration: rawToHospital.isNotEmpty
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              toTahDist,
+              style: FormImagePdfHelper.mBld(12.5).copyWith(
+                decoration: rawToTahDist.isNotEmpty
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
+              ),
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 26),
+
+      // Sender
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 1.0),
+            child: SizedBox(
+              width: 70,
+              child: Text('पासुन :-', style: FormImagePdfHelper.mBld(12)),
+            ),
+          ),
+          Expanded(
+            child: Container(
+              decoration: const BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(width: 0.8, color: Colors.black87),
+                ),
+              ),
+              padding: const EdgeInsets.only(bottom: 1),
+              child: Text(
+                fromLocation.isEmpty ? ' ' : fromLocation,
+                softWrap: true,
+                style: FormImagePdfHelper.valStyle(12).copyWith(
+                  decoration: TextDecoration.underline,
+                  decorationColor: Colors.black87,
+                  decorationThickness: 0.8,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 20),
+
+      // Subject
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 70,
+            child: Text('विषय :-', style: FormImagePdfHelper.mBld(12.5)),
+          ),
+          Expanded(
+            child: Text(
+              subject,
+              style: FormImagePdfHelper.mBld(12.5).copyWith(
+                decoration: rawSubject.isNotEmpty
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
+              ),
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 26),
+
+      // Decorative ००००
+      Center(
+        child: Text(
+          '००००',
+          style: FormImagePdfHelper.mBld(14).copyWith(letterSpacing: 4),
+        ),
+      ),
+      const SizedBox(height: 26),
+
+      // Body Paragraph
+      Text.rich(
+        TextSpan(
+          style: FormImagePdfHelper.mBld(12.5, 2.1),
+          children: [
+            const TextSpan(
+              text: '        उपरोक्त विषयान्वये सादर आहे की, जखमी नामे ',
+            ),
+            TextSpan(
+              text: '$victimName, ',
+              style: FormImagePdfHelper.valStyle(12.5).copyWith(
+                decoration: rawVictimName.isNotEmpty
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
+              ),
+            ),
+            const TextSpan(text: 'वय '),
+            TextSpan(
+              text: '$victimAge ',
+              style: FormImagePdfHelper.valStyle(12.5).copyWith(
+                decoration: rawVictimAge.isNotEmpty
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
+              ),
+            ),
+            const TextSpan(text: 'वर्ष रा '),
+            TextSpan(
+              text: '$victimResidence ',
+              style: FormImagePdfHelper.valStyle(12.5).copyWith(
+                decoration: rawVictimResidence.isNotEmpty
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
+              ),
+            ),
+            const TextSpan(text: 'ता '),
+            TextSpan(
+              text: '$victimTah ',
+              style: FormImagePdfHelper.valStyle(12.5).copyWith(
+                decoration: rawVictimTah.isNotEmpty
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
+              ),
+            ),
+            const TextSpan(text: 'जिल्हा '),
+            TextSpan(
+              text: '$victimDist ',
+              style: FormImagePdfHelper.valStyle(12.5).copyWith(
+                decoration: rawVictimDist.isNotEmpty
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
+              ),
+            ),
+            const TextSpan(
+              text: 'यांना गैरअर्जदार/ आरोपी यांनी भांडणात मारहाण केल्याचे ',
+            ),
+            TextSpan(
+              text: '$assaultDetails ',
+              style: FormImagePdfHelper.valStyle(12.5).copyWith(
+                decoration: rawAssaultDetails.isNotEmpty
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
+              ),
+            ),
+            const TextSpan(
+              text:
+                  'मारलागल्याचे सांगत आहे. तरी मार कशाचा व किती वेळ पुर्विचा आहे, सदर माराची तपासणी होउन आपला अभिप्राय मिळणेस विनंती आहे.',
+            ),
+          ],
+        ),
+        textAlign: TextAlign.justify,
+      ),
+      const Spacer(),
+
+      // Footer
+      Align(
+        alignment: Alignment.bottomRight,
+        child: Text(
+          'M.R.W',
+          style: FormImagePdfHelper.mReg(9).copyWith(color: Colors.black54),
+        ),
+      ),
+    ],
+  );
 }

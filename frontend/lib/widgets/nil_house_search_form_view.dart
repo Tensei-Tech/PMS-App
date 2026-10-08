@@ -126,6 +126,29 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
   final _panch2SigCtrl = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    final d = now.day.toString().padLeft(2, '0');
+    final m = now.month.toString().padLeft(2, '0');
+    final y = now.year.toString();
+    _dateDayCtrl.text = d;
+    _dateMonthCtrl.text = m;
+    _dateYearCtrl.text = y;
+    _dateCtrl.text = '$d/$m/$y';
+
+    _summonDateDayCtrl.text = d;
+    _summonDateMonthCtrl.text = m;
+    _summonDateYearCtrl.text = y;
+    _summonDateCtrl.text = '$d/$m/$y';
+
+    _panchDateDayCtrl.text = d;
+    _panchDateMonthCtrl.text = m;
+    _panchDateYearCtrl.text = y;
+    _panchDateCtrl.text = '$d/$m/$y';
+  }
+
+  @override
   void dispose() {
     _psCtrl.dispose();
     _campCtrl.dispose();
@@ -231,6 +254,13 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
         if (yr.startsWith('20') && yr.length == 4) yr = yr.substring(2);
         _dateYearCtrl.text = yr;
       }
+    } else if (_dateDayCtrl.text.isEmpty && _dateCtrl.text.isEmpty) {
+      final now = DateTime.now();
+      _dateDayCtrl.text = now.day.toString().padLeft(2, '0');
+      _dateMonthCtrl.text = now.month.toString().padLeft(2, '0');
+      _dateYearCtrl.text = now.year.toString();
+      _dateCtrl.text =
+          "${_dateDayCtrl.text}/${_dateMonthCtrl.text}/${_dateYearCtrl.text}";
     }
 
     _panch1Ctrl.text = data['panch1']?.toString() ?? '';
@@ -250,6 +280,14 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
         if (yr.startsWith('20') && yr.length == 4) yr = yr.substring(2);
         _summonDateYearCtrl.text = yr;
       }
+    } else if (_summonDateDayCtrl.text.isEmpty &&
+        _summonDateCtrl.text.isEmpty) {
+      final now = DateTime.now();
+      _summonDateDayCtrl.text = now.day.toString().padLeft(2, '0');
+      _summonDateMonthCtrl.text = now.month.toString().padLeft(2, '0');
+      _summonDateYearCtrl.text = now.year.toString();
+      _summonDateCtrl.text =
+          "${_summonDateDayCtrl.text}/${_summonDateMonthCtrl.text}/${_summonDateYearCtrl.text}";
     }
 
     _mauzaCtrl.text = data['mauza']?.toString() ?? '';
@@ -278,6 +316,13 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
         if (yr.startsWith('20') && yr.length == 4) yr = yr.substring(2);
         _panchDateYearCtrl.text = yr;
       }
+    } else if (_panchDateDayCtrl.text.isEmpty && _panchDateCtrl.text.isEmpty) {
+      final now = DateTime.now();
+      _panchDateDayCtrl.text = now.day.toString().padLeft(2, '0');
+      _panchDateMonthCtrl.text = now.month.toString().padLeft(2, '0');
+      _panchDateYearCtrl.text = now.year.toString();
+      _panchDateCtrl.text =
+          "${_panchDateDayCtrl.text}/${_panchDateMonthCtrl.text}/${_panchDateYearCtrl.text}";
     }
 
     _startTimeCtrl.text = data['startTime']?.toString() ?? '';
@@ -304,6 +349,446 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
     if (mounted) setState(() {});
   }
 
+  Widget _wrappingUnderlineInput({
+    required TextEditingController controller,
+    required TextStyle style,
+    double? minWidth,
+    double? maxWidth,
+    String? hintText,
+  }) {
+    final effectiveMin = minWidth ?? 100.0;
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) {
+        final text =
+            controller.text.isEmpty ? (hintText ?? '') : controller.text;
+
+        double calcWidth = effectiveMin;
+        if (text.isNotEmpty && (text.length * 12.0 + 20.0 > effectiveMin)) {
+          final tp = TextPainter(
+            text: TextSpan(
+              text: text,
+              style: style.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: 13.5,
+              ),
+            ),
+            textDirection: TextDirection.ltr,
+            maxLines: 1,
+          )..layout();
+
+          final measured = tp.width + 20.0;
+          calcWidth = measured < effectiveMin
+              ? effectiveMin
+              : (measured > 800.0 ? 800.0 : measured);
+        }
+
+        return RepaintBoundary(
+          child: SizedBox(
+            width: calcWidth,
+            child: TextFormField(
+              controller: controller,
+              readOnly: widget.readOnly,
+              maxLines: null,
+              keyboardType: TextInputType.text,
+              style: style.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: 13.5,
+                color: const Color(0xFF0D47A1),
+                height: 1.35,
+              ),
+              decoration: InputDecoration(
+                isDense: true,
+                filled: false,
+                fillColor: Colors.transparent,
+                contentPadding: const EdgeInsets.only(bottom: 4, top: 2),
+                hintText: hintText,
+                hintStyle: style.copyWith(
+                  color: Colors.grey.shade400,
+                  fontSize: 12,
+                ),
+                border: const UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF333333), width: 1.0),
+                ),
+                enabledBorder: const UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF555555), width: 1.0),
+                ),
+                focusedBorder: const UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF1976D2), width: 1.5),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _policeStationField({
+    required TextEditingController controller,
+    required TextStyle style,
+    double minWidth = 140,
+    double? maxWidth,
+    String? hintText,
+  }) {
+    final baseMin = minWidth;
+    final baseMax = maxWidth ?? 600.0;
+    const double baseFontSize = 13.5;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final hasFiniteWidth = constraints.maxWidth.isFinite;
+        final availableWidth = hasFiniteWidth ? constraints.maxWidth : baseMax;
+
+        return ListenableBuilder(
+          listenable: controller,
+          builder: (context, _) {
+            final text =
+                controller.text.isEmpty ? (hintText ?? '') : controller.text;
+
+            double effectiveFontSize = baseFontSize;
+            double computedWidth = hasFiniteWidth ? availableWidth : baseMin;
+
+            if (text.isNotEmpty &&
+                (!hasFiniteWidth ||
+                    (text.length * 12.0 + 12.0 > availableWidth))) {
+              final tp = TextPainter(
+                text: TextSpan(
+                  text: text,
+                  style: style.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: baseFontSize,
+                  ),
+                ),
+                textDirection: TextDirection.ltr,
+                maxLines: 1,
+              )..layout();
+
+              final double textW = tp.width + 12.0;
+
+              if (hasFiniteWidth &&
+                  textW > availableWidth &&
+                  availableWidth > 30) {
+                final scale =
+                    ((availableWidth - 8.0) / tp.width).clamp(0.60, 1.0);
+                effectiveFontSize =
+                    (baseFontSize * scale).clamp(8.5, baseFontSize);
+              }
+
+              computedWidth = hasFiniteWidth
+                  ? availableWidth
+                  : (textW < baseMin
+                      ? baseMin
+                      : (textW > baseMax ? baseMax : textW));
+            }
+
+            return RepaintBoundary(
+              child: SizedBox(
+                width: computedWidth,
+                child: TextFormField(
+                  controller: controller,
+                  readOnly: widget.readOnly,
+                  maxLines: null,
+                  scrollPhysics: const ClampingScrollPhysics(),
+                  style: style.copyWith(
+                    fontSize: effectiveFontSize,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF0D47A1),
+                  ),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                    hintText: hintText,
+                    hintStyle: style.copyWith(
+                      color: Colors.grey.shade400,
+                      fontSize: effectiveFontSize,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    border: const UnderlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Color(0xFF333333), width: 1.0),
+                    ),
+                    enabledBorder: const UnderlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Color(0xFF555555), width: 1.0),
+                    ),
+                    focusedBorder: const UnderlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Color(0xFF1976D2), width: 2.0),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _inlineBlank({
+    required TextEditingController controller,
+    required TextStyle style,
+    double? width,
+    String? hintText,
+  }) {
+    return SizedBox(
+      width: width,
+      child: BilingualSimpleUnderlineInput(
+        controller: controller,
+        serifStyle: style,
+        hintText: hintText,
+      ),
+    );
+  }
+
+  Widget _datePickerField({
+    required TextEditingController controller,
+    required TextStyle style,
+    double width = 140,
+    TextEditingController? dayCtrl,
+    TextEditingController? monthCtrl,
+    TextEditingController? yearCtrl,
+    String hintText = 'Select Date',
+  }) {
+    if (controller.text.isEmpty &&
+        dayCtrl != null &&
+        dayCtrl.text.isNotEmpty &&
+        monthCtrl != null &&
+        monthCtrl.text.isNotEmpty) {
+      final yr = yearCtrl?.text.trim() ?? '';
+      final fullYr = yr.length == 2 ? '20$yr' : yr;
+      controller.text =
+          '${dayCtrl.text.padLeft(2, '0')}/${monthCtrl.text.padLeft(2, '0')}/$fullYr';
+    }
+
+    return SizedBox(
+      width: width,
+      child: InkWell(
+        onTap: widget.readOnly
+            ? null
+            : () async {
+                DateTime initialDate = DateTime.now();
+                if (controller.text.isNotEmpty) {
+                  try {
+                    final parts = controller.text.split(RegExp(r'[/.-]'));
+                    if (parts.length >= 3) {
+                      int d = int.parse(parts[0]);
+                      int m = int.parse(parts[1]);
+                      int y = int.parse(parts[2]);
+                      if (y < 100) y += 2000;
+                      initialDate = DateTime(y, m, d);
+                    }
+                  } catch (_) {}
+                } else if (dayCtrl != null &&
+                    monthCtrl != null &&
+                    yearCtrl != null) {
+                  final d = int.tryParse(dayCtrl.text.trim());
+                  final m = int.tryParse(monthCtrl.text.trim());
+                  var y = int.tryParse(yearCtrl.text.trim());
+                  if (d != null && m != null && y != null) {
+                    if (y < 100) y += 2000;
+                    try {
+                      initialDate = DateTime(y, m, d);
+                    } catch (_) {}
+                  }
+                }
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: initialDate,
+                  firstDate: DateTime(1900),
+                  lastDate: DateTime(2100),
+                );
+                if (picked != null) {
+                  final d = picked.day.toString().padLeft(2, '0');
+                  final m = picked.month.toString().padLeft(2, '0');
+                  final y = picked.year.toString();
+                  final yy = y.length >= 4 ? y.substring(2) : y;
+                  setState(() {
+                    controller.text = '$d/$m/$y';
+                    if (dayCtrl != null) dayCtrl.text = d;
+                    if (monthCtrl != null) monthCtrl.text = m;
+                    if (yearCtrl != null) yearCtrl.text = yy;
+                  });
+                }
+              },
+        mouseCursor: widget.readOnly
+            ? SystemMouseCursors.basic
+            : SystemMouseCursors.click,
+        child: IgnorePointer(
+          ignoring: true,
+          child: TextFormField(
+            controller: controller,
+            readOnly: true,
+            style: style.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: 13.5,
+              color: const Color(0xFF0D47A1),
+              height: 1.35,
+            ),
+            decoration: InputDecoration(
+              isDense: true,
+              filled: false,
+              fillColor: Colors.transparent,
+              contentPadding:
+                  const EdgeInsets.only(bottom: 4, top: 2, left: 4, right: 2),
+              hintText: hintText,
+              hintStyle: style.copyWith(
+                color: Colors.grey.shade400,
+                fontSize: 12,
+              ),
+              suffixIcon: const Padding(
+                padding: EdgeInsets.only(left: 4.0),
+                child: Icon(Icons.calendar_today, size: 16, color: Colors.blue),
+              ),
+              suffixIconConstraints: const BoxConstraints(
+                minWidth: 22,
+                minHeight: 18,
+                maxWidth: 24,
+                maxHeight: 20,
+              ),
+              border: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF333333), width: 1.0),
+              ),
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF555555), width: 1.0),
+              ),
+              focusedBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF1976D2), width: 1.5),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _timePickerField({
+    required TextEditingController controller,
+    required TextStyle style,
+    double width = 130,
+    TextEditingController? hoursCtrl,
+    TextEditingController? minutesCtrl,
+    String hintText = 'Select Time',
+  }) {
+    if (controller.text.isEmpty &&
+        hoursCtrl != null &&
+        hoursCtrl.text.isNotEmpty &&
+        minutesCtrl != null &&
+        minutesCtrl.text.isNotEmpty) {
+      final h = int.tryParse(hoursCtrl.text.trim()) ?? 0;
+      final m = int.tryParse(minutesCtrl.text.trim()) ?? 0;
+      final tod = TimeOfDay(hour: h, minute: m);
+      controller.text = tod.format(context);
+    }
+
+    return SizedBox(
+      width: width,
+      child: InkWell(
+        onTap: widget.readOnly
+            ? null
+            : () async {
+                TimeOfDay initialTime = TimeOfDay.now();
+                if (controller.text.isNotEmpty) {
+                  try {
+                    final cleanStr =
+                        controller.text.replaceAll(RegExp(r'[^\d:]'), '');
+                    final parts = cleanStr.split(':');
+                    if (parts.length >= 2) {
+                      int h = int.parse(parts[0]);
+                      int m = int.parse(parts[1]);
+                      if (controller.text.toLowerCase().contains('pm') &&
+                          h < 12) {
+                        h += 12;
+                      }
+                      if (controller.text.toLowerCase().contains('am') &&
+                          h == 12) {
+                        h = 0;
+                      }
+                      initialTime = TimeOfDay(hour: h, minute: m);
+                    }
+                  } catch (_) {}
+                } else if (hoursCtrl != null && minutesCtrl != null) {
+                  final h = int.tryParse(hoursCtrl.text.trim());
+                  final m = int.tryParse(minutesCtrl.text.trim());
+                  if (h != null &&
+                      m != null &&
+                      h >= 0 &&
+                      h < 24 &&
+                      m >= 0 &&
+                      m < 60) {
+                    initialTime = TimeOfDay(hour: h, minute: m);
+                  }
+                }
+                final picked = await showTimePicker(
+                  context: context,
+                  initialTime: initialTime,
+                );
+                if (picked != null) {
+                  setState(() {
+                    controller.text = picked.format(context);
+                    if (hoursCtrl != null) {
+                      hoursCtrl.text = picked.hour.toString().padLeft(2, '0');
+                    }
+                    if (minutesCtrl != null) {
+                      minutesCtrl.text =
+                          picked.minute.toString().padLeft(2, '0');
+                    }
+                  });
+                }
+              },
+        mouseCursor: widget.readOnly
+            ? SystemMouseCursors.basic
+            : SystemMouseCursors.click,
+        child: IgnorePointer(
+          ignoring: true,
+          child: TextFormField(
+            controller: controller,
+            readOnly: true,
+            style: style.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: 13.5,
+              color: const Color(0xFF0D47A1),
+              height: 1.35,
+            ),
+            decoration: InputDecoration(
+              isDense: true,
+              filled: false,
+              fillColor: Colors.transparent,
+              contentPadding:
+                  const EdgeInsets.only(bottom: 4, top: 2, left: 4, right: 2),
+              hintText: hintText,
+              hintStyle: style.copyWith(
+                color: Colors.grey.shade400,
+                fontSize: 12,
+              ),
+              suffixIcon: const Padding(
+                padding: EdgeInsets.only(left: 4.0),
+                child: Icon(Icons.access_time, size: 16, color: Colors.blue),
+              ),
+              suffixIconConstraints: const BoxConstraints(
+                minWidth: 22,
+                minHeight: 18,
+                maxWidth: 24,
+                maxHeight: 20,
+              ),
+              border: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF333333), width: 1.0),
+              ),
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF555555), width: 1.0),
+              ),
+              focusedBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF1976D2), width: 1.5),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final serif = FormTypography.serifStyle();
@@ -319,10 +804,6 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
       fontWeight: FontWeight.w600,
       color: Colors.black87,
     );
-    final serifBold = serif.copyWith(
-      fontWeight: FontWeight.bold,
-      color: Colors.black87,
-    );
 
     return FormViewScaffold(
       readOnly: widget.readOnly,
@@ -336,65 +817,54 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
             Align(
               alignment: Alignment.centerRight,
               child: SizedBox(
-                width: 320,
+                width: 380,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('पोलीस स्टेशन  :', style: headerLabelStyle),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2.0),
+                          child:
+                              Text('पोलीस स्टेशन  :', style: headerLabelStyle),
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: BilingualSimpleUnderlineInput(
+                          child: _policeStationField(
                             controller: _psCtrl,
-                            serifStyle: serif,
+                            style: serif,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 6),
-                    Row(
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text('कॅम्प            :', style: headerLabelStyle),
                         const SizedBox(width: 8),
-                        Expanded(
-                          child: BilingualSimpleUnderlineInput(
-                            controller: _campCtrl,
-                            serifStyle: serif,
-                          ),
+                        _wrappingUnderlineInput(
+                          controller: _campCtrl,
+                          style: serif,
+                          minWidth: 140,
+                          maxWidth: 220,
                         ),
                       ],
                     ),
                     const SizedBox(height: 6),
-                    Row(
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text('दिनांक          :-', style: headerLabelStyle),
                         const SizedBox(width: 6),
-                        SizedBox(
-                          width: 32,
-                          child: BilingualSimpleUnderlineInput(
-                            controller: _dateDayCtrl,
-                            serifStyle: serif,
-                            hintText: 'DD',
-                          ),
-                        ),
-                        Text('/', style: serifBold),
-                        SizedBox(
-                          width: 32,
-                          child: BilingualSimpleUnderlineInput(
-                            controller: _dateMonthCtrl,
-                            serifStyle: serif,
-                            hintText: 'MM',
-                          ),
-                        ),
-                        Text('/ २०', style: headerLabelStyle),
-                        SizedBox(
-                          width: 36,
-                          child: BilingualSimpleUnderlineInput(
-                            controller: _dateYearCtrl,
-                            serifStyle: serif,
-                            hintText: 'YY',
-                          ),
+                        _datePickerField(
+                          controller: _dateCtrl,
+                          style: serif,
+                          width: 140,
+                          dayCtrl: _dateDayCtrl,
+                          monthCtrl: _dateMonthCtrl,
+                          yearCtrl: _dateYearCtrl,
                         ),
                       ],
                     ),
@@ -436,9 +906,11 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
                           Text('१)', style: headerLabelStyle),
                           const SizedBox(width: 6),
                           Expanded(
-                            child: BilingualSimpleUnderlineInput(
+                            child: _wrappingUnderlineInput(
                               controller: _panch1Ctrl,
-                              serifStyle: serif,
+                              style: serif,
+                              minWidth: 200,
+                              maxWidth: 650,
                             ),
                           ),
                         ],
@@ -450,9 +922,11 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
                           Text('२)', style: headerLabelStyle),
                           const SizedBox(width: 6),
                           Expanded(
-                            child: BilingualSimpleUnderlineInput(
+                            child: _wrappingUnderlineInput(
                               controller: _panch2Ctrl,
-                              serifStyle: serif,
+                              style: serif,
+                              minWidth: 200,
+                              maxWidth: 650,
                             ),
                           ),
                         ],
@@ -471,115 +945,85 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
               runSpacing: 10,
               children: [
                 Text('       आम्ही ', style: bodyTextStyle),
-                SizedBox(
-                  width: 260,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _officerNameCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _officerNameCtrl,
+                  style: serif,
+                  minWidth: 200,
+                  maxWidth: 350,
                 ),
                 Text('पोलीस स्टेशन ', style: bodyTextStyle),
-                SizedBox(
-                  width: 140,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _officerPsCtrl,
-                    serifStyle: serif,
-                  ),
+                _policeStationField(
+                  controller: _officerPsCtrl,
+                  style: serif,
+                  minWidth: 140,
+                  maxWidth: 280,
                 ),
                 Text('यांनी दिनांक ', style: bodyTextStyle),
-                SizedBox(
-                  width: 32,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _summonDateDayCtrl,
-                    serifStyle: serif,
-                    hintText: 'DD',
-                  ),
-                ),
-                Text('/', style: serifBold),
-                SizedBox(
-                  width: 32,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _summonDateMonthCtrl,
-                    serifStyle: serif,
-                    hintText: 'MM',
-                  ),
-                ),
-                Text('/ २०', style: bodyTextStyle),
-                SizedBox(
-                  width: 36,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _summonDateYearCtrl,
-                    serifStyle: serif,
-                    hintText: 'YY',
-                  ),
+                _datePickerField(
+                  controller: _summonDateCtrl,
+                  style: serif,
+                  width: 140,
+                  dayCtrl: _summonDateDayCtrl,
+                  monthCtrl: _summonDateMonthCtrl,
+                  yearCtrl: _summonDateYearCtrl,
                 ),
                 Text('रोजी वरील नमुद पंचांना मौजा', style: bodyTextStyle),
-                SizedBox(
-                  width: 180,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _mauzaCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _mauzaCtrl,
+                  style: serif,
+                  minWidth: 140,
+                  maxWidth: 250,
                 ),
                 Text('येथे बोलावुन कळविले की, पो.स्टे.', style: bodyTextStyle),
-                SizedBox(
-                  width: 140,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _firPsCtrl,
-                    serifStyle: serif,
-                  ),
+                _policeStationField(
+                  controller: _firPsCtrl,
+                  style: serif,
+                  minWidth: 140,
+                  maxWidth: 280,
                 ),
                 Text('येथे अप.क्र.', style: bodyTextStyle),
-                SizedBox(
+                _inlineBlank(
+                  controller: _crimeNoCtrl,
+                  style: serif,
                   width: 90,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _crimeNoCtrl,
-                    serifStyle: serif,
-                  ),
                 ),
                 Text('/ २०', style: bodyTextStyle),
-                SizedBox(
+                _inlineBlank(
+                  controller: _crimeYearCtrl,
+                  style: serif,
                   width: 44,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _crimeYearCtrl,
-                    serifStyle: serif,
-                    hintText: 'YY',
-                  ),
+                  hintText: 'YY',
                 ),
                 Text('कलम', style: bodyTextStyle),
-                SizedBox(
-                  width: 180,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _actSecCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _actSecCtrl,
+                  style: serif,
+                  minWidth: 140,
+                  maxWidth: 250,
                 ),
                 Text(
                   'भा.न्या.सं २०२३ अन्वये दाखल असुन चोरीच्या मालाबाबत/ अवैध प्रोहिबीशन बाबत सदर गुन्ह्यामध्ये आरोपी नामे',
                   style: bodyTextStyle,
                 ),
-                SizedBox(
-                  width: 260,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _accusedNameCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _accusedNameCtrl,
+                  style: serif,
+                  minWidth: 200,
+                  maxWidth: 350,
                 ),
                 Text('ता.-', style: bodyTextStyle),
-                SizedBox(
-                  width: 120,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _accusedTahCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _accusedTahCtrl,
+                  style: serif,
+                  minWidth: 90,
+                  maxWidth: 180,
                 ),
                 Text('जि', style: bodyTextStyle),
-                SizedBox(
-                  width: 100,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _accusedDistCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _accusedDistCtrl,
+                  style: serif,
+                  minWidth: 90,
+                  maxWidth: 180,
                 ),
                 Text(
                   'याचे घराचे झडती घेणे असल्याने आपण पंच म्हणुन हजर राहावे. असे पंचाना कळवुन नमुद पंच सहमत होवून हजर आले.',
@@ -597,43 +1041,39 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
               children: [
                 Text('       आम्ही स्वतः सोबत पंच व स्टाफसह ',
                     style: bodyTextStyle),
-                SizedBox(
-                  width: 260,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _searchPlaceCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _searchPlaceCtrl,
+                  style: serif,
+                  minWidth: 200,
+                  maxWidth: 350,
                 ),
                 Text('त्याचे घरी जावुन आवाज दिला असता त्याचे घरी ',
                     style: bodyTextStyle),
-                SizedBox(
-                  width: 220,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _personFoundCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _personFoundCtrl,
+                  style: serif,
+                  minWidth: 180,
+                  maxWidth: 300,
                 ),
                 Text(
                   'हा हजर मिळाला त्याचे घरी येण्याचा उद्देश समजवून सांगुन व त्याचा नाव, गावाची खात्री करून त्याचे ',
                   style: bodyTextStyle,
                 ),
-                SizedBox(
-                  width: 240,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _searchPremisesCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _searchPremisesCtrl,
+                  style: serif,
+                  minWidth: 200,
+                  maxWidth: 350,
                 ),
                 Text(
                   'कायदेशीररित्या झडती घेतली असता त्याचे येथे सदर गुन्ह्यातील चोरी गेलेला माल/ मादक द्रव्य/ इतर संशयीत माल ',
                   style: bodyTextStyle,
                 ),
-                SizedBox(
-                  width: 280,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _seizurePropertyCtrl,
-                    serifStyle: serif,
-                  ),
+                _wrappingUnderlineInput(
+                  controller: _seizurePropertyCtrl,
+                  style: serif,
+                  minWidth: 220,
+                  maxWidth: 400,
                 ),
                 Text(
                   'मिळुन आला आहे/ नाही. घर झडती दरम्यान घरामधील सामानाचे नुकसान किंवा घरातील लोकांच्या धार्मीक भावना दुखाविण्या सारखे/ धर्मा विरूध्द कोणतेही कृत्य करण्यात आले नाही.',
@@ -651,67 +1091,29 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
               children: [
                 Text('       निल घरझडती पंचनामा आज दिनांक ',
                     style: bodyTextStyle),
-                SizedBox(
-                  width: 32,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _panchDateDayCtrl,
-                    serifStyle: serif,
-                    hintText: 'DD',
-                  ),
-                ),
-                Text('/', style: serifBold),
-                SizedBox(
-                  width: 32,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _panchDateMonthCtrl,
-                    serifStyle: serif,
-                    hintText: 'MM',
-                  ),
-                ),
-                Text('/ २०', style: bodyTextStyle),
-                SizedBox(
-                  width: 36,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _panchDateYearCtrl,
-                    serifStyle: serif,
-                    hintText: 'YY',
-                  ),
+                _datePickerField(
+                  controller: _panchDateCtrl,
+                  style: serif,
+                  width: 140,
+                  dayCtrl: _panchDateDayCtrl,
+                  monthCtrl: _panchDateMonthCtrl,
+                  yearCtrl: _panchDateYearCtrl,
                 ),
                 Text('चे ', style: bodyTextStyle),
-                SizedBox(
-                  width: 36,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _startTimeHoursCtrl,
-                    serifStyle: serif,
-                    hintText: 'HH',
-                  ),
-                ),
-                Text('/', style: serifBold),
-                SizedBox(
-                  width: 36,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _startTimeMinutesCtrl,
-                    serifStyle: serif,
-                    hintText: 'MM',
-                  ),
+                _timePickerField(
+                  controller: _startTimeCtrl,
+                  style: serif,
+                  width: 130,
+                  hoursCtrl: _startTimeHoursCtrl,
+                  minutesCtrl: _startTimeMinutesCtrl,
                 ),
                 Text('वा सुरू करून ', style: bodyTextStyle),
-                SizedBox(
-                  width: 36,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _endTimeHoursCtrl,
-                    serifStyle: serif,
-                    hintText: 'HH',
-                  ),
-                ),
-                Text('/', style: serifBold),
-                SizedBox(
-                  width: 36,
-                  child: BilingualSimpleUnderlineInput(
-                    controller: _endTimeMinutesCtrl,
-                    serifStyle: serif,
-                    hintText: 'MM',
-                  ),
+                _timePickerField(
+                  controller: _endTimeCtrl,
+                  style: serif,
+                  width: 130,
+                  hoursCtrl: _endTimeHoursCtrl,
+                  minutesCtrl: _endTimeMinutesCtrl,
                 ),
                 Text(
                   'वा मोक्यावर संपविला. पंचनामा पंचाना वाचुन दाखविला/ वाचुन पाहिला, बरोबर असल्याचे खात्री करून त्यावर त्यांनी सह्या केल्या.',
@@ -734,13 +1136,11 @@ class NilHouseSearchFormViewState extends State<NilHouseSearchFormView> {
                         style: headerLabelStyle,
                       ),
                       const SizedBox(height: 36),
-                      SizedBox(
-                        width: 220,
-                        child: BilingualSimpleUnderlineInput(
-                          controller: _ownerSigCtrl,
-                          serifStyle: serif,
-                          hintText: 'सही / अंगठा',
-                        ),
+                      BilingualSimpleUnderlineInput(
+                        minWidth: 220,
+                        controller: _ownerSigCtrl,
+                        serifStyle: serif,
+                        hintText: 'सही / अंगठा',
                       ),
                       const SizedBox(height: 16),
                       Text(

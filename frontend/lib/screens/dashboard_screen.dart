@@ -23,7 +23,7 @@ import '../data/maharashtra_police_stations_repository.dart';
 import '../l10n/app_localizations.dart';
 import '../modules/absconded/providers/absconded_provider.dart';
 import '../modules/accident/providers/accident_provider.dart';
-import '../modules/ad/providers/ad_provider.dart';
+import '../modules/accidental_death/providers/accidental_death_provider.dart';
 import '../modules/application/providers/application_provider.dart';
 import '../modules/arrested/providers/arrested_provider.dart';
 import '../modules/bnss/providers/bnss_provider.dart';
@@ -78,10 +78,16 @@ import '../utils/state_language_helper.dart';
 import '../utils/translation_helper.dart';
 import '../utils/universal_search.dart';
 import '../widgets/app_logo.dart';
+import 'pending_hub_screen.dart';
+import 'undetected_hub_screen.dart';
+import 'detected_hub_screen.dart';
+import 'disposal_hub_screen.dart';
+import 'arrested_hub_screen.dart';
 import '../widgets/bell_icon_widget.dart';
 import '../widgets/form_iv_category_button.dart';
 import '../widgets/searchable_picker_field.dart';
 import '../widgets/send_broadcast_alert_dialog.dart';
+import '../utils/category_navigation_helper.dart';
 import '../widgets/send_reminder_dialog.dart';
 import '../widgets/state_police_banner_dialog.dart';
 import '../widgets/voice_search_dialog.dart';
@@ -135,6 +141,10 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
       return FontAwesomeIcons.dice;
     case 'A.D':
       return FontAwesomeIcons.triangleExclamation;
+    case 'Suicide':
+      return FontAwesomeIcons.heartCrack;
+    case 'ST Drugs':
+      return FontAwesomeIcons.capsules;
     case 'Hurt':
       return FontAwesomeIcons.userInjured;
     case 'Theft':
@@ -143,7 +153,7 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
       return FontAwesomeIcons.truck;
     case 'Two/Four Wheeler Theft':
       return FontAwesomeIcons.motorcycle;
-    case 'Kidnapping':
+    case 'Kidnapping/Missing':
       return FontAwesomeIcons.userMinus;
     case 'Missing':
       return FontAwesomeIcons.magnifyingGlass;
@@ -183,7 +193,7 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
       return FontAwesomeIcons.idCard;
     case 'NDPS':
       return FontAwesomeIcons.pills;
-    case 'Gowans':
+    case 'Gowansh':
       return FontAwesomeIcons.cow;
     case 'IT Act':
       return FontAwesomeIcons.laptop;
@@ -283,7 +293,7 @@ Widget _buildGridIcon(
       height: size * 1.5,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
-  } else if (labelTrim == 'Kidnapping') {
+  } else if (labelTrim == 'Kidnapping/Missing') {
     return SvgPicture.asset(
       'assets/icons/kidnapping.svg',
       width: size * 1.5,
@@ -397,7 +407,7 @@ Widget _buildGridIcon(
       height: size * 2.5,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
-  } else if (labelTrim == 'Gowans') {
+  } else if (labelTrim == 'Gowansh') {
     return SvgPicture.asset(
       'assets/icons/gowans.svg',
       width: size * 1.5,
@@ -2607,7 +2617,11 @@ class _HomeTabState extends State<_HomeTab> {
       ('Preventive', 'preventive', rec<PreventiveProvider>((p) => p.records)),
       ('AD', 'ad', rec<AdProvider>((p) => p.records)),
       ('Missing', 'missing', rec<MissingProvider>((p) => p.records)),
-      ('Kidnapping', 'kidnapping', rec<KidnappingProvider>((p) => p.records)),
+      (
+        'Kidnapping/Missing',
+        'kidnapping',
+        rec<KidnappingProvider>((p) => p.records)
+      ),
       ('Theft', 'theft', rec<TheftProvider>((p) => p.records)),
       ('Sand Theft', 'sand_theft', rec<SandTheftProvider>((p) => p.records)),
       ('Hurt', 'hurt', rec<HurtProvider>((p) => p.records)),
@@ -2658,7 +2672,7 @@ class _HomeTabState extends State<_HomeTab> {
       ('Muddemal', 'muddemal', rec<MuddemalProvider>((p) => p.records)),
       ('BNSS', 'bnss', rec<BnssProvider>((p) => p.records)),
       ('NDPS', 'ndps', rec<NdpsProvider>((p) => p.records)),
-      ('Gowans', 'gowans', rec<GowansProvider>((p) => p.records)),
+      ('Gowansh', 'gowans', rec<GowansProvider>((p) => p.records)),
       ('IT Act', 'it_act', rec<ItActProvider>((p) => p.records)),
       ('MCOCA', 'mcoca', rec<McocaProvider>((p) => p.records)),
       ('UAPA', 'uapa', rec<UapaProvider>((p) => p.records)),
@@ -3110,6 +3124,8 @@ class _HomeTabState extends State<_HomeTab> {
     Classification('Gambling', 'monetization_on', 'coin'),
     Classification('RTI', 'description', 'application'),
     Classification('M.V Act', 'traffic', 'traffic'),
+    Classification('Suicide', 'heart_broken', 'suicide'),
+    Classification('ST Drugs', 'medication', 'st_drugs'),
   ];
 
   List<({String title, String subtext, IconData icon, VoidCallback onTap})>
@@ -3462,13 +3478,11 @@ class _HomeTabState extends State<_HomeTab> {
                   child: InkWell(
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        AppTheme.fadeSlideRoute(
-                          page: const FormIVSelectionScreen(
-                            mode: FormIVSelectionMode.browse,
-                          ),
-                        ),
+                      CategoryNavigationHelper.handleDashboardCategoryTap(
+                        context: context,
+                        categoryName: cat,
+                        moduleKey: 'form_1_5',
+                        readOnly: false,
                       );
                     },
                     child: Container(
@@ -3699,6 +3713,8 @@ class _HomeTabState extends State<_HomeTab> {
         return Icons.inventory_2_rounded;
       case 'two_wheeler':
         return Icons.two_wheeler_rounded;
+      case 'folder_special':
+        return Icons.folder_special_rounded;
       default:
         return Icons.folder_rounded;
     }
@@ -3851,14 +3867,43 @@ class _HomeTabState extends State<_HomeTab> {
         ),
       );
     } else if (item.name == 'Pending') {
+      final auth = context.read<AuthProvider>();
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
-          page: const ModuleHubScreen(
-            moduleLabel: 'Pending',
-            moduleKey: 'pending',
-            readOnly: true,
-          ),
+          page: PendingHubScreen(stationName: auth.stationName),
+        ),
+      );
+    } else if (item.name == 'Undetected' || item.moduleKey == 'undetected') {
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: UndetectedHubScreen(stationName: auth.stationName),
+        ),
+      );
+    } else if (item.name == 'Detected') {
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: DetectedHubScreen(stationName: auth.stationName),
+        ),
+      );
+    } else if (item.name == 'Disposal') {
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: DisposalHubScreen(stationName: auth.stationName),
+        ),
+      );
+    } else if (item.name == 'Arrested') {
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: ArrestedHubScreen(stationName: auth.stationName),
         ),
       );
     } else if (item.moduleKey == 'service_tool') {
@@ -3885,16 +3930,25 @@ class _HomeTabState extends State<_HomeTab> {
     } else {
       final isStatsItem =
           ['Monthly', 'Pending', 'Disposal'].contains(item.name);
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: ModuleHubScreen(
-            moduleLabel: item.name.replaceAll('\n', ' '),
-            moduleKey: item.moduleKey,
-            readOnly: isStatsItem,
+      if (isStatsItem) {
+        Navigator.push(
+          context,
+          AppTheme.fadeSlideRoute(
+            page: ModuleHubScreen(
+              moduleLabel: item.name.replaceAll('\n', ' '),
+              moduleKey: item.moduleKey,
+              readOnly: true,
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        CategoryNavigationHelper.handleDashboardCategoryTap(
+          context: context,
+          categoryName: item.name,
+          moduleKey: item.moduleKey,
+          readOnly: false,
+        );
+      }
     }
   }
 
@@ -4308,7 +4362,7 @@ class _WantedTab extends StatelessWidget {
     {
       'name': 'Abdul Hamid',
       'id': 'WNT/2024/004',
-      'crime': 'Kidnapping',
+      'crime': 'Kidnapping/Missing',
       'reward': '₹1,00,000',
       'dangerous': true
     },
@@ -5279,7 +5333,7 @@ class _CalendarTabState extends State<_CalendarTab> {
     'Unlawful Assembly',
     'Attempt to suicide',
     'Hurt',
-    'Kidnapping',
+    'Kidnapping/Missing',
     'Rape',
     'Assault on Govt-',
     'Molestation (354)',
@@ -5343,7 +5397,7 @@ class _CalendarTabState extends State<_CalendarTab> {
     if (sub.contains('suicide')) return 'Attempt to suicide';
     if (key.contains('hurt') || sub.contains('hurt')) return 'Hurt';
     if (key.contains('kidnapping') || sub.contains('kidnap')) {
-      return 'Kidnapping';
+      return 'Kidnapping/Missing';
     }
     if (key.contains('rape') || sub.contains('rape')) return 'Rape';
     if (sub.contains('assault') && sub.contains('govt')) {
@@ -6085,7 +6139,12 @@ class _CalendarTabState extends State<_CalendarTab> {
       {'sr': '13', 'label': 'Unlawful assembly', 'head': 'Unlawful Assembly'},
       {'sr': '14', 'label': 'Attempt to Suicide', 'head': 'Attempt to suicide'},
       {'sr': '15', 'label': 'Hurt', 'head': 'Hurt', 'bold': true},
-      {'sr': '16', 'label': 'Kidnapping', 'head': 'Kidnapping', 'bold': true},
+      {
+        'sr': '16',
+        'label': 'Kidnapping/Missing',
+        'head': 'Kidnapping/Missing',
+        'bold': true
+      },
       {'sr': '17', 'label': 'Rape', 'head': 'Rape', 'bold': true},
       {
         'sr': '18',
@@ -6131,7 +6190,7 @@ class _CalendarTabState extends State<_CalendarTab> {
       'Unlawful Assembly',
       'Attempt to suicide',
       'Hurt',
-      'Kidnapping',
+      'Kidnapping/Missing',
       'Rape',
       'Assault on Govt-',
       'Molestation (354)',
@@ -6892,16 +6951,6 @@ class _CalendarTabState extends State<_CalendarTab> {
     bool isMotorVehicleAct(ModuleRecord r) => r.moduleKey == 'traffic';
     bool isOtherMvAct(ModuleRecord r) => false;
 
-    bool isMissingMale(ModuleRecord r) =>
-        r.moduleKey == 'missing' &&
-        (r.subCategory?.toLowerCase() == 'male' ||
-            r.title.toLowerCase().contains('male'));
-    bool isMissingFemale(ModuleRecord r) =>
-        r.moduleKey == 'missing' &&
-        (r.subCategory?.toLowerCase() == 'female' ||
-            r.title.toLowerCase().contains('female'));
-    bool isMissingTotal(ModuleRecord r) => r.moduleKey == 'missing';
-
     bool g1Total(ModuleRecord r) =>
         isBnss(r) || isOtherSection(r) || isGambling(r) || isProhibition(r);
     bool g1NcTotal(ModuleRecord r) => isAd(r) || isAccident(r) || isNc(r);
@@ -6975,18 +7024,18 @@ class _CalendarTabState extends State<_CalendarTab> {
         'bold': true,
         'dl': 'Fine'
       },
-      {'k': 'b'},
-      {'k': 'h', 'l': 'Missing'},
-      {'k': 's', 'r': 'Registered', 'd': 'Found'},
-      {'k': 'd5', 'l': 'Male', 't': isMissingMale, 'dl': 'Found'},
-      {'k': 'd5', 'l': 'Female', 't': isMissingFemale, 'dl': 'Found'},
-      {
-        'k': 'd5',
-        'l': 'Total missing',
-        't': isMissingTotal,
-        'bold': true,
-        'dl': 'Found'
-      },
+      // {'k': 'b'},
+      // {'k': 'h', 'l': 'Missing'},
+      // {'k': 's', 'r': 'Registered', 'd': 'Found'},
+      // {'k': 'd5', 'l': 'Male', 't': isMissingMale, 'dl': 'Found'},
+      // {'k': 'd5', 'l': 'Female', 't': isMissingFemale, 'dl': 'Found'},
+      // {
+      //   'k': 'd5',
+      //   'l': 'Total missing',
+      //   't': isMissingTotal,
+      //   'bold': true,
+      //   'dl': 'Found'
+      // },
     ];
 
     Widget buildScreenRow(Map<String, dynamic> r) {
@@ -9204,6 +9253,7 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
                   page: CommonFormScreen(
                 moduleLabel: item.name,
                 moduleKey: item.moduleKey,
+                subCategory: item.name,
               )));
         } else {
           Navigator.push(
@@ -9212,6 +9262,7 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
                   page: ModuleFormScreen(
                 moduleLabel: item.name,
                 moduleKey: item.moduleKey,
+                subCategory: item.name,
               )));
         }
       },

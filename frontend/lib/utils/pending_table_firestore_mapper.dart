@@ -1,13 +1,9 @@
 // Converts [ModuleRecord] from `pending_cases` into table rows for
 // [PendingCasesDemoDataTable] / Pending Summary / Pending demo table screens.
 
-import 'package:intl/intl.dart';
-
 import '../modules/core/models/base_record.dart';
 import 'common_form_module.dart';
 import 'pending_io_wise_logic.dart';
-
-final _regDateFmt = DateFormat('dd/MM/yyyy');
 
 /// UI time-period labels aligned with Pending Cases time-range filters.
 /// Uses [anchor] vs [reference] (usually `DateTime.now()`).
@@ -46,35 +42,10 @@ String _sectionsLine(ModuleRecord r) {
   return r.firestoreCategoryDisplayName.trim();
 }
 
-String _reasonLine(ModuleRecord r) {
-  final d = r.description.trim();
-  if (d.isNotEmpty) return d;
-  return r.title.trim();
-}
-
 String _headLine(ModuleRecord r) {
   final sub = r.subCategory?.trim();
   if (sub != null && sub.isNotEmpty) return sub;
   return r.firestoreCategoryDisplayName.trim();
-}
-
-String _spotLine(ModuleRecord r) {
-  final spot = [
-    () {
-      final raw = r.extraFields[kCommonFormExtraFieldsKey];
-      if (raw is Map<String, dynamic>) {
-        final parts = <String>[
-          raw['spotVillage']?.toString().trim() ?? '',
-          raw['spotArea']?.toString().trim() ?? '',
-          raw['spotAddress']?.toString().trim() ?? '',
-        ].where((s) => s.isNotEmpty).toList();
-        if (parts.isNotEmpty) return parts.join(', ');
-      }
-      return '';
-    }(),
-    r.location.trim(),
-  ].firstWhere((s) => s.isNotEmpty, orElse: () => '');
-  return spot;
 }
 
 /// One row map: keys `sr`, `cr`, `sections`, `date`, `io`, `reason`, `period`, `head`
@@ -89,12 +60,10 @@ Map<String, String> pendingModuleRecordToTableRow(
     'sr': '$sr',
     'cr': r.caseNumber.trim(),
     'sections': _sectionsLine(r),
-    'date': _regDateFmt.format(r.incidentDate),
     'io': io.isEmpty ? '—' : io,
-    'reason': _reasonLine(r),
-    'period': pendingTablePeriodLabel(r.incidentDate, reference),
+    'station': r.stationName.trim().isEmpty ? '—' : r.stationName.trim(),
     'head': _headLine(r),
-    'spot': _spotLine(r),
+    'period': pendingTablePeriodLabel(r.incidentDate, reference),
   };
 }
 
