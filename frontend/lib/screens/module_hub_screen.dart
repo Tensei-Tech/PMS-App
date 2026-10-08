@@ -642,7 +642,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         widget.moduleKey == 'detected' ||
         widget.moduleKey == 'undetected' ||
         widget.moduleKey == 'disposal');
- 
+
     return Scaffold(
       backgroundColor: AppColors.lightBg,
       appBar: _buildAppBar(context, totalCount),
