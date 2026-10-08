@@ -699,4 +699,109 @@ Future<List<Map<String, dynamic>>?> fetchArrestedTimeWise() async {
     }
     return null;
   }
+
+  // ==========================================
+  // Repeat Offender Endpoints
+  // ==========================================
+
+  /// Fetch Repeat Offender records (Paginated or Full)
+  Future<List<Map<String, dynamic>>?> fetchRepeatOffenderCases({
+    String? io,
+    String? startDate,
+    String? endDate,
+  }) async {
+    try {
+      final queryParams = <String, String>{};
+      if (io != null && io.isNotEmpty) {
+        queryParams['io'] = io;
+      }
+      if (startDate != null && startDate.isNotEmpty) {
+        queryParams['start_date'] = startDate;
+      }
+      if (endDate != null && endDate.isNotEmpty) {
+        queryParams['end_date'] = endDate;
+      }
+
+      final url = '${ApiConfig.cases}repeat-offender/case-wise/';
+      final response = await _api.get(url, queryParameters: queryParams);
+
+      if (response.isSuccess) {
+        if (response.data is List) {
+          return List<Map<String, dynamic>>.from(response.data);
+        } else if (response.data is Map &&
+            response.data.containsKey('results')) {
+          return List<Map<String, dynamic>>.from(response.data['results']);
+        }
+      } else {
+        if (kDebugMode) {
+          debugPrint(
+            '[BackendCaseService] fetchRepeatOffenderCases error: ${response.errorMessage}',
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] fetchRepeatOffenderCases exception: $e');
+      }
+    }
+    return null;
+  }
+
+  /// Fetch IO-wise Repeat Offender counts
+  Future<List<Map<String, dynamic>>?> fetchRepeatOffenderIOWise({
+    String? startDate,
+    String? endDate,
+  }) async {
+    try {
+      final queryParams = <String, String>{};
+      if (startDate != null && startDate.isNotEmpty) {
+        queryParams['start_date'] = startDate;
+      }
+      if (endDate != null && endDate.isNotEmpty) {
+        queryParams['end_date'] = endDate;
+      }
+
+      final url = '${ApiConfig.cases}repeat-offender/io-wise/';
+      final response = await _api.get(url, queryParameters: queryParams);
+
+      if (response.isSuccess && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data);
+      } else {
+        if (kDebugMode) {
+          debugPrint(
+            '[BackendCaseService] fetchRepeatOffenderIOWise error: ${response.errorMessage}',
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] fetchRepeatOffenderIOWise exception: $e');
+      }
+    }
+    return null;
+  }
+
+  /// Fetch Time-wise Repeat Offender counts
+  Future<List<Map<String, dynamic>>?> fetchRepeatOffenderTimeWise() async {
+    try {
+      final url = '${ApiConfig.cases}repeat-offender/time-wise/';
+      final response = await _api.get(url);
+
+      if (response.isSuccess && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data);
+      } else {
+        if (kDebugMode) {
+          debugPrint(
+            '[BackendCaseService] fetchRepeatOffenderTimeWise error: ${response.errorMessage}',
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] fetchRepeatOffenderTimeWise exception: $e');
+      }
+    }
+    return null;
+  }
 }
+

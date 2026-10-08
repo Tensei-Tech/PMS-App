@@ -276,10 +276,14 @@ class PendingCasesView(APIView):
             page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
             if page is not None:
                 serializer = CaseRecordSerializer(page, many=True)
-                return paginator.get_paginated_response(serializer.data)
+                data = serializer.data
+                self._enrich_data(data)
+                return paginator.get_paginated_response(data)
                 
             serializer = CaseRecordSerializer(queryset.order_by('-created_at'), many=True)
-            return Response(serializer.data)
+            data = serializer.data
+            self._enrich_data(data)
+            return Response(data)
         except Exception as e:
             logger.exception(f"[PendingCasesView] Database error: {e}")
             return Response({'error': 'Failed to retrieve pending cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -420,10 +424,14 @@ class UndetectedCasesView(APIView):
             page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
             if page is not None:
                 serializer = CaseRecordSerializer(page, many=True)
-                return paginator.get_paginated_response(serializer.data)
+                data = serializer.data
+                self._enrich_data(data)
+                return paginator.get_paginated_response(data)
 
             serializer = CaseRecordSerializer(queryset.order_by('-created_at'), many=True)
-            return Response(serializer.data)
+            data = serializer.data
+            self._enrich_data(data)
+            return Response(data)
         except Exception as e:
             logger.exception(f"[UndetectedCasesView] Database error: {e}")
             return Response({'error': 'Failed to retrieve undetected cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -905,7 +913,9 @@ class DetectedCasesView(APIView):
                 
             from apps.cases.serializers import CaseRecordSerializer
             serializer = CaseRecordSerializer(queryset.order_by('-created_at'), many=True)
-            return Response(serializer.data)
+            data = serializer.data
+            self._enrich_data(data)
+            return Response(data)
         except Exception as e:
             logger.exception(f"[DetectedCasesView] Database error: {e}")
             return Response({'error': 'Failed to retrieve detected cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -1020,10 +1030,14 @@ class ArrestedCaseWiseView(PendingCasesView):
             page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
             if page is not None:
                 serializer = CaseRecordSerializer(page, many=True)
-                return paginator.get_paginated_response(serializer.data)
+                data = serializer.data
+                self._enrich_data(data)
+                return paginator.get_paginated_response(data)
                 
             serializer = CaseRecordSerializer(queryset.order_by('-created_at'), many=True)
-            return Response(serializer.data)
+            data = serializer.data
+            self._enrich_data(data)
+            return Response(data)
         except Exception as e:
             logger.exception(f'[ArrestedCaseWiseView] Database error: {e}')
             return Response({'error': 'Failed to retrieve arrested cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -1105,3 +1119,149 @@ class TimeWiseArrestedView(TimeWisePendingView):
             logger.exception(f'[TimeWiseArrestedView] Database error: {e}')
             return Response({'error': 'Failed to retrieve Time-wise arrested counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class RepeatOffenderCaseWiseView(PendingCasesView):
+
+    def _enrich_data(self, data_list):
+        from apps.crimetab.models.common_form import CasesPerson
+        from django.db.models import Count
+        repeat_names_qs = CasesPerson.objects.filter(role__in=['accused', 'suspected_accused']).exclude(name__isnull=True).exclude(name__exact='').values('name').annotate(case_count=Count('case_id', distinct=True)).filter(case_count__gt=1)
+        repeat_names = set(repeat_names_qs.values_list('name', flat=True))
+        repeat_persons = CasesPerson.objects.filter(name__in=repeat_names, role__in=['accused', 'suspected_accused']).select_related('case')
+        name_to_crs = {}
+        for p in repeat_persons:
+            name_to_crs.setdefault(p.name, set())
+            if p.case and p.case.case_number:
+                name_to_crs[p.name].add(p.case.case_number)
+        for item in data_list:
+            case_id = item.get('id')
+            if not case_id: continue
+            if not isinstance(item.get('extra_fields'), dict):
+                item['extra_fields'] = {}
+            case_persons = CasesPerson.objects.filter(case_id=case_id, role__in=['accused', 'suspected_accused'])
+            accused_names_in_this_case = [p.name for p in case_persons if p.name in repeat_names]
+            if accused_names_in_this_case:
+                primary = accused_names_in_this_case[0]
+                item['extra_fields']['accused_name'] = primary
+                all_crs = name_to_crs.get(primary, set())
+                other_crs = [cr for cr in all_crs if cr != item.get('case_number')]
+                item['extra_fields']['multiple_cr'] = ', '.join(sorted(other_crs)) if other_crs else '-'
+            else:
+                item['extra_fields']['accused_name'] = 'Unknown'
+                item['extra_fields']['multiple_cr'] = '-'
+
+
+    def get(self, request):
+        try:
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('repeat_offender')
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            io_name = request.query_params.get('io')
+            if io_name:
+                queryset = queryset.filter(assigned_officer=io_name)
+
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            if start_date:
+                queryset = queryset.filter(created_at__date__gte=start_date)
+            if end_date:
+                queryset = queryset.filter(created_at__date__lte=end_date)
+
+            from apps.cases.serializers import CaseRecordSerializer
+            
+            paginator = PageNumberPagination()
+            page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
+            if page is not None:
+                serializer = CaseRecordSerializer(page, many=True)
+                data = serializer.data
+                self._enrich_data(data)
+                return paginator.get_paginated_response(data)
+                
+            serializer = CaseRecordSerializer(queryset.order_by('-created_at'), many=True)
+            data = serializer.data
+            self._enrich_data(data)
+            return Response(data)
+        except Exception as e:
+            logger.exception(f'[RepeatOffenderCaseWiseView] Database error: {e}')
+            return Response({'error': 'Failed to retrieve repeat offender cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class IOWiseRepeatOffenderView(IOWisePendingView):
+    def get(self, request):
+        try:
+            from django.db.models import Count
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('repeat_offender')
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            if start_date:
+                queryset = queryset.filter(created_at__date__gte=start_date)
+            if end_date:
+                queryset = queryset.filter(created_at__date__lte=end_date)
+
+            counts = queryset.values('assigned_officer', 'station_name').annotate(count=Count('id')).order_by('-count')
+            
+            results = []
+            for c in counts:
+                name = c['assigned_officer']
+                results.append({
+                    'io_uid': name,
+                    'io_name': name if name else 'Unassigned',
+                    'io_rank': '',
+                    'station_name': c['station_name'],
+                    'pending_count': c['count']
+                })
+
+            return Response(results)
+        except Exception as e:
+            logger.exception(f'[IOWiseRepeatOffenderView] Database error: {e}')
+            return Response({'error': 'Failed to retrieve IO-wise repeat offender counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class TimeWiseRepeatOffenderView(TimeWisePendingView):
+    def get(self, request):
+        try:
+            from django.db.models import Q
+            from django.utils import timezone
+            from datetime import timedelta
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('repeat_offender')
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            now = timezone.now()
+            month_1 = now - timedelta(days=30)
+            months_3 = now - timedelta(days=90)
+            months_6 = now - timedelta(days=180)
+            year_1 = now - timedelta(days=365)
+
+            under_1_month = queryset.filter(created_at__gte=month_1).count()
+            months_1_to_3 = queryset.filter(created_at__gte=months_3, created_at__lt=month_1).count()
+            months_3_to_6 = queryset.filter(created_at__gte=months_6, created_at__lt=months_3).count()
+            months_6_to_12 = queryset.filter(created_at__gte=year_1, created_at__lt=months_6).count()
+            more_than_1_year = queryset.filter(created_at__lt=year_1).count()
+            
+            results = [
+                {'period': 'Under 1 month', 'count': under_1_month},
+                {'period': '1 to 3 months', 'count': months_1_to_3},
+                {'period': '3 to 6 months', 'count': months_3_to_6},
+                {'period': '6 to 12 months', 'count': months_6_to_12},
+                {'period': 'More than 1 year', 'count': more_than_1_year},
+                {'period': 'Under 3 months (Total)', 'count': under_1_month + months_1_to_3}
+            ]
+
+            return Response(results)
+        except Exception as e:
+            logger.exception(f'[TimeWiseRepeatOffenderView] Database error: {e}')
+            return Response({'error': 'Failed to retrieve Time-wise repeat offender counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

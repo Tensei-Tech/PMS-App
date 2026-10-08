@@ -28,6 +28,25 @@ def get_cases_by_status(tab: str):
             (Q(extra_fields__has_key='arrested_person_name') & ~Q(extra_fields__arrested_person_name='') & ~Q(extra_fields__arrested_person_name=None)) |
             (Q(extra_fields__has_key='arrests') & ~Q(extra_fields__arrests=[]) & ~Q(extra_fields__arrests=None))
         ).distinct()
+    elif tab.lower() in ['repeat_offender', 'repeat offender']:
+        from apps.crimetab.models.common_form import CasesPerson
+        from django.db.models import Count
+        repeat_names = CasesPerson.objects.filter(
+            role__in=['accused', 'suspected_accused']
+        ).exclude(
+            name__isnull=True
+        ).exclude(
+            name__exact=''
+        ).values('name').annotate(
+            case_count=Count('case_id', distinct=True)
+        ).filter(
+            case_count__gt=1
+        ).values_list('name', flat=True)
+        
+        return queryset.filter(
+            persons__role__in=['accused', 'suspected_accused'],
+            persons__name__in=repeat_names
+        ).distinct()
         
     return queryset
 

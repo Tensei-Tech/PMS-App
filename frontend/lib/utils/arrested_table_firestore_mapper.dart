@@ -87,6 +87,8 @@ Map<String, String> arrestedModuleRecordToTableRow(
     'station': r.stationName.trim().isEmpty ? '—' : r.stationName.trim(),
     'head': _headLine(r),
     'period': arrestedTablePeriodLabel(r.incidentDate, reference),
+    'accused_name': r.extraFields['accused_name']?.toString() ?? 'Unknown Offender',
+    'multiple_cr': r.extraFields['multiple_cr']?.toString() ?? '-',
   };
 }
 

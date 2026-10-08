@@ -22,6 +22,9 @@ from apps.cases.views import (
     ArrestedCaseWiseView,
     TimeWiseArrestedView,
     IOWiseArrestedView,
+    RepeatOffenderCaseWiseView,
+    TimeWiseRepeatOffenderView,
+    IOWiseRepeatOffenderView,
 )
 
 router = DefaultRouter()
@@ -50,6 +53,10 @@ urlpatterns = [
     path('arrested/case-wise/', ArrestedCaseWiseView.as_view(), name='arrested-case-wise'),
     path('arrested/time-wise/', TimeWiseArrestedView.as_view(), name='arrested-time-wise'),
     path('arrested/io-wise/', IOWiseArrestedView.as_view(), name='arrested-io-wise'),
+    
+    path('repeat-offender/case-wise/', RepeatOffenderCaseWiseView.as_view(), name='repeat-offender-case-wise'),
+    path('repeat-offender/time-wise/', TimeWiseRepeatOffenderView.as_view(), name='repeat-offender-time-wise'),
+    path('repeat-offender/io-wise/', IOWiseRepeatOffenderView.as_view(), name='repeat-offender-io-wise'),
 
     # Existing CaseRecordViewSet router (ModelViewSet)
     path('', include(router.urls)),
