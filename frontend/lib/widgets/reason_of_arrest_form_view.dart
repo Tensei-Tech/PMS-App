@@ -307,9 +307,10 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
               child: Text('नाव व पत्ता: ', style: marathiBold),
             ),
             Expanded(
-              child: _UnderlineInput(
+              child: ReasonLinedMultilineInput(
                 controller: _accusedNameAddressCtrl,
                 readOnly: widget.readOnly,
+                serifStyle: marathiBody,
               ),
             ),
           ],
@@ -415,54 +416,21 @@ class ReasonOfArrestFormViewState extends State<ReasonOfArrestFormView> {
           ('५.', _reason5Ctrl),
         ]) ...[
           Padding(
-            padding: const EdgeInsets.only(bottom: 14),
+            padding: const EdgeInsets.only(bottom: 12),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(top: 8),
+                  padding: const EdgeInsets.only(top: 2),
                   child: Text('${item.$1} ',
                       style: marathiBold.copyWith(fontSize: 15)),
                 ),
                 Expanded(
-                  child: TextField(
+                  child: ReasonLinedMultilineInput(
                     controller: item.$2,
                     readOnly: widget.readOnly,
-                    minLines: 2,
-                    maxLines: 4,
-                    style: GoogleFonts.notoSansDevanagari(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                      height: 1.5,
-                    ),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 8),
-                      hintText: 'अटकेचे कारण प्रविष्ट करा...',
-                      hintStyle: GoogleFonts.notoSansDevanagari(
-                        fontSize: 13,
-                        color: Colors.black38,
-                      ),
-                      filled: true,
-                      fillColor: const Color(0xFFF9FAFB),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(4),
-                        borderSide:
-                            const BorderSide(color: Colors.black38, width: 0.8),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(4),
-                        borderSide:
-                            const BorderSide(color: Colors.black38, width: 0.8),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(4),
-                        borderSide:
-                            const BorderSide(color: Colors.black87, width: 1.5),
-                      ),
-                    ),
+                    serifStyle: marathiBody,
+                    hintText: 'अटकेचे कारण प्रविष्ट करा...',
                   ),
                 ),
               ],
@@ -781,34 +749,51 @@ class _UnderlineInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final field = TextField(
-      controller: controller,
-      readOnly: readOnly,
-      maxLines: null,
-      textAlign: TextAlign.start,
-      scrollPhysics: const NeverScrollableScrollPhysics(),
-      scrollPadding: EdgeInsets.zero,
-      style: GoogleFonts.notoSansDevanagari(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        color: Colors.black87,
+    final field = Theme(
+      data: Theme.of(context).copyWith(
+        inputDecorationTheme: const InputDecorationTheme(
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          disabledBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+          focusedErrorBorder: InputBorder.none,
+          filled: false,
+          fillColor: Colors.transparent,
+          contentPadding: EdgeInsets.zero,
+        ),
       ),
-      decoration: InputDecoration(
-        isDense: true,
-        contentPadding: const EdgeInsets.only(bottom: 0, top: 2),
-        hintText: hintText,
-        hintStyle: GoogleFonts.notoSansDevanagari(
-          fontSize: 13,
-          color: Colors.black38,
+      child: TextField(
+        controller: controller,
+        readOnly: readOnly,
+        maxLines: 1,
+        textAlign: TextAlign.start,
+        scrollPhysics: const NeverScrollableScrollPhysics(),
+        scrollPadding: EdgeInsets.zero,
+        style: GoogleFonts.notoSansDevanagari(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: Colors.black87,
         ),
-        border: const UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.black54, width: 1),
-        ),
-        enabledBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.black54, width: 1),
-        ),
-        focusedBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.black87, width: 1.5),
+        decoration: InputDecoration(
+          isDense: true,
+          filled: false,
+          fillColor: Colors.transparent,
+          contentPadding: const EdgeInsets.only(bottom: 2, top: 2),
+          hintText: hintText,
+          hintStyle: GoogleFonts.notoSansDevanagari(
+            fontSize: 13,
+            color: Colors.black38,
+          ),
+          border: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.black54, width: 0.8),
+          ),
+          enabledBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.black54, width: 0.8),
+          ),
+          focusedBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.black87, width: 1.2),
+          ),
         ),
       ),
     );
@@ -817,5 +802,211 @@ class _UnderlineInput extends StatelessWidget {
       return SizedBox(width: width, child: field);
     }
     return field;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── SOLID LINED MULTILINE INPUT FOR REASON FORM UI ──
+// ══════════════════════════════════════════════════════════════════════════════
+
+class ReasonLinedMultilineInput extends StatefulWidget {
+  final TextEditingController controller;
+  final TextStyle serifStyle;
+  final String? hintText;
+  final double lineHeight;
+  final double? minWidth;
+  final double? maxWidth;
+  final bool readOnly;
+
+  const ReasonLinedMultilineInput({
+    super.key,
+    required this.controller,
+    required this.serifStyle,
+    this.hintText,
+    this.lineHeight = 24.0,
+    this.minWidth,
+    this.maxWidth,
+    this.readOnly = false,
+  });
+
+  @override
+  State<ReasonLinedMultilineInput> createState() =>
+      _ReasonLinedMultilineInputState();
+}
+
+class _ReasonLinedMultilineInputState extends State<ReasonLinedMultilineInput> {
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(() {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isUnconstrained = constraints.maxWidth.isInfinite;
+
+        return ValueListenableBuilder<TextEditingValue>(
+          valueListenable: widget.controller,
+          builder: (context, value, _) {
+            final text = value.text;
+
+            double measuredWidth = widget.minWidth ?? 120.0;
+            if (isUnconstrained) {
+              final tp = TextPainter(
+                text: TextSpan(
+                  text: text.isEmpty ? (widget.hintText ?? '   ') : text,
+                  style: widget.serifStyle.copyWith(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                textDirection: TextDirection.ltr,
+              )..layout();
+              measuredWidth = (tp.width + 24.0)
+                  .clamp(widget.minWidth ?? 120.0, widget.maxWidth ?? 500.0);
+            }
+
+            final effectiveWidth =
+                isUnconstrained ? measuredWidth : constraints.maxWidth;
+
+            int lineCount = 1;
+            if (text.isNotEmpty && effectiveWidth > 0) {
+              final tp = TextPainter(
+                text: TextSpan(
+                  text: text,
+                  style: widget.serifStyle.copyWith(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    height: widget.lineHeight / 14.0,
+                  ),
+                ),
+                textDirection: TextDirection.ltr,
+              )..layout(maxWidth: effectiveWidth);
+              final metrics = tp.computeLineMetrics();
+              lineCount = metrics.isEmpty ? 1 : metrics.length;
+            }
+
+            final totalHeight = lineCount * widget.lineHeight;
+
+            return CustomPaint(
+              painter: _ReasonFormLinedPainter(
+                lineCount: lineCount,
+                lineHeight: widget.lineHeight,
+                lineColor:
+                    _focusNode.hasFocus ? Colors.black87 : Colors.grey.shade600,
+                strokeWidth: _focusNode.hasFocus ? 1.2 : 0.8,
+              ),
+              child: SizedBox(
+                width: isUnconstrained
+                    ? (widget.maxWidth != null
+                        ? effectiveWidth.clamp(0.0, widget.maxWidth!)
+                        : effectiveWidth)
+                    : effectiveWidth,
+                height: totalHeight,
+                child: Theme(
+                  data: Theme.of(context).copyWith(
+                    inputDecorationTheme: const InputDecorationTheme(
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      disabledBorder: InputBorder.none,
+                      errorBorder: InputBorder.none,
+                      focusedErrorBorder: InputBorder.none,
+                      filled: false,
+                      fillColor: Colors.transparent,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                  child: TextField(
+                    focusNode: _focusNode,
+                    controller: widget.controller,
+                    readOnly: widget.readOnly,
+                    minLines: 1,
+                    maxLines: null,
+                    keyboardType: TextInputType.multiline,
+                    cursorColor: Colors.black87,
+                    strutStyle: StrutStyle(
+                      fontSize: 14.0,
+                      height: widget.lineHeight / 14.0,
+                      forceStrutHeight: true,
+                    ),
+                    style: widget.serifStyle.copyWith(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      height: widget.lineHeight / 14.0,
+                      color: Colors.black87,
+                    ),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      filled: false,
+                      fillColor: Colors.transparent,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      disabledBorder: InputBorder.none,
+                      errorBorder: InputBorder.none,
+                      focusedErrorBorder: InputBorder.none,
+                      contentPadding: const EdgeInsets.only(bottom: 3, top: 0),
+                      hintText: widget.hintText,
+                      hintStyle: widget.serifStyle.copyWith(
+                        color: Colors.grey.shade400,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _ReasonFormLinedPainter extends CustomPainter {
+  final int lineCount;
+  final double lineHeight;
+  final Color lineColor;
+  final double strokeWidth;
+
+  _ReasonFormLinedPainter({
+    required this.lineCount,
+    required this.lineHeight,
+    required this.lineColor,
+    this.strokeWidth = 0.8,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = lineColor
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke;
+
+    for (int i = 1; i <= lineCount; i++) {
+      final y = i * lineHeight - 1.5;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _ReasonFormLinedPainter oldDelegate) {
+    return oldDelegate.lineCount != lineCount ||
+        oldDelegate.lineHeight != lineHeight ||
+        oldDelegate.lineColor != lineColor ||
+        oldDelegate.strokeWidth != strokeWidth;
   }
 }

@@ -22,6 +22,8 @@ class PendingSummaryScreen extends StatelessWidget {
     super.key,
     this.liveRows,
     this.stationName = '',
+    this.title = 'Pending Cases — Summary',
+    this.isAbsconded = false,
   });
 
   /// When non-null and non-empty, summary uses only this data (skips Firestore stream).
@@ -29,6 +31,12 @@ class PendingSummaryScreen extends StatelessWidget {
 
   /// Station scope for pending Firestore read (ignored when [liveRows] is used).
   final String stationName;
+
+  /// Header title for the screen
+  final String title;
+
+  /// Whether this screen displays absconded cases
+  final bool isAbsconded;
 
   static bool _usingExplicitLive(List<Map<String, String>>? live) =>
       live != null && live.isNotEmpty;
@@ -83,7 +91,6 @@ class PendingSummaryScreen extends StatelessWidget {
     required bool firedFromFirestoreExclusive,
     required bool showDemoNote,
   }) {
-    const title = 'Pending Cases — Summary';
     final anyRows = dataset.isNotEmpty;
 
     Widget sectionBlock(String bucketLabel) {
@@ -120,6 +127,7 @@ class PendingSummaryScreen extends StatelessWidget {
               PendingCasesDemoDataTable(
                 isAd: false,
                 realDataRows: rows,
+                isAbsconded: isAbsconded,
               ),
           ],
         ),

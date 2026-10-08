@@ -56,17 +56,19 @@ Map<String, String> arrestedModuleRecordToTableRow(
   required int sr,
 }) {
   final io = arrestedIoWiseIoDisplayName(r) ?? r.assignedOfficer.trim();
-  
+
   String arrDate = '—';
-  dynamic rawArr = r.extraFields['arrest_date'] ?? r.extraFields['arrest_datetime'];
-  
+  dynamic rawArr =
+      r.extraFields['arrest_date'] ?? r.extraFields['arrest_datetime'];
+
   if (rawArr == null) {
     // Try to find it inside arrest_records or arrests array
     final list = r.extraFields['arrest_records'] ?? r.extraFields['arrests'];
     if (list is List && list.isNotEmpty) {
       final first = list.first;
       if (first is Map) {
-        rawArr = first['arrest_date'] ?? first['arrest_datetime'] ?? first['date'];
+        rawArr =
+            first['arrest_date'] ?? first['arrest_datetime'] ?? first['date'];
       }
     }
   }
@@ -74,7 +76,8 @@ Map<String, String> arrestedModuleRecordToTableRow(
   if (rawArr != null) {
     try {
       final dt = DateTime.parse(rawArr.toString());
-      arrDate = '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+      arrDate =
+          '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
     } catch (_) {}
   }
 

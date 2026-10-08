@@ -13,6 +13,7 @@ class FilteredPendingScreen extends StatefulWidget {
   final String? startDate;
   final String? endDate;
   final bool isUndetected;
+  final bool isAbsconded;
 
   const FilteredPendingScreen({
     super.key,
@@ -22,6 +23,7 @@ class FilteredPendingScreen extends StatefulWidget {
     this.startDate,
     this.endDate,
     this.isUndetected = false,
+    this.isAbsconded = false,
   });
 
   @override
@@ -42,18 +44,30 @@ class _FilteredPendingScreenState extends State<FilteredPendingScreen> {
 
   Future<void> _loadData() async {
     try {
-      final dataList = widget.isUndetected
-          ? await _backend.fetchUndetectedCases(
-              ioUid: widget.ioUid,
-              category: widget.category,
-              startDate: widget.startDate,
-              endDate: widget.endDate,
-            )
-          : await _backend.fetchPendingCases(
-              ioUid: widget.ioUid,
-              startDate: widget.startDate,
-              endDate: widget.endDate,
-            );
+      List<Map<String, dynamic>>? dataList;
+
+      if (widget.isAbsconded) {
+        dataList = await _backend.fetchAbscondedCases(
+          ioUid: widget.ioUid,
+          category: widget.category,
+          startDate: widget.startDate,
+          endDate: widget.endDate,
+        );
+      } else if (widget.isUndetected) {
+        dataList = await _backend.fetchUndetectedCases(
+          ioUid: widget.ioUid,
+          category: widget.category,
+          startDate: widget.startDate,
+          endDate: widget.endDate,
+        );
+      } else {
+        dataList = await _backend.fetchPendingCases(
+          ioUid: widget.ioUid,
+          category: widget.category,
+          startDate: widget.startDate,
+          endDate: widget.endDate,
+        );
+      }
 
       if (!mounted) return;
 
@@ -134,6 +148,7 @@ class _FilteredPendingScreenState extends State<FilteredPendingScreen> {
                               child: PendingCasesDemoDataTable(
                                 isAd: false,
                                 realDataRows: _tableRows,
+                                isAbsconded: widget.isAbsconded,
                               ),
                             ),
             ),

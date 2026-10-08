@@ -60,6 +60,7 @@ Map<String, String> pendingModuleRecordToTableRow(
     'sr': '$sr',
     'cr': r.caseNumber.trim(),
     'sections': _sectionsLine(r),
+    'accused': r.accused.trim().isEmpty ? '—' : r.accused.trim(),
     'io': io.isEmpty ? '—' : io,
     'station': r.stationName.trim().isEmpty ? '—' : r.stationName.trim(),
     'head': _headLine(r),

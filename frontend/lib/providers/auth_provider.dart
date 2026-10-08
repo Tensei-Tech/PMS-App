@@ -664,6 +664,10 @@ class AuthProvider extends ChangeNotifier {
 
         notifyListeners();
         return null;
+      } else if (response.statusCode >= 500) {
+        _secureLog(
+            'Backend server error: ${response.statusCode} - ${response.body}');
+        return 'Server error (${response.statusCode}): Authentication service encountered an internal error. Please check backend server.';
       } else {
         final status = await _lockout.recordFailedAttempt();
         if (status.isLocked) {

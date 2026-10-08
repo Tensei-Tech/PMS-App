@@ -128,7 +128,8 @@ bool arrestedRecordMatchesDashboardCategory({
 }
 
 /// Non-closed, in category, has IO name, CC empty → IO Wise row.
-bool arrestedIoWiseEligibleInCategory(ModuleRecord r, String dashboardCategory) {
+bool arrestedIoWiseEligibleInCategory(
+    ModuleRecord r, String dashboardCategory) {
   if (r.moduleKey == 'nc') return false;
   if (isRecordDisposal(r)) return false;
   if (!arrestedRecordMatchesDashboardCategory(

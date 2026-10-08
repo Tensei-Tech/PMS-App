@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'form_image_pdf_helper.dart';
+import 'medical_376_form_pdf_v2.dart';
 
 // ── Dimensions ─────────────────────────────────────────────────────────────────
 const double _kW = 794.0; // A4 portrait width at 96 DPI
@@ -23,6 +24,13 @@ const double _kH = 1123.0; // A4 portrait height at 96 DPI
 // ── Public API ─────────────────────────────────────────────────────────────────
 
 Future<void> previewMedical376FormPdf(
+  BuildContext context,
+  Map<String, dynamic> doc,
+) async {
+  await previewMedical376FormPdfV2(context, doc);
+}
+
+Future<void> _oldPreviewMedical376FormPdf(
   BuildContext context,
   Map<String, dynamic> doc,
 ) async {
