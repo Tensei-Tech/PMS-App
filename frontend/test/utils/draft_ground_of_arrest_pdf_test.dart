@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:khakhi_diary/utils/draft_ground_of_arrest_pdf.dart';
 
@@ -101,6 +102,138 @@ void main() {
       final pdfBytes = await generateDraftGroundOfArrestPdf(doc);
       expect(pdfBytes, isNotNull);
       expect(pdfBytes.length, greaterThan(1000));
+    });
+    test('100+ char unbroken string (yeeeeee... and gggggg...) in address',
+        () async {
+      final yRun = 'y' * 120;
+      final gRun = 'g' * 110;
+      final doc = <String, dynamic>{
+        'accusedName': 'Test Accused',
+        'accusedAge': '२५',
+        'accusedAddress': yRun,
+        'relativeName': 'Test Relative',
+        'relativeAge': '५०',
+        'relativeAddress': gRun,
+      };
+
+      final pdfBytes = await generateDraftGroundOfArrestPdf(doc);
+      expect(pdfBytes, isNotNull);
+      expect(pdfBytes.length, greaterThan(1000));
+    });
+
+    test('Normal 3-4 line address with mixed Marathi and English', () async {
+      const multilineAddress =
+          'फ्लॅट नंबर ३०२, विनायक रेसिडेन्सी, प्लॉट नंबर ४५, '
+          'शिवाजी चौक, Near Old Water Tank, टिळक रोड, '
+          'पुणे शहर, महाराष्ट्र राज्य, ४११०३०';
+
+      final doc = <String, dynamic>{
+        'accusedName': 'महेश अशोक पाटील',
+        'accusedAge': '३२',
+        'accusedAddress': multilineAddress,
+        'relativeName': 'अशोक दत्तात्रय पाटील',
+        'relativeAge': '६०',
+        'relativeAddress': multilineAddress,
+      };
+
+      final pdfBytes = await generateDraftGroundOfArrestPdf(doc);
+      expect(pdfBytes, isNotNull);
+      expect(pdfBytes.length, greaterThan(1000));
+    });
+
+    test('1-line short address test', () async {
+      final doc = <String, dynamic>{
+        'accusedName': 'अमित काळे',
+        'accusedAge': '२२',
+        'accusedAddress': 'रा. हडपसर, पुणे',
+        'relativeName': 'सुनंदा काळे',
+        'relativeAge': '४५',
+        'relativeAddress': 'रा. हडपसर, पुणे',
+      };
+
+      final pdfBytes = await generateDraftGroundOfArrestPdf(doc);
+      expect(pdfBytes, isNotNull);
+      expect(pdfBytes.length, greaterThan(1000));
+    });
+
+    test(
+        'Zero-width space insertion breaks unbroken runs and preserves Devanagari marks',
+        () {
+      final yRun = 'y' * 100;
+      final processed = insertZeroWidthSpacesDraft(yRun);
+      expect(processed.contains('\u200B'), isTrue);
+
+      const marathiWord = 'महाराष्ट्र';
+      final marathiProcessed = insertZeroWidthSpacesDraft(marathiWord);
+      expect(marathiProcessed, equals('महाराष्ट्र'));
+    });
+
+    test(
+        'breakTextIntoLinesDraft splits 100+ unbroken string into multiple lines',
+        () {
+      final yRun = 'y' * 120;
+      const style = TextStyle(fontSize: 13.5);
+      final lines = breakTextIntoLinesDraft(
+        text: yRun,
+        style: style,
+        firstLineWidth: 250.0,
+        fullLineWidth: 500.0,
+      );
+
+      expect(lines.length, greaterThan(1));
+      for (final line in lines) {
+        expect(line.trim().isNotEmpty, isTrue);
+      }
+    });
+
+    testWidgets(
+        'buildAddressWithAgeBlockForTest renders 100+ unbroken address without overflow',
+        (tester) async {
+      final yRun = 'y' * 120;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 600,
+              child: buildAddressWithAgeBlockForTest(
+                age: '२५',
+                address: yRun,
+                labelStyle: const TextStyle(
+                    fontSize: 13.5, fontWeight: FontWeight.bold),
+                textStyle: const TextStyle(fontSize: 13.5),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.byType(Column), findsOneWidget);
+    });
+
+    testWidgets(
+        'buildAddressWithAgeBlockForTest renders 1-line short address as single row',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 600,
+              child: buildAddressWithAgeBlockForTest(
+                age: '२२',
+                address: 'रा. हडपसर, पुणे',
+                labelStyle: const TextStyle(
+                    fontSize: 13.5, fontWeight: FontWeight.bold),
+                textStyle: const TextStyle(fontSize: 13.5),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
     });
   });
 }
