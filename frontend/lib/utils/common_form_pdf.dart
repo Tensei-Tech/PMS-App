@@ -247,9 +247,12 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
 
   final bool isMurder = m['isMurderCase'] == true ||
       (m['deceased'] is Map &&
-          ((m['deceased'] as Map)['name']?.toString().trim().isNotEmpty == true ||
-           (m['deceased'] as Map)['mobile']?.toString().trim().isNotEmpty == true ||
-           (m['deceased'] as Map)['aadhaar']?.toString().trim().isNotEmpty == true));
+          ((m['deceased'] as Map)['name']?.toString().trim().isNotEmpty ==
+                  true ||
+              (m['deceased'] as Map)['mobile']?.toString().trim().isNotEmpty ==
+                  true ||
+              (m['deceased'] as Map)['aadhaar']?.toString().trim().isNotEmpty ==
+                  true));
   final bool isPocso = m['isPocsoCase'] == true;
 
   // ── §1 Crime Registration ─────────────────────────────────────────────────
@@ -717,7 +720,8 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
                       _f('Notice Date', _v(row['noticeDt'])),
                     if (_v(row['relOnNotice']).isNotEmpty)
                       _f('Released on Notice', _v(row['relOnNotice'])),
-                    _f('Wanted / Absconding Status', _v(row['wantedStatus'], or: 'Not Wanted')),
+                    _f('Wanted / Absconding Status',
+                        _v(row['wantedStatus'], or: 'Not Wanted')),
                     _f('Release Type', _v(row['releaseType'])),
                   ]),
                 );
@@ -832,7 +836,8 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
                     if (_v(s['custodyLoc']).isNotEmpty)
                       _f('Custody Location', _v(s['custodyLoc'])),
                     if (_v(s['seizureDetails']).isNotEmpty)
-                      _f('Seizure Details', _v(s['seizureDetails']), full: true),
+                      _f('Seizure Details', _v(s['seizureDetails']),
+                          full: true),
                   ]),
                 );
               }).toList(),

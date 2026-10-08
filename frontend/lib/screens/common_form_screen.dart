@@ -2083,9 +2083,10 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                                                               : CommonForm(
                                                                                   key: _formKey,
                                                                                   categoryId: widget.categoryId,
-                                                                                  moduleKey: widget.moduleKey,
                                                                                   moduleLabel: widget.moduleLabel,
-                                                                                                     ? KidnappingExtraFields(
+                                                                                  subCategory: widget.subCategory,
+                                                                                  middleSlot: _hasKidnappingExtras
+                                                                                      ? KidnappingExtraFields(
                                                                                           key: _kidnappingKey,
                                                                                           onActiveFieldTap: (label, ctrl, [section = '']) {
                                                                                             _formKey.currentState?.setActiveVoiceField(label, ctrl, section);
@@ -2109,7 +2110,8 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                                                                                       onActiveFieldTap: (label, ctrl, [section = '']) {
                                                                                                         _formKey.currentState?.setActiveVoiceField(label, ctrl, section);
                                                                                                       },
-                                                                                                   : null,
+                                                                                                    )
+                                                                                                  : null,
                                                                                 ),
       bottomNavigationBar: SafeArea(
         child: Padding(

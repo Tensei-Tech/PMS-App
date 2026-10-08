@@ -114,10 +114,7 @@ const List<Map<String, String>> kSandTheftSections = [
     'sec': '312',
     'desc': 'Attempt to commit robbery or dacoity when armed with deadly weapon'
   },
-  {
-    'sec': '313',
-    'desc': 'Punishment for belonging to gang of robbers, etc.'
-  },
+  {'sec': '313', 'desc': 'Punishment for belonging to gang of robbers, etc.'},
   {'sec': '314', 'desc': 'Dishonest misappropriation of property'},
   {
     'sec': '315',
@@ -313,12 +310,10 @@ class _SeizedVehicleEntry {
         '';
     vehicleName.text =
         m['vehicleName']?.toString() ?? m['name']?.toString() ?? '';
-    companyName.text = m['companyName']?.toString() ??
-        m['companyNameOther']?.toString() ??
-        '';
-    vehicleType.text = m['vehicleType']?.toString() ??
-        m['vehicleTypeOther']?.toString() ??
-        '';
+    companyName.text =
+        m['companyName']?.toString() ?? m['companyNameOther']?.toString() ?? '';
+    vehicleType.text =
+        m['vehicleType']?.toString() ?? m['vehicleTypeOther']?.toString() ?? '';
     ownerName.text = m['ownerName']?.toString() ?? '';
     ownerAddress.text = m['ownerAddress']?.toString() ?? '';
     driverName.text = m['driverName']?.toString() ?? '';
@@ -814,7 +809,8 @@ class SandTheftExtraFieldsState extends State<SandTheftExtraFields> {
                     TextFormField(
                       controller: v.vehicleName,
                       style: GoogleFonts.poppins(fontSize: 12),
-                      decoration: _dec('2. Name of Vehicle (e.g. Tipper Truck)'),
+                      decoration:
+                          _dec('2. Name of Vehicle (e.g. Tipper Truck)'),
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -1046,9 +1042,7 @@ class SandTheftExtraFieldsState extends State<SandTheftExtraFields> {
             Text(
               'No sections added. Choose from dropdown above.',
               style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  color: _kSec,
-                  fontStyle: FontStyle.italic),
+                  fontSize: 11, color: _kSec, fontStyle: FontStyle.italic),
             )
           else
             Wrap(
@@ -1080,7 +1074,8 @@ class SandTheftExtraFieldsState extends State<SandTheftExtraFields> {
                       ),
                       const SizedBox(width: 6),
                       InkWell(
-                        onTap: () => setState(() => _selectedSections.remove(sec)),
+                        onTap: () =>
+                            setState(() => _selectedSections.remove(sec)),
                         child: const Icon(Icons.close, size: 14, color: _kRed),
                       ),
                     ],

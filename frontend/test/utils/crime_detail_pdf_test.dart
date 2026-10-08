@@ -159,7 +159,9 @@ void main() {
       },
     );
 
-    test('generateCrimeDetailPdf handles multiline and long unspaced text gracefully', () async {
+    test(
+        'generateCrimeDetailPdf handles multiline and long unspaced text gracefully',
+        () async {
       final longUnbroken = 'w' * 120;
       const multilineText = 'Line 1 Act\nLine 2 Act\nLine 3 Act';
       final doc = {
@@ -179,7 +181,9 @@ void main() {
       expect(pdfBytes, isNotEmpty);
     });
 
-    test('generatePropertySeizurePdf handles multiline text and long strings gracefully', () async {
+    test(
+        'generatePropertySeizurePdf handles multiline text and long strings gracefully',
+        () async {
       final longUnbroken = 'w' * 150;
       final doc = {
         'district': 'Pune',
@@ -198,7 +202,8 @@ void main() {
       expect(pdfBytes, isNotEmpty);
     });
 
-    test('generateArrestSurrenderPdf handles multiline fields gracefully', () async {
+    test('generateArrestSurrenderPdf handles multiline fields gracefully',
+        () async {
       final longUnbroken = 'w' * 120;
       final doc = {
         'courtName': 'District Court Pune - Additional Sessions Judge Court 4',
@@ -213,4 +218,3 @@ void main() {
     });
   });
 }
-

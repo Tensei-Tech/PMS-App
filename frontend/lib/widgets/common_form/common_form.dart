@@ -260,6 +260,47 @@ class CommonFormState extends State<CommonForm> {
     return false;
   }
 
+  bool get _isMurderCase {
+    if (widget.isMurder == true) return true;
+    final sub = (widget.subCategory ?? '').toLowerCase();
+    final mod = (widget.moduleKey ?? '').toLowerCase();
+    if (sub.contains('murder') || mod.contains('murder')) {
+      if (!sub.contains('attempt') && !mod.contains('attempt')) return true;
+    }
+
+    for (final charge in _chargeData.values) {
+      final act = charge['act']?.toString() ?? '';
+      final secs = (charge['sections'] as Set<String>?) ?? {};
+      for (final s in secs) {
+        if (s == '101' ||
+            s == '103' ||
+            s == '104' ||
+            s == '105' ||
+            s == '300' ||
+            s == '302' ||
+            s == '303' ||
+            s == '304') {
+          return true;
+        }
+        final label = _secLabel(act, s).toLowerCase();
+        if ((label.contains('murder') && !label.contains('attempt')) ||
+            label.contains('culpable homicide') ||
+            label.contains('death by negligence') ||
+            label.contains('dowry death')) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  bool get _isPocsoCase {
+    final key = (widget.moduleKey ?? '').trim().toLowerCase();
+    final sub = (widget.subCategory ?? '').trim().toLowerCase();
+    final label = (widget.moduleLabel ?? '').trim().toLowerCase();
+    return key == 'pocso' || sub.contains('pocso') || label.contains('pocso');
+  }
+
   bool get _isVoiceEnabled {
     final key = (widget.moduleKey ?? '').trim().toLowerCase();
     final sub = (widget.subCategory ?? '').trim().toLowerCase();
@@ -1705,6 +1746,7 @@ class CommonFormState extends State<CommonForm> {
         'appGrant': _appGrant.text,
         'stepAppActive': _stepApp,
         'stepDcpActive': _stepDcp,
+      },
       'isMurderCase': _isMurderCase,
       'isPocsoCase': _isPocsoCase,
       'dynamic_extra_fields': {
