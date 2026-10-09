@@ -680,7 +680,11 @@ class CommonFormDocumentView extends StatelessWidget {
               children: secs
                   .map(
                     (s) => Chip(
-                      label: Text('§$s'),
+                      label: Text(
+                        s.trim().toLowerCase().startsWith('sec')
+                            ? s.trim()
+                            : 'Sec. ${s.trim()}',
+                      ),
                       visualDensity: VisualDensity.compact,
                       labelStyle: GoogleFonts.poppins(
                         fontSize: 11,

@@ -1586,7 +1586,9 @@ pw.Widget _chargeBlock(int num, String act, List<String> secs) => pw.Container(
                             border: pw.Border.all(color: _teal, width: 0.8),
                           ),
                           child: pw.Text(
-                            '§$s',
+                            s.trim().toLowerCase().startsWith('sec')
+                                ? s.trim()
+                                : 'Sec. ${s.trim()}',
                             style: pw.TextStyle(
                               fontSize: 9,
                               fontWeight: pw.FontWeight.bold,

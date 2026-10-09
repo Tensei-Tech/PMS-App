@@ -652,11 +652,23 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             values: _values,
             onValueChanged: (k, v) => setState(() => _values[k] = v),
             readOnly: widget.readOnly,
-            isCollapsible: false,
+            isCollapsible: true,
+            initiallyExpanded: accusedOptions.isNotEmpty,
             customBody: accusedOptions.isEmpty
-                ? const SizedBox.shrink()
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 14),
+                    child: Text(
+                      'No accused added yet. Please add an Accused or Suspect in Section 5 or 6 first to enter arrest details.',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                        color: AppColors.lightSubText,
+                      ),
+                    ),
+                  )
                 : Padding(
-                    padding: const EdgeInsets.only(top: 16),
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
                     child: Column(
                       children: accusedOptions.asMap().entries.map((entry) {
                         final index = entry.key;
@@ -688,11 +700,23 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             values: _values,
             onValueChanged: (k, v) => setState(() => _values[k] = v),
             readOnly: widget.readOnly,
-            isCollapsible: false,
+            isCollapsible: true,
+            initiallyExpanded: accusedOptions.isNotEmpty,
             customBody: accusedOptions.isEmpty
-                ? const SizedBox.shrink()
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 14),
+                    child: Text(
+                      'No accused added yet. Please add an Accused or Suspect in Section 5 or 6 first to enter custody details.',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                        color: AppColors.lightSubText,
+                      ),
+                    ),
+                  )
                 : Padding(
-                    padding: const EdgeInsets.only(top: 16),
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
                     child: Column(
                       children: accusedOptions.asMap().entries.map((entry) {
                         final index = entry.key;
@@ -1292,20 +1316,64 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       if (raw == null) return;
       final t = raw.trim();
       if (t.isEmpty) return;
+      final lower = t.toLowerCase();
+      if (lower == 'true' ||
+          lower == 'false' ||
+          lower == 'null' ||
+          lower == 'none' ||
+          lower == 'undefined' ||
+          lower == '—' ||
+          lower == '-') {
+        return;
+      }
       if (t.contains(',')) {
         for (final p in t.split(',')) {
           final s = p.trim();
-          if (s.isNotEmpty) names.add(s);
+          final sLower = s.toLowerCase();
+          if (s.isNotEmpty &&
+              sLower != 'true' &&
+              sLower != 'false' &&
+              sLower != 'null' &&
+              sLower != 'none') {
+            names.add(s);
+          }
         }
       } else {
         names.add(t);
       }
     }
 
+    // From dynamic form values: accused_list and suspected_accused_list
+    final accListVal = _values['accused_list'];
+    if (accListVal is List) {
+      for (final item in accListVal) {
+        if (item is Map) {
+          addName(item['name']?.toString() ?? item['accused_name']?.toString());
+        } else if (item is String) {
+          addName(item);
+        }
+      }
+    }
+    final suspListVal = _values['suspected_accused_list'];
+    if (suspListVal is List) {
+      for (final item in suspListVal) {
+        if (item is Map) {
+          addName(item['name']?.toString() ?? item['suspect_name']?.toString());
+        } else if (item is String) {
+          addName(item);
+        }
+      }
+    }
+
     // From current form controllers
     for (final entry in _controllers.entries) {
       final k = entry.key.toLowerCase();
-      if (k.contains('accused') && !k.contains('discharge')) {
+      if (k.contains('accused') &&
+          !k.contains('discharge') &&
+          !k.contains('is_') &&
+          !k.contains('unknown') &&
+          !k.contains('flag') &&
+          !k.contains('check')) {
         addName(entry.value.text);
       }
     }
@@ -1792,9 +1860,16 @@ class _ArrestPerAccusedBlockState extends State<_ArrestPerAccusedBlock> {
 
   void _onRadioChanged(String selectedKey) {
     setState(() {
-      widget.values[kRelease] = (selectedKey == kRelease);
-      widget.values[kAnticipatory] = (selectedKey == kAnticipatory);
-      widget.values[kDeath] = (selectedKey == kDeath);
+      final wasSelected = widget.values[selectedKey] == true;
+      if (wasSelected) {
+        widget.values[kRelease] = false;
+        widget.values[kAnticipatory] = false;
+        widget.values[kDeath] = false;
+      } else {
+        widget.values[kRelease] = (selectedKey == kRelease);
+        widget.values[kAnticipatory] = (selectedKey == kAnticipatory);
+        widget.values[kDeath] = (selectedKey == kDeath);
+      }
 
       widget.onValueChanged(kRelease, widget.values[kRelease]);
       widget.onValueChanged(kAnticipatory, widget.values[kAnticipatory]);
@@ -1816,17 +1891,34 @@ class _ArrestPerAccusedBlockState extends State<_ArrestPerAccusedBlock> {
         children: [
           InkWell(
             onTap: () => setState(() => _expanded = !_expanded),
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(11),
+              topRight: const Radius.circular(11),
+              bottomLeft: Radius.circular(_expanded ? 0 : 11),
+              bottomRight: Radius.circular(_expanded ? 0 : 11),
+            ),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: const BoxDecoration(
-                color: Color(0xFFE1F5FE),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0F9FF),
                 borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(11),
-                    topRight: Radius.circular(11)),
+                  topLeft: const Radius.circular(11),
+                  topRight: const Radius.circular(11),
+                  bottomLeft: Radius.circular(_expanded ? 0 : 11),
+                  bottomRight: Radius.circular(_expanded ? 0 : 11),
+                ),
+                border: Border(
+                  bottom: BorderSide(
+                    color: _expanded
+                        ? const Color(0xFFBAE6FD)
+                        : Colors.transparent,
+                  ),
+                ),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.person, color: Color(0xFF0288D1), size: 20),
+                  const Icon(Icons.person_rounded,
+                      color: Color(0xFF0288D1), size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -1931,11 +2023,37 @@ class _ArrestPerAccusedBlockState extends State<_ArrestPerAccusedBlock> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  _buildRadioButton('Release on notice (✓)', kRelease),
-                  const SizedBox(height: 8),
-                  _buildRadioButton('Anticipatory bail (✓)', kAnticipatory),
-                  const SizedBox(height: 8),
-                  _buildRadioButton('Death of Accused (✓)', kDeath),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isWide = constraints.maxWidth > 580;
+                      if (isWide) {
+                        return Row(
+                          children: [
+                            Expanded(
+                                child: _buildRadioButton(
+                                    'Release on notice', kRelease)),
+                            const SizedBox(width: 12),
+                            Expanded(
+                                child: _buildRadioButton(
+                                    'Anticipatory bail', kAnticipatory)),
+                            const SizedBox(width: 12),
+                            Expanded(
+                                child: _buildRadioButton(
+                                    'Death of Accused', kDeath)),
+                          ],
+                        );
+                      }
+                      return Column(
+                        children: [
+                          _buildRadioButton('Release on notice', kRelease),
+                          const SizedBox(height: 8),
+                          _buildRadioButton('Anticipatory bail', kAnticipatory),
+                          const SizedBox(height: 8),
+                          _buildRadioButton('Death of Accused', kDeath),
+                        ],
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -1948,12 +2066,17 @@ class _ArrestPerAccusedBlockState extends State<_ArrestPerAccusedBlock> {
     final isSelected = widget.values[key] == true;
     return InkWell(
       onTap: widget.readOnly ? null : () => _onRadioChanged(key),
+      borderRadius: BorderRadius.circular(8),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isSelected ? const Color(0xFFF0F9FF) : Colors.white,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(
+            color:
+                isSelected ? const Color(0xFF0288D1) : const Color(0xFFE2E8F0),
+            width: isSelected ? 1.5 : 1.0,
+          ),
         ),
         child: Row(
           children: [
@@ -1964,16 +2087,18 @@ class _ArrestPerAccusedBlockState extends State<_ArrestPerAccusedBlock> {
               color: isSelected
                   ? const Color(0xFF0288D1)
                   : const Color(0xFF94A3B8),
-              size: 20,
+              size: 18,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Expanded(
               child: Text(
                 label,
                 style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: const Color(0xFF475569),
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected
+                      ? const Color(0xFF0369A1)
+                      : const Color(0xFF334155),
                 ),
               ),
             ),
@@ -1994,30 +2119,39 @@ class _ArrestPerAccusedBlockState extends State<_ArrestPerAccusedBlock> {
                 widget.onValueChanged(key, widget.values[key]);
               });
             },
+      borderRadius: BorderRadius.circular(8),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isSelected ? const Color(0xFFF0F9FF) : Colors.white,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(
+            color:
+                isSelected ? const Color(0xFF0288D1) : const Color(0xFFE2E8F0),
+            width: isSelected ? 1.5 : 1.0,
+          ),
         ),
         child: Row(
           children: [
             Icon(
-              isSelected ? Icons.check_box : Icons.check_box_outline_blank,
+              isSelected
+                  ? Icons.check_box_rounded
+                  : Icons.check_box_outline_blank_rounded,
               color: isSelected
                   ? const Color(0xFF0288D1)
                   : const Color(0xFF94A3B8),
               size: 20,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Expanded(
               child: Text(
                 label,
                 style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: const Color(0xFF475569),
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected
+                      ? const Color(0xFF0369A1)
+                      : const Color(0xFF334155),
                 ),
               ),
             ),
@@ -2275,25 +2409,42 @@ class _CustodyPerAccusedBlockState extends State<_CustodyPerAccusedBlock> {
         children: [
           InkWell(
             onTap: () => setState(() => _expanded = !_expanded),
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(11),
+              topRight: const Radius.circular(11),
+              bottomLeft: Radius.circular(_expanded ? 0 : 11),
+              bottomRight: Radius.circular(_expanded ? 0 : 11),
+            ),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: const BoxDecoration(
-                color: Color(0xFFF8FAFC),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0F9FF),
                 borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(11),
-                    topRight: Radius.circular(11)),
+                  topLeft: const Radius.circular(11),
+                  topRight: const Radius.circular(11),
+                  bottomLeft: Radius.circular(_expanded ? 0 : 11),
+                  bottomRight: Radius.circular(_expanded ? 0 : 11),
+                ),
+                border: Border(
+                  bottom: BorderSide(
+                    color: _expanded
+                        ? const Color(0xFFBAE6FD)
+                        : Colors.transparent,
+                  ),
+                ),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.person, color: Color(0xFF475569), size: 20),
+                  const Icon(Icons.person_rounded,
+                      color: Color(0xFF0288D1), size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      widget.accusedName,
+                      'Accused: ${widget.accusedName}',
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF334155),
+                        color: const Color(0xFF0288D1),
                       ),
                     ),
                   ),
@@ -2301,7 +2452,7 @@ class _CustodyPerAccusedBlockState extends State<_CustodyPerAccusedBlock> {
                     _expanded
                         ? Icons.keyboard_arrow_up
                         : Icons.keyboard_arrow_down,
-                    color: const Color(0xFF475569),
+                    color: const Color(0xFF0288D1),
                   ),
                 ],
               ),
@@ -2397,11 +2548,35 @@ class _CustodyPerAccusedBlockState extends State<_CustodyPerAccusedBlock> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 16),
-                        _buildRadioButton('PR bond', kPrBond),
-                        const SizedBox(height: 8),
-                        _buildRadioButton('Jail', kJail),
-                        const SizedBox(height: 8),
-                        _buildRadioButton('Bail', kBail),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final isWide = constraints.maxWidth > 580;
+                            if (isWide) {
+                              return Row(
+                                children: [
+                                  Expanded(
+                                      child: _buildRadioButton(
+                                          'PR bond', kPrBond)),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                      child: _buildRadioButton('Jail', kJail)),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                      child: _buildRadioButton('Bail', kBail)),
+                                ],
+                              );
+                            }
+                            return Column(
+                              children: [
+                                _buildRadioButton('PR bond', kPrBond),
+                                const SizedBox(height: 8),
+                                _buildRadioButton('Jail', kJail),
+                                const SizedBox(height: 8),
+                                _buildRadioButton('Bail', kBail),
+                              ],
+                            );
+                          },
+                        ),
                         if (isBailSelected)
                           Container(
                             margin: const EdgeInsets.only(top: 16),

@@ -10,6 +10,7 @@ import '../modules/form_vi/providers/form_vi_provider.dart';
 import '../services/case_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/category_navigation_helper.dart';
+import '../utils/category_icon_helper.dart';
 import '../utils/common_form_module.dart';
 import '../utils/module_pdf_helper.dart';
 import '../utils/pdf_auth_gate.dart';
@@ -1090,15 +1091,20 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                       : AppColors.navyMid,
                 ),
                 const SizedBox(width: 6),
-                Text(
-                  dateText,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight:
-                        hasDateFilter ? FontWeight.w600 : FontWeight.w500,
-                    color: hasDateFilter
-                        ? const Color(0xFF1976D2)
-                        : AppColors.navyDark,
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 110),
+                  child: Text(
+                    dateText,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight:
+                          hasDateFilter ? FontWeight.w600 : FontWeight.w500,
+                      color: hasDateFilter
+                          ? const Color(0xFF1976D2)
+                          : AppColors.navyDark,
+                    ),
                   ),
                 ),
                 if (hasDateFilter) ...[
@@ -1690,8 +1696,8 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
               ),
             ] else ...[
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
+                padding: EdgeInsets.symmetric(
+                  horizontal: MediaQuery.of(context).size.width < 600 ? 12 : 16,
                   vertical: 8,
                 ),
                 decoration: const BoxDecoration(
@@ -1699,16 +1705,60 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                   border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
                 ),
                 width: double.infinity,
-                child: Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  alignment: WrapAlignment.spaceBetween,
-                  children: [
-                    Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
-                      crossAxisAlignment: WrapCrossAlignment.center,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isMobile = constraints.maxWidth < 650;
+
+                    if (isMobile) {
+                      return Row(
+                        children: [
+                          InkWell(
+                            onTap: _handleBackNavigation,
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(8),
+                                border:
+                                    Border.all(color: const Color(0xFFCBD5E1)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.arrow_back_rounded,
+                                    size: 14,
+                                    color: AppColors.navyDark,
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    TranslationHelper.translate(
+                                      context,
+                                      _categoryBreadcrumb.isNotEmpty
+                                          ? _categoryBreadcrumb.last
+                                          : 'Categories',
+                                    ),
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.navyDark,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                          _buildDateAndSortControls(),
+                        ],
+                      );
+                    }
+
+                    return Row(
                       children: [
                         InkWell(
                           onTap: _handleBackNavigation,
@@ -1750,33 +1800,69 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                             ),
                           ),
                         ),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    _categoryBreadcrumb.clear();
-                                    _selectedCategory = null;
-                                  });
-                                },
-                                child: Text(
-                                  TranslationHelper.translate(
-                                    context,
-                                    'Form VI',
-                                  ),
-                                  style: GoogleFonts.poppins(
-                                    color: const Color(0xFF1976D2),
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w500,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      _categoryBreadcrumb.clear();
+                                      _selectedCategory = null;
+                                    });
+                                  },
+                                  child: Text(
+                                    TranslationHelper.translate(
+                                      context,
+                                      'Form VI',
+                                    ),
+                                    style: GoogleFonts.poppins(
+                                      color: const Color(0xFF1976D2),
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              for (int i = 0;
-                                  i < _categoryBreadcrumb.length;
-                                  i++) ...[
+                                for (int i = 0;
+                                    i < _categoryBreadcrumb.length;
+                                    i++) ...[
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6),
+                                    child: Text(
+                                      '/',
+                                      style: GoogleFonts.poppins(
+                                        color: AppColors.lightSubText,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                  InkWell(
+                                    onTap: () {
+                                      setState(() {
+                                        _categoryBreadcrumb.removeRange(
+                                          i + 1,
+                                          _categoryBreadcrumb.length,
+                                        );
+                                        _selectedCategory = null;
+                                      });
+                                    },
+                                    child: Text(
+                                      TranslationHelper.translate(
+                                        context,
+                                        _categoryBreadcrumb[i],
+                                      ),
+                                      style: GoogleFonts.poppins(
+                                        color: const Color(0xFF1976D2),
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                                 Padding(
                                   padding:
                                       const EdgeInsets.symmetric(horizontal: 6),
@@ -1788,79 +1874,47 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                                     ),
                                   ),
                                 ),
-                                InkWell(
-                                  onTap: () {
-                                    setState(() {
-                                      _categoryBreadcrumb.removeRange(
-                                        i + 1,
-                                        _categoryBreadcrumb.length,
-                                      );
-                                      _selectedCategory = null;
-                                    });
-                                  },
-                                  child: Text(
-                                    TranslationHelper.translate(
-                                      context,
-                                      _categoryBreadcrumb[i],
+                                Text(
+                                  TranslationHelper.translate(
+                                    context,
+                                    _selectedCategory!,
+                                  ),
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.navyDark,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE8F1FC),
+                                    borderRadius: BorderRadius.circular(
+                                      AppRadius.full,
                                     ),
+                                  ),
+                                  child: Text(
+                                    '${visibleRecords.length}',
                                     style: GoogleFonts.poppins(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
                                       color: const Color(0xFF1976D2),
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ),
                               ],
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 6),
-                                child: Text(
-                                  '/',
-                                  style: GoogleFonts.poppins(
-                                    color: AppColors.lightSubText,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ),
-                              Text(
-                                TranslationHelper.translate(
-                                  context,
-                                  _selectedCategory!,
-                                ),
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.navyDark,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFE8F1FC),
-                                  borderRadius: BorderRadius.circular(
-                                    AppRadius.full,
-                                  ),
-                                ),
-                                child: Text(
-                                  '${visibleRecords.length}',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: const Color(0xFF1976D2),
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
+                        const SizedBox(width: 12),
+                        _buildDateAndSortControls(),
                       ],
-                    ),
-                    _buildDateAndSortControls(),
-                  ],
+                    );
+                  },
                 ),
               ),
               if (_selectedDateRange != null)
@@ -1879,10 +1933,14 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                         key: PageStorageKey(
                           'category_${_selectedCategory}_${_selectedStatusTab.name}',
                         ),
-                        padding: const EdgeInsets.fromLTRB(
-                          AppSpacing.lg,
+                        padding: EdgeInsets.fromLTRB(
+                          MediaQuery.of(context).size.width < 600
+                              ? 12
+                              : AppSpacing.lg,
                           AppSpacing.sm,
-                          AppSpacing.lg,
+                          MediaQuery.of(context).size.width < 600
+                              ? 12
+                              : AppSpacing.lg,
                           88,
                         ),
                         itemCount: visibleRecords.length,
@@ -2088,27 +2146,7 @@ class _CategoryGridView extends StatelessWidget {
   }
 
   IconData _iconForCategory(String category) {
-    switch (category.toLowerCase()) {
-      case 'st drugs':
-      case 'ndps':
-        return Icons.medication_outlined;
-      case 'prohibition':
-        return Icons.local_bar_outlined;
-      case 'gambling':
-        return Icons.casino_outlined;
-      case 'pocso':
-        return Icons.escalator_warning_outlined;
-      case 'gowans':
-        return Icons.pets_outlined;
-      case 'it act':
-        return Icons.computer_outlined;
-      case 'm.v act':
-        return Icons.directions_car_outlined;
-      case 'uapa':
-        return Icons.gavel_outlined;
-      default:
-        return Icons.folder_outlined;
-    }
+    return CategoryIconHelper.getIcon(category);
   }
 
   @override
@@ -2133,7 +2171,10 @@ class _CategoryGridView extends StatelessWidget {
 
         return _CategoryGridCard(
           category: transCategory,
-          icon: isAll ? Icons.ballot_outlined : _iconForCategory(category),
+          rawCategory: category,
+          icon: isAll
+              ? CategoryIconHelper.getIcon('all')
+              : _iconForCategory(category),
           count: count,
           isAll: isAll,
           onTap: () => onCategorySelected(category),
@@ -2146,6 +2187,7 @@ class _CategoryGridView extends StatelessWidget {
 class _CategoryGridCard extends StatefulWidget {
   const _CategoryGridCard({
     required this.category,
+    this.rawCategory,
     required this.icon,
     required this.count,
     required this.isAll,
@@ -2153,6 +2195,7 @@ class _CategoryGridCard extends StatefulWidget {
   });
 
   final String category;
+  final String? rawCategory;
   final IconData icon;
   final int count;
   final bool isAll;
@@ -2212,9 +2255,11 @@ class _CategoryGridCardState extends State<_CategoryGridCard> {
                               : const Color(0xFFF1F5F9)),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(
-                      widget.icon,
-                      size: 20,
+                    child: CategoryIconHelper.buildWidget(
+                      widget.isAll
+                          ? 'all'
+                          : (widget.rawCategory ?? widget.category),
+                      size: 22,
                       color: widget.isAll
                           ? const Color(0xFF1976D2)
                           : (hasCases
@@ -3245,65 +3290,90 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
     required Color statusColor,
     required ModuleRecord record,
   }) {
+    final hasSection = sectionAct.isNotEmpty && sectionAct != '—';
+    final hasAccused = accusedName.isNotEmpty && accusedName != '—';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
+        // Row 1: CR Badge + Category Tag (Flexible) | Status Badge
         Row(
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: const Color(0xFFCBD5E1)),
-              ),
+            Expanded(
               child: Row(
-                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    'CR ',
-                    style: GoogleFonts.poppins(
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF64748B),
+                  Flexible(
+                    fit: FlexFit.loose,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 3.5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: const Color(0xFFCBD5E1)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'CR ',
+                            style: GoogleFonts.poppins(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF64748B),
+                            ),
+                          ),
+                          Flexible(
+                            child: Text(
+                              crNo,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.poppins(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF0F172A),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  Text(
-                    crNo,
-                    style: GoogleFonts.poppins(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF0F172A),
+                  if (categoryLabel.isNotEmpty) ...[
+                    const SizedBox(width: 6),
+                    Flexible(
+                      fit: FlexFit.loose,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 7, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.goldPrimary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color:
+                                AppColors.goldPrimary.withValues(alpha: 0.35),
+                          ),
+                        ),
+                        child: Text(
+                          categoryLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.poppins(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.goldPrimary,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
-            if (categoryLabel.isNotEmpty) ...[
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                decoration: BoxDecoration(
-                  color: AppColors.goldPrimary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: AppColors.goldPrimary.withValues(alpha: 0.35),
-                  ),
-                ),
-                child: Text(
-                  categoryLabel,
-                  style: GoogleFonts.poppins(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.goldPrimary,
-                  ),
-                ),
-              ),
-            ],
-            const Spacer(),
+            const SizedBox(width: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
                 color: statusColor.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(6),
@@ -3320,68 +3390,108 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
             ),
           ],
         ),
+
         const SizedBox(height: 8),
+
+        // Row 2: Accused Name + Incident Date
         Row(
           children: [
+            const Icon(
+              Icons.person_outline_rounded,
+              size: 14,
+              color: Color(0xFF64748B),
+            ),
+            const SizedBox(width: 4),
             Expanded(
               child: Text(
-                'Sec: $sectionAct',
+                hasAccused ? 'Accused: $accusedName' : 'Accused: —',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  color: const Color(0xFF475569),
+                  fontSize: 11.5,
+                  fontWeight: hasAccused ? FontWeight.w600 : FontWeight.w400,
+                  color: hasAccused
+                      ? const Color(0xFF0F172A)
+                      : const Color(0xFF94A3B8),
                 ),
               ),
             ),
             const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Accused: $accusedName',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF0F172A),
-                ),
-              ),
+            const Icon(
+              Icons.calendar_today_outlined,
+              size: 12,
+              color: Color(0xFF94A3B8),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 4),
             Text(
               crimeDate,
               style: GoogleFonts.poppins(
                 fontSize: 11,
+                fontWeight: FontWeight.w500,
                 color: const Color(0xFF64748B),
               ),
             ),
           ],
         ),
+
         const SizedBox(height: 8),
+
+        // Row 3: Section / Act (Left) + Actions (Right)
         Row(
-          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            if (!widget.readOnly) ...[
-              _buildCompactActionButton(
-                icon: Icons.edit_outlined,
-                label: 'Edit',
-                onTap: widget.onEdit,
+            Expanded(
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.gavel_rounded,
+                    size: 12.5,
+                    color: Color(0xFF94A3B8),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      hasSection ? 'Sec: $sectionAct' : 'Sec: —',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: hasSection
+                            ? const Color(0xFF334155)
+                            : const Color(0xFF94A3B8),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 6),
-            ],
-            _buildCompactActionButton(
-              icon: Icons.visibility_outlined,
-              label: 'View',
-              onTap: widget.onView,
             ),
-            const SizedBox(width: 6),
-            _buildCompactActionButton(
-              icon: Icons.picture_as_pdf_outlined,
-              label: 'PDF',
-              onTap: () => runWithPdfAuthGate(
-                context,
-                () => ModulePdfHelper.generatePdf(record),
-              ),
+            const SizedBox(width: 8),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (!widget.readOnly) ...[
+                  _buildCompactActionButton(
+                    icon: Icons.edit_outlined,
+                    label: 'Edit',
+                    onTap: widget.onEdit,
+                  ),
+                  const SizedBox(width: 6),
+                ],
+                _buildCompactActionButton(
+                  icon: Icons.visibility_outlined,
+                  label: 'View',
+                  onTap: widget.onView,
+                ),
+                const SizedBox(width: 6),
+                _buildCompactActionButton(
+                  icon: Icons.picture_as_pdf_outlined,
+                  label: 'PDF',
+                  onTap: () => runWithPdfAuthGate(
+                    context,
+                    () => ModulePdfHelper.generatePdf(record),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

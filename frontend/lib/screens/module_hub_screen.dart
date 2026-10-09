@@ -498,7 +498,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     if (widget.moduleKey == 'pending') {
       // Aggregate across ALL categories and show only active (non-disposed) cases
       final consolidated = _getConsolidatedRecords(context);
-      allRecords = consolidated.where((r) => isRecordPending(r) && r.moduleKey != 'nc').toList();
+      allRecords = consolidated
+          .where((r) => isRecordPending(r) && r.moduleKey != 'nc')
+          .toList();
       totalCount = allRecords.length;
     } else if (widget.moduleKey == 'disposal') {
       // Aggregate across ALL categories and show only disposal/closed cases
@@ -522,7 +524,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
       final recordsList = combined.values.toList();
       if (widget.subCategory != null && widget.subCategory!.isNotEmpty) {
-        allRecords = recordsList.where((r) => r.subCategory == widget.subCategory).toList();
+        allRecords = recordsList
+            .where((r) => r.subCategory == widget.subCategory)
+            .toList();
       } else {
         allRecords = recordsList;
       }
@@ -547,20 +551,30 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     final List<ModuleRecord> filtered;
     // Filtering logic combined
     if (widget.moduleKey == 'absconded') {
-      if (_filter == 'Disposal' || _filter == 'Closed' || _filter == 'Resolved') {
+      if (_filter == 'Disposal' ||
+          _filter == 'Closed' ||
+          _filter == 'Resolved') {
         filtered = allRecords.where((r) => isAbscondedDisposal(r)).toList();
-      } else if (_filter == 'Pending' || _filter == 'Open' || _filter == 'Active') {
+      } else if (_filter == 'Pending' ||
+          _filter == 'Open' ||
+          _filter == 'Active') {
         filtered = allRecords.where((r) => !isAbscondedDisposal(r)).toList();
       } else {
         filtered = allRecords;
       }
     } else {
-      if (_filter == 'Disposal' || _filter == 'Closed' || _filter == 'Resolved') {
+      if (_filter == 'Disposal' ||
+          _filter == 'Closed' ||
+          _filter == 'Resolved') {
         filtered = allRecords.where(isRecordDisposal).toList();
-      } else if (_filter == 'Pending' || _filter == 'Open' || _filter == 'Active') {
+      } else if (_filter == 'Pending' ||
+          _filter == 'Open' ||
+          _filter == 'Active') {
         filtered = allRecords.where(isRecordPending).toList();
       } else {
-        filtered = _filter == 'All' ? allRecords : allRecords.where((r) => r.status == _filter).toList();
+        filtered = _filter == 'All'
+            ? allRecords
+            : allRecords.where((r) => r.status == _filter).toList();
       }
     }
 
@@ -594,15 +608,24 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           59,
         );
         displayRecords = displayRecords.where((r) {
-          final targetDate = _dateField == FormIVDateField.incidentDate ? r.incidentDate : r.createdAt;
-          return targetDate.isAfter(start.subtract(const Duration(seconds: 1))) &
+          final targetDate = _dateField == FormIVDateField.incidentDate
+              ? r.incidentDate
+              : r.createdAt;
+          return targetDate
+                  .isAfter(start.subtract(const Duration(seconds: 1))) &
               targetDate.isBefore(end.add(const Duration(seconds: 1)));
         }).toList();
       }
       displayRecords.sort((a, b) {
-        final dateA = _dateField == FormIVDateField.incidentDate ? a.incidentDate : a.createdAt;
-        final dateB = _dateField == FormIVDateField.incidentDate ? b.incidentDate : b.createdAt;
-        return _dateSortOrder == FormIVDateSortOrder.newestFirst ? dateB.compareTo(dateA) : dateA.compareTo(dateB);
+        final dateA = _dateField == FormIVDateField.incidentDate
+            ? a.incidentDate
+            : a.createdAt;
+        final dateB = _dateField == FormIVDateField.incidentDate
+            ? b.incidentDate
+            : b.createdAt;
+        return _dateSortOrder == FormIVDateSortOrder.newestFirst
+            ? dateB.compareTo(dateA)
+            : dateA.compareTo(dateB);
       });
     }
 
@@ -639,28 +662,36 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               slivers: [
                 if (widget.moduleKey == 'monthly') ...[
                   // Monthly module is report-only (no records section).
-                  SliverToBoxAdapter(child: _buildMonthlyReport(context, allRecords)),
+                  SliverToBoxAdapter(
+                      child: _buildMonthlyReport(context, allRecords)),
                 ] else if (widget.moduleKey == 'pending') ...[
-                  SliverToBoxAdapter(child: _buildPendingModuleReportOnly(context)),
-                ] else if (widget.moduleLabel == 'Forms' && widget.moduleKey == 'form_1_5') ...[
-                  SliverToBoxAdapter(child: _buildFormsModuleReportOnly(context)),
+                  SliverToBoxAdapter(
+                      child: _buildPendingModuleReportOnly(context)),
+                ] else if (widget.moduleLabel == 'Forms' &&
+                    widget.moduleKey == 'form_1_5') ...[
+                  SliverToBoxAdapter(
+                      child: _buildFormsModuleReportOnly(context)),
                 ] else ...[
-                  if (widget.moduleKey == 'disposal') SliverToBoxAdapter(child: _buildModuleTabs()),
+                  if (widget.moduleKey == 'disposal')
+                    SliverToBoxAdapter(child: _buildModuleTabs()),
                   if (_isReportMode && widget.moduleKey == 'disposal')
-                    SliverToBoxAdapter(child: _buildMonthlyReport(context, allRecords))
+                    SliverToBoxAdapter(
+                        child: _buildMonthlyReport(context, allRecords))
                   else ...[
                     if (displayRecords.isEmpty)
                       SliverToBoxAdapter(
                         child: isTheftOrFormIVStyle
                             ? FormIVEmptyCasesState(
-                                category: (widget.subCategory != null && widget.subCategory!.isNotEmpty)
+                                category: (widget.subCategory != null &&
+                                        widget.subCategory!.isNotEmpty)
                                     ? widget.subCategory!
                                     : widget.moduleLabel,
                                 readOnly: true,
                                 statusTab: selectedTab,
                                 onNewCase: null,
                                 selectedDateRange: _selectedDateRange,
-                                onClearDateFilter: () => setState(() => _selectedDateRange = null),
+                                onClearDateFilter: () =>
+                                    setState(() => _selectedDateRange = null),
                               )
                             : _buildEmpty(),
                       )
@@ -669,7 +700,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                         padding: const EdgeInsets.all(AppSpacing.lg),
                         sliver: SliverList(
                           delegate: SliverChildBuilderDelegate(
-                            (ctx, i) => _buildCard(ctx, displayRecords[i], index: i + 1),
+                            (ctx, i) => _buildCard(ctx, displayRecords[i],
+                                index: i + 1),
                             childCount: displayRecords.length,
                           ),
                         ),
@@ -697,12 +729,15 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         widget.moduleKey == 'sand_theft' ||
         widget.moduleKey == 'two_four_wheeler';
 
-    final categoryName = (widget.subCategory != null && widget.subCategory!.isNotEmpty)
-        ? TranslationHelper.translate(context, widget.subCategory!)
-        : transTitle;
+    final categoryName =
+        (widget.subCategory != null && widget.subCategory!.isNotEmpty)
+            ? TranslationHelper.translate(context, widget.subCategory!)
+            : transTitle;
     final caseWord = total == 1 ? 'case' : 'cases';
     final transCase = TranslationHelper.translate(context, caseWord);
-    final subtitle = isTheftOrFormIVStyle ? '$categoryName · $total $transCase' : '$total $transRecord $transReg';
+    final subtitle = isTheftOrFormIVStyle
+        ? '$categoryName · $total $transCase'
+        : '$total $transRecord $transReg';
 
     final bool showAddButton = !(widget.readOnly ||
         widget.moduleKey == 'detected' ||
@@ -737,21 +772,25 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       title: transTitle,
       subtitle: subtitle,
       actionWidget: actionWidget,
-      backgroundColor:
-          (widget.moduleKey == 'detected' || widget.moduleKey == 'undetected' || widget.moduleKey == 'disposal')
-              ? AppColors.navyDark
-              : null,
+      backgroundColor: (widget.moduleKey == 'detected' ||
+              widget.moduleKey == 'undetected' ||
+              widget.moduleKey == 'disposal')
+          ? AppColors.navyDark
+          : null,
     );
   }
 
   Widget _buildModuleTabs() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 8),
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 8),
       child: Row(
         children: [
-          _tabControl('Records', !_isReportMode, () => setState(() => _isReportMode = false)),
+          _tabControl('Records', !_isReportMode,
+              () => setState(() => _isReportMode = false)),
           const SizedBox(width: 12),
-          _tabControl('Report', _isReportMode, () => setState(() => _isReportMode = true)),
+          _tabControl('Report', _isReportMode,
+              () => setState(() => _isReportMode = true)),
         ],
       ),
     );
@@ -800,7 +839,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
       final key = '${r.moduleKey}_${sub ?? ""}';
       if (!catMeta.containsKey(key)) {
-        catMeta[key] = _CategoryMeta(label: label, moduleKey: r.moduleKey, subCategory: sub, count: 0);
+        catMeta[key] = _CategoryMeta(
+            label: label, moduleKey: r.moduleKey, subCategory: sub, count: 0);
       }
       catMeta[key]!.count++;
       // Count solved: Resolved or Closed
@@ -810,10 +850,13 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     }
 
     // Sort alphabetically by label
-    final sortedMetas = catMeta.values.toList()..sort((a, b) => a.label.compareTo(b.label));
+    final sortedMetas = catMeta.values.toList()
+      ..sort((a, b) => a.label.compareTo(b.label));
 
     // For the PDF helper, we still need Map<String, int>
-    final Map<String, int> countsForPdf = {for (var m in sortedMetas) m.label: m.count};
+    final Map<String, int> countsForPdf = {
+      for (var m in sortedMetas) m.label: m.count
+    };
 
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -827,9 +870,13 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Registration Summary',
-                      style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.navyDark)),
+                      style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.navyDark)),
                   Text(DateFormat('MMMM yyyy').format(now),
-                      style: GoogleFonts.poppins(fontSize: 12, color: AppColors.goldPrimary)),
+                      style: GoogleFonts.poppins(
+                          fontSize: 12, color: AppColors.goldPrimary)),
                 ],
               ),
               ElevatedButton.icon(
@@ -842,11 +889,15 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                           : 'Monthly Registration Report',
                   DateFormat('MMMM yyyy').format(now),
                 ),
-                icon: const Icon(Icons.download_rounded, size: 18, color: Colors.white),
-                label: Text('Summary', style: GoogleFonts.poppins(fontSize: 12, color: Colors.white)),
+                icon: const Icon(Icons.download_rounded,
+                    size: 18, color: Colors.white),
+                label: Text('Summary',
+                    style:
+                        GoogleFonts.poppins(fontSize: 12, color: Colors.white)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.navyMid,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.md)),
                 ),
               ),
             ],
@@ -855,18 +906,19 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           if (sortedMetas.isEmpty)
             _buildEmptyReport()
           else
-            ...sortedMetas
-                .map((meta) => _buildReportTile(meta.label, meta.count, solvedCount: meta.solvedCount, onTap: () {
-                      Navigator.push(
-                          context,
-                          AppTheme.fadeSlideRoute(
-                              page: ModuleHubScreen(
-                            moduleLabel: meta.label,
-                            moduleKey: meta.moduleKey,
-                            subCategory: meta.subCategory,
-                            readOnly: true,
-                          )));
-                    })),
+            ...sortedMetas.map((meta) => _buildReportTile(
+                    meta.label, meta.count, solvedCount: meta.solvedCount,
+                    onTap: () {
+                  Navigator.push(
+                      context,
+                      AppTheme.fadeSlideRoute(
+                          page: ModuleHubScreen(
+                        moduleLabel: meta.label,
+                        moduleKey: meta.moduleKey,
+                        subCategory: meta.subCategory,
+                        readOnly: true,
+                      )));
+                })),
           const SizedBox(height: 24),
           _buildDemoReportSection(),
         ],
@@ -878,12 +930,15 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     if (_pendingCategory == null) {
       return TranslationHelper.translate(context, 'Select a category');
     }
-    final transCategory = TranslationHelper.translate(context, _pendingCategory!);
+    final transCategory =
+        TranslationHelper.translate(context, _pendingCategory!);
     if (_pendingTimeRange == null) {
-      final transSelectTime = TranslationHelper.translate(context, 'Select time range');
+      final transSelectTime =
+          TranslationHelper.translate(context, 'Select time range');
       return '$transCategory — $transSelectTime';
     }
-    final transTimeRange = TranslationHelper.translate(context, _pendingTimeRange!);
+    final transTimeRange =
+        TranslationHelper.translate(context, _pendingTimeRange!);
     return '$transCategory — $transTimeRange';
   }
 
@@ -913,8 +968,11 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           builder: (context, constraints) {
             final bool isSmallScreen = constraints.maxWidth < 600;
             final double gap = isSmallScreen ? 12 : 16;
-            final int columns = constraints.maxWidth > 1000 ? 4 : (constraints.maxWidth > 600 ? 3 : 2);
-            double itemWidth = (constraints.maxWidth - (gap * (columns - 1))) / columns;
+            final int columns = constraints.maxWidth > 1000
+                ? 4
+                : (constraints.maxWidth > 600 ? 3 : 2);
+            double itemWidth =
+                (constraints.maxWidth - (gap * (columns - 1))) / columns;
             if (itemWidth < 0) itemWidth = 0; // Prevent negative width crash
 
             return Wrap(
@@ -930,7 +988,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200, width: 1.5),
+                      border:
+                          Border.all(color: Colors.grey.shade200, width: 1.5),
                       boxShadow: [
                         BoxShadow(
                           color: AppColors.navyDark.withValues(alpha: 0.04),
@@ -948,16 +1007,19 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                         tooltip: transCategory,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(color: Colors.grey.shade200, width: 1),
+                          side:
+                              BorderSide(color: Colors.grey.shade200, width: 1),
                         ),
                         child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 10 : 16),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: isSmallScreen ? 10 : 16),
                           child: Row(
                             children: [
                               Container(
                                 padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
                                 decoration: BoxDecoration(
-                                  color: AppColors.navyMid.withValues(alpha: 0.08),
+                                  color:
+                                      AppColors.navyMid.withValues(alpha: 0.08),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Icon(
@@ -983,7 +1045,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                               SizedBox(width: isSmallScreen ? 4 : 8),
                               Icon(
                                 Icons.keyboard_arrow_down_rounded,
-                                color: AppColors.navyDark.withValues(alpha: 0.5),
+                                color:
+                                    AppColors.navyDark.withValues(alpha: 0.5),
                                 size: isSmallScreen ? 18 : 20,
                               ),
                             ],
@@ -997,7 +1060,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                             Navigator.push(
                               context,
                               AppTheme.fadeSlideRoute(
-                                page: PendingIoWiseByCategoryScreen(category: cat),
+                                page: PendingIoWiseByCategoryScreen(
+                                    category: cat),
                               ),
                             );
                           } else {
@@ -1016,7 +1080,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                         },
                         itemBuilder: (BuildContext context) {
                           final List<String> options = [
-                            ..._pendingHubTimeRanges.where((t) => t != 'Select time range'),
+                            ..._pendingHubTimeRanges
+                                .where((t) => t != 'Select time range'),
                             'IO Wise',
                           ];
                           return options.map((String choice) {
@@ -1049,7 +1114,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     void onFormSelect(FormsListEntry entry, {FormsSubSection? subSection}) {
       final subCategory = subSection?.subCategoryOverride ?? entry.subCategory;
       final moduleLabel = subSection != null
-          ? (entry.title == subSection.label ? entry.title : '${entry.title} — ${subSection.label}')
+          ? (entry.title == subSection.label
+              ? entry.title
+              : '${entry.title} — ${subSection.label}')
           : entry.title;
       if (subSection == null) {
         debugPrint('Opened ${entry.title} (subCategory: $subCategory)');
@@ -1075,7 +1142,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
     return ModuleHubReportCard(
       title: TranslationHelper.translate(context, 'Forms Categories'),
-      subtitle: '${kFormsHierarchyMock.length} ${TranslationHelper.translate(context, 'form types')}',
+      subtitle:
+          '${kFormsHierarchyMock.length} ${TranslationHelper.translate(context, 'form types')}',
       showSummaryButton: false,
       showFilterRow: false,
       filterRow: const SizedBox.shrink(),
@@ -1086,7 +1154,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     );
   }
 
-  Widget _buildMonthlyModuleReportOnly(BuildContext context, List<ModuleRecord> allRecords) {
+  Widget _buildMonthlyModuleReportOnly(
+      BuildContext context, List<ModuleRecord> allRecords) {
     const months = [
       'January',
       'February',
@@ -1102,7 +1171,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       'December',
     ];
 
-    final transMonth = TranslationHelper.translate(context, months[_reportMonth - 1]);
+    final transMonth =
+        TranslationHelper.translate(context, months[_reportMonth - 1]);
     final monthYearLabel = '$transMonth $_reportYear';
 
     // Reuse the Calendar monthly table builder from dashboard (static helper).
@@ -1161,10 +1231,12 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       _showMonthlyPreventiveTable = false;
                     }
                   }),
-                  icon: const Icon(Icons.download_rounded, size: 16, color: Colors.white),
+                  icon: const Icon(Icons.download_rounded,
+                      size: 16, color: Colors.white),
                   label: Text(
                     'Summary',
-                    style: GoogleFonts.poppins(fontSize: 11, color: Colors.white),
+                    style:
+                        GoogleFonts.poppins(fontSize: 11, color: Colors.white),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.navyMid,
@@ -1192,18 +1264,21 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       child: DropdownButton<int>(
                         value: _reportMonth,
                         isExpanded: true,
-                        icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.navyMid),
+                        icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                            color: AppColors.navyMid),
                         items: List.generate(
                           12,
                           (i) => DropdownMenuItem(
                             value: i + 1,
                             child: Text(
                               TranslationHelper.translate(context, months[i]),
-                              style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600),
+                              style: GoogleFonts.poppins(
+                                  fontSize: 13, fontWeight: FontWeight.w600),
                             ),
                           ),
                         ),
-                        onChanged: (val) => setState(() => _reportMonth = val ?? _reportMonth),
+                        onChanged: (val) =>
+                            setState(() => _reportMonth = val ?? _reportMonth),
                       ),
                     ),
                   ),
@@ -1219,18 +1294,21 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<int>(
                       value: _reportYear,
-                      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.navyMid),
+                      icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                          color: AppColors.navyMid),
                       items: List.generate(
                         5,
                         (i) => DropdownMenuItem(
                           value: DateTime.now().year - i,
                           child: Text(
                             '${DateTime.now().year - i}',
-                            style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600),
+                            style: GoogleFonts.poppins(
+                                fontSize: 13, fontWeight: FontWeight.w600),
                           ),
                         ),
                       ),
-                      onChanged: (val) => setState(() => _reportYear = val ?? _reportYear),
+                      onChanged: (val) =>
+                          setState(() => _reportYear = val ?? _reportYear),
                     ),
                   ),
                 ),
@@ -1282,7 +1360,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       'Preventives',
                       () => setState(() {
                         _showMonthlySummaryTable = false;
-                        _showMonthlyPreventiveTable = !_showMonthlyPreventiveTable;
+                        _showMonthlyPreventiveTable =
+                            !_showMonthlyPreventiveTable;
                         if (_showMonthlyPreventiveTable) {
                           _showMonthlyClassVTable = false;
                           _showMonthlyClassVITable = false;
@@ -1297,12 +1376,17 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             const SizedBox(height: 14),
 
             if (_showMonthlySummaryTable)
-              _buildMonthlySummaryPhotoTable(context, allRecords, _reportMonth, _reportYear),
-            if (_showMonthlyClassVTable) _buildMonthlyRegistrationTable(context, allRecords, _reportMonth, _reportYear),
+              _buildMonthlySummaryPhotoTable(
+                  context, allRecords, _reportMonth, _reportYear),
+            if (_showMonthlyClassVTable)
+              _buildMonthlyRegistrationTable(
+                  context, allRecords, _reportMonth, _reportYear),
             if (_showMonthlyClassVITable)
-              _buildMonthlyRegistrationTableVI(context, allRecords, _reportMonth, _reportYear),
+              _buildMonthlyRegistrationTableVI(
+                  context, allRecords, _reportMonth, _reportYear),
             if (_showMonthlyPreventiveTable)
-              _buildMonthlyRegistrationTablePreventive(context, allRecords, _reportMonth, _reportYear),
+              _buildMonthlyRegistrationTablePreventive(
+                  context, allRecords, _reportMonth, _reportYear),
           ],
         ),
       ),
@@ -1366,27 +1450,36 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     }
 
     List<ModuleRecord> filterMonth(int m, int y) => allRecords
-        .where((r) => r.moduleKey == 'preventive' && r.incidentDate.year == y && r.incidentDate.month == m)
+        .where((r) =>
+            r.moduleKey == 'preventive' &&
+            r.incidentDate.year == y &&
+            r.incidentDate.month == m)
         .toList();
 
     List<ModuleRecord> filterYearToMonth(int m, int y) => allRecords
-        .where((r) => r.moduleKey == 'preventive' && r.incidentDate.year == y && r.incidentDate.month <= m)
+        .where((r) =>
+            r.moduleKey == 'preventive' &&
+            r.incidentDate.year == y &&
+            r.incidentDate.month <= m)
         .toList();
 
     final currentMonthRecords = filterMonth(selectedMonth, selectedYear);
     final prevMonth = selectedMonth == 1 ? 12 : selectedMonth - 1;
     final prevYear = selectedMonth == 1 ? selectedYear - 1 : selectedYear;
     final previousMonthRecords = filterMonth(prevMonth, prevYear);
-    final sameMonthLastYearRecords = filterMonth(selectedMonth, selectedYear - 1);
+    final sameMonthLastYearRecords =
+        filterMonth(selectedMonth, selectedYear - 1);
     final yearCurrentRecords = filterYearToMonth(selectedMonth, selectedYear);
-    final yearPreviousRecords = filterYearToMonth(selectedMonth, selectedYear - 1);
+    final yearPreviousRecords =
+        filterYearToMonth(selectedMonth, selectedYear - 1);
 
     final tableRows = <Map<String, dynamic>>[];
     int totalcm = 0, totalpm = 0, totalsmly = 0, totalyc = 0, totalyp = 0;
 
     for (int i = 0; i < heads.length; i++) {
       final head = heads[i];
-      List<ModuleRecord> byHead(List<ModuleRecord> list) => list.where((r) => getHead(r) == head).toList();
+      List<ModuleRecord> byHead(List<ModuleRecord> list) =>
+          list.where((r) => getHead(r) == head).toList();
 
       final cmRecs = byHead(currentMonthRecords);
       final pmRecs = byHead(previousMonthRecords);
@@ -1466,7 +1559,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           ),
         );
 
-    DataCell cell(String text, {bool alignLeft = false, bool isBold = false}) => DataCell(
+    DataCell cell(String text, {bool alignLeft = false, bool isBold = false}) =>
+        DataCell(
           Align(
             alignment: alignLeft ? Alignment.centerLeft : Alignment.center,
             child: Text(
@@ -1483,7 +1577,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           ),
         );
 
-    DataCell navCell(String text, List<ModuleRecord> recs, String title, {bool isBold = false}) {
+    DataCell navCell(String text, List<ModuleRecord> recs, String title,
+        {bool isBold = false}) {
       return DataCell(
         InkWell(
           onTap: recs.isEmpty
@@ -1506,7 +1601,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 10,
                 fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
-                color: recs.isEmpty ? AppColors.lightSubText : AppColors.infoBlue,
+                color:
+                    recs.isEmpty ? AppColors.lightSubText : AppColors.infoBlue,
                 decoration: recs.isEmpty ? null : TextDecoration.underline,
               ),
             ),
@@ -1527,7 +1623,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         LayoutBuilder(
           builder: (context, constraints) {
             final w = constraints.maxWidth;
-            final colSpace = w < 360 ? 10.0 : (w < 600 ? 15.0 : (w < 1000 ? 20.0 : 36.0));
+            final colSpace =
+                w < 360 ? 10.0 : (w < 600 ? 15.0 : (w < 1000 ? 20.0 : 36.0));
             final margin = w < 360 ? 8.0 : (w < 1000 ? 12.0 : 20.0);
             final headingH = w < 360 ? 52.0 : (w < 1000 ? 56.0 : 60.0);
             final rowH = w < 360 ? 44.0 : (w < 1000 ? 48.0 : 52.0);
@@ -1555,7 +1652,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       headingRowHeight: headingH,
                       horizontalMargin: margin,
                       columnSpacing: colSpace,
-                      border: TableBorder.all(color: AppColors.lightBorder, width: 0.5),
+                      border: TableBorder.all(
+                          color: AppColors.lightBorder, width: 0.5),
                       columns: [
                         col('SR'),
                         col('Heads', alignLeft: true),
@@ -1576,34 +1674,40 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                               : null,
                           cells: [
                             cell(row['N'].toString(), isBold: isTotal),
-                            cell(row['Heads'].toString(), alignLeft: true, isBold: true),
+                            cell(row['Heads'].toString(),
+                                alignLeft: true, isBold: true),
                             navCell(
                               '${row['cm_R']}',
-                              (row['cmRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[],
+                              (row['cmRecords'] as List<ModuleRecord>?) ??
+                                  const <ModuleRecord>[],
                               '${row['Heads']} • $cmLabel',
                               isBold: isTotal,
                             ),
                             navCell(
                               '${row['pm_R']}',
-                              (row['pmRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[],
+                              (row['pmRecords'] as List<ModuleRecord>?) ??
+                                  const <ModuleRecord>[],
                               '${row['Heads']} • $pmLabel',
                               isBold: isTotal,
                             ),
                             navCell(
                               '${row['smly_R']}',
-                              (row['smlyRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[],
+                              (row['smlyRecords'] as List<ModuleRecord>?) ??
+                                  const <ModuleRecord>[],
                               '${row['Heads']} • $smlyLabel',
                               isBold: isTotal,
                             ),
                             navCell(
                               '${row['yc_R']}',
-                              (row['ycRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[],
+                              (row['ycRecords'] as List<ModuleRecord>?) ??
+                                  const <ModuleRecord>[],
                               '${row['Heads']} • $ycLabel',
                               isBold: isTotal,
                             ),
                             navCell(
                               '${row['yp_R']}',
-                              (row['ypRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[],
+                              (row['ypRecords'] as List<ModuleRecord>?) ??
+                                  const <ModuleRecord>[],
                               '${row['Heads']} • $ypLabel',
                               isBold: isTotal,
                             ),
@@ -1623,10 +1727,12 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: () {
-              final label = DateFormat('MMMM yyyy').format(DateTime(selectedYear, selectedMonth));
+              final label = DateFormat('MMMM yyyy')
+                  .format(DateTime(selectedYear, selectedMonth));
               ModulePdfHelper.generateMonthlyTablePdf(label, tableRows);
             },
-            icon: const Icon(Icons.picture_as_pdf_rounded, color: Colors.white, size: 18),
+            icon: const Icon(Icons.picture_as_pdf_rounded,
+                color: Colors.white, size: 18),
             label: Text(
               'Export Table PDF',
               style: GoogleFonts.poppins(
@@ -1686,20 +1792,28 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     }
 
     List<ModuleRecord> filterMonth(int m, int y) => allRecords
-        .where((r) => r.moduleKey == 'form_6' && r.incidentDate.year == y && r.incidentDate.month == m)
+        .where((r) =>
+            r.moduleKey == 'form_6' &&
+            r.incidentDate.year == y &&
+            r.incidentDate.month == m)
         .toList();
 
     List<ModuleRecord> filterYearToMonth(int m, int y) => allRecords
-        .where((r) => r.moduleKey == 'form_6' && r.incidentDate.year == y && r.incidentDate.month <= m)
+        .where((r) =>
+            r.moduleKey == 'form_6' &&
+            r.incidentDate.year == y &&
+            r.incidentDate.month <= m)
         .toList();
 
     final currentMonthRecords = filterMonth(selectedMonth, selectedYear);
     final prevMonth = selectedMonth == 1 ? 12 : selectedMonth - 1;
     final prevYear = selectedMonth == 1 ? selectedYear - 1 : selectedYear;
     final previousMonthRecords = filterMonth(prevMonth, prevYear);
-    final sameMonthLastYearRecords = filterMonth(selectedMonth, selectedYear - 1);
+    final sameMonthLastYearRecords =
+        filterMonth(selectedMonth, selectedYear - 1);
     final yearCurrentRecords = filterYearToMonth(selectedMonth, selectedYear);
-    final yearPreviousRecords = filterYearToMonth(selectedMonth, selectedYear - 1);
+    final yearPreviousRecords =
+        filterYearToMonth(selectedMonth, selectedYear - 1);
 
     final tableRows = <Map<String, dynamic>>[];
     int totalcmR = 0;
@@ -1710,7 +1824,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
     for (int i = 0; i < heads.length; i++) {
       final head = heads[i];
-      List<ModuleRecord> byHead(List<ModuleRecord> list) => list.where((r) => getHead(r) == head).toList();
+      List<ModuleRecord> byHead(List<ModuleRecord> list) =>
+          list.where((r) => getHead(r) == head).toList();
 
       final cm = byHead(currentMonthRecords);
       final pm = byHead(previousMonthRecords);
@@ -1776,7 +1891,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           ),
         );
 
-    DataCell cell(String text, {bool alignLeft = false, bool isBold = false, Color? color}) => DataCell(
+    DataCell cell(String text,
+            {bool alignLeft = false, bool isBold = false, Color? color}) =>
+        DataCell(
           Align(
             alignment: alignLeft ? Alignment.centerLeft : Alignment.center,
             child: Text(
@@ -1784,13 +1901,15 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 10,
                 fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
-                color: color ?? (isBold ? AppColors.navyDark : AppColors.lightText),
+                color: color ??
+                    (isBold ? AppColors.navyDark : AppColors.lightText),
               ),
             ),
           ),
         );
 
-    DataCell navCell(String text, List<ModuleRecord> recs, String title, {bool isBold = false}) {
+    DataCell navCell(String text, List<ModuleRecord> recs, String title,
+        {bool isBold = false}) {
       return DataCell(
         InkWell(
           onTap: recs.isEmpty
@@ -1810,7 +1929,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 10,
                 fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
-                color: recs.isEmpty ? AppColors.lightSubText : AppColors.infoBlue,
+                color:
+                    recs.isEmpty ? AppColors.lightSubText : AppColors.infoBlue,
                 decoration: recs.isEmpty ? null : TextDecoration.underline,
               ),
             ),
@@ -1840,7 +1960,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
               child: ConstrainedBox(
-                constraints: BoxConstraints(minWidth: w), // fill available width on PC
+                constraints:
+                    BoxConstraints(minWidth: w), // fill available width on PC
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -1858,7 +1979,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       headingRowHeight: 56,
                       horizontalMargin: 12,
                       columnSpacing: 15,
-                      border: TableBorder.all(color: AppColors.lightBorder, width: 0.5),
+                      border: TableBorder.all(
+                          color: AppColors.lightBorder, width: 0.5),
                       columns: [
                         col('N'),
                         col('Heads', alignLeft: true),
@@ -1879,34 +2001,40 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                               : null,
                           cells: [
                             cell(row['N'].toString(), isBold: isTotal),
-                            cell(row['Heads'].toString(), alignLeft: true, isBold: true),
+                            cell(row['Heads'].toString(),
+                                alignLeft: true, isBold: true),
                             navCell(
                               '${row['cm_R']}',
-                              (row['cmRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[],
+                              (row['cmRecords'] as List<ModuleRecord>?) ??
+                                  const <ModuleRecord>[],
                               '${row['Heads']} • $cmLabel',
                               isBold: isTotal,
                             ),
                             navCell(
                               '${row['pm_R']}',
-                              (row['pmRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[],
+                              (row['pmRecords'] as List<ModuleRecord>?) ??
+                                  const <ModuleRecord>[],
                               '${row['Heads']} • $pmLabel',
                               isBold: isTotal,
                             ),
                             navCell(
                               '${row['smly_R']}',
-                              (row['smlyRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[],
+                              (row['smlyRecords'] as List<ModuleRecord>?) ??
+                                  const <ModuleRecord>[],
                               '${row['Heads']} • $smlyLabel',
                               isBold: isTotal,
                             ),
                             navCell(
                               '${row['yc_R']}',
-                              (row['ycRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[],
+                              (row['ycRecords'] as List<ModuleRecord>?) ??
+                                  const <ModuleRecord>[],
                               '${row['Heads']} • $ycLabel',
                               isBold: isTotal,
                             ),
                             navCell(
                               '${row['yp_R']}',
-                              (row['ypRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[],
+                              (row['ypRecords'] as List<ModuleRecord>?) ??
+                                  const <ModuleRecord>[],
                               '${row['Heads']} • $ypLabel',
                               isBold: isTotal,
                             ),
@@ -1915,7 +2043,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                               isBold: isTotal,
                               color: (row['variation'] as int) > 0
                                   ? AppColors.dangerRed
-                                  : ((row['variation'] as int) < 0 ? AppColors.successGreen : null),
+                                  : ((row['variation'] as int) < 0
+                                      ? AppColors.successGreen
+                                      : null),
                             ),
                           ],
                         );
@@ -1932,10 +2062,12 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: () {
-              final label = DateFormat('MMMM yyyy').format(DateTime(selectedYear, selectedMonth));
+              final label = DateFormat('MMMM yyyy')
+                  .format(DateTime(selectedYear, selectedMonth));
               ModulePdfHelper.generateMonthlyTablePdf(label, tableRows);
             },
-            icon: const Icon(Icons.picture_as_pdf_rounded, color: Colors.white, size: 18),
+            icon: const Icon(Icons.picture_as_pdf_rounded,
+                color: Colors.white, size: 18),
             label: Text(
               'Export Table PDF',
               style: GoogleFonts.poppins(
@@ -1962,19 +2094,28 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     int selectedMonth,
     int selectedYear,
   ) {
-    bool isInMonth(ModuleRecord r) => r.incidentDate.year == selectedYear && r.incidentDate.month == selectedMonth;
+    bool isInMonth(ModuleRecord r) =>
+        r.incidentDate.year == selectedYear &&
+        r.incidentDate.month == selectedMonth;
     bool isInYear(ModuleRecord r) => r.incidentDate.year == selectedYear;
 
-    bool isDetected(ModuleRecord r) => r.status == 'Resolved' || r.status == 'Closed' || r.moduleKey == 'detected';
+    bool isDetected(ModuleRecord r) =>
+        r.status == 'Resolved' ||
+        r.status == 'Closed' ||
+        r.moduleKey == 'detected';
 
     List<ModuleRecord> monthRecsWhere(bool Function(ModuleRecord) test) =>
         allRecords.where((r) => isInMonth(r) && test(r)).toList();
     List<ModuleRecord> yearRecsWhere(bool Function(ModuleRecord) test) =>
         allRecords.where((r) => isInYear(r) && test(r)).toList();
     List<ModuleRecord> monthDetRecsWhere(bool Function(ModuleRecord) test) =>
-        allRecords.where((r) => isInMonth(r) && test(r) && isDetected(r)).toList();
+        allRecords
+            .where((r) => isInMonth(r) && test(r) && isDetected(r))
+            .toList();
     List<ModuleRecord> yearDetRecsWhere(bool Function(ModuleRecord) test) =>
-        allRecords.where((r) => isInYear(r) && test(r) && isDetected(r)).toList();
+        allRecords
+            .where((r) => isInYear(r) && test(r) && isDetected(r))
+            .toList();
 
     Widget cellBox(Widget child, {int flex = 1, bool alignLeft = false}) {
       return Expanded(
@@ -2017,7 +2158,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           ),
         );
 
-    Widget linkText(int n, List<ModuleRecord> recs, String title, {bool bold = false}) {
+    Widget linkText(int n, List<ModuleRecord> recs, String title,
+        {bool bold = false}) {
       return InkWell(
         onTap: recs.isEmpty
             ? null
@@ -2049,27 +2191,43 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           ),
         );
 
-    Widget dataRow5(String label, bool Function(ModuleRecord) test, {bool bold = false, String detLabel = 'Detected'}) {
+    Widget dataRow5(String label, bool Function(ModuleRecord) test,
+        {bool bold = false, String detLabel = 'Detected'}) {
       final cmReg = monthRecsWhere(test);
       final cmDet = monthDetRecsWhere(test);
       final cyReg = yearRecsWhere(test);
       final cyDet = yearDetRecsWhere(test);
       return rowOf([
         cellBox(labelText(label, bold: bold), flex: 5, alignLeft: true),
-        cellBox(linkText(cmReg.length, cmReg, '$label • Current Month • Registered', bold: bold)),
-        cellBox(linkText(cmDet.length, cmDet, '$label • Current Month • $detLabel', bold: bold)),
-        cellBox(linkText(cyReg.length, cyReg, '$label • Current Year • Registered', bold: bold)),
-        cellBox(linkText(cyDet.length, cyDet, '$label • Current Year • $detLabel', bold: bold)),
+        cellBox(linkText(
+            cmReg.length, cmReg, '$label • Current Month • Registered',
+            bold: bold)),
+        cellBox(linkText(
+            cmDet.length, cmDet, '$label • Current Month • $detLabel',
+            bold: bold)),
+        cellBox(linkText(
+            cyReg.length, cyReg, '$label • Current Year • Registered',
+            bold: bold)),
+        cellBox(linkText(
+            cyDet.length, cyDet, '$label • Current Year • $detLabel',
+            bold: bold)),
       ]);
     }
 
-    Widget dataRow3(String label, bool Function(ModuleRecord) test, {bool bold = false}) {
+    Widget dataRow3(String label, bool Function(ModuleRecord) test,
+        {bool bold = false}) {
       final cmReg = monthRecsWhere(test);
       final cyReg = yearRecsWhere(test);
       return rowOf([
         cellBox(labelText(label, bold: bold), flex: 5, alignLeft: true),
-        cellBox(linkText(cmReg.length, cmReg, '$label • Current Month • Registered', bold: bold), flex: 2),
-        cellBox(linkText(cyReg.length, cyReg, '$label • Current Year • Registered', bold: bold), flex: 2),
+        cellBox(
+            linkText(cmReg.length, cmReg, '$label • Current Month • Registered',
+                bold: bold),
+            flex: 2),
+        cellBox(
+            linkText(cyReg.length, cyReg, '$label • Current Year • Registered',
+                bold: bold),
+            flex: 2),
       ]);
     }
 
@@ -2088,10 +2246,13 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         ]);
 
     // Heuristic mapping (same as dashboard summary).
-    bool isBnss(ModuleRecord r) => r.moduleKey == 'bnss' || r.title.toLowerCase().contains('bnss');
+    bool isBnss(ModuleRecord r) =>
+        r.moduleKey == 'bnss' || r.title.toLowerCase().contains('bnss');
     bool isOtherSection(ModuleRecord r) => r.moduleKey == 'it_act';
-    bool isGambling(ModuleRecord r) => r.moduleKey == 'coin' || r.title.toLowerCase().contains('gambl');
-    bool isProhibition(ModuleRecord r) => r.moduleKey == 'mpda' || r.title.toLowerCase().contains('prohibit');
+    bool isGambling(ModuleRecord r) =>
+        r.moduleKey == 'coin' || r.title.toLowerCase().contains('gambl');
+    bool isProhibition(ModuleRecord r) =>
+        r.moduleKey == 'mpda' || r.title.toLowerCase().contains('prohibit');
 
     bool isAd(ModuleRecord r) => r.moduleKey == 'ad';
     bool isAccident(ModuleRecord r) => r.moduleKey == 'accident';
@@ -2101,8 +2262,10 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     bool isSec128Bnss(ModuleRecord r) => r.moduleKey == 'bnss';
     bool isSec129Bnss(ModuleRecord r) => r.moduleKey == 'bnss';
     bool isSec93Ndps(ModuleRecord r) => r.moduleKey == 'ndps';
-    bool isSec144Crpc(ModuleRecord r) => r.moduleKey == 'gowans' || r.moduleKey == 'it_act';
-    bool isSec55_57Police(ModuleRecord r) => r.moduleKey == 'mpda' || r.moduleKey == 'coin';
+    bool isSec144Crpc(ModuleRecord r) =>
+        r.moduleKey == 'gowans' || r.moduleKey == 'it_act';
+    bool isSec55_57Police(ModuleRecord r) =>
+        r.moduleKey == 'mpda' || r.moduleKey == 'coin';
     bool isCotpa(ModuleRecord r) => r.moduleKey == 'it_act';
     bool isSec122Police(ModuleRecord r) => r.moduleKey == 'mpda';
     bool isMpda(ModuleRecord r) => r.moduleKey == 'mpda';
@@ -2110,7 +2273,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     bool isMotorVehicleAct(ModuleRecord r) => r.moduleKey == 'traffic';
     bool isOtherMvAct(ModuleRecord r) => false;
 
-    bool g1Total(ModuleRecord r) => isBnss(r) || isOtherSection(r) || isGambling(r) || isProhibition(r);
+    bool g1Total(ModuleRecord r) =>
+        isBnss(r) || isOtherSection(r) || isGambling(r) || isProhibition(r);
     bool g1NcTotal(ModuleRecord r) => isAd(r) || isAccident(r) || isNc(r);
     bool g2Total(ModuleRecord r) =>
         isSec186175Bnss(r) ||
@@ -2124,7 +2288,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         isMpda(r);
     bool g3Total(ModuleRecord r) => isMotorVehicleAct(r) || isOtherMvAct(r);
 
-    final monthYearLabel = DateFormat('MMMM yyyy').format(DateTime(selectedYear, selectedMonth));
+    final monthYearLabel =
+        DateFormat('MMMM yyyy').format(DateTime(selectedYear, selectedMonth));
 
     // SINGLE SOURCE OF TRUTH for the Monthly Summary table.
     // Both the on-screen table and the PDF export iterate this exact list,
@@ -2145,7 +2310,13 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       {'k': 'd5', 'l': 'AD', 't': isAd, 'dl': 'Detected'},
       {'k': 'd5', 'l': 'N.C Injury', 't': isAccident, 'dl': 'Detected'},
       {'k': 'd5', 'l': 'N.C others', 't': isNc, 'dl': 'Detected'},
-      {'k': 'd5', 'l': 'N.C Total', 't': g1NcTotal, 'bold': true, 'dl': 'Detected'},
+      {
+        'k': 'd5',
+        'l': 'N.C Total',
+        't': g1NcTotal,
+        'bold': true,
+        'dl': 'Detected'
+      },
       {'k': 'b'},
       {'k': 'h', 'l': 'Preventive'},
       {'k': 'd3', 'l': 'Sec. 126, 135(2) BNSS', 't': isSec186175Bnss},
@@ -2161,9 +2332,20 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       {'k': 'b'},
       {'k': 'h', 'l': 'MV Act'},
       {'k': 's', 'r': 'Registered', 'd': 'Fine'},
-      {'k': 'd5', 'l': 'Sec. 66/192 MV Act', 't': isMotorVehicleAct, 'dl': 'Fine'},
+      {
+        'k': 'd5',
+        'l': 'Sec. 66/192 MV Act',
+        't': isMotorVehicleAct,
+        'dl': 'Fine'
+      },
       {'k': 'd5', 'l': 'Other MV Act', 't': isOtherMvAct, 'dl': 'Fine'},
-      {'k': 'd5', 'l': 'Total MV Act', 't': g3Total, 'bold': true, 'dl': 'Fine'},
+      {
+        'k': 'd5',
+        'l': 'Total MV Act',
+        't': g3Total,
+        'bold': true,
+        'dl': 'Fine'
+      },
       // {'k': 'b'},
       // {'k': 'h', 'l': 'Missing'},
       // {'k': 's', 'r': 'Registered', 'd': 'Found'},
@@ -2212,7 +2394,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     Future<void> exportPdf() async {
       final doc = pw.Document();
 
-      pw.Widget pCellBox(String text, {bool bold = false, bool alignLeft = false}) {
+      pw.Widget pCellBox(String text,
+          {bool bold = false, bool alignLeft = false}) {
         return pw.Container(
           padding: const pw.EdgeInsets.symmetric(horizontal: 3, vertical: 2),
           alignment: alignLeft ? pw.Alignment.centerLeft : pw.Alignment.center,
@@ -2238,7 +2421,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         return pw.Table(
           border: pw.TableBorder.all(color: PdfColors.grey500, width: 0.4),
           columnWidths: {
-            for (var i = 0; i < flexes.length; i++) i: pw.FlexColumnWidth(flexes[i].toDouble()),
+            for (var i = 0; i < flexes.length; i++)
+              i: pw.FlexColumnWidth(flexes[i].toDouble()),
           },
           children: [pw.TableRow(children: cells)],
         );
@@ -2348,7 +2532,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         ),
       );
 
-      final fileName = 'Monthly_Summary_${monthYearLabel.replaceAll(' ', '_')}.pdf';
+      final fileName =
+          'Monthly_Summary_${monthYearLabel.replaceAll(' ', '_')}.pdf';
       await Printing.sharePdf(
         bytes: await doc.save(),
         filename: fileName,
@@ -2460,23 +2645,31 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       final key = r.moduleKey.toLowerCase();
 
       if (key.contains('murder') || sub.contains('murder')) {
-        return sub.contains('attempt') || sub.contains('att') ? 'Att to Murder' : 'Murder';
+        return sub.contains('attempt') || sub.contains('att')
+            ? 'Att to Murder'
+            : 'Murder';
       }
       if (key.contains('dacoity') || sub.contains('dacoity')) {
-        return sub.contains('preparation') || sub.contains('pro') ? 'Pro Of Dacoity' : 'Dacoity';
+        return sub.contains('preparation') || sub.contains('pro')
+            ? 'Pro Of Dacoity'
+            : 'Dacoity';
       }
       if (key.contains('robbery') || sub.contains('robery')) {
         if (sub.contains('chain')) return 'Chain Robery';
         return 'Total Robery';
       }
-      if (key.contains('house') || sub.contains('h b t') || sub.contains('hbt')) {
+      if (key.contains('house') ||
+          sub.contains('h b t') ||
+          sub.contains('hbt')) {
         if (sub.contains('day')) return 'H B Ts (Day)';
         if (sub.contains('night')) return 'H B Ts (Night)';
         return 'Total H B Ts';
       }
       if (key.contains('theft') || sub.contains('theft')) {
         if (key.contains('sand') || sub.contains('sand')) return 'SAND THEFT';
-        if (key.contains('two_four') || sub.contains('wheeler') || sub.contains('vehicle')) {
+        if (key.contains('two_four') ||
+            sub.contains('wheeler') ||
+            sub.contains('vehicle')) {
           return 'Total M VThefts';
         }
         if (sub.contains('chain')) return 'Chain Snaching';
@@ -2525,21 +2718,26 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       return 'Miscellaneous';
     }
 
-    List<ModuleRecord> filterMonth(int m, int y) =>
-        allRecords.where((r) => r.incidentDate.year == y && r.incidentDate.month == m).toList();
+    List<ModuleRecord> filterMonth(int m, int y) => allRecords
+        .where((r) => r.incidentDate.year == y && r.incidentDate.month == m)
+        .toList();
 
-    List<ModuleRecord> filterYearToMonth(int m, int y) =>
-        allRecords.where((r) => r.incidentDate.year == y && r.incidentDate.month <= m).toList();
+    List<ModuleRecord> filterYearToMonth(int m, int y) => allRecords
+        .where((r) => r.incidentDate.year == y && r.incidentDate.month <= m)
+        .toList();
 
     final currentMonthRecords = filterMonth(selectedMonth, selectedYear);
     final prevMonth = selectedMonth == 1 ? 12 : selectedMonth - 1;
     final prevYear = selectedMonth == 1 ? selectedYear - 1 : selectedYear;
     final previousMonthRecords = filterMonth(prevMonth, prevYear);
-    final sameMonthLastYearRecords = filterMonth(selectedMonth, selectedYear - 1);
+    final sameMonthLastYearRecords =
+        filterMonth(selectedMonth, selectedYear - 1);
     final yearCurrentRecords = filterYearToMonth(selectedMonth, selectedYear);
-    final yearPreviousRecords = filterYearToMonth(selectedMonth, selectedYear - 1);
+    final yearPreviousRecords =
+        filterYearToMonth(selectedMonth, selectedYear - 1);
 
-    int detected(List<ModuleRecord> recs) => recs.where((r) => r.status.toLowerCase() != 'open').length;
+    int detected(List<ModuleRecord> recs) =>
+        recs.where((r) => r.status.toLowerCase() != 'open').length;
 
     final tableRows = <Map<String, dynamic>>[];
     int totalcmR = 0, totalcmD = 0;
@@ -2550,7 +2748,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
     for (int i = 0; i < heads.length; i++) {
       final head = heads[i];
-      List<ModuleRecord> byHead(List<ModuleRecord> list) => list.where((r) => getHead(r) == head).toList();
+      List<ModuleRecord> byHead(List<ModuleRecord> list) =>
+          list.where((r) => getHead(r) == head).toList();
 
       final cm = byHead(currentMonthRecords);
       final pm = byHead(previousMonthRecords);
@@ -2619,9 +2818,12 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       'ypRecords': yearPreviousRecords,
     });
 
-    final cmDateLabel = DateFormat('MMMM,yyyy').format(DateTime(selectedYear, selectedMonth));
-    final pmDateLabel = DateFormat('MMMM,yyyy').format(DateTime(prevYear, prevMonth));
-    final smlyDateLabel = DateFormat('MMMM,yyyy').format(DateTime(selectedYear - 1, selectedMonth));
+    final cmDateLabel =
+        DateFormat('MMMM,yyyy').format(DateTime(selectedYear, selectedMonth));
+    final pmDateLabel =
+        DateFormat('MMMM,yyyy').format(DateTime(prevYear, prevMonth));
+    final smlyDateLabel = DateFormat('MMMM,yyyy')
+        .format(DateTime(selectedYear - 1, selectedMonth));
     final ycDateLabel = 'Year,$selectedYear';
     final ypDateLabel = 'Year,${selectedYear - 1}';
 
@@ -2630,10 +2832,20 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       {'sr': '2', 'label': 'Attempt to murder', 'head': 'Att to Murder'},
       {'sr': '3', 'label': 'Dacoity', 'head': 'Dacoity'},
       {'sr': '4', 'label': 'Pro of Decoity', 'head': 'Pro Of Dacoity'},
-      {'sr': '5', 'label': 'Total Robery', 'head': 'Total Robery', 'bold': true},
+      {
+        'sr': '5',
+        'label': 'Total Robery',
+        'head': 'Total Robery',
+        'bold': true
+      },
       {'sr': 'a', 'label': 'Chain Robery', 'head': 'Chain Robery', 'indent': 1},
       {'sr': 'b', 'label': 'Other Robery', 'head': 'Other Robery', 'indent': 1},
-      {'sr': '6', 'label': 'Total H.B.Ts', 'head': 'Total H B Ts', 'bold': true},
+      {
+        'sr': '6',
+        'label': 'Total H.B.Ts',
+        'head': 'Total H B Ts',
+        'bold': true
+      },
       {'sr': 'a', 'label': 'H.B.Ts (Day)', 'head': 'H B Ts (Day)', 'indent': 1},
       {
         'sr': 'b',
@@ -2655,8 +2867,18 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         'head': 'Chain Snaching',
         'indent': 1,
       },
-      {'sr': 'd', 'label': 'Mobile Thefts', 'head': 'Mobile Thefts', 'indent': 1},
-      {'sr': 'e', 'label': 'Cattle Thefts', 'head': 'Cattel Theft', 'indent': 1},
+      {
+        'sr': 'd',
+        'label': 'Mobile Thefts',
+        'head': 'Mobile Thefts',
+        'indent': 1
+      },
+      {
+        'sr': 'e',
+        'label': 'Cattle Thefts',
+        'head': 'Cattel Theft',
+        'indent': 1
+      },
       {'sr': 'f', 'label': 'Other Thefts', 'head': 'Other Thefts', 'indent': 1},
       {'sr': '8', 'label': 'Extortion', 'head': 'Extcrtion'},
       {'sr': '9', 'label': 'Cheating', 'head': 'Cheating', 'bold': true},
@@ -2666,7 +2888,12 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       {'sr': '13', 'label': 'Unlawful assembly', 'head': 'Unlawful Assembly'},
       {'sr': '14', 'label': 'Attempt to Suicide', 'head': 'Attempt to suicide'},
       {'sr': '15', 'label': 'Hurt', 'head': 'Hurt', 'bold': true},
-      {'sr': '16', 'label': 'Kidnapping/Missing', 'head': 'Kidnapping/Missing', 'bold': true},
+      {
+        'sr': '16',
+        'label': 'Kidnapping/Missing',
+        'head': 'Kidnapping/Missing',
+        'bold': true
+      },
       {'sr': '17', 'label': 'Rape', 'head': 'Rape', 'bold': true},
       {
         'sr': '18',
@@ -2772,7 +2999,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       AlignmentGeometry alignment = Alignment.center,
     }) {
       return Container(
-        padding: padding ?? const EdgeInsets.symmetric(horizontal: 3, vertical: 3),
+        padding:
+            padding ?? const EdgeInsets.symmetric(horizontal: 3, vertical: 3),
         decoration: BoxDecoration(
           border: Border.all(color: AppColors.lightBorder, width: 0.5),
         ),
@@ -2837,7 +3065,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       );
     }
 
-    List<ModuleRecord> detRecs(List<ModuleRecord> r) => r.where((x) => x.status.toLowerCase() != 'open').toList();
+    List<ModuleRecord> detRecs(List<ModuleRecord> r) =>
+        r.where((x) => x.status.toLowerCase() != 'open').toList();
 
     Widget buildScreenDataRow(Map<String, dynamic> def) {
       final headKey = def['head'] as String;
@@ -2858,11 +3087,16 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       final ypR = vInt(src, 'yp_R');
       final ypD = vInt(src, 'yp_D');
       final varVal = vInt(src, 'variation');
-      final cmRecs = (src['cmRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
-      final pmRecs = (src['pmRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
-      final smlyRecs = (src['smlyRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
-      final ycRecs = (src['ycRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
-      final ypRecs = (src['ypRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
+      final cmRecs =
+          (src['cmRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
+      final pmRecs =
+          (src['pmRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
+      final smlyRecs =
+          (src['smlyRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
+      final ycRecs =
+          (src['ycRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
+      final ypRecs =
+          (src['ypRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
       final label = def['label'] as String;
       final labelPad = classVCellPad(
         denseTop: denseTop,
@@ -2900,7 +3134,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             denseTop: denseTop,
             denseBottom: denseBottom,
           ),
-          child: cLink(cmD, detRecs(cmRecs), '$label • $cmDateLabel • D', bold: bold),
+          child: cLink(cmD, detRecs(cmRecs), '$label • $cmDateLabel • D',
+              bold: bold),
         ),
         cBox(
           padding: classVCellPad(
@@ -2914,21 +3149,24 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             denseTop: denseTop,
             denseBottom: denseBottom,
           ),
-          child: cLink(pmD, detRecs(pmRecs), '$label • $pmDateLabel • D', bold: bold),
+          child: cLink(pmD, detRecs(pmRecs), '$label • $pmDateLabel • D',
+              bold: bold),
         ),
         cBox(
           padding: classVCellPad(
             denseTop: denseTop,
             denseBottom: denseBottom,
           ),
-          child: cLink(smlyR, smlyRecs, '$label • $smlyDateLabel • R', bold: bold),
+          child:
+              cLink(smlyR, smlyRecs, '$label • $smlyDateLabel • R', bold: bold),
         ),
         cBox(
           padding: classVCellPad(
             denseTop: denseTop,
             denseBottom: denseBottom,
           ),
-          child: cLink(smlyD, detRecs(smlyRecs), '$label • $smlyDateLabel • D', bold: bold),
+          child: cLink(smlyD, detRecs(smlyRecs), '$label • $smlyDateLabel • D',
+              bold: bold),
         ),
         cBox(
           padding: classVCellPad(
@@ -2942,7 +3180,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             denseTop: denseTop,
             denseBottom: denseBottom,
           ),
-          child: cLink(ycD, detRecs(ycRecs), '$label • $ycDateLabel • D', bold: bold),
+          child: cLink(ycD, detRecs(ycRecs), '$label • $ycDateLabel • D',
+              bold: bold),
         ),
         cBox(
           padding: classVCellPad(
@@ -2956,7 +3195,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             denseTop: denseTop,
             denseBottom: denseBottom,
           ),
-          child: cLink(ypD, detRecs(ypRecs), '$label • $ypDateLabel • D', bold: bold),
+          child: cLink(ypD, detRecs(ypRecs), '$label • $ypDateLabel • D',
+              bold: bold),
         ),
         cBox(
           padding: classVCellPad(
@@ -2971,9 +3211,10 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     Widget buildScreenTable() {
       return LayoutBuilder(
         builder: (context, constraints) {
-          final barW = constraints.hasBoundedWidth && constraints.maxWidth.isFinite
-              ? constraints.maxWidth
-              : MediaQuery.sizeOf(context).width;
+          final barW =
+              constraints.hasBoundedWidth && constraints.maxWidth.isFinite
+                  ? constraints.maxWidth
+                  : MediaQuery.sizeOf(context).width;
 
           return Container(
             decoration: BoxDecoration(
@@ -2991,7 +3232,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                     children: [
                       Expanded(
                         child: cBox(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 3),
                           child: cText(
                             'Name of the Police Station',
                             bold: true,
@@ -3003,29 +3245,76 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   ),
                 ),
                 rowOfFlex(headerGroupFlexes, [
-                  cBox(child: cText('Sr.No', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('Types of Crime', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: Center(child: cText(cmDateLabel, bold: true, fontSize: classVBodyFontSize))),
-                  cBox(child: Center(child: cText(pmDateLabel, bold: true, fontSize: classVBodyFontSize))),
-                  cBox(child: Center(child: cText(smlyDateLabel, bold: true, fontSize: classVBodyFontSize))),
-                  cBox(child: Center(child: cText(ycDateLabel, bold: true, fontSize: classVBodyFontSize))),
-                  cBox(child: Center(child: cText(ypDateLabel, bold: true, fontSize: classVBodyFontSize))),
-                  cBox(child: cText('Var.', bold: true, fontSize: classVBodyFontSize)),
+                  cBox(
+                      child: cText('Sr.No',
+                          bold: true, fontSize: classVBodyFontSize)),
+                  cBox(
+                      child: cText('Types of Crime',
+                          bold: true, fontSize: classVBodyFontSize)),
+                  cBox(
+                      child: Center(
+                          child: cText(cmDateLabel,
+                              bold: true, fontSize: classVBodyFontSize))),
+                  cBox(
+                      child: Center(
+                          child: cText(pmDateLabel,
+                              bold: true, fontSize: classVBodyFontSize))),
+                  cBox(
+                      child: Center(
+                          child: cText(smlyDateLabel,
+                              bold: true, fontSize: classVBodyFontSize))),
+                  cBox(
+                      child: Center(
+                          child: cText(ycDateLabel,
+                              bold: true, fontSize: classVBodyFontSize))),
+                  cBox(
+                      child: Center(
+                          child: cText(ypDateLabel,
+                              bold: true, fontSize: classVBodyFontSize))),
+                  cBox(
+                      child: cText('Var.',
+                          bold: true, fontSize: classVBodyFontSize)),
                 ]),
                 rowOfFlex(dataFlexes, [
-                  cBox(child: cText('', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('R', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('D', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('R', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('D', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('R', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('D', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('R', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('D', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('R', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('D', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('', bold: true, fontSize: classVBodyFontSize)),
+                  cBox(
+                      child:
+                          cText('', bold: true, fontSize: classVBodyFontSize)),
+                  cBox(
+                      child:
+                          cText('', bold: true, fontSize: classVBodyFontSize)),
+                  cBox(
+                      child:
+                          cText('R', bold: true, fontSize: classVBodyFontSize)),
+                  cBox(
+                      child:
+                          cText('D', bold: true, fontSize: classVBodyFontSize)),
+                  cBox(
+                      child:
+                          cText('R', bold: true, fontSize: classVBodyFontSize)),
+                  cBox(
+                      child:
+                          cText('D', bold: true, fontSize: classVBodyFontSize)),
+                  cBox(
+                      child:
+                          cText('R', bold: true, fontSize: classVBodyFontSize)),
+                  cBox(
+                      child:
+                          cText('D', bold: true, fontSize: classVBodyFontSize)),
+                  cBox(
+                      child:
+                          cText('R', bold: true, fontSize: classVBodyFontSize)),
+                  cBox(
+                      child:
+                          cText('D', bold: true, fontSize: classVBodyFontSize)),
+                  cBox(
+                      child:
+                          cText('R', bold: true, fontSize: classVBodyFontSize)),
+                  cBox(
+                      child:
+                          cText('D', bold: true, fontSize: classVBodyFontSize)),
+                  cBox(
+                      child:
+                          cText('', bold: true, fontSize: classVBodyFontSize)),
                 ]),
                 for (final def in classVRowDefs) buildScreenDataRow(def),
               ],
@@ -3067,7 +3356,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       return pw.Table(
         border: pw.TableBorder.all(color: PdfColors.grey600, width: 0.4),
         columnWidths: {
-          for (var i = 0; i < flexes.length; i++) i: pw.FlexColumnWidth(flexes[i].toDouble()),
+          for (var i = 0; i < flexes.length; i++)
+            i: pw.FlexColumnWidth(flexes[i].toDouble()),
         },
         children: [pw.TableRow(children: cells)],
       );
@@ -3160,7 +3450,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           ),
         ),
       );
-      final fileName = 'Station_Report_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final fileName =
+          'Station_Report_${DateTime.now().millisecondsSinceEpoch}.pdf';
       await Printing.sharePdf(bytes: await doc.save(), filename: fileName);
     }
 
@@ -3185,7 +3476,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: exportPdf,
-            icon: const Icon(Icons.picture_as_pdf_rounded, color: Colors.white, size: 18),
+            icon: const Icon(Icons.picture_as_pdf_rounded,
+                color: Colors.white, size: 18),
             label: Text(
               'Export Table PDF',
               style: GoogleFonts.poppins(
@@ -3215,7 +3507,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           backgroundColor: AppColors.navyMid,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 10),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           elevation: 0,
         ),
         child: Text(
@@ -3226,7 +3519,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     );
   }
 
-  Widget _buildReportTile(String category, int count, {int solvedCount = 0, VoidCallback? onTap}) {
+  Widget _buildReportTile(String category, int count,
+      {int solvedCount = 0, VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -3252,11 +3546,15 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               child: Row(
                 children: [
                   Text(TranslationHelper.translate(context, category),
-                      style:
-                          GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.lightText)),
+                      style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.lightText)),
                   const SizedBox(width: 6),
                   if (onTap != null)
-                    Icon(Icons.open_in_new_rounded, size: 13, color: (AppColors.navyMid).withValues(alpha: 0.5)),
+                    Icon(Icons.open_in_new_rounded,
+                        size: 13,
+                        color: (AppColors.navyMid).withValues(alpha: 0.5)),
                 ],
               ),
             ),
@@ -3268,12 +3566,18 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 color: AppColors.goldPrimary.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Text('$count ${TranslationHelper.translate(context, count == 1 ? 'Case' : 'Cases')}',
-                  style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.goldPrimary)),
+              child: Text(
+                  '$count ${TranslationHelper.translate(context, count == 1 ? 'Case' : 'Cases')}',
+                  style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.goldPrimary)),
             ),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 6),
-              child: Text('|', style: TextStyle(color: Color(0xFFCCD0D5), fontWeight: FontWeight.w300)),
+              child: Text('|',
+                  style: TextStyle(
+                      color: Color(0xFFCCD0D5), fontWeight: FontWeight.w300)),
             ),
             // Solved badge
             Container(
@@ -3283,7 +3587,10 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text('$solvedCount Solved',
-                  style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.successGreen)),
+                  style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.successGreen)),
             ),
           ],
         ),
@@ -3297,9 +3604,11 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         padding: const EdgeInsets.symmetric(vertical: 40),
         child: Column(
           children: [
-            Icon(Icons.analytics_outlined, size: 64, color: Colors.grey.shade300),
+            Icon(Icons.analytics_outlined,
+                size: 64, color: Colors.grey.shade300),
             const SizedBox(height: 16),
-            Text('No cases registered this month', style: GoogleFonts.poppins(color: AppColors.lightSubText)),
+            Text('No cases registered this month',
+                style: GoogleFonts.poppins(color: AppColors.lightSubText)),
           ],
         ),
       ),
@@ -3316,15 +3625,20 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          const Icon(Icons.info_outline_rounded, size: 18, color: AppColors.infoBlue),
+          const Icon(Icons.info_outline_rounded,
+              size: 18, color: AppColors.infoBlue),
           const SizedBox(width: 8),
           Text('Demo Statistics',
-              style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.infoBlue)),
+              style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.infoBlue)),
         ]),
         const SizedBox(height: 8),
         Text(
             'The counts above reflect all cases registered across all modules for the current month. You can add new cases from the dashboard to see them reflected here instantly.',
-            style: GoogleFonts.poppins(fontSize: 11, color: AppColors.lightSubText)),
+            style: GoogleFonts.poppins(
+                fontSize: 11, color: AppColors.lightSubText)),
       ]),
     );
   }
@@ -3408,7 +3722,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              TranslationHelper.translate(context, 'No registered entries found in this category.'),
+              TranslationHelper.translate(
+                  context, 'No registered entries found in this category.'),
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 fontSize: 12,
@@ -3441,8 +3756,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         index: index,
       );
     }
-    final isDetailFormHistory =
-        record.subCategory == 'Crime Detail Form' || record.subCategory == 'Property & Seizure Form';
+    final isDetailFormHistory = record.subCategory == 'Crime Detail Form' ||
+        record.subCategory == 'Property & Seizure Form';
     if (isDetailFormHistory) {
       return Center(
         child: Container(
@@ -3463,7 +3778,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -3481,7 +3797,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.calendar_today_rounded, size: 13, color: AppColors.lightSubText),
+                        const Icon(Icons.calendar_today_rounded,
+                            size: 13, color: AppColors.lightSubText),
                         const SizedBox(width: 4),
                         Text(
                           DateFormat('dd MMM yyyy').format(record.incidentDate),
@@ -3492,7 +3809,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        const Icon(Icons.access_time_rounded, size: 13, color: AppColors.lightSubText),
+                        const Icon(Icons.access_time_rounded,
+                            size: 13, color: AppColors.lightSubText),
                         const SizedBox(width: 4),
                         Text(
                           DateFormat('hh:mm a').format(record.createdAt),
@@ -3557,7 +3875,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         record.moduleKey == 'detected' ||
         widget.moduleKey == 'undetected' ||
         record.moduleKey == 'undetected';
-    final isThreeStatusModule = isDetectedCard || widget.moduleKey == 'mpda' || record.moduleKey == 'mpda';
+    final isThreeStatusModule = isDetectedCard ||
+        widget.moduleKey == 'mpda' ||
+        record.moduleKey == 'mpda';
     final String displayStatus;
     final Color sc;
     if (isThreeStatusModule) {
@@ -3574,7 +3894,12 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: AppColors.lightBorder),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 3))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 3))
+        ],
       ),
       child: Column(children: [
         Container(
@@ -3582,7 +3907,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           decoration: isDetectedCard
               ? BoxDecoration(
                   color: AppColors.navyDark.withValues(alpha: 0.06),
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
+                  borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(AppRadius.lg)),
                 )
               : null,
           child: Column(
@@ -3590,27 +3916,37 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             children: [
               Row(children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                      color: AppColors.infoBlue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
+                      color: AppColors.infoBlue.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(4)),
                   child: Text(record.caseNumber,
-                      style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.infoBlue)),
+                      style: GoogleFonts.poppins(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.infoBlue)),
                 ),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                   decoration: BoxDecoration(
                     color: sc.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: sc.withValues(alpha: 0.3)),
                   ),
                   child: Text(displayStatus,
-                      style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w700, color: sc)),
+                      style: GoogleFonts.poppins(
+                          fontSize: 9, fontWeight: FontWeight.w700, color: sc)),
                 ),
               ]),
               const SizedBox(height: 10),
               Text(record.title,
-                  style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.navyDark)),
+                  style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyDark)),
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(
@@ -3629,22 +3965,27 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 Text(record.description,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText)),
+                    style: GoogleFonts.poppins(
+                        fontSize: 12, color: AppColors.lightSubText)),
               ],
               const SizedBox(height: 10),
               Row(children: [
-                const Icon(Icons.person_rounded, size: 13, color: AppColors.lightSubText),
+                const Icon(Icons.person_rounded,
+                    size: 13, color: AppColors.lightSubText),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(record.assignedOfficer,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(fontSize: 11, color: AppColors.lightSubText)),
+                      style: GoogleFonts.poppins(
+                          fontSize: 11, color: AppColors.lightSubText)),
                 ),
-                const Icon(Icons.calendar_today_rounded, size: 13, color: AppColors.lightSubText),
+                const Icon(Icons.calendar_today_rounded,
+                    size: 13, color: AppColors.lightSubText),
                 const SizedBox(width: 4),
                 Text(DateFormat('dd MMM yyyy').format(record.incidentDate),
-                    style: GoogleFonts.poppins(fontSize: 11, color: AppColors.lightSubText)),
+                    style: GoogleFonts.poppins(
+                        fontSize: 11, color: AppColors.lightSubText)),
               ]),
             ],
           ),
@@ -3652,7 +3993,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         Container(height: 1, color: AppColors.lightBorder),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-          child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+          child:
+              Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
             _actionBtn(Icons.edit_note_rounded, 'Edit', AppColors.infoBlue, () {
               if (widget.moduleKey == 'ad') {
                 Navigator.push(
@@ -3689,7 +4031,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 );
                 return;
               }
-              if (widget.moduleKey == 'preventive' || record.moduleKey == 'preventive') {
+              if (widget.moduleKey == 'preventive' ||
+                  record.moduleKey == 'preventive') {
                 Navigator.push(
                   ctx,
                   AppTheme.fadeSlideRoute(
@@ -3731,11 +4074,13 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               Navigator.push(ctx, AppTheme.fadeSlideRoute(page: page));
             }),
             Container(width: 1, height: 24, color: AppColors.lightBorder),
-            _actionBtn(Icons.picture_as_pdf_rounded, 'PDF', AppColors.dangerRed, () {
+            _actionBtn(Icons.picture_as_pdf_rounded, 'PDF', AppColors.dangerRed,
+                () {
               ModulePdfHelper.generatePdf(record);
             }),
             Container(width: 1, height: 24, color: AppColors.lightBorder),
-            _actionBtn(Icons.visibility_rounded, 'View', AppColors.goldPrimary, () {
+            _actionBtn(Icons.visibility_rounded, 'View', AppColors.goldPrimary,
+                () {
               Navigator.push(
                   ctx,
                   AppTheme.fadeSlideRoute(
@@ -3749,7 +4094,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   ));
             }),
             Container(width: 1, height: 24, color: AppColors.lightBorder),
-            _actionBtn(Icons.delete_outline_rounded, 'Delete', AppColors.warningOrange, () {
+            _actionBtn(
+                Icons.delete_outline_rounded, 'Delete', AppColors.warningOrange,
+                () {
               _confirmDelete(ctx, record);
             }),
           ]),
@@ -3758,7 +4105,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     );
   }
 
-  Widget _actionBtn(IconData icon, String label, Color color, VoidCallback onTap) {
+  Widget _actionBtn(
+      IconData icon, String label, Color color, VoidCallback onTap) {
     return Expanded(
       child: InkWell(
         onTap: onTap,
@@ -3772,7 +4120,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               child: Text(label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w600, color: color)),
+                  style: GoogleFonts.poppins(
+                      fontSize: 10, fontWeight: FontWeight.w600, color: color)),
             ),
           ]),
         ),
@@ -3785,10 +4134,13 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       context: ctx,
       builder: (_) => AlertDialog(
         backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
-        title:
-            Text('Delete Record', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, color: AppColors.dangerRed)),
-        content: Text('Delete "${record.title}"? This cannot be undone.', style: GoogleFonts.poppins(fontSize: 13)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.lg)),
+        title: Text('Delete Record',
+            style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w700, color: AppColors.dangerRed)),
+        content: Text('Delete "${record.title}"? This cannot be undone.',
+            style: GoogleFonts.poppins(fontSize: 13)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -3798,7 +4150,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             onPressed: () async {
               Navigator.pop(ctx);
               try {
-                final provider = record.moduleKey == 'form_1_5' ? ctx.read<FormIVProvider>() : _readProvider(ctx);
+                final provider = record.moduleKey == 'form_1_5'
+                    ? ctx.read<FormIVProvider>()
+                    : _readProvider(ctx);
                 await provider.deleteRecord(record.id);
                 if (!ctx.mounted) return;
                 ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
@@ -3808,16 +4162,20 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               } catch (e) {
                 if (!ctx.mounted) return;
                 ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-                  content: Text('Failed to delete record: $e', style: GoogleFonts.poppins()),
+                  content: Text('Failed to delete record: $e',
+                      style: GoogleFonts.poppins()),
                   backgroundColor: AppColors.dangerRed,
                 ));
               }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.dangerRed,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.md)),
             ),
-            child: Text('Delete', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600)),
+            child: Text('Delete',
+                style: GoogleFonts.poppins(
+                    color: Colors.white, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -3906,8 +4264,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     Navigator.push(
       ctx,
       AppTheme.fadeSlideRoute(
-        page:
-            widget.moduleKey == 'ad' ? AdRecordDetailScreen(record: record) : ModuleRecordDetailScreen(record: record),
+        page: widget.moduleKey == 'ad'
+            ? AdRecordDetailScreen(record: record)
+            : ModuleRecordDetailScreen(record: record),
       ),
     );
   }
@@ -4067,7 +4426,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
     final isDisposal = isRecordDisposal(record);
     final displayStatus = isDisposal ? CaseStatus.disposal : CaseStatus.pending;
-    final statusColor = isDisposal ? AppColors.successGreen : AppColors.warningOrange;
+    final statusColor =
+        isDisposal ? AppColors.successGreen : AppColors.warningOrange;
 
     final categoryLabel = record.subCategory?.trim().isNotEmpty == true
         ? TranslationHelper.translate(ctx, record.subCategory!.trim())
@@ -4353,7 +4713,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       width: 146,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
-                        children: [ 
+                        children: [
                           if (!widget.readOnly) ...[
                             _buildCompactIconBtn(
                               icon: Icons.edit_outlined,
@@ -4595,7 +4955,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         : TranslationHelper.translate(context, 'Date Filter');
 
     final categoryName =
-        (widget.subCategory != null && widget.subCategory!.isNotEmpty) ? widget.subCategory! : widget.moduleLabel;
+        (widget.subCategory != null && widget.subCategory!.isNotEmpty)
+            ? widget.subCategory!
+            : widget.moduleLabel;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -4619,7 +4981,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 onTap: () => Navigator.of(context).maybePop(),
                 borderRadius: BorderRadius.circular(8),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(8),
@@ -4679,7 +5042,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: const Color(0xFFE8F1FC),
                       borderRadius: BorderRadius.circular(AppRadius.full),
@@ -4714,10 +5078,13 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                     6,
                   ),
                   decoration: BoxDecoration(
-                    color: hasDateFilter ? const Color(0xFFE8F1FC) : Colors.white,
+                    color:
+                        hasDateFilter ? const Color(0xFFE8F1FC) : Colors.white,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: hasDateFilter ? const Color(0xFF1976D2) : const Color(0xFFCBD5E1),
+                      color: hasDateFilter
+                          ? const Color(0xFF1976D2)
+                          : const Color(0xFFCBD5E1),
                       width: hasDateFilter ? 1.3 : 1.0,
                     ),
                     boxShadow: [
@@ -4736,21 +5103,27 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       Icon(
                         Icons.calendar_month_rounded,
                         size: 15,
-                        color: hasDateFilter ? const Color(0xFF1976D2) : AppColors.navyMid,
+                        color: hasDateFilter
+                            ? const Color(0xFF1976D2)
+                            : AppColors.navyMid,
                       ),
                       const SizedBox(width: 6),
                       Text(
                         dateText,
                         style: GoogleFonts.poppins(
                           fontSize: 12,
-                          fontWeight: hasDateFilter ? FontWeight.w600 : FontWeight.w500,
-                          color: hasDateFilter ? const Color(0xFF1976D2) : AppColors.navyDark,
+                          fontWeight:
+                              hasDateFilter ? FontWeight.w600 : FontWeight.w500,
+                          color: hasDateFilter
+                              ? const Color(0xFF1976D2)
+                              : AppColors.navyDark,
                         ),
                       ),
                       if (hasDateFilter) ...[
                         const SizedBox(width: 4),
                         InkWell(
-                          onTap: () => setState(() => _selectedDateRange = null),
+                          onTap: () =>
+                              setState(() => _selectedDateRange = null),
                           borderRadius: BorderRadius.circular(12),
                           child: Padding(
                             padding: const EdgeInsets.all(2),
@@ -4800,7 +5173,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       children: [
                         Icon(
                           _dateField == FormIVDateField.incidentDate &&
-                                  _dateSortOrder == FormIVDateSortOrder.newestFirst
+                                  _dateSortOrder ==
+                                      FormIVDateSortOrder.newestFirst
                               ? Icons.check_circle_rounded
                               : Icons.radio_button_unchecked_rounded,
                           size: 16,
@@ -4820,7 +5194,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       children: [
                         Icon(
                           _dateField == FormIVDateField.incidentDate &&
-                                  _dateSortOrder == FormIVDateSortOrder.oldestFirst
+                                  _dateSortOrder ==
+                                      FormIVDateSortOrder.oldestFirst
                               ? Icons.check_circle_rounded
                               : Icons.radio_button_unchecked_rounded,
                           size: 16,
@@ -4840,7 +5215,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                     child: Row(
                       children: [
                         Icon(
-                          _dateField == FormIVDateField.createdAt && _dateSortOrder == FormIVDateSortOrder.newestFirst
+                          _dateField == FormIVDateField.createdAt &&
+                                  _dateSortOrder ==
+                                      FormIVDateSortOrder.newestFirst
                               ? Icons.check_circle_rounded
                               : Icons.radio_button_unchecked_rounded,
                           size: 16,
@@ -4859,7 +5236,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                     child: Row(
                       children: [
                         Icon(
-                          _dateField == FormIVDateField.createdAt && _dateSortOrder == FormIVDateSortOrder.oldestFirst
+                          _dateField == FormIVDateField.createdAt &&
+                                  _dateSortOrder ==
+                                      FormIVDateSortOrder.oldestFirst
                               ? Icons.check_circle_rounded
                               : Icons.radio_button_unchecked_rounded,
                           size: 16,
@@ -4875,7 +5254,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   ),
                 ],
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(8),
@@ -5007,7 +5387,8 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 11.5, color: iconColor ?? const Color(0xFF64748B)),
+              Icon(icon,
+                  size: 11.5, color: iconColor ?? const Color(0xFF64748B)),
               const SizedBox(width: 3.5),
             ],
             Flexible(
@@ -5104,16 +5485,24 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
         ? Map<String, dynamic>.from(extra[kPreventiveFormExtraFieldsKey] as Map)
         : extra;
 
-    final caseRef =
-        prevMap['caseRef'] is Map ? Map<String, dynamic>.from(prevMap['caseRef'] as Map) : <String, dynamic>{};
-    final sections =
-        prevMap['sections'] is Map ? Map<String, dynamic>.from(prevMap['sections'] as Map) : <String, dynamic>{};
-    final accusedList = prevMap['accusedList'] is List ? (prevMap['accusedList'] as List) : <dynamic>[];
-    final istegasha =
-        prevMap['istegasha'] is Map ? Map<String, dynamic>.from(prevMap['istegasha'] as Map) : <String, dynamic>{};
+    final caseRef = prevMap['caseRef'] is Map
+        ? Map<String, dynamic>.from(prevMap['caseRef'] as Map)
+        : <String, dynamic>{};
+    final sections = prevMap['sections'] is Map
+        ? Map<String, dynamic>.from(prevMap['sections'] as Map)
+        : <String, dynamic>{};
+    final accusedList = prevMap['accusedList'] is List
+        ? (prevMap['accusedList'] as List)
+        : <dynamic>[];
+    final istegasha = prevMap['istegasha'] is Map
+        ? Map<String, dynamic>.from(prevMap['istegasha'] as Map)
+        : <String, dynamic>{};
 
     // 1. SR. CR. No.
-    String crNo = (caseRef['crimeNo'] ?? prevMap['crimeNo'] ?? record.caseNumber).toString().trim();
+    String crNo =
+        (caseRef['crimeNo'] ?? prevMap['crimeNo'] ?? record.caseNumber)
+            .toString()
+            .trim();
     if (crNo.isEmpty) crNo = record.id;
 
     // 2. Crime Category
@@ -5127,7 +5516,11 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
         .toString()
         .trim();
     if (categoryLabel.isEmpty || categoryLabel.toLowerCase() == 'preventive') {
-      final fallback = (record.extraFields['crimeCategory'] ?? record.extraFields['category'] ?? '').toString().trim();
+      final fallback = (record.extraFields['crimeCategory'] ??
+              record.extraFields['category'] ??
+              '')
+          .toString()
+          .trim();
       if (fallback.isNotEmpty && fallback.toLowerCase() != 'preventive') {
         categoryLabel = fallback;
       } else if (record.firestoreCategoryDisplayName.isNotEmpty &&
@@ -5152,11 +5545,14 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
       sectionAct = act;
     } else if (record.description.trim().isNotEmpty) {
       sectionAct = record.description.trim();
-    } else if (sections['ipcSections'] != null && sections['ipcSections'].toString().trim().isNotEmpty) {
+    } else if (sections['ipcSections'] != null &&
+        sections['ipcSections'].toString().trim().isNotEmpty) {
       sectionAct = '$secList $act';
-    } else if (sections['otherSections'] != null && sections['otherSections'].toString().trim().isNotEmpty) {
+    } else if (sections['otherSections'] != null &&
+        sections['otherSections'].toString().trim().isNotEmpty) {
       sectionAct = sections['otherSections'].toString().trim();
-    } else if (prevMap['otherSections'] != null && prevMap['otherSections'].toString().trim().isNotEmpty) {
+    } else if (prevMap['otherSections'] != null &&
+        prevMap['otherSections'].toString().trim().isNotEmpty) {
       sectionAct = prevMap['otherSections'].toString().trim();
     } else {
       sectionAct = '—';
@@ -5211,13 +5607,19 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
     }
 
     // 7. Preventive No.
-    String prevNo = (istegasha['preventiveNo'] ?? prevMap['preventiveNo'] ?? record.extraFields['preventiveNo'] ?? '')
+    String prevNo = (istegasha['preventiveNo'] ??
+            prevMap['preventiveNo'] ??
+            record.extraFields['preventiveNo'] ??
+            '')
         .toString()
         .trim();
     if (prevNo.isEmpty) prevNo = '—';
 
     // 8. IO Name
-    String ioName = (istegasha['ioName'] ?? prevMap['ioName'] ?? prevMap['assignedOfficer'] ?? record.assignedOfficer)
+    String ioName = (istegasha['ioName'] ??
+            prevMap['ioName'] ??
+            prevMap['assignedOfficer'] ??
+            record.assignedOfficer)
         .toString()
         .trim();
     if (ioName.isEmpty) ioName = '—';
@@ -5227,9 +5629,12 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
         record.status == 'Closed' ||
         record.status == 'Resolved' ||
         record.status.toLowerCase().contains('completed');
-    final Color statusColor = isDisposal ? const Color(0xFF2E7D32) : const Color(0xFFD32F2F);
-    final Color statusBg = isDisposal ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE);
-    final Color statusBorder = isDisposal ? const Color(0xFFA5D6A7) : const Color(0xFFFFCDD2);
+    final Color statusColor =
+        isDisposal ? const Color(0xFF2E7D32) : const Color(0xFFD32F2F);
+    final Color statusBg =
+        isDisposal ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE);
+    final Color statusBorder =
+        isDisposal ? const Color(0xFFA5D6A7) : const Color(0xFFFFCDD2);
 
     Widget buildRowContent(bool isExpandedMode) {
       return Row(
