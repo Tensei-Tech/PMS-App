@@ -420,7 +420,7 @@ class NcViewDocumentView extends StatelessWidget {
                               Border.all(color: _kTeal.withValues(alpha: 0.4)),
                         ),
                         child: Text(
-                          '§$sec  (${_secLabel(actKey, sec)})',
+                          'Sec. $sec  (${_secLabel(actKey, sec)})',
                           style: GoogleFonts.poppins(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,

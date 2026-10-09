@@ -591,7 +591,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     } else {
       selectedTab = FormIVStatusTab.total;
     }
-
     List<ModuleRecord> displayRecords = List<ModuleRecord>.from(filtered);
     if (isTheftOrFormIVStyle) {
       if (_selectedDateRange != null) {
@@ -613,7 +612,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               ? r.incidentDate
               : r.createdAt;
           return targetDate
-                  .isAfter(start.subtract(const Duration(seconds: 1))) &&
+                  .isAfter(start.subtract(const Duration(seconds: 1))) &
               targetDate.isBefore(end.add(const Duration(seconds: 1)));
         }).toList();
       }
@@ -630,7 +629,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       });
     }
 
-    // Important: keep this so stats match filtered date range
+    // When a date filter is active, rebase stats off the filtered list so
+    // the header, stats row, and tab counts match what the user sees.
     if (isTheftOrFormIVStyle && _selectedDateRange != null) {
       totalCount = displayRecords.length;
       disposalCount = widget.moduleKey == 'absconded'
@@ -4708,34 +4708,42 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                     ),
                     const SizedBox(width: 8),
 
-                    // 6. Action Buttons: Edit, View, PDF, Delete
-                    if (!widget.readOnly) ...[
-                      _buildCompactIconBtn(
-                        icon: Icons.edit_outlined,
-                        label: 'Edit',
-                        onTap: () => _handleEdit(ctx, record),
+                    // 6. Action Buttons: Edit, View, PDF, Delete (Fixed slot)
+                    SizedBox(
+                      width: 146,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          if (!widget.readOnly) ...[
+                            _buildCompactIconBtn(
+                              icon: Icons.edit_outlined,
+                              label: 'Edit',
+                              onTap: () => _handleEdit(ctx, record),
+                            ),
+                            const SizedBox(width: 6),
+                          ],
+                          _buildCompactIconBtn(
+                            icon: Icons.visibility_outlined,
+                            label: 'View',
+                            onTap: () => _handleView(ctx, record),
+                          ),
+                          const SizedBox(width: 6),
+                          _buildCompactIconBtn(
+                            icon: Icons.picture_as_pdf_outlined,
+                            label: 'PDF',
+                            onTap: () => _handlePdf(ctx, record),
+                          ),
+                          if (!widget.readOnly) ...[
+                            const SizedBox(width: 6),
+                            _buildCompactIconBtn(
+                              icon: Icons.delete_outline_rounded,
+                              label: 'Delete',
+                              onTap: () => _confirmDelete(ctx, record),
+                            ),
+                          ],
+                        ],
                       ),
-                      const SizedBox(width: 6),
-                    ],
-                    _buildCompactIconBtn(
-                      icon: Icons.visibility_outlined,
-                      label: 'View',
-                      onTap: () => _handleView(ctx, record),
                     ),
-                    const SizedBox(width: 6),
-                    _buildCompactIconBtn(
-                      icon: Icons.picture_as_pdf_outlined,
-                      label: 'PDF',
-                      onTap: () => _handlePdf(ctx, record),
-                    ),
-                    if (!widget.readOnly) ...[
-                      const SizedBox(width: 6),
-                      _buildCompactIconBtn(
-                        icon: Icons.delete_outline_rounded,
-                        label: 'Delete',
-                        onTap: () => _confirmDelete(ctx, record),
-                      ),
-                    ],
                   ],
                 );
               },
