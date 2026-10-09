@@ -6,6 +6,8 @@ import 'package:pdf/widgets.dart' as pw;
 import 'form_image_pdf_helper.dart';
 import 'pdf_font_cache.dart';
 
+import 'pdf_layout_constants.dart';
+
 Future<void> previewNoticeToAccusedPdf(
   BuildContext context,
   Map<String, dynamic> doc,
@@ -56,7 +58,7 @@ Future<Uint8List> generateNoticeToAccusedPdf(Map<String, dynamic> doc) async {
   pdf.addPage(
     pw.Page(
       pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.symmetric(horizontal: 44, vertical: 44),
+      margin: PdfLayoutConstants.pageMargin,
       build: (pw.Context context) {
         final ps = v('policeStation');
         final dateStr = v('date', '......./ ......../२०....');
