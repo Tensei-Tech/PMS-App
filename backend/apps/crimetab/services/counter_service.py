@@ -1,7 +1,10 @@
+import logging
 from typing import Dict, List, Optional, Set
 from django.db.models import Count, Q
 from apps.cases.models import CaseRecord
 from apps.crimetab.models.groupings import CaseCategoryLink, CaseCategory
+
+logger = logging.getLogger(__name__)
 
 
 def get_twin_category_ids(category_id: int) -> List[int]:
