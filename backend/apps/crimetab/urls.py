@@ -19,6 +19,9 @@ from apps.crimetab.views import (
 )
 
 from apps.cases.views import (
+    ItssoCasesView,
+    ItssoIOWiseView,
+    ItssoTimeWiseView,
     CrimeTypeListView,
     CasesByCrimeTypeView,
     SectionsByCrimeTypeView,
@@ -90,5 +93,8 @@ urlpatterns = [
 
     # Routers for groups, categories
     path('', include(router.urls)),
+    path('itsso/cases/', ItssoCasesView.as_view(), name='itsso-cases'),
+    path('itsso/io-wise/', ItssoIOWiseView.as_view(), name='itsso-io-wise'),
+    path('itsso/time-wise/', ItssoTimeWiseView.as_view(), name='itsso-time-wise'),
 ]
 

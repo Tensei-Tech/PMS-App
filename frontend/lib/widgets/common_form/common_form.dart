@@ -23,6 +23,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../modules/core/models/base_record.dart';
 import '../../screens/ad_form_screen.dart' show ACT_DATA;
 import '../../services/case_service.dart';
+import '../../services/backend_case_service.dart';
 import '../../utils/app_constants.dart';
 import '../../utils/common_form_pdf.dart';
 import '../../utils/crime_detail_pdf.dart';
@@ -733,11 +734,21 @@ class CommonFormState extends State<CommonForm> {
       _loadFormDefinition(chargedSections: sections);
 
   // ─── lifecycle ─────────────────────────────────────────────────────────────
+  Future<void> _fetchGlobalActs() async {
+    final acts = await BackendCaseService().fetchActDataMap();
+    if (acts != null && mounted) {
+      setState(() {
+        _actsData = acts;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _ownsScroll = widget.scrollController == null;
     _isTwoFourWheelerTheft = _isTwoFourWheeler;
+    _fetchGlobalActs();
     _loadFormDefinition();
   }
 

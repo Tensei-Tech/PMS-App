@@ -299,3 +299,171 @@ def extract_section_act(extra_fields):
             if val.get('act'):
                 return str(val['act']).strip()
     return ''
+
+
+class VictimCaseRecordSerializer(serializers.ModelSerializer):
+    sr_no = serializers.IntegerField(read_only=True)
+    parsed_date = serializers.SerializerMethodField()
+    victim_details = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CaseRecord
+        fields = [
+            'id', 'sr_no', 'module_key', 'title', 'case_number', 'description',
+            'sub_category', 'status', 'station_name', 'incident_date', 'created_at',
+            'parsed_date', 'victim_details', 'cc_st_number'
+        ]
+
+    cc_st_number = serializers.SerializerMethodField()
+
+    def get_cc_st_number(self, obj):
+        extra = obj.extra_fields if isinstance(obj.extra_fields, dict) else {}
+        cc = (extra.get('cc_st_number') or extra.get('ccStNumber') or extra.get('cc_st_no') or extra.get('ccStNo') or '')
+        return str(cc).strip()
+
+    def get_parsed_date(self, obj):
+        return obj.incident_date.strftime('%Y-%m-%d') if obj.incident_date else ''
+
+    def get_victim_details(self, obj):
+        extra = obj.extra_fields if isinstance(obj.extra_fields, dict) else {}
+        
+        # Determine module category name
+        category = obj.sub_category or obj.module_key or ""
+        
+        # Generic KYC extractors
+        def extract_age(k_dict):
+            age_val = k_dict.get('age') or k_dict.get('Age')
+            if age_val:
+                try:
+                    return int(float(str(age_val).replace('Y', '').replace('y', '').strip()))
+                except ValueError:
+                    return 0
+            return 0
+            
+        def extract_gender(k_dict):
+            g = str(k_dict.get('gender') or k_dict.get('Gender') or '').lower()
+            if g.startswith('m'): return 'Male'
+            if g.startswith('f'): return 'Female'
+            if g.startswith('t') or g.startswith('o'): return 'Transgender'
+            return 'Unknown'
+            
+        def get_age_category(age):
+            if age < 0: return 'Unknown'
+            if age < 5: return 'Below 5 Years'
+            if age <= 10: return '5-10 Years'
+            if age <= 15: return '11-15 Years'
+            if age < 18: return '16-18 Years'
+            if age < 60: return '18-59 Years'
+            return '60 Years and Above'
+
+        victims = []
+        
+        # Check if list of victims/kyc is in extra_fields
+        kyc_list = extra.get('kyc_details') or extra.get('victims') or extra.get('persons')
+        if isinstance(kyc_list, list) and len(kyc_list) > 0:
+            for idx, kyc in enumerate(kyc_list):
+                if not isinstance(kyc, dict): continue
+                age = extract_age(kyc)
+                victims.append({
+                    'serial_no': idx + 1,
+                    'name': kyc.get('name') or kyc.get('fullName') or 'Unknown',
+                    'gender': extract_gender(kyc),
+                    'age': age,
+                    'age_category': get_age_category(age),
+                    'injured': bool(kyc.get('injured') or kyc.get('is_injured')),
+                    'deceased': bool(kyc.get('deceased') or kyc.get('is_deceased')),
+                    'missing': bool(kyc.get('missing') or kyc.get('is_missing')),
+                    'traced': bool(kyc.get('traced') or kyc.get('is_traced')),
+                })
+        else:
+            # Fallback to singular victim data in extra_fields
+            name = extra.get('victim_name') or extra.get('victimName') or extra.get('complainant') or 'Unknown'
+            age = extract_age(extra)
+            gender = extract_gender(extra)
+            
+            # Additional statuses from extra_fields
+            injured = bool(extra.get('is_injured') or (str(extra.get('injury_type')).strip() != ''))
+            deceased = bool(extra.get('is_deceased') or 'death' in str(extra.get('outcome')).lower())
+            missing = obj.module_key == 'missing' or bool(extra.get('is_missing'))
+            traced = bool(extra.get('is_traced') or obj.status == 'Traced' or (missing and obj.status in ['Disposal', 'Detected', 'Closed']))
+
+            victims.append({
+                'serial_no': 1,
+                'name': name,
+                'gender': gender,
+                'age': age,
+                'age_category': get_age_category(age),
+                'injured': injured,
+                'deceased': deceased,
+                'missing': missing,
+                'traced': traced,
+            })
+            
+        return {
+            'crime_category': category,
+            'victims_list': victims
+        }
+
+
+from datetime import datetime, date
+from django.utils import timezone
+
+class ItssoCaseRecordSerializer(serializers.ModelSerializer):
+    sr_no = serializers.IntegerField(read_only=True)
+    charge_sheet_date = serializers.SerializerMethodField()
+    itsso_status_color = serializers.SerializerMethodField()
+    itsso_status = serializers.SerializerMethodField()
+    section_act = serializers.SerializerMethodField()
+    days_passed = serializers.SerializerMethodField()
+    action_required = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CaseRecord
+        fields = [
+            'id', 'sr_no', 'case_number', 'section_act', 'charge_sheet_date', 'assigned_officer', 'itsso_status', 'itsso_status_color', 'created_at', 'station_name', 'days_passed', 'action_required'
+        ]
+
+    def _get_cs_date(self, obj):
+        extra = obj.extra_fields if isinstance(obj.extra_fields, dict) else {}
+        cs_date_str = extra.get('charge_sheet_date') or extra.get('chargeSheetDate') or extra.get('cs_date')
+        if not cs_date_str:
+            return None
+        try:
+            if isinstance(cs_date_str, str):
+                return datetime.strptime(cs_date_str.split('T')[0], '%Y-%m-%d').date()
+            return None
+        except Exception:
+            return None
+
+    def get_charge_sheet_date(self, obj):
+        extra = obj.extra_fields if isinstance(obj.extra_fields, dict) else {}
+        cs_no = extra.get('charge_sheet_number') or extra.get('charge_sheet_no') or extra.get('cc_st_number') or extra.get('ccStNumber')
+        if cs_no:
+            return str(cs_no)
+        d = self._get_cs_date(obj)
+        return d.strftime('%Y-%m-%d') if d else ''
+
+    def get_section_act(self, obj):
+        extra = obj.extra_fields if isinstance(obj.extra_fields, dict) else {}
+        return str(extra.get('section') or extra.get('act_section') or extra.get('sections') or '').strip()
+        
+    def _has_charge_sheet(self, obj):
+        extra = obj.extra_fields if isinstance(obj.extra_fields, dict) else {}
+        cs_no = extra.get('charge_sheet_number') or extra.get('charge_sheet_no') or extra.get('cc_st_number') or extra.get('ccStNumber')
+        return bool(cs_no)
+
+    def get_itsso_status_color(self, obj):
+        return 'Green' if self._has_charge_sheet(obj) else 'Red'
+
+    def get_itsso_status(self, obj):
+        return 'Disposed' if self._has_charge_sheet(obj) else 'Pending'
+
+    def get_days_passed(self, obj):
+        reg_date = obj.created_at.date() if obj.created_at else timezone.now().date()
+        return (timezone.now().date() - reg_date).days
+        
+    def get_action_required(self, obj):
+        # Red button logic: >60 days and no chargesheet
+        reg_date = obj.created_at.date() if obj.created_at else timezone.now().date()
+        days_passed = (timezone.now().date() - reg_date).days
+        return days_passed > 60 and not self._has_charge_sheet(obj)
