@@ -20,6 +20,12 @@ from apps.cases.views import (
     DesignationWiseDisposalView,
     DisposalCrimeTypeWiseView,
     CaseCountsView,
+    AbscondedCasesView,
+    AbscondedIOWiseView,
+    AbscondedTimeWiseView,
+    ArrestedCaseWiseView,
+    TimeWiseArrestedView,
+    IOWiseArrestedView,
 )
 
 router = DefaultRouter()
@@ -39,6 +45,9 @@ urlpatterns = [
     path('undetected/', UndetectedCasesView.as_view(), name='undetected-cases'),
     path('undetected/io-wise/', UndetectedIOWiseView.as_view(), name='undetected-io-wise'),
     path('undetected/time-wise/', UndetectedTimeWiseView.as_view(), name='undetected-time-wise'),
+    path('absconded/', AbscondedCasesView.as_view(), name='absconded-cases'),
+    path('absconded/io-wise/', AbscondedIOWiseView.as_view(), name='absconded-io-wise'),
+    path('absconded/time-wise/', AbscondedTimeWiseView.as_view(), name='absconded-time-wise'),
     path('detected/', DetectedCasesView.as_view(), name='detected-cases'),
     path('detected/io-wise/', IOWiseDetectedView.as_view(), name='detected-io-wise'),
     path('detected/time-wise/', TimeWiseDetectedView.as_view(), name='detected-time-wise'),
@@ -46,6 +55,11 @@ urlpatterns = [
     path('disposal/time-wise/', TimeWiseDisposalView.as_view(), name='disposal-time-wise'),
     path('disposal/designation-wise/', DesignationWiseDisposalView.as_view(), name='disposal-designation-wise'),
     path('disposal/crime-type-wise/', DisposalCrimeTypeWiseView.as_view(), name='disposal-crime-type-wise'),
+    
+    path('arrested/case-wise/', ArrestedCaseWiseView.as_view(), name='arrested-case-wise'),
+    path('arrested/time-wise/', TimeWiseArrestedView.as_view(), name='arrested-time-wise'),
+    path('arrested/io-wise/', IOWiseArrestedView.as_view(), name='arrested-io-wise'),
+
     # Existing CaseRecordViewSet router (ModelViewSet)
     path('', include(router.urls)),
 ]

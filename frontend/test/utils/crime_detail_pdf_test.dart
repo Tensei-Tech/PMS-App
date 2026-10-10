@@ -1,7 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:khakhi_diary/utils/crime_detail_pdf.dart';
+import 'package:khakhi_diary/utils/property_seizure_pdf.dart';
+import 'package:khakhi_diary/utils/arrest_surrender_pdf.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   group('mapToCrimeDetailDoc Tests', () {
     test('correctly maps standard crime detail document structure', () {
       final source = {
@@ -155,5 +158,63 @@ void main() {
         expect(mapped['complainantAddress'], equals(marathiLongString));
       },
     );
+
+    test(
+        'generateCrimeDetailPdf handles multiline and long unspaced text gracefully',
+        () async {
+      final longUnbroken = 'w' * 120;
+      const multilineText = 'Line 1 Act\nLine 2 Act\nLine 3 Act';
+      final doc = {
+        'firNo': '123/2026',
+        'district': 'Pune City',
+        'ps': 'Kothrud',
+        'year': '2026',
+        'date': '2026-03-20',
+        'actSection': longUnbroken,
+        'shownByName': 'John Doe',
+        'shownByFatherHusband': 'Senior Doe',
+        'shownByAddress': multilineText,
+        'typeOfCrime': 'Theft Under Investigation',
+        'motiveOfCrime': 'Financial',
+      };
+      final pdfBytes = await generateCrimeDetailPdf(doc);
+      expect(pdfBytes, isNotEmpty);
+    });
+
+    test(
+        'generatePropertySeizurePdf handles multiline text and long strings gracefully',
+        () async {
+      final longUnbroken = 'w' * 150;
+      final doc = {
+        'district': 'Pune',
+        'ps': 'Shivajinagar',
+        'year': '2026',
+        'firNo': '45',
+        'personName': 'John Doe',
+        'personFather': 'Senior Doe',
+        'personAddress': longUnbroken,
+        'personAddressLine2': 'Lane 2, Flat 101',
+        'w1Name': longUnbroken,
+        'w1Father': 'Witness Father',
+        'w1Address': 'Witness Address Line 1\nWitness Address Line 2',
+      };
+      final pdfBytes = await generatePropertySeizurePdf(doc);
+      expect(pdfBytes, isNotEmpty);
+    });
+
+    test('generateArrestSurrenderPdf handles multiline fields gracefully',
+        () async {
+      final longUnbroken = 'w' * 120;
+      final doc = {
+        'courtName': 'District Court Pune - Additional Sessions Judge Court 4',
+        'actsSections': 'BNS 103, 105, 111, 3(5)',
+        'accusedName': 'Accused Person Name with extra details',
+        'accusedFather': 'Father Name of the Accused',
+        'permAddress': longUnbroken,
+        'presAddress': 'Flat 202, Building 5, Near Old Bus Stand, Pune',
+      };
+      final pdfBytes = await generateArrestSurrenderPdf(doc);
+      expect(pdfBytes, isNotEmpty);
+    });
   });
 }

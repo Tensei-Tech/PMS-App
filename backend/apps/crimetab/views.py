@@ -1427,14 +1427,106 @@ class CrimeCaseManageView(APIView):
                     status_filter = request.query_params.get('status')
                     search = request.query_params.get('search')
 
+                    qs = CaseRecord.objects.all()
                     if module_key and module_key.lower() not in ['all', '']:
-                        qs = CaseRecord.objects.filter(module_key__iexact=module_key)
-                    else:
-                        qs = CaseRecord.objects.all()
+                        mod_lower = module_key.lower().strip()
+                        if mod_lower == 'undetected':
+                            undetected_q = (
+                                Q(accused__isnull=True) |
+                                Q(accused__exact='') |
+                                Q(accused__iexact='unknown') |
+                                Q(accused__iexact='अज्ञात') |
+                                Q(accused__iexact='unidentified')
+                            )
+                            qs = qs.filter(undetected_q).exclude(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved'])
+                        elif mod_lower == 'detected':
+                            detected_q = (
+                                Q(accused__isnull=False) &
+                                ~Q(accused__exact='') &
+                                ~Q(accused__iexact='unknown') &
+                                ~Q(accused__iexact='अज्ञात') &
+                                ~Q(accused__iexact='unidentified')
+                            )
+                            qs = qs.filter(detected_q).exclude(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved'])
+                        elif mod_lower == 'absconded':
+                            from apps.cases.utils import get_absconded_cases
+                            absconded_qs = get_absconded_cases()
+                            qs = qs.filter(id__in=absconded_qs.values_list('id', flat=True))
+                        elif mod_lower in ['form_1_5', 'form_iv', 'form_i_v', '1_to_5']:
+                            from apps.crimetab.models.groupings import CaseCategory
+                            group_1_cats = list(CaseCategory.objects.filter(
+                                Q(group_id=1) | Q(group__group_code__iexact='I TO V')
+                            ).values_list('category_name', flat=True))
+                            group_1_codes = list(CaseCategory.objects.filter(
+                                Q(group_id=1) | Q(group__group_code__iexact='I TO V')
+                            ).values_list('category_code', flat=True))
+                            known_g1 = {
+                                'form_1_5', 'murder', 'attempt_to_murder', 'dacoity', 'robbery', 'hbt',
+                                'theft', 'riot', 'unlawful_assembly', 'kidnapping', 'cbt', 'cheating',
+                                'mischief', 'hurt', 'assault_on_public_servant', 'rape', 'molestation',
+                                'extortion', 'ipc_304', '498_a_ipc', 'other_ipc', 'chain_snatching',
+                                'sand_theft', 'two_four_wheeler', 'two_wheeler', 'missing',
+                                'crime_women', 'accident', 'bnss', 'coin', 'suicide', 'absconded',
+                                'arrested', 'juvenile', 'victim'
+                            }
+                            for c in group_1_codes:
+                                if c:
+                                    known_g1.add(c.lower().strip())
+                            q_group = (
+                                Q(module_key__in=list(known_g1)) |
+                                Q(category_links__category__group_id=1) |
+                                Q(category_links__category__group__group_code__iexact='I TO V')
+                            )
+                            for name in group_1_cats:
+                                if name:
+                                    q_group |= Q(sub_category__iexact=name)
+                            qs = qs.filter(q_group).distinct()
+                        elif mod_lower in ['form_6', 'form_vi', 'part_6']:
+                            from apps.crimetab.models.groupings import CaseCategory
+                            group_2_cats = list(CaseCategory.objects.filter(
+                                Q(group_id=2) | Q(group__group_code__iexact='VI')
+                            ).values_list('category_name', flat=True))
+                            group_2_codes = list(CaseCategory.objects.filter(
+                                Q(group_id=2) | Q(group__group_code__iexact='VI')
+                            ).values_list('category_code', flat=True))
+                            known_g2 = {
+                                'form_6', 'st_drugs', 'prohibition', 'gambling', 'pocso', 'ndps',
+                                'gowans', 'it_act', 'mv_act', 'traffic', 'uapa', 'mcoca', 'mpda',
+                                'passport', 'sam_warrant', 'muddemal', 'application'
+                            }
+                            for c in group_2_codes:
+                                if c:
+                                    known_g2.add(c.lower().strip())
+                            q_group = (
+                                Q(module_key__in=list(known_g2)) |
+                                Q(category_links__category__group_id=2) |
+                                Q(category_links__category__group__group_code__iexact='VI')
+                            )
+                            for name in group_2_cats:
+                                if name:
+                                    q_group |= Q(sub_category__iexact=name)
+                            qs = qs.filter(q_group).distinct()
+                        else:
+                            norm_name = module_key.replace('_', ' ').strip()
+                            q_mod = (
+                                Q(module_key__iexact=module_key) |
+                                Q(sub_category__iexact=norm_name) |
+                                Q(sub_category__iexact=module_key) |
+                                Q(category_links__category__category_name__iexact=norm_name) |
+                                Q(category_links__category__category_code__iexact=module_key)
+                            )
+                            qs = qs.filter(q_mod).distinct()
+
                     if station_name and station_name.strip().upper() not in ['ALL', '']:
                         qs = qs.filter(station_name__iexact=station_name)
                     if status_filter:
-                        qs = qs.filter(status__iexact=status_filter)
+                        st_lower = status_filter.lower().strip()
+                        if st_lower in ['disposal', 'disposed', 'closed', 'resolved']:
+                            qs = qs.filter(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved'])
+                        elif st_lower in ['pending', 'open', 'active']:
+                            qs = qs.exclude(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved'])
+                        else:
+                            qs = qs.filter(status__iexact=status_filter)
                     if search:
                         qs = qs.filter(
                             Q(case_number__icontains=search) |

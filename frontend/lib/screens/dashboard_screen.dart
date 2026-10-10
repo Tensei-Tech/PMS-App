@@ -82,6 +82,7 @@ import 'pending_hub_screen.dart';
 import 'undetected_hub_screen.dart';
 import 'detected_hub_screen.dart';
 import 'disposal_hub_screen.dart';
+import 'arrested_hub_screen.dart';
 import '../widgets/bell_icon_widget.dart';
 import '../widgets/form_iv_category_button.dart';
 import '../widgets/searchable_picker_field.dart';
@@ -92,7 +93,7 @@ import '../widgets/state_police_banner_dialog.dart';
 import '../widgets/dashboard_stats_widget.dart';
 import '../widgets/voice_search_dialog.dart';
 import 'about_app_screen.dart';
-import 'absconded_cases_screen.dart';
+import 'absconded_hub_screen.dart';
 import 'ad_form_screen.dart';
 import 'ad_record_detail_screen.dart';
 import 'add_members_screen.dart';
@@ -3910,6 +3911,14 @@ class _HomeTabState extends State<_HomeTab> {
           page: DisposalHubScreen(stationName: auth.stationName),
         ),
       );
+    } else if (item.name == 'Arrested') {
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: ArrestedHubScreen(stationName: auth.stationName),
+        ),
+      );
     } else if (item.moduleKey == 'service_tool') {
       Navigator.push(
         context,
@@ -3928,7 +3937,7 @@ class _HomeTabState extends State<_HomeTab> {
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
-          page: const AbscondedCasesScreen(),
+          page: AbscondedHubScreen(stationName: widget.auth.stationName),
         ),
       );
     } else {

@@ -2,7 +2,6 @@
 // Unified shim forwarding ModuleFormScreen callers to the single-source-of-truth DynamicFormScreen.
 
 import 'package:flutter/material.dart';
-
 import '../modules/core/models/base_record.dart';
 import '../widgets/dynamic_form/dynamic_form_screen.dart';
 

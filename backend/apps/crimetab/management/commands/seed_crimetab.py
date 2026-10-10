@@ -43,13 +43,13 @@ class Command(BaseCommand):
         tmpl_sexual, _ = FieldTemplate.objects.get_or_create(template_name='Sexual Offence Extra Template')
 
         # 3. Acts & Sections
-        act_bns, _ = Act.objects.get_or_create(act_code='BNS', defaults={'act_name': 'Bharatiya Nyaya Sanhita 2023'})
-        act_ipc, _ = Act.objects.get_or_create(act_code='IPC', defaults={'act_name': 'Indian Penal Code 1860'})
+        act_bns, _ = Act.objects.get_or_create(act_name='BNS')
+        act_ipc, _ = Act.objects.get_or_create(act_name='IPC')
 
-        sec_robbery, _ = ActSection.objects.get_or_create(act=act_bns, section_number='309', defaults={'title': 'Robbery', 'description': 'Robbery and associated offences under BNS 2023 (IPC 390, 392, 393, 394)'})
-        sec_dacoity, _ = ActSection.objects.get_or_create(act=act_bns, section_number='310', defaults={'title': 'Dacoity', 'description': 'Dacoity and associated offences under BNS 2023 (IPC 391, 395, 396, 399, 400, 402)'})
-        sec_robbery_dacoity_death, _ = ActSection.objects.get_or_create(act=act_bns, section_number='311', defaults={'title': 'Robbery, or dacoity, with attempt to cause death or grievous hurt', 'description': 'Corresponds to IPC 397'})
-        sec_robbery_dacoity_armed, _ = ActSection.objects.get_or_create(act=act_bns, section_number='312', defaults={'title': 'Attempt to commit robbery or dacoity when armed with deadly weapon', 'description': 'Corresponds to IPC 398'})
+        sec_robbery, _ = ActSection.objects.get_or_create(act=act_bns, section_number='309', defaults={'section_title': 'Robbery'})
+        sec_dacoity, _ = ActSection.objects.get_or_create(act=act_bns, section_number='310', defaults={'section_title': 'Dacoity'})
+        sec_robbery_dacoity_death, _ = ActSection.objects.get_or_create(act=act_bns, section_number='311', defaults={'section_title': 'Robbery, or dacoity, with attempt to cause death or grievous hurt'})
+        sec_robbery_dacoity_armed, _ = ActSection.objects.get_or_create(act=act_bns, section_number='312', defaults={'section_title': 'Attempt to commit robbery or dacoity when armed with deadly weapon'})
 
         SectionFieldTemplate.objects.get_or_create(section=sec_robbery, template=tmpl_robbery)
         SectionFieldTemplate.objects.get_or_create(section=sec_dacoity, template=tmpl_dacoity)
@@ -67,7 +67,7 @@ class Command(BaseCommand):
             ('6', 'Voluntarily causing hurt in committing robbery (IPC 394)'),
         ]
         for sub_code, desc in robbery_subsections:
-            ActSubsection.objects.get_or_create(section=sec_robbery, subsection_code=sub_code, defaults={'description': desc})
+            ActSubsection.objects.get_or_create(section=sec_robbery, subsection_code=sub_code)
 
         dacoity_subsections = [
             ('1', 'Dacoity definition (IPC 391)'),
@@ -78,7 +78,7 @@ class Command(BaseCommand):
             ('6', 'Assembling for purpose of committing dacoity (IPC 402)'),
         ]
         for sub_code, desc in dacoity_subsections:
-            ActSubsection.objects.get_or_create(section=sec_dacoity, subsection_code=sub_code, defaults={'description': desc})
+            ActSubsection.objects.get_or_create(section=sec_dacoity, subsection_code=sub_code)
 
         # =========================================================================
         # A. TABS UNDER '1 TO 5' ONLY (18 items)

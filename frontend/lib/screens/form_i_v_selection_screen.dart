@@ -1,3 +1,4 @@
+// ignore_for_file: unused_element, unused_field, unused_local_variable, dead_code, use_build_context_synchronously
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -116,11 +117,6 @@ class FormIVSelectionScreen extends StatefulWidget {
         if (normCand == normTarget) return true;
         if (normCand == '${normTarget}s' || '${normCand}s' == normTarget) {
           return true;
-        }
-        if (normCand.length >= 4 && normTarget.length >= 4) {
-          if (normCand.contains(normTarget) || normTarget.contains(normCand)) {
-            return true;
-          }
         }
       }
     }
@@ -414,7 +410,6 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
     });
   }
 
-  // ignore: unused_element
   void _toggleSortOrder() {
     setState(() {
       _dateSortOrder = _dateSortOrder == FormIVDateSortOrder.newestFirst
@@ -1442,14 +1437,42 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
       allRecords = combined;
     }
 
-    final totalCount = allRecords.length;
-    final pendingCount = allRecords.where(_isPendingRecord).length;
-    final disposalCount = allRecords.where(_isDisposalRecord).length;
+    List<ModuleRecord> baseRecords = allRecords;
 
-    final statusRecords = _recordsForStatus(allRecords, _selectedStatusTab);
-    final visibleRecords = _selectedCategory != null
-        ? _filteredRecordsForCategory(statusRecords, _selectedCategory!)
-        : <ModuleRecord>[];
+    if (_selectedCategory != null &&
+        _selectedCategory != FormIVSelectionScreen.allFilterLabel) {
+      final descendants = _getDescendantCategoryNames(_selectedCategory!);
+      baseRecords = baseRecords
+          .where((r) => FormIVSelectionScreen.recordMatchesCategory(
+              r, _selectedCategory!, descendants))
+          .toList();
+    } else if (_categoryBreadcrumb.isNotEmpty) {
+      final currentCategory = _categoryBreadcrumb.last;
+      final descendants = _getDescendantCategoryNames(currentCategory);
+      baseRecords = baseRecords
+          .where((r) => FormIVSelectionScreen.recordMatchesCategory(
+              r, currentCategory, descendants))
+          .toList();
+    }
+
+    baseRecords = baseRecords.where(_recordMatchesDate).toList();
+
+    final totalCount = baseRecords.length;
+    final pendingCount = baseRecords.where(_isPendingRecord).length;
+    final disposalCount = baseRecords.where(_isDisposalRecord).length;
+
+    final statusRecords = _recordsForStatus(baseRecords, _selectedStatusTab);
+
+    statusRecords.sort((a, b) {
+      final dateA = _recordTargetDate(a);
+      final dateB = _recordTargetDate(b);
+      return _dateSortOrder == FormIVDateSortOrder.newestFirst
+          ? dateB.compareTo(dateA)
+          : dateA.compareTo(dateB);
+    });
+
+    final visibleRecords =
+        _selectedCategory != null ? statusRecords : <ModuleRecord>[];
 
     final dateSuffix = (_selectedCategory != null && _selectedDateRange != null)
         ? ' · ${_datePresetLabel ?? _formatDateRangeShort(_selectedDateRange!)}'
@@ -3602,26 +3625,6 @@ class FormIVEmptyCasesState extends StatelessWidget {
                     icon: const Icon(Icons.refresh_rounded, size: 18),
                     label: Text(
                       TranslationHelper.translate(context, 'Clear Date Filter'),
-                      style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                if (onNewCase != null)
-                  FilledButton.icon(
-                    onPressed: onNewCase,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.navyMid,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    icon: const Icon(Icons.add_rounded),
-                    label: Text(
-                      TranslationHelper.translate(context, 'Add Case'),
                       style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
                     ),
                   ),

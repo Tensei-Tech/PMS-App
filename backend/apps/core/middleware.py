@@ -80,8 +80,10 @@ class TenantMiddleware(MiddlewareMixin):
                                     schema_name = state_record.schema_name
                                     _STATE_SCHEMA_CACHE[state_code] = schema_name
                                     source = 'token_claim'
-                            except Exception:
-                                pass
+                                else:
+                                    logger.warning(f"[TenantMiddleware] Inactive or unregistered state '{state_code}'")
+                            except Exception as e:
+                                logger.warning(f"[TenantMiddleware] State lookup failed for state '{state_code}': {e}")
                 except jwt.ExpiredSignatureError:
                     request._token_expired = True
                 except Exception:
@@ -114,8 +116,10 @@ class TenantMiddleware(MiddlewareMixin):
                             schema_name = state_record.schema_name
                             _STATE_SCHEMA_CACHE[sc] = schema_name
                             source = 'header'
-                    except Exception:
-                        pass
+                        else:
+                            logger.warning(f"[TenantMiddleware] Inactive or unregistered state '{sc}'")
+                    except Exception as e:
+                        logger.warning(f"[TenantMiddleware] State lookup failed for state '{sc}': {e}")
 
         # 4. Fallback to state_code / state_id Query Parameter
         if not schema_name:
@@ -133,8 +137,10 @@ class TenantMiddleware(MiddlewareMixin):
                             schema_name = state_record.schema_name
                             _STATE_SCHEMA_CACHE[sc] = schema_name
                             source = 'query_param'
-                    except Exception:
-                        pass
+                        else:
+                            logger.warning(f"[TenantMiddleware] Inactive or unregistered state '{sc}'")
+                    except Exception as e:
+                        logger.warning(f"[TenantMiddleware] State lookup failed for state '{sc}': {e}")
 
         # 5. Default Fallback
         if not schema_name:
