@@ -514,7 +514,8 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
       child: Material(
         color: Colors.transparent,
         child: ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
           leading: CircleAvatar(
             radius: 14,
             backgroundColor: AppColors.navyDark.withValues(alpha: 0.1),

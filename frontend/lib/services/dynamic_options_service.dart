@@ -6,7 +6,8 @@ import 'api_config.dart';
 import 'api_service.dart';
 
 class DynamicOptionsService {
-  static final DynamicOptionsService _instance = DynamicOptionsService._internal();
+  static final DynamicOptionsService _instance =
+      DynamicOptionsService._internal();
   factory DynamicOptionsService() => _instance;
   DynamicOptionsService._internal();
 
@@ -119,13 +120,15 @@ class DynamicOptionsService {
         return parsed;
       } else {
         if (kDebugMode) {
-          debugPrint('[DynamicOptionsService] Failed response for $url: ${response.statusCode}');
+          debugPrint(
+              '[DynamicOptionsService] Failed response for $url: ${response.statusCode}');
         }
         return [];
       }
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('[DynamicOptionsService] Error loading options from $route: $e');
+        debugPrint(
+            '[DynamicOptionsService] Error loading options from $route: $e');
       }
       rethrow;
     }

@@ -284,7 +284,8 @@ http.Client createMockApiClient() {
         ];
         return http.Response(jsonEncode(children), 200, headers: _headers);
       }
-      if (categoryRaw.equalsIgnoreCase('Road Accident') || categoryRaw == '302') {
+      if (categoryRaw.equalsIgnoreCase('Road Accident') ||
+          categoryRaw == '302') {
         final children = [
           {
             'id': 303,
@@ -303,11 +304,7 @@ http.Client createMockApiClient() {
           categoryRaw == '305' ||
           categoryRaw.equalsIgnoreCase('Two%2FFour Wheeler Theft')) {
         final children = [
-          {
-            'id': 306,
-            'category_id': 306,
-            'category_name': 'Two Wheeler Theft'
-          },
+          {'id': 306, 'category_id': 306, 'category_name': 'Two Wheeler Theft'},
           {
             'id': 307,
             'category_id': 307,
@@ -371,8 +368,16 @@ http.Client createMockApiClient() {
             '1';
         return http.Response(
             jsonEncode([
-              {'id': 1, 'name': 'Officer A (Station $stationId)', 'value': 'Officer A'},
-              {'id': 2, 'name': 'Officer B (Station $stationId)', 'value': 'Officer B'},
+              {
+                'id': 1,
+                'name': 'Officer A (Station $stationId)',
+                'value': 'Officer A'
+              },
+              {
+                'id': 2,
+                'name': 'Officer B (Station $stationId)',
+                'value': 'Officer B'
+              },
             ]),
             200,
             headers: _headers);
@@ -1298,7 +1303,10 @@ Map<String, dynamic> _buildFormDefinition(String category, String sections) {
   final fields = List<Map<String, dynamic>>.from(baselineFields);
 
   // If Gowansh category: add 6 Gowansh extra fields (field_source: 'custom')
-  if (category.equalsIgnoreCase('Gowansh') || category.equalsIgnoreCase('Gowans') || category == '606' || category == 'STAND_GOWANS') {
+  if (category.equalsIgnoreCase('Gowansh') ||
+      category.equalsIgnoreCase('Gowans') ||
+      category == '606' ||
+      category == 'STAND_GOWANS') {
     final gowanshExtras = [
       {
         'field_label': 'Type of Animal',

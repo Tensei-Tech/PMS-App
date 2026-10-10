@@ -10,7 +10,9 @@ void main() {
       service.clearCache();
     });
 
-    test('Mode of Receipt: string list and option_value maps preserve display text', () {
+    test(
+        'Mode of Receipt: string list and option_value maps preserve display text',
+        () {
       // 1. Raw string list (as returned by /api/options/rti_mode_of_receipt/)
       final rawStrings = ['Online', 'Offline', 'Post'];
       final parsedStrings = rawStrings.map((item) => item.toString()).toList();
@@ -34,11 +36,19 @@ void main() {
       expect(parsedMaps, ['Online', 'Offline', 'Post']);
     });
 
-    test('Type of Info: string list and option_value maps preserve display text', () {
+    test(
+        'Type of Info: string list and option_value maps preserve display text',
+        () {
       // 1. Raw string list (as returned by /api/options/rti_info_type/)
-      final rawStrings = ['Crime record', 'Administrative', 'Public safety', 'Other'];
+      final rawStrings = [
+        'Crime record',
+        'Administrative',
+        'Public safety',
+        'Other'
+      ];
       final parsedStrings = rawStrings.map((item) => item.toString()).toList();
-      expect(parsedStrings, ['Crime record', 'Administrative', 'Public safety', 'Other']);
+      expect(parsedStrings,
+          ['Crime record', 'Administrative', 'Public safety', 'Other']);
 
       // 2. Map list with option_value key
       final mapItems = [
@@ -56,10 +66,12 @@ void main() {
                   item.toString())
               .toString())
           .toList();
-      expect(parsedMaps, ['Crime record', 'Administrative', 'Public safety', 'Other']);
+      expect(parsedMaps,
+          ['Crime record', 'Administrative', 'Public safety', 'Other']);
     });
 
-    test('Outcome: string list and option_value maps preserve display text', () {
+    test('Outcome: string list and option_value maps preserve display text',
+        () {
       // 1. Raw string list (as returned by /api/options/rti_outcome/)
       final rawStrings = ['Replied', 'Rejected', 'Transferred'];
       final parsedStrings = rawStrings.map((item) => item.toString()).toList();
@@ -104,7 +116,9 @@ void main() {
       expect(parsedMaps, ['Yes', 'No']);
     });
 
-    test('Officers dropdown: prioritizes backend ready label "Name, Designation"', () {
+    test(
+        'Officers dropdown: prioritizes backend ready label "Name, Designation"',
+        () {
       final officerItems = [
         {
           'uid': 'sa_mh_chhatrapati_1',

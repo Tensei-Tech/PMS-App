@@ -4320,17 +4320,20 @@ class _HomeTabState extends State<_HomeTab> {
                     } else if (label == 'N.C.') {
                       Navigator.push(
                         context,
-                        AppTheme.fadeSlideRoute(page: NcFormScreen(moduleLabel: label)),
+                        AppTheme.fadeSlideRoute(
+                            page: NcFormScreen(moduleLabel: label)),
                       );
                     } else if (label == 'Missing') {
                       Navigator.push(
                         context,
-                        AppTheme.fadeSlideRoute(page: MissingFormScreen(moduleLabel: label)),
+                        AppTheme.fadeSlideRoute(
+                            page: MissingFormScreen(moduleLabel: label)),
                       );
                     } else if (label == 'Preventive') {
                       Navigator.push(
                         context,
-                        AppTheme.fadeSlideRoute(page: PreventiveFormScreen(moduleLabel: label)),
+                        AppTheme.fadeSlideRoute(
+                            page: PreventiveFormScreen(moduleLabel: label)),
                       );
                     } else if (label == 'Suicide') {
                       Navigator.push(
@@ -4343,7 +4346,8 @@ class _HomeTabState extends State<_HomeTab> {
                           ),
                         ),
                       );
-                    } else if (isTabLinkedToCommonFormBaseline(moduleKey: 'form_1_5', categoryName: label)) {
+                    } else if (isTabLinkedToCommonFormBaseline(
+                        moduleKey: 'form_1_5', categoryName: label)) {
                       Navigator.push(
                         context,
                         AppTheme.fadeSlideRoute(
@@ -5199,24 +5203,37 @@ class _ViewTabState extends State<_ViewTab> {
                                                         color:
                                                             AppColors.infoBlue,
                                                         onTap: () {
-                                                          final isLinked = isTabLinkedToCommonFormBaseline(
-                                                            moduleKey: c.moduleKey,
-                                                            categoryName: c.firestoreCategoryDisplayName,
+                                                          final isLinked =
+                                                              isTabLinkedToCommonFormBaseline(
+                                                            moduleKey:
+                                                                c.moduleKey,
+                                                            categoryName: c
+                                                                .firestoreCategoryDisplayName,
                                                           );
-                                                          final page = (isLinked || c.moduleKey == 'suicide')
+                                                          final page = (isLinked ||
+                                                                  c.moduleKey ==
+                                                                      'suicide')
                                                               ? CommonFormScreen(
-                                                                  moduleKey: c.moduleKey,
-                                                                  moduleLabel: c.firestoreCategoryDisplayName,
-                                                                  existingRecord: c,
+                                                                  moduleKey: c
+                                                                      .moduleKey,
+                                                                  moduleLabel: c
+                                                                      .firestoreCategoryDisplayName,
+                                                                  existingRecord:
+                                                                      c,
                                                                 )
                                                               : DynamicFormScreen(
-                                                                  moduleKey: c.moduleKey,
-                                                                  moduleLabel: c.firestoreCategoryDisplayName,
-                                                                  existingRecord: c,
+                                                                  moduleKey: c
+                                                                      .moduleKey,
+                                                                  moduleLabel: c
+                                                                      .firestoreCategoryDisplayName,
+                                                                  existingRecord:
+                                                                      c,
                                                                 );
                                                           Navigator.push(
                                                             context,
-                                                            AppTheme.fadeSlideRoute(page: page),
+                                                            AppTheme
+                                                                .fadeSlideRoute(
+                                                                    page: page),
                                                           );
                                                         },
                                                       ),
@@ -8952,8 +8969,8 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
                 children: [
                   if (isHome)
                     Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
                         color: AppColors.goldPrimary.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(AppRadius.sm),

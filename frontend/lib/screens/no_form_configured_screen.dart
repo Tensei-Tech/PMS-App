@@ -28,7 +28,8 @@ class NoFormConfiguredScreen extends StatelessWidget {
         backgroundColor: AppColors.navyDark,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: Colors.white, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(

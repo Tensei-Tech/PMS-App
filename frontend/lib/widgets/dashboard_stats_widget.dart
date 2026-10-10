@@ -132,11 +132,12 @@ class _DashboardStatsWidgetState extends State<DashboardStatsWidget>
     try {
       final counts = await _caseService.fetchCounts(stationName: station);
       final total = (counts['total'] ?? counts['total_cases'] ?? 0) as int;
-      final pending = (counts['pending'] ?? counts['pending_cases'] ?? 0) as int;
+      final pending =
+          (counts['pending'] ?? counts['pending_cases'] ?? 0) as int;
       final disposed = (counts['disposal'] ??
-              counts['disposed'] ??
-              counts['disposal_cases'] ??
-              0) as int;
+          counts['disposed'] ??
+          counts['disposal_cases'] ??
+          0) as int;
 
       if (!mounted) return;
       setState(() {

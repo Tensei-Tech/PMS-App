@@ -139,7 +139,8 @@ class DynamicFormDefinition {
       categoryName: json['category_name']?.toString() ?? '',
       categoryCode: json['category_code']?.toString(),
       groupId: json['group_id'] as int?,
-      hasLinkedBundle: json['has_linked_bundle'] as bool? ?? rawFields.isNotEmpty,
+      hasLinkedBundle:
+          json['has_linked_bundle'] as bool? ?? rawFields.isNotEmpty,
       hasCommonFormBaseline: json['has_common_form_baseline'] as bool? ?? false,
       fields: rawFields,
       actsSections: (json['acts_sections'] is Map)

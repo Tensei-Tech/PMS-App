@@ -108,7 +108,8 @@ class SettingsSwitchTile extends StatelessWidget {
         ),
         subtitle: Text(
           subtitle,
-          style: GoogleFonts.poppins(fontSize: 11, color: AppColors.lightSubText),
+          style:
+              GoogleFonts.poppins(fontSize: 11, color: AppColors.lightSubText),
         ),
         trailing: Switch(value: value, onChanged: onChanged),
       ),

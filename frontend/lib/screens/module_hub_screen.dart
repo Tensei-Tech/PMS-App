@@ -3853,14 +3853,16 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                         );
                         final page = (isLinked || widget.moduleKey == 'suicide')
                             ? CommonFormScreen(
-                                moduleLabel: record.firestoreCategoryDisplayName,
+                                moduleLabel:
+                                    record.firestoreCategoryDisplayName,
                                 moduleKey: widget.moduleKey,
                                 subCategory: record.subCategory,
                                 existingRecord: record,
                                 readOnly: true,
                               )
                             : DynamicFormScreen(
-                                moduleLabel: record.firestoreCategoryDisplayName,
+                                moduleLabel:
+                                    record.firestoreCategoryDisplayName,
                                 moduleKey: widget.moduleKey,
                                 subCategory: record.subCategory,
                                 existingRecord: record,

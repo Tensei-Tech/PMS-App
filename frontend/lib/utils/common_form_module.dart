@@ -111,7 +111,8 @@ bool isTabLinkedToCommonFormBaseline({
   String? categoryName,
 }) {
   if (categoryName != null && categoryName.trim().isNotEmpty) {
-    final cleanCat = categoryName.trim().toLowerCase().replaceAll('\n', ' ').trim();
+    final cleanCat =
+        categoryName.trim().toLowerCase().replaceAll('\n', ' ').trim();
     return _kCommonFormBaselineCategoryNames.contains(cleanCat);
   }
   final cleanKey = moduleKey.trim().toLowerCase().replaceAll('-', '_');

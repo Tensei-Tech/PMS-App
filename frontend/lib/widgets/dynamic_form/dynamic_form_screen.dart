@@ -210,7 +210,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         });
 
         // If editing or existing record or initialData, hydrate fields once
-        if ((isEdit || widget.initialData != null) && _selectedCharges.isEmpty) {
+        if ((isEdit || widget.initialData != null) &&
+            _selectedCharges.isEmpty) {
           _hydrateFromExistingRecord();
         }
       } else {
@@ -229,7 +230,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   }
 
   void _hydrateFromExistingRecord() {
-    final extra = widget.existingRecord?.extraFields ?? widget.initialData ?? {};
+    final extra =
+        widget.existingRecord?.extraFields ?? widget.initialData ?? {};
     final common =
         (extra['commonForm'] is Map) ? extra['commonForm'] as Map : {};
 
@@ -309,7 +311,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         }
       }
     }
-    if (_accusedList.isEmpty && widget.existingRecord != null && widget.existingRecord!.accused.trim().isNotEmpty) {
+    if (_accusedList.isEmpty &&
+        widget.existingRecord != null &&
+        widget.existingRecord!.accused.trim().isNotEmpty) {
       final names = widget.existingRecord!.accused
           .split(RegExp(r'[,;]'))
           .map((s) => s.trim())
@@ -885,8 +889,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     }
 
     // Hydrate procedural checklists (Panchanama)
-    final procList = common['procedural_checklists'] ??
-        extra['procedural_checklists'];
+    final procList =
+        common['procedural_checklists'] ?? extra['procedural_checklists'];
     if (procList is List) {
       for (final item in procList) {
         if (item is Map) {
@@ -2053,7 +2057,6 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     });
   }
 
-
   Widget _buildBody() {
     if (_isLoading) {
       return const Center(
@@ -2192,17 +2195,20 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
 
     final accusedOptions = _getAvailableAccusedNames();
     final auth = context.read<AuthProvider>();
-    final currentStation = widget.existingRecord?.stationName ?? auth.stationName;
+    final currentStation =
+        widget.existingRecord?.stationName ?? auth.stationName;
     final sectionCards = <Widget>[];
     final hasBaseline = _formDef?.hasCommonFormBaseline ?? false;
 
     for (final secKey in orderedSectionKeys) {
       if (secKey == 'Acts & Sections Filed') {
-        if (hasBaseline || (groupedBySection['Acts & Sections Filed']?.isNotEmpty ?? false)) {
+        if (hasBaseline ||
+            (groupedBySection['Acts & Sections Filed']?.isNotEmpty ?? false)) {
           sectionCards.add(_buildLegalChargesSection());
         }
       } else if (secKey == 'Special Section / Template Details') {
-        final specFields = groupedBySection['Special Section / Template Details'];
+        final specFields =
+            groupedBySection['Special Section / Template Details'];
         if (specFields != null && specFields.isNotEmpty) {
           sectionCards.add(
             DynamicSectionCard(
@@ -2220,15 +2226,18 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           );
         }
       } else if (secKey == 'Remand & Custody') {
-        if (hasBaseline || (groupedBySection['Remand & Custody']?.isNotEmpty ?? false)) {
+        if (hasBaseline ||
+            (groupedBySection['Remand & Custody']?.isNotEmpty ?? false)) {
           sectionCards.add(_buildRemandCustodySection());
         }
       } else if (secKey == 'Preventive Action') {
-        if (hasBaseline || (groupedBySection['Preventive Action']?.isNotEmpty ?? false)) {
+        if (hasBaseline ||
+            (groupedBySection['Preventive Action']?.isNotEmpty ?? false)) {
           sectionCards.add(_buildPreventiveActionSection());
         }
       } else if (secKey == 'Discharge Accused') {
-        if (hasBaseline || (groupedBySection['Discharge Accused']?.isNotEmpty ?? false)) {
+        if (hasBaseline ||
+            (groupedBySection['Discharge Accused']?.isNotEmpty ?? false)) {
           sectionCards.add(_buildDischargeAccusedSection());
         }
       } else if (secKey == 'Accused') {
@@ -2236,15 +2245,18 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           sectionCards.add(_buildAccusedSection());
         }
       } else if (secKey == 'Suspected Accused') {
-        if (hasBaseline || (groupedBySection['Suspected Accused']?.isNotEmpty ?? false)) {
+        if (hasBaseline ||
+            (groupedBySection['Suspected Accused']?.isNotEmpty ?? false)) {
           sectionCards.add(_buildSuspectedAccusedSection());
         }
       } else if (secKey == 'Unidentified Accused') {
-        if (hasBaseline || (groupedBySection['Unidentified Accused']?.isNotEmpty ?? false)) {
+        if (hasBaseline ||
+            (groupedBySection['Unidentified Accused']?.isNotEmpty ?? false)) {
           sectionCards.add(_buildUnidentifiedAccusedSection());
         }
       } else if (secKey == 'Unknown Accused') {
-        if (hasBaseline || (groupedBySection['Unknown Accused']?.isNotEmpty ?? false)) {
+        if (hasBaseline ||
+            (groupedBySection['Unknown Accused']?.isNotEmpty ?? false)) {
           sectionCards.add(_buildUnknownAccusedSection());
         }
       } else if (secKey == 'Arrest') {

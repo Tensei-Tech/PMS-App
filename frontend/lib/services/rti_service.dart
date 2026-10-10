@@ -121,7 +121,8 @@ class RtiService {
         headers['Authorization'] = 'Bearer $token';
       }
       final uri = Uri.parse(ApiConfig.rtiPdf(rtiId));
-      final response = await ApiService.activeHttpClient.get(uri, headers: headers);
+      final response =
+          await ApiService.activeHttpClient.get(uri, headers: headers);
       if (response.statusCode == 200) {
         return response.bodyBytes;
       }

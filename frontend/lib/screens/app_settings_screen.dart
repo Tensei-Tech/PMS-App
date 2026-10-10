@@ -396,8 +396,9 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                           fontSize: previewSize,
                           fontWeight:
                               isSelected ? FontWeight.w700 : FontWeight.w500,
-                          color:
-                              isSelected ? AppColors.navyMid : AppColors.navyDark,
+                          color: isSelected
+                              ? AppColors.navyMid
+                              : AppColors.navyDark,
                         ),
                       ),
                       subtitle: Text(
@@ -519,8 +520,9 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                             entry.value,
                             style: GoogleFonts.poppins(
                               fontSize: 14,
-                              fontWeight:
-                                  isSelected ? FontWeight.w700 : FontWeight.w500,
+                              fontWeight: isSelected
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
                               color: isSelected
                                   ? AppColors.cyanDark
                                   : AppColors.navyDark,

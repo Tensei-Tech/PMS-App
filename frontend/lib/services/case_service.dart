@@ -587,8 +587,7 @@ class CaseService {
     }
     try {
       final encoded = Uri.encodeComponent(categoryIdOrName.toString().trim());
-      final url =
-          '${ApiConfig.baseUrl}/categories/$encoded/form-definition/';
+      final url = '${ApiConfig.baseUrl}/categories/$encoded/form-definition/';
       final params = <String, dynamic>{};
       if (caseId != null && caseId.isNotEmpty) {
         params['case_id'] = caseId;

@@ -197,11 +197,22 @@ void main() {
     test('Fallback removal: unlinked tab never opens Common Form', () {
       // 1. Unlinked / unknown tabs return false
       expect(isTabLinkedToCommonFormBaseline(moduleKey: 'rti'), isFalse);
-      expect(isTabLinkedToCommonFormBaseline(moduleKey: 'application'), isFalse);
-      expect(isTabLinkedToCommonFormBaseline(moduleKey: 'application', categoryName: 'RTI'), isFalse);
-      expect(isTabLinkedToCommonFormBaseline(moduleKey: 'application', categoryName: 'Application'), isFalse);
-      expect(isTabLinkedToCommonFormBaseline(moduleKey: 'form_1_5', categoryName: 'RTI'), isFalse);
-      expect(isTabLinkedToCommonFormBaseline(moduleKey: 'some_random_tab'), isFalse);
+      expect(
+          isTabLinkedToCommonFormBaseline(moduleKey: 'application'), isFalse);
+      expect(
+          isTabLinkedToCommonFormBaseline(
+              moduleKey: 'application', categoryName: 'RTI'),
+          isFalse);
+      expect(
+          isTabLinkedToCommonFormBaseline(
+              moduleKey: 'application', categoryName: 'Application'),
+          isFalse);
+      expect(
+          isTabLinkedToCommonFormBaseline(
+              moduleKey: 'form_1_5', categoryName: 'RTI'),
+          isFalse);
+      expect(isTabLinkedToCommonFormBaseline(moduleKey: 'some_random_tab'),
+          isFalse);
       expect(moduleUsesCommonCrimeForm('rti'), isFalse);
       expect(moduleUsesCommonCrimeForm('application'), isFalse);
       expect(moduleUsesCommonCrimeForm('application', 'RTI'), isFalse);
@@ -211,7 +222,10 @@ void main() {
       expect(isTabLinkedToCommonFormBaseline(moduleKey: 'murder'), isTrue);
       expect(isTabLinkedToCommonFormBaseline(moduleKey: 'theft'), isTrue);
       expect(isTabLinkedToCommonFormBaseline(moduleKey: 'hurt'), isTrue);
-      expect(isTabLinkedToCommonFormBaseline(moduleKey: 'form_1_5', categoryName: 'Theft'), isTrue);
+      expect(
+          isTabLinkedToCommonFormBaseline(
+              moduleKey: 'form_1_5', categoryName: 'Theft'),
+          isTrue);
       expect(moduleUsesCommonCrimeForm('theft'), isTrue);
 
       // 3. Suicide is now an unlinked tab
@@ -228,7 +242,9 @@ void main() {
       expect(isDedicatedFormTab('application'), isFalse);
     });
 
-    testWidgets('Unlinked tab renders "No form configured for this tab" on screen', (tester) async {
+    testWidgets(
+        'Unlinked tab renders "No form configured for this tab" on screen',
+        (tester) async {
       await tester.pumpWidget(
         MultiProvider(
           providers: [
@@ -254,10 +270,15 @@ void main() {
 
       // Verify that "No form configured for this tab" is displayed
       expect(find.text('No form configured for this tab'), findsOneWidget);
-      expect(find.text('This category does not have a linked form bundle configured.'), findsOneWidget);
+      expect(
+          find.text(
+              'This category does not have a linked form bundle configured.'),
+          findsOneWidget);
     });
 
-    testWidgets('RTI ModuleHub Add flow opens DynamicFormScreen and displays "No form configured for this tab"', (tester) async {
+    testWidgets(
+        'RTI ModuleHub Add flow opens DynamicFormScreen and displays "No form configured for this tab"',
+        (tester) async {
       await tester.pumpWidget(
         MultiProvider(
           providers: [
@@ -292,7 +313,10 @@ void main() {
 
       // Verify DynamicFormScreen is opened and shows "No form configured for this tab"
       expect(find.text('No form configured for this tab'), findsOneWidget);
-      expect(find.text('This category does not have a linked form bundle configured.'), findsOneWidget);
+      expect(
+          find.text(
+              'This category does not have a linked form bundle configured.'),
+          findsOneWidget);
       expect(find.text('Go Back'), findsOneWidget);
     });
   });

@@ -50,7 +50,8 @@ class CategoryNavigationHelper {
   }
 
   /// Prime the cache manually if children are already known.
-  static void primeCache(dynamic category, List<Map<String, dynamic>> children) {
+  static void primeCache(
+      dynamic category, List<Map<String, dynamic>> children) {
     _childrenCache[category.toString().trim().toLowerCase()] = children;
   }
 
@@ -78,7 +79,9 @@ class CategoryNavigationHelper {
           final cId = c['category_id']?.toString();
           final cCode = c['category_code']?.toString().trim().toLowerCase();
           final cName = c['category_name']?.toString().trim().toLowerCase();
-          if (categoryId != null && cId != null && cId == categoryId.toString()) {
+          if (categoryId != null &&
+              cId != null &&
+              cId == categoryId.toString()) {
             return true;
           }
           if (cCode != null && (cCode == cleanKey || cCode == cleanCatName)) {
@@ -92,7 +95,8 @@ class CategoryNavigationHelper {
         orElse: () => <String, dynamic>{},
       );
 
-      if (matchedDbCategory.isNotEmpty && matchedDbCategory['category_code'] != null) {
+      if (matchedDbCategory.isNotEmpty &&
+          matchedDbCategory['category_code'] != null) {
         resolvedCode = matchedDbCategory['category_code'].toString();
       }
     }
@@ -126,7 +130,8 @@ class CategoryNavigationHelper {
       moduleKey: moduleKey,
       categoryName: cleanName,
     );
-    final isDedicated = isDedicatedFormTab(moduleKey) || isDedicatedFormTab(cleanName);
+    final isDedicated =
+        isDedicatedFormTab(moduleKey) || isDedicatedFormTab(cleanName);
     final children = await getChildren(cleanName, categoryId: categoryId);
 
     if (!context.mounted) return;
@@ -150,7 +155,8 @@ class CategoryNavigationHelper {
 
     // If tab has no DB row OR is unlinked with no form bundle and no dedicated screen -> NoFormConfiguredScreen
     final hasNoDbRow = matchedDbCategory == null || matchedDbCategory.isEmpty;
-    if ((hasNoDbRow && resolvedCode == null) || (!isLinkedToBaseline && !isDedicated)) {
+    if ((hasNoDbRow && resolvedCode == null) ||
+        (!isLinkedToBaseline && !isDedicated)) {
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(

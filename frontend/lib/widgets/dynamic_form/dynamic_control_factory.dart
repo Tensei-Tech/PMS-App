@@ -347,7 +347,6 @@ class DynamicControlFactory extends StatelessWidget {
     );
   }
 
-
   bool get _isPanchanamaField {
     final k = fieldDef.fieldKey.toLowerCase();
     final l = fieldDef.fieldLabel.toLowerCase();
@@ -723,7 +722,8 @@ class _DynamicDropdownWidgetState extends State<_DynamicDropdownWidget> {
 
     final src = widget.fieldDef.optionsSource;
     if (src != null && src.trim().isNotEmpty) {
-      final cached = DynamicOptionsService().getCachedOptions(src, stationId: widget.stationId);
+      final cached = DynamicOptionsService()
+          .getCachedOptions(src, stationId: widget.stationId);
       if (cached != null) {
         _options = cached;
         _isLoading = false;
@@ -731,7 +731,9 @@ class _DynamicDropdownWidgetState extends State<_DynamicDropdownWidget> {
       } else {
         _isLoading = true;
         _error = null;
-        DynamicOptionsService().fetchOptions(src, stationId: widget.stationId).then((opts) {
+        DynamicOptionsService()
+            .fetchOptions(src, stationId: widget.stationId)
+            .then((opts) {
           if (mounted) {
             setState(() {
               _options = opts;
@@ -771,13 +773,15 @@ class _DynamicDropdownWidgetState extends State<_DynamicDropdownWidget> {
                 child: SizedBox(
                   width: 16,
                   height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.navyMid),
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: AppColors.navyMid),
                 ),
               ),
             ),
             child: Text(
               'Loading options...',
-              style: GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText),
+              style: GoogleFonts.poppins(
+                  fontSize: 12, color: AppColors.lightSubText),
             ),
           ),
         ],
@@ -792,7 +796,8 @@ class _DynamicDropdownWidgetState extends State<_DynamicDropdownWidget> {
           InputDecorator(
             decoration: widget.decoration.copyWith(
               suffixIcon: IconButton(
-                icon: const Icon(Icons.refresh, size: 18, color: AppColors.dangerRed),
+                icon: const Icon(Icons.refresh,
+                    size: 18, color: AppColors.dangerRed),
                 onPressed: () {
                   setState(() {
                     _isLoading = true;
@@ -801,7 +806,8 @@ class _DynamicDropdownWidgetState extends State<_DynamicDropdownWidget> {
                   final src = widget.fieldDef.optionsSource;
                   if (src != null) {
                     DynamicOptionsService()
-                        .fetchOptions(src, stationId: widget.stationId, forceRefresh: true)
+                        .fetchOptions(src,
+                            stationId: widget.stationId, forceRefresh: true)
                         .then((opts) {
                       if (mounted) {
                         setState(() {
@@ -823,7 +829,8 @@ class _DynamicDropdownWidgetState extends State<_DynamicDropdownWidget> {
             ),
             child: Text(
               _error!,
-              style: GoogleFonts.poppins(fontSize: 12, color: AppColors.dangerRed),
+              style:
+                  GoogleFonts.poppins(fontSize: 12, color: AppColors.dangerRed),
             ),
           ),
         ],
@@ -841,7 +848,8 @@ class _DynamicDropdownWidgetState extends State<_DynamicDropdownWidget> {
               value: opt,
               child: Text(
                 opt,
-                style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
+                style: GoogleFonts.poppins(
+                    fontSize: 13, color: AppColors.lightText),
               ),
             );
           }).toList(),
@@ -920,7 +928,8 @@ class _DynamicRadioWidgetState extends State<_DynamicRadioWidget> {
 
     final src = widget.fieldDef.optionsSource;
     if (src != null && src.trim().isNotEmpty) {
-      final cached = DynamicOptionsService().getCachedOptions(src, stationId: widget.stationId);
+      final cached = DynamicOptionsService()
+          .getCachedOptions(src, stationId: widget.stationId);
       if (cached != null) {
         _options = cached;
         _isLoading = false;
@@ -928,7 +937,9 @@ class _DynamicRadioWidgetState extends State<_DynamicRadioWidget> {
       } else {
         _isLoading = true;
         _error = null;
-        DynamicOptionsService().fetchOptions(src, stationId: widget.stationId).then((opts) {
+        DynamicOptionsService()
+            .fetchOptions(src, stationId: widget.stationId)
+            .then((opts) {
           if (mounted) {
             setState(() {
               _options = opts;
@@ -953,7 +964,8 @@ class _DynamicRadioWidgetState extends State<_DynamicRadioWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final currentVal = widget.value?.toString() ?? widget.controller?.text ?? '';
+    final currentVal =
+        widget.value?.toString() ?? widget.controller?.text ?? '';
 
     if (_isLoading) {
       return Column(
@@ -965,7 +977,8 @@ class _DynamicRadioWidgetState extends State<_DynamicRadioWidget> {
             child: SizedBox(
               width: 16,
               height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.navyMid),
+              child: CircularProgressIndicator(
+                  strokeWidth: 2, color: AppColors.navyMid),
             ),
           ),
         ],
@@ -981,7 +994,8 @@ class _DynamicRadioWidgetState extends State<_DynamicRadioWidget> {
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Text(
               _error!,
-              style: GoogleFonts.poppins(fontSize: 12, color: AppColors.dangerRed),
+              style:
+                  GoogleFonts.poppins(fontSize: 12, color: AppColors.dangerRed),
             ),
           ),
         ],
@@ -1008,12 +1022,16 @@ class _DynamicRadioWidgetState extends State<_DynamicRadioWidget> {
                     },
               borderRadius: BorderRadius.circular(AppRadius.md),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.navyMid.withValues(alpha: 0.08) : Colors.white,
+                  color: isSelected
+                      ? AppColors.navyMid.withValues(alpha: 0.08)
+                      : Colors.white,
                   borderRadius: BorderRadius.circular(AppRadius.md),
                   border: Border.all(
-                    color: isSelected ? AppColors.navyMid : AppColors.lightBorder,
+                    color:
+                        isSelected ? AppColors.navyMid : AppColors.lightBorder,
                     width: isSelected ? 1.5 : 1.0,
                   ),
                 ),
@@ -1042,8 +1060,11 @@ class _DynamicRadioWidgetState extends State<_DynamicRadioWidget> {
                       opt,
                       style: GoogleFonts.poppins(
                         fontSize: 12.5,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                        color: isSelected ? AppColors.navyDark : AppColors.lightText,
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.w500,
+                        color: isSelected
+                            ? AppColors.navyDark
+                            : AppColors.lightText,
                       ),
                     ),
                   ],
@@ -1056,4 +1077,3 @@ class _DynamicRadioWidgetState extends State<_DynamicRadioWidget> {
     );
   }
 }
-

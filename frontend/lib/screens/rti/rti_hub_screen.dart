@@ -137,7 +137,9 @@ class _RTIHubScreenState extends State<RTIHubScreen>
             if (res.isSuccess) {
               return null;
             }
-            return {'error': res.errorMessage ?? 'Failed to create application.'};
+            return {
+              'error': res.errorMessage ?? 'Failed to create application.'
+            };
           },
         ),
       ),
@@ -172,7 +174,9 @@ class _RTIHubScreenState extends State<RTIHubScreen>
             if (res.isSuccess) {
               return null;
             }
-            return {'error': res.errorMessage ?? 'Failed to update application.'};
+            return {
+              'error': res.errorMessage ?? 'Failed to update application.'
+            };
           },
         ),
       ),
@@ -226,7 +230,8 @@ class _RTIHubScreenState extends State<RTIHubScreen>
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           title: Text(
             'RTI Report Generated',
             style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
@@ -321,7 +326,8 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                     children: [
                       Text(TranslationHelper.translate(context, labelAll)),
                       const SizedBox(width: 6),
-                      _buildCountBadge(_counts['total'] ?? 0, AppColors.navyDark),
+                      _buildCountBadge(
+                          _counts['total'] ?? 0, AppColors.navyDark),
                     ],
                   ),
                 ),
@@ -331,7 +337,8 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                     children: [
                       Text(TranslationHelper.translate(context, labelPending)),
                       const SizedBox(width: 6),
-                      _buildCountBadge(_counts['pending'] ?? 0, Colors.amber.shade800),
+                      _buildCountBadge(
+                          _counts['pending'] ?? 0, Colors.amber.shade800),
                     ],
                   ),
                 ),
@@ -341,7 +348,8 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                     children: [
                       Text(TranslationHelper.translate(context, labelDisposal)),
                       const SizedBox(width: 6),
-                      _buildCountBadge(_counts['disposal'] ?? 0, AppColors.successGreen),
+                      _buildCountBadge(
+                          _counts['disposal'] ?? 0, AppColors.successGreen),
                     ],
                   ),
                 ),
@@ -360,7 +368,8 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                   context,
                   'Search by Sr. No. or Applicant Name...',
                 ),
-                prefixIcon: const Icon(Icons.search_rounded, color: AppColors.navyMid),
+                prefixIcon:
+                    const Icon(Icons.search_rounded, color: AppColors.navyMid),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear_rounded, size: 18),
@@ -373,7 +382,8 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                     : null,
                 filled: true,
                 fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                   borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
@@ -384,7 +394,8 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppColors.navyMid, width: 1.5),
+                  borderSide:
+                      const BorderSide(color: AppColors.navyMid, width: 1.5),
                 ),
               ),
             ),
@@ -430,10 +441,11 @@ class _RTIHubScreenState extends State<RTIHubScreen>
     final currentPage = _pageMap[tabIndex] ?? 1;
     final total = _totalCountMap[tabIndex] ?? 0;
     final pageSize = (_config['page_size'] as num?)?.toInt() ?? 20;
-    final maxPage = (total / pageSize).ceil() == 0 ? 1 : (total / pageSize).ceil();
+    final maxPage =
+        (total / pageSize).ceil() == 0 ? 1 : (total / pageSize).ceil();
 
-    final emptyMsg =
-        _config['empty_list_message']?.toString() ?? 'No RTI applications found';
+    final emptyMsg = _config['empty_list_message']?.toString() ??
+        'No RTI applications found';
 
     if (isLoading && items.isEmpty) {
       return const Center(child: CircularProgressIndicator());
@@ -444,7 +456,8 @@ class _RTIHubScreenState extends State<RTIHubScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.folder_off_rounded, size: 52, color: Colors.grey.shade400),
+            Icon(Icons.folder_off_rounded,
+                size: 52, color: Colors.grey.shade400),
             const SizedBox(height: 12),
             Text(
               TranslationHelper.translate(context, emptyMsg),
@@ -521,7 +534,8 @@ class _RTIHubScreenState extends State<RTIHubScreen>
     final pdfLabel = actionLabels['pdf']?.toString() ?? 'PDF';
 
     final isDisposal = status.toLowerCase() == 'disposal';
-    final statusColor = isDisposal ? AppColors.successGreen : Colors.amber.shade800;
+    final statusColor =
+        isDisposal ? AppColors.successGreen : Colors.amber.shade800;
 
     return Card(
       elevation: 1,
@@ -537,7 +551,8 @@ class _RTIHubScreenState extends State<RTIHubScreen>
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: AppColors.navyDark.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(6),
@@ -553,7 +568,8 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                 ),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(6),
@@ -610,7 +626,8 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                     style: GoogleFonts.poppins(fontSize: 11),
                   ),
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
@@ -624,7 +641,8 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                     style: GoogleFonts.poppins(fontSize: 11),
                   ),
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
@@ -640,7 +658,8 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.navyMid,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
