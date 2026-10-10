@@ -19,10 +19,7 @@ class DynamicSectionCard extends StatefulWidget {
   final bool readOnly;
   final bool initiallyExpanded;
   final List<String>? accusedOptions;
-  final int? index;
-  final Widget? headerTrailing;
-  final bool isCollapsible;
-  final Widget? customBody; // Added back to prevent Hot Reload crash
+  final Widget? headerAction;
 
   const DynamicSectionCard({
     super.key,
@@ -34,12 +31,9 @@ class DynamicSectionCard extends StatefulWidget {
     required this.values,
     required this.onValueChanged,
     this.readOnly = false,
-    this.initiallyExpanded = false,
+    this.initiallyExpanded = true,
     this.accusedOptions,
-    this.index,
-    this.headerTrailing,
-    this.isCollapsible = true,
-    this.customBody, // Added back to prevent Hot Reload crash
+    this.headerAction,
   });
 
   @override
@@ -55,11 +49,47 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
     _expanded = widget.initiallyExpanded;
   }
 
+  // Data-driven field dependency graph: child_field_key -> parent_field_key
+  static const Map<String, String> _fieldParentDependency = {
+    // Remand & Custody section dependencies
+    'pr_bond': 'mcr',
+    'bail': 'mcr',
+    'jail': 'mcr',
+    'pr_bond_date': 'pr_bond',
+    'surety_name': 'bail',
+    'surety_age': 'bail',
+    'surety_gender': 'bail',
+    'surety_occupation': 'bail',
+    'surety_mobile': 'bail',
+    'surety_aadhaar': 'bail',
+    'surety_pan': 'bail',
+    'surety_address': 'bail',
+    'surety_relation': 'bail',
+    'jail_date': 'jail',
+  };
+
+  bool _isFieldVisible(DynamicFieldDef f) {
+    var currentKey = f.fieldKey;
+    while (_fieldParentDependency.containsKey(currentKey)) {
+      final parentKey = _fieldParentDependency[currentKey]!;
+      final parentVal =
+          widget.values[parentKey] ?? widget.controllers[parentKey]?.text;
+      final isParentTrue = parentVal == true ||
+          parentVal == 'true' ||
+          parentVal == '1' ||
+          (parentVal is String &&
+              parentVal.trim().isNotEmpty &&
+              parentVal.toLowerCase() != 'false');
+      if (!isParentTrue) return false;
+      currentKey = parentKey;
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (widget.fields.isEmpty && widget.customBody == null) {
-      return const SizedBox.shrink();
-    }
+    final visibleFields = widget.fields.where(_isFieldVisible).toList();
+    if (visibleFields.isEmpty) return const SizedBox.shrink();
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -80,9 +110,7 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
         children: [
           // Header Bar
           InkWell(
-            onTap: widget.isCollapsible
-                ? () => setState(() => _expanded = !_expanded)
-                : null,
+            onTap: () => setState(() => _expanded = !_expanded),
             borderRadius: BorderRadius.vertical(
               top: const Radius.circular(AppRadius.lg),
               bottom: Radius.circular(_expanded ? 0 : AppRadius.lg),
@@ -98,15 +126,8 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                       color: AppColors.navyMid.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      '${widget.index ?? ""}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyMid,
-                      ),
-                    ),
+                    child:
+                        Icon(widget.icon, size: 20, color: AppColors.navyMid),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -119,18 +140,33 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                       ),
                     ),
                   ),
-                  if (widget.headerTrailing != null) ...[
-                    widget.headerTrailing!,
+                  if (widget.headerAction != null) ...[
+                    widget.headerAction!,
                     const SizedBox(width: 8),
                   ],
-                  if (widget.isCollapsible) ...[
-                    Icon(
-                      _expanded
-                          ? Icons.keyboard_arrow_up
-                          : Icons.keyboard_arrow_down,
-                      color: AppColors.navyMid,
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  ],
+                    child: Text(
+                      '${visibleFields.length} fields',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.navyMid,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    _expanded
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
+                    color: AppColors.navyMid,
+                  ),
                 ],
               ),
             ),
@@ -144,21 +180,55 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final isWide = constraints.maxWidth > 600;
+                  Widget buildControl(DynamicFieldDef f) {
+                    final dateKey = '${f.fieldKey}_date';
+                    final dateCtrl = widget.controllers.putIfAbsent(
+                      dateKey,
+                      () => TextEditingController(
+                        text: widget.values[dateKey]?.toString() ?? '',
+                      ),
+                    );
+                    if (widget.values[dateKey] != null &&
+                        dateCtrl.text.isEmpty) {
+                      dateCtrl.text = widget.values[dateKey].toString();
+                    }
+
+                    final fieldCtrl = widget.controllers.putIfAbsent(
+                      f.fieldKey,
+                      () => TextEditingController(
+                        text: widget.values[f.fieldKey]?.toString() ?? '',
+                      ),
+                    );
+                    if (widget.values[f.fieldKey] != null &&
+                        fieldCtrl.text.isEmpty) {
+                      fieldCtrl.text = widget.values[f.fieldKey].toString();
+                    }
+
+                    return DynamicControlFactory(
+                      fieldDef: f,
+                      controller: fieldCtrl,
+                      value: widget.values[f.fieldKey],
+                      onChanged: (val) {
+                        widget.onValueChanged(f.fieldKey, val);
+                        if (mounted) setState(() {});
+                      },
+                      readOnly: widget.readOnly,
+                      accusedOptions: widget.accusedOptions,
+                      dateController: dateCtrl,
+                      onDateChanged: (val) {
+                        widget.onValueChanged(dateKey, val);
+                        if (mounted) setState(() {});
+                      },
+                    );
+                  }
+
                   if (!isWide) {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: widget.fields.map((f) {
+                      children: visibleFields.map((f) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
-                          child: DynamicControlFactory(
-                            fieldDef: f,
-                            controller: widget.controllers[f.fieldKey],
-                            value: widget.values[f.fieldKey],
-                            onChanged: (val) =>
-                                widget.onValueChanged(f.fieldKey, val),
-                            readOnly: widget.readOnly,
-                            accusedOptions: widget.accusedOptions,
-                          ),
+                          child: buildControl(f),
                         );
                       }).toList(),
                     );
@@ -166,29 +236,18 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
 
                   // 2-Column Responsive Grid on wider screens
                   final items = <Widget>[];
-                  for (var i = 0; i < widget.fields.length; i += 2) {
-                    final f1 = widget.fields[i];
-                    final f2 = (i + 1 < widget.fields.length)
-                        ? widget.fields[i + 1]
+                  for (var i = 0; i < visibleFields.length; i += 2) {
+                    final f1 = visibleFields[i];
+                    final f2 = (i + 1 < visibleFields.length)
+                        ? visibleFields[i + 1]
                         : null;
 
-                    // If f1 is textarea, header, or checkbox, give it full row width
-                    if (f1.fieldType == 'textarea' ||
-                        f1.fieldType == 'header' ||
-                        f1.fieldType == 'checkbox' ||
-                        f1.fieldType == 'full_text') {
+                    // If f1 is textarea, give it full row width
+                    if (f1.fieldType == 'textarea') {
                       items.add(
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12),
-                          child: DynamicControlFactory(
-                            fieldDef: f1,
-                            controller: widget.controllers[f1.fieldKey],
-                            value: widget.values[f1.fieldKey],
-                            onChanged: (val) =>
-                                widget.onValueChanged(f1.fieldKey, val),
-                            readOnly: widget.readOnly,
-                            accusedOptions: widget.accusedOptions,
-                          ),
+                          child: buildControl(f1),
                         ),
                       );
                       i -= 1; // Realign single step
@@ -202,29 +261,12 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
-                              child: DynamicControlFactory(
-                                fieldDef: f1,
-                                controller: widget.controllers[f1.fieldKey],
-                                value: widget.values[f1.fieldKey],
-                                onChanged: (val) =>
-                                    widget.onValueChanged(f1.fieldKey, val),
-                                readOnly: widget.readOnly,
-                                accusedOptions: widget.accusedOptions,
-                              ),
+                              child: buildControl(f1),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
                               child: f2 != null
-                                  ? DynamicControlFactory(
-                                      fieldDef: f2,
-                                      controller:
-                                          widget.controllers[f2.fieldKey],
-                                      value: widget.values[f2.fieldKey],
-                                      onChanged: (val) => widget.onValueChanged(
-                                          f2.fieldKey, val),
-                                      readOnly: widget.readOnly,
-                                      accusedOptions: widget.accusedOptions,
-                                    )
+                                  ? buildControl(f2)
                                   : const SizedBox.shrink(),
                             ),
                           ],
@@ -241,7 +283,6 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
               ),
             ),
           ],
-          if (_expanded && widget.customBody != null) widget.customBody!,
         ],
       ),
     );

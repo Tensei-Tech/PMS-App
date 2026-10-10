@@ -51,10 +51,6 @@ class DynamicControlFactory extends StatelessWidget {
         return _buildDropdownField(context);
       case 'checkbox':
         return _buildCheckbox(context);
-      case 'header':
-        return _buildHeader(context);
-      case 'gender_toggle':
-        return _buildGenderToggle(context);
       case 'chips':
         return _buildChipsSelector(context);
       case 'file':
@@ -63,79 +59,6 @@ class DynamicControlFactory extends StatelessWidget {
       default:
         return _buildTextField(context);
     }
-  }
-
-  Widget _buildGenderToggle(BuildContext context) {
-    final options = ['Male', 'Female', 'Other'];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel(context),
-        Wrap(
-          spacing: 12.0,
-          children: options.map((opt) {
-            final isSelected =
-                controller?.text.toLowerCase() == opt.toLowerCase() ||
-                    value?.toString().toLowerCase() == opt.toLowerCase();
-            return ChoiceChip(
-              label: Text(
-                opt,
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  color: isSelected
-                      ? const Color(0xFF0EA5E9)
-                      : AppColors.lightSubText,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                ),
-              ),
-              selected: isSelected,
-              onSelected: readOnly
-                  ? null
-                  : (selected) {
-                      if (selected) {
-                        controller?.text = opt;
-                        onChanged?.call(opt);
-                      }
-                    },
-              backgroundColor: Colors.white,
-              selectedColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-                side: BorderSide(
-                  color: isSelected
-                      ? const Color(0xFF0EA5E9)
-                      : const Color(0xFFE2E8F0),
-                  width: isSelected ? 1.5 : 1,
-                ),
-              ),
-              showCheckmark: false,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(top: 8, bottom: 4),
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: AppColors.lightBorder),
-      ),
-      child: Text(
-        fieldDef.fieldLabel,
-        style: GoogleFonts.poppins(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: AppColors.navyDark,
-        ),
-      ),
-    );
   }
 
   Widget _buildArrestedPersonField(BuildContext context) {
