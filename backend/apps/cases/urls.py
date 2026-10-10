@@ -19,6 +19,7 @@ from apps.cases.views import (
     TimeWiseDisposalView,
     DesignationWiseDisposalView,
     DisposalCrimeTypeWiseView,
+    CaseCountsView,
     AbscondedCasesView,
     AbscondedIOWiseView,
     AbscondedTimeWiseView,
@@ -31,10 +32,12 @@ router = DefaultRouter()
 router.register(r'', CaseRecordViewSet, basename='cases')
 
 urlpatterns = [
+    # Case Counts Aggregation (Egress Reduction endpoint)
+    path('counts/', CaseCountsView.as_view(), name='case-counts'),
     # Crime Type & Raw SQL Case Endpoints (placed before router to avoid pk shadowing)
     path('crime-types/', CrimeTypeListView.as_view(), name='crime-type-list'),
-    path('crime-types/<str:crime_type>/cases/', CasesByCrimeTypeView.as_view(), name='cases-by-crime-type'),
-    path('crime-types/<str:crime_type>/sections/', SectionsByCrimeTypeView.as_view(), name='sections-by-crime-type'),
+    path('crime-types/<path:crime_type>/cases/', CasesByCrimeTypeView.as_view(), name='cases-by-crime-type'),
+    path('crime-types/<path:crime_type>/sections/', SectionsByCrimeTypeView.as_view(), name='sections-by-crime-type'),
     path('create/', CreateCaseView.as_view(), name='case-create'),
     path('pending/', PendingCasesView.as_view(), name='pending-cases'),
     path('pending/io-wise/', IOWisePendingView.as_view(), name='pending-io-wise'),

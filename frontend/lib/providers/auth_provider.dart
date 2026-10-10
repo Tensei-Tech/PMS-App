@@ -14,6 +14,7 @@ import '../services/secure_storage.dart';
 import '../models/user_model.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/permission_service.dart';
+import '../services/dynamic_options_service.dart';
 
 void _secureLog(String message) {
   if (kDebugMode) debugPrint('[AuthProvider] $message');
@@ -807,6 +808,7 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> signOutToLogin() async {
     await ApiService().clearAuthToken();
+    DynamicOptionsService().clearCache();
     _isSessionActive = false;
     _isRegistered = true;
     notifyListeners();
@@ -825,6 +827,7 @@ class AuthProvider extends ChangeNotifier {
 
     await ApiService().clearAuthToken();
     await _secure.deleteAll();
+    DynamicOptionsService().clearCache();
 
     if (savedEmail != null) {
       await _secure.write(key: StorageKeys.email, value: savedEmail);

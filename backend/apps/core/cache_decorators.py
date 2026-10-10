@@ -22,7 +22,7 @@ def cache_response(ttl: int = 300, key_prefix: str = ""):
                 return view_func(self_or_request, *args, **kwargs)
 
             # Determine Tenant / State Code Scoping
-            tenant_code = getattr(request, 'tenant', 'public')
+            tenant_code = getattr(request, 'state_schema', None) or getattr(request, 'tenant', 'public')
             if not tenant_code or tenant_code == 'public':
                 state_hdr = request.headers.get('X-State-Code') or request.META.get('HTTP_X_STATE_CODE')
                 if state_hdr:
@@ -31,10 +31,13 @@ def cache_response(ttl: int = 300, key_prefix: str = ""):
                     tenant_code = getattr(request.user, 'state_code', 'public')
 
             # Build Unique Cache Key
+            import re
             path = request.path.strip('/')
             query = request.META.get('QUERY_STRING', '')
-            prefix = key_prefix or path.replace('/', ':')
-            cache_key = f"pms:cache:{tenant_code}:{prefix}:{query}"
+            clean_query = re.sub(r'[\s:=]+', '_', query).strip('_')
+            clean_path = path.replace('/', ':')
+            prefix = f"{key_prefix}:{clean_path}" if key_prefix else clean_path
+            cache_key = f"pms:cache:{tenant_code}:{prefix}:{clean_query}" if clean_query else f"pms:cache:{tenant_code}:{prefix}"
 
             def fetch_data():
                 response = view_func(self_or_request, *args, **kwargs)

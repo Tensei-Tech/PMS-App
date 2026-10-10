@@ -35,30 +35,12 @@ class Command(BaseCommand):
         )
 
         # 2. Templates
-        tmpl_general, _ = FieldTemplate.objects.get_or_create(template_name='General Crime Baseline Template')
+        tmpl_general = None
         tmpl_homicide, _ = FieldTemplate.objects.get_or_create(template_name='Homicide / Murder Extra Template')
         tmpl_property, _ = FieldTemplate.objects.get_or_create(template_name='Property / Theft Extra Template')
         tmpl_dacoity, _ = FieldTemplate.objects.get_or_create(template_name='Dacoity Form Template')
         tmpl_robbery, _ = FieldTemplate.objects.get_or_create(template_name='Robbery Form Template')
         tmpl_sexual, _ = FieldTemplate.objects.get_or_create(template_name='Sexual Offence Extra Template')
-
-        # Template fields
-        general_fields = [
-            ('Cr. No.', 'crNo', 'common', 'text', True, 10),
-            ('Registered Date', 'regDate', 'common', 'date', True, 20),
-            ('Brief Description', 'briefDescription', 'common', 'textarea', False, 30),
-            ('Complainant Name', 'compName', 'common', 'text', True, 40),
-            ('Victim Name', 'vName', 'common', 'text', False, 50),
-            ('Accused Name', 'accusedName', 'common', 'text', False, 60),
-            ('Crime Spot Address', 'spotAddress', 'common', 'textarea', False, 70),
-            ('IO Name', '_ioName', 'common', 'text', True, 80),
-        ]
-        for label, key, src, ftype, req, order in general_fields:
-            FieldTemplateField.objects.get_or_create(
-                template=tmpl_general,
-                field_key=key,
-                defaults={'field_label': label, 'field_source': src, 'field_type': ftype, 'is_required': req, 'display_order': order}
-            )
 
         # 3. Acts & Sections
         act_bns, _ = Act.objects.get_or_create(act_name='BNS')
@@ -210,7 +192,7 @@ class Command(BaseCommand):
             ('Gambling', '603', tmpl_general),
             ('POCSO', '604', tmpl_sexual),
             ('NDPS', '605', tmpl_general),
-            ('Gowans', '606', tmpl_general),
+            ('Gowansh', '606', tmpl_general),
             ('IT Act', '607', tmpl_general),
             ('M.V Act', '608', tmpl_general),
             ('UAPA', '609', tmpl_general),
@@ -234,7 +216,7 @@ class Command(BaseCommand):
             ('Gambling', 'STAND_GAMBLING', tmpl_general),
             ('POCSO', 'STAND_POCSO', tmpl_sexual),
             ('NDPS', 'STAND_NDPS', tmpl_general),
-            ('Gowans', 'STAND_GOWANS', tmpl_general),
+            ('Gowansh', 'STAND_GOWANS', tmpl_general),
             ('IT Act', 'STAND_IT_ACT', tmpl_general),
             ('M.V Act', 'STAND_MV_ACT', tmpl_general),
             ('UAPA', 'STAND_UAPA', tmpl_general),

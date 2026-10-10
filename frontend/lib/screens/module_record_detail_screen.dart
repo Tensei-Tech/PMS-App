@@ -22,6 +22,7 @@ import '../utils/common_form_module.dart';
 import '../utils/module_pdf_helper.dart';
 import '../widgets/access_denied_view.dart';
 import '../widgets/module_record_dynamic_document_view.dart';
+import '../services/backend_case_service.dart';
 import 'ad_form_screen.dart';
 import 'common_form_screen.dart';
 import 'module_form_screen.dart';
@@ -52,6 +53,22 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
     super.initState();
     _record = widget.record;
     _subscribeToRecord();
+    if (_record.extraFields.isEmpty) {
+      _loadFullDetail();
+    }
+  }
+
+  Future<void> _loadFullDetail() async {
+    final id = _record.id;
+    if (id.isEmpty) return;
+    try {
+      final fullData = await BackendCaseService().fetchCaseById(id);
+      if (fullData != null && mounted) {
+        setState(() {
+          _record = ModuleRecord.fromMap(fullData, id);
+        });
+      }
+    } catch (_) {}
   }
 
   void _subscribeToRecord() {
@@ -297,7 +314,7 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
       );
       return;
     }
-    if (moduleUsesCommonCrimeForm(_record.moduleKey)) {
+    if (moduleUsesCommonCrimeForm(_record.moduleKey, _record.subCategory)) {
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(

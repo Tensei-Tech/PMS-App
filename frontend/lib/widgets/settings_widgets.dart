@@ -94,21 +94,25 @@ class SettingsSwitchTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon, color: AppColors.navyMid, size: 22),
-      title: Text(
-        title,
-        style: GoogleFonts.poppins(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: AppColors.lightText,
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        leading: Icon(icon, color: AppColors.navyMid, size: 22),
+        title: Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: AppColors.lightText,
+          ),
         ),
+        subtitle: Text(
+          subtitle,
+          style:
+              GoogleFonts.poppins(fontSize: 11, color: AppColors.lightSubText),
+        ),
+        trailing: Switch(value: value, onChanged: onChanged),
       ),
-      subtitle: Text(
-        subtitle,
-        style: GoogleFonts.poppins(fontSize: 11, color: AppColors.lightSubText),
-      ),
-      trailing: Switch(value: value, onChanged: onChanged),
     );
   }
 }
@@ -129,53 +133,56 @@ class SettingsListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: AppColors.navyMid.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(AppRadius.sm),
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.navyMid.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
+          child: Icon(icon, color: AppColors.navyMid, size: 20),
         ),
-        child: Icon(icon, color: AppColors.navyMid, size: 20),
-      ),
-      title: Text(
-        title,
-        style: GoogleFonts.poppins(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: AppColors.navyDark,
+        title: Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.navyDark,
+          ),
         ),
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.navyMid.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              border: Border.all(
-                color: AppColors.navyMid.withValues(alpha: 0.15),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.navyMid.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(
+                  color: AppColors.navyMid.withValues(alpha: 0.15),
+                ),
+              ),
+              child: Text(
+                value,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.navyMid,
+                ),
               ),
             ),
-            child: Text(
-              value,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppColors.navyMid,
-              ),
+            const SizedBox(width: 6),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: AppColors.lightSubText,
+              size: 20,
             ),
-          ),
-          const SizedBox(width: 6),
-          const Icon(
-            Icons.chevron_right_rounded,
-            color: AppColors.lightSubText,
-            size: 20,
-          ),
-        ],
+          ],
+        ),
+        onTap: onTap,
       ),
-      onTap: onTap,
     );
   }
 }

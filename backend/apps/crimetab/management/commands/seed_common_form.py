@@ -265,14 +265,8 @@ class Command(BaseCommand):
             template_name='Murder Section Extra Fields'
         )
         FieldTemplateField.objects.filter(template=tmpl_murder_extra).delete()
-        murder_extra_fields = [
-            ('Deceased Name', 'deceased_name', 'custom', 'text', False, 1000),
-            ('Deceased Age', 'deceased_age', 'custom', 'number', False, 1010),
-            ('Deceased Gender', 'deceased_gender', 'custom', 'dropdown', False, 1020),
-            ('Inquest Panchanama Details', 'inquest_panchanama', 'custom', 'textarea', False, 1030),
-            ('Post-Mortem Report Date', 'pm_report_date', 'custom', 'date', False, 1040),
-            ('Cause of Death', 'cause_of_death', 'custom', 'textarea', False, 1050),
-        ]
+        # Murder extra fields removed; new Murder fields will be added separately
+        murder_extra_fields = []
         for label, key, src, ftype, req, order in murder_extra_fields:
             FieldTemplateField.objects.create(
                 template=tmpl_murder_extra,
@@ -305,6 +299,39 @@ class Command(BaseCommand):
                 is_required=req,
                 display_order=order,
             )
+
+        # Gowansh Extra Template
+        tmpl_gowansh_extra, _ = FieldTemplate.objects.get_or_create(
+            template_name='Gowansh Extra Fields'
+        )
+        FieldTemplateField.objects.filter(template=tmpl_gowansh_extra).delete()
+        gowansh_extra_fields = [
+            ('Type of Animal', 'gowansh_animal_type', 'custom', 'text', False, 'Animal Details', 10),
+            ('Number of Animals', 'gowansh_animal_count', 'custom', 'number', False, 'Animal Details', 20),
+            ('Estimated Value', 'gowansh_est_value', 'custom', 'number', False, 'Animal Details', 30),
+            ('Vehicle Number', 'gowansh_vehicle_no', 'custom', 'text', False, 'Transport Details', 40),
+            ('Seizure Location', 'gowansh_seizure_loc', 'custom', 'textarea', False, 'Transport Details', 50),
+            ('Goshala / Custody Place', 'gowansh_custody_place', 'custom', 'text', False, 'Custody', 60),
+        ]
+        for label, key, src, ftype, req, sec, order in gowansh_extra_fields:
+            FieldTemplateField.objects.create(
+                template=tmpl_gowansh_extra,
+                field_label=label,
+                field_key=key,
+                field_source=src,
+                field_type=ftype,
+                is_required=req,
+                section=sec,
+                display_order=order,
+            )
+
+        # Trigger A fix: Link Gowansh categories (Part 6 and Standalone) to Gowansh Extra Template
+        for gowansh_cat in CaseCategory.objects.filter(category_name='Gowansh'):
+            CategoryFieldTemplate.objects.get_or_create(
+                category=gowansh_cat,
+                template=tmpl_gowansh_extra
+            )
+            self.stdout.write(f"  Linked Gowansh category ({gowansh_cat.category_id}) to Gowansh Extra Fields (Trigger A).")
 
         # Trigger A fix: Link Murder category to BOTH Baseline and Murder Extra Template
         murder_cat = CaseCategory.objects.filter(category_name='Murder', group_id__in=[1, 2]).first()

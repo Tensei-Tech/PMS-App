@@ -142,34 +142,38 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
                 const SizedBox(height: 12),
                 ..._languages.entries.map((entry) {
                   final isSelected = _selectedLang == entry.key;
-                  return ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Icon(
-                      isSelected
-                          ? Icons.radio_button_checked
-                          : Icons.radio_button_off,
-                      color: isSelected ? const Color(0xFF1E3A8A) : Colors.grey,
-                    ),
-                    title: Text(
-                      entry.value,
-                      style: TextStyle(
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.normal,
-                        color: isSelected
-                            ? const Color(0xFF1E3A8A)
-                            : Colors.black87,
+                  return Material(
+                    color: Colors.transparent,
+                    child: ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(
+                        isSelected
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_off,
+                        color:
+                            isSelected ? const Color(0xFF1E3A8A) : Colors.grey,
                       ),
+                      title: Text(
+                        entry.value,
+                        style: TextStyle(
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.normal,
+                          color: isSelected
+                              ? const Color(0xFF1E3A8A)
+                              : Colors.black87,
+                        ),
+                      ),
+                      onTap: () {
+                        setState(() {
+                          _selectedLang = entry.key;
+                        });
+                        Navigator.pop(ctx);
+                        if (_isListening) {
+                          _stopListening();
+                          _startListening();
+                        }
+                      },
                     ),
-                    onTap: () {
-                      setState(() {
-                        _selectedLang = entry.key;
-                      });
-                      Navigator.pop(ctx);
-                      if (_isListening) {
-                        _stopListening();
-                        _startListening();
-                      }
-                    },
                   );
                 }),
               ],

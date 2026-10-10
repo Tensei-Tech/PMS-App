@@ -7,6 +7,7 @@ from apps.crimetab.models.dynamic_engine import (
     CategoryFieldOverride,
     SectionFieldTemplate,
     CaseExtraFieldValue,
+    OptionValue,
 )
 from apps.crimetab.models.common_form import (
     CrimeRegistrationInfo,
@@ -93,6 +94,13 @@ class CaseExtraFieldValueSerializer(serializers.ModelSerializer):
     class Meta:
         model = CaseExtraFieldValue
         fields = ['value_id', 'case', 'field_def', 'field_key', 'field_label', 'field_value', 'created_at']
+
+
+class OptionValueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OptionValue
+        fields = ['id', 'option_group', 'option_value', 'display_order', 'is_active']
+
 
 
 # ==========================================
@@ -278,7 +286,7 @@ class CaseListSerializer(serializers.ModelSerializer):
             'id', 'module_key', 'title', 'case_number', 'description',
             'complainant', 'accused', 'location', 'incident_date',
             'priority', 'status', 'assigned_officer', 'assigned_officer_uid',
-            'sub_category', 'created_by', 'station_name', 'extra_fields',
+            'sub_category', 'created_by', 'station_name',
             'created_at', 'updated_at'
         ]
 
