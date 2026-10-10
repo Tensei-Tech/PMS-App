@@ -91,23 +91,43 @@ String _formatTime(String raw) {
   return trimmed;
 }
 
-/// Inserts zero-width spaces (\u200B) every 18 chars ONLY into continuous runs of 20+ chars without spaces.
-/// Leaves all normal Marathi text untouched so conjuncts, halant and matras are never broken.
-String _insertZeroWidthSpaces(String text) {
+/// Inserts zero-width spaces (\u200B) into continuous runs of non-whitespace characters
+/// so that even unbroken strings of 100+ characters (e.g. yeeeeee... or gggggg...) can wrap
+/// cleanly according to available line width.
+///
+/// Devanagari combining marks (matras U+093E..U+094F, halant/virama U+094D, anusvara U+0901..U+0903,
+/// nukta U+093C) are preserved together with their base consonants and never split.
+String _insertZeroWidthSpaces(String text, {int maxChunk = 8}) {
   if (text.isEmpty) return text;
-  return text.split(' ').map((word) {
-    if (word.length > 20) {
-      final buffer = StringBuffer();
-      for (int i = 0; i < word.length; i++) {
-        buffer.write(word[i]);
-        if ((i + 1) % 18 == 0 && i + 1 < word.length) {
-          buffer.write('\u200B');
-        }
-      }
-      return buffer.toString();
+  final buffer = StringBuffer();
+  int runLength = 0;
+
+  for (final char in text.runes) {
+    final s = String.fromCharCode(char);
+    if (s == ' ' || s == '\n' || s == '\t' || s == '\r') {
+      runLength = 0;
+      buffer.write(s);
+      continue;
     }
-    return word;
-  }).join(' ');
+
+    final isDevanagariMark = (char >= 0x0901 && char <= 0x0903) ||
+        char == 0x093C ||
+        (char >= 0x093E && char <= 0x094F) ||
+        (char >= 0x0951 && char <= 0x0954) ||
+        (char >= 0x0962 && char <= 0x0963);
+
+    if (runLength >= maxChunk && !isDevanagariMark) {
+      buffer.write('\u200B');
+      runLength = 0;
+    }
+
+    buffer.write(s);
+    if (!isDevanagariMark) {
+      runLength++;
+    }
+  }
+
+  return buffer.toString();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -326,12 +346,19 @@ bool _b(Map<String, dynamic> doc, String key, [bool def = true]) {
   return def;
 }
 
+const List<String> _kDevanagariFallback = [
+  'Noto Sans Devanagari',
+  'Mangal',
+  'Nirmala UI',
+  'sans-serif',
+];
+
 TextStyle _mReg([double sz = 13.5, double ht = 1.45]) =>
     GoogleFonts.notoSansDevanagari(
       fontSize: sz,
       height: ht,
       color: Colors.black87,
-    );
+    ).copyWith(fontFamilyFallback: _kDevanagariFallback);
 
 TextStyle _mBld([double sz = 13.5, double ht = 1.45]) =>
     GoogleFonts.notoSansDevanagari(
@@ -339,7 +366,7 @@ TextStyle _mBld([double sz = 13.5, double ht = 1.45]) =>
       height: ht,
       fontWeight: FontWeight.bold,
       color: Colors.black87,
-    );
+    ).copyWith(fontFamilyFallback: _kDevanagariFallback);
 
 TextStyle _valStyle([double sz = 13.5, double ht = 1.45]) =>
     GoogleFonts.notoSansDevanagari(
@@ -347,7 +374,7 @@ TextStyle _valStyle([double sz = 13.5, double ht = 1.45]) =>
       height: ht,
       fontWeight: FontWeight.w600,
       color: Colors.black,
-    );
+    ).copyWith(fontFamilyFallback: _kDevanagariFallback);
 
 Widget _prosecutorBox(String pageLabel) {
   return Row(
@@ -402,36 +429,123 @@ Widget _prosecutorBox(String pageLabel) {
 // Underline / Field Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _PdfLinedPainter extends CustomPainter {
-  final int lineCount;
-  final double lineHeight;
-  final Color lineColor;
+int _findFittingLength(String text, TextStyle style, double maxWidth) {
+  if (text.isEmpty) return 0;
+  int low = 1;
+  int high = text.length;
+  int best = 0;
 
-  _PdfLinedPainter({
-    required this.lineCount,
-    required this.lineHeight,
-    required this.lineColor,
-  });
+  while (low <= high) {
+    final mid = (low + high) ~/ 2;
+    final sub = text.substring(0, mid);
+    final tp = TextPainter(
+      text: TextSpan(text: sub, style: style),
+      textDirection: ui.TextDirection.ltr,
+      maxLines: 1,
+    )..layout();
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = lineColor
-      ..strokeWidth = 1.0
-      ..style = PaintingStyle.stroke;
-
-    for (int i = 1; i <= lineCount; i++) {
-      final y = i * lineHeight - 2.0;
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    if (tp.size.width <= maxWidth) {
+      best = mid;
+      low = mid + 1;
+    } else {
+      high = mid - 1;
     }
   }
 
-  @override
-  bool shouldRepaint(covariant _PdfLinedPainter oldDelegate) {
-    return oldDelegate.lineCount != lineCount ||
-        oldDelegate.lineHeight != lineHeight ||
-        oldDelegate.lineColor != lineColor;
+  return best;
+}
+
+List<String> _breakTextIntoLines({
+  required String text,
+  required TextStyle style,
+  required double firstLineWidth,
+  required double fullLineWidth,
+}) {
+  final cleanText = text.trim();
+  if (cleanText.isEmpty) return [];
+
+  final prepared = _insertZeroWidthSpaces(cleanText, maxChunk: 8);
+
+  final lines = <String>[];
+  String remaining = prepared;
+
+  final tp1 = TextPainter(
+    text: TextSpan(text: remaining, style: style),
+    textDirection: ui.TextDirection.ltr,
+    maxLines: 1,
+  )..layout();
+
+  if (tp1.size.width <= firstLineWidth) {
+    lines.add(remaining);
+    return lines;
   }
+
+  int cut1 = _findFittingLength(remaining, style, firstLineWidth);
+  if (cut1 < remaining.length && cut1 > 0) {
+    final lastSpace =
+        remaining.substring(0, cut1).lastIndexOf(RegExp(r'[\s\u200B]'));
+    if (lastSpace > (cut1 * 0.35).round()) {
+      cut1 = lastSpace + 1;
+    }
+  }
+  if (cut1 <= 0) cut1 = 1;
+
+  lines.add(remaining.substring(0, cut1).trim());
+  remaining = remaining.substring(cut1).trim();
+
+  while (remaining.isNotEmpty) {
+    final tpRem = TextPainter(
+      text: TextSpan(text: remaining, style: style),
+      textDirection: ui.TextDirection.ltr,
+      maxLines: 1,
+    )..layout();
+
+    if (tpRem.size.width <= fullLineWidth) {
+      lines.add(remaining);
+      break;
+    }
+
+    int cutRem = _findFittingLength(remaining, style, fullLineWidth);
+    if (cutRem < remaining.length && cutRem > 0) {
+      final lastSpace =
+          remaining.substring(0, cutRem).lastIndexOf(RegExp(r'[\s\u200B]'));
+      if (lastSpace > (cutRem * 0.35).round()) {
+        cutRem = lastSpace + 1;
+      }
+    }
+    if (cutRem <= 0) cutRem = 1;
+
+    lines.add(remaining.substring(0, cutRem).trim());
+    remaining = remaining.substring(cutRem).trim();
+  }
+
+  return lines;
+}
+
+Widget _singleUnderlineText(
+  String text, {
+  required TextStyle style,
+  required double lineHeight,
+  double? width,
+}) {
+  return Container(
+    width: width ?? double.infinity,
+    height: lineHeight,
+    alignment: Alignment.bottomLeft,
+    padding: const EdgeInsets.only(bottom: 2.0, left: 1.0, right: 1.0),
+    decoration: const BoxDecoration(
+      border: Border(
+        bottom: BorderSide(color: Colors.black87, width: 1.0),
+      ),
+    ),
+    child: Text(
+      text,
+      style: style,
+      maxLines: 1,
+      overflow: TextOverflow.clip,
+      softWrap: false,
+    ),
+  );
 }
 
 Widget _buildLinedText(
@@ -441,47 +555,36 @@ Widget _buildLinedText(
   int minLines = 1,
   double indent = 0.0,
 }) {
-  final wrappedText = _insertZeroWidthSpaces(text.trim());
   return LayoutBuilder(
     builder: (context, constraints) {
       final maxWidth = constraints.maxWidth.isFinite && constraints.maxWidth > 0
           ? constraints.maxWidth
           : (_kW - 80.0 - indent);
 
-      int lineCount = minLines;
-      if (wrappedText.isNotEmpty && maxWidth > 0) {
-        final tp = TextPainter(
-          text: TextSpan(text: wrappedText, style: style),
-          textDirection: ui.TextDirection.ltr,
-          maxLines: null,
-        )..layout(maxWidth: maxWidth);
-        lineCount = tp.computeLineMetrics().length;
-        if (lineCount < minLines) lineCount = minLines;
-      }
+      final lines = _breakTextIntoLines(
+        text: text,
+        style: style,
+        firstLineWidth: maxWidth,
+        fullLineWidth: maxWidth,
+      );
 
-      final totalHeight = lineCount * lineHeight;
+      final count = lines.length > minLines ? lines.length : minLines;
 
       return Padding(
         padding: EdgeInsets.only(left: indent),
-        child: CustomPaint(
-          painter: _PdfLinedPainter(
-            lineCount: lineCount,
-            lineHeight: lineHeight,
-            lineColor: Colors.black87,
-          ),
-          child: SizedBox(
-            width: double.infinity,
-            height: totalHeight,
-            child: Text(
-              wrappedText.isNotEmpty ? wrappedText : ' ',
-              style: style.copyWith(
-                height: lineHeight / (style.fontSize ?? 13.5),
-                color: Colors.black87,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (int i = 0; i < count; i++) ...[
+              if (i > 0) const SizedBox(height: 3.5),
+              _singleUnderlineText(
+                i < lines.length ? lines[i] : '',
+                style: style,
+                lineHeight: lineHeight,
               ),
-              softWrap: true,
-              overflow: TextOverflow.visible,
-            ),
-          ),
+            ],
+          ],
         ),
       );
     },
@@ -495,7 +598,7 @@ Widget _pdfUnderlineField(
   String? hintText,
   double lineHeight = 24.0,
 }) {
-  final wrapped = _insertZeroWidthSpaces(text.trim());
+  final cleanText = text.trim();
   return LayoutBuilder(
     builder: (context, constraints) {
       final isBounded =
@@ -503,7 +606,7 @@ Widget _pdfUnderlineField(
       final maxAllowedWidth = isBounded ? constraints.maxWidth : (_kW - 80.0);
 
       final span = TextSpan(
-        text: wrapped.isNotEmpty ? wrapped : (hintText ?? ' '),
+        text: cleanText.isNotEmpty ? cleanText : (hintText ?? ' '),
         style: textStyle,
       );
       final tp = TextPainter(
@@ -514,40 +617,30 @@ Widget _pdfUnderlineField(
 
       final neededWidth = tp.size.width + 12;
 
-      int lines = 1;
       if (neededWidth > maxAllowedWidth && maxAllowedWidth > 0) {
-        final multilineTp = TextPainter(
-          text: span,
-          textDirection: ui.TextDirection.ltr,
-          maxLines: null,
-        )..layout(maxWidth: maxAllowedWidth);
-        lines = multilineTp.computeLineMetrics().length;
-        if (lines < 1) lines = 1;
-      }
-
-      final totalHeight = lines * lineHeight;
-
-      if (lines > 1) {
-        return CustomPaint(
-          painter: _PdfLinedPainter(
-            lineCount: lines,
-            lineHeight: lineHeight,
-            lineColor: Colors.black87,
-          ),
-          child: SizedBox(
-            width: maxAllowedWidth,
-            height: totalHeight,
-            child: Text(
-              wrapped.isNotEmpty ? wrapped : (hintText ?? ''),
-              style: textStyle.copyWith(
-                height: lineHeight / (textStyle.fontSize ?? 13.5),
-                color:
-                    wrapped.isNotEmpty ? textStyle.color : Colors.grey.shade400,
-              ),
-              softWrap: true,
-            ),
-          ),
+        final lines = _breakTextIntoLines(
+          text: cleanText,
+          style: textStyle,
+          firstLineWidth: maxAllowedWidth,
+          fullLineWidth: maxAllowedWidth,
         );
+        if (lines.length > 1) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (int i = 0; i < lines.length; i++) ...[
+                if (i > 0) const SizedBox(height: 3.5),
+                _singleUnderlineText(
+                  lines[i],
+                  style: textStyle,
+                  lineHeight: lineHeight,
+                  width: maxAllowedWidth,
+                ),
+              ],
+            ],
+          );
+        }
       }
 
       final isInsideExpanded =
@@ -560,24 +653,13 @@ Widget _pdfUnderlineField(
                   : (neededWidth > minWidth ? neededWidth : minWidth))
               : (neededWidth > minWidth ? neededWidth : minWidth));
 
-      return Container(
+      return _singleUnderlineText(
+        cleanText.isNotEmpty ? cleanText : (hintText ?? ''),
+        style: textStyle.copyWith(
+          color: cleanText.isNotEmpty ? textStyle.color : Colors.grey.shade400,
+        ),
+        lineHeight: lineHeight,
         width: singleWidth,
-        height: lineHeight,
-        alignment: Alignment.bottomLeft,
-        padding: const EdgeInsets.only(bottom: 2, left: 2, right: 2),
-        decoration: const BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: Colors.black87, width: 1.0),
-          ),
-        ),
-        child: Text(
-          wrapped.isNotEmpty ? wrapped : (hintText ?? ''),
-          style: textStyle.copyWith(
-            color: wrapped.isNotEmpty ? textStyle.color : Colors.grey.shade400,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.visible,
-        ),
       );
     },
   );
@@ -592,7 +674,6 @@ Widget _buildAddressWithAgeBlock({
   String postAgeLabel = ' वर्ष, पत्ता: ',
   double lineHeight = 24.0,
 }) {
-  final fullAddress = _insertZeroWidthSpaces(address.trim());
   return LayoutBuilder(
     builder: (context, constraints) {
       final totalWidth =
@@ -612,8 +693,9 @@ Widget _buildAddressWithAgeBlock({
       final prefixTp =
           TextPainter(text: prefixSpan, textDirection: ui.TextDirection.ltr)
             ..layout();
-      final prefixWidth = prefixTp.size.width + 10.0;
-      final firstLineWidth = totalWidth - prefixWidth;
+      final prefixWidth = prefixTp.size.width + 12.0;
+      final firstLineWidth = (totalWidth - prefixWidth).clamp(60.0, totalWidth);
+      final fullLineWidth = totalWidth;
 
       Widget buildPrefix() {
         return Row(
@@ -621,80 +703,108 @@ Widget _buildAddressWithAgeBlock({
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(ageLabel, style: labelStyle),
-            _pdfUnderlineField(age,
-                textStyle: textStyle, minWidth: 45, lineHeight: lineHeight),
+            _pdfUnderlineField(
+              age,
+              textStyle: textStyle,
+              minWidth: 45,
+              lineHeight: lineHeight,
+            ),
             Text(postAgeLabel, style: labelStyle),
           ],
         );
       }
 
-      if (fullAddress.isEmpty) {
+      final lines = _breakTextIntoLines(
+        text: address,
+        style: textStyle,
+        firstLineWidth: firstLineWidth,
+        fullLineWidth: fullLineWidth,
+      );
+
+      if (lines.isEmpty) {
         return Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             buildPrefix(),
             Expanded(
-              child: _buildLinedText('',
-                  style: textStyle, minLines: 1, lineHeight: lineHeight),
+              child: _singleUnderlineText(
+                '',
+                style: textStyle,
+                lineHeight: lineHeight,
+              ),
             ),
           ],
         );
       }
-
-      final tp = TextPainter(
-        text: TextSpan(text: fullAddress, style: textStyle),
-        textDirection: ui.TextDirection.ltr,
-      )..layout(maxWidth: firstLineWidth > 60 ? firstLineWidth : 60);
-
-      if (tp.computeLineMetrics().length <= 1) {
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            buildPrefix(),
-            Expanded(
-              child: _buildLinedText(fullAddress,
-                  style: textStyle, minLines: 1, lineHeight: lineHeight),
-            ),
-          ],
-        );
-      }
-
-      final pos = tp.getPositionForOffset(
-          Offset(firstLineWidth > 60 ? firstLineWidth : 60, 0));
-      int splitIndex = pos.offset;
-      if (splitIndex <= 0 || splitIndex > fullAddress.length) {
-        splitIndex = fullAddress.length;
-      }
-      final lastBreak =
-          fullAddress.lastIndexOf(RegExp(r'[\s\u200B]'), splitIndex);
-      if (lastBreak > 5) {
-        splitIndex = lastBreak;
-      }
-
-      final firstLineText = fullAddress.substring(0, splitIndex).trim();
-      final restText = fullAddress.substring(splitIndex).trim();
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               buildPrefix(),
               Expanded(
-                child: _buildLinedText(firstLineText,
-                    style: textStyle, minLines: 1, lineHeight: lineHeight),
+                child: _singleUnderlineText(
+                  lines[0],
+                  style: textStyle,
+                  lineHeight: lineHeight,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 3),
-          _buildLinedText(restText,
-              style: textStyle, minLines: 1, lineHeight: lineHeight),
+          for (int i = 1; i < lines.length; i++) ...[
+            const SizedBox(height: 3.5),
+            _singleUnderlineText(
+              lines[i],
+              style: textStyle,
+              lineHeight: lineHeight,
+            ),
+          ],
         ],
       );
     },
   );
 }
+
+@visibleForTesting
+String insertZeroWidthSpacesDraft(String text, {int maxChunk = 8}) =>
+    _insertZeroWidthSpaces(text, maxChunk: maxChunk);
+
+@visibleForTesting
+List<String> breakTextIntoLinesDraft({
+  required String text,
+  required TextStyle style,
+  required double firstLineWidth,
+  required double fullLineWidth,
+}) =>
+    _breakTextIntoLines(
+      text: text,
+      style: style,
+      firstLineWidth: firstLineWidth,
+      fullLineWidth: fullLineWidth,
+    );
+
+@visibleForTesting
+Widget buildAddressWithAgeBlockForTest({
+  required String age,
+  required String address,
+  required TextStyle labelStyle,
+  required TextStyle textStyle,
+  String ageLabel = 'वय: ',
+  String postAgeLabel = ' वर्ष, पत्ता: ',
+  double lineHeight = 24.0,
+}) =>
+    _buildAddressWithAgeBlock(
+      age: age,
+      address: address,
+      labelStyle: labelStyle,
+      textStyle: textStyle,
+      ageLabel: ageLabel,
+      postAgeLabel: postAgeLabel,
+      lineHeight: lineHeight,
+    );
 
 Widget _buildPgWrapper(Widget child, [GlobalKey? contentKey]) {
   return Container(
