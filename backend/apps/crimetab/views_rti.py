@@ -501,6 +501,9 @@ class RTIListCreateView(APIView):
             due_date = _parse_rti_date(due_date_str)
             if not due_date:
                 return Response({'error': 'due_date must be a valid date (e.g. YYYY-MM-DD or DD/MM/YYYY).'}, status=status.HTTP_400_BAD_REQUEST)
+        elif received_date:
+            due_days = int(_get_setting('due_days', 30))
+            due_date = received_date + datetime.timedelta(days=due_days)
 
         if received_date and due_date and due_date < received_date:
             return Response({'error': 'due_date cannot be earlier than received_date.'}, status=status.HTTP_400_BAD_REQUEST)
