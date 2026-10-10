@@ -16,6 +16,7 @@ import 'package:khakhi_diary/providers/case_provider.dart';
 import 'package:khakhi_diary/providers/module_registry.dart';
 import 'package:khakhi_diary/screens/form_i_v_selection_screen.dart';
 import 'package:khakhi_diary/services/api_service.dart';
+import 'package:khakhi_diary/services/case_service.dart';
 import 'package:khakhi_diary/utils/category_navigation_helper.dart';
 import 'utils/mock_api_client.dart';
 
@@ -119,6 +120,65 @@ void main() {
       // Verify we are back to Normal Accident and Road Accident
       expect(find.text('Normal Accident'), findsOneWidget);
       expect(find.text('Road Accident'), findsOneWidget);
+    });
+
+    test(
+        'Category with slash in name resolves children and form definition via ID and encoded name',
+        () async {
+      // 1. Fetch children using slash name and categoryId
+      final childrenByName = await CategoryNavigationHelper.getChildren(
+        'Two/Four Wheeler Theft',
+        forceRefresh: true,
+      );
+      expect(childrenByName, isNotEmpty);
+      final names = childrenByName.map((c) => c['category_name']).toList();
+      expect(names, containsAll(['Two Wheeler Theft', 'Four Wheeler Theft']));
+
+      final childrenById = await CategoryNavigationHelper.getChildren(
+        'Two/Four Wheeler Theft',
+        categoryId: 305,
+        forceRefresh: true,
+      );
+      expect(childrenById, isNotEmpty);
+
+      // 2. Fetch form definition using slash name and categoryId
+      final formDefByName = await CaseService().fetchFormDefinition(
+        'Two/Four Wheeler Theft',
+        forceRefresh: true,
+      );
+      expect(formDefByName, isNotNull);
+      expect(formDefByName!['fields'], isNotEmpty);
+
+      final formDefById = await CaseService().fetchFormDefinition(
+        305,
+        forceRefresh: true,
+      );
+      expect(formDefById, isNotNull);
+      expect(formDefById!['fields'], isNotEmpty);
+    });
+
+    testWidgets(
+        'FormIVSelectionScreen with slash category "Two/Four Wheeler Theft" displays sub-tiles',
+        (tester) async {
+      await tester.binding.setSurfaceSize(const Size(1200, 900));
+
+      await tester.pumpWidget(
+        buildTestApp(
+          const FormIVSelectionScreen(
+            initialCategory: 'Two/Four Wheeler Theft',
+            customTitle: 'Two/Four Wheeler Theft',
+            categoryId: 305,
+            mode: FormIVSelectionMode.browse,
+          ),
+        ),
+      );
+
+      // Wait for async children loading
+      await tester.pumpAndSettle(const Duration(milliseconds: 500));
+
+      // Verify sub-tiles are displayed
+      expect(find.text('Two Wheeler Theft'), findsOneWidget);
+      expect(find.text('Four Wheeler Theft'), findsOneWidget);
     });
   });
 }

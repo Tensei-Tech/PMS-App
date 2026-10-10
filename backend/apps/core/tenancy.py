@@ -202,6 +202,53 @@ def provision_state_schema(schema_name: str, state_code: str = None, state_name:
             created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
         );
+        CREATE TABLE IF NOT EXISTS "{clean_schema}".rti_applications (
+            rti_id BIGSERIAL PRIMARY KEY,
+            station_name VARCHAR(255) NOT NULL,
+            serial_year SMALLINT NOT NULL,
+            serial_no INTEGER NOT NULL,
+            applicant_name VARCHAR(255),
+            applicant_age SMALLINT CHECK (applicant_age BETWEEN 1 AND 120),
+            mobile_no VARCHAR(10) CHECK (mobile_no ~ '^[0-9]{10}$'),
+            address TEXT,
+            email VARCHAR(254),
+            received_date DATE,
+            due_date DATE,
+            replied_date DATE,
+            rejected_date DATE,
+            rejection_reason TEXT,
+            transferred_to TEXT,
+            info_type VARCHAR(50),
+            info_type_other VARCHAR(50),
+            assigned_officer_uid VARCHAR(128),
+            assigned_officer_name VARCHAR(255),
+            assigned_officer_designation VARCHAR(128),
+            mode_of_receipt VARCHAR(50),
+            is_bpl BOOLEAN NOT NULL DEFAULT FALSE,
+            remark TEXT,
+            appealed BOOLEAN NOT NULL DEFAULT FALSE,
+            appeal_date DATE,
+            status VARCHAR(10) GENERATED ALWAYS AS (
+                CASE WHEN replied_date IS NOT NULL OR rejected_date IS NOT NULL
+                     OR length(trim(coalesce(transferred_to,''))) > 0
+                THEN 'Disposal' ELSE 'Pending' END) STORED,
+            created_by VARCHAR(128),
+            created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT rti_serial_unique UNIQUE (station_name, serial_year, serial_no),
+            CONSTRAINT rti_due_after_received CHECK (due_date IS NULL OR received_date IS NULL OR due_date >= received_date),
+            CONSTRAINT rti_one_outcome CHECK (
+                (CASE WHEN replied_date IS NOT NULL THEN 1 ELSE 0 END
+               + CASE WHEN rejected_date IS NOT NULL THEN 1 ELSE 0 END
+               + CASE WHEN length(trim(coalesce(transferred_to,''))) > 0 THEN 1 ELSE 0 END) <= 1),
+            CONSTRAINT rti_reject_reason CHECK (
+                (rejected_date IS NULL AND rejection_reason IS NULL)
+             OR (rejected_date IS NOT NULL AND length(trim(coalesce(rejection_reason,''))) > 0)),
+            CONSTRAINT rti_appeal_rule CHECK (
+                (appealed AND appeal_date IS NOT NULL) OR (NOT appealed AND appeal_date IS NULL))
+        );
+        CREATE INDEX IF NOT EXISTS rti_station_status_idx
+            ON "{clean_schema}".rti_applications (station_name, status);
         """)
         logger.info(f"[Tenancy] Provisioned PostgreSQL schema & tables: {clean_schema} (State: {resolved_name}/{resolved_code})")
 

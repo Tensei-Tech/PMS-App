@@ -39,6 +39,16 @@ class _AbscondedCasesScreenState extends State<AbscondedCasesScreen> {
   bool get _readOnly => widget.readOnly;
   bool get _showNewCaseFab => !_readOnly;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<AbscondedProvider>().ensureInitialized();
+      }
+    });
+  }
+
   bool _isDisposalRecord(ModuleRecord r) {
     final s = r.status.trim().toLowerCase();
     return s == 'disposal' ||

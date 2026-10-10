@@ -90,7 +90,7 @@ VALUES
     (2, 'Gambling', '603', 44, TRUE),
     (2, 'POCSO', '604', 45, TRUE),
     (2, 'NDPS', '605', 46, TRUE),
-    (2, 'Gowans', '606', 47, TRUE),
+    (2, 'Gowansh', '606', 47, TRUE),
     (2, 'IT Act', '607', 48, TRUE),
     (2, 'M.V Act', '608', 49, TRUE),
     (2, 'UAPA', '609', 50, TRUE),
@@ -103,7 +103,7 @@ VALUES
     (NULL, 'Gambling', 'STAND_GAMBLING', 53, TRUE),
     (NULL, 'POCSO', 'STAND_POCSO', 54, TRUE),
     (NULL, 'NDPS', 'STAND_NDPS', 55, TRUE),
-    (NULL, 'Gowans', 'STAND_GOWANS', 56, TRUE),
+    (NULL, 'Gowansh', 'STAND_GOWANS', 56, TRUE),
     (NULL, 'IT Act', 'STAND_IT_ACT', 57, TRUE),
     (NULL, 'M.V Act', 'STAND_MV_ACT', 58, TRUE),
     (NULL, 'UAPA', 'STAND_UAPA', 59, TRUE);

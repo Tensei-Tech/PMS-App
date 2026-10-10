@@ -476,7 +476,11 @@ class ModuleRecordDynamicDocumentView extends StatelessWidget {
     Map<String, dynamic>? commonFormMap;
     final extraSansCommon = Map<String, dynamic>.from(extra);
     final nested = extra[kCommonFormExtraFieldsKey];
-    if (nested is Map) {
+    final isBaseline = isTabLinkedToCommonFormBaseline(
+      moduleKey: record.moduleKey,
+      categoryName: record.subCategory,
+    );
+    if (isBaseline && nested is Map) {
       commonFormMap = Map<String, dynamic>.from(nested);
       extraSansCommon.remove(kCommonFormExtraFieldsKey);
     }

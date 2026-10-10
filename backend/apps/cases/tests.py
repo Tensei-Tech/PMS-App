@@ -36,6 +36,22 @@ class CaseManagementAPITests(TestCase):
             defaults={'state_name': 'Karnataka', 'schema_name': 'karnataka', 'is_active': True}
         )
 
+        from apps.crimetab.models.groupings import CaseCategoryGroup, CaseCategory
+        self.cat_group_1, _ = CaseCategoryGroup.objects.get_or_create(
+            group_id=1,
+            defaults={'group_name': 'Form I to V', 'group_code': 'I TO V', 'display_order': 1}
+        )
+        self.cat_theft, _ = CaseCategory.objects.get_or_create(
+            category_id=1,
+            defaults={
+                'category_name': 'Theft',
+                'category_code': 'theft',
+                'group': self.cat_group_1,
+                'is_active': True,
+                'display_order': 1,
+            }
+        )
+
         # 3. Create tables / mock views if not present in test DB
         with connection.cursor() as cursor:
             if connection.vendor == 'postgresql':
@@ -556,4 +572,206 @@ class CaseManagementAPITests(TestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {ka_token}')
         resp_ka = self.client.get('/api/cases/?module_key=form_1_5')
         self.assertEqual(resp_ka.status_code, status.HTTP_200_OK)
+
+    # --------------------------------------------------------------------------
+    # Test 13: 20 Sequential Requests Mixing Endpoints & Tokens for Two Tenants
+    # --------------------------------------------------------------------------
+    def test_13_twenty_sequential_requests_two_tenants_isolation(self):
+        """
+        Run 20 requests in a row mixing endpoints and tokens for two tenants.
+        Confirms 200 for all, zero cross-tenant data leakage, 401 for no token,
+        and 4xx for a token whose state has no valid tenant schema.
+        """
+        import jwt
+        from datetime import datetime, timedelta, timezone
+        from django.conf import settings
+        from apps.cases.models import CaseRecord
+        from apps.core.tenancy import TenantContext
+
+        # Register KA officer
+        ka_token = self._register_and_login(
+            'officer_ka_seq@kapolice.gov.in', 'OfficerPass123!', 'officer', 'KA'
+        )
+
+        # Seed distinct cases in MH and KA schemas
+        with TenantContext('maharashtra'):
+            CaseRecord.objects.create(
+                id=str(uuid.uuid4()),
+                module_key='form_1_5',
+                title='MH Unique Case Sequence',
+                case_number='MH-SEQ-001',
+                status='Pending',
+                station_name='Shivajinagar Police Station',
+                sub_category='Theft'
+            )
+
+        with TenantContext('karnataka'):
+            CaseRecord.objects.create(
+                id=str(uuid.uuid4()),
+                module_key='form_1_5',
+                title='KA Unique Case Sequence',
+                case_number='KA-SEQ-001',
+                status='Pending',
+                station_name='Shivajinagar Police Station',
+                sub_category='Theft'
+            )
+
+        # Execute 20 sequential requests alternating tokens and endpoints
+        endpoints = [
+            '/api/cases/?module_key=form_1_5',
+            '/api/categories/theft/form-definition/',
+            '/api/cases/',
+            '/api/categories/dashboard-tabs/',
+        ]
+
+        for i in range(20):
+            is_mh = (i % 2 == 0)
+            token = self.officer_token if is_mh else ka_token
+            endpoint = endpoints[i % len(endpoints)]
+            
+            self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+            resp = self.client.get(endpoint)
+            self.assertEqual(
+                resp.status_code, status.HTTP_200_OK,
+                f"Request {i+1} failed with status {resp.status_code} for {endpoint}"
+            )
+
+            # If PostgreSQL, verify schema isolation (no cross-tenant leakage)
+            if connection.vendor == 'postgresql' and '/api/cases/' in endpoint:
+                data = resp.data.get('results', resp.data) if isinstance(resp.data, dict) else resp.data
+                if isinstance(data, list):
+                    case_numbers = [c.get('case_number') for c in data if isinstance(c, dict)]
+                    if is_mh:
+                        self.assertIn('MH-SEQ-001', case_numbers)
+                        self.assertNotIn('KA-SEQ-001', case_numbers)
+                    else:
+                        self.assertIn('KA-SEQ-001', case_numbers)
+                        self.assertNotIn('MH-SEQ-001', case_numbers)
+
+        # Request with no token -> 401 Unauthorized
+        self.client.credentials()
+        resp_no_token = self.client.get('/api/cases/?module_key=form_1_5')
+        self.assertEqual(resp_no_token.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # Request with a token whose state has no schema -> 4xx (400 or 401)
+        no_schema_payload = {
+            'uid': 'invalid_state_uid',
+            'user_id': 'invalid_state_uid',
+            'email': 'invalid_state@police.gov.in',
+            'role_id': 'officer',
+            'state_code': 'NON_EXISTENT_STATE_XYZ',
+            'exp': datetime.now(timezone.utc) + timedelta(hours=1),
+            'iat': datetime.now(timezone.utc),
+        }
+        no_schema_token = jwt.encode(no_schema_payload, settings.SECRET_KEY, algorithm='HS256')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {no_schema_token}')
+        resp_no_schema = self.client.get('/api/cases/?module_key=form_1_5')
+        self.assertTrue(
+            status.is_client_error(resp_no_schema.status_code),
+            f"Expected 4xx client error, got {resp_no_schema.status_code}"
+        )
+
+    def test_case_counts_endpoint_and_egress_optimizations(self):
+        """
+        Verify:
+        1. GET /api/cases/counts/ returns SQL-aggregated numbers without downloading case lists.
+        2. Counts grouped by status (total, pending, disposal, detected) and groups (1 to 5, Part 6).
+        3. Response caching on counts endpoint and invalidation on case save.
+        4. Case list pagination (page size <= 50) and lightweight serializer (no extra_fields in list).
+        5. Case retrieve returns full details (with extra_fields).
+        """
+        from apps.cases.models import CaseRecord
+        from apps.core.tenancy import set_tenant_schema
+        set_tenant_schema('maharashtra')
+
+        # Clean sample cases for test
+        CaseRecord.objects.all().delete()
+        c1 = CaseRecord.objects.create(
+            id='test-c-1',
+            case_number='FIR-COUNT-001',
+            title='Sample Pending Theft',
+            module_key='theft',
+            status='Pending',
+            accused='Ramesh Kumar',
+            station_name='Shivajinagar Police Station',
+            extra_fields={'nested_detail': 'heavy_data_123'},
+        )
+        c2 = CaseRecord.objects.create(
+            id='test-c-2',
+            case_number='FIR-COUNT-002',
+            title='Sample Disposed Murder',
+            module_key='murder',
+            status='Disposal',
+            accused='Suresh Verma',
+            station_name='Shivajinagar Police Station',
+            extra_fields={'court_order': 'heavy_order_456', 'cc_st_number': 'CC/123/2026'},
+        )
+        c3 = CaseRecord.objects.create(
+            id='test-c-3',
+            case_number='FIR-COUNT-003',
+            title='Sample Undetected Dacoity',
+            module_key='dacoity',
+            status='Pending',
+            accused='',
+            station_name='Shivajinagar Police Station',
+            extra_fields={'scene_photos': 'heavy_photos_789'},
+        )
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.officer_token}')
+
+        # 1. Test Counts Endpoint
+        resp = self.client.get('/api/cases/counts/?station_name=Shivajinagar Police Station')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.data
+        self.assertIn('total', data)
+        self.assertIn('pending', data)
+        self.assertIn('disposal', data)
+        self.assertIn('detected', data)
+        self.assertIn('groups', data)
+        self.assertIn('tabs', data)
+
+        self.assertEqual(data['total'], 3)
+        self.assertEqual(data['disposal'], 1)
+        self.assertEqual(data['pending'], 2)
+        self.assertEqual(data['detected'], 1)  # only c1 has accused and is pending
+
+        # Group 1 (1 to 5) includes theft, murder, dacoity
+        g1 = data['groups']['1']
+        self.assertEqual(g1['total'], 3)
+        self.assertEqual(g1['pending'], 2)
+        self.assertEqual(g1['disposal'], 1)
+
+        # 2. Test Pagination and Lightweight Serializer on List
+        list_resp = self.client.get('/api/cases/?station_name=Shivajinagar Police Station')
+        self.assertEqual(list_resp.status_code, status.HTTP_200_OK)
+        self.assertIn('results', list_resp.data)
+        self.assertIn('count', list_resp.data)
+        self.assertEqual(list_resp.data['count'], 3)
+        results = list_resp.data['results']
+        self.assertTrue(len(results) <= 50)
+        # Verify light serializer does not leak heavy extra_fields in list view
+        for r in results:
+            self.assertNotIn('extra_fields', r)
+
+        # 3. Test Full Detail on Retrieve
+        detail_resp = self.client.get(f'/api/cases/{c1.id}/')
+        self.assertEqual(detail_resp.status_code, status.HTTP_200_OK)
+        self.assertIn('extra_fields', detail_resp.data)
+        self.assertEqual(detail_resp.data['extra_fields'].get('nested_detail'), 'heavy_data_123')
+
+        # 4. Invalidation: Save a new case and verify counts update
+        c4 = CaseRecord.objects.create(
+            id='test-c-4',
+            case_number='FIR-COUNT-004',
+            title='Sample Part 6 NDPS',
+            module_key='ndps',
+            status='Pending',
+            accused='Drug Dealer',
+            station_name='Shivajinagar Police Station',
+        )
+        resp2 = self.client.get('/api/cases/counts/?station_name=Shivajinagar Police Station')
+        self.assertEqual(resp2.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp2.data['total'], 4)
+        self.assertEqual(resp2.data['groups']['2']['total'], 1)
+
 

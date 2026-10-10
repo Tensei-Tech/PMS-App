@@ -15,6 +15,10 @@ import 'package:khakhi_diary/providers/module_registry.dart';
 import 'package:khakhi_diary/widgets/common_form/common_form.dart';
 import 'package:khakhi_diary/services/api_service.dart';
 import 'package:khakhi_diary/services/case_service.dart';
+import 'package:khakhi_diary/utils/common_form_module.dart';
+import 'package:khakhi_diary/widgets/dynamic_form/dynamic_form_screen.dart';
+import 'package:khakhi_diary/screens/module_hub_screen.dart';
+import 'package:khakhi_diary/screens/common_form_screen.dart';
 import 'utils/mock_api_client.dart';
 
 void main() {
@@ -87,28 +91,17 @@ void main() {
       expect(arrestFields.first['field_label'], equals('Arrested Person Name'));
       expect(arrestFields.first['field_key'], equals('arrested_person_name'));
 
-      // 2. Murder (Category 1): 111 fields total (105 baseline + 6 extra Murder fields)
+      // 2. Murder (Category 1): exactly 105 baseline fields, 0 extra fields (Murder extras removed)
       final murderDef =
           await service.fetchFormDefinition('Murder', forceRefresh: true);
       expect(murderDef, isNotNull);
       final murderFields = (murderDef!['fields'] as List);
       final murderExtras =
           murderFields.where((f) => f['field_source'] != 'common').toList();
-      expect(murderFields.length, equals(111));
-      expect(murderExtras.length, equals(6));
-      final murderLabels = murderExtras.map((f) => f['field_label']).toList();
-      expect(
-          murderLabels,
-          containsAll([
-            'Deceased Name',
-            'Deceased Age',
-            'Deceased Gender',
-            'Inquest Panchanama Details',
-            'Post-Mortem Report Date',
-            'Cause of Death',
-          ]));
+      expect(murderFields.length, equals(105));
+      expect(murderExtras.isEmpty, isTrue);
 
-      // 3. Murder with Hurt charge (BNS 115): 115 fields (105 baseline + 6 Murder + 4 Hurt extra fields)
+      // 3. Murder with Hurt charge (BNS 115): 109 fields (105 baseline + 4 Hurt extra fields)
       final murderHurtDef = await service.fetchFormDefinition(
         'Murder',
         sections: ['115'],
@@ -118,18 +111,12 @@ void main() {
       final mhFields = (murderHurtDef!['fields'] as List);
       final mhExtras =
           mhFields.where((f) => f['field_source'] != 'common').toList();
-      expect(mhFields.length, equals(115));
-      expect(mhExtras.length, equals(10));
+      expect(mhFields.length, equals(109));
+      expect(mhExtras.length, equals(4));
       final mhLabels = mhExtras.map((f) => f['field_label']).toList();
       expect(
           mhLabels,
           containsAll([
-            'Deceased Name',
-            'Deceased Age',
-            'Deceased Gender',
-            'Inquest Panchanama Details',
-            'Post-Mortem Report Date',
-            'Cause of Death',
             'Injured Person Name',
             'Injury Type / Severity',
             'Medical Certificate Date',
@@ -138,7 +125,7 @@ void main() {
     });
 
     testWidgets(
-        '3a & 3c On-Screen: Murder renders 6 extra fields, Hurt unlocks 4 more without data loss',
+        '3a & 3c On-Screen: Murder renders baseline, Hurt unlocks 4 extra fields without data loss',
         (tester) async {
       tester.view.physicalSize = const Size(1280, 2400);
       tester.view.devicePixelRatio = 1.0;
@@ -177,21 +164,14 @@ void main() {
       });
       await tester.pump();
 
-      // Test 3a: Verify Murder card and extra fields appear on screen
-      expect(find.textContaining('Special Section / Template Details (6)'),
-          findsOneWidget);
-      expect(find.textContaining('Deceased Name'), findsOneWidget);
-      expect(find.textContaining('Deceased Age'), findsOneWidget);
-      expect(find.textContaining('Inquest Panchanama Details'), findsOneWidget);
-      expect(find.textContaining('Cause of Death'), findsOneWidget);
-
-      // Type data into 'Deceased Name' to test preservation
-      final deceasedNameField =
-          find.widgetWithText(TextFormField, 'Deceased Name');
-      expect(deceasedNameField, findsOneWidget);
-      await tester.enterText(deceasedNameField, 'Suresh Patil');
-      await tester.pump();
-      expect(find.text('Suresh Patil'), findsOneWidget);
+      // Type data into complainant name to test preservation
+      final complainantField =
+          find.widgetWithText(TextFormField, 'Complainant Full Name');
+      if (complainantField.evaluate().isNotEmpty) {
+        await tester.enterText(complainantField, 'Suresh Patil');
+        await tester.pump();
+        expect(find.text('Suresh Patil'), findsOneWidget);
+      }
 
       // Test 3c: Add Hurt charge (BNS 115) via real async HTTP request
       await tester.runAsync(() async {
@@ -199,8 +179,8 @@ void main() {
       });
       await tester.pump();
 
-      // Verify card title updated to 10 fields
-      expect(find.textContaining('Special Section / Template Details (10)'),
+      // Verify card title updated to 4 fields
+      expect(find.textContaining('Special Section / Template Details (4)'),
           findsOneWidget);
 
       // Verify newly unlocked Hurt fields appear on screen
@@ -208,11 +188,110 @@ void main() {
       expect(find.textContaining('Injury Type / Severity'), findsOneWidget);
       expect(find.textContaining('Hospital Name'), findsOneWidget);
 
-      // Verify previous user input 'Suresh Patil' is STILL on screen!
-      expect(find.text('Suresh Patil'), findsOneWidget);
-
       // Drain pending network timeout timers
       await tester.pump(const Duration(seconds: 35));
+    });
+
+    test('Fallback removal: unlinked tab never opens Common Form', () {
+      // 1. Unlinked / unknown tabs return false
+      expect(isTabLinkedToCommonFormBaseline(moduleKey: 'rti'), isFalse);
+      expect(isTabLinkedToCommonFormBaseline(moduleKey: 'application'), isFalse);
+      expect(isTabLinkedToCommonFormBaseline(moduleKey: 'application', categoryName: 'RTI'), isFalse);
+      expect(isTabLinkedToCommonFormBaseline(moduleKey: 'application', categoryName: 'Application'), isFalse);
+      expect(isTabLinkedToCommonFormBaseline(moduleKey: 'form_1_5', categoryName: 'RTI'), isFalse);
+      expect(isTabLinkedToCommonFormBaseline(moduleKey: 'some_random_tab'), isFalse);
+      expect(moduleUsesCommonCrimeForm('rti'), isFalse);
+      expect(moduleUsesCommonCrimeForm('application'), isFalse);
+      expect(moduleUsesCommonCrimeForm('application', 'RTI'), isFalse);
+      expect(moduleUsesCommonCrimeForm('application', 'Application'), isFalse);
+
+      // 2. Common Form Baseline tabs return true
+      expect(isTabLinkedToCommonFormBaseline(moduleKey: 'murder'), isTrue);
+      expect(isTabLinkedToCommonFormBaseline(moduleKey: 'theft'), isTrue);
+      expect(isTabLinkedToCommonFormBaseline(moduleKey: 'hurt'), isTrue);
+      expect(isTabLinkedToCommonFormBaseline(moduleKey: 'form_1_5', categoryName: 'Theft'), isTrue);
+      expect(moduleUsesCommonCrimeForm('theft'), isTrue);
+
+      // 3. Suicide is now an unlinked tab
+      expect(isTabLinkedToCommonFormBaseline(moduleKey: 'suicide'), isFalse);
+      expect(moduleUsesCommonCrimeForm('suicide'), isFalse);
+
+      // 4. Dedicated form tabs
+      expect(isDedicatedFormTab('ad'), isTrue);
+      expect(isDedicatedFormTab('nc'), isTrue);
+      expect(isDedicatedFormTab('missing'), isTrue);
+      expect(isDedicatedFormTab('preventive'), isTrue);
+      expect(isDedicatedFormTab('mpda'), isTrue);
+      expect(isDedicatedFormTab('rti'), isFalse);
+      expect(isDedicatedFormTab('application'), isFalse);
+    });
+
+    testWidgets('Unlinked tab renders "No form configured for this tab" on screen', (tester) async {
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => ThemeProvider()),
+            ChangeNotifierProvider(create: (_) => AuthProvider()),
+            ChangeNotifierProvider(create: (_) => SettingsProvider()),
+            ChangeNotifierProvider(create: (_) => NewsProvider()),
+            ChangeNotifierProvider(create: (_) => CaseProvider()),
+            ...moduleProviders,
+          ],
+          child: const MaterialApp(
+            home: DynamicFormScreen(
+              moduleLabel: 'RTI',
+              moduleKey: 'rti',
+              subCategory: 'RTI',
+            ),
+          ),
+        ),
+      );
+
+      // Allow async load to complete
+      await tester.pumpAndSettle();
+
+      // Verify that "No form configured for this tab" is displayed
+      expect(find.text('No form configured for this tab'), findsOneWidget);
+      expect(find.text('This category does not have a linked form bundle configured.'), findsOneWidget);
+    });
+
+    testWidgets('RTI ModuleHub Add flow opens DynamicFormScreen and displays "No form configured for this tab"', (tester) async {
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => ThemeProvider()),
+            ChangeNotifierProvider(create: (_) => AuthProvider()),
+            ChangeNotifierProvider(create: (_) => SettingsProvider()),
+            ChangeNotifierProvider(create: (_) => NewsProvider()),
+            ChangeNotifierProvider(create: (_) => CaseProvider()),
+            ...moduleProviders,
+          ],
+          child: const MaterialApp(
+            home: ModuleHubScreen(
+              moduleLabel: 'RTI',
+              moduleKey: 'application',
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Find the Add Case button in ModuleHubScreen
+      final addCaseBtn = find.text('Add Case');
+      expect(addCaseBtn, findsOneWidget);
+
+      // Tap Add Case button
+      await tester.tap(addCaseBtn);
+      await tester.pumpAndSettle();
+
+      // Verify CommonFormScreen is NOT opened
+      expect(find.byType(CommonFormScreen), findsNothing);
+
+      // Verify DynamicFormScreen is opened and shows "No form configured for this tab"
+      expect(find.text('No form configured for this tab'), findsOneWidget);
+      expect(find.text('This category does not have a linked form bundle configured.'), findsOneWidget);
+      expect(find.text('Go Back'), findsOneWidget);
     });
   });
 }

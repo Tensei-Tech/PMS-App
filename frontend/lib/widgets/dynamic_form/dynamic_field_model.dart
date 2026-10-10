@@ -7,11 +7,14 @@ class DynamicFieldDef {
   final String fieldKey;
   final String fieldSource; // 'common' or 'custom'
   final String
-      fieldType; // 'text', 'textarea', 'number', 'date', 'datetime', 'dropdown', 'checkbox', 'chips', 'file'
+      fieldType; // 'text', 'textarea', 'number', 'date', 'datetime', 'dropdown', 'checkbox', 'radio', 'chips', 'file'
   final bool isRequired;
   final int displayOrder;
   final List<String> options;
   final String? section;
+  final String? dependsOnFieldKey;
+  final String? dependsOnValue;
+  final String? optionsSource;
 
   const DynamicFieldDef({
     required this.fieldDefId,
@@ -23,11 +26,44 @@ class DynamicFieldDef {
     required this.displayOrder,
     this.options = const [],
     this.section,
+    this.dependsOnFieldKey,
+    this.dependsOnValue,
+    this.optionsSource,
   });
+
+  DynamicFieldDef copyWith({
+    int? fieldDefId,
+    String? fieldLabel,
+    String? fieldKey,
+    String? fieldSource,
+    String? fieldType,
+    bool? isRequired,
+    int? displayOrder,
+    List<String>? options,
+    String? section,
+    String? dependsOnFieldKey,
+    String? dependsOnValue,
+    String? optionsSource,
+  }) {
+    return DynamicFieldDef(
+      fieldDefId: fieldDefId ?? this.fieldDefId,
+      fieldLabel: fieldLabel ?? this.fieldLabel,
+      fieldKey: fieldKey ?? this.fieldKey,
+      fieldSource: fieldSource ?? this.fieldSource,
+      fieldType: fieldType ?? this.fieldType,
+      isRequired: isRequired ?? this.isRequired,
+      displayOrder: displayOrder ?? this.displayOrder,
+      options: options ?? this.options,
+      section: section ?? this.section,
+      dependsOnFieldKey: dependsOnFieldKey ?? this.dependsOnFieldKey,
+      dependsOnValue: dependsOnValue ?? this.dependsOnValue,
+      optionsSource: optionsSource ?? this.optionsSource,
+    );
+  }
 
   factory DynamicFieldDef.fromJson(Map<String, dynamic> json) {
     return DynamicFieldDef(
-      fieldDefId: json['field_def_id'] as int? ?? 0,
+      fieldDefId: (json['field_def_id'] ?? json['id']) as int? ?? 0,
       fieldLabel: json['field_label']?.toString() ?? '',
       fieldKey: json['field_key']?.toString() ?? '',
       fieldSource: json['field_source']?.toString() ?? 'common',
@@ -38,6 +74,9 @@ class DynamicFieldDef {
           ? (json['options'] as List).map((e) => e.toString()).toList()
           : const [],
       section: json['section']?.toString(),
+      dependsOnFieldKey: json['depends_on_field_key']?.toString(),
+      dependsOnValue: json['depends_on_value']?.toString(),
+      optionsSource: json['options_source']?.toString(),
     );
   }
 
@@ -51,6 +90,9 @@ class DynamicFieldDef {
         'display_order': displayOrder,
         'options': options,
         'section': section,
+        'depends_on_field_key': dependsOnFieldKey,
+        'depends_on_value': dependsOnValue,
+        'options_source': optionsSource,
       };
 }
 
@@ -59,6 +101,8 @@ class DynamicFormDefinition {
   final String categoryName;
   final String? categoryCode;
   final int? groupId;
+  final bool hasLinkedBundle;
+  final bool hasCommonFormBaseline;
   final List<DynamicFieldDef> fields;
   final Map<String, dynamic> actsSections;
   final List<String> preventiveItems;
@@ -70,6 +114,8 @@ class DynamicFormDefinition {
     required this.categoryName,
     this.categoryCode,
     this.groupId,
+    this.hasLinkedBundle = true,
+    this.hasCommonFormBaseline = false,
     required this.fields,
     this.actsSections = const {},
     this.preventiveItems = const [],
@@ -93,6 +139,8 @@ class DynamicFormDefinition {
       categoryName: json['category_name']?.toString() ?? '',
       categoryCode: json['category_code']?.toString(),
       groupId: json['group_id'] as int?,
+      hasLinkedBundle: json['has_linked_bundle'] as bool? ?? rawFields.isNotEmpty,
+      hasCommonFormBaseline: json['has_common_form_baseline'] as bool? ?? false,
       fields: rawFields,
       actsSections: (json['acts_sections'] is Map)
           ? Map<String, dynamic>.from(json['acts_sections'] as Map)

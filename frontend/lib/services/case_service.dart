@@ -222,6 +222,7 @@ class CaseService {
     } else {
       _casesCache.clear();
       _casesCacheTime.clear();
+      _allCategoriesCache = null;
     }
   }
 
@@ -291,7 +292,7 @@ class CaseService {
 
   /// Fetch child categories for a category ID or name: GET /api/categories/{id}/children/
   Future<List<Map<String, dynamic>>> fetchCategoryChildren(
-    String categoryIdOrName, {
+    dynamic categoryIdOrName, {
     String? stationName,
     bool forceRefresh = false,
   }) async {
@@ -300,7 +301,7 @@ class CaseService {
       return _childrenCache[key]!;
     }
     try {
-      final encoded = Uri.encodeComponent(categoryIdOrName.trim());
+      final encoded = Uri.encodeComponent(categoryIdOrName.toString().trim());
       final url = '${ApiConfig.baseUrl}/categories/$encoded/children/';
       final response = await _api.get(
         url,
@@ -345,6 +346,32 @@ class CaseService {
       }
     }
     return null;
+  }
+
+  List<Map<String, dynamic>>? _allCategoriesCache;
+
+  /// Fetch all master categories: GET /api/categories/
+  Future<List<Map<String, dynamic>>> fetchAllCategories({
+    bool forceRefresh = false,
+  }) async {
+    if (!forceRefresh && _allCategoriesCache != null) {
+      return _allCategoriesCache!;
+    }
+    try {
+      final url = '${ApiConfig.baseUrl}/categories/';
+      final response = await _api.get(url);
+      if (response.isSuccess && response.data is List) {
+        _allCategoriesCache = (response.data as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+        return _allCategoriesCache!;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchAllCategories exception: $e');
+      }
+    }
+    return _allCategoriesCache ?? [];
   }
 
   /// Fetch standalone categories: GET /api/categories/standalone/?station_name=...
@@ -496,13 +523,14 @@ class CaseService {
 
   /// Fetch cases for a specific category: GET /api/categories/{id}/cases/
   Future<List<ModuleRecord>> fetchCategoryCases(
-    String categoryIdOrName, {
+    dynamic categoryIdOrName, {
     String? stationName,
     String? status,
     String? search,
   }) async {
     try {
-      final url = '${ApiConfig.baseUrl}/categories/$categoryIdOrName/cases/';
+      final encoded = Uri.encodeComponent(categoryIdOrName.toString().trim());
+      final url = '${ApiConfig.baseUrl}/categories/$encoded/cases/';
       final params = <String, dynamic>{};
       if (stationName != null && stationName.isNotEmpty) {
         params['station_name'] = stationName;
@@ -558,8 +586,9 @@ class CaseService {
       return _formDefCache[cacheKey];
     }
     try {
+      final encoded = Uri.encodeComponent(categoryIdOrName.toString().trim());
       final url =
-          '${ApiConfig.baseUrl}/categories/$categoryIdOrName/form-definition/';
+          '${ApiConfig.baseUrl}/categories/$encoded/form-definition/';
       final params = <String, dynamic>{};
       if (caseId != null && caseId.isNotEmpty) {
         params['case_id'] = caseId;

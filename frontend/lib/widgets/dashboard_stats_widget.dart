@@ -15,7 +15,6 @@ import '../services/case_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/case_visibility.dart';
 import '../utils/state_language_helper.dart';
-import '../utils/ad_disposal_helper.dart';
 
 /// Summary cards: total active, pending cases, disposed — filtered by role/visibility.
 class DashboardStatsWidget extends StatefulWidget {
@@ -27,9 +26,12 @@ class DashboardStatsWidget extends StatefulWidget {
   State<DashboardStatsWidget> createState() => _DashboardStatsWidgetState();
 }
 
-class _DashboardStatsWidgetState extends State<DashboardStatsWidget> {
+class _DashboardStatsWidgetState extends State<DashboardStatsWidget>
+    with WidgetsBindingObserver {
   CaseService get _caseService => CaseService();
-  Timer? _pollTimer;
+  Timer? _refreshTimer;
+  bool _isPaused = false;
+  bool _isLoading = false;
 
   int _totalActive = 0;
   int _pendingAction = 0;
@@ -38,6 +40,46 @@ class _DashboardStatsWidgetState extends State<DashboardStatsWidget> {
   bool _pendingLoaded = false;
   bool _disposalLoaded = false;
   String? _subscribedKey;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _ensureSync());
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden) {
+      _isPaused = true;
+      _stopTimer();
+    } else if (state == AppLifecycleState.resumed) {
+      if (_isPaused) {
+        _isPaused = false;
+        _startTimer();
+      }
+    }
+  }
+
+  void _startTimer() {
+    _refreshTimer?.cancel();
+    _refreshTimer = Timer.periodic(
+      const Duration(minutes: 10),
+      (_) {
+        if (!_isPaused && mounted && widget.auth.isSessionActive) {
+          final station = widget.auth.activeStation.trim();
+          _fetchStats(station);
+        }
+      },
+    );
+  }
+
+  void _stopTimer() {
+    _refreshTimer?.cancel();
+    _refreshTimer = null;
+  }
 
   @override
   void didUpdateWidget(covariant DashboardStatsWidget oldWidget) {
@@ -51,16 +93,9 @@ class _DashboardStatsWidgetState extends State<DashboardStatsWidget> {
     _ensureSync();
   }
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _ensureSync());
-  }
-
   void _ensureSync() {
     if (!widget.auth.isSessionActive) {
-      _pollTimer?.cancel();
-      _pollTimer = null;
+      _stopTimer();
       _subscribedKey = null;
       return;
     }
@@ -69,17 +104,16 @@ class _DashboardStatsWidgetState extends State<DashboardStatsWidget> {
     final mode = CaseVisibility.resolveFor(widget.auth);
     final key =
         '$station|${mode.name}|${widget.auth.uid}|${widget.auth.designation}|${widget.auth.zone}';
-    if (_subscribedKey == key && _pollTimer != null) return;
+    if (_subscribedKey == key && _refreshTimer != null) return;
     _subscribedKey = key;
     _fetchStats(station);
-    _pollTimer?.cancel();
-    _pollTimer = Timer.periodic(
-      const Duration(seconds: 30),
-      (_) => _fetchStats(station),
-    );
+    if (_refreshTimer == null) {
+      _startTimer();
+    }
   }
 
   Future<void> _fetchStats(String station) async {
+    if (_isLoading) return;
     if (station.isEmpty) {
       if (mounted) {
         setState(() {
@@ -94,20 +128,15 @@ class _DashboardStatsWidgetState extends State<DashboardStatsWidget> {
       return;
     }
 
-    final mode = CaseVisibility.resolveFor(widget.auth);
-    final uid = widget.auth.uid;
-
+    _isLoading = true;
     try {
-      final fetched = await _caseService.fetchStationCases(station);
-      final filtered = CaseVisibility.filterRecords(
-        fetched,
-        uid: uid,
-        mode: mode,
-      );
-
-      final total = filtered.where(isRecordPending).length;
-      final pending = filtered.where(isRecordPending).length;
-      final disposed = filtered.where(isRecordDisposal).length;
+      final counts = await _caseService.fetchCounts(stationName: station);
+      final total = (counts['total'] ?? counts['total_cases'] ?? 0) as int;
+      final pending = (counts['pending'] ?? counts['pending_cases'] ?? 0) as int;
+      final disposed = (counts['disposal'] ??
+              counts['disposed'] ??
+              counts['disposal_cases'] ??
+              0) as int;
 
       if (!mounted) return;
       setState(() {
@@ -126,12 +155,20 @@ class _DashboardStatsWidgetState extends State<DashboardStatsWidget> {
           _disposalLoaded = true;
         });
       }
+    } finally {
+      _isLoading = false;
     }
+  }
+
+  Future<void> refresh() async {
+    final station = widget.auth.activeStation.trim();
+    await _fetchStats(station);
   }
 
   @override
   void dispose() {
-    _pollTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    _stopTimer();
     super.dispose();
   }
 

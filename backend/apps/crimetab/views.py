@@ -17,7 +17,10 @@ from apps.crimetab.models.dynamic_engine import (
     FieldTemplate,
     FieldTemplateField,
     CaseExtraFieldValue,
+    OptionValue,
 )
+from apps.core.tenancy import TenantContext, get_active_tenant_schema
+from apps.core.cache_decorators import cache_response
 from apps.crimetab.models.common_form import (
     CrimeRegistrationInfo,
     Act,
@@ -132,15 +135,21 @@ class CaseCategoryGroupViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=True, methods=['get'])
     def counters(self, request, pk=None):
-        station_name = request.query_params.get('station_name') or getattr(request, 'station_name', None)
-        data = get_group_counters(int(pk), station_name=station_name)
-        return Response(data)
+        from apps.core.tenancy import TenantContext, get_active_tenant_schema
+        target_schema = get_active_tenant_schema(request)
+        with TenantContext(target_schema):
+            station_name = request.query_params.get('station_name') or getattr(request, 'station_name', None)
+            data = get_group_counters(int(pk), station_name=station_name)
+            return Response(data)
 
     @action(detail=True, methods=['get'])
     def categories(self, request, pk=None):
-        cats = CaseCategory.objects.filter(group_id=pk, is_active=True).order_by('display_order', 'category_id')
-        serializer = CaseCategorySerializer(cats, many=True)
-        return Response(serializer.data)
+        from apps.core.tenancy import TenantContext, get_active_tenant_schema
+        target_schema = get_active_tenant_schema(request)
+        with TenantContext(target_schema):
+            cats = CaseCategory.objects.filter(group_id=pk, is_active=True).order_by('display_order', 'category_id')
+            serializer = CaseCategorySerializer(cats, many=True)
+            return Response(serializer.data)
 
 
 class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
@@ -200,25 +209,28 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
         GET /api/categories/standalone/?station_name=...
         Returns all top-level standalone tabs with their live counters.
         """
-        station_name = request.query_params.get('station_name') or getattr(request, 'station_name', None)
-        include_counters = request.query_params.get('include_counters', 'true').lower() in ['true', '1']
-        cats = CaseCategory.objects.filter(
-            group__isnull=True,
-            parent_category__isnull=True,
-            is_active=True
-        ).order_by('display_order', 'category_id')
-
-        results = []
-        for c in cats:
-            c_data = CaseCategorySerializer(c).data
-            if include_counters:
-                c_data['counters'] = get_category_counters(c.category_id, station_name=station_name)
-            c_data['has_children'] = CaseCategory.objects.filter(
-                parent_category_id__in=get_twin_category_ids(c.category_id),
+        from apps.core.tenancy import TenantContext, get_active_tenant_schema
+        target_schema = get_active_tenant_schema(request)
+        with TenantContext(target_schema):
+            station_name = request.query_params.get('station_name') or getattr(request, 'station_name', None)
+            include_counters = request.query_params.get('include_counters', 'true').lower() in ['true', '1']
+            cats = CaseCategory.objects.filter(
+                group__isnull=True,
+                parent_category__isnull=True,
                 is_active=True
-            ).exists()
-            results.append(c_data)
-        return Response(results)
+            ).order_by('display_order', 'category_id')
+
+            results = []
+            for c in cats:
+                c_data = CaseCategorySerializer(c).data
+                if include_counters:
+                    c_data['counters'] = get_category_counters(c.category_id, station_name=station_name)
+                c_data['has_children'] = CaseCategory.objects.filter(
+                    parent_category_id__in=get_twin_category_ids(c.category_id),
+                    is_active=True
+                ).exists()
+                results.append(c_data)
+            return Response(results)
 
     @action(detail=False, methods=['get'], url_path='dashboard-tabs')
     def dashboard_tabs(self, request):
@@ -228,197 +240,263 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
         - groups: 1 to 5 and Part 6 with their top-level categories and live counters
         - standalone: all standalone categories with live counters
         """
-        station_name = request.query_params.get('station_name') or getattr(request, 'station_name', None)
-        groups_data = []
-        for g in CaseCategoryGroup.objects.all().order_by('display_order', 'group_id'):
-            g_cats = CaseCategory.objects.filter(group=g, parent_category__isnull=True, is_active=True).order_by('display_order', 'category_id')
-            groups_data.append({
-                'group_id': g.group_id,
-                'group_name': g.group_name,
-                'group_code': g.group_code,
-                'display_order': g.display_order,
-                'counters': get_group_counters(g.group_id, station_name=station_name),
-                'categories': [
-                    {
-                        **CaseCategorySerializer(cat).data,
-                        'counters': get_category_counters(cat.category_id, station_name=station_name),
-                        'has_children': CaseCategory.objects.filter(
-                            parent_category_id__in=get_twin_category_ids(cat.category_id),
-                            is_active=True
-                        ).exists(),
-                    }
-                    for cat in g_cats
-                ]
+        from apps.core.tenancy import TenantContext, get_active_tenant_schema
+        target_schema = get_active_tenant_schema(request)
+        with TenantContext(target_schema):
+            station_name = request.query_params.get('station_name') or getattr(request, 'station_name', None)
+            groups_data = []
+            for g in CaseCategoryGroup.objects.all().order_by('display_order', 'group_id'):
+                g_cats = CaseCategory.objects.filter(group=g, parent_category__isnull=True, is_active=True).order_by('display_order', 'category_id')
+                groups_data.append({
+                    'group_id': g.group_id,
+                    'group_name': g.group_name,
+                    'group_code': g.group_code,
+                    'display_order': g.display_order,
+                    'counters': get_group_counters(g.group_id, station_name=station_name),
+                    'categories': [
+                        {
+                            **CaseCategorySerializer(cat).data,
+                            'counters': get_category_counters(cat.category_id, station_name=station_name),
+                            'has_children': CaseCategory.objects.filter(
+                                parent_category_id__in=get_twin_category_ids(cat.category_id),
+                                is_active=True
+                            ).exists(),
+                        }
+                        for cat in g_cats
+                    ]
+                })
+
+            standalone_cats = CaseCategory.objects.filter(
+                group__isnull=True,
+                parent_category__isnull=True,
+                is_active=True
+            ).order_by('display_order', 'category_id')
+
+            standalone_data = [
+                {
+                    **CaseCategorySerializer(cat).data,
+                    'counters': get_category_counters(cat.category_id, station_name=station_name),
+                    'has_children': CaseCategory.objects.filter(
+                        parent_category_id__in=get_twin_category_ids(cat.category_id),
+                        is_active=True
+                    ).exists(),
+                }
+                for cat in standalone_cats
+            ]
+
+            return Response({
+                'groups': groups_data,
+                'standalone': standalone_data,
             })
 
-        standalone_cats = CaseCategory.objects.filter(
-            group__isnull=True,
-            parent_category__isnull=True,
-            is_active=True
-        ).order_by('display_order', 'category_id')
-
-        standalone_data = [
-            {
-                **CaseCategorySerializer(cat).data,
-                'counters': get_category_counters(cat.category_id, station_name=station_name),
-                'has_children': CaseCategory.objects.filter(
-                    parent_category_id__in=get_twin_category_ids(cat.category_id),
+    def retrieve(self, request, pk=None, *args, **kwargs):
+        from apps.core.tenancy import TenantContext, get_active_tenant_schema
+        target_schema = get_active_tenant_schema(request)
+        with TenantContext(target_schema):
+            from urllib.parse import unquote
+            if pk is not None:
+                pk = unquote(str(pk)).strip()
+            if str(pk).isdigit():
+                instance = CaseCategory.objects.filter(pk=int(pk), is_active=True).first()
+            else:
+                instance = CaseCategory.objects.filter(
+                    Q(category_name__iexact=pk) | Q(category_code__iexact=pk),
                     is_active=True
-                ).exists(),
-            }
-            for cat in standalone_cats
-        ]
-
-        return Response({
-            'groups': groups_data,
-            'standalone': standalone_data,
-        })
+                ).first()
+                if not instance:
+                    cleaned = str(pk).replace('/', ' ').replace('-', ' ').replace('_', ' ').strip().lower()
+                    for c in CaseCategory.objects.filter(is_active=True):
+                        c_clean = c.category_name.replace('/', ' ').replace('-', ' ').replace('_', ' ').strip().lower()
+                        if c_clean == cleaned or (c.category_code and c.category_code.lower() == cleaned):
+                            instance = c
+                            break
+            if not instance:
+                return Response({'error': f'Category {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
 
     @action(detail=True, methods=['get'])
     def counters(self, request, pk=None):
-        from urllib.parse import unquote
-        if pk is not None:
-            pk = unquote(str(pk)).strip()
-        if str(pk).isdigit():
-            cat_id = int(pk)
-        else:
-            cat = CaseCategory.objects.filter(category_name__iexact=pk).first()
-            if not cat:
-                return Response({'error': f'Category {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
-            cat_id = cat.category_id
+        from apps.core.tenancy import TenantContext, get_active_tenant_schema
+        target_schema = get_active_tenant_schema(request)
+        with TenantContext(target_schema):
+            from urllib.parse import unquote
+            if pk is not None:
+                pk = unquote(str(pk)).strip()
+            if str(pk).isdigit():
+                cat_id = int(pk)
+            else:
+                cat = CaseCategory.objects.filter(
+                    Q(category_name__iexact=pk) | Q(category_code__iexact=pk),
+                    is_active=True
+                ).first()
+                if not cat:
+                    cleaned = str(pk).replace('/', ' ').replace('-', ' ').replace('_', ' ').strip().lower()
+                    for c in CaseCategory.objects.filter(is_active=True):
+                        c_clean = c.category_name.replace('/', ' ').replace('-', ' ').replace('_', ' ').strip().lower()
+                        if c_clean == cleaned or (c.category_code and c.category_code.lower() == cleaned):
+                            cat = c
+                            break
+                if not cat:
+                    return Response({'error': f'Category {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
+                cat_id = cat.category_id
 
-        station_name = request.query_params.get('station_name') or getattr(request, 'station_name', None)
-        data = get_category_counters(cat_id, station_name=station_name)
-        return Response(data)
+            station_name = request.query_params.get('station_name') or getattr(request, 'station_name', None)
+            data = get_category_counters(cat_id, station_name=station_name)
+            return Response(data)
 
     @action(detail=True, methods=['get'])
     def children(self, request, pk=None):
-        from urllib.parse import unquote
-        if pk is not None:
-            pk = unquote(str(pk)).strip()
-        if str(pk).isdigit():
-            cat_id = int(pk)
-            cat = CaseCategory.objects.filter(pk=cat_id).first()
-        else:
-            cat = CaseCategory.objects.filter(category_name__iexact=pk).first()
-            if not cat:
-                cleaned = str(pk).replace('/', ' ').replace('-', ' ').replace('_', ' ').strip().lower()
-                for c in CaseCategory.objects.filter(is_active=True):
-                    c_clean = c.category_name.replace('/', ' ').replace('-', ' ').replace('_', ' ').strip().lower()
-                    if c_clean == cleaned or (c.category_code and c.category_code.lower() == cleaned):
-                        cat = c
-                        break
+        from apps.core.tenancy import TenantContext, get_active_tenant_schema
+        target_schema = get_active_tenant_schema(request)
+        with TenantContext(target_schema):
+            from urllib.parse import unquote
+            if pk is not None:
+                pk = unquote(str(pk)).strip()
+            if str(pk).isdigit():
+                cat_id = int(pk)
+                cat = CaseCategory.objects.filter(pk=cat_id, is_active=True).first()
+            else:
+                cat = CaseCategory.objects.filter(
+                    Q(category_name__iexact=pk) | Q(category_code__iexact=pk),
+                    is_active=True
+                ).first()
+                if not cat:
+                    cleaned = str(pk).replace('/', ' ').replace('-', ' ').replace('_', ' ').strip().lower()
+                    for c in CaseCategory.objects.filter(is_active=True):
+                        c_clean = c.category_name.replace('/', ' ').replace('-', ' ').replace('_', ' ').strip().lower()
+                        if c_clean == cleaned or (c.category_code and c.category_code.lower() == cleaned):
+                            cat = c
+                            break
+                if not cat:
+                    return Response([], status=status.HTTP_200_OK)
+                cat_id = cat.category_id
+
             if not cat:
                 return Response([], status=status.HTTP_200_OK)
-            cat_id = cat.category_id
 
-        if not cat:
-            return Response([], status=status.HTTP_200_OK)
+            station_name = request.query_params.get('station_name') or getattr(request, 'station_name', None)
+            twin_ids = get_twin_category_ids(cat_id)
+            direct_children = list(CaseCategory.objects.filter(parent_category_id=cat_id, is_active=True).order_by('display_order', 'category_id'))
+            seen_names = {c.category_name.strip().lower() for c in direct_children}
+            twin_children = list(CaseCategory.objects.filter(parent_category_id__in=twin_ids, is_active=True).order_by('display_order', 'category_id'))
 
-        station_name = request.query_params.get('station_name') or getattr(request, 'station_name', None)
-        twin_ids = get_twin_category_ids(cat_id)
-        direct_children = list(CaseCategory.objects.filter(parent_category_id=cat_id, is_active=True).order_by('display_order', 'category_id'))
-        seen_names = {c.category_name.strip().lower() for c in direct_children}
-        twin_children = list(CaseCategory.objects.filter(parent_category_id__in=twin_ids, is_active=True).order_by('display_order', 'category_id'))
+            combined_children = list(direct_children)
+            for tc in twin_children:
+                name_lower = tc.category_name.strip().lower()
+                if name_lower not in seen_names:
+                    seen_names.add(name_lower)
+                    combined_children.append(tc)
 
-        combined_children = list(direct_children)
-        for tc in twin_children:
-            name_lower = tc.category_name.strip().lower()
-            if name_lower not in seen_names:
-                seen_names.add(name_lower)
-                combined_children.append(tc)
-
-        results = []
-        for c in combined_children:
-            c_data = CaseCategorySerializer(c).data
-            c_data['counters'] = get_category_counters(c.category_id, station_name=station_name)
-            child_twin_ids = get_twin_category_ids(c.category_id)
-            c_data['has_children'] = CaseCategory.objects.filter(parent_category_id__in=child_twin_ids, is_active=True).exists()
-            results.append(c_data)
-        return Response(results)
+            results = []
+            for c in combined_children:
+                c_data = CaseCategorySerializer(c).data
+                c_data['counters'] = get_category_counters(c.category_id, station_name=station_name)
+                child_twin_ids = get_twin_category_ids(c.category_id)
+                c_data['has_children'] = CaseCategory.objects.filter(parent_category_id__in=child_twin_ids, is_active=True).exists()
+                results.append(c_data)
+            return Response(results)
 
     @action(detail=True, methods=['get'], url_path='form-definition')
     def form_definition(self, request, pk=None):
-        from urllib.parse import unquote
-        if pk is not None:
-            pk = unquote(str(pk)).strip()
-        if str(pk).isdigit():
-            category_id = int(pk)
-        else:
-            cat = CaseCategory.objects.filter(
-                Q(category_name__iexact=pk) | Q(category_code__iexact=pk)
-            ).first()
-            if not cat:
-                cleaned = str(pk).replace('.', '').replace('/', ' ').replace('_', ' ').replace('-', ' ').strip().lower()
-                for c in CaseCategory.objects.filter(is_active=True):
-                    c_clean = c.category_name.replace('.', '').replace('/', ' ').replace('_', ' ').replace('-', ' ').strip().lower()
-                    if c_clean == cleaned or (c.category_code and c.category_code.lower() == cleaned):
-                        cat = c
-                        break
-            if not cat:
-                cat = CaseCategory.objects.filter(category_name__icontains=pk, is_active=True).first()
-            if not cat:
-                cat = CaseCategory.objects.filter(is_active=True).first()
-            if not cat:
-                return Response({'error': f'No active category found'}, status=status.HTTP_404_NOT_FOUND)
-            category_id = cat.category_id
+        from apps.core.tenancy import TenantContext, get_active_tenant_schema
+        target_schema = get_active_tenant_schema(request)
+        with TenantContext(target_schema):
+            from urllib.parse import unquote
+            if pk is not None:
+                pk = unquote(str(pk)).strip()
+            if str(pk).isdigit():
+                category_id = int(pk)
+            else:
+                cat = CaseCategory.objects.filter(
+                    Q(category_name__iexact=pk) | Q(category_code__iexact=pk),
+                    is_active=True
+                ).first()
+                if not cat:
+                    cleaned = str(pk).replace('.', '').replace('/', ' ').replace('_', ' ').replace('-', ' ').strip().lower()
+                    for c in CaseCategory.objects.filter(is_active=True):
+                        c_clean = c.category_name.replace('.', '').replace('/', ' ').replace('_', ' ').replace('-', ' ').strip().lower()
+                        if c_clean == cleaned or (c.category_code and c.category_code.lower() == cleaned):
+                            cat = c
+                            break
+                if not cat:
+                    cat = CaseCategory.objects.filter(category_name__icontains=pk, is_active=True).first()
+                if not cat:
+                    return Response({'error': f'Category {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
+                category_id = cat.category_id
 
-        case_id = request.query_params.get('case_id')
-        section_ids_raw = request.query_params.get('section_ids') or request.query_params.get('sections') or ''
-        section_ids = [s.strip() for s in section_ids_raw.split(',') if s.strip()]
+            case_id = request.query_params.get('case_id')
+            section_ids_raw = request.query_params.get('section_ids') or request.query_params.get('sections') or ''
+            section_ids = [s.strip() for s in section_ids_raw.split(',') if s.strip()]
 
-        form_def = get_form_definition(
-            category_id=category_id,
-            case_id=case_id,
-            charged_section_ids=section_ids
-        )
-        return Response(form_def)
+            form_def = get_form_definition(
+                category_id=category_id,
+                case_id=case_id,
+                charged_section_ids=section_ids
+            )
+            return Response(form_def)
 
     @action(detail=True, methods=['get'])
     def cases(self, request, pk=None):
-        if str(pk).isdigit():
-            category_id = int(pk)
-            category = CaseCategory.objects.filter(pk=category_id).first()
-        else:
-            category = CaseCategory.objects.filter(category_name__iexact=pk).first()
-            category_id = category.category_id if category else None
+        from apps.core.tenancy import TenantContext, get_active_tenant_schema
+        target_schema = get_active_tenant_schema(request)
+        with TenantContext(target_schema):
+            from urllib.parse import unquote
+            if pk is not None:
+                pk = unquote(str(pk)).strip()
+            if str(pk).isdigit():
+                category_id = int(pk)
+                category = CaseCategory.objects.filter(pk=category_id, is_active=True).first()
+            else:
+                category = CaseCategory.objects.filter(
+                    Q(category_name__iexact=pk) | Q(category_code__iexact=pk),
+                    is_active=True
+                ).first()
+                if not category:
+                    cleaned = str(pk).replace('/', ' ').replace('-', ' ').replace('_', ' ').strip().lower()
+                    for c in CaseCategory.objects.filter(is_active=True):
+                        c_clean = c.category_name.replace('/', ' ').replace('-', ' ').replace('_', ' ').strip().lower()
+                        if c_clean == cleaned or (c.category_code and c.category_code.lower() == cleaned):
+                            category = c
+                            break
+                category_id = category.category_id if category else None
 
-        if not category:
-            return Response({'error': 'Category not found'}, status=status.HTTP_404_NOT_FOUND)
+            if not category:
+                return Response({'error': 'Category not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        station_name = request.query_params.get('station_name')
-        status_filter = request.query_params.get('status')
-        search = request.query_params.get('search')
+            station_name = request.query_params.get('station_name')
+            status_filter = request.query_params.get('status')
+            search = request.query_params.get('search')
 
-        descendant_ids = get_descendant_category_ids(category_id)
-        linked_case_ids = CaseCategoryLink.objects.filter(category_id__in=descendant_ids).values_list('case_id', flat=True)
+            descendant_ids = get_descendant_category_ids(category_id)
+            linked_case_ids = CaseCategoryLink.objects.filter(category_id__in=descendant_ids).values_list('case_id', flat=True)
 
-        cat_names = list(CaseCategory.objects.filter(category_id__in=descendant_ids).values_list('category_name', flat=True))
-        q_filter = Q(id__in=linked_case_ids)
-        for name in cat_names:
-            q_filter |= Q(sub_category__iexact=name)
+            cat_names = list(CaseCategory.objects.filter(category_id__in=descendant_ids).values_list('category_name', flat=True))
+            q_filter = Q(id__in=linked_case_ids)
+            for name in cat_names:
+                q_filter |= Q(sub_category__iexact=name)
 
-        qs = CaseRecord.objects.filter(q_filter).distinct()
+            qs = CaseRecord.objects.filter(q_filter).distinct()
 
-        if station_name:
-            qs = qs.filter(station_name__iexact=station_name)
-        if status_filter:
-            qs = qs.filter(status__iexact=status_filter)
-        if search:
-            qs = qs.filter(
-                Q(case_number__icontains=search) |
-                Q(title__icontains=search) |
-                Q(complainant__icontains=search) |
-                Q(accused__icontains=search)
-            )
+            if station_name:
+                qs = qs.filter(station_name__iexact=station_name)
+            if status_filter:
+                qs = qs.filter(status__iexact=status_filter)
+            if search:
+                qs = qs.filter(
+                    Q(case_number__icontains=search) |
+                    Q(title__icontains=search) |
+                    Q(complainant__icontains=search) |
+                    Q(accused__icontains=search)
+                )
 
-        serializer = FullCaseDetailSerializer(qs.order_by('-created_at')[:100], many=True)
-        return Response({
-            'category_id': category_id,
-            'category_name': category.category_name,
-            'total_cases': qs.count(),
-            'cases': serializer.data,
-        })
+            serializer = CaseListSerializer(qs.order_by('-created_at')[:50], many=True)
+            return Response({
+                'category_id': category_id,
+                'category_name': category.category_name,
+                'total_cases': qs.count(),
+                'cases': serializer.data,
+            })
 
 
 # ==========================================
@@ -1527,63 +1605,9 @@ class CaseCountsView(APIView):
     """
     permission_classes = [AllowAny]
 
-    def get(self, request):
-        from apps.core.tenancy import TenantContext, get_active_tenant_schema
-        from apps.public_master.models import StateRegistry
-
-        state_id = (request.query_params.get('state_id') or request.query_params.get('state_code') or '').strip().upper()
-        target_schema = None
-
-        if state_id and state_id != 'GLOBAL':
-            state_reg = StateRegistry.objects.filter(Q(state_code__iexact=state_id) | Q(state_name__iexact=state_id)).first()
-            if state_reg and state_reg.schema_name:
-                target_schema = state_reg.schema_name
-
-        if not target_schema:
-            active_schema = get_active_tenant_schema(request)
-            if active_schema and active_schema != 'public':
-                target_schema = active_schema
-
-        # Fail-fast boundary: state tenant context is strictly required to query dashboard metrics
-        if not target_schema or target_schema == 'public':
-            return Response(
-                {
-                    'error': 'State tenant context is required to query dashboard metrics. Please provide authentication token or X-State-Code header.',
-                    'module_counts': {},
-                    'totals': {'total': 0, 'open_count': 0, 'pending_count': 0, 'resolved_count': 0, 'disposal_count': 0},
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        station_name = request.query_params.get('station_name')
-        try:
-            with TenantContext(target_schema):
-                qs = CaseRecord.objects.all()
-                if station_name and station_name.strip().upper() not in ['ALL', '']:
-                    qs = qs.filter(station_name__iexact=station_name)
-
-                from django.db.models import Count, Q
-                module_counts_raw = qs.values('module_key').annotate(total=Count('id'))
-                counts_by_module = {item['module_key']: item['total'] for item in module_counts_raw if item['module_key']}
-
-                totals = qs.aggregate(
-                    total=Count('id'),
-                    open_count=Count('id', filter=Q(status__iexact='Open')),
-                    pending_count=Count('id', filter=Q(status__iexact='Pending') | Q(status__iexact='Active')),
-                    resolved_count=Count('id', filter=Q(status__iexact='Resolved')),
-                    disposal_count=Count('id', filter=Q(status__iexact='Disposal') | Q(status__iexact='Closed')),
-                )
-
-                return Response({
-                    'module_counts': counts_by_module,
-                    'totals': totals,
-                }, status=status.HTTP_200_OK)
-        except Exception as e:
-            logger.exception("Error in CaseCountsView.get: %s", e)
-            return Response(
-                {'error': f"Failed to retrieve counts for schema '{target_schema}'", 'module_counts': {}, 'totals': {'total': 0}},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+    def get(self, request, *args, **kwargs):
+        from apps.cases.views import CaseCountsView as NewCaseCountsView
+        return NewCaseCountsView.as_view()(request._request if hasattr(request, '_request') else request, *args, **kwargs)
 
 
 class CasePdfView(APIView):
@@ -1862,4 +1886,34 @@ class ActSubsectionsView(APIView):
             'display_name': f"Sub. {sub.subsection_code}",
         } for sub in queryset]
         return Response(subsections)
+
+
+class OptionValuesView(APIView):
+    """
+    Returns active option values for a given option group sorted by display_order.
+    Scoped inside the verified tenant context, cached for 60 seconds per group.
+    Never returns 500 for an unknown group (returns an empty list).
+    """
+    permission_classes = [AllowAny]
+
+    @cache_response(ttl=60, key_prefix="options")
+    def get(self, request, group):
+        try:
+            tenant_schema = get_active_tenant_schema(request)
+            with TenantContext(tenant_schema):
+                group_clean = str(group or '').strip()
+                if not group_clean:
+                    return Response([], status=status.HTTP_200_OK)
+
+                values = list(
+                    OptionValue.objects.filter(
+                        option_group__iexact=group_clean,
+                        is_active=True,
+                    ).order_by('display_order', 'id').values_list('option_value', flat=True)
+                )
+                return Response(values, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.warning(f"[OptionValuesView] Error fetching options for group '{group}': {e}")
+            return Response([], status=status.HTTP_200_OK)
+
 

@@ -333,6 +333,20 @@ class CaseRecord(models.Model):
                 pass
 
         super().save(*args, **kwargs)
+        try:
+            from apps.core.cache import upstash_cache
+            upstash_cache.delete_pattern("pms:cache:*:cases:*")
+        except Exception:
+            pass
+
+    def delete(self, *args, **kwargs):
+        res = super().delete(*args, **kwargs)
+        try:
+            from apps.core.cache import upstash_cache
+            upstash_cache.delete_pattern("pms:cache:*:cases:*")
+        except Exception:
+            pass
+        return res
 
     def __str__(self):
         return f"[{self.module_key}] {self.case_number}: {self.title} ({self.station_name})"

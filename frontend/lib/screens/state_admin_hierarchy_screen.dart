@@ -511,48 +511,51 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
       decoration: const BoxDecoration(
         border: Border(top: BorderSide(color: Color(0xFFF1F5F9))),
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-        leading: CircleAvatar(
-          radius: 14,
-          backgroundColor: AppColors.navyDark.withValues(alpha: 0.1),
-          child: const Icon(
-            Icons.person_rounded,
-            size: 16,
-            color: AppColors.navyDark,
+      child: Material(
+        color: Colors.transparent,
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+          leading: CircleAvatar(
+            radius: 14,
+            backgroundColor: AppColors.navyDark.withValues(alpha: 0.1),
+            child: const Icon(
+              Icons.person_rounded,
+              size: 16,
+              color: AppColors.navyDark,
+            ),
           ),
-        ),
-        title: Text(
-          '$name ($desig)',
-          style: GoogleFonts.poppins(
-            fontSize: 12.5,
-            fontWeight: FontWeight.w600,
-            color: AppColors.navyDark,
-          ),
-        ),
-        subtitle: Text(
-          'Badge: ${badge.isNotEmpty ? badge : "N/A"} • Phone: ${phone.isNotEmpty ? phone : "N/A"}',
-          style: GoogleFonts.poppins(
-            fontSize: 10.5,
-            color: Colors.grey.shade600,
-          ),
-        ),
-        trailing: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          decoration: BoxDecoration(
-            color: status == 'active'
-                ? Colors.green.shade50
-                : Colors.orange.shade50,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(
-            status.toUpperCase(),
+          title: Text(
+            '$name ($desig)',
             style: GoogleFonts.poppins(
-              fontSize: 9.5,
-              fontWeight: FontWeight.w700,
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: AppColors.navyDark,
+            ),
+          ),
+          subtitle: Text(
+            'Badge: ${badge.isNotEmpty ? badge : "N/A"} • Phone: ${phone.isNotEmpty ? phone : "N/A"}',
+            style: GoogleFonts.poppins(
+              fontSize: 10.5,
+              color: Colors.grey.shade600,
+            ),
+          ),
+          trailing: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
               color: status == 'active'
-                  ? Colors.green.shade800
-                  : Colors.orange.shade800,
+                  ? Colors.green.shade50
+                  : Colors.orange.shade50,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              status.toUpperCase(),
+              style: GoogleFonts.poppins(
+                fontSize: 9.5,
+                fontWeight: FontWeight.w700,
+                color: status == 'active'
+                    ? Colors.green.shade800
+                    : Colors.orange.shade800,
+              ),
             ),
           ),
         ),
