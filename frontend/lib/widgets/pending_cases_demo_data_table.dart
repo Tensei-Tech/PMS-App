@@ -120,11 +120,23 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                   align: Alignment.centerLeft,
                 ),
               if (isVictim)
-                dataCell(r['victim_head']?.isNotEmpty == true ? r['victim_head']! : '—', align: Alignment.centerLeft),
+                dataCell(
+                    r['victim_head']?.isNotEmpty == true
+                        ? r['victim_head']!
+                        : '—',
+                    align: Alignment.centerLeft),
               if (isVictim)
-                dataCell(r['victim_name']?.isNotEmpty == true ? r['victim_name']! : '—', align: Alignment.centerLeft),
+                dataCell(
+                    r['victim_name']?.isNotEmpty == true
+                        ? r['victim_name']!
+                        : '—',
+                    align: Alignment.centerLeft),
               if (isVictim)
-                dataCell(r['injured_deceased']?.isNotEmpty == true ? r['injured_deceased']! : '—', align: Alignment.centerLeft),
+                dataCell(
+                    r['injured_deceased']?.isNotEmpty == true
+                        ? r['injured_deceased']!
+                        : '—',
+                    align: Alignment.centerLeft),
               dataCell(r['io']!, align: Alignment.centerLeft),
               dataCell(r['station']!, align: Alignment.centerLeft),
             ],

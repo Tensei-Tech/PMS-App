@@ -29,13 +29,13 @@ class PendingSummaryScreen extends StatelessWidget {
 
   /// When non-null and non-empty, summary uses only this data (skips Firestore stream).
   final List<Map<String, String>>? liveRows;
-  
+
   /// Station scope for pending Firestore read (ignored when [liveRows] is used).
   final String stationName;
-  
+
   /// Header title for the screen
   final String title;
-  
+
   /// Whether this screen displays absconded cases
   final bool isAbsconded;
 

@@ -53,7 +53,12 @@ String _victimNamesLine(ModuleRecord r) {
   if (raw is Map<String, dynamic>) {
     final v = raw['victims'];
     if (v is List) {
-      final names = v.map((e) => e is Map ? (e['name']?.toString() ?? e['victim_name']?.toString() ?? '') : '').where((s) => s.isNotEmpty).toList();
+      final names = v
+          .map((e) => e is Map
+              ? (e['name']?.toString() ?? e['victim_name']?.toString() ?? '')
+              : '')
+          .where((s) => s.isNotEmpty)
+          .toList();
       if (names.isNotEmpty) return names.join(', ');
     }
   }
@@ -65,7 +70,16 @@ String _victimConditionLine(ModuleRecord r) {
   if (raw is Map<String, dynamic>) {
     final v = raw['victims'];
     if (v is List) {
-      final conditions = v.map((e) => e is Map ? (e['status']?.toString() ?? e['condition']?.toString() ?? e['injured_deceased']?.toString() ?? e['health_status']?.toString() ?? '') : '').where((s) => s.isNotEmpty).toList();
+      final conditions = v
+          .map((e) => e is Map
+              ? (e['status']?.toString() ??
+                  e['condition']?.toString() ??
+                  e['injured_deceased']?.toString() ??
+                  e['health_status']?.toString() ??
+                  '')
+              : '')
+          .where((s) => s.isNotEmpty)
+          .toList();
       if (conditions.isNotEmpty) return conditions.join(', ');
     }
   }
@@ -80,7 +94,7 @@ Map<String, String> pendingModuleRecordToTableRow(
   required int sr,
 }) {
   final io = pendingIoWiseIoDisplayName(r) ?? r.assignedOfficer.trim();
-  
+
   // Dynamically fetch the head directly from the database record instead of hardcoding
   final dynamicHead = _headLine(r);
 

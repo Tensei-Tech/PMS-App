@@ -60,7 +60,8 @@ class CategoryNavigationHelper {
     final children = await getChildren(cleanName);
     if (!context.mounted) return;
 
-    if (cleanName.toUpperCase() == 'ITSSO' || moduleKey.toLowerCase() == 'itsso') {
+    if (cleanName.toUpperCase() == 'ITSSO' ||
+        moduleKey.toLowerCase() == 'itsso') {
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(

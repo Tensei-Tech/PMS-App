@@ -821,6 +821,7 @@ class BackendCaseService {
     }
     return null;
   }
+
   // VICTIM API WRAPPERS
   Future<List<Map<String, dynamic>>?> fetchVictimCases({
     String? category,
@@ -845,12 +846,14 @@ class BackendCaseService {
       if (response.isSuccess) {
         if (response.data is List) {
           return List<Map<String, dynamic>>.from(response.data);
-        } else if (response.data is Map && response.data.containsKey('results')) {
+        } else if (response.data is Map &&
+            response.data.containsKey('results')) {
           return List<Map<String, dynamic>>.from(response.data['results']);
         }
       } else {
         if (kDebugMode) {
-          debugPrint('[BackendCaseService] fetchVictimCases error: ${response.errorMessage}');
+          debugPrint(
+              '[BackendCaseService] fetchVictimCases error: ${response.errorMessage}');
         }
       }
     } catch (e) {
@@ -870,7 +873,8 @@ class BackendCaseService {
         return List<Map<String, dynamic>>.from(response.data);
       } else {
         if (kDebugMode) {
-          debugPrint('[BackendCaseService] fetchVictimTimeWise error: ${response.errorMessage}');
+          debugPrint(
+              '[BackendCaseService] fetchVictimTimeWise error: ${response.errorMessage}');
         }
       }
     } catch (e) {
@@ -890,7 +894,8 @@ class BackendCaseService {
         return List<Map<String, dynamic>>.from(response.data);
       } else {
         if (kDebugMode) {
-          debugPrint('[BackendCaseService] fetchVictimIOWise error: ${response.errorMessage}');
+          debugPrint(
+              '[BackendCaseService] fetchVictimIOWise error: ${response.errorMessage}');
         }
       }
     } catch (e) {
@@ -908,14 +913,18 @@ class BackendCaseService {
       final sectionsResponse = await _api.get(ApiConfig.actSections);
 
       if (actsResponse.isSuccess && sectionsResponse.isSuccess) {
-        final actsList = List<Map<String, dynamic>>.from(actsResponse.data ?? []);
-        final sectionsList = List<Map<String, dynamic>>.from(sectionsResponse.data ?? []);
+        final actsList =
+            List<Map<String, dynamic>>.from(actsResponse.data ?? []);
+        final sectionsList =
+            List<Map<String, dynamic>>.from(sectionsResponse.data ?? []);
 
         final Map<String, Map<String, dynamic>> actData = {};
 
         // 1. Group acts by act_code
         for (var act in actsList) {
-          final code = act['act_code']?.toString() ?? act['act_name']?.toString() ?? 'OTHER';
+          final code = act['act_code']?.toString() ??
+              act['act_name']?.toString() ??
+              'OTHER';
           if (!actData.containsKey(code)) {
             actData[code] = {
               'label': act['act_name'] ?? code,
@@ -931,7 +940,7 @@ class BackendCaseService {
           final actId = sec['act_id'];
           final secNum = sec['section_number']?.toString() ?? '';
           final secTitle = sec['section_title']?.toString() ?? '';
-          
+
           String? targetCode;
           for (var entry in actData.entries) {
             if (entry.value['_act_id'] == actId) {
@@ -939,9 +948,10 @@ class BackendCaseService {
               break;
             }
           }
-          
+
           if (targetCode != null) {
-            final list = actData[targetCode]!['sections'] as List<Map<String, dynamic>>;
+            final list =
+                actData[targetCode]!['sections'] as List<Map<String, dynamic>>;
             list.add({
               'val': secNum,
               'label': sec['display_name'] ?? '$secNum - $secTitle',
