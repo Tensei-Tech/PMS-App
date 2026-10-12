@@ -14,6 +14,7 @@ import '../../theme/app_theme.dart';
 import 'dynamic_field_model.dart';
 import 'dynamic_section_builder.dart';
 import '../repeating_cascading_charges_selector.dart';
+import '../../services/dynamic_options_service.dart';
 
 class DynamicFormScreen extends StatefulWidget {
   final dynamic categoryId;
@@ -113,6 +114,18 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   bool _isJail = false;
   final TextEditingController _jailDateCtrl = TextEditingController();
   final List<Map<String, dynamic>> _custodyRecordsList = [];
+  List<String> _genderOptions = [];
+
+  Future<void> _loadGenderOptions() async {
+    try {
+      final opts = await DynamicOptionsService().fetchOptions('/api/options/gender/');
+      if (mounted && opts.isNotEmpty) {
+        setState(() {
+          _genderOptions = opts;
+        });
+      }
+    } catch (_) {}
+  }
 
   static const List<String> _suretyRelationChoices = [
     'Father',
@@ -139,6 +152,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   void initState() {
     super.initState();
     _loadFormDefinition();
+    _loadGenderOptions();
   }
 
   @override
@@ -3073,7 +3087,16 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     }
   }
 
-  void _showAddEditAccusedDialog({int? editIndex}) {
+  Future<void> _showAddEditAccusedDialog({int? editIndex}) async {
+    if (_genderOptions.isEmpty) {
+      try {
+        final opts = await DynamicOptionsService().fetchOptions('/api/options/gender/');
+        if (opts.isNotEmpty) {
+          _genderOptions = opts;
+        }
+      } catch (_) {}
+    }
+    if (!mounted) return;
     final isEditing =
         editIndex != null && editIndex >= 0 && editIndex < _accusedList.length;
     final initial = isEditing ? _accusedList[editIndex] : <String, dynamic>{};
@@ -3084,7 +3107,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         TextEditingController(text: initial['age']?.toString() ?? '');
     var selectedGender = initial['gender']?.toString().isNotEmpty == true
         ? initial['gender'].toString()
-        : 'Male';
+        : (_genderOptions.isNotEmpty ? _genderOptions.first : null);
     final occCtrl =
         TextEditingController(text: initial['occupation']?.toString() ?? '');
     final mobileCtrl =
@@ -3190,7 +3213,11 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                           Expanded(
                             flex: 6,
                             child: DropdownButtonFormField<String>(
-                              initialValue: selectedGender,
+                              initialValue: _genderOptions.contains(selectedGender)
+                                  ? selectedGender
+                                  : (_genderOptions.isNotEmpty
+                                      ? _genderOptions.first
+                                      : null),
                               decoration: InputDecoration(
                                 labelText: 'Gender',
                                 prefixIcon: const Icon(Icons.wc_rounded,
@@ -3199,14 +3226,16 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                     borderRadius:
                                         BorderRadius.circular(AppRadius.md)),
                               ),
-                              items: const [
-                                DropdownMenuItem(
-                                    value: 'Male', child: Text('Male')),
-                                DropdownMenuItem(
-                                    value: 'Female', child: Text('Female')),
-                                DropdownMenuItem(
-                                    value: 'Other', child: Text('Other')),
-                              ],
+                              hint: Text(_genderOptions.isEmpty
+                                  ? 'Failed to load options'
+                                  : 'Select Gender'),
+                              disabledHint: const Text('Failed to load options'),
+                              items: _genderOptions.map((g) {
+                                return DropdownMenuItem<String>(
+                                  value: g,
+                                  child: Text(g),
+                                );
+                              }).toList(),
                               onChanged: (val) {
                                 if (val != null) {
                                   setDlgState(() => selectedGender = val);
@@ -3712,7 +3741,16 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     }
   }
 
-  void _showAddEditSuspectedAccusedDialog({int? editIndex}) {
+  Future<void> _showAddEditSuspectedAccusedDialog({int? editIndex}) async {
+    if (_genderOptions.isEmpty) {
+      try {
+        final opts = await DynamicOptionsService().fetchOptions('/api/options/gender/');
+        if (opts.isNotEmpty) {
+          _genderOptions = opts;
+        }
+      } catch (_) {}
+    }
+    if (!mounted) return;
     final isEditing = editIndex != null &&
         editIndex >= 0 &&
         editIndex < _suspectedAccusedList.length;
@@ -3725,7 +3763,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         TextEditingController(text: initial['age']?.toString() ?? '');
     var selectedGender = initial['gender']?.toString().isNotEmpty == true
         ? initial['gender'].toString()
-        : 'Male';
+        : (_genderOptions.isNotEmpty ? _genderOptions.first : null);
     final occCtrl =
         TextEditingController(text: initial['occupation']?.toString() ?? '');
     final mobileCtrl =
@@ -3870,7 +3908,11 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                           Expanded(
                             flex: 6,
                             child: DropdownButtonFormField<String>(
-                              initialValue: selectedGender,
+                              initialValue: _genderOptions.contains(selectedGender)
+                                  ? selectedGender
+                                  : (_genderOptions.isNotEmpty
+                                      ? _genderOptions.first
+                                      : null),
                               decoration: InputDecoration(
                                 labelText: 'Gender',
                                 prefixIcon: const Icon(Icons.wc_rounded,
@@ -3879,14 +3921,16 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                     borderRadius:
                                         BorderRadius.circular(AppRadius.md)),
                               ),
-                              items: const [
-                                DropdownMenuItem(
-                                    value: 'Male', child: Text('Male')),
-                                DropdownMenuItem(
-                                    value: 'Female', child: Text('Female')),
-                                DropdownMenuItem(
-                                    value: 'Other', child: Text('Other')),
-                              ],
+                              hint: Text(_genderOptions.isEmpty
+                                  ? 'Failed to load options'
+                                  : 'Select Gender'),
+                              disabledHint: const Text('Failed to load options'),
+                              items: _genderOptions.map((g) {
+                                return DropdownMenuItem<String>(
+                                  value: g,
+                                  child: Text(g),
+                                );
+                              }).toList(),
                               onChanged: (val) {
                                 if (val != null) {
                                   setDlgState(() => selectedGender = val);
@@ -4358,7 +4402,16 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     }
   }
 
-  void _showAddEditUnidentifiedAccusedDialog({int? editIndex}) {
+  Future<void> _showAddEditUnidentifiedAccusedDialog({int? editIndex}) async {
+    if (_genderOptions.isEmpty) {
+      try {
+        final opts = await DynamicOptionsService().fetchOptions('/api/options/gender/');
+        if (opts.isNotEmpty) {
+          _genderOptions = opts;
+        }
+      } catch (_) {}
+    }
+    if (!mounted) return;
     final isEditing = editIndex != null &&
         editIndex >= 0 &&
         editIndex < _unidentifiedAccusedList.length;
@@ -4369,7 +4422,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         text: initial['approximate_age']?.toString() ?? '');
     var selectedGender = initial['gender']?.toString().isNotEmpty == true
         ? initial['gender'].toString()
-        : 'Male';
+        : (_genderOptions.isNotEmpty ? _genderOptions.first : null);
     final skinCtrl =
         TextEditingController(text: initial['skin_colour']?.toString() ?? '');
     final heightCtrl =
@@ -4453,7 +4506,11 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                           Expanded(
                             flex: 5,
                             child: DropdownButtonFormField<String>(
-                              initialValue: selectedGender,
+                              initialValue: _genderOptions.contains(selectedGender)
+                                  ? selectedGender
+                                  : (_genderOptions.isNotEmpty
+                                      ? _genderOptions.first
+                                      : null),
                               decoration: InputDecoration(
                                 labelText: 'Gender',
                                 prefixIcon: const Icon(Icons.wc_rounded,
@@ -4462,14 +4519,16 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                     borderRadius:
                                         BorderRadius.circular(AppRadius.md)),
                               ),
-                              items: const [
-                                DropdownMenuItem(
-                                    value: 'Male', child: Text('Male')),
-                                DropdownMenuItem(
-                                    value: 'Female', child: Text('Female')),
-                                DropdownMenuItem(
-                                    value: 'Other', child: Text('Other')),
-                              ],
+                              hint: Text(_genderOptions.isEmpty
+                                  ? 'Failed to load options'
+                                  : 'Select Gender'),
+                              disabledHint: const Text('Failed to load options'),
+                              items: _genderOptions.map((g) {
+                                return DropdownMenuItem<String>(
+                                  value: g,
+                                  child: Text(g),
+                                );
+                              }).toList(),
                               onChanged: (val) {
                                 if (val != null) {
                                   setDlgState(() => selectedGender = val);
