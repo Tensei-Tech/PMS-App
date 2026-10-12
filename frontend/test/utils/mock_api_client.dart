@@ -237,7 +237,7 @@ http.Client createMockApiClient() {
         'Crime Against Women',
         'Death Due to Rash Driving',
         'Gambling',
-        'Gowansh',
+        'Gowans',
         'Hurt',
         'IT Act',
         'Kidnapping',
@@ -274,18 +274,17 @@ http.Client createMockApiClient() {
 
     // 8. Category Children Drilldown: GET /api/categories/{id}/children/
     final childrenMatch =
-        RegExp(r'/categories/(.+)/children/?').firstMatch(path);
+        RegExp(r'/categories/([^/]+)/children/?').firstMatch(path);
     if (childrenMatch != null) {
       final categoryRaw = Uri.decodeComponent(childrenMatch.group(1)!);
-      if (categoryRaw.equalsIgnoreCase('Accident') || categoryRaw == '300') {
+      if (categoryRaw.equalsIgnoreCase('Accident')) {
         final children = [
           {'id': 301, 'category_id': 301, 'category_name': 'Normal Accident'},
           {'id': 302, 'category_id': 302, 'category_name': 'Road Accident'},
         ];
         return http.Response(jsonEncode(children), 200, headers: _headers);
       }
-      if (categoryRaw.equalsIgnoreCase('Road Accident') ||
-          categoryRaw == '302') {
+      if (categoryRaw.equalsIgnoreCase('Road Accident')) {
         final children = [
           {
             'id': 303,
@@ -300,26 +299,13 @@ http.Client createMockApiClient() {
         ];
         return http.Response(jsonEncode(children), 200, headers: _headers);
       }
-      if (categoryRaw.equalsIgnoreCase('Two/Four Wheeler Theft') ||
-          categoryRaw == '305' ||
-          categoryRaw.equalsIgnoreCase('Two%2FFour Wheeler Theft')) {
-        final children = [
-          {'id': 306, 'category_id': 306, 'category_name': 'Two Wheeler Theft'},
-          {
-            'id': 307,
-            'category_id': 307,
-            'category_name': 'Four Wheeler Theft'
-          },
-        ];
-        return http.Response(jsonEncode(children), 200, headers: _headers);
-      }
       // Leaf categories have no children
       return http.Response(jsonEncode([]), 200, headers: _headers);
     }
 
     // 9. Dynamic Form Definition: GET /api/categories/{id}/form-definition/
     final formDefMatch =
-        RegExp(r'/categories/(.+)/form-definition/?').firstMatch(path);
+        RegExp(r'/categories/([^/]+)/form-definition/?').firstMatch(path);
     if (formDefMatch != null) {
       final catParam = Uri.decodeComponent(formDefMatch.group(1)!);
       final sectionsParam = uri.queryParameters['sections'] ??
@@ -328,62 +314,6 @@ http.Client createMockApiClient() {
 
       final formDef = _buildFormDefinition(catParam, sectionsParam);
       return http.Response(jsonEncode(formDef), 200, headers: _headers);
-    }
-
-    // 10. Dynamic Option Values: GET /api/options/{group}/
-    final optionsMatch = RegExp(r'/options/([^/]+)/?').firstMatch(path);
-    if (optionsMatch != null) {
-      final group = Uri.decodeComponent(optionsMatch.group(1)!);
-      if (group == 'marital_status') {
-        return http.Response(
-            jsonEncode([
-              {
-                'id': 1,
-                'option_group': 'marital_status',
-                'option_value': 'Single',
-                'display_order': 1,
-                'is_active': true
-              },
-              {
-                'id': 2,
-                'option_group': 'marital_status',
-                'option_value': 'Married',
-                'display_order': 2,
-                'is_active': true
-              },
-              {
-                'id': 3,
-                'option_group': 'marital_status',
-                'option_value': 'Divorced',
-                'display_order': 3,
-                'is_active': true
-              },
-            ]),
-            200,
-            headers: _headers);
-      }
-      if (group == 'officers') {
-        final stationId = uri.queryParameters['station_id'] ??
-            uri.queryParameters['station'] ??
-            '1';
-        return http.Response(
-            jsonEncode([
-              {
-                'id': 1,
-                'name': 'Officer A (Station $stationId)',
-                'value': 'Officer A'
-              },
-              {
-                'id': 2,
-                'name': 'Officer B (Station $stationId)',
-                'value': 'Officer B'
-              },
-            ]),
-            200,
-            headers: _headers);
-      }
-      // Unknown group returns empty list
-      return http.Response(jsonEncode([]), 200, headers: _headers);
     }
 
     // Default 200 response for any other backend endpoint (e.g. health check or case list)
@@ -399,25 +329,6 @@ extension _StringCaseInsensitive on String {
 
 /// Builds the dynamic form definition payload matching Django's get_form_definition
 Map<String, dynamic> _buildFormDefinition(String category, String sections) {
-  final catClean = category.trim().toLowerCase();
-  final isUnlinked = catClean == 'rti' ||
-      catClean == 'unlinked' ||
-      catClean == 'stand_rti' ||
-      catClean == 'test unlinked tab';
-  if (isUnlinked) {
-    return {
-      'category_id': 999,
-      'category_name': category,
-      'fields': <Map<String, dynamic>>[],
-      'fields_count': 0,
-      'has_linked_bundle': false,
-      'has_common_form_baseline': false,
-      'template_names': <String>[],
-      'preventive_items': <String>[],
-      'acts': <String, dynamic>{},
-    };
-  }
-
   // 1. Exactly 105 baseline fields (all field_source == 'common')
   final baselineFields = <Map<String, dynamic>>[
     // Registration Info
@@ -1302,62 +1213,59 @@ Map<String, dynamic> _buildFormDefinition(String category, String sections) {
   assert(baselineFields.length == 105, 'Baseline fields must be exactly 105');
   final fields = List<Map<String, dynamic>>.from(baselineFields);
 
-  // If Gowansh category: add 6 Gowansh extra fields (field_source: 'custom')
-  if (category.equalsIgnoreCase('Gowansh') ||
-      category.equalsIgnoreCase('Gowans') ||
-      category == '606' ||
-      category == 'STAND_GOWANS') {
-    final gowanshExtras = [
+  // If Murder category: add 6 Murder extra fields (field_source: 'custom')
+  if (category.equalsIgnoreCase('Murder') || category == '1') {
+    final murderExtras = [
       {
-        'field_label': 'Type of Animal',
-        'field_key': 'gowansh_animal_type',
+        'field_label': 'Deceased Name',
+        'field_key': 'deceased_name',
         'field_source': 'custom',
         'field_type': 'text',
-        'section': 'Animal Details',
-        'display_order': 10
+        'section': 'Special Section / Template Details',
+        'display_order': 1000
       },
       {
-        'field_label': 'Number of Animals',
-        'field_key': 'gowansh_animal_count',
+        'field_label': 'Deceased Age',
+        'field_key': 'deceased_age',
         'field_source': 'custom',
         'field_type': 'number',
-        'section': 'Animal Details',
-        'display_order': 20
+        'section': 'Special Section / Template Details',
+        'display_order': 1010
       },
       {
-        'field_label': 'Estimated Value',
-        'field_key': 'gowansh_est_value',
+        'field_label': 'Deceased Gender',
+        'field_key': 'deceased_gender',
         'field_source': 'custom',
-        'field_type': 'number',
-        'section': 'Animal Details',
-        'display_order': 30
+        'field_type': 'dropdown',
+        'section': 'Special Section / Template Details',
+        'display_order': 1020
       },
       {
-        'field_label': 'Vehicle Number',
-        'field_key': 'gowansh_vehicle_no',
-        'field_source': 'custom',
-        'field_type': 'text',
-        'section': 'Transport Details',
-        'display_order': 40
-      },
-      {
-        'field_label': 'Seizure Location',
-        'field_key': 'gowansh_seizure_loc',
+        'field_label': 'Inquest Panchanama Details',
+        'field_key': 'inquest_panchanama',
         'field_source': 'custom',
         'field_type': 'textarea',
-        'section': 'Transport Details',
-        'display_order': 50
+        'section': 'Special Section / Template Details',
+        'display_order': 1030
       },
       {
-        'field_label': 'Goshala / Custody Place',
-        'field_key': 'gowansh_custody_place',
+        'field_label': 'Post-Mortem Report Date',
+        'field_key': 'pm_report_date',
         'field_source': 'custom',
-        'field_type': 'text',
-        'section': 'Custody',
-        'display_order': 60
+        'field_type': 'date',
+        'section': 'Special Section / Template Details',
+        'display_order': 1040
+      },
+      {
+        'field_label': 'Cause of Death',
+        'field_key': 'cause_of_death',
+        'field_source': 'custom',
+        'field_type': 'textarea',
+        'section': 'Special Section / Template Details',
+        'display_order': 1050
       },
     ];
-    fields.addAll(gowanshExtras);
+    fields.addAll(murderExtras);
   }
 
   // If Hurt charge included (BNS 115): add 4 Hurt extra fields (field_source: 'custom')
@@ -1402,8 +1310,6 @@ Map<String, dynamic> _buildFormDefinition(String category, String sections) {
   return {
     'category_id': 1,
     'category_name': category,
-    'has_linked_bundle': true,
-    'has_common_form_baseline': true,
     'fields': fields,
     'preventive_items': ['Preventive 1', 'Preventive 2'],
     'acts': {},

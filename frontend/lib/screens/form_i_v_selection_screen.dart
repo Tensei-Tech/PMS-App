@@ -49,7 +49,6 @@ class FormIVSelectionScreen extends StatefulWidget {
   final String? initialCategory;
   final String? customTitle;
   final String? moduleKey;
-  final dynamic categoryId;
 
   const FormIVSelectionScreen({
     super.key,
@@ -57,7 +56,6 @@ class FormIVSelectionScreen extends StatefulWidget {
     this.initialCategory,
     this.customTitle,
     this.moduleKey,
-    this.categoryId,
   });
 
   static bool recordMatchesCategory(
@@ -179,10 +177,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
   Future<void> _loadCategoryChildren(String category) async {
     setState(() => _isLoadingCategory = true);
     try {
-      final children = await CategoryNavigationHelper.getChildren(
-        category,
-        categoryId: widget.categoryId,
-      );
+      final children = await CategoryNavigationHelper.getChildren(category);
       if (!mounted) return;
       setState(() {
         _categoryChildrenCache[category] = children;

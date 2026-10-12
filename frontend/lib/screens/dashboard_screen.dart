@@ -90,7 +90,6 @@ import '../widgets/send_broadcast_alert_dialog.dart';
 import '../utils/category_navigation_helper.dart';
 import '../widgets/send_reminder_dialog.dart';
 import '../widgets/state_police_banner_dialog.dart';
-import '../widgets/dashboard_stats_widget.dart';
 import '../widgets/voice_search_dialog.dart';
 import 'about_app_screen.dart';
 import 'absconded_hub_screen.dart';
@@ -114,7 +113,6 @@ import 'module_hub_screen.dart';
 import 'module_record_detail_screen.dart';
 import 'my_cases_screen.dart';
 import 'pending_transfers_screen.dart';
-import '../widgets/dynamic_form/dynamic_form_screen.dart';
 // Navigation targets for Hamburger Menu
 import 'profile_screen.dart';
 import 'report_case_list_screen.dart';
@@ -1955,49 +1953,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 itemBuilder: (ctx, i) {
                   final l = langs[i];
                   final isSelected = activeLang == l.$4;
-                  return Material(
-                    color: Colors.transparent,
-                    child: ListTile(
-                      leading: Text(l.$1, style: const TextStyle(fontSize: 20)),
-                      title: Text(
-                        l.$2,
-                        style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight:
-                              isSelected ? FontWeight.w700 : FontWeight.w500,
-                          color: isSelected
-                              ? AppColors.infoBlue
-                              : AppColors.navyDark,
-                        ),
+                  return ListTile(
+                    leading: Text(l.$1, style: const TextStyle(fontSize: 20)),
+                    title: Text(
+                      l.$2,
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight:
+                            isSelected ? FontWeight.w700 : FontWeight.w500,
+                        color: isSelected
+                            ? AppColors.infoBlue
+                            : AppColors.navyDark,
                       ),
-                      subtitle: Text(
-                        l.$3,
-                        style: GoogleFonts.poppins(
-                          fontSize: 11,
-                          color: AppColors.lightSubText,
-                        ),
-                      ),
-                      trailing: isSelected
-                          ? const Icon(Icons.check_circle_rounded,
-                              color: AppColors.infoBlue, size: 22)
-                          : const Icon(Icons.chevron_right_rounded,
-                              color: AppColors.goldPrimary, size: 22),
-                      onTap: () {
-                        context.read<SettingsProvider>().setLanguage(l.$4);
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text(
-                            'Language set to ${l.$2}',
-                            style: GoogleFonts.poppins(color: Colors.white),
-                          ),
-                          backgroundColor: AppColors.infoBlue,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppRadius.md),
-                          ),
-                        ));
-                      },
                     ),
+                    subtitle: Text(
+                      l.$3,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        color: AppColors.lightSubText,
+                      ),
+                    ),
+                    trailing: isSelected
+                        ? const Icon(Icons.check_circle_rounded,
+                            color: AppColors.infoBlue, size: 22)
+                        : const Icon(Icons.chevron_right_rounded,
+                            color: AppColors.goldPrimary, size: 22),
+                    onTap: () {
+                      context.read<SettingsProvider>().setLanguage(l.$4);
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text(
+                          'Language set to ${l.$2}',
+                          style: GoogleFonts.poppins(color: Colors.white),
+                        ),
+                        backgroundColor: AppColors.infoBlue,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                        ),
+                      ));
+                    },
                   );
                 },
               ),
@@ -2107,68 +2102,65 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   // ── Switch Policestation (senior officers only) ──
                   if (SeniorOfficerRoles.canSwitchLocation(
                       auth.designation)) ...[
-                    Material(
-                      color: Colors.transparent,
-                      child: ListTile(
-                        dense: true,
-                        visualDensity: const VisualDensity(vertical: -1),
-                        leading: Icon(
-                          Icons.swap_horiz_rounded,
-                          size: 20,
+                    ListTile(
+                      dense: true,
+                      visualDensity: const VisualDensity(vertical: -1),
+                      leading: Icon(
+                        Icons.swap_horiz_rounded,
+                        size: 20,
+                        color: auth.isViewingOtherStation
+                            ? AppColors.goldPrimary
+                            : AppColors.lightText,
+                      ),
+                      title: Text(
+                        MenuLocalizations.get(lang, 'switchStation'),
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
                           color: auth.isViewingOtherStation
                               ? AppColors.goldPrimary
                               : AppColors.lightText,
                         ),
-                        title: Text(
-                          MenuLocalizations.get(lang, 'switchStation'),
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: auth.isViewingOtherStation
-                                ? AppColors.goldPrimary
-                                : AppColors.lightText,
-                          ),
+                      ),
+                      subtitle: Text(
+                        auth.isViewingOtherStation
+                            ? 'Viewing: ${auth.stationName}'
+                            : auth.stationName,
+                        style: GoogleFonts.poppins(
+                          fontSize: 10,
+                          color: auth.isViewingOtherStation
+                              ? AppColors.goldPrimary.withValues(alpha: 0.8)
+                              : AppColors.lightSubText,
                         ),
-                        subtitle: Text(
-                          auth.isViewingOtherStation
-                              ? 'Viewing: ${auth.stationName}'
-                              : auth.stationName,
-                          style: GoogleFonts.poppins(
-                            fontSize: 10,
-                            color: auth.isViewingOtherStation
-                                ? AppColors.goldPrimary.withValues(alpha: 0.8)
-                                : AppColors.lightSubText,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        trailing: auth.isViewingOtherStation
-                            ? GestureDetector(
-                                onTap: () {
-                                  auth.resetToHomeStation();
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.dangerRed
-                                        .withValues(alpha: 0.1),
-                                    borderRadius:
-                                        BorderRadius.circular(AppRadius.sm),
-                                  ),
-                                  child: Text(
-                                    MenuLocalizations.get(lang, 'reset'),
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.dangerRed,
-                                    ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      trailing: auth.isViewingOtherStation
+                          ? GestureDetector(
+                              onTap: () {
+                                auth.resetToHomeStation();
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: AppColors.dangerRed
+                                      .withValues(alpha: 0.1),
+                                  borderRadius:
+                                      BorderRadius.circular(AppRadius.sm),
+                                ),
+                                child: Text(
+                                  MenuLocalizations.get(lang, 'reset'),
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.dangerRed,
                                   ),
                                 ),
-                              )
-                            : null,
-                        onTap: () => _showStationSwitcher(context, auth),
-                      ),
+                              ),
+                            )
+                          : null,
+                      onTap: () => _showStationSwitcher(context, auth),
                     ),
                     const Divider(height: 1),
                   ],
@@ -2308,18 +2300,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _drawerItem(IconData icon, String label, VoidCallback onTap,
       {Color? color}) {
     final c = color ?? AppColors.lightText;
-    return Material(
-      color: Colors.transparent,
-      child: ListTile(
-        dense: true,
-        visualDensity: const VisualDensity(
-            vertical: -1), // RESPONSIVE FIX: tighter spacing for small screens
-        leading: Icon(icon, size: 20, color: c),
-        title: Text(label,
-            style: GoogleFonts.poppins(
-                fontSize: 13, fontWeight: FontWeight.w500, color: c)),
-        onTap: onTap, // Removed Navigator.pop to keep drawer open (Persistence)
-      ),
+    return ListTile(
+      dense: true,
+      visualDensity: const VisualDensity(
+          vertical: -1), // RESPONSIVE FIX: tighter spacing for small screens
+      leading: Icon(icon, size: 20, color: c),
+      title: Text(label,
+          style: GoogleFonts.poppins(
+              fontSize: 13, fontWeight: FontWeight.w500, color: c)),
+      onTap: onTap, // Removed Navigator.pop to keep drawer open (Persistence)
     );
   }
 
@@ -2835,8 +2824,6 @@ class _HomeTabState extends State<_HomeTab> {
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               _buildSearchBar(),
-              const SizedBox(height: AppSpacing.md),
-              DashboardStatsWidget(auth: widget.auth),
               const SizedBox(height: AppSpacing.md),
               _buildNewsCarousel(newsProvider, isWide),
               if (_hasActiveSearch) ...[
@@ -4312,70 +4299,27 @@ class _HomeTabState extends State<_HomeTab> {
                 onLabelTap: (label) {
                   Navigator.pop(context);
                   if (isAdding) {
-                    if (label == 'A.D.') {
-                      Navigator.push(
-                        context,
-                        AppTheme.fadeSlideRoute(page: const ADFormScreen()),
-                      );
-                    } else if (label == 'N.C.') {
-                      Navigator.push(
-                        context,
-                        AppTheme.fadeSlideRoute(
-                            page: NcFormScreen(moduleLabel: label)),
-                      );
-                    } else if (label == 'Missing') {
-                      Navigator.push(
-                        context,
-                        AppTheme.fadeSlideRoute(
-                            page: MissingFormScreen(moduleLabel: label)),
-                      );
-                    } else if (label == 'Preventive') {
-                      Navigator.push(
-                        context,
-                        AppTheme.fadeSlideRoute(
-                            page: PreventiveFormScreen(moduleLabel: label)),
-                      );
-                    } else if (label == 'Suicide') {
-                      Navigator.push(
-                        context,
-                        AppTheme.fadeSlideRoute(
-                          page: CommonFormScreen(
-                            moduleLabel: label,
-                            moduleKey: 'suicide',
-                            subCategory: label,
-                          ),
+                    Navigator.push(
+                      context,
+                      AppTheme.fadeSlideRoute(
+                        page: CommonFormScreen(
+                          moduleLabel: label,
+                          moduleKey: 'form_1_5',
+                          subCategory: label,
                         ),
-                      );
-                    } else if (isTabLinkedToCommonFormBaseline(
-                        moduleKey: 'form_1_5', categoryName: label)) {
-                      Navigator.push(
-                        context,
-                        AppTheme.fadeSlideRoute(
-                          page: CommonFormScreen(
-                            moduleLabel: label,
-                            moduleKey: 'form_1_5',
-                            subCategory: label,
-                          ),
-                        ),
-                      );
-                    } else {
-                      Navigator.push(
-                        context,
-                        AppTheme.fadeSlideRoute(
-                          page: DynamicFormScreen(
-                            moduleLabel: label,
-                            moduleKey: 'form_1_5',
-                            subCategory: label,
-                          ),
-                        ),
-                      );
-                    }
+                      ),
+                    );
                   } else {
-                    CategoryNavigationHelper.handleDashboardCategoryTap(
-                      context: context,
-                      categoryName: label,
-                      moduleKey: 'form_1_5',
-                      readOnly: false,
+                    Navigator.push(
+                      context,
+                      AppTheme.fadeSlideRoute(
+                        page: ModuleHubScreen(
+                          moduleLabel: label,
+                          moduleKey: 'form_1_5',
+                          subCategory: label,
+                          readOnly: false,
+                        ),
+                      ),
                     );
                   }
                 },
@@ -5203,37 +5147,20 @@ class _ViewTabState extends State<_ViewTab> {
                                                         color:
                                                             AppColors.infoBlue,
                                                         onTap: () {
-                                                          final isLinked =
-                                                              isTabLinkedToCommonFormBaseline(
-                                                            moduleKey:
-                                                                c.moduleKey,
-                                                            categoryName: c
-                                                                .firestoreCategoryDisplayName,
-                                                          );
-                                                          final page = (isLinked ||
-                                                                  c.moduleKey ==
-                                                                      'suicide')
-                                                              ? CommonFormScreen(
-                                                                  moduleKey: c
-                                                                      .moduleKey,
-                                                                  moduleLabel: c
-                                                                      .firestoreCategoryDisplayName,
-                                                                  existingRecord:
-                                                                      c,
-                                                                )
-                                                              : DynamicFormScreen(
-                                                                  moduleKey: c
-                                                                      .moduleKey,
-                                                                  moduleLabel: c
-                                                                      .firestoreCategoryDisplayName,
-                                                                  existingRecord:
-                                                                      c,
-                                                                );
                                                           Navigator.push(
                                                             context,
                                                             AppTheme
                                                                 .fadeSlideRoute(
-                                                                    page: page),
+                                                              page:
+                                                                  CommonFormScreen(
+                                                                moduleKey:
+                                                                    c.moduleKey,
+                                                                moduleLabel: c
+                                                                    .firestoreCategoryDisplayName,
+                                                                existingRecord:
+                                                                    c,
+                                                              ),
+                                                            ),
                                                           );
                                                         },
                                                       ),
@@ -8211,12 +8138,15 @@ class _CalendarTabState extends State<_CalendarTab> {
   Widget _buildReportTile(_CalCategoryMeta meta) {
     return GestureDetector(
       onTap: () {
-        CategoryNavigationHelper.handleDashboardCategoryTap(
-          context: context,
-          categoryName: meta.label,
-          moduleKey: meta.moduleKey,
-          readOnly: true,
-        );
+        Navigator.push(
+            context,
+            AppTheme.fadeSlideRoute(
+                page: ModuleHubScreen(
+              moduleLabel: meta.label,
+              moduleKey: meta.moduleKey,
+              subCategory: meta.subCategory,
+              readOnly: true,
+            )));
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
@@ -8849,26 +8779,23 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
                   ),
                   if (canAdd) ...[
                     const SizedBox(height: 16),
-                    Material(
-                      color: Colors.transparent,
-                      child: ListTile(
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                        leading: const Icon(
-                          Icons.add_location_alt_rounded,
-                          size: 20,
+                    ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(
+                        Icons.add_location_alt_rounded,
+                        size: 20,
+                        color: AppColors.goldPrimary,
+                      ),
+                      title: Text(
+                        'Add Location',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
                           color: AppColors.goldPrimary,
                         ),
-                        title: Text(
-                          'Add Location',
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.goldPrimary,
-                          ),
-                        ),
-                        onTap: _onAddLocation,
                       ),
+                      onTap: _onAddLocation,
                     ),
                   ],
                 ],
@@ -8903,25 +8830,22 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
                       ),
                   ],
                   if (canAdd)
-                    Material(
-                      color: Colors.transparent,
-                      child: ListTile(
-                        dense: true,
-                        leading: const Icon(
-                          Icons.add_location_alt_rounded,
-                          size: 20,
+                    ListTile(
+                      dense: true,
+                      leading: const Icon(
+                        Icons.add_location_alt_rounded,
+                        size: 20,
+                        color: AppColors.goldPrimary,
+                      ),
+                      title: Text(
+                        'Add Location',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
                           color: AppColors.goldPrimary,
                         ),
-                        title: Text(
-                          'Add Location',
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.goldPrimary,
-                          ),
-                        ),
-                        onTap: _onAddLocation,
                       ),
+                      onTap: _onAddLocation,
                     ),
                 ],
               ),
@@ -8942,64 +8866,61 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
     final isAddedLocation =
         widget.auth.additionalStations.contains(station) && !isHome;
 
-    return Material(
-      color: Colors.transparent,
-      child: ListTile(
-        dense: true,
-        selected: isActive,
-        selectedTileColor: AppColors.navyMid.withValues(alpha: 0.08),
-        leading: Icon(
-          isActive
-              ? Icons.radio_button_checked_rounded
-              : Icons.radio_button_off_rounded,
-          size: 20,
-          color: isActive ? AppColors.navyMid : AppColors.lightSubText,
-        ),
-        title: Text(
-          station,
-          style: GoogleFonts.poppins(
-            fontSize: 13,
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-            color: isActive ? AppColors.navyDark : AppColors.lightText,
-          ),
-        ),
-        trailing: (isHome || isAddedLocation)
-            ? Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (isHome)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.goldPrimary.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(AppRadius.sm),
-                      ),
-                      child: Text(
-                        'Home',
-                        style: GoogleFonts.poppins(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.goldPrimary,
-                        ),
-                      ),
-                    ),
-                  if (isAddedLocation)
-                    IconButton(
-                      visualDensity: VisualDensity.compact,
-                      iconSize: 18,
-                      icon: const Icon(Icons.delete_outline_rounded),
-                      color: Colors.red,
-                      onPressed: () => _confirmDeleteLocation(station),
-                    ),
-                ],
-              )
-            : null,
-        onTap: () {
-          widget.auth.switchStation(station);
-          Navigator.pop(context);
-        },
+    return ListTile(
+      dense: true,
+      selected: isActive,
+      selectedTileColor: AppColors.navyMid.withValues(alpha: 0.08),
+      leading: Icon(
+        isActive
+            ? Icons.radio_button_checked_rounded
+            : Icons.radio_button_off_rounded,
+        size: 20,
+        color: isActive ? AppColors.navyMid : AppColors.lightSubText,
       ),
+      title: Text(
+        station,
+        style: GoogleFonts.poppins(
+          fontSize: 13,
+          fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+          color: isActive ? AppColors.navyDark : AppColors.lightText,
+        ),
+      ),
+      trailing: (isHome || isAddedLocation)
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isHome)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.goldPrimary.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                    ),
+                    child: Text(
+                      'Home',
+                      style: GoogleFonts.poppins(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.goldPrimary,
+                      ),
+                    ),
+                  ),
+                if (isAddedLocation)
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    iconSize: 18,
+                    icon: const Icon(Icons.delete_outline_rounded),
+                    color: Colors.red,
+                    onPressed: () => _confirmDeleteLocation(station),
+                  ),
+              ],
+            )
+          : null,
+      onTap: () {
+        widget.auth.switchStation(station);
+        Navigator.pop(context);
+      },
     );
   }
 }
@@ -9325,7 +9246,7 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
                   moduleLabel: item.name,
                 ),
               ));
-        } else if (moduleUsesCommonCrimeForm(item.moduleKey, item.name)) {
+        } else if (moduleUsesCommonCrimeForm(item.moduleKey)) {
           Navigator.push(
               context,
               AppTheme.fadeSlideRoute(
@@ -9405,11 +9326,11 @@ class _SearchModuleGroup extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         GestureDetector(
-          onTap: () => CategoryNavigationHelper.handleDashboardCategoryTap(
-            context: context,
-            categoryName: moduleLabel,
-            moduleKey: moduleKey,
-          ),
+          onTap: () => Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(
+                  page: ModuleHubScreen(
+                      moduleLabel: moduleLabel, moduleKey: moduleKey))),
           child: Container(
             margin: const EdgeInsets.only(bottom: 8, top: 4),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -9444,11 +9365,11 @@ class _SearchModuleGroup extends StatelessWidget {
         ...shown.map((r) => _resultCard(context, r)),
         if (overflow > 0)
           GestureDetector(
-            onTap: () => CategoryNavigationHelper.handleDashboardCategoryTap(
-              context: context,
-              categoryName: moduleLabel,
-              moduleKey: moduleKey,
-            ),
+            onTap: () => Navigator.push(
+                context,
+                AppTheme.fadeSlideRoute(
+                    page: ModuleHubScreen(
+                        moduleLabel: moduleLabel, moduleKey: moduleKey))),
             child: Padding(
               padding: const EdgeInsets.only(bottom: 12, left: 4),
               child: Text('+ $overflow more in $moduleLabel →',

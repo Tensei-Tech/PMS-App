@@ -120,22 +120,11 @@ class UpstashRedisManager:
         try:
             if hasattr(cache, 'delete_pattern'):
                 deleted_count = cache.delete_pattern(pattern)
-            elif hasattr(cache, 'keys'):
-                keys = cache.keys(pattern)
+            else:
+                keys = cache.keys(pattern) if hasattr(cache, 'keys') else []
                 for k in keys:
                     cache.delete(k)
                     deleted_count += 1
-            elif hasattr(cache, '_cache'):
-                import fnmatch
-                for k in list(getattr(cache, '_cache', {}).keys()):
-                    if fnmatch.fnmatch(k, f"*{pattern}") or fnmatch.fnmatch(k, f"*{pattern}*"):
-                        if hasattr(cache, '_delete'):
-                            cache._delete(k)
-                        else:
-                            cache._cache.pop(k, None)
-                            if hasattr(cache, '_expire_info'):
-                                cache._expire_info.pop(k, None)
-                        deleted_count += 1
         except Exception as e: 
             logger.warning(f"[Cache DELETE_PATTERN Error] Pattern delete failed for '{pattern}': {e}")
 
