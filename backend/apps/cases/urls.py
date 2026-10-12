@@ -28,6 +28,12 @@ from apps.cases.views import (
     RepeatOffenderCaseWiseView,
     TimeWiseRepeatOffenderView,
     IOWiseRepeatOffenderView,
+    JuvenileCaseWiseView,
+    TimeWiseJuvenileView,
+    IOWiseJuvenileView,
+    NAFISCaseWiseView,
+    TimeWiseNAFISView,
+    IOWiseNAFISView,
 )
 
 router = DefaultRouter()
@@ -63,6 +69,14 @@ urlpatterns = [
     path('repeat-offender/case-wise/', RepeatOffenderCaseWiseView.as_view(), name='repeat-offender-case-wise'),
     path('repeat-offender/time-wise/', TimeWiseRepeatOffenderView.as_view(), name='repeat-offender-time-wise'),
     path('repeat-offender/io-wise/', IOWiseRepeatOffenderView.as_view(), name='repeat-offender-io-wise'),
+
+    path('juvenile/case-wise/', JuvenileCaseWiseView.as_view(), name='juvenile-case-wise'),
+    path('juvenile/time-wise/', TimeWiseJuvenileView.as_view(), name='juvenile-time-wise'),
+    path('juvenile/io-wise/', IOWiseJuvenileView.as_view(), name='juvenile-io-wise'),
+
+    path('nafis/case-wise/', NAFISCaseWiseView.as_view(), name='nafis-case-wise'),
+    path('nafis/time-wise/', TimeWiseNAFISView.as_view(), name='nafis-time-wise'),
+    path('nafis/io-wise/', IOWiseNAFISView.as_view(), name='nafis-io-wise'),
 
     # Existing CaseRecordViewSet router (ModelViewSet)
     path('', include(router.urls)),

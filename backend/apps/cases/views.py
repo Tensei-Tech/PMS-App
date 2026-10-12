@@ -146,6 +146,10 @@ class CaseRecordViewSet(viewsets.ModelViewSet):
                 from apps.cases.utils import get_absconded_cases
                 absconded_qs = get_absconded_cases()
                 queryset = queryset.filter(id__in=absconded_qs.values_list('id', flat=True))
+            elif mod_lower == 'juvenile':
+                from apps.cases.utils import get_cases_by_status
+                juvenile_qs = get_cases_by_status('juvenile')
+                queryset = queryset.filter(id__in=juvenile_qs.values_list('id', flat=True))
             elif mod_lower in ['form_1_5', 'form_iv', 'form_i_v', '1_to_5']:
                 # Group 1 (Form I to V / Parts 1–5): Form 1-5 + all Group 1 categories
                 group_1_cats = list(CaseCategory.objects.filter(
@@ -1408,6 +1412,121 @@ class IOWiseRepeatOffenderView(IOWisePendingView):
             logger.exception(f'[IOWiseRepeatOffenderView] Database error: {e}')
             return Response({'error': 'Failed to retrieve IO-wise repeat offender counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class JuvenileCaseWiseView(PendingCasesView):
+    def get(self, request):
+        try:
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('juvenile')
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            io_name = request.query_params.get('io')
+            if io_name:
+                queryset = queryset.filter(assigned_officer=io_name)
+
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            if start_date:
+                queryset = queryset.filter(created_at__date__gte=start_date)
+            if end_date:
+                queryset = queryset.filter(created_at__date__lte=end_date)
+
+            from apps.cases.serializers import CaseRecordSerializer
+            
+            paginator = PageNumberPagination()
+            page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
+            if page is not None:
+                serializer = CaseRecordSerializer(page, many=True)
+                data = serializer.data
+                return paginator.get_paginated_response(data)
+                
+            serializer = CaseRecordSerializer(queryset.order_by('-created_at'), many=True)
+            data = serializer.data
+            return Response(data)
+        except Exception as e:
+            logger.exception(f'[JuvenileCaseWiseView] Database error: {e}')
+            return Response({'error': 'Failed to retrieve juvenile cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class IOWiseJuvenileView(IOWisePendingView):
+    def get(self, request):
+        try:
+            from django.db.models import Count
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('juvenile')
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            if start_date:
+                queryset = queryset.filter(created_at__date__gte=start_date)
+            if end_date:
+                queryset = queryset.filter(created_at__date__lte=end_date)
+
+            counts = queryset.values('assigned_officer', 'station_name').annotate(count=Count('id')).order_by('-count')
+            
+            results = []
+            for c in counts:
+                name = c['assigned_officer']
+                results.append({
+                    'io_uid': name,
+                    'io_name': name if name else 'Unassigned',
+                    'io_rank': '',
+                    'station_name': c['station_name'],
+                    'pending_count': c['count']
+                })
+
+            return Response(results)
+        except Exception as e:
+            logger.exception(f'[IOWiseJuvenileView] Database error: {e}')
+            return Response({'error': 'Failed to retrieve IO-wise juvenile counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class TimeWiseJuvenileView(TimeWisePendingView):
+    def get(self, request):
+        try:
+            from django.db.models import Q
+            from django.utils import timezone
+            from datetime import timedelta
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('juvenile')
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            now = timezone.now()
+            month_1 = now - timedelta(days=30)
+            months_3 = now - timedelta(days=90)
+            months_6 = now - timedelta(days=180)
+            year_1 = now - timedelta(days=365)
+
+            under_1_month = queryset.filter(created_at__gte=month_1).count()
+            months_1_to_3 = queryset.filter(created_at__gte=months_3, created_at__lt=month_1).count()
+            months_3_to_6 = queryset.filter(created_at__gte=months_6, created_at__lt=months_3).count()
+            months_6_to_12 = queryset.filter(created_at__gte=year_1, created_at__lt=months_6).count()
+            more_than_1_year = queryset.filter(created_at__lt=year_1).count()
+            
+            results = [
+                {'period': 'Under 1 month', 'count': under_1_month},
+                {'period': '1 to 3 months', 'count': months_1_to_3},
+                {'period': '3 to 6 months', 'count': months_3_to_6},
+                {'period': '6 to 12 months', 'count': months_6_to_12},
+                {'period': 'More than 1 year', 'count': more_than_1_year},
+                {'period': 'Under 3 months (Total)', 'count': under_1_month + months_1_to_3}
+            ]
+
+            return Response(results)
+        except Exception as e:
+            logger.exception(f'[TimeWiseJuvenileView] Database error: {e}')
+            return Response({'error': 'Failed to retrieve Time-wise juvenile counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 class TimeWiseRepeatOffenderView(TimeWisePendingView):
     def get(self, request):
         try:
@@ -1447,3 +1566,160 @@ class TimeWiseRepeatOffenderView(TimeWisePendingView):
         except Exception as e:
             logger.exception(f'[TimeWiseRepeatOffenderView] Database error: {e}')
             return Response({'error': 'Failed to retrieve Time-wise repeat offender counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class NAFISCaseWiseView(PendingCasesView):
+    def _enrich_data(self, data_list):
+        for item in data_list:
+            if not isinstance(item.get('extra_fields'), dict):
+                item['extra_fields'] = {}
+            extra = item['extra_fields']
+            inv = extra.get('investigationNotes') or extra.get('commonForm', {}).get('investigationNotes') or {}
+            
+            fp_val = str(extra.get('fingerprintVal') or inv.get('fingerprintVal') or '').strip().lower()
+            fp_date = str(extra.get('fingerprintDate') or inv.get('fingerprintDate') or '').strip()
+            nafis_val = str(extra.get('nafisFingerprint') or extra.get('nafis_fingerprint') or inv.get('nafisFingerprint') or '').strip().lower()
+            nafis_date = str(extra.get('nafisDate') or inv.get('nafisDate') or '').strip()
+            
+            # Check if pending: marked as 'no' or false or without any date
+            is_pending = False
+            reasons = []
+            if fp_val in ['no', 'false']:
+                is_pending = True
+                reasons.append('Fingerprint Not Taken')
+            elif fp_val == 'yes' and not fp_date:
+                is_pending = True
+                reasons.append('Fingerprint Date Missing')
+            elif not fp_val and not fp_date:
+                is_pending = True
+                reasons.append('Fingerprint Pending')
+                
+            if nafis_val in ['no', 'false']:
+                is_pending = True
+                reasons.append('NAFIS Not Taken')
+            elif nafis_val == 'yes' and not nafis_date:
+                is_pending = True
+                reasons.append('NAFIS Date Missing')
+            elif not nafis_val and not nafis_date:
+                is_pending = True
+                reasons.append('NAFIS Pending')
+                
+            item['extra_fields']['nafis_status'] = 'Pending' if is_pending else 'Completed'
+            item['extra_fields']['nafis_status_color'] = 'red' if is_pending else 'green'
+            item['extra_fields']['nafis_reason'] = ', '.join(reasons) if reasons else 'NAFIS Pending'
+            item['extra_fields']['io_name'] = item.get('assigned_officer') or 'Unassigned'
+
+    def get(self, request):
+        try:
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('nafis')
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            io_name = request.query_params.get('io')
+            if io_name:
+                queryset = queryset.filter(assigned_officer=io_name)
+
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            if start_date:
+                queryset = queryset.filter(created_at__date__gte=start_date)
+            if end_date:
+                queryset = queryset.filter(created_at__date__lte=end_date)
+
+            from apps.cases.serializers import CaseRecordSerializer
+            
+            paginator = PageNumberPagination()
+            page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
+            if page is not None:
+                serializer = CaseRecordSerializer(page, many=True)
+                data = serializer.data
+                self._enrich_data(data)
+                return paginator.get_paginated_response(data)
+                
+            serializer = CaseRecordSerializer(queryset.order_by('-created_at'), many=True)
+            data = serializer.data
+            self._enrich_data(data)
+            return Response(data)
+        except Exception as e:
+            logger.exception(f'[NAFISCaseWiseView] Database error: {e}')
+            return Response({'error': 'Failed to retrieve NAFIS cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class IOWiseNAFISView(IOWisePendingView):
+    def get(self, request):
+        try:
+            from django.db.models import Count
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('nafis')
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            if start_date:
+                queryset = queryset.filter(created_at__date__gte=start_date)
+            if end_date:
+                queryset = queryset.filter(created_at__date__lte=end_date)
+
+            counts = queryset.values('assigned_officer', 'station_name').annotate(count=Count('id')).order_by('-count')
+            
+            results = []
+            for c in counts:
+                name = c['assigned_officer']
+                results.append({
+                    'io_uid': name,
+                    'io_name': name if name else 'Unassigned',
+                    'io_rank': '',
+                    'station_name': c['station_name'],
+                    'pending_count': c['count']
+                })
+
+            return Response(results)
+        except Exception as e:
+            logger.exception(f'[IOWiseNAFISView] Database error: {e}')
+            return Response({'error': 'Failed to retrieve IO-wise NAFIS counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class TimeWiseNAFISView(TimeWisePendingView):
+    def get(self, request):
+        try:
+            from django.db.models import Q
+            from django.utils import timezone
+            from datetime import timedelta
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('nafis')
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            now = timezone.now()
+            month_1 = now - timedelta(days=30)
+            months_3 = now - timedelta(days=90)
+            months_6 = now - timedelta(days=180)
+            year_1 = now - timedelta(days=365)
+
+            under_1_month = queryset.filter(created_at__gte=month_1).count()
+            months_1_to_3 = queryset.filter(created_at__gte=months_3, created_at__lt=month_1).count()
+            months_3_to_6 = queryset.filter(created_at__gte=months_6, created_at__lt=months_3).count()
+            months_6_to_12 = queryset.filter(created_at__gte=year_1, created_at__lt=months_6).count()
+            more_than_1_year = queryset.filter(created_at__lt=year_1).count()
+            
+            results = [
+                {'period': 'Under 1 month', 'count': under_1_month},
+                {'period': '1 to 3 months', 'count': months_1_to_3},
+                {'period': '3 to 6 months', 'count': months_3_to_6},
+                {'period': '6 to 12 months', 'count': months_6_to_12},
+                {'period': 'More than 1 year', 'count': more_than_1_year},
+                {'period': 'Under 3 months (Total)', 'count': under_1_month + months_1_to_3}
+            ]
+
+            return Response(results)
+        except Exception as e:
+            logger.exception(f'[TimeWiseNAFISView] Database error: {e}')
+            return Response({'error': 'Failed to retrieve Time-wise NAFIS counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

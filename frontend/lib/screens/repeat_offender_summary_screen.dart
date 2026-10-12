@@ -13,9 +13,10 @@ import '../services/backend_case_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/dynamic_map_pdf.dart';
 import '../utils/pdf_unicode_fonts.dart';
-import '../utils/arrested_table_firestore_mapper.dart'; // We'll reuse or create a specific mapper if needed
+import '../utils/arrested_table_firestore_mapper.dart';
 import '../utils/case_visibility.dart';
 import '../widgets/repeat_offender_cases_data_table.dart';
+import '../services/ui_config_service.dart';
 import 'common_form_screen.dart';
 
 class RepeatOffenderSummaryScreen extends StatelessWidget {
@@ -37,7 +38,7 @@ class RepeatOffenderSummaryScreen extends StatelessWidget {
   static String _bucketForRow(Map<String, String> row) {
     return row['head']?.trim().isNotEmpty == true
         ? row['head']!.trim()
-        : 'Other';
+        : UiConfigService.repeatOffenderSummary['other_bucket_label'];
   }
 
   List<Map<String, String>> _rowsForBucket(
@@ -84,7 +85,7 @@ class RepeatOffenderSummaryScreen extends StatelessWidget {
     required bool firedFromFirestoreExclusive,
     required bool showDemoNote,
   }) {
-    const title = 'Repeat Offender — Summary';
+    final title = UiConfigService.repeatOffenderSummary['title'];
     final anyRows = dataset.isNotEmpty;
 
     Widget sectionBlock(String bucketLabel) {
@@ -109,7 +110,7 @@ class RepeatOffenderSummaryScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
-                  'No cases',
+                  UiConfigService.repeatOffenderSummary['no_cases_label'],
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
@@ -163,46 +164,7 @@ class RepeatOffenderSummaryScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // New Add Repeat Offender Button
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        AppTheme.fadeSlideRoute(
-                          page: const CommonFormScreen(
-                            moduleLabel: 'Repeat Offender',
-                            moduleKey: 'form_1_5',
-                            subCategory: 'Repeat Offender',
-                          ),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.shade700, // distinctive color
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.add_circle_outline_rounded,
-                              color: Colors.white, size: 18),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Add Repeat Offender',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                              height: 1.15,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+
                   GestureDetector(
                     onTap: !anyRows ? null : () => _exportPdf(context, dataset),
                     child: Container(
@@ -239,7 +201,7 @@ class RepeatOffenderSummaryScreen extends StatelessWidget {
                 child: dataset.isEmpty
                     ? Center(
                         child: Text(
-                          'No cases',
+                          UiConfigService.repeatOffenderSummary['no_cases_label'],
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -345,7 +307,7 @@ class _LiveRepeatOffenderSummaryLoaderState extends State<_LiveRepeatOffenderSum
         });
       } else {
         setState(() {
-          _error = "Failed to load cases from backend";
+          _error = UiConfigService.repeatOffenderSummary['error_message'];
           _initialLoad = false;
         });
       }
@@ -377,7 +339,7 @@ class _LiveRepeatOffenderSummaryLoaderState extends State<_LiveRepeatOffenderSum
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Text(
-                'Could not load repeat offender cases',
+                _error.toString(),
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
                   fontSize: 13,
@@ -413,7 +375,7 @@ class _LiveRepeatOffenderSummaryLoaderState extends State<_LiveRepeatOffenderSum
     final seenAccused = <String>{};
     for (var row in rawDataset) {
       final name = row['accused_name'] ?? '';
-      if (name.isNotEmpty && name != 'Unknown Offender') {
+      if (name.isNotEmpty && name != UiConfigService.repeatOffenderSummary['unknown_offender_label']) {
         if (seenAccused.contains(name)) continue;
         seenAccused.add(name);
       }

@@ -925,5 +925,213 @@ class BackendCaseService {
     }
     return null;
   }
+
+  /// Fetch Juvenile cases (Case Wise)
+  Future<List<Map<String, dynamic>>?> fetchJuvenileCases({
+    String? ioUid,
+    String? category,
+    String? startDate,
+    String? endDate,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (ioUid != null && ioUid.isNotEmpty) {
+        queryParams['io'] = ioUid;
+      }
+      if (category != null && category.isNotEmpty) {
+        queryParams['head'] = category;
+      }
+      if (startDate != null && startDate.isNotEmpty) {
+        queryParams['start_date'] = startDate;
+      }
+      if (endDate != null && endDate.isNotEmpty) {
+        queryParams['end_date'] = endDate;
+      }
+
+      final url = '${ApiConfig.cases}juvenile/case-wise/';
+      final response = await _api.get(url, queryParameters: queryParams);
+
+      if (response.isSuccess) {
+        if (response.data is List) {
+          return List<Map<String, dynamic>>.from(response.data);
+        } else if (response.data is Map &&
+            response.data.containsKey('results')) {
+          return List<Map<String, dynamic>>.from(response.data['results']);
+        }
+      } else {
+        if (kDebugMode) {
+          debugPrint(
+            '[BackendCaseService] fetchJuvenileCases error: ${response.errorMessage}',
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] fetchJuvenileCases exception: $e');
+      }
+    }
+    return null;
+  }
+
+  /// Fetch IO-wise Juvenile counts
+  Future<List<Map<String, dynamic>>?> fetchJuvenileIOWise({
+    String? startDate,
+    String? endDate,
+  }) async {
+    try {
+      final queryParams = <String, String>{};
+      if (startDate != null && startDate.isNotEmpty) {
+        queryParams['start_date'] = startDate;
+      }
+      if (endDate != null && endDate.isNotEmpty) {
+        queryParams['end_date'] = endDate;
+      }
+
+      final url = '${ApiConfig.cases}juvenile/io-wise/';
+      final response = await _api.get(url, queryParameters: queryParams);
+
+      if (response.isSuccess && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data);
+      } else {
+        if (kDebugMode) {
+          debugPrint(
+            '[BackendCaseService] fetchJuvenileIOWise error: ${response.errorMessage}',
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] fetchJuvenileIOWise exception: $e');
+      }
+    }
+    return null;
+  }
+
+  /// Fetch Time-wise Juvenile counts
+  Future<List<Map<String, dynamic>>?> fetchJuvenileTimeWise() async {
+    try {
+      final url = '${ApiConfig.cases}juvenile/time-wise/';
+      final response = await _api.get(url);
+
+      if (response.isSuccess && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data);
+      } else {
+        if (kDebugMode) {
+          debugPrint(
+            '[BackendCaseService] fetchJuvenileTimeWise error: ${response.errorMessage}',
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] fetchJuvenileTimeWise exception: $e');
+      }
+    }
+    return null;
+  }
+
+  /// Fetch NAFIS cases (Case Wise)
+  Future<List<Map<String, dynamic>>?> fetchNAFISCases({
+    String? ioUid,
+    String? category,
+    String? startDate,
+    String? endDate,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (ioUid != null && ioUid.isNotEmpty) {
+        queryParams['io'] = ioUid;
+      }
+      if (category != null && category.isNotEmpty) {
+        queryParams['head'] = category;
+      }
+      if (startDate != null && startDate.isNotEmpty) {
+        queryParams['start_date'] = startDate;
+      }
+      if (endDate != null && endDate.isNotEmpty) {
+        queryParams['end_date'] = endDate;
+      }
+
+      final url = '${ApiConfig.cases}nafis/case-wise/';
+      final response = await _api.get(url, queryParameters: queryParams);
+
+      if (response.isSuccess) {
+        if (response.data is List) {
+          return List<Map<String, dynamic>>.from(response.data);
+        } else if (response.data is Map &&
+            response.data.containsKey('results')) {
+          return List<Map<String, dynamic>>.from(response.data['results']);
+        }
+      } else {
+        if (kDebugMode) {
+          debugPrint(
+            '[BackendCaseService] fetchNAFISCases error: ${response.errorMessage}',
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] fetchNAFISCases exception: $e');
+      }
+    }
+    return null;
+  }
+
+  /// Fetch IO-wise NAFIS counts
+  Future<List<Map<String, dynamic>>?> fetchNAFISIOWise({
+    String? startDate,
+    String? endDate,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (startDate != null && startDate.isNotEmpty) {
+        queryParams['start_date'] = startDate;
+      }
+      if (endDate != null && endDate.isNotEmpty) {
+        queryParams['end_date'] = endDate;
+      }
+
+      final url = '${ApiConfig.cases}nafis/io-wise/';
+      final response = await _api.get(url, queryParameters: queryParams);
+
+      if (response.isSuccess && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data);
+      } else {
+        if (kDebugMode) {
+          debugPrint(
+            '[BackendCaseService] fetchNAFISIOWise error: ${response.errorMessage}',
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] fetchNAFISIOWise exception: $e');
+      }
+    }
+    return null;
+  }
+
+  /// Fetch Time-wise NAFIS counts
+  Future<List<Map<String, dynamic>>?> fetchNAFISTimeWise() async {
+    try {
+      final url = '${ApiConfig.cases}nafis/time-wise/';
+      final response = await _api.get(url);
+
+      if (response.isSuccess && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data);
+      } else {
+        if (kDebugMode) {
+          debugPrint(
+            '[BackendCaseService] fetchNAFISTimeWise error: ${response.errorMessage}',
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] fetchNAFISTimeWise exception: $e');
+      }
+    }
+    return null;
+  }
 }
 

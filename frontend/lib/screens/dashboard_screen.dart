@@ -83,7 +83,10 @@ import 'undetected_hub_screen.dart';
 import 'detected_hub_screen.dart';
 import 'disposal_hub_screen.dart';
 import 'arrested_hub_screen.dart';
+import 'juvenile_hub_screen.dart';
 import 'repeat_offender_summary_screen.dart';
+import 'nafis_hub_screen.dart';
+import 'nafis_summary_screen.dart';
 import '../widgets/bell_icon_widget.dart';
 import '../widgets/form_iv_category_button.dart';
 import '../widgets/searchable_picker_field.dart';
@@ -3915,6 +3918,14 @@ class _HomeTabState extends State<_HomeTab> {
           page: RepeatOffenderSummaryScreen(stationName: auth.stationName),
         ),
       );
+    } else if (item.name == 'NAFIS' || item.moduleKey == 'nafis') {
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: NAFISHubScreen(stationName: auth.stationName),
+        ),
+      );
     } else if (item.moduleKey == 'service_tool') {
       Navigator.push(
         context,
@@ -3934,6 +3945,13 @@ class _HomeTabState extends State<_HomeTab> {
         context,
         AppTheme.fadeSlideRoute(
           page: AbscondedHubScreen(stationName: widget.auth.stationName),
+        ),
+      );
+    } else if (item.moduleKey == 'juvenile' || item.name == 'Juvenile') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: JuvenileHubScreen(stationName: widget.auth.stationName),
         ),
       );
     } else {

@@ -88,6 +88,7 @@ class ApiConfig {
   static String get stations => '$baseUrl/stations/';
   static String get cases => '$baseUrl/cases/';
   static String get master => '$baseUrl/master/';
+  static String get uiConfig => '$master/ui-config/';
   static String get masterStates => '$baseUrl/master/states/';
   static String get transfers => '$baseUrl/users/transfers/';
   static String get auditLogs => '$baseUrl/core/audit-logs/';

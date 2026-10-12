@@ -47,6 +47,111 @@ def get_cases_by_status(tab: str):
             persons__role__in=['accused', 'suspected_accused'],
             persons__name__in=repeat_names
         ).distinct()
+    elif tab.lower() == 'juvenile':
+        from datetime import datetime
+        
+        def _is_juvenile_dob(dob_str: str) -> bool:
+            if not dob_str: return False
+            try:
+                dob_str = str(dob_str).strip()
+                if '/' in dob_str:
+                    parts = dob_str.split('/')
+                    if len(parts) != 3: return False
+                    if len(parts[0]) == 4:
+                        dt = datetime(int(parts[0]), int(parts[1]), int(parts[2]))
+                    else:
+                        dt = datetime(int(parts[2]), int(parts[1]), int(parts[0]))
+                elif '-' in dob_str:
+                    parts = dob_str.split('-')
+                    if len(parts) != 3: return False
+                    if len(parts[0]) == 4:
+                        dt = datetime(int(parts[0]), int(parts[1]), int(parts[2]))
+                    else:
+                        dt = datetime(int(parts[2]), int(parts[1]), int(parts[0]))
+                else:
+                    return False
+                
+                now = datetime.now()
+                try:
+                    eighteen_years_ago = now.replace(year=now.year - 18, hour=0, minute=0, second=0, microsecond=0)
+                except ValueError:
+                    # Handle Feb 29 leap year edge case
+                    eighteen_years_ago = now.replace(year=now.year - 18, month=2, day=28, hour=0, minute=0, second=0, microsecond=0)
+                
+                # If they were born *after* eighteen_years_ago, they are still under 18
+                return dt > eighteen_years_ago
+            except Exception:
+                return False
+
+        # 1. Base QuerySet based on module_key and integer age field
+        base_qs = queryset.filter(
+            Q(module_key__iexact='juvenile') |
+            Q(
+                persons__role__in=['accused', 'suspected_accused', 'unidentified_accused', 'unknown_accused'],
+                persons__age__lt=18
+            )
+        ).values_list('id', flat=True)
+        
+        juvenile_ids = set(base_qs)
+        
+        def _check_age_val(val):
+            if not val: return False
+            if str(val).isdigit() and int(val) < 18: return True
+            return _is_juvenile_dob(str(val))
+
+        # 2. Check JSON extra_fields for dob < 18 for remaining cases
+        for case in queryset.exclude(id__in=juvenile_ids).only('id', 'extra_fields'):
+            extra = case.extra_fields
+            if not isinstance(extra, dict): continue
+            
+            is_juv = False
+            
+            # top-level fields
+            if any(_check_age_val(extra.get(k)) for k in ['dob', 'juvenileAge', 'accused_age', 'suspected_accused_age']):
+                is_juv = True
+            
+            if not is_juv:
+                lists_to_check = [
+                    extra.get('accusedDetails', []),
+                    extra.get('accused_list', []),
+                    extra.get('suspected_accused_list', []),
+                ]
+                cf = extra.get('commonForm', {})
+                if isinstance(cf, dict):
+                    lists_to_check.append(cf.get('accusedDetails', []))
+                    
+                for lst in lists_to_check:
+                    if not isinstance(lst, list): continue
+                    for item in lst:
+                        if isinstance(item, dict):
+                            if _check_age_val(item.get('age')) or _check_age_val(item.get('dob')):
+                                is_juv = True
+                                break
+                    if is_juv: break
+
+            if is_juv:
+                juvenile_ids.add(case.id)
+                
+        return CaseRecord.objects.filter(id__in=juvenile_ids).distinct()
+    elif tab.lower() in ['nafis', 'nafis_pending']:
+        return queryset.filter(
+            # Forensics relational table checks
+            Q(forensics__nafis_fingerprint__isnull=False) |
+            Q(forensics__fingerprint_taken__isnull=False) |
+            # Direct extra_fields keys
+            Q(extra_fields__has_key='nafis_fingerprint') |
+            Q(extra_fields__has_key='nafisFingerprint') |
+            Q(extra_fields__has_key='fingerprintVal') |
+            Q(extra_fields__has_key='fingerprint_taken') |
+            # Investigation notes nested keys
+            Q(extra_fields__investigationNotes__has_key='nafisFingerprint') |
+            Q(extra_fields__investigationNotes__has_key='fingerprintVal') |
+            Q(extra_fields__investigation_notes__has_key='nafis_fingerprint') |
+            Q(extra_fields__investigation_notes__has_key='fingerprint_taken') |
+            # Common form nested keys
+            Q(extra_fields__commonForm__investigationNotes__has_key='nafisFingerprint') |
+            Q(extra_fields__commonForm__investigationNotes__has_key='fingerprintVal')
+        ).distinct()
         
     return queryset
 
