@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'apps.stations',
     'apps.cases',
     'apps.crimetab',
+    'apps.elearning',
 ]
 
 try:

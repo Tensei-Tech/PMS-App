@@ -1603,10 +1603,36 @@ class NAFISCaseWiseView(PendingCasesView):
                 is_pending = True
                 reasons.append('NAFIS Pending')
                 
-            item['extra_fields']['nafis_status'] = 'Pending' if is_pending else 'Completed'
+            item['extra_fields']['nafis_status'] = 'Pending' if is_pending else 'Chargesheeted'
             item['extra_fields']['nafis_status_color'] = 'red' if is_pending else 'green'
             item['extra_fields']['nafis_reason'] = ', '.join(reasons) if reasons else 'NAFIS Pending'
             item['extra_fields']['io_name'] = item.get('assigned_officer') or 'Unassigned'
+            
+            # Enrich Charge Sheet Date and Section/Act
+            court = extra.get('court') or extra.get('commonForm', {}).get('court') or extra.get('courtDisposal') or {}
+            cs_date = (
+                extra.get('chargeSheetDate') or 
+                extra.get('charge_sheet_date') or 
+                extra.get('chargesheet_date') or 
+                extra.get('csDate') or 
+                court.get('chargeSheetDate') or 
+                court.get('charge_sheet_date') or 
+                court.get('chargesheet_date') or 
+                ''
+            )
+            item['charge_sheet_date'] = cs_date
+            item['extra_fields']['charge_sheet_date'] = cs_date
+
+            sections = (
+                item.get('description') or 
+                extra.get('sections') or 
+                extra.get('section') or 
+                extra.get('sectionAct') or 
+                extra.get('acts_sections') or 
+                ''
+            )
+            item['section_act'] = sections
+            item['extra_fields']['section_act'] = sections
 
     def get(self, request):
         try:

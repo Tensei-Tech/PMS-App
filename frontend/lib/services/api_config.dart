@@ -99,4 +99,10 @@ class ApiConfig {
   static String get acts => '$baseUrl/acts/';
   static String get actSections => '$baseUrl/act-sections/';
   static String get actSubsections => '$baseUrl/act-subsections/';
+
+  // E-Learning Endpoints
+  static String get elearningCourses => '$baseUrl/elearning/courses/';
+  static String get elearningSubmit => '$baseUrl/elearning/submit/';
+  static String get elearningRecords => '$baseUrl/elearning/records/';
+  static String get elearningAnalytics => '$baseUrl/elearning/analytics/';
 }

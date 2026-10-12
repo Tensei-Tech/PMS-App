@@ -16,8 +16,8 @@ import '../utils/dynamic_map_pdf.dart';
 import '../utils/pdf_unicode_fonts.dart';
 import '../utils/arrested_table_firestore_mapper.dart';
 import '../utils/case_visibility.dart';
+import '../utils/excel_export_helper.dart';
 import '../widgets/nafis_cases_data_table.dart';
-import 'common_form_screen.dart';
 
 class NAFISSummaryScreen extends StatelessWidget {
   const NAFISSummaryScreen({
@@ -117,6 +117,38 @@ class NAFISSummaryScreen extends StatelessWidget {
                     ),
                   ),
                   GestureDetector(
+                    onTap: !anyRows
+                        ? null
+                        : () => ExcelExportHelper.exportNafisToExcel(
+                              dataset: dataset,
+                            ),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF107C41),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.table_chart_rounded,
+                              color: Colors.white, size: 18),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Excel',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              height: 1.15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
                     onTap: !anyRows ? null : () => _exportPdf(context, dataset),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
@@ -127,11 +159,11 @@ class NAFISSummaryScreen extends StatelessWidget {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.download_rounded,
+                          const Icon(Icons.picture_as_pdf_rounded,
                               color: Colors.white, size: 18),
                           const SizedBox(width: 6),
                           Text(
-                            'Export',
+                            'PDF',
                             style: GoogleFonts.poppins(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,

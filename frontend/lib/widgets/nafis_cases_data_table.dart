@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 
 import '../modules/core/models/base_record.dart';
-import '../providers/auth_provider.dart';
-import '../theme/app_theme.dart';
-import '../utils/police_rbac_helper.dart';
 import 'send_reminder_dialog.dart';
 
 class NAFISCasesDataTable extends StatelessWidget {
@@ -25,89 +21,84 @@ class NAFISCasesDataTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final rows = realDataRows ?? [];
-    final auth = context.watch<AuthProvider>();
-    final canSendReminder = PoliceRbacHelper.canSendReminder(auth);
 
-    final tableCore = LayoutBuilder(
+    return LayoutBuilder(
       builder: (context, constraints) {
         final w = constraints.maxWidth;
-        final double cellFontSize = w < 360 ? 9.5 : (w < 420 ? 10.5 : 11.5);
-        final double headerFontSize = w < 360 ? 9.5 : (w < 420 ? 10.5 : 11.5);
+        final double cellFontSize = w < 400 ? 11.5 : 13.0;
+        final double headerFontSize = w < 400 ? 12.0 : 13.5;
 
-        Widget headerCell(String s, {int flex = 1}) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-              color: AppColors.navyDark,
-              alignment: Alignment.center,
+        Widget headerCell(String s, {Alignment align = Alignment.centerLeft}) =>
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              alignment: align,
               child: Text(
                 s,
-                textAlign: TextAlign.center,
-                softWrap: true,
+                textAlign: align == Alignment.center ? TextAlign.center : TextAlign.left,
                 style: GoogleFonts.poppins(
                   fontSize: headerFontSize,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                  height: 1.15,
+                  color: const Color(0xFF1E293B), // Navy/Slate matching screenshot
                 ),
               ),
             );
 
         Widget dataCell(
           String s, {
-          Alignment align = Alignment.center,
+          Alignment align = Alignment.centerLeft,
           Color? textColor,
           FontWeight? fontWeight,
         }) =>
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               alignment: align,
               child: Text(
                 s,
-                softWrap: true,
-                overflow: TextOverflow.visible,
+                textAlign: align == Alignment.center ? TextAlign.center : TextAlign.left,
                 style: GoogleFonts.poppins(
                   fontSize: cellFontSize,
-                  fontWeight: fontWeight ?? FontWeight.w500,
-                  color: textColor ?? AppColors.lightText,
-                  height: 1.15,
+                  fontWeight: fontWeight ?? FontWeight.w400,
+                  color: textColor ?? const Color(0xFF334155),
                 ),
               ),
             );
 
-        Widget pendingStatusBadge(String statusText) {
-          final isPending = statusText.trim().toLowerCase() == 'pending' ||
-              statusText.trim().toLowerCase() == 'no' ||
-              statusText.isEmpty;
-
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: isPending ? const Color(0xFFFFEBEE) : const Color(0xFFE8F5E9),
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: isPending ? const Color(0xFFEF5350) : const Color(0xFF66BB6A),
-                width: 1,
+        Widget statusBadge(bool isPending) {
+          return Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+              decoration: BoxDecoration(
+                color: isPending ? const Color(0xFFEF4444) : const Color(0xFF22C55E),
+                borderRadius: BorderRadius.circular(20),
               ),
-            ),
-            child: Text(
-              isPending ? 'Pending' : 'Completed',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: cellFontSize - 0.5,
-                fontWeight: FontWeight.w700,
-                color: isPending ? const Color(0xFFC62828) : const Color(0xFF2E7D32),
+              child: Text(
+                isPending ? 'Pending' : 'Chargesheeted',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: cellFontSize - 1.0,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
               ),
             ),
           );
         }
 
-        Widget reminderActionCell(int idx, Map<String, dynamic> r) {
-          if (!canSendReminder) {
-            return dataCell('—');
+        Widget actionCell(int idx, Map<String, dynamic> r, bool isPending) {
+          if (!isPending) {
+            return Center(
+              child: Text(
+                '-',
+                style: GoogleFonts.poppins(
+                  fontSize: cellFontSize + 2,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF64748B),
+                ),
+              ),
+            );
           }
 
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-            alignment: Alignment.center,
+          return Center(
             child: InkWell(
               onTap: () {
                 ModuleRecord record;
@@ -122,33 +113,27 @@ class NAFISCasesDataTable extends StatelessWidget {
                   initialPreset: 'NAFIS Fingerprint Pending',
                 );
               },
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(20),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFEBEE),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: const Color(0xFFEF5350)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.notifications_active_rounded,
-                      size: 13,
-                      color: Color(0xFFC62828),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Reminder',
-                      style: GoogleFonts.poppins(
-                        fontSize: cellFontSize - 1,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFFC62828),
-                      ),
+                  color: const Color(0xFFEF4444),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFEF4444).withValues(alpha: 0.25),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
                     ),
                   ],
+                ),
+                child: Text(
+                  'Remind to IO',
+                  style: GoogleFonts.poppins(
+                    fontSize: cellFontSize - 1.0,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -156,87 +141,108 @@ class NAFISCasesDataTable extends StatelessWidget {
         }
 
         final columnWidths = <int, TableColumnWidth>{
-          0: const IntrinsicColumnWidth(), // Sr. No
-          1: const FlexColumnWidth(1.2), // Cr. No.
-          2: const FlexColumnWidth(1.4), // SEC & ACT
-          3: const FlexColumnWidth(1.4), // Accused Name
-          4: const FlexColumnWidth(1.4), // IO Name
-          5: const FlexColumnWidth(1.6), // Station Name
-          6: const FlexColumnWidth(1.2), // Status (Red Pending)
-          if (canSendReminder) 7: const FlexColumnWidth(1.3), // Action
+          0: const FixedColumnWidth(80),   // Sr. No.
+          1: const FlexColumnWidth(1.2),   // CR No.
+          2: const FlexColumnWidth(1.4),   // Section/Act
+          3: const FlexColumnWidth(1.8),   // Accused Name
+          4: const FixedColumnWidth(150),  // Status
+          5: const FixedColumnWidth(160),  // Action
         };
 
         final headers = <Widget>[
-          headerCell('Sr. No'),
-          headerCell('Cr. No.'),
-          headerCell('SEC & ACT'),
+          headerCell('Sr. No.', align: Alignment.centerLeft),
+          headerCell('CR No.'),
+          headerCell('Section/Act'),
           headerCell('Accused Name'),
-          headerCell('IO Name'),
-          headerCell('Police station name'),
-          headerCell('NAFIS Status'),
-          if (canSendReminder) headerCell('Action (PI)'),
+          headerCell('Status', align: Alignment.center),
+          headerCell('Action', align: Alignment.center),
         ];
 
         TableRow rowFor(int idx, Map<String, dynamic> r) {
-          final bg = idx.isEven ? Colors.white : const Color(0xFFF6F8FF);
-          final cr = r['cr']?.toString() ?? r['case_number']?.toString() ?? '—';
-          final sections = r['sections']?.toString() ?? '—';
-          final accused = r['accused_name']?.toString() ?? r['accused']?.toString() ?? '—';
-          final io = r['io_name']?.toString() ?? r['io']?.toString() ?? r['assigned_officer']?.toString() ?? '—';
-          final station = r['station']?.toString() ?? r['station_name']?.toString() ?? '—';
-          final status = r['nafis_status']?.toString() ?? 'Pending';
+          final cr = (r['cr'] ?? r['cr_no'] ?? r['case_number'] ?? r['crNo'] ?? '').toString();
+          
+          final sectionAct = (r['section_act'] ??
+                  r['sections'] ??
+                  r['section'] ??
+                  r['act_section'] ??
+                  r['acts_sections'] ??
+                  '')
+              .toString();
+
+          final extra = r['extra_fields'] is Map ? r['extra_fields'] as Map : {};
+          String accused = (r['accused_name'] ??
+                  r['accused'] ??
+                  extra['accused_name'] ??
+                  extra['accused'] ??
+                  '')
+              .toString();
+          if (accused.isEmpty && rawRecords != null && idx < rawRecords!.length) {
+            accused = rawRecords![idx].accused;
+          }
+
+          final rawStatus = (r['nafis_status'] ?? r['status'] ?? '').toString().trim();
+          final isPending = rawStatus.toLowerCase() == 'pending' ||
+              rawStatus.toLowerCase() == 'no' ||
+              rawStatus.isEmpty;
 
           return TableRow(
-            decoration: BoxDecoration(color: bg),
-            children: [
-              dataCell('${serialOffset + idx + 1}'),
-              dataCell(cr),
-              dataCell(sections),
-              dataCell(accused.isEmpty ? '—' : accused),
-              dataCell(io.isEmpty ? '—' : io, align: Alignment.centerLeft),
-              dataCell(station.isEmpty ? '—' : station, align: Alignment.centerLeft),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                alignment: Alignment.center,
-                child: pendingStatusBadge(status),
+            decoration: const BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
               ),
-              if (canSendReminder) reminderActionCell(idx, r),
+            ),
+            children: [
+              dataCell('${serialOffset + idx + 1}', align: Alignment.centerLeft),
+              dataCell(cr),
+              dataCell(sectionAct),
+              dataCell(accused.isEmpty ? '—' : accused),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                alignment: Alignment.center,
+                child: statusBadge(isPending),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                alignment: Alignment.center,
+                child: actionCell(idx, r, isPending),
+              ),
             ],
           );
         }
 
         final maxH = constraints.maxHeight;
-        final inner = ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            width: double.infinity,
-            height: maxH.isFinite ? maxH : null,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: AppColors.lightBorder),
-              borderRadius: BorderRadius.circular(12),
-            ),
+
+        return Container(
+          width: double.infinity,
+          height: maxH.isFinite ? maxH : null,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
             child: SingleChildScrollView(
               scrollDirection: Axis.vertical,
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(minWidth: w > 720 ? w : 720),
+                  constraints: BoxConstraints(minWidth: w > 750 ? w : 750),
                   child: Table(
                     columnWidths: columnWidths,
                     defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                    border: TableBorder(
-                      horizontalInside: BorderSide(
-                        color: AppColors.lightBorder.withValues(alpha: 0.5),
-                        width: 1,
-                      ),
-                      verticalInside: BorderSide(
-                        color: AppColors.lightBorder.withValues(alpha: 0.3),
-                        width: 1,
-                      ),
-                    ),
                     children: [
-                      TableRow(children: headers),
+                      TableRow(
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: Color(0xFFE2E8F0),
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                        children: headers,
+                      ),
                       for (var i = 0; i < rows.length; i++) rowFor(i, rows[i]),
                     ],
                   ),
@@ -245,11 +251,7 @@ class NAFISCasesDataTable extends StatelessWidget {
             ),
           ),
         );
-
-        return inner;
       },
     );
-
-    return tableCore;
   }
 }

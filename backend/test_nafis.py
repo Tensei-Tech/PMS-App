@@ -64,7 +64,7 @@ try:
 
     assert test_data[0]['extra_fields']['nafis_status'] == 'Pending'
     assert test_data[0]['extra_fields']['nafis_status_color'] == 'red'
-    assert test_data[1]['extra_fields']['nafis_status'] == 'Completed'
+    assert test_data[1]['extra_fields']['nafis_status'] == 'Chargesheeted'
     assert test_data[1]['extra_fields']['nafis_status_color'] == 'green'
 
     # Cleanup
