@@ -104,8 +104,9 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
   }
 
   Widget _buildCaseWiseTab() {
-    if (caseWiseData.isEmpty)
+    if (caseWiseData.isEmpty) {
       return const Center(child: Text("No POCSO cases found."));
+    }
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -179,8 +180,9 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
   }
 
   Widget _buildTimeWiseTab() {
-    if (timeWiseData.isEmpty)
+    if (timeWiseData.isEmpty) {
       return const Center(child: Text("No data available."));
+    }
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: timeWiseData.length,
@@ -210,8 +212,9 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
   }
 
   Widget _buildIOWiseTab() {
-    if (ioWiseData.isEmpty)
+    if (ioWiseData.isEmpty) {
       return const Center(child: Text("No IO data available."));
+    }
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: ioWiseData.length,
