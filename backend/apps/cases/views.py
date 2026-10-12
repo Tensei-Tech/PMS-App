@@ -1305,6 +1305,7 @@ class TimeWiseArrestedView(TimeWisePendingView):
             logger.exception(f'[TimeWiseArrestedView] Database error: {e}')
             return Response({'error': 'Failed to retrieve Time-wise arrested counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
 class RepeatOffenderCaseWiseView(PendingCasesView):
 
     def _enrich_data(self, data_list):
@@ -1749,3 +1750,424 @@ class TimeWiseNAFISView(TimeWisePendingView):
         except Exception as e:
             logger.exception(f'[TimeWiseNAFISView] Database error: {e}')
             return Response({'error': 'Failed to retrieve Time-wise NAFIS counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class VictimCaseWiseView(APIView):
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def get(self, request):
+        try:
+            from django.db.models import Q
+            from apps.cases.utils import get_victim_cases
+            queryset = get_victim_cases()
+
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            category = request.query_params.get('category') or request.query_params.get('crime_type')
+            if category:
+                norm_cat = category.replace('_', ' ').strip()
+                queryset = queryset.filter(
+                    Q(module_key__iexact=category) |
+                    Q(sub_category__iexact=category) |
+                    Q(sub_category__iexact=norm_cat) |
+                    Q(category_links__category__category_name__iexact=norm_cat) |
+                    Q(category_links__category__category_code__iexact=category)
+                ).distinct()
+
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            if start_date:
+                queryset = queryset.filter(created_at__date__gte=start_date)
+            if end_date:
+                queryset = queryset.filter(created_at__date__lte=end_date)
+
+            from apps.cases.serializers import CaseRecordSerializer
+            paginator = PageNumberPagination()
+            page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
+            if page is not None:
+                serializer = CaseRecordSerializer(page, many=True)
+                return paginator.get_paginated_response(serializer.data)
+
+            serializer = CaseRecordSerializer(queryset.order_by('-created_at'), many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            logger.exception(f"[VictimCaseWiseView] Database error: {e}")
+            return Response({'error': 'Failed to retrieve victim cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class VictimStatsView(APIView):
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def get(self, request):
+        try:
+            from apps.cases.utils import get_victim_cases
+            queryset = get_victim_cases()
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            stats = {
+                'gender': {'male': 0, 'female': 0, 'other': 0},
+                'age': {'minor': 0, 'adult': 0, 'senior': 0},
+                'pwd': 0,
+                'mentally_vulnerable': 0,
+                'injured': 0,
+                'deceased': 0,
+                'missing': 0,
+                'traced': 0,
+                'pending_tracing': 0,
+            }
+
+            for case in queryset:
+                mod = str(case.module_key or '').lower()
+                status_str = str(case.status or '').lower()
+                sub = str(case.sub_category or '').lower()
+                if mod in ['missing', 'kidnapping'] or 'missing' in sub or 'kidnapping' in sub:
+                    stats['missing'] += 1
+                    if status_str in ['detected', 'disposal', 'disposed', 'closed', 'resolved']:
+                        stats['traced'] += 1
+                    else:
+                        stats['pending_tracing'] += 1
+
+                extra = case.extra_fields if isinstance(case.extra_fields, dict) else {}
+                cf = extra.get('commonForm', {}) if isinstance(extra.get('commonForm'), dict) else {}
+                
+                victim_list = cf.get('victims') or extra.get('victims') or []
+                if isinstance(victim_list, list) and victim_list:
+                    for v in victim_list:
+                        if not isinstance(v, dict):
+                            continue
+                        # Gender
+                        g = str(v.get('gender') or v.get('victim_gender') or '').lower().strip()
+                        if g in ['male', 'm', 'पुरुष']:
+                            stats['gender']['male'] += 1
+                        elif g in ['female', 'f', 'स्त्री', 'महिला']:
+                            stats['gender']['female'] += 1
+                        elif g:
+                            stats['gender']['other'] += 1
+
+                        # Age
+                        raw_age = v.get('age') or v.get('victim_age')
+                        try:
+                            age_int = int(str(raw_age).strip())
+                            if age_int < 18:
+                                stats['age']['minor'] += 1
+                            elif age_int >= 60:
+                                stats['age']['senior'] += 1
+                            else:
+                                stats['age']['adult'] += 1
+                        except (ValueError, TypeError):
+                            pass
+
+                        # PWD & Mentally vulnerable
+                        if v.get('pwd') is True or str(v.get('pwd', '')).lower() in ['yes', 'y', 'true']:
+                            stats['pwd'] += 1
+                        if v.get('mentally_vulnerable') is True or str(v.get('mentally_vulnerable', '')).lower() in ['yes', 'y', 'true']:
+                            stats['mentally_vulnerable'] += 1
+
+                        # Condition
+                        cond = str(v.get('status') or v.get('condition') or v.get('injured_deceased') or v.get('health_status') or '').lower()
+                        if 'injur' in cond or 'जखमी' in cond:
+                            stats['injured'] += 1
+                        elif 'deceas' in cond or 'dead' in cond or 'मृत' in cond:
+                            stats['deceased'] += 1
+                else:
+                    g = str(cf.get('victim_gender') or extra.get('victim_gender') or '').lower().strip()
+                    if g in ['male', 'm', 'पुरुष']:
+                        stats['gender']['male'] += 1
+                    elif g in ['female', 'f', 'स्त्री', 'महिला']:
+                        stats['gender']['female'] += 1
+
+                    raw_age = cf.get('victim_age') or extra.get('victim_age')
+                    try:
+                        age_int = int(str(raw_age).strip())
+                        if age_int < 18:
+                            stats['age']['minor'] += 1
+                        elif age_int >= 60:
+                            stats['age']['senior'] += 1
+                        else:
+                            stats['age']['adult'] += 1
+                    except (ValueError, TypeError):
+                        pass
+
+            return Response({'stats': stats, 'total_cases': queryset.count()})
+        except Exception as e:
+            logger.exception(f"[VictimStatsView] Database error: {e}")
+            return Response({'error': 'Failed to retrieve victim stats.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class VictimTimeWiseView(APIView):
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def get(self, request):
+        try:
+            from apps.cases.utils import get_victim_cases
+            from django.utils import timezone
+            from datetime import timedelta
+            queryset = get_victim_cases()
+
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            now = timezone.now()
+            month_1 = now - timedelta(days=30)
+            months_3 = now - timedelta(days=90)
+            months_6 = now - timedelta(days=180)
+            year_1 = now - timedelta(days=365)
+
+            under_1_month = queryset.filter(created_at__gte=month_1).count()
+            months_1_to_3 = queryset.filter(created_at__gte=months_3, created_at__lt=month_1).count()
+            months_3_to_6 = queryset.filter(created_at__gte=months_6, created_at__lt=months_3).count()
+            months_6_to_12 = queryset.filter(created_at__gte=year_1, created_at__lt=months_6).count()
+            more_than_1_year = queryset.filter(created_at__lt=year_1).count()
+            
+            results = [
+                {'period': 'Under 1 month', 'count': under_1_month},
+                {'period': '1 to 3 months', 'count': months_1_to_3},
+                {'period': '3 to 6 months', 'count': months_3_to_6},
+                {'period': '6 to 12 months', 'count': months_6_to_12},
+                {'period': 'More than 1 year', 'count': more_than_1_year},
+                {'period': 'Under 3 months (Total)', 'count': under_1_month + months_1_to_3}
+            ]
+
+            return Response(results)
+        except Exception as e:
+            logger.exception(f'[VictimTimeWiseView] Database error: {e}')
+            return Response({'error': 'Failed to retrieve Time-wise victim counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class VictimIOWiseView(APIView):
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def get(self, request):
+        try:
+            from django.db.models import Count
+            from apps.cases.utils import get_victim_cases
+            queryset = get_victim_cases()
+
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            counts = queryset.values('assigned_officer', 'station_name').annotate(count=Count('id')).order_by('-count')
+            results = []
+            for c in counts:
+                name = c['assigned_officer']
+                results.append({
+                    'io_uid': name,
+                    'io_name': name if name else 'Unassigned',
+                    'io_rank': '',
+                    'station_name': c['station_name'],
+                    'victim_count': c['count'],
+                    'pending_count': c['count'],
+                })
+
+            return Response(results)
+        except Exception as e:
+            logger.exception(f"[VictimIOWiseView] Database error: {e}")
+            return Response({'error': 'Failed to retrieve IO-wise victim counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+from apps.cases.serializers import ItssoCaseRecordSerializer
+
+class ItssoCasesView(APIView):
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def get(self, request):
+        from django.db.models import Q
+        # POCSO cases only
+        pocso_q = Q(module_key__iexact='pocso') | Q(sub_category__iexact='pocso') | Q(sub_category__icontains='pocso')
+        queryset = CaseRecord.objects.filter(pocso_q).distinct()
+
+        user = request.user
+        if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+            stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+            queryset = queryset.filter(station_name__in=stations)
+
+        status_param = request.query_params.get('status')
+        if status_param:
+            st = status_param.lower().strip()
+            if st in ['disposal', 'disposed', 'closed']:
+                # Has charge sheet number
+                queryset = queryset.filter(
+                    Q(extra_fields__has_key='charge_sheet_number') | 
+                    Q(extra_fields__has_key='charge_sheet_no') | 
+                    Q(extra_fields__has_key='cc_st_number') | 
+                    Q(extra_fields__has_key='ccStNumber')
+                ).exclude(
+                    Q(extra_fields__charge_sheet_number='') | 
+                    Q(extra_fields__charge_sheet_no='') | 
+                    Q(extra_fields__cc_st_number='') | 
+                    Q(extra_fields__ccStNumber='')
+                )
+            elif st in ['pending', 'open']:
+                # No charge sheet number
+                has_cs_q = (
+                    Q(extra_fields__has_key='charge_sheet_number') | 
+                    Q(extra_fields__has_key='charge_sheet_no') | 
+                    Q(extra_fields__has_key='cc_st_number') | 
+                    Q(extra_fields__has_key='ccStNumber')
+                ) & ~Q(extra_fields__charge_sheet_number='') & ~Q(extra_fields__charge_sheet_no='') & ~Q(extra_fields__cc_st_number='') & ~Q(extra_fields__ccStNumber='')
+                queryset = queryset.exclude(has_cs_q)
+
+        paginator = PageNumberPagination()
+        paginator.page_size = 20
+        page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
+        if page is not None:
+            serializer = ItssoCaseRecordSerializer(page, many=True)
+            results = serializer.data
+            page_number = paginator.page.number
+            page_size = paginator.page.paginator.per_page
+            for idx, row in enumerate(results):
+                row['sr_no'] = (page_number - 1) * page_size + idx + 1
+            return paginator.get_paginated_response(results)
+
+        serializer = ItssoCaseRecordSerializer(queryset.order_by('-created_at'), many=True)
+        results = serializer.data
+        for idx, row in enumerate(results):
+            row['sr_no'] = idx + 1
+        return Response(results)
+
+
+class ItssoIOWiseView(APIView):
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def get(self, request):
+        from django.db.models import Q, Count
+        pocso_q = Q(module_key__iexact='pocso') | Q(sub_category__iexact='pocso') | Q(sub_category__icontains='pocso')
+        queryset = CaseRecord.objects.filter(pocso_q).distinct()
+
+        user = request.user
+        if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+            stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+            queryset = queryset.filter(station_name__in=stations)
+            
+        status_param = request.query_params.get('status')
+        if status_param:
+            st = status_param.lower().strip()
+            if st in ['disposal', 'disposed', 'closed']:
+                queryset = queryset.exclude(extra_fields__charge_sheet_date__isnull=True).exclude(extra_fields__charge_sheet_date__exact='')
+            elif st in ['pending', 'open']:
+                queryset = queryset.filter(Q(extra_fields__charge_sheet_date__isnull=True) | Q(extra_fields__charge_sheet_date__exact=''))
+
+        counts = queryset.values('assigned_officer', 'station_name').annotate(count=Count('id')).order_by('-count')
+        results = []
+        for c in counts:
+            name = c['assigned_officer']
+            results.append({
+                'io_uid': name,
+                'io_name': name if name else 'Unassigned',
+                'io_rank': '',
+                'station_name': c['station_name'],
+                'itsso_count': c['count'],
+                'pending_count': c['count']
+            })
+
+        return Response(results)
+
+class ItssoTimeWiseView(APIView):
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def get(self, request):
+        from django.db.models import Q
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        pocso_q = Q(module_key__iexact='pocso') | Q(sub_category__iexact='pocso') | Q(sub_category__icontains='pocso')
+        queryset = CaseRecord.objects.filter(pocso_q).distinct()
+
+        user = request.user
+        if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+            stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+            queryset = queryset.filter(station_name__in=stations)
+
+        status_param = request.query_params.get('status')
+        if status_param:
+            st = status_param.lower().strip()
+            if st in ['disposal', 'disposed', 'closed']:
+                queryset = queryset.exclude(extra_fields__charge_sheet_date__isnull=True).exclude(extra_fields__charge_sheet_date__exact='')
+            elif st in ['pending', 'open']:
+                queryset = queryset.filter(Q(extra_fields__charge_sheet_date__isnull=True) | Q(extra_fields__charge_sheet_date__exact=''))
+
+        now = timezone.now()
+        month_1 = now - timedelta(days=30)
+        months_3 = now - timedelta(days=90)
+        months_6 = now - timedelta(days=180)
+        year_1 = now - timedelta(days=365)
+
+        under_1_month = queryset.filter(created_at__gte=month_1).count()
+        months_1_to_3 = queryset.filter(created_at__gte=months_3, created_at__lt=month_1).count()
+        months_3_to_6 = queryset.filter(created_at__gte=months_6, created_at__lt=months_3).count()
+        months_6_to_12 = queryset.filter(created_at__gte=year_1, created_at__lt=months_6).count()
+        more_than_1_year = queryset.filter(created_at__lt=year_1).count()
+
+        results = [
+            {'period': 'Under 1 month', 'count': under_1_month},
+            {'period': '1 to 3 months', 'count': months_1_to_3},
+            {'period': '3 to 6 months', 'count': months_3_to_6},
+            {'period': '6 to 12 months', 'count': months_6_to_12},
+            {'period': 'More than 1 year', 'count': more_than_1_year},
+            {'period': 'Under 3 months (Total)', 'count': under_1_month + months_1_to_3}
+        ]
+        return Response(results)
+
+
+class ItssoActionView(APIView):
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def post(self, request, pk):
+        try:
+            case = CaseRecord.objects.get(pk=pk)
+            # Make sure it's a POCSO case
+            mod = str(case.module_key or '').lower()
+            sub = str(case.sub_category or '').lower()
+            if 'pocso' not in mod and 'pocso' not in sub:
+                return Response({'error': 'Not a POCSO case.'}, status=status.HTTP_400_BAD_REQUEST)
+                
+            from apps.users.models import NotificationRecord
+            
+            target_uid = case.assigned_officer_uid
+            officer_name = case.assigned_officer or 'Investigating Officer'
+            
+            if not target_uid:
+                # Fallback: maybe we want to notify by station if no IO is assigned
+                pass
+
+            title = f"Action Required: Charge Sheet Pending for {case.case_number}"
+            body = f"Please update the Charge Sheet Number for POCSO case {case.case_number} registered at {case.station_name} immediately."
+            
+            NotificationRecord.objects.create(
+                target_user_uid=target_uid,
+                target_station_name=case.station_name,
+                title=title,
+                body=body,
+                category='reminder',
+                registration_uid=case.case_number,
+                status='pending'
+            )
+            
+            # Optional: Log the action in AuditLog
+            from apps.core.models import AuditLog
+            AuditLog.objects.create(
+                event='action_taken_on_case',
+                category='case',
+                uid=request.user.pk,
+                user_name=getattr(request.user, 'name', ''),
+                user_role=getattr(request.user, 'role', ''),
+                station_name=getattr(request.user, 'station_name', ''),
+                action_details=f"Reminder sent to IO for case {case.case_number}",
+                metadata={'case_id': str(case.pk), 'assigned_officer_uid': target_uid}
+            )
+            
+            return Response({'status': 'success', 'message': 'Reminder sent to IO.'})
+            
+        except CaseRecord.DoesNotExist:
+            return Response({'error': 'Case not found.'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.exception(f"[ItssoActionView] Error: {e}")
+            return Response({'error': 'Failed to send action.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

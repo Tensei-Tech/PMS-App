@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../screens/form_i_v_selection_screen.dart';
 import '../screens/module_hub_screen.dart';
 import '../screens/juvenile_hub_screen.dart';
+import '../screens/itsso_hub_screen.dart';
 import '../services/case_service.dart';
 import '../theme/app_theme.dart';
 
@@ -60,6 +61,16 @@ class CategoryNavigationHelper {
     final children = await getChildren(cleanName);
     if (!context.mounted) return;
 
+    if (cleanName.toUpperCase() == 'ITSSO' ||
+        moduleKey.toLowerCase() == 'itsso') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const ItssoHubScreen(stationName: 'All Stations'),
+        ),
+      );
+      return;
+    }
     if (children.isNotEmpty) {
       Navigator.push(
         context,

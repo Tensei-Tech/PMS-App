@@ -34,6 +34,10 @@ from apps.cases.views import (
     NAFISCaseWiseView,
     TimeWiseNAFISView,
     IOWiseNAFISView,
+    VictimCaseWiseView,
+    VictimStatsView,
+    VictimTimeWiseView,
+    VictimIOWiseView,
 )
 
 router = DefaultRouter()
@@ -77,6 +81,11 @@ urlpatterns = [
     path('nafis/case-wise/', NAFISCaseWiseView.as_view(), name='nafis-case-wise'),
     path('nafis/time-wise/', TimeWiseNAFISView.as_view(), name='nafis-time-wise'),
     path('nafis/io-wise/', IOWiseNAFISView.as_view(), name='nafis-io-wise'),
+
+    path('victim/case-wise/', VictimCaseWiseView.as_view(), name='victim-case-wise'),
+    path('victim/time-wise/', VictimTimeWiseView.as_view(), name='victim-time-wise'),
+    path('victim/io-wise/', VictimIOWiseView.as_view(), name='victim-io-wise'),
+    path('victim/stats/', VictimStatsView.as_view(), name='victim-stats'),
 
     # Existing CaseRecordViewSet router (ModelViewSet)
     path('', include(router.urls)),

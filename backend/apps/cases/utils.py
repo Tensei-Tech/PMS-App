@@ -223,3 +223,35 @@ def get_absconded_cases():
         set_tenant_schema(schema)
     
     return CaseRecord.objects.filter(id__in=absconded_ids)
+
+def get_victim_cases():
+    """
+    Returns cases that fall under Victim categories.
+    Modules: POCSO, Crime Against Women, Accident, Cheating/Fraud, Domestic Violence, Missing/Kidnapping.
+    """
+    from apps.core.tenancy import get_active_tenant_schema, set_tenant_schema
+    from django.db.models import Q
+    
+    schema = get_active_tenant_schema()
+    if schema and schema != 'public':
+        set_tenant_schema(schema)
+        
+    target_modules = [
+        'pocso', 'crime_women', 'accident', 'cheating', '498_a_ipc', 'missing', 'kidnapping', 'victim'
+    ]
+    
+    queryset = CaseRecord.objects.filter(
+        Q(module_key__in=target_modules) |
+        Q(sub_category__iexact='pocso') |
+        Q(sub_category__iexact='crime against women') |
+        Q(sub_category__iexact='accident') |
+        Q(sub_category__iexact='cheating') |
+        Q(sub_category__iexact='498 (a) ipc') |
+        Q(sub_category__iexact='missing') |
+        Q(sub_category__iexact='kidnapping')
+    ).distinct()
+    
+    if schema and schema != 'public':
+        set_tenant_schema(schema)
+        
+    return queryset
