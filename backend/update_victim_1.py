@@ -56,10 +56,10 @@ if 'VictimCaseWiseView' not in urls_content:
     urls_content = urls_content.replace('from apps.cases.views import (', '''from apps.cases.views import (
     VictimCaseWiseView,
     VictimStatsView,''')
-    urls_content = urls_content.replace(\"]\", '''
+    urls_content = urls_content.replace("]", """]
     path('victim/case-wise/', VictimCaseWiseView.as_view(), name='victim-case-wise'),
     path('victim/stats/', VictimStatsView.as_view(), name='victim-stats'),
-]''')
+]""")
     with open(urls_path, 'w', encoding='utf-8') as f:
         f.write(urls_content)
 
