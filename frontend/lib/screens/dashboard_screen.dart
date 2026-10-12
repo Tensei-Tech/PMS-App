@@ -79,6 +79,7 @@ import '../utils/translation_helper.dart';
 import '../utils/universal_search.dart';
 import '../widgets/app_logo.dart';
 import 'pending_hub_screen.dart';
+import 'itsso_hub_screen.dart';
 import 'undetected_hub_screen.dart';
 import 'detected_hub_screen.dart';
 import 'disposal_hub_screen.dart';
@@ -3837,6 +3838,15 @@ class _HomeTabState extends State<_HomeTab> {
 
   void _openClassificationItem(BuildContext context, Classification item) {
     final label = item.name.replaceAll('\n', ' ');
+    if (label.toUpperCase() == 'ITSSO') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const ItssoHubScreen(stationName: 'All Stations'),
+        ),
+      );
+      return;
+    }
     if (item.name == 'I to V') {
       Navigator.push(
         context,
@@ -8138,6 +8148,15 @@ class _CalendarTabState extends State<_CalendarTab> {
   Widget _buildReportTile(_CalCategoryMeta meta) {
     return GestureDetector(
       onTap: () {
+        if (meta.moduleKey.toLowerCase() == 'itsso' ||
+            meta.label.toUpperCase() == 'ITSSO') {
+          Navigator.push(
+            context,
+            AppTheme.fadeSlideRoute(
+                page: const ItssoHubScreen(stationName: 'All Stations')),
+          );
+          return;
+        }
         Navigator.push(
             context,
             AppTheme.fadeSlideRoute(
