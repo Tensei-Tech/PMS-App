@@ -118,7 +118,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
 
   Future<void> _loadGenderOptions() async {
     try {
-      final opts = await DynamicOptionsService().fetchOptions('/api/options/gender/');
+      final opts =
+          await DynamicOptionsService().fetchOptions('/api/options/gender/');
       if (mounted && opts.isNotEmpty) {
         setState(() {
           _genderOptions = opts;
@@ -3090,7 +3091,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   Future<void> _showAddEditAccusedDialog({int? editIndex}) async {
     if (_genderOptions.isEmpty) {
       try {
-        final opts = await DynamicOptionsService().fetchOptions('/api/options/gender/');
+        final opts =
+            await DynamicOptionsService().fetchOptions('/api/options/gender/');
         if (opts.isNotEmpty) {
           _genderOptions = opts;
         }
@@ -3213,11 +3215,12 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                           Expanded(
                             flex: 6,
                             child: DropdownButtonFormField<String>(
-                              initialValue: _genderOptions.contains(selectedGender)
-                                  ? selectedGender
-                                  : (_genderOptions.isNotEmpty
-                                      ? _genderOptions.first
-                                      : null),
+                              initialValue:
+                                  _genderOptions.contains(selectedGender)
+                                      ? selectedGender
+                                      : (_genderOptions.isNotEmpty
+                                          ? _genderOptions.first
+                                          : null),
                               decoration: InputDecoration(
                                 labelText: 'Gender',
                                 prefixIcon: const Icon(Icons.wc_rounded,
@@ -3229,7 +3232,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                               hint: Text(_genderOptions.isEmpty
                                   ? 'Failed to load options'
                                   : 'Select Gender'),
-                              disabledHint: const Text('Failed to load options'),
+                              disabledHint:
+                                  const Text('Failed to load options'),
                               items: _genderOptions.map((g) {
                                 return DropdownMenuItem<String>(
                                   value: g,
@@ -3744,7 +3748,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   Future<void> _showAddEditSuspectedAccusedDialog({int? editIndex}) async {
     if (_genderOptions.isEmpty) {
       try {
-        final opts = await DynamicOptionsService().fetchOptions('/api/options/gender/');
+        final opts =
+            await DynamicOptionsService().fetchOptions('/api/options/gender/');
         if (opts.isNotEmpty) {
           _genderOptions = opts;
         }
@@ -3908,11 +3913,12 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                           Expanded(
                             flex: 6,
                             child: DropdownButtonFormField<String>(
-                              initialValue: _genderOptions.contains(selectedGender)
-                                  ? selectedGender
-                                  : (_genderOptions.isNotEmpty
-                                      ? _genderOptions.first
-                                      : null),
+                              initialValue:
+                                  _genderOptions.contains(selectedGender)
+                                      ? selectedGender
+                                      : (_genderOptions.isNotEmpty
+                                          ? _genderOptions.first
+                                          : null),
                               decoration: InputDecoration(
                                 labelText: 'Gender',
                                 prefixIcon: const Icon(Icons.wc_rounded,
@@ -3924,7 +3930,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                               hint: Text(_genderOptions.isEmpty
                                   ? 'Failed to load options'
                                   : 'Select Gender'),
-                              disabledHint: const Text('Failed to load options'),
+                              disabledHint:
+                                  const Text('Failed to load options'),
                               items: _genderOptions.map((g) {
                                 return DropdownMenuItem<String>(
                                   value: g,
@@ -4405,7 +4412,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   Future<void> _showAddEditUnidentifiedAccusedDialog({int? editIndex}) async {
     if (_genderOptions.isEmpty) {
       try {
-        final opts = await DynamicOptionsService().fetchOptions('/api/options/gender/');
+        final opts =
+            await DynamicOptionsService().fetchOptions('/api/options/gender/');
         if (opts.isNotEmpty) {
           _genderOptions = opts;
         }
@@ -4506,11 +4514,12 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                           Expanded(
                             flex: 5,
                             child: DropdownButtonFormField<String>(
-                              initialValue: _genderOptions.contains(selectedGender)
-                                  ? selectedGender
-                                  : (_genderOptions.isNotEmpty
-                                      ? _genderOptions.first
-                                      : null),
+                              initialValue:
+                                  _genderOptions.contains(selectedGender)
+                                      ? selectedGender
+                                      : (_genderOptions.isNotEmpty
+                                          ? _genderOptions.first
+                                          : null),
                               decoration: InputDecoration(
                                 labelText: 'Gender',
                                 prefixIcon: const Icon(Icons.wc_rounded,
@@ -4522,7 +4531,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                               hint: Text(_genderOptions.isEmpty
                                   ? 'Failed to load options'
                                   : 'Select Gender'),
-                              disabledHint: const Text('Failed to load options'),
+                              disabledHint:
+                                  const Text('Failed to load options'),
                               items: _genderOptions.map((g) {
                                 return DropdownMenuItem<String>(
                                   value: g,
