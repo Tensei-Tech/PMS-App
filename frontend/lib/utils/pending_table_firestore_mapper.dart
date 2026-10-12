@@ -48,21 +48,67 @@ String _headLine(ModuleRecord r) {
   return r.firestoreCategoryDisplayName.trim();
 }
 
+String _victimNamesLine(ModuleRecord r) {
+  final raw = r.extraFields[kCommonFormExtraFieldsKey];
+  if (raw is Map<String, dynamic>) {
+    final v = raw['victims'];
+    if (v is List) {
+      final names = v
+          .map((e) => e is Map
+              ? (e['name']?.toString() ?? e['victim_name']?.toString() ?? '')
+              : '')
+          .where((s) => s.isNotEmpty)
+          .toList();
+      if (names.isNotEmpty) return names.join(', ');
+    }
+  }
+  return '';
+}
+
+String _victimConditionLine(ModuleRecord r) {
+  final raw = r.extraFields[kCommonFormExtraFieldsKey];
+  if (raw is Map<String, dynamic>) {
+    final v = raw['victims'];
+    if (v is List) {
+      final conditions = v
+          .map((e) => e is Map
+              ? (e['status']?.toString() ??
+                  e['condition']?.toString() ??
+                  e['injured_deceased']?.toString() ??
+                  e['health_status']?.toString() ??
+                  '')
+              : '')
+          .where((s) => s.isNotEmpty)
+          .toList();
+      if (conditions.isNotEmpty) return conditions.join(', ');
+    }
+  }
+  return '';
+}
+
 /// One row map: keys `sr`, `cr`, `sections`, `date`, `io`, `reason`, `period`, `head`
-/// plus optional `spot` for AD column.
+/// plus optional `spot` for AD column and victim fields.
 Map<String, String> pendingModuleRecordToTableRow(
   ModuleRecord r,
   DateTime reference, {
   required int sr,
 }) {
   final io = pendingIoWiseIoDisplayName(r) ?? r.assignedOfficer.trim();
+
+  // Dynamically fetch the head directly from the database record instead of hardcoding
+  final dynamicHead = _headLine(r);
+
   return {
     'sr': '$sr',
     'cr': r.caseNumber.trim(),
     'sections': _sectionsLine(r),
+    'accused': r.accused.trim().isEmpty ? '—' : r.accused.trim(),
     'io': io.isEmpty ? '—' : io,
     'station': r.stationName.trim().isEmpty ? '—' : r.stationName.trim(),
-    'head': _headLine(r),
+    'head': dynamicHead,
+    'victim_head': dynamicHead,
+    'victim_name': _victimNamesLine(r),
+    'injured_deceased': _victimConditionLine(r),
     'period': pendingTablePeriodLabel(r.incidentDate, reference),
   };
 }

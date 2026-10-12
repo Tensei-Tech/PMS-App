@@ -3,6 +3,7 @@
 // Reusable screen for ALL 12 modules — strictly isolated data per module.
 
 import 'package:flutter/material.dart';
+import 'itsso_hub_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
@@ -68,7 +69,8 @@ import '../widgets/forms_accordion_list.dart';
 import '../widgets/module_hub_report_card.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
 import '../widgets/read_only_module_record_hub_card.dart';
-import 'absconded_cases_screen.dart';
+import 'absconded_hub_screen.dart';
+import 'victim_hub_screen.dart';
 import 'ad_form_screen.dart';
 import 'ad_record_detail_screen.dart';
 import 'common_form_screen.dart';
@@ -484,11 +486,20 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.moduleKey.toLowerCase() == 'itsso') {
+      // Return the new ItssOHubScreen instead of the default module list
+      return const ItssoHubScreen(stationName: 'All Stations');
+    }
     if (widget.moduleKey == 'hurt') {
       return HurtCasesScreen(readOnly: widget.readOnly);
     }
     if (widget.moduleKey == 'absconded') {
-      return AbscondedCasesScreen(readOnly: widget.readOnly);
+      final auth = context.watch<AuthProvider>();
+      return AbscondedHubScreen(stationName: auth.stationName);
+    }
+    if (widget.moduleKey == 'victim') {
+      final auth = context.watch<AuthProvider>();
+      return VictimHubScreen(stationName: auth.stationName);
     }
 
     List<ModuleRecord> allRecords;

@@ -285,6 +285,125 @@ class BackendCaseService {
     return null;
   }
 
+  // ---------------------------------------------------------------------------
+  // ABSCONDED API WRAPPERS
+  // ---------------------------------------------------------------------------
+
+  Future<List<Map<String, dynamic>>?> fetchAbscondedCases({
+    String? ioUid,
+    String? category,
+    String? startDate,
+    String? endDate,
+    String? status,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (ioUid != null && ioUid.isNotEmpty) {
+        queryParams['io'] = ioUid;
+      }
+      if (category != null && category.isNotEmpty) {
+        queryParams['category'] = category;
+      }
+      if (startDate != null && startDate.isNotEmpty) {
+        queryParams['start_date'] = startDate;
+      }
+      if (endDate != null && endDate.isNotEmpty) {
+        queryParams['end_date'] = endDate;
+      }
+      if (status != null && status.isNotEmpty) {
+        queryParams['status'] = status;
+      }
+
+      final url = '${ApiConfig.cases}absconded/';
+      final response = await _api.get(url, queryParameters: queryParams);
+
+      if (response.isSuccess) {
+        if (response.data is List) {
+          return List<Map<String, dynamic>>.from(response.data);
+        } else if (response.data is Map &&
+            response.data.containsKey('results')) {
+          return List<Map<String, dynamic>>.from(response.data['results']);
+        }
+      } else {
+        if (kDebugMode) {
+          debugPrint(
+            '[BackendCaseService] fetchAbscondedCases error: ${response.errorMessage}',
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] fetchAbscondedCases exception: $e');
+      }
+    }
+    return null;
+  }
+
+  Future<List<Map<String, dynamic>>?> fetchAbscondedIOWise({
+    String? startDate,
+    String? endDate,
+    String? status,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (startDate != null && startDate.isNotEmpty) {
+        queryParams['start_date'] = startDate;
+      }
+      if (endDate != null && endDate.isNotEmpty) {
+        queryParams['end_date'] = endDate;
+      }
+      if (status != null && status.isNotEmpty) {
+        queryParams['status'] = status;
+      }
+
+      final url = '${ApiConfig.cases}absconded/io-wise/';
+      final response = await _api.get(url, queryParameters: queryParams);
+
+      if (response.isSuccess && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data);
+      } else {
+        if (kDebugMode) {
+          debugPrint(
+            '[BackendCaseService] fetchAbscondedIOWise error: ${response.errorMessage}',
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] fetchAbscondedIOWise exception: $e');
+      }
+    }
+    return null;
+  }
+
+  Future<List<Map<String, dynamic>>?> fetchAbscondedTimeWise({
+    String? status,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (status != null && status.isNotEmpty) {
+        queryParams['status'] = status;
+      }
+      final url = '${ApiConfig.cases}absconded/time-wise/';
+      final response = await _api.get(url,
+          queryParameters: queryParams.isNotEmpty ? queryParams : null);
+      if (response.isSuccess && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data);
+      } else {
+        if (kDebugMode) {
+          debugPrint(
+            '[BackendCaseService] fetchAbscondedTimeWise error: ${response.errorMessage}',
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] fetchAbscondedTimeWise exception: $e');
+      }
+    }
+    return null;
+  }
+
   /// Fetch case-wise disposal records (Paginated)
   Future<Map<String, dynamic>?> fetchDisposalCases({
     String? ioUid,
@@ -698,6 +817,153 @@ class BackendCaseService {
     } catch (e) {
       if (kDebugMode) {
         debugPrint('[BackendCaseService] fetchArrestedTimeWise exception: $e');
+      }
+    }
+    return null;
+  }
+
+  // VICTIM API WRAPPERS
+  Future<List<Map<String, dynamic>>?> fetchVictimCases({
+    String? category,
+    String? startDate,
+    String? endDate,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (category != null && category.isNotEmpty) {
+        queryParams['category'] = category;
+      }
+      if (startDate != null && startDate.isNotEmpty) {
+        queryParams['start_date'] = startDate;
+      }
+      if (endDate != null && endDate.isNotEmpty) {
+        queryParams['end_date'] = endDate;
+      }
+
+      final url = '${ApiConfig.cases}victim/case-wise/';
+      final response = await _api.get(url, queryParameters: queryParams);
+
+      if (response.isSuccess) {
+        if (response.data is List) {
+          return List<Map<String, dynamic>>.from(response.data);
+        } else if (response.data is Map &&
+            response.data.containsKey('results')) {
+          return List<Map<String, dynamic>>.from(response.data['results']);
+        }
+      } else {
+        if (kDebugMode) {
+          debugPrint(
+              '[BackendCaseService] fetchVictimCases error: ${response.errorMessage}');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] fetchVictimCases exception: $e');
+      }
+    }
+    return null;
+  }
+
+  Future<List<Map<String, dynamic>>?> fetchVictimTimeWise() async {
+    try {
+      final url = '${ApiConfig.cases}victim/time-wise/';
+      final response = await _api.get(url);
+
+      if (response.isSuccess && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data);
+      } else {
+        if (kDebugMode) {
+          debugPrint(
+              '[BackendCaseService] fetchVictimTimeWise error: ${response.errorMessage}');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] fetchVictimTimeWise exception: $e');
+      }
+    }
+    return null;
+  }
+
+  Future<List<Map<String, dynamic>>?> fetchVictimIOWise() async {
+    try {
+      final url = '${ApiConfig.cases}victim/io-wise/';
+      final response = await _api.get(url);
+
+      if (response.isSuccess && response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data);
+      } else {
+        if (kDebugMode) {
+          debugPrint(
+              '[BackendCaseService] fetchVictimIOWise error: ${response.errorMessage}');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] fetchVictimIOWise exception: $e');
+      }
+    }
+    return null;
+  }
+
+  // Reference Data Endpoints for Acts & Charges
+  Future<Map<String, Map<String, dynamic>>?> fetchActDataMap() async {
+    try {
+      final actsResponse = await _api.get(ApiConfig.acts);
+      final sectionsResponse = await _api.get(ApiConfig.actSections);
+
+      if (actsResponse.isSuccess && sectionsResponse.isSuccess) {
+        final actsList =
+            List<Map<String, dynamic>>.from(actsResponse.data ?? []);
+        final sectionsList =
+            List<Map<String, dynamic>>.from(sectionsResponse.data ?? []);
+
+        final Map<String, Map<String, dynamic>> actData = {};
+
+        // 1. Group acts by act_code
+        for (var act in actsList) {
+          final code = act['act_code']?.toString() ??
+              act['act_name']?.toString() ??
+              'OTHER';
+          if (!actData.containsKey(code)) {
+            actData[code] = {
+              'label': act['act_name'] ?? code,
+              'hint': 'Dynamically loaded from database',
+              'sections': <Map<String, dynamic>>[],
+              '_act_id': act['act_id'],
+            };
+          }
+        }
+
+        // 2. Add sections to their respective acts
+        for (var sec in sectionsList) {
+          final actId = sec['act_id'];
+          final secNum = sec['section_number']?.toString() ?? '';
+          final secTitle = sec['section_title']?.toString() ?? '';
+
+          String? targetCode;
+          for (var entry in actData.entries) {
+            if (entry.value['_act_id'] == actId) {
+              targetCode = entry.key;
+              break;
+            }
+          }
+
+          if (targetCode != null) {
+            final list =
+                actData[targetCode]!['sections'] as List<Map<String, dynamic>>;
+            list.add({
+              'val': secNum,
+              'label': sec['display_name'] ?? '$secNum - $secTitle',
+              'cat': '${targetCode}_C${list.length + 1}',
+            });
+          }
+        }
+        return actData;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] fetchActDataMap exception: $e');
       }
     }
     return null;
