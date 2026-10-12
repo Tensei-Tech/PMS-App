@@ -587,9 +587,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
 
     int sectionIndex = 1;
 
-    for (final secKey in orderedSectionKeys) {
-      if (secKey == 'Acts & Sections Filed') {
-        sectionCards.add(_buildLegalChargesSection(sectionIndex++));
+    if (groupedBySection.isNotEmpty) {
+      for (final secKey in orderedSectionKeys) {
+        if (secKey == 'Acts & Sections Filed') {
+          sectionCards.add(_buildLegalChargesSection(sectionIndex++));
       } else if (secKey == 'Accused') {
         sectionCards.add(
           _AccusedBlock(
@@ -978,6 +979,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         }
       }
     }
+    }
 
     // Append any extra/unmapped sections from DB that were not in standard list
     for (final entry in groupedBySection.entries) {
@@ -997,6 +999,29 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             onValueChanged: (k, v) => setState(() => _values[k] = v),
             readOnly: widget.readOnly,
             accusedOptions: accusedOptions,
+          ),
+        );
+      }
+    }
+
+    // Render Custom Fields grouped by section
+    if (customFields.isNotEmpty) {
+      final Map<String, List<DynamicFieldDef>> groupedCustom = {};
+      for (final f in customFields) {
+        final sec = f.section ?? 'Custom Details';
+        groupedCustom.putIfAbsent(sec, () => []).add(f);
+      }
+      for (final entry in groupedCustom.entries) {
+        sectionCards.add(
+          DynamicSectionCard(
+            index: sectionIndex++,
+            title: entry.key,
+            icon: _iconForSection(entry.key),
+            fields: entry.value,
+            controllers: _controllers,
+            values: _values,
+            onValueChanged: (k, v) => setState(() => _values[k] = v),
+            readOnly: widget.readOnly,
           ),
         );
       }

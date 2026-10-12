@@ -98,6 +98,7 @@ def get_form_definition(
                 'is_required': f.is_required,
                 'section': getattr(f, 'section', None),
                 'display_order': f.display_order,
+                'config': f.field_config,
             })
 
     # 5. Master Acts & Sections

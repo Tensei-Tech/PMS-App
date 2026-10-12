@@ -53,6 +53,7 @@ class FieldTemplateField(models.Model):
     is_required = models.BooleanField(default=False)
     section = models.CharField(max_length=100, null=True, blank=True)
     display_order = models.IntegerField(default=0)
+    field_config = models.JSONField(null=True, blank=True)
 
     class Meta:
         db_table = 'field_template_fields'

@@ -9,6 +9,9 @@ import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
 import '../person_select_or_custom_field.dart';
 import 'dynamic_field_model.dart';
+import 'dependent_dropdown_field.dart';
+import 'repeater_field.dart';
+import 'searchable_multi_select.dart';
 
 class DynamicControlFactory extends StatelessWidget {
   final DynamicFieldDef fieldDef;
@@ -19,6 +22,7 @@ class DynamicControlFactory extends StatelessWidget {
   final List<String>? accusedOptions;
   final TextEditingController? dateController;
   final ValueChanged<String>? onDateChanged;
+  final Map<String, dynamic>? allValues;
 
   const DynamicControlFactory({
     super.key,
@@ -30,6 +34,7 @@ class DynamicControlFactory extends StatelessWidget {
     this.accusedOptions,
     this.dateController,
     this.onDateChanged,
+    this.allValues,
   });
 
   @override
@@ -59,6 +64,10 @@ class DynamicControlFactory extends StatelessWidget {
         return _buildChipsSelector(context);
       case 'file':
         return _buildFileField(context);
+      case 'dependent_dropdown':
+        return _buildDependentDropdownField(context);
+      case 'repeater':
+        return _buildRepeaterField(context);
       case 'text':
       default:
         return _buildTextField(context);
@@ -693,40 +702,55 @@ class DynamicControlFactory extends StatelessWidget {
     final opts = fieldDef.options.isNotEmpty
         ? fieldDef.options
         : ['Option 1', 'Option 2', 'Option 3'];
-    final currentVal = value?.toString() ?? controller?.text ?? '';
+    
+    List<String> currentValues = [];
+    if (value is List) {
+      currentValues = (value as List).map((e) => e.toString()).toList();
+    } else if (value is String && value.toString().isNotEmpty) {
+      currentValues = value.toString().split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+    } else if (controller?.text != null && controller!.text.isNotEmpty) {
+      currentValues = controller!.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildLabel(context),
-        Wrap(
-          spacing: 8,
-          runSpacing: 6,
-          children: opts.map((opt) {
-            final isSelected = opt == currentVal;
-            return ChoiceChip(
-              label: Text(
-                opt,
-                style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  color: isSelected ? Colors.white : AppColors.lightText,
-                ),
-              ),
-              selected: isSelected,
-              selectedColor: AppColors.navyMid,
-              backgroundColor: Colors.white,
-              onSelected: readOnly
-                  ? null
-                  : (selected) {
-                      final chosen = selected ? opt : '';
-                      controller?.text = chosen;
-                      onChanged?.call(chosen);
-                    },
-            );
-          }).toList(),
+        SearchableMultiSelect(
+          label: fieldDef.fieldLabel,
+          options: opts,
+          initialValues: currentValues,
+          readOnly: readOnly,
+          onChanged: (newValues) {
+            final newValString = newValues.join(', ');
+            controller?.text = newValString;
+            onChanged?.call(newValues);
+          },
         ),
       ],
+    );
+  }
+
+  Widget _buildDependentDropdownField(BuildContext context) {
+    return DependentDropdownField(
+      config: fieldDef.fieldConfig ?? {},
+      label: fieldDef.fieldLabel,
+      fieldKey: fieldDef.fieldKey,
+      value: value,
+      allValues: allValues,
+      onChanged: onChanged,
+      readOnly: readOnly,
+    );
+  }
+
+  Widget _buildRepeaterField(BuildContext context) {
+    return RepeaterField(
+      config: fieldDef.fieldConfig ?? {},
+      label: fieldDef.fieldLabel,
+      fieldKey: fieldDef.fieldKey,
+      value: value,
+      onChanged: onChanged,
+      readOnly: readOnly,
     );
   }
 

@@ -158,6 +158,7 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                                 widget.onValueChanged(f.fieldKey, val),
                             readOnly: widget.readOnly,
                             accusedOptions: widget.accusedOptions,
+                            allValues: widget.values,
                           ),
                         );
                       }).toList(),
@@ -176,7 +177,10 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                     if (f1.fieldType == 'textarea' ||
                         f1.fieldType == 'header' ||
                         f1.fieldType == 'checkbox' ||
-                        f1.fieldType == 'full_text') {
+                        f1.fieldType == 'full_text' ||
+                        f1.fieldType == 'repeater' ||
+                        f1.fieldType == 'dependent_dropdown' ||
+                        f1.fieldType == 'chips') {
                       items.add(
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12),
@@ -188,10 +192,39 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                                 widget.onValueChanged(f1.fieldKey, val),
                             readOnly: widget.readOnly,
                             accusedOptions: widget.accusedOptions,
+                            allValues: widget.values,
                           ),
                         ),
                       );
                       i -= 1; // Realign single step
+                      continue;
+                    }
+
+                    // If f2 is full width, f1 must take its own row so f2 can take the next row
+                    if (f2 != null &&
+                        (f2.fieldType == 'textarea' ||
+                            f2.fieldType == 'header' ||
+                            f2.fieldType == 'checkbox' ||
+                            f2.fieldType == 'full_text' ||
+                            f2.fieldType == 'repeater' ||
+                            f2.fieldType == 'dependent_dropdown' ||
+                            f2.fieldType == 'chips')) {
+                      items.add(
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: DynamicControlFactory(
+                            fieldDef: f1,
+                            controller: widget.controllers[f1.fieldKey],
+                            value: widget.values[f1.fieldKey],
+                            onChanged: (val) =>
+                                widget.onValueChanged(f1.fieldKey, val),
+                            readOnly: widget.readOnly,
+                            accusedOptions: widget.accusedOptions,
+                            allValues: widget.values,
+                          ),
+                        ),
+                      );
+                      i -= 1; // Realign so f2 becomes f1 in the next iteration
                       continue;
                     }
 
@@ -210,6 +243,7 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                                     widget.onValueChanged(f1.fieldKey, val),
                                 readOnly: widget.readOnly,
                                 accusedOptions: widget.accusedOptions,
+                                allValues: widget.values,
                               ),
                             ),
                             const SizedBox(width: 16),
@@ -224,6 +258,7 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                                           f2.fieldKey, val),
                                       readOnly: widget.readOnly,
                                       accusedOptions: widget.accusedOptions,
+                                      allValues: widget.values,
                                     )
                                   : const SizedBox.shrink(),
                             ),

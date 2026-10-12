@@ -554,7 +554,8 @@ class CaseService {
     final secList = sections ?? sectionIds;
     final cacheKey =
         '$categoryIdOrName:${caseId ?? ''}:${secList?.map((s) => s.toString()).join(',') ?? ''}';
-    if (!forceRefresh && _formDefCache.containsKey(cacheKey)) {
+    // Force refresh to bypass cache while developing dynamic forms
+    if (!forceRefresh && false /* _formDefCache.containsKey(cacheKey) */) {
       return _formDefCache[cacheKey];
     }
     try {
