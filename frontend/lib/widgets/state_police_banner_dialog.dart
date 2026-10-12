@@ -20,6 +20,7 @@ class StatePoliceBannerDialog extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      constraints: const BoxConstraints(maxWidth: 580),
       builder: (ctx) => StatePoliceBannerDialog(auth: auth),
     );
   }
@@ -58,27 +59,29 @@ class StatePoliceBannerDialog extends StatelessWidget {
     final servingMsg =
         '${TranslationHelper.translate(context, 'Serving')} ${branding.stateName} ${TranslationHelper.translate(context, 'State with Honor, Integrity, and Excellence. Integrated via Khakhi Diary Enterprise Portal.')}';
 
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.9,
-      ),
-      child: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 20,
-              offset: Offset(0, -6),
-            ),
-          ],
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 580,
+          maxHeight: MediaQuery.of(context).size.height * 0.9,
         ),
-        padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 24,
+                offset: Offset(0, 8),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
               // Drag handle indicator
               Container(
                 width: 44,
@@ -347,8 +350,9 @@ class StatePoliceBannerDialog extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _infoRow({
     required BuildContext context,

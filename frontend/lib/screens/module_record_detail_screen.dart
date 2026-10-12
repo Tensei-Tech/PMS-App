@@ -21,6 +21,7 @@ import '../widgets/send_reminder_dialog.dart';
 import '../utils/common_form_module.dart';
 import '../utils/module_pdf_helper.dart';
 import '../widgets/access_denied_view.dart';
+import '../widgets/dynamic_form/dynamic_form_screen.dart';
 import '../widgets/module_record_dynamic_document_view.dart';
 import 'ad_form_screen.dart';
 import 'common_form_screen.dart';
@@ -111,17 +112,33 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
       );
     }
 
+    if (_recordDeleted) {
+      return Scaffold(
+        backgroundColor: AppColors.lightBg,
+        body: _buildDeletedBody(context, isDark, statusColor, moduleLabel),
+      );
+    }
+
+    if (moduleUsesCommonCrimeForm(_record.moduleKey)) {
+      return DynamicFormScreen(
+        categoryId: _record.extraFields['categoryId'],
+        moduleLabel: moduleLabel,
+        moduleKey: _record.moduleKey,
+        subCategory: _record.subCategory,
+        existingRecord: _record,
+        readOnly: true,
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.lightBg,
-      body: _recordDeleted
-          ? _buildDeletedBody(context, isDark, statusColor, moduleLabel)
-          : CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                _buildAppBar(context, isDark, statusColor, moduleLabel),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          _buildAppBar(context, isDark, statusColor, moduleLabel),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

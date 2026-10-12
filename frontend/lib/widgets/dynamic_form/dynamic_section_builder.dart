@@ -18,8 +18,11 @@ class DynamicSectionCard extends StatefulWidget {
   final Function(String key, dynamic value) onValueChanged;
   final bool readOnly;
   final bool initiallyExpanded;
+  final bool? isExpanded;
+  final VoidCallback? onToggle;
   final List<String>? accusedOptions;
   final Widget? headerAction;
+  final int? sectionIndex;
 
   const DynamicSectionCard({
     super.key,
@@ -31,9 +34,12 @@ class DynamicSectionCard extends StatefulWidget {
     required this.values,
     required this.onValueChanged,
     this.readOnly = false,
-    this.initiallyExpanded = true,
+    this.initiallyExpanded = false,
+    this.isExpanded,
+    this.onToggle,
     this.accusedOptions,
     this.headerAction,
+    this.sectionIndex,
   });
 
   @override
@@ -41,12 +47,30 @@ class DynamicSectionCard extends StatefulWidget {
 }
 
 class _DynamicSectionCardState extends State<DynamicSectionCard> {
-  late bool _expanded;
+  bool _expanded = false;
+
+  bool get _isExpanded => widget.isExpanded ?? _expanded;
+
+  void _handleToggle() {
+    if (widget.onToggle != null) {
+      widget.onToggle!();
+    } else {
+      setState(() => _expanded = !_expanded);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _expanded = widget.initiallyExpanded;
+  }
+
+  @override
+  void didUpdateWidget(covariant DynamicSectionCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isExpanded != null && widget.isExpanded != _expanded) {
+      _expanded = widget.isExpanded!;
+    }
   }
 
   // Data-driven field dependency graph: child_field_key -> parent_field_key
@@ -110,10 +134,10 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
         children: [
           // Header Bar
           InkWell(
-            onTap: () => setState(() => _expanded = !_expanded),
+            onTap: _handleToggle,
             borderRadius: BorderRadius.vertical(
               top: const Radius.circular(AppRadius.lg),
-              bottom: Radius.circular(_expanded ? 0 : AppRadius.lg),
+              bottom: Radius.circular(_isExpanded ? 0 : AppRadius.lg),
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -126,8 +150,17 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                       color: AppColors.navyMid.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child:
-                        Icon(widget.icon, size: 20, color: AppColors.navyMid),
+                    alignment: Alignment.center,
+                    child: widget.sectionIndex != null
+                        ? Text(
+                            '${widget.sectionIndex}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.navyDark,
+                            ),
+                          )
+                        : Icon(widget.icon, size: 20, color: AppColors.navyMid),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -160,129 +193,150 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Icon(
-                    _expanded
-                        ? Icons.keyboard_arrow_up
-                        : Icons.keyboard_arrow_down,
-                    color: AppColors.navyMid,
+                  const SizedBox(width: 4),
+                  Tooltip(
+                    message: _isExpanded ? 'Collapse' : 'Expand',
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: AnimatedRotation(
+                        turns: _isExpanded ? 0.5 : 0.0,
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeInOutCubic,
+                        child: const Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          color: AppColors.navyMid,
+                          size: 22,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
           ),
 
-          // Fields Grid / Column
-          if (_expanded) ...[
-            const Divider(height: 1, color: AppColors.lightBorder),
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final isWide = constraints.maxWidth > 600;
-                  Widget buildControl(DynamicFieldDef f) {
-                    final dateKey = '${f.fieldKey}_date';
-                    final dateCtrl = widget.controllers.putIfAbsent(
-                      dateKey,
-                      () => TextEditingController(
-                        text: widget.values[dateKey]?.toString() ?? '',
-                      ),
-                    );
-                    if (widget.values[dateKey] != null &&
-                        dateCtrl.text.isEmpty) {
-                      dateCtrl.text = widget.values[dateKey].toString();
-                    }
-
-                    final fieldCtrl = widget.controllers.putIfAbsent(
-                      f.fieldKey,
-                      () => TextEditingController(
-                        text: widget.values[f.fieldKey]?.toString() ?? '',
-                      ),
-                    );
-                    if (widget.values[f.fieldKey] != null &&
-                        fieldCtrl.text.isEmpty) {
-                      fieldCtrl.text = widget.values[f.fieldKey].toString();
-                    }
-
-                    return DynamicControlFactory(
-                      fieldDef: f,
-                      controller: fieldCtrl,
-                      value: widget.values[f.fieldKey],
-                      onChanged: (val) {
-                        widget.onValueChanged(f.fieldKey, val);
-                        if (mounted) setState(() {});
-                      },
-                      readOnly: widget.readOnly,
-                      accusedOptions: widget.accusedOptions,
-                      dateController: dateCtrl,
-                      onDateChanged: (val) {
-                        widget.onValueChanged(dateKey, val);
-                        if (mounted) setState(() {});
-                      },
-                    );
-                  }
-
-                  if (!isWide) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: visibleFields.map((f) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: buildControl(f),
+          // Fields Grid / Column with smooth AnimatedCrossFade
+          AnimatedCrossFade(
+            firstChild: const SizedBox(width: double.infinity, height: 0),
+            secondChild: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Divider(height: 1, color: AppColors.lightBorder),
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isWide = constraints.maxWidth > 600;
+                      Widget buildControl(DynamicFieldDef f) {
+                        final dateKey = '${f.fieldKey}_date';
+                        final dateCtrl = widget.controllers.putIfAbsent(
+                          dateKey,
+                          () => TextEditingController(
+                            text: widget.values[dateKey]?.toString() ?? '',
+                          ),
                         );
-                      }).toList(),
-                    );
-                  }
+                        if (widget.values[dateKey] != null &&
+                            dateCtrl.text.isEmpty) {
+                          dateCtrl.text = widget.values[dateKey].toString();
+                        }
 
-                  // 2-Column Responsive Grid on wider screens
-                  final items = <Widget>[];
-                  for (var i = 0; i < visibleFields.length; i += 2) {
-                    final f1 = visibleFields[i];
-                    final f2 = (i + 1 < visibleFields.length)
-                        ? visibleFields[i + 1]
-                        : null;
+                        final fieldCtrl = widget.controllers.putIfAbsent(
+                          f.fieldKey,
+                          () => TextEditingController(
+                            text: widget.values[f.fieldKey]?.toString() ?? '',
+                          ),
+                        );
+                        if (widget.values[f.fieldKey] != null &&
+                            fieldCtrl.text.isEmpty) {
+                          fieldCtrl.text = widget.values[f.fieldKey].toString();
+                        }
 
-                    // If f1 is textarea, give it full row width
-                    if (f1.fieldType == 'textarea') {
-                      items.add(
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: buildControl(f1),
-                        ),
-                      );
-                      i -= 1; // Realign single step
-                      continue;
-                    }
+                        return DynamicControlFactory(
+                          fieldDef: f,
+                          controller: fieldCtrl,
+                          value: widget.values[f.fieldKey],
+                          onChanged: (val) {
+                            widget.onValueChanged(f.fieldKey, val);
+                            if (mounted) setState(() {});
+                          },
+                          readOnly: widget.readOnly,
+                          accusedOptions: widget.accusedOptions,
+                          dateController: dateCtrl,
+                          onDateChanged: (val) {
+                            widget.onValueChanged(dateKey, val);
+                            if (mounted) setState(() {});
+                          },
+                        );
+                      }
 
-                    items.add(
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Row(
+                      if (!isWide) {
+                        return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
+                          children: visibleFields.map((f) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: buildControl(f),
+                            );
+                          }).toList(),
+                        );
+                      }
+
+                      // 2-Column Responsive Grid on wider screens
+                      final items = <Widget>[];
+                      for (var i = 0; i < visibleFields.length; i += 2) {
+                        final f1 = visibleFields[i];
+                        final f2 = (i + 1 < visibleFields.length)
+                            ? visibleFields[i + 1]
+                            : null;
+
+                        // If f1 is textarea, give it full row width
+                        if (f1.fieldType == 'textarea') {
+                          items.add(
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
                               child: buildControl(f1),
                             ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: f2 != null
-                                  ? buildControl(f2)
-                                  : const SizedBox.shrink(),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }
+                          );
+                          i -= 1; // Realign single step
+                          continue;
+                        }
 
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: items,
-                  );
-                },
-              ),
+                        items.add(
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: buildControl(f1),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: f2 != null
+                                      ? buildControl(f2)
+                                      : const SizedBox.shrink(),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: items,
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
+            crossFadeState: _isExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 250),
+            sizeCurve: Curves.easeInOutCubic,
+          ),
         ],
       ),
     );

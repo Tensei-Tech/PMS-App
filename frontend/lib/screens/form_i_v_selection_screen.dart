@@ -19,7 +19,6 @@ import '../utils/translation_helper.dart';
 import '../widgets/form_iv_category_button.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
 import '../widgets/dynamic_form/dynamic_form_screen.dart';
-import 'module_record_detail_screen.dart';
 
 /// Controls where a Form I-V category tap navigates.
 enum FormIVSelectionMode {
@@ -1069,7 +1068,9 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
   }
 
   void _openForm(String category,
-      {ModuleRecord? existingRecord, dynamic categoryId}) async {
+      {ModuleRecord? existingRecord,
+      dynamic categoryId,
+      bool readOnly = false}) async {
     final result = await Navigator.push(
       context,
       AppTheme.fadeSlideRoute(
@@ -1079,7 +1080,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
           moduleKey: widget.moduleKey ?? 'form_1_5',
           subCategory: category,
           existingRecord: existingRecord,
-          readOnly: _readOnly && existingRecord != null,
+          readOnly: readOnly || (_readOnly && existingRecord != null),
         ),
       ),
     );
@@ -2008,16 +2009,13 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                                   : record.title,
                               existingRecord: record,
                             ),
-                            onView: () {
-                              Navigator.push(
-                                context,
-                                AppTheme.fadeSlideRoute(
-                                  page: ModuleRecordDetailScreen(
-                                    record: record,
-                                  ),
-                                ),
-                              );
-                            },
+                            onView: () => _openForm(
+                              record.subCategory?.isNotEmpty == true
+                                  ? record.subCategory!
+                                  : record.title,
+                              existingRecord: record,
+                              readOnly: true,
+                            ),
                           );
                         },
                       ),
