@@ -8148,18 +8148,19 @@ class _CalendarTabState extends State<_CalendarTab> {
   Widget _buildReportTile(_CalCategoryMeta meta) {
     return GestureDetector(
       onTap: () {
-                          if (meta.moduleKey.toLowerCase() == 'itsso' || meta.label.toUpperCase() == 'ITSSO') {
-                            Navigator.push(
-                              context,
-                              AppTheme.fadeSlideRoute(
-                                  page: ItssoHubScreen(stationName: 'All Stations')),
-                            );
-                            return;
-                          }
-                          Navigator.push(
-                            context,
-                            AppTheme.fadeSlideRoute(
-                                page: ModuleHubScreen(
+        if (meta.moduleKey.toLowerCase() == 'itsso' ||
+            meta.label.toUpperCase() == 'ITSSO') {
+          Navigator.push(
+            context,
+            AppTheme.fadeSlideRoute(
+                page: const ItssoHubScreen(stationName: 'All Stations')),
+          );
+          return;
+        }
+        Navigator.push(
+            context,
+            AppTheme.fadeSlideRoute(
+                page: ModuleHubScreen(
               moduleLabel: meta.label,
               moduleKey: meta.moduleKey,
               subCategory: meta.subCategory,

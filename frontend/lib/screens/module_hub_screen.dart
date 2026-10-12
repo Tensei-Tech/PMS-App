@@ -488,7 +488,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   Widget build(BuildContext context) {
     if (widget.moduleKey.toLowerCase() == 'itsso') {
       // Return the new ItssOHubScreen instead of the default module list
-      return ItssoHubScreen(stationName: 'All Stations');
+      return const ItssoHubScreen(stationName: 'All Stations');
     }
     if (widget.moduleKey == 'hurt') {
       return HurtCasesScreen(readOnly: widget.readOnly);
