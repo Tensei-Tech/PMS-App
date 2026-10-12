@@ -1580,3 +1580,62 @@ class ItssoTimeWiseView(APIView):
             {'period': 'Under 3 months (Total)', 'count': under_1_month + months_1_to_3}
         ]
         return Response(results)
+
+
+class ItssoActionView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        try:
+            case = CaseRecord.objects.get(pk=pk)
+            # Make sure it's a POCSO case
+            mod = str(case.module_key or '').lower()
+            sub = str(case.sub_category or '').lower()
+            if 'pocso' not in mod and 'pocso' not in sub:
+                return Response({'error': 'Not a POCSO case.'}, status=status.HTTP_400_BAD_REQUEST)
+                
+            from apps.users.models import NotificationRecord
+            
+            target_uid = case.assigned_officer_uid
+            officer_name = case.assigned_officer or 'Investigating Officer'
+            
+            if not target_uid:
+                # Fallback: maybe we want to notify by station if no IO is assigned
+                pass
+
+            title = f"Action Required: Charge Sheet Pending for {case.case_number}"
+            body = f"Please update the Charge Sheet Number for POCSO case {case.case_number} registered at {case.station_name} immediately."
+            
+            NotificationRecord.objects.create(
+                target_user_uid=target_uid,
+                target_station_name=case.station_name,
+                title=title,
+                body=body,
+                category='reminder',
+                registration_uid=case.case_number,
+                status='pending'
+            )
+            
+            # Optional: Log the action in AuditLog
+            from apps.core.models import AuditLog
+            AuditLog.objects.create(
+                event='action_taken_on_case',
+                category='case',
+                uid=request.user.pk,
+                user_name=getattr(request.user, 'name', ''),
+                user_role=getattr(request.user, 'role', ''),
+                station_name=getattr(request.user, 'station_name', ''),
+                action_details=f"Reminder sent to IO for case {case.case_number}",
+                metadata={'case_id': str(case.pk), 'assigned_officer_uid': target_uid}
+            )
+            
+            return Response({'status': 'success', 'message': 'Reminder sent to IO.'})
+            
+        except CaseRecord.DoesNotExist:
+            return Response({'error': 'Case not found.'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.exception(f"[ItssoActionView] Error: {e}")
+            return Response({'error': 'Failed to send action.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+

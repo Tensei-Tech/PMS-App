@@ -147,9 +147,9 @@ class _ItssoHubScreenState extends State<ItssoHubScreen> with SingleTickerProvid
                       minimumSize: const Size(80, 30),
                     ),
                     onPressed: () {
-                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Action taken on case ${caseItem['case_number']}")));
+                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Reminder sent to IO for case ${caseItem['case_number']}")));
                     },
-                    child: Text('Action', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold)),
+                    child: Text('Remind to IO', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold)),
                   )
                 : const Text('-'),
               ),

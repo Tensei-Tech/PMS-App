@@ -22,6 +22,7 @@ from apps.cases.views import (
     ItssoCasesView,
     ItssoIOWiseView,
     ItssoTimeWiseView,
+    ItssoActionView,
     CrimeTypeListView,
     CasesByCrimeTypeView,
     SectionsByCrimeTypeView,
@@ -96,5 +97,6 @@ urlpatterns = [
     path('itsso/cases/', ItssoCasesView.as_view(), name='itsso-cases'),
     path('itsso/io-wise/', ItssoIOWiseView.as_view(), name='itsso-io-wise'),
     path('itsso/time-wise/', ItssoTimeWiseView.as_view(), name='itsso-time-wise'),
+    path('itsso/cases/<str:pk>/action/', ItssoActionView.as_view(), name='itsso-action'),
 ]
 

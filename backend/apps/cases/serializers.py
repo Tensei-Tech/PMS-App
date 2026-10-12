@@ -478,7 +478,7 @@ class ItssoCaseRecordSerializer(serializers.ModelSerializer):
         return 'Green' if self._has_charge_sheet(obj) else 'Red'
 
     def get_itsso_status(self, obj):
-        return 'Disposed' if self._has_charge_sheet(obj) else 'Pending'
+        return 'Chargesheeted' if self._has_charge_sheet(obj) else 'Pending'
 
     def get_days_passed(self, obj):
         reg_date = obj.created_at.date() if obj.created_at else timezone.now().date()
@@ -488,4 +488,4 @@ class ItssoCaseRecordSerializer(serializers.ModelSerializer):
         # Red button logic: >60 days and no chargesheet
         reg_date = obj.created_at.date() if obj.created_at else timezone.now().date()
         days_passed = (timezone.now().date() - reg_date).days
-        return days_passed > 60 and not self._has_charge_sheet(obj)
+        return not self._has_charge_sheet(obj)

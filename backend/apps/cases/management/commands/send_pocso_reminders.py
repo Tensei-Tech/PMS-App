@@ -47,11 +47,13 @@ class Command(BaseCommand):
                         io_users = User.objects.filter(Q(name__iexact=io_name) | Q(username__iexact=io_name))
                         for io_user in io_users:
                             NotificationRecord.objects.create(
-                                recipient=io_user,
+                                target_user_uid=str(io_user.pk),
+                                target_station_name=case.station_name,
                                 title=f"POCSO Alert: CR No {case.case_number}",
-                                message=f"This POCSO case has crossed {days_passed} days without a Charge Sheet No.",
+                                body=f"This POCSO case has crossed {days_passed} days without a Charge Sheet No.",
                                 category='reminder',
-                                related_case_id=case.id,
+                                registration_uid=case.case_number,
+                                status='pending',
                                 is_read=False
                             )
                             reminders_sent += 1
