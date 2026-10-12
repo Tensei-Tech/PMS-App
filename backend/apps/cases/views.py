@@ -261,7 +261,7 @@ class CaseRecordViewSet(viewsets.ModelViewSet):
 # ------------------------------------------------------------------------------
 
 class PendingCasesView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         try:
@@ -307,7 +307,7 @@ class PendingCasesView(APIView):
             return Response({'error': 'Failed to retrieve pending cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class IOWisePendingView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         try:
@@ -348,7 +348,7 @@ class IOWisePendingView(APIView):
             return Response({'error': 'Failed to retrieve IO-wise counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class TimeWisePendingView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         try:
@@ -390,7 +390,7 @@ class TimeWisePendingView(APIView):
             return Response({'error': 'Failed to retrieve Time-wise counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class UndetectedCasesView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         try:
@@ -452,7 +452,7 @@ class UndetectedCasesView(APIView):
 
 
 class UndetectedIOWiseView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         try:
@@ -500,7 +500,7 @@ class UndetectedIOWiseView(APIView):
 
 
 class UndetectedTimeWiseView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         try:
@@ -552,7 +552,7 @@ class UndetectedTimeWiseView(APIView):
 
 
 class AbscondedCasesView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         try:
@@ -615,7 +615,7 @@ class AbscondedCasesView(APIView):
 
 
 class AbscondedIOWiseView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         try:
@@ -663,7 +663,7 @@ class AbscondedIOWiseView(APIView):
 
 
 class AbscondedTimeWiseView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         try:
@@ -712,7 +712,7 @@ class AbscondedTimeWiseView(APIView):
 
 
 class DisposalCaseWiseView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         try:
@@ -804,7 +804,7 @@ class DisposalCaseWiseView(APIView):
             return Response({'error': 'Failed to retrieve disposal cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class TimeWiseDisposalView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         try:
@@ -877,7 +877,7 @@ class TimeWiseDisposalView(APIView):
             return Response({'error': 'Failed to retrieve Time-wise disposal.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class DesignationWiseDisposalView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         try:
@@ -919,7 +919,7 @@ class DesignationWiseDisposalView(APIView):
             return Response({'error': 'Failed to retrieve IO-wise counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class DisposalCrimeTypeWiseView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         try:
@@ -971,7 +971,7 @@ class DisposalCrimeTypeWiseView(APIView):
 
 
 class CasesByCrimeTypeView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request, crime_type):
         try:
@@ -998,7 +998,7 @@ class CasesByCrimeTypeView(APIView):
 
 
 class CrimeTypeListView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         try:
@@ -1012,7 +1012,7 @@ class CrimeTypeListView(APIView):
 
 
 class SectionsByCrimeTypeView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request, crime_type):
         try:
@@ -1065,7 +1065,7 @@ class CreateCaseView(APIView):
 
 
 class DetectedCasesView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         try:
@@ -1093,7 +1093,7 @@ class DetectedCasesView(APIView):
             return Response({'error': 'Failed to retrieve detected cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class IOWiseDetectedView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         try:
@@ -1132,7 +1132,7 @@ class IOWiseDetectedView(APIView):
             return Response({'error': 'Failed to retrieve IO-wise detected counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class TimeWiseDetectedView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         try:
@@ -1288,7 +1288,7 @@ class TimeWiseArrestedView(TimeWisePendingView):
             return Response({'error': 'Failed to retrieve Time-wise arrested counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class VictimCaseWiseView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         try:
@@ -1333,7 +1333,7 @@ class VictimCaseWiseView(APIView):
             return Response({'error': 'Failed to retrieve victim cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class VictimStatsView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         try:
@@ -1345,8 +1345,6 @@ class VictimStatsView(APIView):
                 stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                 queryset = queryset.filter(station_name__in=stations)
 
-            # Simple mock aggregation or DB aggregation based on the JSON structure.
-            # In a full implementation, you'd parse `victim_details` or `victims` from `extra_fields`.
             stats = {
                 'gender': {'male': 0, 'female': 0, 'other': 0},
                 'age': {'minor': 0, 'adult': 0, 'senior': 0},
@@ -1358,14 +1356,86 @@ class VictimStatsView(APIView):
                 'traced': 0,
                 'pending_tracing': 0,
             }
-            
+
+            for case in queryset:
+                mod = str(case.module_key or '').lower()
+                status_str = str(case.status or '').lower()
+                sub = str(case.sub_category or '').lower()
+                if mod in ['missing', 'kidnapping'] or 'missing' in sub or 'kidnapping' in sub:
+                    stats['missing'] += 1
+                    if status_str in ['detected', 'disposal', 'disposed', 'closed', 'resolved']:
+                        stats['traced'] += 1
+                    else:
+                        stats['pending_tracing'] += 1
+
+                extra = case.extra_fields if isinstance(case.extra_fields, dict) else {}
+                cf = extra.get('commonForm', {}) if isinstance(extra.get('commonForm'), dict) else {}
+                
+                victim_list = cf.get('victims') or extra.get('victims') or []
+                if isinstance(victim_list, list) and victim_list:
+                    for v in victim_list:
+                        if not isinstance(v, dict):
+                            continue
+                        # Gender
+                        g = str(v.get('gender') or v.get('victim_gender') or '').lower().strip()
+                        if g in ['male', 'm', 'पुरुष']:
+                            stats['gender']['male'] += 1
+                        elif g in ['female', 'f', 'स्त्री', 'महिला']:
+                            stats['gender']['female'] += 1
+                        elif g:
+                            stats['gender']['other'] += 1
+
+                        # Age
+                        raw_age = v.get('age') or v.get('victim_age')
+                        try:
+                            age_int = int(str(raw_age).strip())
+                            if age_int < 18:
+                                stats['age']['minor'] += 1
+                            elif age_int >= 60:
+                                stats['age']['senior'] += 1
+                            else:
+                                stats['age']['adult'] += 1
+                        except (ValueError, TypeError):
+                            pass
+
+                        # PWD & Mentally vulnerable
+                        if v.get('pwd') is True or str(v.get('pwd', '')).lower() in ['yes', 'y', 'true']:
+                            stats['pwd'] += 1
+                        if v.get('mentally_vulnerable') is True or str(v.get('mentally_vulnerable', '')).lower() in ['yes', 'y', 'true']:
+                            stats['mentally_vulnerable'] += 1
+
+                        # Condition
+                        cond = str(v.get('status') or v.get('condition') or v.get('injured_deceased') or v.get('health_status') or '').lower()
+                        if 'injur' in cond or 'जखमी' in cond:
+                            stats['injured'] += 1
+                        elif 'deceas' in cond or 'dead' in cond or 'मृत' in cond:
+                            stats['deceased'] += 1
+                else:
+                    g = str(cf.get('victim_gender') or extra.get('victim_gender') or '').lower().strip()
+                    if g in ['male', 'm', 'पुरुष']:
+                        stats['gender']['male'] += 1
+                    elif g in ['female', 'f', 'स्त्री', 'महिला']:
+                        stats['gender']['female'] += 1
+
+                    raw_age = cf.get('victim_age') or extra.get('victim_age')
+                    try:
+                        age_int = int(str(raw_age).strip())
+                        if age_int < 18:
+                            stats['age']['minor'] += 1
+                        elif age_int >= 60:
+                            stats['age']['senior'] += 1
+                        else:
+                            stats['age']['adult'] += 1
+                    except (ValueError, TypeError):
+                        pass
+
             return Response({'stats': stats, 'total_cases': queryset.count()})
         except Exception as e:
             logger.exception(f"[VictimStatsView] Database error: {e}")
             return Response({'error': 'Failed to retrieve victim stats.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class VictimTimeWiseView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         try:
@@ -1406,7 +1476,7 @@ class VictimTimeWiseView(APIView):
             return Response({'error': 'Failed to retrieve Time-wise victim counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class VictimIOWiseView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         try:
@@ -1441,7 +1511,7 @@ class VictimIOWiseView(APIView):
 from apps.cases.serializers import ItssoCaseRecordSerializer
 
 class ItssoCasesView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         from django.db.models import Q
@@ -1500,7 +1570,7 @@ class ItssoCasesView(APIView):
 
 
 class ItssoIOWiseView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         from django.db.models import Q, Count
@@ -1536,7 +1606,7 @@ class ItssoIOWiseView(APIView):
         return Response(results)
 
 class ItssoTimeWiseView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         from django.db.models import Q
@@ -1583,7 +1653,7 @@ class ItssoTimeWiseView(APIView):
 
 
 class ItssoActionView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def post(self, request, pk):
         try:
