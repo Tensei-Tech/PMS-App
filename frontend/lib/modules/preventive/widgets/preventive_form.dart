@@ -2,6 +2,7 @@
 // Dedicated Preventive & Istegasha Entry Form matching Form 1 to 5 styling.
 
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -94,9 +95,9 @@ class PreventiveFormState extends State<PreventiveForm> {
   // 1. Case & Crime Reference
   final _crimeNoCtrl = TextEditingController();
   final _regDateCtrl = TextEditingController();
-  String _crimeCategory = 'Theft';
+  String _crimeCategory = '';
   final _customCrimeCategoryCtrl = TextEditingController();
-  String _caseStatus = 'Under Investigation';
+  String _caseStatus = '';
 
   // 2. Sections & Acts
   String _selectedAct = 'BNS';
@@ -105,33 +106,99 @@ class PreventiveFormState extends State<PreventiveForm> {
   final _otherSectionsCtrl = TextEditingController();
 
   Map<String, Map<String, dynamic>> _actsData = {};
-  List<String> _preventiveActsList = List.from(_kPreventiveSectionActs);
+  List<String> _preventiveActsList = [];
+  List<String> _crimeCategories = [];
+  List<String> _caseStatuses = [];
+  List<String> _riskFlags = [];
+  List<String> _actionStatuses = [];
+  bool _isLoadingConfig = true;
 
   Map<String, Map<String, dynamic>> get _activeActsData =>
       _actsData.isNotEmpty ? _actsData : ACT_DATA;
-  List<String> get _activePreventiveSectionActs =>
-      _preventiveActsList.isNotEmpty
-          ? _preventiveActsList
-          : _kPreventiveSectionActs;
+  List<String> get _activePreventiveSectionActs => _preventiveActsList;
 
   Future<void> _loadFormDefinition() async {
-    final catId = widget.categoryId ?? 'Preventive';
-    final def = await CaseService().fetchFormDefinition(catId);
-    if (def != null && mounted) {
-      setState(() {
-        if (def['acts_sections'] is Map) {
-          final acts = Map<String, dynamic>.from(def['acts_sections'] as Map);
-          _actsData = acts
-              .map((k, v) => MapEntry(k, Map<String, dynamic>.from(v as Map)));
-        }
-        if (def['preventive_items'] is List) {
-          final items = (def['preventive_items'] as List)
-              .map((e) => e.toString())
-              .toList();
-          if (!items.contains('Other')) items.add('Other');
-          _preventiveActsList = items;
-        }
-      });
+    try {
+      final catId = widget.categoryId ?? 'Preventive';
+      final def = await CaseService().fetchPreventiveConfig() ??
+          await CaseService().fetchFormDefinition(catId);
+      if (def != null && mounted) {
+        setState(() {
+          if (def['acts_sections'] is Map) {
+            final acts = Map<String, dynamic>.from(def['acts_sections'] as Map);
+            _actsData = acts
+                .map((k, v) => MapEntry(k, Map<String, dynamic>.from(v as Map)));
+          }
+          final items =
+              (def['preventive_acts'] ?? def['preventive_items']) as List?;
+          if (items != null) {
+            _preventiveActsList = items
+                .map((e) => e.toString().trim())
+                .where((e) => e.isNotEmpty)
+                .toList();
+            if (!_preventiveActsList.contains('Other')) {
+              _preventiveActsList.add('Other');
+            }
+          }
+
+          if (def['crime_categories'] is List) {
+            _crimeCategories = (def['crime_categories'] as List)
+                .map((e) => e.toString().trim())
+                .where((e) => e.isNotEmpty)
+                .toList();
+            if (!_crimeCategories.contains('Other')) {
+              _crimeCategories.add('Other');
+            }
+          }
+
+          if (def['case_statuses'] is List) {
+            _caseStatuses = (def['case_statuses'] as List)
+                .map((e) => e.toString().trim())
+                .where((e) => e.isNotEmpty)
+                .toList();
+          }
+
+          if (def['risk_flags'] is List) {
+            _riskFlags = (def['risk_flags'] as List)
+                .map((e) => e.toString().trim())
+                .where((e) => e.isNotEmpty)
+                .toList();
+          }
+
+          if (def['action_statuses'] is List) {
+            _actionStatuses = (def['action_statuses'] as List)
+                .map((e) => e.toString().trim())
+                .where((e) => e.isNotEmpty)
+                .toList();
+          }
+
+          if (_crimeCategory.isEmpty && _crimeCategories.isNotEmpty) {
+            _crimeCategory = _crimeCategories.first;
+          }
+          if (_caseStatus.isEmpty && _caseStatuses.isNotEmpty) {
+            _caseStatus = _caseStatuses.first;
+          }
+          if (_preventiveSectionAct.isEmpty && _preventiveActsList.isNotEmpty) {
+            _preventiveSectionAct = _preventiveActsList.first;
+          }
+          if (_riskFlag.isEmpty && _riskFlags.isNotEmpty) {
+            _riskFlag = _riskFlags.first;
+          }
+          if (_preventiveActionStatus.isEmpty && _actionStatuses.isNotEmpty) {
+            _preventiveActionStatus = _actionStatuses.first;
+          }
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[PreventiveForm] _loadFormDefinition error: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingConfig = false;
+        });
+      }
     }
   }
 
@@ -141,7 +208,7 @@ class PreventiveFormState extends State<PreventiveForm> {
   ];
 
   // 4. Preventive / Istegasha Details
-  String _preventiveSectionAct = '107 Crpc/126 BNSS';
+  String _preventiveSectionAct = '';
   final _customPreventiveSectionActCtrl = TextEditingController();
   final _preventiveNoCtrl = TextEditingController();
   final _preventiveDateCtrl = TextEditingController();
@@ -149,9 +216,8 @@ class PreventiveFormState extends State<PreventiveForm> {
   final _ioNameCtrl = TextEditingController();
 
   // 5. Risk Flag & Action Status
-  String _riskFlag = '🚨 High Priority'; // '🚨 High Priority', '🛑 Sensitive'
-  String _preventiveActionStatus = '🟢 Preventive Action Completed';
-  // '🟢 Preventive Action Completed', '🟡 Partially Completed', '🔴 No Preventive Action Recorded'
+  String _riskFlag = '';
+  String _preventiveActionStatus = '';
   final _remarksCtrl = TextEditingController();
 
   // Active Voice Dictation State
@@ -169,53 +235,6 @@ class PreventiveFormState extends State<PreventiveForm> {
       });
     }
   }
-
-  static const List<String> _kPreventiveSectionActs = [
-    '107 Crpc/126 BNSS',
-    '109 Crpc/128 BNSS',
-    '110 Crpc/129 BNSS',
-    '151 (3) Crpc/170(3) BNSS',
-    '55 to 57 B P Act',
-    'U/s 122 B P Act',
-    'U/s 124 B P Act',
-    '142 B P Act',
-    'M H O R',
-    '93 Pro Act',
-    'N S A',
-    'M P D A',
-    'M.C.O.C.A.',
-    'Other',
-  ];
-
-  static const List<String> _kCrimeCategories = [
-    'Theft',
-    'Assault',
-    'Cyber',
-    'POCSO',
-    'NDPS',
-    'Hurt',
-    'Murder',
-    'Robbery',
-    'Gambling',
-    'Prohibition',
-    'Other',
-  ];
-
-  static const List<String> _kCaseStatuses = [
-    'Under Investigation',
-    'Chargesheeted',
-  ];
-
-  static const List<String> _kRiskFlags = [
-    '🚨 High Priority',
-    '🛑 Sensitive',
-  ];
-
-  static const List<String> _kActionStatuses = [
-    '🟢 Preventive Action Completed',
-    '🟡 Partially Completed',
-    '🔴 No Preventive Action Recorded',
-  ];
 
   @override
   void initState() {
@@ -356,19 +375,29 @@ class PreventiveFormState extends State<PreventiveForm> {
           '';
       _regDateCtrl.text = caseRef['regDate']?.toString() ?? '';
 
-      final cat = caseRef['crimeCategory']?.toString() ?? 'Theft';
-      if (_kCrimeCategories.contains(cat)) {
+      final cat = caseRef['crimeCategory']?.toString() ??
+          doc['subCategory']?.toString() ??
+          doc['sub_category']?.toString() ??
+          doc['crimeCategory']?.toString() ??
+          '';
+      if (_crimeCategories.contains(cat)) {
         _crimeCategory = cat;
         _customCrimeCategoryCtrl.clear();
-      } else {
+      } else if (cat.isNotEmpty) {
         _crimeCategory = 'Other';
         _customCrimeCategoryCtrl.text = cat;
+      } else if (_crimeCategories.isNotEmpty) {
+        _crimeCategory = _crimeCategories.first;
       }
 
       final st =
           caseRef['caseStatus']?.toString() ?? doc['status']?.toString() ?? '';
-      if (_kCaseStatuses.contains(st)) {
+      if (_caseStatuses.contains(st)) {
         _caseStatus = st;
+      } else if (st.isNotEmpty) {
+        _caseStatus = st;
+      } else if (_caseStatuses.isNotEmpty) {
+        _caseStatus = _caseStatuses.first;
       }
 
       final psa = istegasha['preventiveSectionAct']?.toString() ??
@@ -380,15 +409,15 @@ class PreventiveFormState extends State<PreventiveForm> {
           istegasha['act']?.toString() ??
           '';
       if (psa.isNotEmpty) {
-        if (_kPreventiveSectionActs.contains(psa)) {
+        if (_preventiveActsList.contains(psa)) {
           _preventiveSectionAct = psa;
           _customPreventiveSectionActCtrl.clear();
         } else {
           _preventiveSectionAct = 'Other';
           _customPreventiveSectionActCtrl.text = psa;
         }
-      } else {
-        _preventiveSectionAct = '107 Crpc/126 BNSS';
+      } else if (_preventiveActsList.isNotEmpty) {
+        _preventiveSectionAct = _preventiveActsList.first;
         _customPreventiveSectionActCtrl.clear();
       }
 
@@ -435,23 +464,24 @@ class PreventiveFormState extends State<PreventiveForm> {
       final rf = riskAndStatus['riskFlag']?.toString() ??
           doc['priority']?.toString() ??
           '';
-      if (_kRiskFlags.contains(rf)) {
+      if (_riskFlags.contains(rf)) {
         _riskFlag = rf;
-      } else if (rf.toLowerCase().contains('high')) {
-        _riskFlag = '🚨 High Priority';
-      } else if (rf.toLowerCase().contains('sensitive')) {
-        _riskFlag = '🛑 Sensitive';
+      } else if (rf.isNotEmpty) {
+        _riskFlag = rf;
+      } else if (_riskFlags.isNotEmpty) {
+        _riskFlag = _riskFlags.first;
       }
 
       final actSt = riskAndStatus['actionStatus']?.toString() ??
           doc['actionStatus']?.toString() ??
+          doc['action_status']?.toString() ??
           '';
-      if (_kActionStatuses.contains(actSt)) {
+      if (_actionStatuses.contains(actSt)) {
         _preventiveActionStatus = actSt;
-      } else if (actSt.toLowerCase().contains('partial')) {
-        _preventiveActionStatus = '🟡 Partially Completed';
-      } else if (actSt.toLowerCase().contains('no')) {
-        _preventiveActionStatus = '🔴 No Preventive Action Recorded';
+      } else if (actSt.isNotEmpty) {
+        _preventiveActionStatus = actSt;
+      } else if (_actionStatuses.isNotEmpty) {
+        _preventiveActionStatus = _actionStatuses.first;
       }
 
       _remarksCtrl.text = riskAndStatus['remarks']?.toString() ??
@@ -466,12 +496,14 @@ class PreventiveFormState extends State<PreventiveForm> {
     setState(() {
       _crimeNoCtrl.clear();
       _regDateCtrl.text = DateFormat('dd/MM/yyyy').format(DateTime.now());
-      _crimeCategory = 'Theft';
+      _crimeCategory = _crimeCategories.isNotEmpty ? _crimeCategories.first : '';
       _customCrimeCategoryCtrl.clear();
-      _caseStatus = 'Under Investigation';
-      _preventiveSectionAct = '107 Crpc/126 BNSS';
+      _caseStatus = _caseStatuses.isNotEmpty ? _caseStatuses.first : '';
+      _preventiveSectionAct =
+          _preventiveActsList.isNotEmpty ? _preventiveActsList.first : '';
       _customPreventiveSectionActCtrl.clear();
-      _selectedAct = 'BNS';
+      _selectedAct =
+          _activeActsData.keys.isNotEmpty ? _activeActsData.keys.first : 'BNS';
       _selectedSections.clear();
       _sectionSearchCtrl.clear();
       _otherSectionsCtrl.clear();
@@ -485,8 +517,9 @@ class PreventiveFormState extends State<PreventiveForm> {
           DateFormat('dd/MM/yyyy').format(DateTime.now());
       _outwardNoCtrl.clear();
       _ioNameCtrl.clear();
-      _riskFlag = '🚨 High Priority';
-      _preventiveActionStatus = '🟢 Preventive Action Completed';
+      _riskFlag = _riskFlags.isNotEmpty ? _riskFlags.first : '';
+      _preventiveActionStatus =
+          _actionStatuses.isNotEmpty ? _actionStatuses.first : '';
       _remarksCtrl.clear();
       saveBarText = 'Form cleared';
     });
@@ -538,6 +571,34 @@ class PreventiveFormState extends State<PreventiveForm> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoadingConfig) {
+      return Container(
+        height: 380,
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(
+              width: 36,
+              height: 36,
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                color: _kTeal,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Loading dynamic preventive configuration...',
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: _kSec,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     return Column(
       children: [
         PocsoVoiceBanner(
@@ -688,40 +749,50 @@ class PreventiveFormState extends State<PreventiveForm> {
                             // Crime Category
                             _buildLabel('Crime Category (गुन्ह्याचा प्रकार)'),
                             const SizedBox(height: 6),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: _kCrimeCategories.map((cat) {
-                                final isSelected = _crimeCategory == cat;
-                                return ChoiceChip(
-                                  label: Text(cat),
-                                  selected: isSelected,
-                                  onSelected: widget.readOnly
-                                      ? null
-                                      : (val) {
-                                          if (val) {
-                                            setState(() {
-                                              _crimeCategory = cat;
-                                              _markUnsaved();
-                                            });
-                                          }
-                                        },
-                                  selectedColor: _kTeal.withValues(alpha: 0.15),
-                                  backgroundColor: _kInputBg,
-                                  side: BorderSide(
-                                    color: isSelected ? _kTeal : _kBorder,
-                                    width: isSelected ? 1.5 : 1,
-                                  ),
-                                  labelStyle: GoogleFonts.inter(
-                                    fontSize: 11,
-                                    fontWeight: isSelected
-                                        ? FontWeight.w700
-                                        : FontWeight.w500,
-                                    color: isSelected ? _kTeal : _kDark,
-                                  ),
-                                );
-                              }).toList(),
-                            ),
+                            if (_isLoadingConfig && _crimeCategories.isEmpty)
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 8),
+                                child: SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                ),
+                              )
+                            else
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: _crimeCategories.map((cat) {
+                                  final isSelected = _crimeCategory == cat;
+                                  return ChoiceChip(
+                                    label: Text(cat),
+                                    selected: isSelected,
+                                    onSelected: widget.readOnly
+                                        ? null
+                                        : (val) {
+                                            if (val) {
+                                              setState(() {
+                                                _crimeCategory = cat;
+                                                _markUnsaved();
+                                              });
+                                            }
+                                          },
+                                    selectedColor: _kTeal.withValues(alpha: 0.15),
+                                    backgroundColor: _kInputBg,
+                                    side: BorderSide(
+                                      color: isSelected ? _kTeal : _kBorder,
+                                      width: isSelected ? 1.5 : 1,
+                                    ),
+                                    labelStyle: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      fontWeight: isSelected
+                                          ? FontWeight.w700
+                                          : FontWeight.w500,
+                                      color: isSelected ? _kTeal : _kDark,
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
                             if (_crimeCategory == 'Other') ...[
                               const SizedBox(height: 10),
                               _buildTextField(
@@ -738,7 +809,7 @@ class PreventiveFormState extends State<PreventiveForm> {
                             Wrap(
                               spacing: 8,
                               runSpacing: 8,
-                              children: _kCaseStatuses.map((st) {
+                              children: _caseStatuses.map((st) {
                                 final isSelected = _caseStatus == st;
                                 return ChoiceChip(
                                   label: Text(st),
@@ -958,13 +1029,17 @@ class PreventiveFormState extends State<PreventiveForm> {
                                     value: _activePreventiveSectionActs
                                             .contains(_preventiveSectionAct)
                                         ? _preventiveSectionAct
-                                        : _activePreventiveSectionActs.first,
+                                        : (_activePreventiveSectionActs.isNotEmpty
+                                            ? _activePreventiveSectionActs.first
+                                            : _preventiveSectionAct),
                                     items: _activePreventiveSectionActs,
                                     required: true,
                                     onChanged: (val) {
                                       setState(() {
                                         _preventiveSectionAct = val ??
-                                            _activePreventiveSectionActs.first;
+                                            (_activePreventiveSectionActs.isNotEmpty
+                                                ? _activePreventiveSectionActs.first
+                                                : '');
                                       });
                                     },
                                   ),
@@ -1042,10 +1117,10 @@ class PreventiveFormState extends State<PreventiveForm> {
                             Wrap(
                               spacing: 10,
                               runSpacing: 8,
-                              children: _kRiskFlags.map((flag) {
+                              children: _riskFlags.map((flag) {
                                 final isSelected = _riskFlag == flag;
-                                final isHigh = flag.contains('High');
-                                final isSensitive = flag.contains('Sensitive');
+                                final isHigh = flag.toLowerCase().contains('high');
+                                final isSensitive = flag.toLowerCase().contains('sensitive');
 
                                 Color activeBg = _kTeal.withValues(alpha: 0.12);
                                 Color activeBorder = _kTeal;
@@ -1097,15 +1172,15 @@ class PreventiveFormState extends State<PreventiveForm> {
                                 'Preventive Action Status (कारवाई स्थिती)'),
                             const SizedBox(height: 6),
                             Column(
-                              children: _kActionStatuses.map((actionSt) {
+                              children: _actionStatuses.map((actionSt) {
                                 final isSelected =
                                     _preventiveActionStatus == actionSt;
                                 final isCompleted =
-                                    actionSt.contains('Completed');
+                                    actionSt.toLowerCase().contains('completed') && !actionSt.toLowerCase().contains('partially');
                                 final isPartial =
-                                    actionSt.contains('Partially');
+                                    actionSt.toLowerCase().contains('partially');
                                 final isNoAction =
-                                    actionSt.contains('No Preventive');
+                                    actionSt.toLowerCase().contains('no');
 
                                 Color borderColor = _kBorder;
                                 Color bg = _kInputBg;
@@ -1698,6 +1773,29 @@ class PreventiveFormState extends State<PreventiveForm> {
     required ValueChanged<String?> onChanged,
     bool required = false,
   }) {
+    if (items.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildLabel(label, required: required),
+          const SizedBox(height: 5),
+          Container(
+            height: 42,
+            decoration: BoxDecoration(
+              color: _kInputBg,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: _kBorder),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value.isNotEmpty ? value : '—',
+              style: GoogleFonts.inter(fontSize: 12, color: _kSec),
+            ),
+          ),
+        ],
+      );
+    }
     final effectiveVal = items.contains(value) ? value : items.first;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

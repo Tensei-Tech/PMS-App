@@ -219,6 +219,7 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                         widget.onValueChanged(dateKey, val);
                         if (mounted) setState(() {});
                       },
+                      allValues: widget.values,
                     );
                   }
 
@@ -242,8 +243,14 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                         ? visibleFields[i + 1]
                         : null;
 
-                    // If f1 is textarea, give it full row width
-                    if (f1.fieldType == 'textarea') {
+                    // If f1 is textarea, header, or checkbox, give it full row width
+                    if (f1.fieldType == 'textarea' ||
+                        f1.fieldType == 'header' ||
+                        f1.fieldType == 'checkbox' ||
+                        f1.fieldType == 'full_text' ||
+                        f1.fieldType == 'repeater' ||
+                        f1.fieldType == 'dependent_dropdown' ||
+                        f1.fieldType == 'chips') {
                       items.add(
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12),
@@ -251,6 +258,25 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                         ),
                       );
                       i -= 1; // Realign single step
+                      continue;
+                    }
+
+                    // If f2 is full width, f1 must take its own row so f2 can take the next row
+                    if (f2 != null &&
+                        (f2.fieldType == 'textarea' ||
+                            f2.fieldType == 'header' ||
+                            f2.fieldType == 'checkbox' ||
+                            f2.fieldType == 'full_text' ||
+                            f2.fieldType == 'repeater' ||
+                            f2.fieldType == 'dependent_dropdown' ||
+                            f2.fieldType == 'chips')) {
+                      items.add(
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: buildControl(f1),
+                        ),
+                      );
+                      i -= 1; // Realign so f2 becomes f1 in the next iteration
                       continue;
                     }
 

@@ -112,7 +112,7 @@ class CaseRecordViewSet(viewsets.ModelViewSet):
             return CaseRecord.objects.none()
 
         # Dynamic DB Permission Check: District/State visibility vs Station visibility
-        if check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all'):
+        if getattr(user, 'is_superuser', False) or check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all'):
             queryset = self.case_repo.get_all()
         else:
             stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
@@ -146,6 +146,10 @@ class CaseRecordViewSet(viewsets.ModelViewSet):
                 from apps.cases.utils import get_absconded_cases
                 absconded_qs = get_absconded_cases()
                 queryset = queryset.filter(id__in=absconded_qs.values_list('id', flat=True))
+            elif mod_lower == 'preventive':
+                from apps.cases.utils import get_preventive_cases
+                preventive_qs = get_preventive_cases()
+                queryset = queryset.filter(id__in=preventive_qs.values_list('id', flat=True))
             elif mod_lower in ['form_1_5', 'form_iv', 'form_i_v', '1_to_5']:
                 # Group 1 (Form I to V / Parts 1–5): Form 1-5 + all Group 1 categories
                 group_1_cats = list(CaseCategory.objects.filter(
@@ -235,8 +239,52 @@ class CaseRecordViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(assigned_officer_uid=assigned_uid)
 
         station_param = self.request.query_params.get('station_name')
-        if station_param:
+        if station_param and station_param.strip().upper() != 'ALL':
             queryset = queryset.filter(station_name=station_param)
+
+        # Dynamic Search filter (matches CR/case number, title, accused name, preventive section/act)
+        search_param = self.request.query_params.get('search') or self.request.query_params.get('q')
+        if search_param and search_param.strip():
+            sq = search_param.strip()
+            from apps.crimetab.models.common_form import PreventiveActionItems
+            matching_prev_cases = PreventiveActionItems.objects.filter(
+                Q(action_type__icontains=sq) | Q(name__icontains=sq) | Q(outward_number__icontains=sq)
+            ).values_list('case_id', flat=True)
+
+            search_filter = (
+                Q(case_number__icontains=sq) |
+                Q(title__icontains=sq) |
+                Q(accused__icontains=sq) |
+                Q(persons__name__icontains=sq) |
+                Q(id__in=list(matching_prev_cases)) |
+                Q(extra_fields__preventiveSectionAct__icontains=sq) |
+                Q(extra_fields__preventiveSecAct__icontains=sq) |
+                Q(extra_fields__preventive_action_type__icontains=sq) |
+                Q(extra_fields__preventiveNo__icontains=sq) |
+                Q(extra_fields__accusedNames__icontains=sq) |
+                Q(extra_fields__preventiveForm__istegasha__preventiveSectionAct__icontains=sq) |
+                Q(extra_fields__preventiveForm__istegasha__preventiveNo__icontains=sq) |
+                Q(extra_fields__preventiveForm__caseRef__crimeNo__icontains=sq) |
+                Q(extra_fields__preventiveForm__accusedNames__icontains=sq) |
+                Q(extra_fields__preventiveForm__accused__icontains=sq)
+            )
+            queryset = queryset.filter(search_filter).distinct()
+
+        # Dynamic Section/Act filter
+        act_param = self.request.query_params.get('preventive_act') or self.request.query_params.get('section')
+        if act_param and act_param.strip() and act_param.strip().lower() != 'all':
+            sq_act = act_param.strip()
+            from apps.crimetab.models.common_form import PreventiveActionItems
+            matching_act_cases = PreventiveActionItems.objects.filter(
+                action_type__icontains=sq_act
+            ).values_list('case_id', flat=True)
+            act_filter = (
+                Q(id__in=list(matching_act_cases)) |
+                Q(extra_fields__preventiveSectionAct__icontains=sq_act) |
+                Q(extra_fields__preventiveSecAct__icontains=sq_act) |
+                Q(extra_fields__preventive_action_type__icontains=sq_act)
+            )
+            queryset = queryset.filter(act_filter).distinct()
 
         return queryset
 
@@ -1706,6 +1754,299 @@ class ItssoActionView(APIView):
         except Exception as e:
             logger.exception(f"[ItssoActionView] Error: {e}")
             return Response({'error': 'Failed to send action.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ------------------------------------------------------------------------------
+# Dedicated 100% Backend-Driven Preventive Module Views
+# ------------------------------------------------------------------------------
+
+class PreventiveConfigView(APIView):
+    """
+    Returns 100% database-driven Preventive module configuration:
+    - All active crime categories from CaseCategory table
+    - All statutory preventive provisions / acts
+    - Case statuses & action statuses
+    - Permitted status transitions
+    - Backend eligibility rules
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        try:
+            from apps.crimetab.services.dynamic_form_service import get_preventive_config
+            cfg = get_preventive_config()
+            return Response(cfg)
+        except Exception as e:
+            logger.exception(f"[PreventiveConfigView] Error: {e}")
+            return Response({'error': 'Failed to load Preventive configuration.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class PreventiveCaseWiseView(APIView):
+    """
+    Returns aggregated Preventive cases according to dynamic backend eligibility rules.
+    Every record is enriched with full source mapping metadata.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        try:
+            from apps.cases.utils import get_preventive_cases, enrich_preventive_case
+            queryset = get_preventive_cases()
+
+            user = request.user
+            if not (getattr(user, 'is_superuser', False) or check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            station_param = request.query_params.get('station_name')
+            if station_param and station_param.strip().upper() != 'ALL':
+                queryset = queryset.filter(station_name=station_param)
+
+            category = request.query_params.get('category') or request.query_params.get('crime_category')
+            if category:
+                norm_cat = category.replace('_', ' ').strip()
+                queryset = queryset.filter(
+                    Q(module_key__iexact=category) |
+                    Q(sub_category__iexact=category) |
+                    Q(sub_category__iexact=norm_cat) |
+                    Q(category_links__category__category_name__iexact=norm_cat) |
+                    Q(category_links__category__category_code__iexact=category)
+                ).distinct()
+
+            status_param = request.query_params.get('status')
+            if status_param:
+                st_lower = status_param.lower()
+                if st_lower in ['disposal', 'disposed', 'closed', 'resolved']:
+                    queryset = queryset.filter(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved'])
+                elif st_lower in ['pending', 'open', 'active']:
+                    queryset = queryset.exclude(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved'])
+                else:
+                    queryset = queryset.filter(status__iexact=status_param)
+
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            if start_date:
+                queryset = queryset.filter(incident_date__date__gte=start_date)
+            if end_date:
+                queryset = queryset.filter(incident_date__date__lte=end_date)
+
+            search_param = request.query_params.get('search') or request.query_params.get('q')
+            if search_param and search_param.strip():
+                sq = search_param.strip()
+                from apps.crimetab.models.common_form import PreventiveActionItems
+                matching_prev_cases = PreventiveActionItems.objects.filter(
+                    Q(action_type__icontains=sq) | Q(name__icontains=sq) | Q(outward_number__icontains=sq)
+                ).values_list('case_id', flat=True)
+
+                search_filter = (
+                    Q(case_number__icontains=sq) |
+                    Q(title__icontains=sq) |
+                    Q(accused__icontains=sq) |
+                    Q(persons__name__icontains=sq) |
+                    Q(id__in=list(matching_prev_cases)) |
+                    Q(extra_fields__preventiveSectionAct__icontains=sq) |
+                    Q(extra_fields__preventiveSecAct__icontains=sq) |
+                    Q(extra_fields__preventive_action_type__icontains=sq) |
+                    Q(extra_fields__preventiveNo__icontains=sq) |
+                    Q(extra_fields__accusedNames__icontains=sq) |
+                    Q(extra_fields__preventiveForm__istegasha__preventiveSectionAct__icontains=sq) |
+                    Q(extra_fields__preventiveForm__istegasha__preventiveNo__icontains=sq) |
+                    Q(extra_fields__preventiveForm__caseRef__crimeNo__icontains=sq) |
+                    Q(extra_fields__preventiveForm__accusedNames__icontains=sq) |
+                    Q(extra_fields__preventiveForm__accused__icontains=sq)
+                )
+                queryset = queryset.filter(search_filter).distinct()
+
+            act_param = request.query_params.get('preventive_act') or request.query_params.get('section')
+            if act_param and act_param.strip() and act_param.strip().lower() != 'all':
+                sq_act = act_param.strip()
+                from apps.crimetab.models.common_form import PreventiveActionItems
+                matching_act_cases = PreventiveActionItems.objects.filter(
+                    action_type__icontains=sq_act
+                ).values_list('case_id', flat=True)
+                act_filter = (
+                    Q(id__in=list(matching_act_cases)) |
+                    Q(extra_fields__preventiveSectionAct__icontains=sq_act) |
+                    Q(extra_fields__preventiveSecAct__icontains=sq_act) |
+                    Q(extra_fields__preventive_action_type__icontains=sq_act) |
+                    Q(extra_fields__preventiveForm__istegasha__preventiveSectionAct__icontains=sq_act) |
+                    Q(extra_fields__preventiveForm__preventiveSectionAct__icontains=sq_act)
+                )
+                queryset = queryset.filter(act_filter).distinct()
+
+            from apps.cases.serializers import CaseRecordSerializer
+            paginator = PageNumberPagination()
+            page = paginator.paginate_queryset(queryset.order_by('-incident_date', '-created_at'), request)
+            if page is not None:
+                serializer = CaseRecordSerializer(page, many=True)
+                return paginator.get_paginated_response(serializer.data)
+
+            serializer = CaseRecordSerializer(queryset.order_by('-incident_date', '-created_at'), many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            logger.exception(f"[PreventiveCaseWiseView] Error: {e}")
+            return Response({'error': 'Failed to retrieve preventive cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class PreventiveStatsView(APIView):
+    """
+    Returns aggregated Preventive counts dynamically computed from actual database records:
+    - Total, Pending, Disposal
+    - Action Status breakdown (Completed, Partially Completed, No Action Recorded)
+    - Dynamic counts per crime category
+    - Dynamic counts per statutory preventive provision
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        try:
+            from apps.cases.utils import get_preventive_cases, enrich_preventive_case
+            from apps.crimetab.services.dynamic_form_service import get_preventive_config
+            queryset = get_preventive_cases()
+
+            user = request.user
+            if not (getattr(user, 'is_superuser', False) or check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            station_param = request.query_params.get('station_name')
+            if station_param and station_param.strip().upper() != 'ALL':
+                queryset = queryset.filter(station_name=station_param)
+
+            total_cases = queryset.count()
+            disposal_cases = queryset.filter(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved']).count()
+            pending_cases = total_cases - disposal_cases
+
+            action_completed = 0
+            action_partial = 0
+            no_action = 0
+
+            category_counts = {}
+            act_counts = {}
+
+            cfg = get_preventive_config()
+            for cat_name in cfg.get('crime_categories', []):
+                category_counts[cat_name] = 0
+
+            for act_name in cfg.get('preventive_acts', []):
+                act_counts[act_name] = 0
+
+            for c in queryset:
+                enrich_preventive_case(c)
+                meta = c.extra_fields.get('source_metadata', {})
+                act_st = meta.get('preventive_action_status', 'No Preventive Action Recorded')
+                if act_st == 'Preventive Action Completed':
+                    action_completed += 1
+                elif act_st == 'Partially Completed':
+                    action_partial += 1
+                else:
+                    no_action += 1
+
+                cat_disp = meta.get('source_category_display_name') or 'Other'
+                category_counts[cat_disp] = category_counts.get(cat_disp, 0) + 1
+
+                for act in meta.get('preventive_acts_taken', []):
+                    act_counts[act] = act_counts.get(act, 0) + 1
+
+            return Response({
+                'total_cases': total_cases,
+                'pending_cases': pending_cases,
+                'disposal_cases': disposal_cases,
+                'action_completed': action_completed,
+                'action_partially_completed': action_partial,
+                'no_action_recorded': no_action,
+                'category_counts': category_counts,
+                'act_counts': act_counts,
+            })
+        except Exception as e:
+            logger.exception(f"[PreventiveStatsView] Error: {e}")
+            return Response({'error': 'Failed to retrieve preventive statistics.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class PreventiveMonthlySummaryView(APIView):
+    """
+    Returns dynamic monthly registration summary for Preventive provisions from database data.
+    Eliminates frontend hardcoding of monthly report heads and calculation heuristics.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        try:
+            from apps.cases.utils import get_preventive_cases, enrich_preventive_case
+            from apps.crimetab.services.dynamic_form_service import get_preventive_config
+            import datetime
+
+            now = datetime.datetime.now()
+            month = int(request.query_params.get('month', now.month))
+            year = int(request.query_params.get('year', now.year))
+
+            queryset = get_preventive_cases()
+            user = request.user
+            if not (getattr(user, 'is_superuser', False) or check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            station_param = request.query_params.get('station_name')
+            if station_param and station_param.strip().upper() != 'ALL':
+                queryset = queryset.filter(station_name=station_param)
+
+            cfg = get_preventive_config()
+            heads = list(cfg.get('preventive_acts', []))
+
+            # Helper for matching case act
+            def get_case_act(case):
+                enrich_preventive_case(case)
+                acts = case.extra_fields.get('preventive_acts_taken', [])
+                if acts:
+                    return acts[0]
+                return 'Other'
+
+            prev_month = 12 if month == 1 else month - 1
+            prev_year = year - 1 if month == 1 else year
+
+            # Group cases
+            cm_cases = [c for c in queryset if c.incident_date and c.incident_date.year == year and c.incident_date.month == month]
+            pm_cases = [c for c in queryset if c.incident_date and c.incident_date.year == prev_year and c.incident_date.month == prev_month]
+            smly_cases = [c for c in queryset if c.incident_date and c.incident_date.year == (year - 1) and c.incident_date.month == month]
+            yc_cases = [c for c in queryset if c.incident_date and c.incident_date.year == year and c.incident_date.month <= month]
+            yp_cases = [c for c in queryset if c.incident_date and c.incident_date.year == (year - 1) and c.incident_date.month <= month]
+
+            table_rows = []
+            for h in heads:
+                cm_count = sum(1 for c in cm_cases if get_case_act(c) == h)
+                pm_count = sum(1 for c in pm_cases if get_case_act(c) == h)
+                smly_count = sum(1 for c in smly_cases if get_case_act(c) == h)
+                yc_count = sum(1 for c in yc_cases if get_case_act(c) == h)
+                yp_count = sum(1 for c in yp_cases if get_case_act(c) == h)
+
+                table_rows.append({
+                    'head': h,
+                    'cm': cm_count,
+                    'pm': pm_count,
+                    'smly': smly_count,
+                    'yc': yc_count,
+                    'yp': yp_count,
+                })
+
+            totals = {
+                'cm': len(cm_cases),
+                'pm': len(pm_cases),
+                'smly': len(smly_cases),
+                'yc': len(yc_cases),
+                'yp': len(yp_cases),
+            }
+
+            return Response({
+                'month': month,
+                'year': year,
+                'heads': heads,
+                'table_rows': table_rows,
+                'totals': totals,
+            })
+        except Exception as e:
+            logger.exception(f"[PreventiveMonthlySummaryView] Error: {e}")
+            return Response({'error': 'Failed to retrieve monthly summary.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 

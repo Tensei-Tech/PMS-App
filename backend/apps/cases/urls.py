@@ -29,6 +29,10 @@ from apps.cases.views import (
     VictimStatsView,
     VictimTimeWiseView,
     VictimIOWiseView,
+    PreventiveConfigView,
+    PreventiveCaseWiseView,
+    PreventiveStatsView,
+    PreventiveMonthlySummaryView,
 )
 
 router = DefaultRouter()
@@ -65,6 +69,12 @@ urlpatterns = [
     path('victim/time-wise/', VictimTimeWiseView.as_view(), name='victim-time-wise'),
     path('victim/io-wise/', VictimIOWiseView.as_view(), name='victim-io-wise'),
     path('victim/stats/', VictimStatsView.as_view(), name='victim-stats'),
+
+    # Dedicated Preventive Module Endpoints
+    path('preventive/config/', PreventiveConfigView.as_view(), name='preventive-config'),
+    path('preventive/case-wise/', PreventiveCaseWiseView.as_view(), name='preventive-case-wise'),
+    path('preventive/stats/', PreventiveStatsView.as_view(), name='preventive-stats'),
+    path('preventive/monthly/', PreventiveMonthlySummaryView.as_view(), name='preventive-monthly'),
 
     # Existing CaseRecordViewSet router (ModelViewSet)
     path('', include(router.urls)),

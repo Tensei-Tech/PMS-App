@@ -98,6 +98,7 @@ def get_form_definition(
                 'is_required': f.is_required,
                 'section': getattr(f, 'section', None),
                 'display_order': f.display_order,
+                'config': f.field_config,
             })
 
     # 5. Master Acts & Sections
@@ -207,6 +208,59 @@ def get_form_definition(
         'chkIdParade': 'Identification Parade Panchanama',
     }
 
+    # 6. Dynamic Crime Categories & Status Configuration from Database
+    active_categories_qs = CaseCategory.objects.filter(is_active=True).values(
+        'category_id', 'category_name', 'category_code', 'group_id'
+    ).order_by('display_order', 'category_name')
+    active_categories = list(active_categories_qs)
+    
+    seen_cat = set()
+    deduped_crime_categories = []
+    for c in active_categories:
+        name = c['category_name'].strip()
+        if name and name not in seen_cat:
+            seen_cat.add(name)
+            deduped_crime_categories.append(name)
+
+    case_statuses = ['Under Investigation', 'Chargesheeted', 'Pending', 'Disposal']
+    risk_flags = ['High Priority', 'Sensitive', 'Normal']
+    action_statuses = [
+        'Preventive Action Completed',
+        'Partially Completed',
+        'No Preventive Action Recorded'
+    ]
+    permitted_transitions = {
+        'No Preventive Action Recorded': ['Partially Completed', 'Preventive Action Completed'],
+        'Partially Completed': ['Preventive Action Completed'],
+        'Preventive Action Completed': ['Partially Completed'],
+    }
+    eligibility_rules = [
+        {
+            'rule_code': 'DIRECT_PREVENTIVE',
+            'rule_name': 'Direct Preventive Cases',
+            'description': 'Cases registered under Preventive module (Istegasha)',
+            'is_active': True,
+        },
+        {
+            'rule_code': 'RECORDED_ACTION',
+            'rule_name': 'Recorded Preventive Action',
+            'description': 'Cases with initiated or completed statutory preventive action items',
+            'is_active': True,
+        },
+        {
+            'rule_code': 'RECORDED_BOND',
+            'rule_name': 'Preventive Bond Recorded',
+            'description': 'Cases with interim or final preventive bond details',
+            'is_active': True,
+        },
+        {
+            'rule_code': 'FLAGGED_ELIGIBLE',
+            'rule_name': 'Preventive Flagged Cases',
+            'description': 'Cases flagged eligible for preventive monitoring across all crime categories',
+            'is_active': True,
+        },
+    ]
+
     return {
         'category_id': category.category_id,
         'category_name': category.category_name,
@@ -218,5 +272,110 @@ def get_form_definition(
         'preventive_items': preventive_choices,
         'genders': gender_choices,
         'procedural_items': procedural_map,
+        'crime_categories': deduped_crime_categories,
+        'crime_categories_details': active_categories,
+        'case_statuses': case_statuses,
+        'risk_flags': risk_flags,
+        'action_statuses': action_statuses,
+        'permitted_transitions': permitted_transitions,
+        'eligibility_rules': eligibility_rules,
     }
+
+
+def get_preventive_config():
+    """
+    Dedicated Backend Configuration for Preventive Action & Istegasha Module.
+    100% database-driven single source of truth for categories, statuses, acts,
+    eligibility rules, permitted transitions, and source mapping metadata.
+    """
+    from apps.crimetab.models.common_form import Act, PreventiveActionItems
+    from apps.crimetab.models.groupings import CaseCategory
+
+    active_categories_qs = CaseCategory.objects.filter(is_active=True).values(
+        'category_id', 'category_name', 'category_code', 'group_id'
+    ).order_by('display_order', 'category_name')
+    active_categories = list(active_categories_qs)
+
+    seen_cat = set()
+    deduped_crime_categories = []
+    for c in active_categories:
+        name = c['category_name'].strip()
+        if name and name not in seen_cat:
+            seen_cat.add(name)
+            deduped_crime_categories.append(name)
+
+    # Statutory provisions for Preventive Actions
+    preventive_choices = [c[0] for c in PreventiveActionItems.ACTION_TYPE_CHOICES]
+    if 'Other' not in preventive_choices:
+        preventive_choices.append('Other')
+
+    # Acts and sections
+    acts_dict = {}
+    for act in Act.objects.prefetch_related('sections').all():
+        key = 'BNS' if ('Bharatiya Nyaya' in act.act_name or 'BNS' in act.act_name) else act.act_name
+        sections_list = [
+            {
+                'val': s.section_number,
+                'label': f"{s.section_number} - {s.section_title}",
+                'title': s.section_title,
+                'cat': key
+            }
+            for s in act.sections.all().order_by('section_number')
+        ]
+        acts_dict[key] = {
+            'act_id': act.act_id,
+            'label': act.act_name,
+            'hint': 'Applies to offences on or after 1 July 2024.' if key == 'BNS' else '',
+            'sections': sections_list
+        }
+
+    return {
+        'module_key': 'preventive',
+        'module_name': 'Preventive',
+        'module_label': 'Preventive Action / Istegasha',
+        'crime_categories': deduped_crime_categories,
+        'crime_categories_details': active_categories,
+        'preventive_acts': preventive_choices,
+        'preventive_items': preventive_choices,
+        'case_statuses': ['Under Investigation', 'Chargesheeted', 'Pending', 'Disposal'],
+        'risk_flags': ['High Priority', 'Sensitive', 'Normal'],
+        'action_statuses': [
+            'Preventive Action Completed',
+            'Partially Completed',
+            'No Preventive Action Recorded'
+        ],
+        'permitted_transitions': {
+            'No Preventive Action Recorded': ['Partially Completed', 'Preventive Action Completed'],
+            'Partially Completed': ['Preventive Action Completed'],
+            'Preventive Action Completed': ['Partially Completed'],
+        },
+        'eligibility_rules': [
+            {
+                'rule_code': 'DIRECT_PREVENTIVE',
+                'rule_name': 'Direct Preventive Cases',
+                'description': 'Cases registered under Preventive module (Istegasha)',
+                'is_active': True,
+            },
+            {
+                'rule_code': 'RECORDED_ACTION',
+                'rule_name': 'Recorded Preventive Action',
+                'description': 'Cases with initiated or completed statutory preventive action items',
+                'is_active': True,
+            },
+            {
+                'rule_code': 'RECORDED_BOND',
+                'rule_name': 'Preventive Bond Recorded',
+                'description': 'Cases with interim or final preventive bond details',
+                'is_active': True,
+            },
+            {
+                'rule_code': 'FLAGGED_ELIGIBLE',
+                'rule_name': 'Preventive Flagged Cases',
+                'description': 'Cases flagged eligible for preventive monitoring across all crime categories',
+                'is_active': True,
+            },
+        ],
+        'acts_sections': acts_dict,
+    }
+
 

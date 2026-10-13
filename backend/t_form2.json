@@ -1,0 +1,442 @@
+{
+  "category_id": 264,
+  "category_name": "Tadipar",
+  "category_code": "tadipar",
+  "group_id": null,
+  "fields_count": 19,
+  "fields": [
+    {
+      "field_def_id": 1474,
+      "field_label": "Sr.no.",
+      "field_key": "sr_no",
+      "field_source": "custom",
+      "field_type": "number",
+      "is_required": false,
+      "section": "Basic Details",
+      "display_order": 1
+    },
+    {
+      "field_def_id": 1475,
+      "field_label": "Externed Name",
+      "field_key": "externed_name",
+      "field_source": "custom",
+      "field_type": "text",
+      "is_required": false,
+      "section": "Basic Details",
+      "display_order": 2
+    },
+    {
+      "field_def_id": 1476,
+      "field_label": "Alias",
+      "field_key": "alias",
+      "field_source": "custom",
+      "field_type": "text",
+      "is_required": false,
+      "section": "Basic Details",
+      "display_order": 3
+    },
+    {
+      "field_def_id": 1477,
+      "field_label": "Nickname",
+      "field_key": "nickname",
+      "field_source": "custom",
+      "field_type": "text",
+      "is_required": false,
+      "section": "Basic Details",
+      "display_order": 4
+    },
+    {
+      "field_def_id": 1478,
+      "field_label": "Age",
+      "field_key": "age",
+      "field_source": "custom",
+      "field_type": "number",
+      "is_required": false,
+      "section": "Basic Details",
+      "display_order": 5
+    },
+    {
+      "field_def_id": 1479,
+      "field_label": "Gender",
+      "field_key": "gender",
+      "field_source": "custom",
+      "field_type": "dropdown",
+      "is_required": false,
+      "section": "Basic Details",
+      "display_order": 6
+    },
+    {
+      "field_def_id": 1480,
+      "field_label": "Mobile Number",
+      "field_key": "mo_no",
+      "field_source": "custom",
+      "field_type": "text",
+      "is_required": false,
+      "section": "Basic Details",
+      "display_order": 7
+    },
+    {
+      "field_def_id": 1481,
+      "field_label": "Address",
+      "field_key": "address",
+      "field_source": "custom",
+      "field_type": "textarea",
+      "is_required": false,
+      "section": "Basic Details",
+      "display_order": 8
+    },
+    {
+      "field_def_id": 1482,
+      "field_label": "Order Date",
+      "field_key": "order_date",
+      "field_source": "custom",
+      "field_type": "date",
+      "is_required": false,
+      "section": "Order Details",
+      "display_order": 9
+    },
+    {
+      "field_def_id": 1483,
+      "field_label": "Order Number",
+      "field_key": "order_number",
+      "field_source": "custom",
+      "field_type": "text",
+      "is_required": false,
+      "section": "Order Details",
+      "display_order": 10
+    },
+    {
+      "field_def_id": 1484,
+      "field_label": "Act",
+      "field_key": "act_id",
+      "field_source": "custom",
+      "field_type": "dependent_dropdown",
+      "is_required": false,
+      "section": "Order Details",
+      "display_order": 11
+    },
+    {
+      "field_def_id": 1485,
+      "field_label": "Section",
+      "field_key": "section_id",
+      "field_source": "custom",
+      "field_type": "dependent_dropdown",
+      "is_required": false,
+      "section": "Order Details",
+      "display_order": 11
+    },
+    {
+      "field_def_id": 1486,
+      "field_label": "Subsection",
+      "field_key": "subsection_id",
+      "field_source": "custom",
+      "field_type": "dependent_dropdown",
+      "is_required": false,
+      "section": "Order Details",
+      "display_order": 11
+    },
+    {
+      "field_def_id": 1487,
+      "field_label": "Externment Period - From",
+      "field_key": "period_from",
+      "field_source": "custom",
+      "field_type": "date",
+      "is_required": false,
+      "section": "Externment Period",
+      "display_order": 12
+    },
+    {
+      "field_def_id": 1488,
+      "field_label": "Externment Period - To",
+      "field_key": "period_to",
+      "field_source": "custom",
+      "field_type": "date",
+      "is_required": false,
+      "section": "Externment Period",
+      "display_order": 13
+    },
+    {
+      "field_def_id": 1489,
+      "field_label": "Revoked by Court Date",
+      "field_key": "revoked_date",
+      "field_source": "custom",
+      "field_type": "date",
+      "is_required": false,
+      "section": "Status & Revocation",
+      "display_order": 14
+    },
+    {
+      "field_def_id": 1490,
+      "field_label": "Current Address",
+      "field_key": "current_address",
+      "field_source": "custom",
+      "field_type": "textarea",
+      "is_required": false,
+      "section": "Status & Revocation",
+      "display_order": 15
+    },
+    {
+      "field_def_id": 1491,
+      "field_label": "Prohibited District/Area",
+      "field_key": "prohibited_areas",
+      "field_source": "custom",
+      "field_type": "chips",
+      "is_required": false,
+      "section": "Prohibited Area",
+      "display_order": 16
+    },
+    {
+      "field_def_id": 1492,
+      "field_label": "Crime Chart",
+      "field_key": "crime_chart_entries",
+      "field_source": "custom",
+      "field_type": "repeater",
+      "is_required": false,
+      "section": "Crime Chart",
+      "display_order": 17
+    }
+  ],
+  "acts_sections": {
+    "BNS": {
+      "act_id": 6,
+      "label": "BNS",
+      "hint": "Applies to offences on or after 1 July 2024.",
+      "sections": [
+        {
+          "val": "309",
+          "label": "309 - Robbery",
+          "title": "Robbery",
+          "cat": "BNS"
+        },
+        {
+          "val": "310",
+          "label": "310 - Dacoity",
+          "title": "Dacoity",
+          "cat": "BNS"
+        },
+        {
+          "val": "311",
+          "label": "311 - Robbery, or dacoity, with attempt to cause death or grievous hurt",
+          "title": "Robbery, or dacoity, with attempt to cause death or grievous hurt",
+          "cat": "BNS"
+        },
+        {
+          "val": "312",
+          "label": "312 - Attempt to commit robbery or dacoity when armed with deadly weapon",
+          "title": "Attempt to commit robbery or dacoity when armed with deadly weapon",
+          "cat": "BNS"
+        }
+      ]
+    },
+    "IPC": {
+      "act_id": 7,
+      "label": "IPC",
+      "hint": "",
+      "sections": []
+    },
+    "POCSO": {
+      "label": "POCSO Act, 2012",
+      "hint": "Victim must be under 18 years.",
+      "sections": [
+        {
+          "val": "3",
+          "label": "3 - Penetrative Sexual Assault",
+          "cat": "POCSO"
+        },
+        {
+          "val": "4",
+          "label": "4 - Punishment for Penetrative Sexual Assault",
+          "cat": "POCSO"
+        },
+        {
+          "val": "5",
+          "label": "5 - Aggravated Penetrative Sexual Assault",
+          "cat": "POCSO"
+        },
+        {
+          "val": "6",
+          "label": "6 - Punishment for Aggravated Penetrative Sexual Assault",
+          "cat": "POCSO"
+        },
+        {
+          "val": "7",
+          "label": "7 - Sexual Assault",
+          "cat": "POCSO"
+        },
+        {
+          "val": "8",
+          "label": "8 - Punishment for Sexual Assault",
+          "cat": "POCSO"
+        },
+        {
+          "val": "9",
+          "label": "9 - Aggravated Sexual Assault",
+          "cat": "POCSO"
+        },
+        {
+          "val": "10",
+          "label": "10 - Punishment for Aggravated Sexual Assault",
+          "cat": "POCSO"
+        },
+        {
+          "val": "11",
+          "label": "11 - Sexual Harassment",
+          "cat": "POCSO"
+        },
+        {
+          "val": "12",
+          "label": "12 - Punishment for Sexual Harassment",
+          "cat": "POCSO"
+        }
+      ]
+    },
+    "ARMS": {
+      "label": "Arms Act, 1959",
+      "hint": "Possession/manufacture/use of arms & ammunition.",
+      "sections": [
+        {
+          "val": "3",
+          "label": "3 - Licence for acquisition and possession of firearms",
+          "cat": "ARMS"
+        },
+        {
+          "val": "4",
+          "label": "4 - Licence for acquisition and possession of other arms",
+          "cat": "ARMS"
+        },
+        {
+          "val": "25",
+          "label": "25 - Unlawful Possession of Arms",
+          "cat": "ARMS"
+        },
+        {
+          "val": "27",
+          "label": "27 - Punishment for using arms",
+          "cat": "ARMS"
+        }
+      ]
+    },
+    "NDPS": {
+      "label": "NDPS Act, 1985",
+      "hint": "Narcotics/drugs/psychotropic substances.",
+      "sections": [
+        {
+          "val": "8",
+          "label": "8 - Prohibition on production/sale/possession",
+          "cat": "NDPS"
+        },
+        {
+          "val": "20",
+          "label": "20 - Offences relating to Cannabis",
+          "cat": "NDPS"
+        },
+        {
+          "val": "21",
+          "label": "21 - Offences relating to manufactured drugs",
+          "cat": "NDPS"
+        },
+        {
+          "val": "22",
+          "label": "22 - Offences relating to psychotropic substances",
+          "cat": "NDPS"
+        }
+      ]
+    },
+    "MCOCA": {
+      "label": "MCOCA, 1999",
+      "hint": "Requires SP-level sanction to invoke.",
+      "sections": [
+        {
+          "val": "3(1)(i)",
+          "label": "3(1)(i) - Organised Crime causing death",
+          "cat": "MCOCA"
+        },
+        {
+          "val": "3(2)",
+          "label": "3(2) - Abetment/Conspiracy",
+          "cat": "MCOCA"
+        }
+      ]
+    },
+    "MPDA": {
+      "label": "MPDA, 1981",
+      "hint": "Preventive Detention order.",
+      "sections": [
+        {
+          "val": "3(1)",
+          "label": "3(1) - Detention of dangerous person",
+          "cat": "MPDA"
+        }
+      ]
+    },
+    "IT": {
+      "label": "IT Act, 2000",
+      "hint": "Apply for cyber crimes and electronic fraud.",
+      "sections": [
+        {
+          "val": "66",
+          "label": "66 - Computer Related Offences",
+          "cat": "IT"
+        },
+        {
+          "val": "66C",
+          "label": "66C - Identity Theft",
+          "cat": "IT"
+        },
+        {
+          "val": "66D",
+          "label": "66D - Cheating by personation using computer",
+          "cat": "IT"
+        },
+        {
+          "val": "67",
+          "label": "67 - Publishing obscene material electronically",
+          "cat": "IT"
+        }
+      ]
+    },
+    "SC_ST": {
+      "label": "SC/ST (PoA) Act, 1989",
+      "hint": "Atrocity cases involving SC/ST victims.",
+      "sections": [
+        {
+          "val": "3(1)(r)",
+          "label": "3(1)(r) - Intentional insult/intimidation",
+          "cat": "SC_ST"
+        },
+        {
+          "val": "3(2)(v)",
+          "label": "3(2)(v) - Murder/attempt on SC/ST member",
+          "cat": "SC_ST"
+        }
+      ]
+    }
+  },
+  "preventive_items": [
+    "107 CrPC/126 BNSS",
+    "109 CrPC/128 BNSS",
+    "110 CrPC/129 BNSS",
+    "151(3) CrPC/170 BNSS",
+    "144 CrPC/163 BNSS",
+    "149 CrPC/168 BNSS",
+    "55 MPA",
+    "56 MPA",
+    "57 MPA",
+    "122 MPA",
+    "93 Prohibition Act"
+  ],
+  "genders": [
+    "Male",
+    "Female",
+    "Other"
+  ],
+  "procedural_items": {
+    "chkPanchSpot": "Spot Panchanama",
+    "chkSeizurePanch": "Seizure Panchanama",
+    "chkSearch": "Search Panchanama",
+    "chkPersSearch": "Personal Search Panchanama",
+    "chkMemo": "Memorandum Panchanama",
+    "chkIdent": "Identification Panchanama",
+    "chkIdParade": "Identification Parade Panchanama"
+  }
+}

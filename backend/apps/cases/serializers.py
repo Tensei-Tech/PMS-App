@@ -67,6 +67,14 @@ class CaseRecordSerializer(serializers.ModelSerializer):
 
         return super().to_internal_value(data)
 
+    def to_representation(self, instance):
+        try:
+            from apps.cases.utils import enrich_preventive_case
+            enrich_preventive_case(instance)
+        except Exception:
+            pass
+        return super().to_representation(instance)
+
     def validate_station_name(self, value):
         if not value or not str(value).strip():
             if self.instance and self.instance.station_name:

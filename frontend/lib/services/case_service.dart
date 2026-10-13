@@ -657,4 +657,72 @@ class CaseService {
     }
     return [];
   }
+
+  /// 100% Backend-driven Preventive Module Configuration
+  Future<Map<String, dynamic>?> fetchPreventiveConfig() async {
+    try {
+      final response = await _api.get(ApiConfig.preventiveConfig);
+      if (response.isSuccess && response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchPreventiveConfig exception: $e');
+      }
+    }
+    // Dynamic fallback to dynamic form definition for category 'Preventive'
+    return fetchFormDefinition('Preventive');
+  }
+
+  /// 100% Backend-driven Preventive Module Statistics
+  Future<Map<String, dynamic>?> fetchPreventiveStats({String? stationName}) async {
+    try {
+      final params = <String, dynamic>{};
+      if (stationName != null && stationName.isNotEmpty && stationName != 'ALL') {
+        params['station_name'] = stationName;
+      }
+      final response = await _api.get(
+        ApiConfig.preventiveStats,
+        queryParameters: params.isNotEmpty ? params : null,
+      );
+      if (response.isSuccess && response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchPreventiveStats exception: $e');
+      }
+    }
+    return null;
+  }
+
+  /// 100% Backend-driven Preventive Monthly Registration Summary
+  Future<Map<String, dynamic>?> fetchPreventiveMonthlySummary({
+    required int year,
+    required int month,
+    String? stationName,
+  }) async {
+    try {
+      final params = <String, dynamic>{
+        'year': year,
+        'month': month,
+      };
+      if (stationName != null && stationName.isNotEmpty && stationName != 'ALL') {
+        params['station_name'] = stationName;
+      }
+      final response = await _api.get(
+        ApiConfig.preventiveMonthly,
+        queryParameters: params,
+      );
+      if (response.isSuccess && response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchPreventiveMonthlySummary exception: $e');
+      }
+    }
+    return null;
+  }
 }
+

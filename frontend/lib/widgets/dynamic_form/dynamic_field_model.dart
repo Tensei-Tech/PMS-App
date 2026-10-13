@@ -12,6 +12,7 @@ class DynamicFieldDef {
   final int displayOrder;
   final List<String> options;
   final String? section;
+  final Map<String, dynamic>? fieldConfig;
 
   const DynamicFieldDef({
     required this.fieldDefId,
@@ -23,6 +24,7 @@ class DynamicFieldDef {
     required this.displayOrder,
     this.options = const [],
     this.section,
+    this.fieldConfig,
   });
 
   factory DynamicFieldDef.fromJson(Map<String, dynamic> json) {
@@ -36,8 +38,13 @@ class DynamicFieldDef {
       displayOrder: json['display_order'] as int? ?? 0,
       options: (json['options'] is List)
           ? (json['options'] as List).map((e) => e.toString()).toList()
-          : const [],
+          : (json['config'] is Map && json['config']['options'] is List)
+              ? (json['config']['options'] as List).map((e) => e.toString()).toList()
+              : (json['field_config'] is Map && json['field_config']['options'] is List)
+                  ? (json['field_config']['options'] as List).map((e) => e.toString()).toList()
+                  : const [],
       section: json['section']?.toString(),
+      fieldConfig: (json['config'] as Map<String, dynamic>?) ?? (json['field_config'] as Map<String, dynamic>?),
     );
   }
 
@@ -51,6 +58,7 @@ class DynamicFieldDef {
         'display_order': displayOrder,
         'options': options,
         'section': section,
+        'field_config': fieldConfig,
       };
 }
 
