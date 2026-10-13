@@ -3,6 +3,7 @@
 // Reusable screen for ALL 12 modules — strictly isolated data per module.
 
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'itsso_hub_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -130,6 +131,22 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   FormIVDateField _dateField = FormIVDateField.incidentDate;
   FormIVDateSortOrder _dateSortOrder = FormIVDateSortOrder.newestFirst;
 
+  TextEditingController? _preventiveSearchCtrl;
+  TextEditingController get _pSearchCtrl =>
+      _preventiveSearchCtrl ??= TextEditingController();
+
+  String? _preventiveSearchQuery;
+  String get _pSearchQuery => _preventiveSearchQuery ?? '';
+  set _pSearchQuery(String val) => _preventiveSearchQuery = val;
+
+  String? _selectedPreventiveCategory;
+  String get _pSelCategory => _selectedPreventiveCategory ?? 'All';
+  set _pSelCategory(String val) => _selectedPreventiveCategory = val;
+
+  String? _selectedPreventiveSection;
+  String get _pSelSection => _selectedPreventiveSection ?? 'All';
+  set _pSelSection(String val) => _selectedPreventiveSection = val;
+
   String? _pendingCategory;
   String? _pendingTimeRange;
   String? _pendingViewMode;
@@ -165,6 +182,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _readProvider(context).ensureInitialized();
+        if (widget.moduleKey == 'preventive') {
+          context.read<PreventiveProvider>().loadConfig();
+        }
       }
     });
   }
@@ -176,6 +196,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           _readProvider(context).ensureInitialized();
+          if (widget.moduleKey == 'preventive') {
+            context.read<PreventiveProvider>().loadConfig();
+          }
         }
       });
     }
@@ -184,6 +207,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   @override
   void dispose() {
     _searchCtrl.dispose();
+    _preventiveSearchCtrl?.dispose();
     super.dispose();
   }
 
@@ -603,6 +627,47 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     }
 
     List<ModuleRecord> displayRecords = List<ModuleRecord>.from(filtered);
+    if (widget.moduleKey == 'preventive') {
+      if (_pSearchQuery.isNotEmpty) {
+        displayRecords = displayRecords
+            .where((r) => _matchesPreventiveSearch(r, _pSearchQuery))
+            .toList();
+      }
+      if (_pSelCategory != 'All') {
+        displayRecords = displayRecords.where((r) {
+          final cat = _extractPreventiveCategory(r).toLowerCase();
+          return cat == _pSelCategory.toLowerCase();
+        }).toList();
+      }
+      if (_pSelSection != 'All') {
+        displayRecords = displayRecords.where((r) {
+          final sec = _extractPreventiveSectionAct(r).toLowerCase();
+          final target = _pSelSection.toLowerCase();
+          return sec.contains(target) || target.contains(sec);
+        }).toList();
+      }
+      if (_selectedDateRange != null) {
+        final start = DateTime(
+          _selectedDateRange!.start.year,
+          _selectedDateRange!.start.month,
+          _selectedDateRange!.start.day,
+        );
+        final end = DateTime(
+          _selectedDateRange!.end.year,
+          _selectedDateRange!.end.month,
+          _selectedDateRange!.end.day,
+          23,
+          59,
+          59,
+        );
+        displayRecords = displayRecords.where((r) {
+          final targetDate = r.incidentDate;
+          return targetDate
+                  .isAfter(start.subtract(const Duration(seconds: 1))) &&
+              targetDate.isBefore(end.add(const Duration(seconds: 1)));
+        }).toList();
+      }
+    }
     if (isTheftOrFormIVStyle) {
       if (_selectedDateRange != null) {
         final start = DateTime(
@@ -666,6 +731,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               widget.moduleKey != 'pending')
             _buildStatsRow(totalCount, disposalCount, pendingCount),
           if (isTheftOrFormIVStyle) _buildToolbar(displayRecords.length),
+          if (widget.moduleKey == 'preventive')
+            _buildPreventiveToolbar(allRecords, displayRecords.length),
           Expanded(
             child: CustomScrollView(
               physics: const BouncingScrollPhysics(),
@@ -703,7 +770,13 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                                 onClearDateFilter: () =>
                                     setState(() => _selectedDateRange = null),
                               )
-                            : _buildEmpty(),
+                            : (widget.moduleKey == 'preventive' &&
+                                    (_pSearchQuery.isNotEmpty ||
+                                        _pSelCategory != 'All' ||
+                                        _pSelSection != 'All' ||
+                                        _selectedDateRange != null))
+                                ? _buildPreventiveEmptySearchResults()
+                                : _buildEmpty(),
                       )
                     else
                       SliverPadding(
@@ -1409,54 +1482,64 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     int selectedMonth,
     int selectedYear,
   ) {
-    const heads = [
-      '107 Crpc/126 BNSS',
-      '109 Crpc/128 BNSS',
-      '110 Crpc/129 BNSS',
-      '151 (3) Crpc/170(3) BNSS',
-      '55 to 57 B P Act',
-      'U/s 122  B P Act',
-      'U/s 124  B P Act',
-      '142 B P Act',
-      'M H O R',
-      '93 Pro Act',
-      'N S A',
-      'M P D A',
-      'M.C.O.C.A.',
-    ];
+    // 100% Dynamic: Obtain statutory provisions directly from backend provider and existing records
+    final providerActs = (() {
+      try {
+        return context.watch<PreventiveProvider>().preventiveActs;
+      } catch (_) {
+        return <String>[];
+      }
+    })();
+
+    final dynamicHeads = <String>{...providerActs};
+    for (final r in allRecords) {
+      if (r.moduleKey.toLowerCase() == 'preventive') {
+        final sub = (r.subCategory ?? '').trim();
+        if (sub.isNotEmpty) dynamicHeads.add(sub);
+        if (r.extraFields['preventive_acts_taken'] is List) {
+          for (final a in (r.extraFields['preventive_acts_taken'] as List)) {
+            if (a != null && a.toString().trim().isNotEmpty) {
+              dynamicHeads.add(a.toString().trim());
+            }
+          }
+        }
+      }
+    }
+    final heads = dynamicHeads.isNotEmpty ? dynamicHeads.toList() : <String>['General'];
 
     String getHead(ModuleRecord r) {
-      final key = r.moduleKey.toLowerCase();
-      final sub = (r.subCategory ?? '').toLowerCase();
-      if (key != 'preventive') return 'M H O R';
+      final sub = (r.subCategory ?? '').trim();
+      final actsTaken = (r.extraFields['preventive_acts_taken'] is List)
+          ? (r.extraFields['preventive_acts_taken'] as List)
+              .map((e) => e.toString().trim())
+              .toList()
+          : <String>[];
 
-      if (sub.contains('107') || sub.contains('126')) {
-        return '107 Crpc/126 BNSS';
+      for (final h in heads) {
+        if (actsTaken.contains(h)) return h;
       }
-      if (sub.contains('109') || sub.contains('128')) {
-        return '109 Crpc/128 BNSS';
-      }
-      if (sub.contains('110') || sub.contains('129')) {
-        return '110 Crpc/129 BNSS';
-      }
-      if (sub.contains('151') || sub.contains('170')) {
-        return '151 (3) Crpc/170(3) BNSS';
-      }
-      if (sub.contains('55') || sub.contains('56') || sub.contains('57')) {
-        return '55 to 57 B P Act';
-      }
-      if (sub.contains('122')) return 'U/s 122  B P Act';
-      if (sub.contains('124')) return 'U/s 124  B P Act';
-      if (sub.contains('142')) return '142 B P Act';
-      if (sub.contains('mhor') || sub.contains('m h o r')) return 'M H O R';
-      if (sub.contains('93') || sub.contains('pro act')) return '93 Pro Act';
-      if (sub.contains('nsa') || sub.contains('n s a')) return 'N S A';
-      if (sub.contains('mpda') || sub.contains('m p d a')) return 'M P D A';
-      if (sub.contains('mcoca') || sub.contains('m.c.o.c.a')) {
-        return 'M.C.O.C.A.';
+      for (final h in heads) {
+        for (final act in actsTaken) {
+          if (act.toLowerCase() == h.toLowerCase() ||
+              act.toLowerCase().contains(h.toLowerCase()) ||
+              h.toLowerCase().contains(act.toLowerCase())) {
+            return h;
+          }
+        }
       }
 
-      return 'M H O R';
+      if (sub.isNotEmpty) {
+        for (final h in heads) {
+          if (h.toLowerCase() == sub.toLowerCase() ||
+              sub.toLowerCase().contains(h.toLowerCase()) ||
+              h.toLowerCase().contains(sub.toLowerCase())) {
+            return h;
+          }
+        }
+        return sub;
+      }
+
+      return heads.isNotEmpty ? heads.first : 'Other';
     }
 
     List<ModuleRecord> filterMonth(int m, int y) => allRecords
@@ -5344,6 +5427,770 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         return AppColors.lightSubText;
     }
   }
+
+  // ---------------------------------------------------------------------------
+  // Dedicated 100% Dynamic Backend-Driven Preventive Search & Filters
+  // ---------------------------------------------------------------------------
+
+  String _extractPreventiveCrNo(ModuleRecord r) {
+    final extra = Map<String, dynamic>.from(r.extraFields);
+    final prevMap = extra[kPreventiveFormExtraFieldsKey] is Map
+        ? Map<String, dynamic>.from(extra[kPreventiveFormExtraFieldsKey] as Map)
+        : extra;
+    final caseRef = prevMap['caseRef'] is Map
+        ? Map<String, dynamic>.from(prevMap['caseRef'] as Map)
+        : <String, dynamic>{};
+    final crNo = (caseRef['crimeNo'] ?? prevMap['crimeNo'] ?? r.caseNumber)
+        .toString()
+        .trim();
+    return crNo.isNotEmpty ? crNo : r.id;
+  }
+
+  String _extractPreventiveCategory(ModuleRecord r) {
+    final extra = Map<String, dynamic>.from(r.extraFields);
+    final prevMap = extra[kPreventiveFormExtraFieldsKey] is Map
+        ? Map<String, dynamic>.from(extra[kPreventiveFormExtraFieldsKey] as Map)
+        : extra;
+    final caseRef = prevMap['caseRef'] is Map
+        ? Map<String, dynamic>.from(prevMap['caseRef'] as Map)
+        : <String, dynamic>{};
+    final srcMeta = r.extraFields['source_metadata'] is Map
+        ? Map<String, dynamic>.from(r.extraFields['source_metadata'] as Map)
+        : <String, dynamic>{};
+    final srcCatDisplay =
+        srcMeta['source_category_display_name']?.toString() ?? '';
+    final srcModDisplay =
+        srcMeta['source_module_display_name']?.toString() ?? '';
+
+    String categoryLabel = (caseRef['crimeCategory'] ??
+            caseRef['category'] ??
+            prevMap['crimeCategory'] ??
+            prevMap['category'] ??
+            r.extraFields['crimeCategory'] ??
+            r.extraFields['category'] ??
+            '')
+        .toString()
+        .trim();
+    if (categoryLabel.isEmpty || categoryLabel.toLowerCase() == 'preventive') {
+      final fallback = (r.extraFields['crimeCategory'] ??
+              r.extraFields['category'] ??
+              '')
+          .toString()
+          .trim();
+      if (fallback.isNotEmpty && fallback.toLowerCase() != 'preventive') {
+        categoryLabel = fallback;
+      } else if (srcCatDisplay.isNotEmpty &&
+          srcCatDisplay.toLowerCase() != 'preventive') {
+        categoryLabel = srcCatDisplay;
+      } else if (srcModDisplay.isNotEmpty &&
+          srcModDisplay.toLowerCase() != 'preventive') {
+        categoryLabel = srcModDisplay;
+      } else if (r.firestoreCategoryDisplayName.isNotEmpty &&
+          r.firestoreCategoryDisplayName.toLowerCase() != 'preventive') {
+        categoryLabel = r.firestoreCategoryDisplayName;
+      } else if (r.subCategory != null &&
+          r.subCategory!.isNotEmpty &&
+          r.subCategory!.toLowerCase() != 'preventive') {
+        categoryLabel = r.subCategory!;
+      } else {
+        categoryLabel = '—';
+      }
+    }
+    return categoryLabel;
+  }
+
+  String _extractPreventiveAccused(ModuleRecord r) {
+    final extra = Map<String, dynamic>.from(r.extraFields);
+    final prevMap = extra[kPreventiveFormExtraFieldsKey] is Map
+        ? Map<String, dynamic>.from(extra[kPreventiveFormExtraFieldsKey] as Map)
+        : extra;
+    final accusedList = prevMap['accusedList'] is List
+        ? (prevMap['accusedList'] as List)
+        : <dynamic>[];
+
+    String accusedName = r.accused.trim();
+    if (accusedName.isEmpty || _isRawEmptyAccusedStructure(accusedName)) {
+      final rawAccused = prevMap['accusedNames'] ?? prevMap['accused'];
+      if (rawAccused != null &&
+          rawAccused.toString().trim().isNotEmpty &&
+          !_isRawEmptyAccusedStructure(rawAccused.toString())) {
+        accusedName = rawAccused.toString().trim();
+      } else if (accusedList.isNotEmpty) {
+        final names = accusedList
+            .map((a) =>
+                a is Map ? (a['name']?.toString() ?? '') : a.toString())
+            .where((n) =>
+                n.trim().isNotEmpty && !_isRawEmptyAccusedStructure(n.trim()))
+            .toList();
+        if (names.isNotEmpty) {
+          accusedName = names.join(', ');
+        }
+      }
+    }
+    return _cleanAccusedName(accusedName);
+  }
+
+  String _extractPreventiveSectionAct(ModuleRecord r) {
+    final extra = Map<String, dynamic>.from(r.extraFields);
+    final prevMap = extra[kPreventiveFormExtraFieldsKey] is Map
+        ? Map<String, dynamic>.from(extra[kPreventiveFormExtraFieldsKey] as Map)
+        : extra;
+    final istegasha = prevMap['istegasha'] is Map
+        ? Map<String, dynamic>.from(prevMap['istegasha'] as Map)
+        : <String, dynamic>{};
+    final srcMeta = r.extraFields['source_metadata'] is Map
+        ? Map<String, dynamic>.from(r.extraFields['source_metadata'] as Map)
+        : <String, dynamic>{};
+    final prevActsTaken = srcMeta['preventive_acts_taken'] is List
+        ? (srcMeta['preventive_acts_taken'] as List).join(', ')
+        : '';
+    final prevAct = istegasha['preventiveSectionAct'] ??
+        prevMap['preventiveSectionAct'] ??
+        r.extraFields['preventiveSectionAct'] ??
+        r.extraFields['preventiveSecAct'] ??
+        istegasha['act'] ??
+        prevMap['preventiveAct'] ??
+        prevMap['preventiveSecAct'] ??
+        prevMap['act'];
+    if (prevAct != null && prevAct.toString().trim().isNotEmpty) {
+      return prevAct.toString().trim();
+    } else if (prevActsTaken.isNotEmpty) {
+      return prevActsTaken;
+    }
+    return '—';
+  }
+
+  String _extractPreventiveNo(ModuleRecord r) {
+    final extra = Map<String, dynamic>.from(r.extraFields);
+    final prevMap = extra[kPreventiveFormExtraFieldsKey] is Map
+        ? Map<String, dynamic>.from(extra[kPreventiveFormExtraFieldsKey] as Map)
+        : extra;
+    final istegasha = prevMap['istegasha'] is Map
+        ? Map<String, dynamic>.from(prevMap['istegasha'] as Map)
+        : <String, dynamic>{};
+    return (istegasha['preventiveNo'] ??
+            prevMap['preventiveNo'] ??
+            r.extraFields['preventiveNo'] ??
+            '')
+        .toString()
+        .trim();
+  }
+
+  bool _matchesPreventiveSearch(ModuleRecord r, String query) {
+    if (query.trim().isEmpty) return true;
+    final q = query.trim().toLowerCase();
+
+    // 1. CR No.
+    final crNo = _extractPreventiveCrNo(r).toLowerCase();
+    if (crNo.contains(q)) return true;
+    if (r.caseNumber.toLowerCase().contains(q)) return true;
+    if (r.id.toLowerCase().contains(q)) return true;
+
+    // 2. Accused Name
+    final accused = _extractPreventiveAccused(r).toLowerCase();
+    if (accused.contains(q)) return true;
+    if (r.accused.toLowerCase().contains(q)) return true;
+
+    // 3. Preventive Section Act
+    final secAct = _extractPreventiveSectionAct(r).toLowerCase();
+    if (secAct.contains(q)) return true;
+
+    // 4. Preventive No.
+    final prevNo = _extractPreventiveNo(r).toLowerCase();
+    if (prevNo.contains(q)) return true;
+
+    // 5. Category or Description or IO
+    final cat = _extractPreventiveCategory(r).toLowerCase();
+    if (cat.contains(q)) return true;
+    if (r.description.toLowerCase().contains(q)) return true;
+    if (r.assignedOfficer.toLowerCase().contains(q)) return true;
+
+    return false;
+  }
+
+  List<String> _getDynamicCategories(
+      PreventiveProvider prov, List<ModuleRecord> records) {
+    final Set<String> catSet = {};
+    for (final cat in prov.crimeCategories) {
+      final trimmed = cat.trim();
+      if (trimmed.isNotEmpty && trimmed.toLowerCase() != 'preventive') {
+        catSet.add(trimmed);
+      }
+    }
+    for (final r in records) {
+      final c = _extractPreventiveCategory(r);
+      if (c.isNotEmpty && c != '—' && c.toLowerCase() != 'preventive') {
+        catSet.add(c);
+      }
+    }
+    final list = catSet.toList()..sort((a, b) => a.compareTo(b));
+    return ['All', ...list];
+  }
+
+  List<String> _getDynamicPreventiveSections(
+      PreventiveProvider prov, List<ModuleRecord> records) {
+    final Set<String> secSet = {};
+    for (final act in prov.preventiveActs) {
+      final trimmed = act.trim();
+      if (trimmed.isNotEmpty) {
+        secSet.add(trimmed);
+      }
+    }
+    for (final r in records) {
+      final s = _extractPreventiveSectionAct(r);
+      if (s.isNotEmpty && s != '—') {
+        secSet.add(s);
+      }
+    }
+    final list = secSet.toList()..sort((a, b) => a.compareTo(b));
+    return ['All', ...list];
+  }
+
+  Widget _buildPreventiveToolbar(
+      List<ModuleRecord> allRecords, int displayCount) {
+    final prov = context.watch<PreventiveProvider>();
+    final categories = _getDynamicCategories(prov, allRecords);
+    final sections = _getDynamicPreventiveSections(prov, allRecords);
+    final hasFilters = _pSearchQuery.isNotEmpty ||
+        _pSelCategory != 'All' ||
+        _pSelSection != 'All' ||
+        _selectedDateRange != null;
+
+    final hasDate = _selectedDateRange != null;
+    final dateText = hasDate
+        ? '${DateFormat('dd/MM/yy').format(_selectedDateRange!.start)} - ${DateFormat('dd/MM/yy').format(_selectedDateRange!.end)}'
+        : TranslationHelper.translate(context, 'Date Filter');
+
+    final currentCat =
+        categories.contains(_pSelCategory) ? _pSelCategory : 'All';
+    final currentSec =
+        sections.contains(_pSelSection) ? _pSelSection : 'All';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+      ),
+      child: Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        alignment: WrapAlignment.spaceBetween,
+        children: [
+          // 1. Search Bar
+          ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 260, maxWidth: 360),
+            child: Container(
+              height: 38,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: _pSearchQuery.isNotEmpty
+                      ? const Color(0xFF0284C7)
+                      : const Color(0xFFCBD5E1),
+                  width: _pSearchQuery.isNotEmpty ? 1.4 : 1.0,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.02),
+                    blurRadius: 3,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: _pSearchCtrl,
+                onChanged: (val) {
+                  setState(() {
+                    _pSearchQuery = val;
+                  });
+                },
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF0F172A),
+                ),
+                decoration: InputDecoration(
+                  isDense: true,
+                  hintText: TranslationHelper.translate(
+                    context,
+                    'Search CR No., Accused, Preventive Section...',
+                  ),
+                  hintStyle: GoogleFonts.poppins(
+                    fontSize: 11.5,
+                    color: const Color(0xFF94A3B8),
+                  ),
+                  prefixIcon: const Icon(
+                    Icons.search_rounded,
+                    size: 18,
+                    color: Color(0xFF0284C7),
+                  ),
+                  suffixIcon: _pSearchCtrl.text.isNotEmpty
+                      ? InkWell(
+                          onTap: () {
+                            setState(() {
+                              _pSearchCtrl.clear();
+                              _pSearchQuery = '';
+                            });
+                          },
+                          child: const Icon(
+                            Icons.close_rounded,
+                            size: 16,
+                            color: Color(0xFF64748B),
+                          ),
+                        )
+                      : null,
+                  border: InputBorder.none,
+                  contentPadding:
+                      const EdgeInsets.symmetric(vertical: 9, horizontal: 8),
+                ),
+              ),
+            ),
+          ),
+
+          // 2. Filters & Count Pills
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              // Dynamic Crime Category Dropdown
+              Container(
+                height: 38,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  color: currentCat != 'All'
+                      ? const Color(0xFFFFFBEB)
+                      : const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: currentCat != 'All'
+                        ? const Color(0xFFF59E0B)
+                        : const Color(0xFFCBD5E1),
+                    width: currentCat != 'All' ? 1.3 : 1.0,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.category_outlined,
+                      size: 15,
+                      color: currentCat != 'All'
+                          ? const Color(0xFFD97706)
+                          : const Color(0xFF64748B),
+                    ),
+                    const SizedBox(width: 6),
+                    DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: currentCat,
+                        isDense: true,
+                        icon: const Icon(
+                          Icons.arrow_drop_down_rounded,
+                          size: 20,
+                          color: Color(0xFF64748B),
+                        ),
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: currentCat != 'All'
+                              ? FontWeight.w600
+                              : FontWeight.w500,
+                          color: currentCat != 'All'
+                              ? const Color(0xFF92400E)
+                              : const Color(0xFF1E293B),
+                        ),
+                        items: categories.map((cat) {
+                          final label = cat == 'All'
+                              ? TranslationHelper.translate(
+                                  context, 'All Categories')
+                              : cat;
+                          return DropdownMenuItem<String>(
+                            value: cat,
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 160),
+                              child: Text(
+                                label,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() => _pSelCategory = val);
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Dynamic Preventive Section Act Dropdown
+              Container(
+                height: 38,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  color: currentSec != 'All'
+                      ? const Color(0xFFF0F9FF)
+                      : const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: currentSec != 'All'
+                        ? const Color(0xFF0EA5E9)
+                        : const Color(0xFFCBD5E1),
+                    width: currentSec != 'All' ? 1.3 : 1.0,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.shield_outlined,
+                      size: 15,
+                      color: currentSec != 'All'
+                          ? const Color(0xFF0EA5E9)
+                          : const Color(0xFF64748B),
+                    ),
+                    const SizedBox(width: 6),
+                    DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: currentSec,
+                        isDense: true,
+                        icon: const Icon(
+                          Icons.arrow_drop_down_rounded,
+                          size: 20,
+                          color: Color(0xFF64748B),
+                        ),
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: currentSec != 'All'
+                              ? FontWeight.w600
+                              : FontWeight.w500,
+                          color: currentSec != 'All'
+                              ? const Color(0xFF0284C7)
+                              : const Color(0xFF1E293B),
+                        ),
+                        items: sections.map((sec) {
+                          final label = sec == 'All'
+                              ? TranslationHelper.translate(
+                                  context, 'All Sections / Acts')
+                              : sec;
+                          return DropdownMenuItem<String>(
+                            value: sec,
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 180),
+                              child: Text(
+                                label,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() => _pSelSection = val);
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Date Filter
+              InkWell(
+                onTap: _pickDateRange,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  height: 38,
+                  padding: EdgeInsets.fromLTRB(
+                      hasDate ? 8 : 10, 0, hasDate ? 4 : 10, 0),
+                  decoration: BoxDecoration(
+                    color: hasDate
+                        ? const Color(0xFFE8F1FC)
+                        : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: hasDate
+                          ? const Color(0xFF1976D2)
+                          : const Color(0xFFCBD5E1),
+                      width: hasDate ? 1.3 : 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.calendar_month_rounded,
+                        size: 15,
+                        color: hasDate
+                            ? const Color(0xFF1976D2)
+                            : const Color(0xFF64748B),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        dateText,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight:
+                              hasDate ? FontWeight.w600 : FontWeight.w500,
+                          color: hasDate
+                              ? const Color(0xFF1976D2)
+                              : const Color(0xFF1E293B),
+                        ),
+                      ),
+                      if (hasDate) ...[
+                        const SizedBox(width: 4),
+                        InkWell(
+                          onTap: () =>
+                              setState(() => _selectedDateRange = null),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.all(2),
+                            child: Icon(
+                              Icons.close_rounded,
+                              size: 14,
+                              color: Colors.red.shade700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+
+              // Reset Filters Button
+              if (hasFilters)
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _pSearchCtrl.clear();
+                      _pSearchQuery = '';
+                      _pSelCategory = 'All';
+                      _pSelSection = 'All';
+                      _selectedDateRange = null;
+                    });
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    height: 38,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF2F2),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFFECACA)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.filter_alt_off_rounded,
+                          size: 15,
+                          color: Color(0xFFDC2626),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          TranslationHelper.translate(
+                              context, 'Clear Filters'),
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFFDC2626),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+
+              // Dynamic Count Badge
+              Container(
+                height: 38,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  color: hasFilters
+                      ? const Color(0xFFF0FDF4)
+                      : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: hasFilters
+                        ? const Color(0xFFBBF7D0)
+                        : const Color(0xFFE2E8F0),
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  hasFilters
+                      ? '$displayCount / ${allRecords.length} cases'
+                      : '${allRecords.length} cases',
+                  style: GoogleFonts.poppins(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: hasFilters
+                        ? const Color(0xFF15803D)
+                        : const Color(0xFF475569),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPreventiveEmptySearchResults() {
+    return Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 450),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(color: AppColors.lightBorder),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: const BoxDecoration(
+                color: Color(0xFFE0F2FE),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.search_off_rounded,
+                size: 38,
+                color: Color(0xFF0284C7),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              TranslationHelper.translate(
+                  context, 'No Matching Preventive Cases'),
+              style: GoogleFonts.poppins(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: AppColors.navyDark,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              TranslationHelper.translate(
+                context,
+                'No records match the given CR No., Accused Name, Preventive Section, or filter criteria.',
+              ),
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                color: AppColors.lightSubText,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () {
+                setState(() {
+                  _pSearchCtrl.clear();
+                  _pSearchQuery = '';
+                  _pSelCategory = 'All';
+                  _pSelSection = 'All';
+                  _selectedDateRange = null;
+                });
+              },
+              icon: const Icon(Icons.refresh_rounded, size: 16),
+              label: Text(
+                TranslationHelper.translate(context, 'Reset All Filters'),
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0284C7),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Top-Level Sanitization Helpers for Accused Names
+// -----------------------------------------------------------------------------
+
+bool _isRawEmptyAccusedStructure(String s) {
+  final trimmed = s.trim();
+  if (trimmed.isEmpty ||
+      trimmed == '—' ||
+      trimmed == '-' ||
+      trimmed == '[]' ||
+      trimmed == '[{}]' ||
+      trimmed == '[{name: }]' ||
+      trimmed == '[{name:}]' ||
+      trimmed == 'null' ||
+      trimmed == 'None') {
+    return true;
+  }
+  final stripped =
+      trimmed.replaceAll(RegExp(r'\[|\{|\}|name|\:|\s|"|,|null'), '');
+  return stripped.isEmpty;
+}
+
+String _cleanAccusedName(String raw) {
+  final s = raw.trim();
+  if (_isRawEmptyAccusedStructure(s)) return '—';
+
+  // If serialized like [{name: Ramesh Kumar}], extract the names
+  if (s.startsWith('[') && s.endsWith(']')) {
+    final matches = RegExp(r'name\s*:\s*([^,\}\]]+)').allMatches(s);
+    if (matches.isNotEmpty) {
+      final names = matches
+          .map((m) => m.group(1)?.trim() ?? '')
+          .where((n) => n.isNotEmpty && !_isRawEmptyAccusedStructure(n))
+          .toList();
+      if (names.isNotEmpty) return names.join(', ');
+    }
+    try {
+      final decoded = jsonDecode(s);
+      if (decoded is List) {
+        final names = decoded
+            .map((item) =>
+                item is Map ? (item['name']?.toString() ?? '') : item.toString())
+            .map((item) => item.trim())
+            .where((item) =>
+                item.isNotEmpty && !_isRawEmptyAccusedStructure(item))
+            .toList();
+        if (names.isNotEmpty) return names.join(', ');
+      }
+    } catch (_) {}
+  }
+
+  return s;
 }
 
 /// Dedicated Horizontal Single-Row Case Card for Preventive Module
@@ -5507,6 +6354,13 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
             .trim();
     if (crNo.isEmpty) crNo = record.id;
 
+    // Dynamic Source Metadata from Backend
+    final srcMeta = record.extraFields['source_metadata'] is Map
+        ? Map<String, dynamic>.from(record.extraFields['source_metadata'] as Map)
+        : <String, dynamic>{};
+    final srcCatDisplay = srcMeta['source_category_display_name']?.toString() ?? '';
+    final srcModDisplay = srcMeta['source_module_display_name']?.toString() ?? '';
+
     // 2. Crime Category
     String categoryLabel = (caseRef['crimeCategory'] ??
             caseRef['category'] ??
@@ -5525,11 +6379,19 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
           .trim();
       if (fallback.isNotEmpty && fallback.toLowerCase() != 'preventive') {
         categoryLabel = fallback;
+      } else if (srcCatDisplay.isNotEmpty && srcCatDisplay.toLowerCase() != 'preventive') {
+        categoryLabel = srcCatDisplay;
+      } else if (srcModDisplay.isNotEmpty && srcModDisplay.toLowerCase() != 'preventive') {
+        categoryLabel = srcModDisplay;
       } else if (record.firestoreCategoryDisplayName.isNotEmpty &&
           record.firestoreCategoryDisplayName.toLowerCase() != 'preventive') {
         categoryLabel = record.firestoreCategoryDisplayName;
+      } else if (record.subCategory != null &&
+          record.subCategory!.isNotEmpty &&
+          record.subCategory!.toLowerCase() != 'preventive') {
+        categoryLabel = record.subCategory!;
       } else {
-        categoryLabel = 'Theft';
+        categoryLabel = '—';
       }
     }
 
@@ -5562,21 +6424,25 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
 
     // 4. Accused Name
     String accusedName = record.accused.trim();
-    if (accusedName.isEmpty) {
+    if (accusedName.isEmpty || _isRawEmptyAccusedStructure(accusedName)) {
       final rawAccused = prevMap['accusedNames'] ?? prevMap['accused'];
-      if (rawAccused != null && rawAccused.toString().trim().isNotEmpty) {
+      if (rawAccused != null &&
+          rawAccused.toString().trim().isNotEmpty &&
+          !_isRawEmptyAccusedStructure(rawAccused.toString())) {
         accusedName = rawAccused.toString().trim();
       } else if (accusedList.isNotEmpty) {
         final names = accusedList
-            .map((a) => a is Map ? (a['name']?.toString() ?? '') : a.toString())
-            .where((n) => n.trim().isNotEmpty)
+            .map((a) =>
+                a is Map ? (a['name']?.toString() ?? '') : a.toString())
+            .where((n) =>
+                n.trim().isNotEmpty && !_isRawEmptyAccusedStructure(n.trim()))
             .toList();
         if (names.isNotEmpty) {
           accusedName = names.join(', ');
         }
       }
     }
-    if (accusedName.isEmpty) accusedName = '—';
+    accusedName = _cleanAccusedName(accusedName);
 
     // 5. Arrest Date
     String arrestDate = '';
@@ -5594,6 +6460,9 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
 
     // 6. Preventive Sec. Act
     String prevSecAct = '';
+    final prevActsTaken = srcMeta['preventive_acts_taken'] is List
+        ? (srcMeta['preventive_acts_taken'] as List).join(', ')
+        : '';
     final prevAct = istegasha['preventiveSectionAct'] ??
         prevMap['preventiveSectionAct'] ??
         record.extraFields['preventiveSectionAct'] ??
@@ -5604,8 +6473,10 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
         prevMap['act'];
     if (prevAct != null && prevAct.toString().trim().isNotEmpty) {
       prevSecAct = prevAct.toString().trim();
+    } else if (prevActsTaken.isNotEmpty) {
+      prevSecAct = prevActsTaken;
     } else {
-      prevSecAct = '107 Crpc/126 BNSS';
+      prevSecAct = '—';
     }
 
     // 7. Preventive No.

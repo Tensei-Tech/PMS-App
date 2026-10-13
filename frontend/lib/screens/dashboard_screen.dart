@@ -7667,54 +7667,64 @@ class _CalendarTabState extends State<_CalendarTab> {
     int selectedMonth,
     int selectedYear,
   ) {
-    const heads = [
-      '107 Crpc/126 BNSS',
-      '109 Crpc/128 BNSS',
-      '110 Crpc/129 BNSS',
-      '151 (3) Crpc/170(3) BNSS',
-      '55 to 57 B P Act',
-      'U/s 122  B P Act',
-      'U/s 124  B P Act',
-      '142 B P Act',
-      'M H O R',
-      '93 Pro Act',
-      'N S A',
-      'M P D A',
-      'M.C.O.C.A.',
-    ];
+    // 100% Dynamic: Obtain statutory provisions directly from backend provider and existing records
+    final providerActs = (() {
+      try {
+        return context.watch<PreventiveProvider>().preventiveActs;
+      } catch (_) {
+        return <String>[];
+      }
+    })();
+
+    final dynamicHeads = <String>{...providerActs};
+    for (final r in allRecords) {
+      if (r.moduleKey.toLowerCase() == 'preventive') {
+        final sub = (r.subCategory ?? '').trim();
+        if (sub.isNotEmpty) dynamicHeads.add(sub);
+        if (r.extraFields['preventive_acts_taken'] is List) {
+          for (final a in (r.extraFields['preventive_acts_taken'] as List)) {
+            if (a != null && a.toString().trim().isNotEmpty) {
+              dynamicHeads.add(a.toString().trim());
+            }
+          }
+        }
+      }
+    }
+    final heads = dynamicHeads.isNotEmpty ? dynamicHeads.toList() : <String>['General'];
 
     String getHead(ModuleRecord r) {
-      final key = r.moduleKey.toLowerCase();
-      final sub = (r.subCategory ?? '').toLowerCase();
-      if (key != 'preventive') return 'M H O R';
+      final sub = (r.subCategory ?? '').trim();
+      final actsTaken = (r.extraFields['preventive_acts_taken'] is List)
+          ? (r.extraFields['preventive_acts_taken'] as List)
+              .map((e) => e.toString().trim())
+              .toList()
+          : <String>[];
 
-      if (sub.contains('107') || sub.contains('126')) {
-        return '107 Crpc/126 BNSS';
+      for (final h in heads) {
+        if (actsTaken.contains(h)) return h;
       }
-      if (sub.contains('109') || sub.contains('128')) {
-        return '109 Crpc/128 BNSS';
-      }
-      if (sub.contains('110') || sub.contains('129')) {
-        return '110 Crpc/129 BNSS';
-      }
-      if (sub.contains('151') || sub.contains('170')) {
-        return '151 (3) Crpc/170(3) BNSS';
-      }
-      if (sub.contains('55') || sub.contains('56') || sub.contains('57')) {
-        return '55 to 57 B P Act';
-      }
-      if (sub.contains('122')) return 'U/s 122  B P Act';
-      if (sub.contains('124')) return 'U/s 124  B P Act';
-      if (sub.contains('142')) return '142 B P Act';
-      if (sub.contains('mhor') || sub.contains('m h o r')) return 'M H O R';
-      if (sub.contains('93') || sub.contains('pro act')) return '93 Pro Act';
-      if (sub.contains('nsa') || sub.contains('n s a')) return 'N S A';
-      if (sub.contains('mpda') || sub.contains('m p d a')) return 'M P D A';
-      if (sub.contains('mcoca') || sub.contains('m.c.o.c.a')) {
-        return 'M.C.O.C.A.';
+      for (final h in heads) {
+        for (final act in actsTaken) {
+          if (act.toLowerCase() == h.toLowerCase() ||
+              act.toLowerCase().contains(h.toLowerCase()) ||
+              h.toLowerCase().contains(act.toLowerCase())) {
+            return h;
+          }
+        }
       }
 
-      return 'M H O R';
+      if (sub.isNotEmpty) {
+        for (final h in heads) {
+          if (h.toLowerCase() == sub.toLowerCase() ||
+              sub.toLowerCase().contains(h.toLowerCase()) ||
+              h.toLowerCase().contains(sub.toLowerCase())) {
+            return h;
+          }
+        }
+        return sub;
+      }
+
+      return heads.isNotEmpty ? heads.first : 'Other';
     }
 
     List<ModuleRecord> filterMonth(int m, int y) => allRecords

@@ -16,6 +16,9 @@ def check_dynamic_permission(user, permission_code: str) -> bool:
     if not user or not getattr(user, 'is_authenticated', False):
         return False
 
+    if getattr(user, 'is_superuser', False):
+        return True
+
     role_id = getattr(user, 'role_id', None) or getattr(user, 'role', None)
 
     # If role_id is not directly on user model, check user_role_mappings

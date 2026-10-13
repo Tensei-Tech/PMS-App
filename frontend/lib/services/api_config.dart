@@ -98,4 +98,10 @@ class ApiConfig {
   static String get acts => '$baseUrl/acts/';
   static String get actSections => '$baseUrl/act-sections/';
   static String get actSubsections => '$baseUrl/act-subsections/';
+
+  // Dedicated 100% Backend-Driven Preventive Endpoints
+  static String get preventiveConfig => '$baseUrl/cases/preventive/config/';
+  static String get preventiveStats => '$baseUrl/cases/preventive/stats/';
+  static String get preventiveMonthly => '$baseUrl/cases/preventive/monthly/';
 }
+

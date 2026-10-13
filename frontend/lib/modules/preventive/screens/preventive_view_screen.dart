@@ -148,17 +148,32 @@ class PreventiveViewDocumentView extends StatelessWidget {
     final regDate = _val(caseRef['regDate'] ?? prevMap['regDate']);
     final crimeCategory = _val(
       caseRef['crimeCategory'] ??
+          prevMap['source_category_display_name'] ??
+          record.extraFields['source_category_display_name'] ??
           prevMap['crimeCategory'] ??
           record.subCategory,
-      fallback: 'Theft',
+      fallback: '—',
     );
     final caseStatus = _val(
       caseRef['caseStatus'] ?? prevMap['caseStatus'] ?? record.status,
-      fallback: 'Under Investigation',
+      fallback: '—',
+    );
+
+    final sourceModule = _val(
+      prevMap['source_module_display_name'] ??
+          record.extraFields['source_module_display_name'] ??
+          record.moduleKey,
+      fallback: '',
+    );
+    final originalRef = _val(
+      prevMap['original_record_reference'] ??
+          record.extraFields['original_record_reference'] ??
+          fallbackCrimeNo,
+      fallback: '—',
     );
 
     final selectedAct =
-        _val(sections['act'] ?? prevMap['act'], fallback: 'BNS');
+        _val(sections['act'] ?? prevMap['act'], fallback: '—');
     final List<String> selectedSectionsList = [];
     if (sections['selectedSections'] is List) {
       selectedSectionsList.addAll(
@@ -196,13 +211,15 @@ class PreventiveViewDocumentView extends StatelessWidget {
 
     final riskFlag = _val(
       riskAndStatus['riskFlag'] ?? prevMap['riskFlag'] ?? record.priority,
-      fallback: '🚨 High Priority',
+      fallback: '—',
     );
     final actionStatus = _val(
       riskAndStatus['actionStatus'] ??
+          prevMap['preventive_action_status'] ??
+          record.extraFields['preventive_action_status'] ??
           prevMap['actionStatus'] ??
           prevMap['status'],
-      fallback: '🟢 Preventive Action Completed',
+      fallback: '—',
     );
     final remarks = _val(
         riskAndStatus['remarks'] ?? prevMap['remarks'] ?? record.description);
@@ -224,6 +241,13 @@ class PreventiveViewDocumentView extends StatelessWidget {
               _FieldData('Crime No. / FIR No. / NC no.', crimeNo, isBold: true),
               _FieldData('Arrest Date', regDate),
             ]),
+            if (sourceModule.isNotEmpty && sourceModule != 'Preventive Action') ...[
+              _buildDivider(),
+              _buildGridRow([
+                _FieldData('Source Module', sourceModule, isChip: true),
+                _FieldData('Original Record Ref', originalRef),
+              ]),
+            ],
             _buildDivider(),
             _buildGridRow([
               _FieldData('Crime Category', crimeCategory, isChip: true),

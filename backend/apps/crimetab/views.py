@@ -1378,6 +1378,10 @@ class CrimeCaseManageView(APIView):
                             from apps.cases.utils import get_victim_cases
                             victim_qs = get_victim_cases()
                             qs = qs.filter(id__in=victim_qs.values_list('id', flat=True))
+                        elif mod_lower == 'preventive':
+                            from apps.cases.utils import get_preventive_cases
+                            preventive_qs = get_preventive_cases()
+                            qs = qs.filter(id__in=preventive_qs.values_list('id', flat=True))
                         elif mod_lower in ['form_1_5', 'form_iv', 'form_i_v', '1_to_5']:
                             from apps.crimetab.models.groupings import CaseCategory
                             group_1_cats = list(CaseCategory.objects.filter(
@@ -1463,13 +1467,21 @@ class CrimeCaseManageView(APIView):
 
                     try:
                         total_count = qs.count()
-                        records = qs.order_by('-created_at')[:50]
+                        records = list(qs.order_by('-created_at')[:50])
+                        if mod_lower == 'preventive':
+                            from apps.cases.utils import enrich_preventive_case
+                            for r in records:
+                                enrich_preventive_case(r)
                         serializer = CaseListSerializer(records, many=True)
                     except OperationalError:
                         from django.db import connection
                         connection.close()
                         total_count = qs.count()
-                        records = qs.order_by('-created_at')[:50]
+                        records = list(qs.order_by('-created_at')[:50])
+                        if mod_lower == 'preventive':
+                            from apps.cases.utils import enrich_preventive_case
+                            for r in records:
+                                enrich_preventive_case(r)
                         serializer = CaseListSerializer(records, many=True)
 
                     return Response({
