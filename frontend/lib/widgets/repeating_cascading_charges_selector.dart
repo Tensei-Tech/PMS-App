@@ -49,6 +49,14 @@ class ChargeItemData {
       subsectionCode: map['subsection_code']?.toString(),
     );
   }
+
+  bool get isEmpty =>
+      (actId == null || actId.toString().trim().isEmpty) &&
+      (actName == null || actName!.trim().isEmpty) &&
+      (sectionId == null || sectionId.toString().trim().isEmpty) &&
+      (sectionNumber == null || sectionNumber!.trim().isEmpty);
+
+  bool get isNotEmpty => !isEmpty;
 }
 
 class RepeatingCascadingChargesSelector extends StatefulWidget {
@@ -145,11 +153,12 @@ class _RepeatingCascadingChargesSelectorState
   }
 
   void _notifyParent() {
-    final resultList = _charges.map((c) => c.toJson()).toList();
+    final validCharges = _charges.where((c) => c.isNotEmpty).toList();
+    final resultList = validCharges.map((c) => c.toJson()).toList();
     widget.onChargesChanged?.call(resultList);
 
     final sectionIds =
-        _charges.map((c) => c.sectionId).where((id) => id != null).toList();
+        validCharges.map((c) => c.sectionId).where((id) => id != null).toList();
     widget.onSectionIdsChanged?.call(sectionIds);
   }
 

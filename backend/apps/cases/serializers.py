@@ -299,28 +299,123 @@ from rest_framework import serializers
 from apps.cases.models import CaseRecord, _extract_first_non_empty
 from apps.cases.constants import CC_ST_KEYS
 
+def format_section_act(val):
+    if not val:
+        return ''
+    
+    # If val is a string, check if it's a stringified python/json list or dict
+    if isinstance(val, str):
+        s = val.strip()
+        if (s.startswith('[') and s.endswith(']')) or (s.startswith('{') and s.endswith('}')):
+            import ast, json
+            parsed = None
+            try:
+                parsed = json.loads(s)
+            except Exception:
+                try:
+                    parsed = ast.literal_eval(s)
+                except Exception:
+                    parsed = None
+            if parsed is not None:
+                return format_section_act(parsed)
+        if s in ('None', 'null', '[]', '{}'):
+            return ''
+        return s
+
+    if isinstance(val, list):
+        items = []
+        for item in val:
+            formatted = format_section_act(item)
+            if formatted and formatted not in items:
+                items.append(formatted)
+        return ', '.join(items)
+
+    if isinstance(val, dict):
+        if val.get('otherSections'):
+            return str(val['otherSections']).strip()
+        
+        act = val.get('act_name') or val.get('act') or ''
+        if isinstance(act, dict):
+            act = act.get('act_name') or act.get('name') or ''
+        elif not isinstance(act, str):
+            act = '' if act is None or isinstance(act, (int, float)) else str(act)
+        act = act.strip()
+        if act in ('None', 'null'):
+            act = ''
+
+        # Normalize common Act names to short abbreviations
+        act_lower = act.lower()
+        if 'bharatiya nyaya' in act_lower or act_lower == 'bns':
+            act = 'BNS'
+        elif 'indian penal' in act_lower or act_lower == 'ipc':
+            act = 'IPC'
+        elif 'nagarik suraksha' in act_lower or 'nagrik suraksha' in act_lower or act_lower == 'bnss':
+            act = 'BNSS'
+        elif 'sakshya' in act_lower or act_lower == 'bsa':
+            act = 'BSA'
+        elif 'protection of children' in act_lower or 'pocso' in act_lower:
+            act = 'POCSO'
+
+        sec = val.get('subsection_code') or val.get('section_number') or val.get('section') or val.get('section_title') or ''
+        if isinstance(sec, dict):
+            sec = sec.get('number') or sec.get('section_number') or ''
+        elif not isinstance(sec, str):
+            sec = '' if sec is None else str(sec)
+        sec = sec.strip()
+        if sec in ('None', 'null'):
+            sec = ''
+
+        parts = []
+        if act:
+            parts.append(act)
+        if sec:
+            if not sec.lower().startswith('sec') and not parts:
+                parts.append(f"Sec. {sec}")
+            else:
+                parts.append(sec)
+
+        if parts:
+            return ' '.join(parts)
+        
+        # Fallback to other sub-fields in dict
+        for k in ['section', 'act', 'sections']:
+            sub_val = val.get(k)
+            if sub_val and sub_val != val and not isinstance(sub_val, (int, float)):
+                res = format_section_act(sub_val)
+                if res:
+                    return res
+        return ''
+
+    return str(val).strip()
+
+
 def extract_section_act(extra_fields):
     if not isinstance(extra_fields, dict):
         return ''
     
+    if extra_fields.get('acts_sections'):
+        res = format_section_act(extra_fields['acts_sections'])
+        if res:
+            return res
+
     sections = extra_fields.get('sections', {})
     if isinstance(sections, dict) and sections.get('otherSections'):
         return str(sections['otherSections']).strip()
         
-    for key in ['otherSections', 'section', 'act']:
-        if key in extra_fields and str(extra_fields[key]).strip():
-            return str(extra_fields[key]).strip()
+    for key in ['otherSections', 'section', 'act', 'sectionAct', 'section_act']:
+        if key in extra_fields and extra_fields[key]:
+            res = format_section_act(extra_fields[key])
+            if res:
+                return res
             
     # Try searching in nested objects
     for val in extra_fields.values():
         if isinstance(val, dict):
-            if val.get('otherSections'):
-                return str(val['otherSections']).strip()
-            if val.get('section'):
-                return str(val['section']).strip()
-            if val.get('act'):
-                return str(val['act']).strip()
+            res = format_section_act(val)
+            if res:
+                return res
     return ''
+
 
 
 class VictimCaseRecordSerializer(serializers.ModelSerializer):
@@ -467,7 +562,18 @@ class ItssoCaseRecordSerializer(serializers.ModelSerializer):
 
     def get_section_act(self, obj):
         extra = obj.extra_fields if isinstance(obj.extra_fields, dict) else {}
-        return str(extra.get('section') or extra.get('act_section') or extra.get('sections') or '').strip()
+        if extra.get('acts_sections'):
+            formatted = format_section_act(extra['acts_sections'])
+            if formatted:
+                return formatted
+        for key in ['section_act', 'section', 'act_section', 'sections', 'sectionAct']:
+            if extra.get(key):
+                formatted = format_section_act(extra[key])
+                if formatted:
+                    return formatted
+        if obj.description:
+            return format_section_act(obj.description)
+        return ''
         
     def _has_charge_sheet(self, obj):
         extra = obj.extra_fields if isinstance(obj.extra_fields, dict) else {}
@@ -489,3 +595,157 @@ class ItssoCaseRecordSerializer(serializers.ModelSerializer):
         reg_date = obj.created_at.date() if obj.created_at else timezone.now().date()
         days_passed = (timezone.now().date() - reg_date).days
         return not self._has_charge_sheet(obj)
+
+
+class NafisCaseRecordSerializer(serializers.ModelSerializer):
+    sr_no = serializers.IntegerField(read_only=True)
+    charge_sheet_date = serializers.SerializerMethodField()
+    nafis_status_color = serializers.SerializerMethodField()
+    nafis_status = serializers.SerializerMethodField()
+    section_act = serializers.SerializerMethodField()
+    accused_name = serializers.SerializerMethodField()
+    days_passed = serializers.SerializerMethodField()
+    action_required = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CaseRecord
+        fields = [
+            'id', 'sr_no', 'case_number', 'section_act', 'charge_sheet_date',
+            'assigned_officer', 'accused_name', 'nafis_status', 'nafis_status_color',
+            'created_at', 'station_name', 'days_passed', 'action_required', 'extra_fields'
+        ]
+
+    def _get_cs_date(self, obj):
+        extra = obj.extra_fields if isinstance(obj.extra_fields, dict) else {}
+        court = extra.get('court') or extra.get('commonForm', {}).get('court') or extra.get('courtDisposal') or {}
+        cs_date_str = (
+            extra.get('charge_sheet_date') or 
+            extra.get('chargeSheetDate') or 
+            extra.get('chargesheet_date') or 
+            extra.get('cs_date') or 
+            extra.get('csDate') or 
+            court.get('chargeSheetDate') or 
+            court.get('charge_sheet_date') or 
+            court.get('chargesheet_date')
+        )
+        if not cs_date_str:
+            return None
+        try:
+            if isinstance(cs_date_str, str):
+                return datetime.strptime(cs_date_str.split('T')[0], '%Y-%m-%d').date()
+            return None
+        except Exception:
+            return None
+
+    def get_charge_sheet_date(self, obj):
+        extra = obj.extra_fields if isinstance(obj.extra_fields, dict) else {}
+        court = extra.get('court') or extra.get('commonForm', {}).get('court') or extra.get('courtDisposal') or {}
+        cs_no = (
+            extra.get('charge_sheet_number') or 
+            extra.get('charge_sheet_no') or 
+            extra.get('cc_st_number') or 
+            extra.get('ccStNumber') or
+            court.get('chargeSheetNumber') or
+            court.get('charge_sheet_no') or
+            court.get('ccStNumber')
+        )
+        if cs_no:
+            return str(cs_no)
+        d = self._get_cs_date(obj)
+        return d.strftime('%Y-%m-%d') if d else ''
+
+    def get_section_act(self, obj):
+        extra = obj.extra_fields if isinstance(obj.extra_fields, dict) else {}
+        if extra.get('acts_sections'):
+            formatted = format_section_act(extra['acts_sections'])
+            if formatted:
+                return formatted
+
+        for key in ['section_act', 'section', 'act_section', 'sections', 'sectionAct']:
+            if extra.get(key):
+                formatted = format_section_act(extra[key])
+                if formatted:
+                    return formatted
+
+        if obj.description:
+            formatted = format_section_act(obj.description)
+            if formatted:
+                return formatted
+
+        return ''
+
+    def get_accused_name(self, obj):
+        extra = obj.extra_fields if isinstance(obj.extra_fields, dict) else {}
+        name = (
+            getattr(obj, 'accused', None) or
+            extra.get('accused_name') or
+            extra.get('accused') or
+            extra.get('commonForm', {}).get('accused') or
+            ''
+        )
+        if isinstance(name, list):
+            items = [str(x.get('name') if isinstance(x, dict) else x).strip() for x in name if x]
+            return ', '.join([x for x in items if x and x not in ('None', 'null')])
+        if isinstance(name, dict):
+            return str(name.get('name') or name.get('accused_name') or '').strip()
+        s = str(name).strip()
+        return '' if s in ('None', 'null') else s
+
+    def _has_charge_sheet(self, obj):
+        extra = obj.extra_fields if isinstance(obj.extra_fields, dict) else {}
+        court = extra.get('court') or extra.get('commonForm', {}).get('court') or extra.get('courtDisposal') or {}
+        cs_no = (
+            extra.get('charge_sheet_number') or 
+            extra.get('charge_sheet_no') or 
+            extra.get('cc_st_number') or 
+            extra.get('ccStNumber') or
+            court.get('chargeSheetNumber') or
+            court.get('charge_sheet_no') or
+            court.get('ccStNumber')
+        )
+        return bool(cs_no)
+
+    def _has_fingerprint_taken(self, obj):
+        extra = obj.extra_fields if isinstance(obj.extra_fields, dict) else {}
+        inv = extra.get('investigationNotes') or extra.get('commonForm', {}).get('investigationNotes') or {}
+        forensics = getattr(obj, 'forensics', None)
+        
+        # Check forensics model relationship if available
+        if forensics:
+            if getattr(forensics, 'fingerprint_taken', None) is True or getattr(forensics, 'nafis_fingerprint', None) is True:
+                return True
+        
+        # Check explicit booleans
+        if extra.get('fingerprint_taken') is True or extra.get('nafis_fingerprint') is True:
+            return True
+        if extra.get('fingerprintTaken') is True or extra.get('nafisFingerprint') is True:
+            return True
+        if inv.get('fingerprint_taken') is True or inv.get('nafis_fingerprint') is True:
+            return True
+
+        # Check string values and dates
+        fp_val = str(extra.get('fingerprintVal') or inv.get('fingerprintVal') or extra.get('fingerprint_taken') or '').strip().lower()
+        fp_date = str(extra.get('fingerprintDate') or inv.get('fingerprintDate') or '').strip()
+        nafis_val = str(extra.get('nafisFingerprint') or extra.get('nafis_fingerprint') or inv.get('nafisFingerprint') or '').strip().lower()
+        nafis_date = str(extra.get('nafisDate') or inv.get('nafisDate') or '').strip()
+
+        if fp_val in ['yes', 'true'] or nafis_val in ['yes', 'true']:
+            return True
+        if fp_date or nafis_date:
+            return True
+            
+        return False
+
+    def get_nafis_status_color(self, obj):
+        return 'Green' if self._has_fingerprint_taken(obj) else 'Red'
+
+    def get_nafis_status(self, obj):
+        return 'Done' if self._has_fingerprint_taken(obj) else 'Pending'
+
+    def get_days_passed(self, obj):
+        reg_date = obj.created_at.date() if obj.created_at else timezone.now().date()
+        return (timezone.now().date() - reg_date).days
+
+    def get_action_required(self, obj):
+        return not self._has_fingerprint_taken(obj)
+

@@ -34,6 +34,7 @@ from apps.cases.views import (
     NAFISCaseWiseView,
     TimeWiseNAFISView,
     IOWiseNAFISView,
+    NafisActionView,
     VictimCaseWiseView,
     VictimStatsView,
     VictimTimeWiseView,
@@ -81,6 +82,7 @@ urlpatterns = [
     path('nafis/case-wise/', NAFISCaseWiseView.as_view(), name='nafis-case-wise'),
     path('nafis/time-wise/', TimeWiseNAFISView.as_view(), name='nafis-time-wise'),
     path('nafis/io-wise/', IOWiseNAFISView.as_view(), name='nafis-io-wise'),
+    path('nafis/cases/<str:pk>/action/', NafisActionView.as_view(), name='nafis-action'),
 
     path('victim/case-wise/', VictimCaseWiseView.as_view(), name='victim-case-wise'),
     path('victim/time-wise/', VictimTimeWiseView.as_view(), name='victim-time-wise'),

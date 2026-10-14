@@ -170,6 +170,38 @@ class InchargeAnalyticsResponse {
   }
 }
 
+class CourseEntry {
+  final String id;
+  final String name;
+  final String platform;
+  final String description;
+  final String category;
+  final double? durationHours;
+  final bool isMandatory;
+
+  CourseEntry({
+    required this.id,
+    required this.name,
+    required this.platform,
+    required this.description,
+    required this.category,
+    this.durationHours,
+    required this.isMandatory,
+  });
+
+  factory CourseEntry.fromJson(Map<String, dynamic> json) {
+    return CourseEntry(
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      platform: json['platform']?.toString() ?? 'iGOT Karmayogi',
+      description: json['description']?.toString() ?? '',
+      category: json['category']?.toString() ?? 'General',
+      durationHours: (json['duration_hours'] as num?)?.toDouble(),
+      isMandatory: json['is_mandatory'] as bool? ?? true,
+    );
+  }
+}
+
 class ELearningService {
   static final ELearningService _instance = ELearningService._internal();
   factory ELearningService() => _instance;
@@ -259,5 +291,63 @@ class ELearningService {
       if (kDebugMode) debugPrint('[ELearningService] fetchInchargeAnalytics error: $e');
     }
     return null;
+  }
+
+  /// Fetch course catalog (available courses for the station)
+  Future<List<CourseEntry>> fetchCourses({String? platform, String? category}) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (platform != null && platform.isNotEmpty) queryParams['platform'] = platform;
+      if (category != null && category.isNotEmpty) queryParams['category'] = category;
+
+      final res = await _api.get(
+        ApiConfig.elearningCourses,
+        queryParameters: queryParams.isNotEmpty ? queryParams : null,
+      );
+
+      if (res.isSuccess && res.data != null) {
+        List<dynamic> rawList = [];
+        if (res.data is List) {
+          rawList = res.data;
+        } else if (res.data is Map && res.data['results'] is List) {
+          rawList = res.data['results'];
+        }
+        return rawList.map((e) => CourseEntry.fromJson(e as Map<String, dynamic>)).toList();
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('[ELearningService] fetchCourses error: $e');
+    }
+    return [];
+  }
+
+  /// Create a new course in the catalog (Admin/Incharge only)
+  Future<bool> createCourse({
+    required String name,
+    required String platform,
+    String description = '',
+    String category = 'General',
+    double? durationHours,
+    bool isMandatory = true,
+  }) async {
+    try {
+      final payload = <String, dynamic>{
+        'name': name,
+        'platform': platform,
+        'description': description,
+        'category': category,
+        'is_mandatory': isMandatory,
+        if (durationHours != null) 'duration_hours': durationHours,
+      };
+
+      final res = await _api.post(
+        ApiConfig.elearningCourses,
+        body: payload,
+      );
+
+      return res.isSuccess;
+    } catch (e) {
+      if (kDebugMode) debugPrint('[ELearningService] createCourse error: $e');
+      return false;
+    }
   }
 }

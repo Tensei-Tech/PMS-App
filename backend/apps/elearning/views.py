@@ -143,15 +143,34 @@ class OfficerCourseRecordsListView(APIView):
     def get(self, request):
         queryset = OfficerCourseRecord.objects.all().order_by('-date_of_completion', '-created_at')
 
-        # Filter by station (if Station Incharge or query param)
+        # Filter by station (if Station Incharge or query param) — use same fuzzy matching as analytics
         station = request.query_params.get('station')
         is_admin = getattr(request.user, 'is_superuser', False) or getattr(request.user, 'role_id', '') in ['admin', 'state_super_admin', 'master_admin']
         if station:
-            queryset = queryset.filter(station_name__iexact=station)
+            station = station.strip()
+            if station.lower() not in ['all', 'all stations', 'all police stations']:
+                matched = queryset.filter(
+                    Q(station_name__iexact=station) | Q(station_name__icontains=station)
+                )
+                if matched.exists():
+                    queryset = matched
+                else:
+                    tokens = [t for t in station.split() if len(t) > 2 and t.lower() not in ['police', 'station']]
+                    for tok in tokens:
+                        sub = queryset.filter(station_name__icontains=tok)
+                        if sub.exists():
+                            queryset = sub
+                            break
         elif not is_admin:
             user_station = getattr(request.user, 'station_name', None)
             if user_station:
-                queryset = queryset.filter(station_name=user_station)
+                user_station = user_station.strip()
+                matched = queryset.filter(
+                    Q(station_name__iexact=user_station) | Q(station_name__icontains=user_station)
+                )
+                if matched.exists():
+                    queryset = matched
+
 
         officer_uid = request.query_params.get('officer_uid')
         if officer_uid:
@@ -187,19 +206,37 @@ class InchargeDashboardAnalyticsView(APIView):
 
     def get(self, request):
         user = request.user
-        station_name = request.query_params.get('station') or getattr(user, 'station_name', '')
+        station_name = (
+            request.query_params.get('station')
+            if hasattr(request, 'query_params')
+            else request.GET.get('station')
+        ) or getattr(user, 'station_name', '')
+        station_name = station_name.strip() if station_name else ''
 
         # All officers in this station from OfficerProfile
         officers_qs = OfficerProfile.objects.all()
-        if station_name:
-            officers_qs = officers_qs.filter(station_name__iexact=station_name)
-
-        total_station_personnel = officers_qs.count()
+        if station_name and station_name.lower() not in ['all', 'all stations', 'all police stations']:
+            matched = officers_qs.filter(
+                Q(station_name__iexact=station_name) | Q(station_name__icontains=station_name)
+            )
+            if matched.exists():
+                officers_qs = matched
+            else:
+                tokens = [t for t in station_name.split() if len(t) > 2 and t.lower() not in ['police', 'station']]
+                for tok in tokens:
+                    sub_matched = officers_qs.filter(station_name__icontains=tok)
+                    if sub_matched.exists():
+                        officers_qs = sub_matched
+                        break
 
         # Completed course records in this station
         records_qs = OfficerCourseRecord.objects.filter(status='Completed')
-        if station_name:
-            records_qs = records_qs.filter(station_name__iexact=station_name)
+        if station_name and station_name.lower() not in ['all', 'all stations', 'all police stations']:
+            matched_records = records_qs.filter(
+                Q(station_name__iexact=station_name) | Q(station_name__icontains=station_name)
+            )
+            if matched_records.exists():
+                records_qs = matched_records
 
         total_completions_count = records_qs.count()
 
@@ -235,6 +272,8 @@ class InchargeDashboardAnalyticsView(APIView):
                 'station_name': o.station_name,
                 'status': 'Not Completed Any Course',
             })
+
+        total_station_personnel = max(officers_qs.count(), completed_personnel_count + len(not_done_officers))
 
         # Overview cards
         return Response({

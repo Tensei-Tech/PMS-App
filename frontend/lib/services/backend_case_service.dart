@@ -84,6 +84,7 @@ class BackendCaseService {
     String? category,
     String? startDate,
     String? endDate,
+    int? pageSize = 1000,
   }) async {
     try {
       final queryParams = <String, dynamic>{};
@@ -98,6 +99,9 @@ class BackendCaseService {
       }
       if (endDate != null && endDate.isNotEmpty) {
         queryParams['end_date'] = endDate;
+      }
+      if (pageSize != null) {
+        queryParams['page_size'] = pageSize;
       }
 
       final url = '${ApiConfig.cases}pending/';
@@ -187,6 +191,7 @@ class BackendCaseService {
     String? category,
     String? startDate,
     String? endDate,
+    int? pageSize = 1000,
   }) async {
     try {
       final queryParams = <String, dynamic>{};
@@ -201,6 +206,9 @@ class BackendCaseService {
       }
       if (endDate != null && endDate.isNotEmpty) {
         queryParams['end_date'] = endDate;
+      }
+      if (pageSize != null) {
+        queryParams['page_size'] = pageSize;
       }
 
       final url = '${ApiConfig.cases}undetected/';
@@ -295,6 +303,7 @@ class BackendCaseService {
     String? startDate,
     String? endDate,
     String? status,
+    int? pageSize = 1000,
   }) async {
     try {
       final queryParams = <String, dynamic>{};
@@ -312,6 +321,9 @@ class BackendCaseService {
       }
       if (status != null && status.isNotEmpty) {
         queryParams['status'] = status;
+      }
+      if (pageSize != null) {
+        queryParams['page_size'] = pageSize;
       }
 
       final url = '${ApiConfig.cases}absconded/';
@@ -730,6 +742,7 @@ class BackendCaseService {
     String? ioUid,
     String? startDate,
     String? endDate,
+    int? pageSize = 1000,
   }) async {
     try {
       final queryParams = <String, dynamic>{};
@@ -741,6 +754,9 @@ class BackendCaseService {
       }
       if (endDate != null && endDate.isNotEmpty) {
         queryParams['end_date'] = endDate;
+      }
+      if (pageSize != null) {
+        queryParams['page_size'] = pageSize;
       }
 
       final url = '${ApiConfig.cases}arrested/case-wise/';
@@ -831,9 +847,10 @@ class BackendCaseService {
     String? io,
     String? startDate,
     String? endDate,
+    int? pageSize = 1000,
   }) async {
     try {
-      final queryParams = <String, String>{};
+      final queryParams = <String, dynamic>{};
       if (io != null && io.isNotEmpty) {
         queryParams['io'] = io;
       }
@@ -842,6 +859,9 @@ class BackendCaseService {
       }
       if (endDate != null && endDate.isNotEmpty) {
         queryParams['end_date'] = endDate;
+      }
+      if (pageSize != null) {
+        queryParams['page_size'] = pageSize;
       }
 
       final url = '${ApiConfig.cases}repeat-offender/case-wise/';
@@ -932,6 +952,7 @@ class BackendCaseService {
     String? category,
     String? startDate,
     String? endDate,
+    int? pageSize = 1000,
   }) async {
     try {
       final queryParams = <String, dynamic>{};
@@ -946,6 +967,9 @@ class BackendCaseService {
       }
       if (endDate != null && endDate.isNotEmpty) {
         queryParams['end_date'] = endDate;
+      }
+      if (pageSize != null) {
+        queryParams['page_size'] = pageSize;
       }
 
       final url = '${ApiConfig.cases}juvenile/case-wise/';
@@ -1036,6 +1060,7 @@ class BackendCaseService {
     String? category,
     String? startDate,
     String? endDate,
+    int? pageSize = 1000,
   }) async {
     try {
       final queryParams = <String, dynamic>{};
@@ -1050,6 +1075,9 @@ class BackendCaseService {
       }
       if (endDate != null && endDate.isNotEmpty) {
         queryParams['end_date'] = endDate;
+      }
+      if (pageSize != null) {
+        queryParams['page_size'] = pageSize;
       }
 
       final url = '${ApiConfig.cases}nafis/case-wise/';
@@ -1075,6 +1103,20 @@ class BackendCaseService {
       }
     }
     return null;
+  }
+
+  /// Trigger Remind to IO action for a NAFIS case
+  Future<bool> sendNafisReminderToIO(String caseId) async {
+    try {
+      final url = '${ApiConfig.cases}nafis/cases/$caseId/action/';
+      final response = await _api.post(url, body: {});
+      return response.isSuccess;
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] sendNafisReminderToIO exception: $e');
+      }
+      return false;
+    }
   }
 
   /// Fetch IO-wise NAFIS counts

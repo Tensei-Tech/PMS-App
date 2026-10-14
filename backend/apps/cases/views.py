@@ -13,6 +13,19 @@ from apps.repositories import CaseRepository
 logger = logging.getLogger(__name__)
 
 
+class StandardCasePagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 10000
+
+    def paginate_queryset(self, queryset, request, view=None):
+        ps = str(request.query_params.get('page_size', '')).lower()
+        if ps == 'all' or str(request.query_params.get('all', '')).lower() == 'true':
+            return None
+        return super().paginate_queryset(queryset, request, view=view)
+
+
+
 from apps.core.cache_decorators import cache_response
 from apps.core.cache import upstash_cache
 
@@ -298,7 +311,7 @@ class PendingCasesView(APIView):
 
             from apps.cases.serializers import CaseRecordSerializer
             
-            paginator = PageNumberPagination()
+            paginator = StandardCasePagination()
             page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
             if page is not None:
                 serializer = CaseRecordSerializer(page, many=True)
@@ -446,7 +459,7 @@ class UndetectedCasesView(APIView):
                 queryset = queryset.filter(created_at__date__lte=end_date)
 
             from apps.cases.serializers import CaseRecordSerializer
-            paginator = PageNumberPagination()
+            paginator = StandardCasePagination()
             page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
             if page is not None:
                 serializer = CaseRecordSerializer(page, many=True)
@@ -613,7 +626,7 @@ class AbscondedCasesView(APIView):
                 queryset = queryset.filter(created_at__date__lte=end_date)
 
             from apps.cases.serializers import CaseRecordSerializer
-            paginator = PageNumberPagination()
+            paginator = StandardCasePagination()
             page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
             if page is not None:
                 serializer = CaseRecordSerializer(page, many=True)
@@ -791,10 +804,7 @@ class DisposalCaseWiseView(APIView):
                 if c.category_name:
                     cat_map[c.category_name.lower()] = c.category_name
 
-            from rest_framework.pagination import PageNumberPagination
-            paginator = PageNumberPagination()
-            paginator.page_size = 20
-            paginator.page_size_query_param = 'page_size'
+            paginator = StandardCasePagination()
             print("Queryset count in view:", queryset.count())
             page = paginator.paginate_queryset(queryset, request)
             if page is not None:
@@ -1212,7 +1222,7 @@ class ArrestedCaseWiseView(PendingCasesView):
 
             from apps.cases.serializers import CaseRecordSerializer
             
-            paginator = PageNumberPagination()
+            paginator = StandardCasePagination()
             page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
             if page is not None:
                 serializer = CaseRecordSerializer(page, many=True)
@@ -1360,7 +1370,7 @@ class RepeatOffenderCaseWiseView(PendingCasesView):
 
             from apps.cases.serializers import CaseRecordSerializer
             
-            paginator = PageNumberPagination()
+            paginator = StandardCasePagination()
             page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
             if page is not None:
                 serializer = CaseRecordSerializer(page, many=True)
@@ -1437,7 +1447,7 @@ class JuvenileCaseWiseView(PendingCasesView):
 
             from apps.cases.serializers import CaseRecordSerializer
             
-            paginator = PageNumberPagination()
+            paginator = StandardCasePagination()
             page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
             if page is not None:
                 serializer = CaseRecordSerializer(page, many=True)
@@ -1604,7 +1614,7 @@ class NAFISCaseWiseView(PendingCasesView):
                 is_pending = True
                 reasons.append('NAFIS Pending')
                 
-            item['extra_fields']['nafis_status'] = 'Pending' if is_pending else 'Chargesheeted'
+            item['extra_fields']['nafis_status'] = 'Pending' if is_pending else 'Done'
             item['extra_fields']['nafis_status_color'] = 'red' if is_pending else 'green'
             item['extra_fields']['nafis_reason'] = ', '.join(reasons) if reasons else 'NAFIS Pending'
             item['extra_fields']['io_name'] = item.get('assigned_officer') or 'Unassigned'
@@ -1624,14 +1634,19 @@ class NAFISCaseWiseView(PendingCasesView):
             item['charge_sheet_date'] = cs_date
             item['extra_fields']['charge_sheet_date'] = cs_date
 
-            sections = (
-                item.get('description') or 
-                extra.get('sections') or 
-                extra.get('section') or 
-                extra.get('sectionAct') or 
-                extra.get('acts_sections') or 
-                ''
-            )
+            from apps.cases.serializers import format_section_act
+            sections = ''
+            if extra.get('acts_sections'):
+                sections = format_section_act(extra['acts_sections'])
+            if not sections:
+                for k in ['section_act', 'section', 'act_section', 'sections', 'sectionAct']:
+                    if extra.get(k):
+                        sections = format_section_act(extra[k])
+                        if sections:
+                            break
+            if not sections and item.get('description'):
+                sections = format_section_act(item['description'])
+
             item['section_act'] = sections
             item['extra_fields']['section_act'] = sections
 
@@ -1656,20 +1671,24 @@ class NAFISCaseWiseView(PendingCasesView):
             if end_date:
                 queryset = queryset.filter(created_at__date__lte=end_date)
 
-            from apps.cases.serializers import CaseRecordSerializer
+            from apps.cases.serializers import NafisCaseRecordSerializer, CaseRecordSerializer
             
-            paginator = PageNumberPagination()
+            paginator = StandardCasePagination()
             page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
             if page is not None:
-                serializer = CaseRecordSerializer(page, many=True)
-                data = serializer.data
-                self._enrich_data(data)
-                return paginator.get_paginated_response(data)
+                serializer = NafisCaseRecordSerializer(page, many=True)
+                results = serializer.data
+                page_number = paginator.page.number
+                page_size = paginator.page.paginator.per_page
+                for idx, row in enumerate(results):
+                    row['sr_no'] = (page_number - 1) * page_size + idx + 1
+                return paginator.get_paginated_response(results)
                 
-            serializer = CaseRecordSerializer(queryset.order_by('-created_at'), many=True)
-            data = serializer.data
-            self._enrich_data(data)
-            return Response(data)
+            serializer = NafisCaseRecordSerializer(queryset.order_by('-created_at'), many=True)
+            results = serializer.data
+            for idx, row in enumerate(results):
+                row['sr_no'] = idx + 1
+            return Response(results)
         except Exception as e:
             logger.exception(f'[NAFISCaseWiseView] Database error: {e}')
             return Response({'error': 'Failed to retrieve NAFIS cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -1703,6 +1722,7 @@ class IOWiseNAFISView(IOWisePendingView):
                     'io_name': name if name else 'Unassigned',
                     'io_rank': '',
                     'station_name': c['station_name'],
+                    'nafis_count': c['count'],
                     'pending_count': c['count']
                 })
 
@@ -1750,6 +1770,52 @@ class TimeWiseNAFISView(TimeWisePendingView):
         except Exception as e:
             logger.exception(f'[TimeWiseNAFISView] Database error: {e}')
             return Response({'error': 'Failed to retrieve Time-wise NAFIS counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class NafisActionView(APIView):
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def post(self, request, pk):
+        try:
+            case = CaseRecord.objects.get(pk=pk)
+            from apps.users.models import NotificationRecord
+            
+            target_uid = case.assigned_officer_uid
+            officer_name = case.assigned_officer or 'Investigating Officer'
+
+            title = f"Action Required: NAFIS Pending for {case.case_number}"
+            body = f"Please upload NAFIS fingerprint and update Charge Sheet details for case {case.case_number} registered at {case.station_name} immediately."
+            
+            NotificationRecord.objects.create(
+                target_user_uid=target_uid or '',
+                target_station_name=case.station_name,
+                title=title,
+                body=body,
+                category='reminder',
+                registration_uid=case.case_number,
+                status='pending'
+            )
+            
+            from apps.core.models import AuditLog
+            AuditLog.objects.create(
+                event='action_taken_on_case',
+                category='case',
+                uid=request.user.pk,
+                user_name=getattr(request.user, 'name', ''),
+                user_role=getattr(request.user, 'role', ''),
+                station_name=getattr(request.user, 'station_name', ''),
+                action_details=f"NAFIS Reminder sent to IO for case {case.case_number}",
+                metadata={'case_id': str(case.pk), 'assigned_officer_uid': target_uid}
+            )
+            
+            return Response({'status': 'success', 'message': f'Reminder sent to IO for case {case.case_number}.'})
+            
+        except CaseRecord.DoesNotExist:
+            return Response({'error': 'Case not found.'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.exception(f"[NafisActionView] Error: {e}")
+            return Response({'error': 'Failed to send action.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 class VictimCaseWiseView(APIView):
@@ -2015,8 +2081,7 @@ class ItssoCasesView(APIView):
                 ) & ~Q(extra_fields__charge_sheet_number='') & ~Q(extra_fields__charge_sheet_no='') & ~Q(extra_fields__cc_st_number='') & ~Q(extra_fields__ccStNumber='')
                 queryset = queryset.exclude(has_cs_q)
 
-        paginator = PageNumberPagination()
-        paginator.page_size = 20
+        paginator = StandardCasePagination()
         page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
         if page is not None:
             serializer = ItssoCaseRecordSerializer(page, many=True)

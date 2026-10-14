@@ -64,8 +64,41 @@ try:
 
     assert test_data[0]['extra_fields']['nafis_status'] == 'Pending'
     assert test_data[0]['extra_fields']['nafis_status_color'] == 'red'
-    assert test_data[1]['extra_fields']['nafis_status'] == 'Chargesheeted'
+    assert test_data[1]['extra_fields']['nafis_status'] == 'Done'
     assert test_data[1]['extra_fields']['nafis_status_color'] == 'green'
+
+    # Test serializer formatting of section_act and status
+    from apps.cases.serializers import NafisCaseRecordSerializer, format_section_act
+    
+    # 1. Dummy None acts_sections
+    dummy_acts = [{'act': None, 'act_id': None, 'section': None, 'act_name': None, 'section_id': None, 'subsection': None, 'section_title': None, 'subsection_id': None, 'section_number': None, 'subsection_code': None}]
+    assert format_section_act(dummy_acts) == '', f"Expected empty string for dummy acts, got {format_section_act(dummy_acts)}"
+    assert format_section_act(str(dummy_acts)) == '', f"Expected empty string for stringified dummy acts, got {format_section_act(str(dummy_acts))}"
+
+    # 2. Valid acts_sections
+    valid_acts = [{'act_name': 'Indian Penal Code', 'section_number': '302'}]
+    assert format_section_act(valid_acts) == 'IPC 302', f"Expected 'IPC 302', got {format_section_act(valid_acts)}"
+    
+    bns_acts = [{'act_name': 'Bharatiya Nyaya Sanhita, 2023', 'section_number': '103', 'subsection_code': '103(1)'}]
+    assert format_section_act(bns_acts) == 'BNS 103(1)', f"Expected 'BNS 103(1)', got {format_section_act(bns_acts)}"
+
+    c_pending.extra_fields['acts_sections'] = dummy_acts
+    c_pending.save()
+    c_completed.extra_fields['acts_sections'] = valid_acts
+    c_completed.save()
+
+    ser_pending = NafisCaseRecordSerializer(c_pending).data
+    ser_completed = NafisCaseRecordSerializer(c_completed).data
+
+    print("Serializer pending section_act:", repr(ser_pending['section_act']))
+    print("Serializer completed section_act:", repr(ser_completed['section_act']))
+    print("Serializer pending nafis_status:", repr(ser_pending['nafis_status']))
+    print("Serializer completed nafis_status:", repr(ser_completed['nafis_status']))
+
+    assert ser_pending['section_act'] == '', f"Expected empty section_act for pending case, got: {ser_pending['section_act']}"
+    assert ser_completed['section_act'] == 'IPC 302', f"Expected 'IPC 302' for completed case, got: {ser_completed['section_act']}"
+    assert ser_pending['nafis_status'] == 'Pending'
+    assert ser_completed['nafis_status'] == 'Done'
 
     # Cleanup
     c_pending.delete()

@@ -1,6 +1,3 @@
-// lib/screens/nafis_hub_screen.dart
-// NAFIS Hub with Case-wise, Time-wise, and IO-wise tabs.
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/backend_case_service.dart';
@@ -8,6 +5,7 @@ import '../theme/app_theme.dart';
 import 'nafis_summary_screen.dart';
 import '../modules/core/models/base_record.dart';
 import '../utils/arrested_table_firestore_mapper.dart';
+import '../utils/excel_export_helper.dart';
 import '../widgets/nafis_cases_data_table.dart';
 
 class NAFISHubScreen extends StatefulWidget {
@@ -29,6 +27,7 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
 
   List<Map<String, dynamic>>? _timeWiseData;
   List<Map<String, dynamic>>? _ioWiseData;
+  List<Map<String, dynamic>>? _caseWiseList;
   Map<String, List<Map<String, dynamic>>>? _caseWiseData;
   List<ModuleRecord>? _allRecords;
 
@@ -54,7 +53,7 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
   }
 
   void _handleTabChange() {
-    if (_tabController.index == 0 && _caseWiseData == null && !_isLoadingCase) {
+    if (_tabController.index == 0 && _caseWiseList == null && !_isLoadingCase) {
       _loadCaseWise();
     } else if (_tabController.index == 1 &&
         _timeWiseData == null &&
@@ -77,6 +76,7 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
 
     if (mounted) {
       if (dataList != null) {
+        _caseWiseList = dataList;
         final records = dataList.map((m) => ModuleRecord.fromMap(m)).toList();
         _allRecords = records;
         final mappedRows = arrestedTableRowsAll(records, DateTime.now());
@@ -86,7 +86,9 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
           final r = Map<String, dynamic>.from(mappedRows[i]);
           if (i < records.length) {
             final m = records[i];
-            r['nafis_status'] = m.extraFields['nafis_status'] ?? 'Pending';
+            final rawM = i < dataList.length ? dataList[i] : null;
+            r['nafis_status'] = rawM?['nafis_status'] ?? m.extraFields['nafis_status'] ?? 'Pending';
+            r['nafis_status_color'] = rawM?['nafis_status_color'] ?? m.extraFields['nafis_status_color'] ?? 'red';
             r['io_name'] = m.assignedOfficer.isNotEmpty ? m.assignedOfficer : (r['io'] ?? '—');
             r['accused_name'] = m.accused.isNotEmpty ? m.accused : (r['accused_name'] ?? '—');
           }
@@ -164,7 +166,7 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
           child:
               Text(_errorCase!, style: GoogleFonts.poppins(color: Colors.red)));
     }
-    if (_caseWiseData == null || _caseWiseData!.isEmpty) {
+    if (_caseWiseList == null || _caseWiseList!.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -176,7 +178,7 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
             ),
             const SizedBox(height: 12),
             Text(
-              "No pending NAFIS cases found",
+              "No NAFIS cases found",
               style: GoogleFonts.poppins(color: AppColors.lightSubText),
             ),
           ],
@@ -184,78 +186,146 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
       );
     }
 
-    final keys = _caseWiseData!.keys.toList()..sort();
+    return SingleChildScrollView(
+      scrollDirection: Axis.vertical,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          headingTextStyle: GoogleFonts.poppins(
+              fontWeight: FontWeight.w600, color: AppColors.navyDark),
+          dataTextStyle: GoogleFonts.poppins(color: Colors.black87),
+          columns: const [
+            DataColumn(label: Text('Sr. No.')),
+            DataColumn(label: Text('CR No.')),
+            DataColumn(label: Text('Section/Act')),
+            DataColumn(label: Text('Charge Sheet Date')),
+            DataColumn(label: Text('IO Name')),
+            DataColumn(label: Text('Status')),
+            DataColumn(label: Text('Action')),
+          ],
+          rows: _caseWiseList!.asMap().entries.map((entry) {
+            final idx = entry.key;
+            final caseItem = entry.value;
+            final isGreen = (caseItem['nafis_status_color'] ?? '').toString().toLowerCase() == 'green' ||
+                (caseItem['nafis_status'] ?? '').toString().toLowerCase() == 'done' ||
+                (caseItem['nafis_status'] ?? '').toString().toLowerCase() == 'chargesheeted';
+            final statusText = isGreen ? 'Done' : 'Pending';
+            final actionRequired =
+                caseItem['action_required'] == true || !isGreen;
+            final caseId =
+                (caseItem['id'] ?? caseItem['case_id'] ?? '').toString();
+            final caseNumber = (caseItem['case_number'] ??
+                    caseItem['cr_no'] ??
+                    caseItem['cr'] ??
+                    '-')
+                .toString();
+            final srNo = caseItem['sr_no']?.toString() ?? '${idx + 1}';
+            final extra = caseItem['extra_fields'] is Map ? caseItem['extra_fields'] as Map : {};
+            final sectionActRaw = caseItem['section_act'] ??
+                caseItem['acts_sections'] ??
+                caseItem['sections'] ??
+                caseItem['section'] ??
+                caseItem['act_section'] ??
+                caseItem['sectionAct'] ??
+                extra['section_act'] ??
+                extra['acts_sections'] ??
+                extra['sections'] ??
+                extra['section'] ??
+                extra['act_section'] ??
+                extra['sectionAct'];
+            final formattedSec = ExcelExportHelper.formatSectionAct(sectionActRaw);
+            final sectionAct = formattedSec.isEmpty ? '-' : formattedSec;
+            final csDate = (caseItem['charge_sheet_date'] ??
+                    caseItem['chargesheet_date'] ??
+                    '')
+                .toString()
+                .trim();
+            final ioName = (caseItem['assigned_officer'] ??
+                    caseItem['io_name'] ??
+                    caseItem['io'] ??
+                    'Unassigned')
+                .toString();
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: keys.length,
-      itemBuilder: (context, index) {
-        final head = keys[index];
-        final cases = _caseWiseData![head]!;
-        return Card(
-          elevation: 1,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            leading: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFEBEE),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.fingerprint_rounded,
-                color: Color(0xFFC62828),
-                size: 24,
-              ),
-            ),
-            onTap: () {
-              Navigator.push(
-                context,
-                AppTheme.fadeSlideRoute(
-                  page: NAFISSummaryScreen(
-                    liveRows: cases,
-                    rawRecords: _allRecords,
-                    stationName: widget.stationName,
+            return DataRow(
+              cells: [
+                DataCell(Text(srNo)),
+                DataCell(Text(caseNumber)),
+                DataCell(Text(sectionAct)),
+                DataCell(Text(csDate.isEmpty ? 'Pending' : csDate)),
+                DataCell(Text(ioName.isEmpty ? 'Unassigned' : ioName)),
+                DataCell(
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: isGreen
+                          ? const Color(0xFF22C55E)
+                          : const Color(0xFFEF4444),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      statusText,
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
                   ),
                 ),
-              );
-            },
-            title: Text(
-              head,
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-                color: AppColors.navyDark,
-              ),
-            ),
-            subtitle: Text(
-              'Fingerprint pending cases',
-              style: GoogleFonts.poppins(
-                fontSize: 11,
-                color: AppColors.lightSubText,
-              ),
-            ),
-            trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFEBEE),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFEF5350)),
-              ),
-              child: Text(
-                '${cases.length} Pending',
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 12,
-                  color: const Color(0xFFC62828),
+                DataCell(
+                  actionRequired
+                      ? ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFEF4444),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 0),
+                            minimumSize: const Size(80, 30),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            elevation: 0,
+                          ),
+                          onPressed: () async {
+                            if (caseId.isNotEmpty) {
+                              final ok = await _backend
+                                  .sendNafisReminderToIO(caseId);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(ok
+                                        ? "Reminder sent to IO for case $caseNumber"
+                                        : "Reminder recorded for case $caseNumber"),
+                                    backgroundColor: const Color(0xFFEF4444),
+                                  ),
+                                );
+                              }
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                      "Reminder sent to IO for case $caseNumber"),
+                                  backgroundColor: const Color(0xFFEF4444),
+                                ),
+                              );
+                            }
+                          },
+                          child: Text(
+                            'Remind to IO',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        )
+                      : const Text('-'),
                 ),
-              ),
-            ),
-          ),
-        );
-      },
+              ],
+            );
+          }).toList(),
+        ),
+      ),
     );
   }
 
@@ -452,6 +522,25 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.description_outlined, color: Color(0xFF107C41)),
+            tooltip: 'Export to Excel',
+            onPressed: () {
+              if (_caseWiseList != null && _caseWiseList!.isNotEmpty) {
+                ExcelExportHelper.exportNafisToExcel(dataset: _caseWiseList!);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('NAFIS cases exported to Excel successfully.'),
+                    backgroundColor: Color(0xFF107C41),
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('No NAFIS cases to export.')),
+                );
+              }
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.table_chart_rounded, color: AppColors.navyMid),
             tooltip: 'All Cases Summary',

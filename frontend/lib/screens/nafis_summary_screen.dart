@@ -342,6 +342,7 @@ class _LiveNAFISSummaryLoaderState extends State<_LiveNAFISSummaryLoader> {
       if (i < modules.length) {
         final m = modules[i];
         r['nafis_status'] = m.extraFields['nafis_status'] ?? 'Pending';
+        r['nafis_status_color'] = m.extraFields['nafis_status_color'] ?? 'red';
         r['io_name'] = m.assignedOfficer.isNotEmpty ? m.assignedOfficer : (r['io'] ?? '—');
         r['accused_name'] = m.accused.isNotEmpty ? m.accused : (r['accused_name'] ?? '—');
       }
