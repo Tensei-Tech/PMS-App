@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 // lib/widgets/dynamic_form/dynamic_form_screen.dart
 // Single Source of Truth Dynamic Smart Form Screen driven by PostgreSQL Database.
 
@@ -53,34 +54,61 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   final Map<String, TextEditingController> _controllers = {};
   final Map<String, dynamic> _values = {};
 
-  // Mutual exclusive accordion state: only one section can be open at a time
+  // Accordion state: in Edit mode, single section open at a time.
+  // In View / Read-Only mode, all sections start expanded so the entire case record is immediately visible.
   String? _expandedSectionKey;
+  final Set<String> _collapsedReadOnlySections = {};
+  bool _readOnlyAllCollapsed = false;
+  bool _isHydrated = false;
+  bool _isGeneratingPdf = false;
+
+  bool _isSectionExpanded(String sectionKey) {
+    if (widget.readOnly) {
+      if (_readOnlyAllCollapsed) return false;
+      return !_collapsedReadOnlySections.contains(sectionKey);
+    }
+    return _expandedSectionKey == sectionKey;
+  }
 
   void _toggleSection(String sectionKey) {
     setState(() {
-      if (_expandedSectionKey == sectionKey) {
-        _expandedSectionKey = null; // Collapse if tapped again
+      if (widget.readOnly) {
+        if (_readOnlyAllCollapsed) {
+          _readOnlyAllCollapsed = false;
+          _collapsedReadOnlySections.clear();
+        }
+        if (_collapsedReadOnlySections.contains(sectionKey)) {
+          _collapsedReadOnlySections.remove(sectionKey);
+        } else {
+          _collapsedReadOnlySections.add(sectionKey);
+        }
       } else {
-        _expandedSectionKey = sectionKey; // Open this section, auto-collapse all others
+        if (_expandedSectionKey == sectionKey) {
+          _expandedSectionKey = null; // Collapse if tapped again
+        } else {
+          _expandedSectionKey = sectionKey; // Open this section, auto-collapse all others
+        }
       }
     });
   }
 
+
   bool get _chargesSectionExpanded =>
-      _expandedSectionKey == 'Acts & Sections Filed';
-  bool get _accusedSectionExpanded => _expandedSectionKey == 'Accused';
+      _isSectionExpanded('Acts & Sections Filed');
+  bool get _accusedSectionExpanded => _isSectionExpanded('Accused');
   bool get _suspectedAccusedSectionExpanded =>
-      _expandedSectionKey == 'Suspected Accused';
+      _isSectionExpanded('Suspected Accused');
   bool get _unidentifiedAccusedSectionExpanded =>
-      _expandedSectionKey == 'Unidentified Accused';
+      _isSectionExpanded('Unidentified Accused');
   bool get _unknownAccusedSectionExpanded =>
-      _expandedSectionKey == 'Unknown Accused';
-  bool get _arrestSectionExpanded => _expandedSectionKey == 'Arrest';
+      _isSectionExpanded('Unknown Accused');
+  bool get _arrestSectionExpanded => _isSectionExpanded('Arrest');
   bool get _dischargeSectionExpanded =>
-      _expandedSectionKey == 'Discharge Accused';
+      _isSectionExpanded('Discharge Accused');
   bool get _preventiveSectionExpanded =>
-      _expandedSectionKey == 'Preventive Action';
-  bool get _custodySectionExpanded => _expandedSectionKey == 'Remand & Custody';
+      _isSectionExpanded('Preventive Action');
+  bool get _custodySectionExpanded => _isSectionExpanded('Remand & Custody');
+  bool get _scrutinySectionExpanded => _isSectionExpanded('Scrutiny');
 
   // Legal charges state for Trigger B (Act -> Set of Section numbers)
   final Map<String, Set<String>> _selectedCharges = {};
@@ -108,7 +136,6 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   final Map<String, TextEditingController> _dischargeDateControllers = {};
 
   // Preventive Action state
-  String? _selectedPreventiveAccused;
   String _selectedPreventiveType =
       DynamicControlFactory.preventiveActionChoices.first;
   final TextEditingController _preventiveDateCtrl = TextEditingController();
@@ -159,12 +186,39 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     'Other',
   ];
 
+  final bool _hideEmptyInViewMode = true;
+  List<String> _designationOptions = [];
+
   bool get isEdit => widget.existingRecord != null;
 
   @override
   void initState() {
     super.initState();
     _loadFormDefinition();
+    _loadDesignations();
+  }
+
+  Future<void> _loadDesignations() async {
+    try {
+      final res = await _caseService.fetchDesignations();
+      if (mounted && res.isNotEmpty) {
+        final unique = <String>[];
+        final seen = <String>{};
+        for (final d in res) {
+          final title = d['display_name']?.toString() ??
+              d['title']?.toString() ??
+              d['code']?.toString() ??
+              '';
+          final trimmed = title.trim();
+          if (trimmed.isNotEmpty && seen.add(trimmed.toLowerCase())) {
+            unique.add(trimmed);
+          }
+        }
+        setState(() {
+          _designationOptions = unique;
+        });
+      }
+    } catch (_) {}
   }
 
   @override
@@ -205,6 +259,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   }
 
   Future<void> _loadFormDefinition({List<String>? chargedSections}) async {
+    debugPrint('[DFS] _loadFormDefinition called. category=$_targetCategoryParam, readOnly=${widget.readOnly}, isEdit=$isEdit, existingRecord=${widget.existingRecord?.id}');
     try {
       final json = await _caseService.fetchFormDefinition(
         _targetCategoryParam,
@@ -214,8 +269,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
 
       if (!mounted) return;
 
+      debugPrint('[DFS] fetchFormDefinition returned: ${json != null ? 'has data, keys=${json.keys.toList()}' : 'NULL'}');
       if (json != null) {
         final def = DynamicFormDefinition.fromJson(json);
+        debugPrint('[DFS] Parsed ${def.fields.length} fields');
         setState(() {
           _formDef = def;
           _isLoading = false;
@@ -236,8 +293,13 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         });
 
         // If editing or existing record, hydrate fields once
-        if (isEdit && _selectedCharges.isEmpty) {
+        debugPrint('[DFS] isEdit=$isEdit, _isHydrated=$_isHydrated');
+        if (isEdit && !_isHydrated) {
+          debugPrint('[DFS] Calling _hydrateFromExistingRecord...');
           _hydrateFromExistingRecord();
+          _isHydrated = true;
+        } else {
+          debugPrint('[DFS] SKIPPED hydration! isEdit=$isEdit, _isHydrated=$_isHydrated');
         }
       } else {
         setState(() {
@@ -257,18 +319,40 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   void _hydrateFromExistingRecord() {
     final r = widget.existingRecord!;
     final extra = r.extraFields;
+    debugPrint('[DFS] _hydrateFromExistingRecord: extraFields keys=${extra.keys.toList()}');
+    debugPrint('[DFS] extraFields sample: caseNumber=${r.caseNumber}, title=${r.title}, accused=${r.accused}');
     final common =
         (extra['commonForm'] is Map) ? extra['commonForm'] as Map : {};
+    debugPrint('[DFS] commonForm keys=${common.keys.toList()}');
 
     // Standard root fields mapping
     _setField('cr_number', r.caseNumber);
     _setField('crNo', r.caseNumber);
+    _setField('case_number', r.caseNumber);
+    _setField('caseNumber', r.caseNumber);
     _setField('title', r.title);
     _setField('brief_description', r.description);
+    _setField('description', r.description);
     _setField('complainant_name', r.complainant);
-    _setField('accused_name', r.accused);
+    final safeAccused = _sanitizeName(r.accused);
+    _setField('accused_name', safeAccused);
+    _setField('accused', safeAccused);
     _setField('crime_spot_address', r.location);
     _setField('spotAddress', r.location);
+    _setField('location', r.location);
+    final incDateStr = DateFormat('dd/MM/yyyy').format(r.incidentDate);
+    final incDateTimeStr = DateFormat('dd/MM/yyyy HH:mm').format(r.incidentDate);
+    _setField('incident_date', incDateStr);
+    _setField('incident_datetime', incDateTimeStr);
+    _setField('incidentDate', incDateStr);
+    _setField('assigned_officer', r.assignedOfficer);
+    _setField('investigating_officer', r.assignedOfficer);
+    _setField('io_name', r.assignedOfficer);
+    _setField('officer_name', r.assignedOfficer);
+    _setField('priority', r.priority);
+    _setField('status', r.status);
+    _setField('police_station', r.stationName);
+    _setField('station_name', r.stationName);
 
     // Hydrate accused list
     _accusedList.clear();
@@ -333,10 +417,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         }
       }
     }
-    if (_accusedList.isEmpty && r.accused.trim().isNotEmpty) {
-      final names = r.accused
+    if (_accusedList.isEmpty && safeAccused.isNotEmpty) {
+      final names = safeAccused
           .split(RegExp(r'[,;]'))
-          .map((s) => s.trim())
+          .map((s) => _sanitizeName(s))
           .where((s) => s.isNotEmpty);
       for (final n in names) {
         _accusedList.add({
@@ -365,7 +449,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     }
 
     // Hydrate charges
-    final chargesData = common['charges'] ?? extra['charges'];
+    final chargesData = common['charges'] ??
+        extra['charges'] ??
+        common['acts_sections'] ??
+        extra['acts_sections'];
     if (chargesData is Map) {
       for (final e in chargesData.entries) {
         if (e.value is Map) {
@@ -373,6 +460,16 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           final secs = (e.value as Map)['sections'];
           if (act.isNotEmpty && secs is Iterable) {
             _selectedCharges[act] = secs.map((s) => s.toString()).toSet();
+          }
+        }
+      }
+    } else if (chargesData is List) {
+      for (final item in chargesData) {
+        if (item is Map) {
+          final act = (item['act'] ?? item['act_name'] ?? item['act_id'])?.toString() ?? '';
+          final sec = (item['section'] ?? item['section_number'] ?? item['section_id'])?.toString();
+          if (act.isNotEmpty && sec != null && sec.isNotEmpty) {
+            _selectedCharges.putIfAbsent(act, () => <String>{}).add(sec);
           }
         }
       }
@@ -1007,15 +1104,14 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           final aType = it['action_type'] ?? it['action'];
           final aDate = it['action_date'] ?? it['actionDate'];
           final aOut = it['outward_number'] ?? it['outwardNumber'];
-          final aName = it['name'] ??
+          final aName = _sanitizeName(it['name'] ??
               it['person_name'] ??
               it['accusedName'] ??
               it['person'] ??
-              widget.existingRecord?.accused ??
-              '';
-          if (aType != null && aType.toString().isNotEmpty) {
+              safeAccused);
+          if (aType != null && aType.toString().isNotEmpty && aName.isNotEmpty) {
             _preventiveActionsList.add({
-              'name': aName.toString(),
+              'name': aName,
               'action_type': aType.toString(),
               'action_date': aDate?.toString() ?? '',
               'outward_number': aOut?.toString() ?? '',
@@ -1048,9 +1144,11 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                   (common['preventive'] as Map)['outward_number']
               : null);
 
-      if (prevType != null && prevType.toString().isNotEmpty) {
+      if (prevType != null &&
+          prevType.toString().isNotEmpty &&
+          safeAccused.isNotEmpty) {
         _preventiveActionsList.add({
-          'name': widget.existingRecord?.accused ?? '',
+          'name': safeAccused,
           'action_type': prevType.toString(),
           'action_date': prevDate?.toString() ??
               DateFormat('dd/MM/yyyy').format(DateTime.now()),
@@ -1083,13 +1181,12 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       if (src is List && src.isNotEmpty && _custodyRecordsList.isEmpty) {
         for (final it in src) {
           if (it is Map) {
-            final cName = it['name'] ??
+            final cName = _sanitizeName(it['name'] ??
                 it['person_name'] ??
                 it['accusedName'] ??
                 it['accused_name'] ??
                 it['person'] ??
-                widget.existingRecord?.accused ??
-                '';
+                safeAccused);
             final pcr = it['pcr_days'] ?? it['pcrDays'] ?? '';
             final isMcr = it['mcr'] == true ||
                 it['isMcr'] == true ||
@@ -1260,11 +1357,11 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           common['jail'] == 'true';
       final jailDt = common['jail_date'] ?? extra['jail_date'] ?? '';
 
-      if (pcr != null || isMcr || isBail) {
+      if ((pcr != null || isMcr || isBail) && safeAccused.isNotEmpty) {
         _custodyRecordsList.add({
-          'name': widget.existingRecord?.accused ?? '',
-          'person_name': widget.existingRecord?.accused ?? '',
-          'accusedName': widget.existingRecord?.accused ?? '',
+          'name': safeAccused,
+          'person_name': safeAccused,
+          'accusedName': safeAccused,
           'pcr_days': pcr?.toString() ?? '',
           'mcr': isMcr,
           'pr_bond': isPrBond,
@@ -1284,14 +1381,75 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         });
       }
     }
+
+    // Hydrate Scrutiny Pipeline
+    final scr = common['scrutiny'] ??
+        extra['scrutiny'] ??
+        common['scrutiny_pipeline'] ??
+        extra['scrutiny_pipeline'];
+    if (scr is Map) {
+      void hydrateKey(String fieldKey, List<String> aliases) {
+        for (final a in aliases) {
+          final v = scr[a]?.toString();
+          if (v != null && v.isNotEmpty) {
+            _setField(fieldKey, v);
+            break;
+          }
+        }
+      }
+
+      hydrateKey('sdpo_acp_send_date', ['sdpo_acp_send_date', 'sdpoSend']);
+      hydrateKey('sdpo_acp_grant_date', ['sdpo_acp_grant_date', 'sdpoGrant']);
+      hydrateKey('addl_sp_dcp_send_date', ['addl_sp_dcp_send_date', 'spSend', 'dcpSend']);
+      hydrateKey('addl_sp_dcp_grant_date', ['addl_sp_dcp_grant_date', 'spGrant', 'dcpGrant']);
+      hydrateKey('addl_cp_send_date', ['addl_cp_send_date', 'cpSend', 'addlCpSend']);
+      hydrateKey('addl_cp_grant_date', ['addl_cp_grant_date', 'cpGrant', 'addlCpGrant']);
+      hydrateKey('app_send_date', ['app_send_date', 'appSend']);
+      hydrateKey('app_grant_date', ['app_grant_date', 'appGrant']);
+    }
+  }
+
+  String _sanitizeName(dynamic val) {
+    if (val == null) return '';
+    final s = val.toString().trim();
+    if (s.isEmpty) return '';
+    if (s.startsWith('[{') ||
+        s.startsWith('{') ||
+        s.contains('name:') ||
+        s == 'null' ||
+        s == '[]') {
+      return '';
+    }
+    return s;
   }
 
   void _setField(String key, dynamic val) {
     if (val == null) return;
-    if (_controllers.containsKey(key)) {
-      _controllers[key]!.text = val.toString();
+    if (val is List || val is Map) {
+      _values[key] = val;
+      return;
     }
-    _values[key] = val;
+    final rawTrimmed = val.toString().trim();
+    if (rawTrimmed.startsWith('[{') ||
+        rawTrimmed.startsWith('{') ||
+        rawTrimmed.contains('name:') ||
+        rawTrimmed == 'null' ||
+        rawTrimmed == '[]') {
+      return;
+    }
+    final strVal = val.toString();
+    if (_controllers.containsKey(key)) {
+      if (strVal.trim().isNotEmpty || _controllers[key]!.text.trim().isEmpty) {
+        _controllers[key]!.text = strVal;
+      }
+    } else {
+      if (strVal.trim().isNotEmpty) {
+        _controllers[key] = TextEditingController(text: strVal);
+      }
+    }
+    if (strVal.trim().isNotEmpty || !_values.containsKey(key)) {
+      _values[key] = val;
+    }
   }
 
   Future<void> _submitForm() async {
@@ -1330,10 +1488,12 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         '';
 
     final accused = _accusedList.isNotEmpty
-        ? _accusedList.map((a) => a['name']).join(', ')
-        : (_controllers['accused_name']?.text.trim() ??
-            _controllers['accused']?.text.trim() ??
-            '');
+        ? _accusedList
+            .map((a) => _sanitizeName(a['name']))
+            .where((n) => n.isNotEmpty)
+            .join(', ')
+        : _sanitizeName(
+            _controllers['accused_name']?.text ?? _controllers['accused']?.text);
 
     final List<Map<String, dynamic>> finalAccusedList = [];
     if (_accusedList.isNotEmpty) {
@@ -1759,6 +1919,44 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       allFormFields['custody'] = [];
     }
 
+    // Scrutiny Pipeline packaging
+    final scrutinyMap = {
+      'sdpo_acp_send_date': _controllers['sdpo_acp_send_date']?.text.trim() ??
+          _values['sdpo_acp_send_date']?.toString().trim() ?? '',
+      'sdpoSend': _controllers['sdpo_acp_send_date']?.text.trim() ??
+          _values['sdpo_acp_send_date']?.toString().trim() ?? '',
+      'sdpo_acp_grant_date': _controllers['sdpo_acp_grant_date']?.text.trim() ??
+          _values['sdpo_acp_grant_date']?.toString().trim() ?? '',
+      'sdpoGrant': _controllers['sdpo_acp_grant_date']?.text.trim() ??
+          _values['sdpo_acp_grant_date']?.toString().trim() ?? '',
+      'addl_sp_dcp_send_date': _controllers['addl_sp_dcp_send_date']?.text.trim() ??
+          _values['addl_sp_dcp_send_date']?.toString().trim() ?? '',
+      'dcpSend': _controllers['addl_sp_dcp_send_date']?.text.trim() ??
+          _values['addl_sp_dcp_send_date']?.toString().trim() ?? '',
+      'addl_sp_dcp_grant_date': _controllers['addl_sp_dcp_grant_date']?.text.trim() ??
+          _values['addl_sp_dcp_grant_date']?.toString().trim() ?? '',
+      'dcpGrant': _controllers['addl_sp_dcp_grant_date']?.text.trim() ??
+          _values['addl_sp_dcp_grant_date']?.toString().trim() ?? '',
+      'addl_cp_send_date': _controllers['addl_cp_send_date']?.text.trim() ??
+          _values['addl_cp_send_date']?.toString().trim() ?? '',
+      'addlCpSend': _controllers['addl_cp_send_date']?.text.trim() ??
+          _values['addl_cp_send_date']?.toString().trim() ?? '',
+      'addl_cp_grant_date': _controllers['addl_cp_grant_date']?.text.trim() ??
+          _values['addl_cp_grant_date']?.toString().trim() ?? '',
+      'addlCpGrant': _controllers['addl_cp_grant_date']?.text.trim() ??
+          _values['addl_cp_grant_date']?.toString().trim() ?? '',
+      'app_send_date': _controllers['app_send_date']?.text.trim() ??
+          _values['app_send_date']?.toString().trim() ?? '',
+      'appSend': _controllers['app_send_date']?.text.trim() ??
+          _values['app_send_date']?.toString().trim() ?? '',
+      'app_grant_date': _controllers['app_grant_date']?.text.trim() ??
+          _values['app_grant_date']?.toString().trim() ?? '',
+      'appGrant': _controllers['app_grant_date']?.text.trim() ??
+          _values['app_grant_date']?.toString().trim() ?? '',
+    };
+    allFormFields['scrutiny'] = scrutinyMap;
+    allFormFields['scrutiny_pipeline'] = scrutinyMap;
+
     // Build commonForm document map for full backward compatibility
     final commonFormDoc = <String, dynamic>{
       'crNo': caseNo,
@@ -1956,6 +2154,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       ),
       child: SafeArea(
         child: Center(
+          heightFactor: 1.0,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1100),
             child: Wrap(
@@ -1964,18 +2163,43 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               runSpacing: 12,
               children: [
             OutlinedButton.icon(
-              onPressed: () => ModulePdfHelper.generatePdf(record),
-              icon: const Icon(Icons.picture_as_pdf_rounded, size: 16),
+              onPressed: _isGeneratingPdf
+                  ? null
+                  : () async {
+                      setState(() => _isGeneratingPdf = true);
+                      try {
+                        await ModulePdfHelper.generatePdf(record, context);
+                      } finally {
+                        if (mounted) {
+                          setState(() => _isGeneratingPdf = false);
+                        }
+                      }
+                    },
+              icon: _isGeneratingPdf
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.grey,
+                      ),
+                    )
+                  : const Icon(Icons.picture_as_pdf_rounded, size: 16),
               label: Text(
-                'Download PDF',
+                _isGeneratingPdf ? 'Generating...' : 'Download PDF',
                 style: GoogleFonts.poppins(
                   fontWeight: FontWeight.w600,
                   fontSize: 13,
+                  color: _isGeneratingPdf ? Colors.grey : AppColors.navyDark,
                 ),
               ),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.navyDark,
-                side: const BorderSide(color: Color(0xFFCBD5E1)),
+                side: BorderSide(
+                  color: _isGeneratingPdf
+                      ? Colors.grey.shade300
+                      : const Color(0xFFCBD5E1),
+                ),
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 shape: RoundedRectangleBorder(
@@ -2263,6 +2487,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       if (f.fieldKey == 'is_unknown_accused') {
         sec = 'Unknown Accused';
       }
+      if (sec == 'Case Responsibility' || sec == 'Responsibility') {
+        sec = 'Officer';
+      }
       groupedBySection.putIfAbsent(sec, () => []).add(f);
     }
 
@@ -2295,14 +2522,15 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
 
     for (final secKey in orderedSectionKeys) {
       if (secKey == 'Acts & Sections Filed') {
-        sectionCards.add(
-            _buildLegalChargesSection(sectionIndex: sectionCounter++));
+        final idx = sectionCounter++;
+        sectionCards.add(_buildLegalChargesSection(sectionIndex: idx));
       } else if (secKey == 'Special Section / Template Details') {
         if (customFields.isNotEmpty) {
+          final idx = sectionCounter++;
           sectionCards.add(
             DynamicSectionCard(
               key: ValueKey('sec_$secKey'),
-              sectionIndex: sectionCounter++,
+              sectionIndex: idx,
               title:
                   'Special Section / Template Details (${customFields.length})',
               icon: Icons.featured_play_list_rounded,
@@ -2311,51 +2539,68 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               values: _values,
               onValueChanged: _onDynamicFieldValueChanged,
               readOnly: widget.readOnly,
-              isExpanded: _expandedSectionKey == secKey,
+              isExpanded: _isSectionExpanded(secKey),
               onToggle: () => _toggleSection(secKey),
               accusedOptions: accusedOptions,
+              hideEmptyFields: _hideEmptyInViewMode,
+              designationOptions: _designationOptions,
+              preventiveOptions: _formDef?.preventiveItems,
             ),
           );
         }
       } else if (secKey == 'Remand & Custody') {
-        sectionCards
-            .add(_buildRemandCustodySection(sectionIndex: sectionCounter++));
+        final idx = sectionCounter++;
+        sectionCards.add(_buildRemandCustodySection(sectionIndex: idx));
       } else if (secKey == 'Preventive Action') {
-        sectionCards.add(
-            _buildPreventiveActionSection(sectionIndex: sectionCounter++));
+        final idx = sectionCounter++;
+        sectionCards.add(_buildPreventiveActionSection(sectionIndex: idx));
       } else if (secKey == 'Discharge Accused') {
-        sectionCards.add(
-            _buildDischargeAccusedSection(sectionIndex: sectionCounter++));
+        final idx = sectionCounter++;
+        sectionCards.add(_buildDischargeAccusedSection(sectionIndex: idx));
       } else if (secKey == 'Accused') {
-        sectionCards.add(_buildAccusedSection(sectionIndex: sectionCounter++));
+        final idx = sectionCounter++;
+        sectionCards.add(_buildAccusedSection(sectionIndex: idx));
       } else if (secKey == 'Suspected Accused') {
-        sectionCards.add(
-            _buildSuspectedAccusedSection(sectionIndex: sectionCounter++));
+        final idx = sectionCounter++;
+        sectionCards.add(_buildSuspectedAccusedSection(sectionIndex: idx));
       } else if (secKey == 'Unidentified Accused') {
-        sectionCards.add(
-            _buildUnidentifiedAccusedSection(sectionIndex: sectionCounter++));
+        final idx = sectionCounter++;
+        sectionCards.add(_buildUnidentifiedAccusedSection(sectionIndex: idx));
       } else if (secKey == 'Unknown Accused') {
-        sectionCards.add(
-            _buildUnknownAccusedSection(sectionIndex: sectionCounter++));
+        final idx = sectionCounter++;
+        sectionCards.add(_buildUnknownAccusedSection(sectionIndex: idx));
       } else if (secKey == 'Arrest') {
-        sectionCards.add(_buildArrestSection(sectionIndex: sectionCounter++));
+        final idx = sectionCounter++;
+        sectionCards.add(_buildArrestSection(sectionIndex: idx));
+      } else if (secKey == 'Scrutiny') {
+        final idx = sectionCounter++;
+        sectionCards.add(_buildScrutinySection(sectionIndex: idx));
       } else {
         final secFields = groupedBySection[secKey];
         if (secFields != null && secFields.isNotEmpty) {
+          final idx = sectionCounter++;
+          final displayTitle = secKey == 'Officer'
+              ? 'Case Responsibility (Officer)'
+              : (secKey == 'Court Filing and Final Summary'
+                  ? 'Court Filing & Final Summary'
+                  : secKey);
           sectionCards.add(
             DynamicSectionCard(
               key: ValueKey('sec_$secKey'),
-              sectionIndex: sectionCounter++,
-              title: secKey,
+              sectionIndex: idx,
+              title: displayTitle,
               icon: _iconForSection(secKey),
               fields: secFields,
               controllers: _controllers,
               values: _values,
               onValueChanged: _onDynamicFieldValueChanged,
               readOnly: widget.readOnly,
-              isExpanded: _expandedSectionKey == secKey,
+              isExpanded: _isSectionExpanded(secKey),
               onToggle: () => _toggleSection(secKey),
               accusedOptions: accusedOptions,
+              hideEmptyFields: _hideEmptyInViewMode,
+              designationOptions: _designationOptions,
+              preventiveOptions: _formDef?.preventiveItems,
             ),
           );
         }
@@ -2368,13 +2613,15 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         final lower = entry.key.toLowerCase();
         if (lower.contains('remand') ||
             lower.contains('custody') ||
+            lower.contains('scrutiny') ||
             lower == 'bond') {
           continue;
         }
+        final idx = sectionCounter++;
         sectionCards.add(
           DynamicSectionCard(
             key: ValueKey('sec_${entry.key}'),
-            sectionIndex: sectionCounter++,
+            sectionIndex: idx,
             title: entry.key,
             icon: _iconForSection(entry.key),
             fields: entry.value,
@@ -2382,13 +2629,19 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             values: _values,
             onValueChanged: _onDynamicFieldValueChanged,
             readOnly: widget.readOnly,
-            isExpanded: _expandedSectionKey == entry.key,
+            isExpanded: _isSectionExpanded(entry.key),
             onToggle: () => _toggleSection(entry.key),
             accusedOptions: accusedOptions,
+            hideEmptyFields: _hideEmptyInViewMode,
+            designationOptions: _designationOptions,
+            preventiveOptions: _formDef?.preventiveItems,
           ),
         );
       }
     }
+
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isCompact = screenWidth < 600;
 
     return Align(
       alignment: Alignment.topCenter,
@@ -2397,13 +2650,13 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         child: Form(
           key: _formKey,
           child: ListView(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.lg,
+            padding: EdgeInsets.symmetric(
+              horizontal: isCompact ? 10.0 : AppSpacing.md,
+              vertical: isCompact ? 12.0 : AppSpacing.lg,
             ),
             children: [
               ...sectionCards,
-              const SizedBox(height: 24),
+              SizedBox(height: isCompact ? 16 : 24),
 
               // Submit Button
               if (!widget.readOnly)
@@ -2453,6 +2706,41 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         ),
       ),
     );
+  }
+
+
+
+  EdgeInsets _responsiveCardMargin(BuildContext context) {
+    final isCompact = MediaQuery.sizeOf(context).width < 600;
+    return EdgeInsets.only(bottom: isCompact ? 10.0 : 14.0);
+  }
+
+  BorderRadius _responsiveCardRadius(BuildContext context) {
+    final isCompact = MediaQuery.sizeOf(context).width < 600;
+    return BorderRadius.circular(isCompact ? AppRadius.md : AppRadius.lg);
+  }
+
+  BorderRadius _responsiveHeaderBorderRadius(
+      BuildContext context, bool isExpanded) {
+    final isCompact = MediaQuery.sizeOf(context).width < 600;
+    final r = Radius.circular(isCompact ? AppRadius.md : AppRadius.lg);
+    return BorderRadius.vertical(
+      top: r,
+      bottom: isExpanded ? Radius.zero : r,
+    );
+  }
+
+  EdgeInsets _responsiveHeaderPadding(BuildContext context) {
+    final isCompact = MediaQuery.sizeOf(context).width < 600;
+    return EdgeInsets.symmetric(
+      horizontal: isCompact ? 12 : 16,
+      vertical: isCompact ? 11 : 14,
+    );
+  }
+
+  EdgeInsets _responsiveBodyPadding(BuildContext context) {
+    final isCompact = MediaQuery.sizeOf(context).width < 600;
+    return EdgeInsets.all(isCompact ? 12.0 : 16.0);
   }
 
   Widget _buildSectionIndexBadge(int? sectionIndex, [IconData? fallbackIcon]) {
@@ -2537,6 +2825,21 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       initialCharges = null;
     }
 
+    if ((initialCharges == null || initialCharges.isEmpty) && _selectedCharges.isNotEmpty) {
+      final list = <Map<String, dynamic>>[];
+      for (final entry in _selectedCharges.entries) {
+        for (final sec in entry.value) {
+          list.add({
+            'act': entry.key,
+            'act_name': entry.key,
+            'section': sec,
+            'section_number': sec,
+          });
+        }
+      }
+      if (list.isNotEmpty) initialCharges = list;
+    }
+
     int chargeCount = 0;
     final rawVal = _values['charges'];
     if (rawVal is List) {
@@ -2550,10 +2853,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
 
     return Container(
       key: const ValueKey('sec_Acts & Sections Filed'),
-      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      margin: _responsiveCardMargin(context),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: _responsiveCardRadius(context),
         border: Border.all(color: AppColors.lightBorder),
         boxShadow: [
           BoxShadow(
@@ -2568,13 +2871,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         children: [
           InkWell(
             onTap: () => _toggleSection('Acts & Sections Filed'),
-            borderRadius: BorderRadius.vertical(
-              top: const Radius.circular(AppRadius.lg),
-              bottom:
-                  Radius.circular(_chargesSectionExpanded ? 0 : AppRadius.lg),
-            ),
+            borderRadius: _responsiveHeaderBorderRadius(
+                context, _chargesSectionExpanded),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: _responsiveHeaderPadding(context),
               child: Row(
                 children: [
                   _buildSectionIndexBadge(sectionIndex, Icons.gavel_rounded),
@@ -2616,7 +2916,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               children: [
                 const Divider(height: 1, color: AppColors.lightBorder),
                 Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
+                  padding: _responsiveBodyPadding(context),
                   child: RepeatingCascadingChargesSelector(
                     initialCharges: initialCharges,
                     readOnly: widget.readOnly,
@@ -2624,15 +2924,17 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                       _values['charges'] = chargesList;
                       _values['acts_sections'] = chargesList;
                     },
-                    onSectionIdsChanged: (sectionIds) {
-                      _triggerBDebounce?.cancel();
-                      _triggerBDebounce =
-                          Timer(const Duration(milliseconds: 300), () {
-                        final allSections =
-                            sectionIds.map((s) => s.toString()).toList();
-                        _loadFormDefinition(chargedSections: allSections);
-                      });
-                    },
+                    onSectionIdsChanged: widget.readOnly
+                        ? null
+                        : (sectionIds) {
+                            _triggerBDebounce?.cancel();
+                            _triggerBDebounce =
+                                Timer(const Duration(milliseconds: 300), () {
+                              final allSections =
+                                  sectionIds.map((s) => s.toString()).toList();
+                              _loadFormDefinition(chargedSections: allSections);
+                            });
+                          },
                   ),
                 ),
               ],
@@ -2652,12 +2954,11 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     final names = <String>{};
 
     void addName(String? raw) {
-      if (raw == null) return;
-      final t = raw.trim();
+      final t = _sanitizeName(raw);
       if (t.isEmpty) return;
       if (t.contains(',')) {
         for (final p in t.split(',')) {
-          final s = p.trim();
+          final s = _sanitizeName(p);
           if (s.isNotEmpty) names.add(s);
         }
       } else {
@@ -2827,10 +3128,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     final availableAccused = _getAvailableAccusedNames();
 
     return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      margin: _responsiveCardMargin(context),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: _responsiveCardRadius(context),
         boxShadow: [
           BoxShadow(
             color: AppColors.navyDark.withValues(alpha: 0.04),
@@ -2846,13 +3147,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           // Section Header
           InkWell(
             onTap: () => _toggleSection('Discharge Accused'),
-            borderRadius: BorderRadius.vertical(
-              top: const Radius.circular(AppRadius.lg),
-              bottom:
-                  Radius.circular(_dischargeSectionExpanded ? 0 : AppRadius.lg),
-            ),
+            borderRadius: _responsiveHeaderBorderRadius(
+                context, _dischargeSectionExpanded),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: _responsiveHeaderPadding(context),
               child: Row(
                 children: [
                   _buildSectionIndexBadge(
@@ -2918,7 +3216,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               children: [
                 const Divider(height: 1, color: AppColors.lightBorder),
                 Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
+                  padding: _responsiveBodyPadding(context),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -3296,355 +3594,12 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     }
   }
 
-  void _showAddEditAccusedDialog({int? editIndex}) {
-    final isEditing =
-        editIndex != null && editIndex >= 0 && editIndex < _accusedList.length;
-    final initial = isEditing ? _accusedList[editIndex] : <String, dynamic>{};
-
-    final nameCtrl =
-        TextEditingController(text: initial['name']?.toString() ?? '');
-    final ageCtrl =
-        TextEditingController(text: initial['age']?.toString() ?? '');
-    var selectedGender = initial['gender']?.toString().isNotEmpty == true
-        ? initial['gender'].toString()
-        : 'Male';
-    final occCtrl =
-        TextEditingController(text: initial['occupation']?.toString() ?? '');
-    final mobileCtrl =
-        TextEditingController(text: initial['mobile']?.toString() ?? '');
-    final aadhaarCtrl =
-        TextEditingController(text: initial['aadhaar']?.toString() ?? '');
-    final panCtrl =
-        TextEditingController(text: initial['pan']?.toString() ?? '');
-    final religionCtrl =
-        TextEditingController(text: initial['religion']?.toString() ?? '');
-    final casteCtrl =
-        TextEditingController(text: initial['caste']?.toString() ?? '');
-    final addressCtrl =
-        TextEditingController(text: initial['address']?.toString() ?? '');
-
-    final formKey = GlobalKey<FormState>();
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setDlgState) {
-          return AlertDialog(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.lg)),
-            title: Row(
-              children: [
-                Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    color: AppColors.navyMid.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.person_pin_rounded,
-                      size: 18, color: AppColors.navyMid),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  isEditing ? 'Edit Accused' : 'Add Accused',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.navyDark,
-                  ),
-                ),
-              ],
-            ),
-            content: SizedBox(
-              width: 520,
-              child: SingleChildScrollView(
-                child: Form(
-                  key: formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Name (Required)
-                      TextFormField(
-                        controller: nameCtrl,
-                        autofocus: !isEditing,
-                        style: GoogleFonts.poppins(
-                            fontSize: 13, color: AppColors.navyDark),
-                        decoration: InputDecoration(
-                          labelText: 'Accused Name *',
-                          hintText: 'Enter full name...',
-                          prefixIcon: const Icon(Icons.person_outline_rounded,
-                              size: 18, color: AppColors.navyMid),
-                          border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.md)),
-                        ),
-                        validator: (val) {
-                          if (val == null || val.trim().isEmpty) {
-                            return 'Please enter accused name';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Age & Gender Row
-                      Row(
-                        children: [
-                          Expanded(
-                            flex: 4,
-                            child: TextFormField(
-                              controller: ageCtrl,
-                              keyboardType: TextInputType.number,
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, color: AppColors.navyDark),
-                              decoration: InputDecoration(
-                                labelText: 'Age',
-                                hintText: 'Years',
-                                prefixIcon: const Icon(Icons.cake_outlined,
-                                    size: 18, color: AppColors.navyMid),
-                                border: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(AppRadius.md)),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            flex: 6,
-                            child: DropdownButtonFormField<String>(
-                              initialValue: selectedGender,
-                              decoration: InputDecoration(
-                                labelText: 'Gender',
-                                prefixIcon: const Icon(Icons.wc_rounded,
-                                    size: 18, color: AppColors.navyMid),
-                                border: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(AppRadius.md)),
-                              ),
-                              items: const [
-                                DropdownMenuItem(
-                                    value: 'Male', child: Text('Male')),
-                                DropdownMenuItem(
-                                    value: 'Female', child: Text('Female')),
-                                DropdownMenuItem(
-                                    value: 'Other', child: Text('Other')),
-                              ],
-                              onChanged: (val) {
-                                if (val != null) {
-                                  setDlgState(() => selectedGender = val);
-                                }
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Occupation & Mobile Row
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: occCtrl,
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, color: AppColors.navyDark),
-                              decoration: InputDecoration(
-                                labelText: 'Occupation',
-                                hintText: 'e.g. Business / Driver',
-                                prefixIcon: const Icon(
-                                    Icons.work_outline_rounded,
-                                    size: 18,
-                                    color: AppColors.navyMid),
-                                border: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(AppRadius.md)),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: TextFormField(
-                              controller: mobileCtrl,
-                              keyboardType: TextInputType.phone,
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, color: AppColors.navyDark),
-                              decoration: InputDecoration(
-                                labelText: 'Mobile Number',
-                                hintText: '10 digits',
-                                prefixIcon: const Icon(
-                                    Icons.phone_iphone_rounded,
-                                    size: 18,
-                                    color: AppColors.navyMid),
-                                border: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(AppRadius.md)),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Aadhaar & PAN Row
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: aadhaarCtrl,
-                              keyboardType: TextInputType.number,
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, color: AppColors.navyDark),
-                              decoration: InputDecoration(
-                                labelText: 'Aadhaar Number',
-                                hintText: '12 digits',
-                                prefixIcon: const Icon(
-                                    Icons.credit_card_rounded,
-                                    size: 18,
-                                    color: AppColors.navyMid),
-                                border: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(AppRadius.md)),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: TextFormField(
-                              controller: panCtrl,
-                              textCapitalization: TextCapitalization.characters,
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, color: AppColors.navyDark),
-                              decoration: InputDecoration(
-                                labelText: 'PAN Number',
-                                hintText: '10 chars',
-                                prefixIcon: const Icon(Icons.badge_outlined,
-                                    size: 18, color: AppColors.navyMid),
-                                border: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(AppRadius.md)),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Religion & Caste Row
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: religionCtrl,
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, color: AppColors.navyDark),
-                              decoration: InputDecoration(
-                                labelText: 'Religion',
-                                prefixIcon: const Icon(
-                                    Icons.account_balance_outlined,
-                                    size: 18,
-                                    color: AppColors.navyMid),
-                                border: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(AppRadius.md)),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: TextFormField(
-                              controller: casteCtrl,
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, color: AppColors.navyDark),
-                              decoration: InputDecoration(
-                                labelText: 'Caste',
-                                prefixIcon: const Icon(
-                                    Icons.people_outline_rounded,
-                                    size: 18,
-                                    color: AppColors.navyMid),
-                                border: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(AppRadius.md)),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Address
-                      TextFormField(
-                        controller: addressCtrl,
-                        maxLines: 2,
-                        style: GoogleFonts.poppins(
-                            fontSize: 13, color: AppColors.navyDark),
-                        decoration: InputDecoration(
-                          labelText: 'Address',
-                          hintText: 'Residential or last known address...',
-                          prefixIcon: const Icon(Icons.home_outlined,
-                              size: 18, color: AppColors.navyMid),
-                          border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.md)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text('Cancel',
-                    style: GoogleFonts.poppins(color: AppColors.lightSubText)),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  if (formKey.currentState?.validate() ?? false) {
-                    final item = {
-                      'name': nameCtrl.text.trim(),
-                      'age': ageCtrl.text.trim(),
-                      'gender': selectedGender,
-                      'occupation': occCtrl.text.trim(),
-                      'mobile': mobileCtrl.text.trim(),
-                      'aadhaar': aadhaarCtrl.text.trim(),
-                      'pan': panCtrl.text.trim(),
-                      'religion': religionCtrl.text.trim(),
-                      'caste': casteCtrl.text.trim(),
-                      'address': addressCtrl.text.trim(),
-                      'role': 'accused',
-                    };
-
-                    setState(() {
-                      if (isEditing) {
-                        _accusedList[editIndex] = item;
-                      } else {
-                        _accusedList.add(item);
-                      }
-                      _syncPrimaryAccusedControllers();
-                    });
-
-                    Navigator.pop(ctx);
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.navyMid),
-                child: Text(isEditing ? 'Save Changes' : 'Add Accused'),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
   Widget _buildAccusedSection({int? sectionIndex}) {
     return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      margin: _responsiveCardMargin(context),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: _responsiveCardRadius(context),
         boxShadow: [
           BoxShadow(
             color: AppColors.navyDark.withValues(alpha: 0.04),
@@ -3660,13 +3615,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           // Header Bar
           InkWell(
             onTap: () => _toggleSection('Accused'),
-            borderRadius: BorderRadius.vertical(
-              top: const Radius.circular(AppRadius.lg),
-              bottom:
-                  Radius.circular(_accusedSectionExpanded ? 0 : AppRadius.lg),
-            ),
+            borderRadius: _responsiveHeaderBorderRadius(
+                context, _accusedSectionExpanded),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: _responsiveHeaderPadding(context),
               child: Row(
                 children: [
                   _buildSectionIndexBadge(sectionIndex, Icons.person_pin_rounded),
@@ -3725,7 +3677,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               children: [
                 const Divider(height: 1, color: AppColors.lightBorder),
                 Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
+                  padding: _responsiveBodyPadding(context),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -3834,36 +3786,6 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     );
   }
 
-  Widget _buildMiniTag(String label, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: AppColors.lightBorder),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 11, color: AppColors.navyMid),
-          const SizedBox(width: 4),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 180),
-            child: Text(
-              label,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.poppins(
-                fontSize: 10.5,
-                fontWeight: FontWeight.w500,
-                color: AppColors.navyDark,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   // ── Suspected Accused Section & Helpers ─────────────────────────────
   void _syncPrimarySuspectedAccusedControllers() {
     if (_suspectedAccusedList.isNotEmpty) {
@@ -3893,397 +3815,12 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     }
   }
 
-  void _showAddEditSuspectedAccusedDialog({int? editIndex}) {
-    final isEditing = editIndex != null &&
-        editIndex >= 0 &&
-        editIndex < _suspectedAccusedList.length;
-    final initial =
-        isEditing ? _suspectedAccusedList[editIndex] : <String, dynamic>{};
-
-    final nameCtrl =
-        TextEditingController(text: initial['name']?.toString() ?? '');
-    final ageCtrl =
-        TextEditingController(text: initial['age']?.toString() ?? '');
-    var selectedGender = initial['gender']?.toString().isNotEmpty == true
-        ? initial['gender'].toString()
-        : 'Male';
-    final occCtrl =
-        TextEditingController(text: initial['occupation']?.toString() ?? '');
-    final mobileCtrl =
-        TextEditingController(text: initial['mobile']?.toString() ?? '');
-    final aadhaarCtrl =
-        TextEditingController(text: initial['aadhaar']?.toString() ?? '');
-    final panCtrl =
-        TextEditingController(text: initial['pan']?.toString() ?? '');
-    final religionCtrl =
-        TextEditingController(text: initial['religion']?.toString() ?? '');
-    final casteCtrl =
-        TextEditingController(text: initial['caste']?.toString() ?? '');
-    final addressCtrl =
-        TextEditingController(text: initial['address']?.toString() ?? '');
-
-    final formKey = GlobalKey<FormState>();
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setDlgState) {
-          return AlertDialog(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.lg)),
-            title: Row(
-              children: [
-                Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    color: AppColors.navyMid.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.person_search_rounded,
-                      size: 18, color: AppColors.navyMid),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    isEditing
-                        ? 'Edit Suspected Accused'
-                        : 'Add Suspected Accused',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.navyDark,
-                    ),
-                  ),
-                ),
-                if (!isEditing && _accusedList.isNotEmpty)
-                  TextButton.icon(
-                    onPressed: () {
-                      final firstAcc = _accusedList.first;
-                      setDlgState(() {
-                        nameCtrl.text = firstAcc['name']?.toString() ?? '';
-                        ageCtrl.text = firstAcc['age']?.toString() ?? '';
-                        selectedGender =
-                            firstAcc['gender']?.toString().isNotEmpty == true
-                                ? firstAcc['gender'].toString()
-                                : 'Male';
-                        occCtrl.text = firstAcc['occupation']?.toString() ?? '';
-                        mobileCtrl.text = firstAcc['mobile']?.toString() ?? '';
-                        aadhaarCtrl.text =
-                            firstAcc['aadhaar']?.toString() ?? '';
-                        panCtrl.text = firstAcc['pan']?.toString() ?? '';
-                        religionCtrl.text =
-                            firstAcc['religion']?.toString() ?? '';
-                        casteCtrl.text = firstAcc['caste']?.toString() ?? '';
-                        addressCtrl.text =
-                            firstAcc['address']?.toString() ?? '';
-                      });
-                    },
-                    icon: const Icon(Icons.copy_rounded, size: 14),
-                    label: Text(
-                      'Copy Accused',
-                      style: GoogleFonts.poppins(
-                          fontSize: 11, fontWeight: FontWeight.w600),
-                    ),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.navyMid,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                    ),
-                  ),
-              ],
-            ),
-            content: SizedBox(
-              width: 520,
-              child: SingleChildScrollView(
-                child: Form(
-                  key: formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Name (Required)
-                      TextFormField(
-                        controller: nameCtrl,
-                        autofocus: !isEditing,
-                        style: GoogleFonts.poppins(
-                            fontSize: 13, color: AppColors.navyDark),
-                        decoration: InputDecoration(
-                          labelText: 'Suspected Accused Name *',
-                          hintText: 'Enter full name...',
-                          prefixIcon: const Icon(Icons.person_outline_rounded,
-                              size: 18, color: AppColors.navyMid),
-                          border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.md)),
-                        ),
-                        validator: (val) {
-                          if (val == null || val.trim().isEmpty) {
-                            return 'Please enter suspected accused name';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Age & Gender Row
-                      Row(
-                        children: [
-                          Expanded(
-                            flex: 4,
-                            child: TextFormField(
-                              controller: ageCtrl,
-                              keyboardType: TextInputType.number,
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, color: AppColors.navyDark),
-                              decoration: InputDecoration(
-                                labelText: 'Age',
-                                hintText: 'Years',
-                                prefixIcon: const Icon(Icons.cake_outlined,
-                                    size: 18, color: AppColors.navyMid),
-                                border: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(AppRadius.md)),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            flex: 6,
-                            child: DropdownButtonFormField<String>(
-                              initialValue: selectedGender,
-                              decoration: InputDecoration(
-                                labelText: 'Gender',
-                                prefixIcon: const Icon(Icons.wc_rounded,
-                                    size: 18, color: AppColors.navyMid),
-                                border: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(AppRadius.md)),
-                              ),
-                              items: const [
-                                DropdownMenuItem(
-                                    value: 'Male', child: Text('Male')),
-                                DropdownMenuItem(
-                                    value: 'Female', child: Text('Female')),
-                                DropdownMenuItem(
-                                    value: 'Other', child: Text('Other')),
-                              ],
-                              onChanged: (val) {
-                                if (val != null) {
-                                  setDlgState(() => selectedGender = val);
-                                }
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Occupation & Mobile Row
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: occCtrl,
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, color: AppColors.navyDark),
-                              decoration: InputDecoration(
-                                labelText: 'Occupation',
-                                hintText: 'e.g. Business / Driver',
-                                prefixIcon: const Icon(
-                                    Icons.work_outline_rounded,
-                                    size: 18,
-                                    color: AppColors.navyMid),
-                                border: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(AppRadius.md)),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: TextFormField(
-                              controller: mobileCtrl,
-                              keyboardType: TextInputType.phone,
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, color: AppColors.navyDark),
-                              decoration: InputDecoration(
-                                labelText: 'Mobile Number',
-                                hintText: '10 digits',
-                                prefixIcon: const Icon(
-                                    Icons.phone_iphone_rounded,
-                                    size: 18,
-                                    color: AppColors.navyMid),
-                                border: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(AppRadius.md)),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Aadhaar & PAN Row
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: aadhaarCtrl,
-                              keyboardType: TextInputType.number,
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, color: AppColors.navyDark),
-                              decoration: InputDecoration(
-                                labelText: 'Aadhaar Number',
-                                hintText: '12 digits',
-                                prefixIcon: const Icon(
-                                    Icons.credit_card_rounded,
-                                    size: 18,
-                                    color: AppColors.navyMid),
-                                border: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(AppRadius.md)),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: TextFormField(
-                              controller: panCtrl,
-                              textCapitalization: TextCapitalization.characters,
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, color: AppColors.navyDark),
-                              decoration: InputDecoration(
-                                labelText: 'PAN Number',
-                                hintText: '10 chars',
-                                prefixIcon: const Icon(Icons.badge_outlined,
-                                    size: 18, color: AppColors.navyMid),
-                                border: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(AppRadius.md)),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Religion & Caste Row
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: religionCtrl,
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, color: AppColors.navyDark),
-                              decoration: InputDecoration(
-                                labelText: 'Religion',
-                                prefixIcon: const Icon(
-                                    Icons.account_balance_outlined,
-                                    size: 18,
-                                    color: AppColors.navyMid),
-                                border: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(AppRadius.md)),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: TextFormField(
-                              controller: casteCtrl,
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, color: AppColors.navyDark),
-                              decoration: InputDecoration(
-                                labelText: 'Caste',
-                                prefixIcon: const Icon(
-                                    Icons.people_outline_rounded,
-                                    size: 18,
-                                    color: AppColors.navyMid),
-                                border: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(AppRadius.md)),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Address
-                      TextFormField(
-                        controller: addressCtrl,
-                        maxLines: 2,
-                        style: GoogleFonts.poppins(
-                            fontSize: 13, color: AppColors.navyDark),
-                        decoration: InputDecoration(
-                          labelText: 'Address',
-                          hintText: 'Residential or last known address...',
-                          prefixIcon: const Icon(Icons.home_outlined,
-                              size: 18, color: AppColors.navyMid),
-                          border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.md)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text('Cancel',
-                    style: GoogleFonts.poppins(color: AppColors.lightSubText)),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  if (formKey.currentState?.validate() ?? false) {
-                    final item = {
-                      'name': nameCtrl.text.trim(),
-                      'age': ageCtrl.text.trim(),
-                      'gender': selectedGender,
-                      'occupation': occCtrl.text.trim(),
-                      'mobile': mobileCtrl.text.trim(),
-                      'aadhaar': aadhaarCtrl.text.trim(),
-                      'pan': panCtrl.text.trim(),
-                      'religion': religionCtrl.text.trim(),
-                      'caste': casteCtrl.text.trim(),
-                      'address': addressCtrl.text.trim(),
-                      'role': 'suspected_accused',
-                    };
-
-                    setState(() {
-                      if (isEditing) {
-                        _suspectedAccusedList[editIndex] = item;
-                      } else {
-                        _suspectedAccusedList.add(item);
-                      }
-                      _syncPrimarySuspectedAccusedControllers();
-                    });
-
-                    Navigator.pop(ctx);
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.navyMid),
-                child:
-                    Text(isEditing ? 'Save Changes' : 'Add Suspected Accused'),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
   Widget _buildSuspectedAccusedSection({int? sectionIndex}) {
     return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      margin: _responsiveCardMargin(context),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: _responsiveCardRadius(context),
         boxShadow: [
           BoxShadow(
             color: AppColors.navyDark.withValues(alpha: 0.04),
@@ -4299,13 +3836,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           // Header Bar
           InkWell(
             onTap: () => _toggleSection('Suspected Accused'),
-            borderRadius: BorderRadius.vertical(
-              top: const Radius.circular(AppRadius.lg),
-              bottom: Radius.circular(
-                  _suspectedAccusedSectionExpanded ? 0 : AppRadius.lg),
-            ),
+            borderRadius: _responsiveHeaderBorderRadius(
+                context, _suspectedAccusedSectionExpanded),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: _responsiveHeaderPadding(context),
               child: Row(
                 children: [
                   _buildSectionIndexBadge(
@@ -4367,7 +3901,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               children: [
                 const Divider(height: 1, color: AppColors.lightBorder),
                 Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
+                  padding: _responsiveBodyPadding(context),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -4499,293 +4033,12 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     }
   }
 
-  void _showAddEditUnidentifiedAccusedDialog({int? editIndex}) {
-    final isEditing = editIndex != null &&
-        editIndex >= 0 &&
-        editIndex < _unidentifiedAccusedList.length;
-    final initial =
-        isEditing ? _unidentifiedAccusedList[editIndex] : <String, dynamic>{};
-
-    final ageCtrl = TextEditingController(
-        text: initial['approximate_age']?.toString() ?? '');
-    var selectedGender = initial['gender']?.toString().isNotEmpty == true
-        ? initial['gender'].toString()
-        : 'Male';
-    final skinCtrl =
-        TextEditingController(text: initial['skin_colour']?.toString() ?? '');
-    final heightCtrl =
-        TextEditingController(text: initial['height']?.toString() ?? '');
-    final occCtrl = TextEditingController(
-        text: initial['possible_occupation']?.toString() ?? '');
-    final markCtrl = TextEditingController(
-        text: initial['identification_mark']?.toString() ?? '');
-    final descCtrl =
-        TextEditingController(text: initial['description']?.toString() ?? '');
-    final addrCtrl =
-        TextEditingController(text: initial['address']?.toString() ?? '');
-
-    final formKey = GlobalKey<FormState>();
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setDlgState) {
-          return AlertDialog(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.lg)),
-            title: Row(
-              children: [
-                Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    color: AppColors.navyMid.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.fingerprint_rounded,
-                      size: 18, color: AppColors.navyMid),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    isEditing
-                        ? 'Edit Unidentified Accused'
-                        : 'Add Unidentified Accused',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.navyDark,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            content: SizedBox(
-              width: 520,
-              child: SingleChildScrollView(
-                child: Form(
-                  key: formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Age & Gender Row
-                      Row(
-                        children: [
-                          Expanded(
-                            flex: 5,
-                            child: TextFormField(
-                              controller: ageCtrl,
-                              autofocus: !isEditing,
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, color: AppColors.navyDark),
-                              decoration: InputDecoration(
-                                labelText: 'Approximate Age',
-                                hintText: 'e.g. 25-30 yrs',
-                                prefixIcon: const Icon(Icons.cake_outlined,
-                                    size: 18, color: AppColors.navyMid),
-                                border: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(AppRadius.md)),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            flex: 5,
-                            child: DropdownButtonFormField<String>(
-                              initialValue: selectedGender,
-                              decoration: InputDecoration(
-                                labelText: 'Gender',
-                                prefixIcon: const Icon(Icons.wc_rounded,
-                                    size: 18, color: AppColors.navyMid),
-                                border: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(AppRadius.md)),
-                              ),
-                              items: const [
-                                DropdownMenuItem(
-                                    value: 'Male', child: Text('Male')),
-                                DropdownMenuItem(
-                                    value: 'Female', child: Text('Female')),
-                                DropdownMenuItem(
-                                    value: 'Other', child: Text('Other')),
-                              ],
-                              onChanged: (val) {
-                                if (val != null) {
-                                  setDlgState(() => selectedGender = val);
-                                }
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Skin Colour & Height Row
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: skinCtrl,
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, color: AppColors.navyDark),
-                              decoration: InputDecoration(
-                                labelText: 'Skin Colour / Complexion',
-                                hintText: 'e.g. Fair / Wheatish / Dark',
-                                prefixIcon: const Icon(Icons.palette_outlined,
-                                    size: 18, color: AppColors.navyMid),
-                                border: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(AppRadius.md)),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: TextFormField(
-                              controller: heightCtrl,
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, color: AppColors.navyDark),
-                              decoration: InputDecoration(
-                                labelText: 'Height',
-                                hintText: "e.g. 5'8\" or 170cm",
-                                prefixIcon: const Icon(Icons.height_rounded,
-                                    size: 18, color: AppColors.navyMid),
-                                border: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(AppRadius.md)),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Possible Occupation
-                      TextFormField(
-                        controller: occCtrl,
-                        style: GoogleFonts.poppins(
-                            fontSize: 13, color: AppColors.navyDark),
-                        decoration: InputDecoration(
-                          labelText: 'Possible Occupation',
-                          hintText: 'e.g. Driver / Laborer / Student',
-                          prefixIcon: const Icon(Icons.work_outline_rounded,
-                              size: 18, color: AppColors.navyMid),
-                          border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.md)),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Identification Mark
-                      TextFormField(
-                        controller: markCtrl,
-                        maxLines: 2,
-                        style: GoogleFonts.poppins(
-                            fontSize: 13, color: AppColors.navyDark),
-                        decoration: InputDecoration(
-                          labelText: 'Identification Mark(s)',
-                          hintText:
-                              'Scars, tattoos, mole, burn marks, deformities...',
-                          prefixIcon: const Icon(Icons.visibility_outlined,
-                              size: 18, color: AppColors.navyMid),
-                          border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.md)),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Physical Description
-                      TextFormField(
-                        controller: descCtrl,
-                        maxLines: 2,
-                        style: GoogleFonts.poppins(
-                            fontSize: 13, color: AppColors.navyDark),
-                        decoration: InputDecoration(
-                          labelText: 'Physical Description / Clothing',
-                          hintText:
-                              'Build, hair, facial features, clothes worn, language...',
-                          prefixIcon: const Icon(Icons.description_outlined,
-                              size: 18, color: AppColors.navyMid),
-                          border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.md)),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Address / Area
-                      TextFormField(
-                        controller: addrCtrl,
-                        style: GoogleFonts.poppins(
-                            fontSize: 13, color: AppColors.navyDark),
-                        decoration: InputDecoration(
-                          labelText: 'Last Seen Location / Area',
-                          hintText: 'Area or locality where last spotted...',
-                          prefixIcon: const Icon(Icons.location_on_outlined,
-                              size: 18, color: AppColors.navyMid),
-                          border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.md)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text('Cancel',
-                    style: GoogleFonts.poppins(color: AppColors.lightSubText)),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  final item = {
-                    'approximate_age': ageCtrl.text.trim(),
-                    'gender': selectedGender,
-                    'skin_colour': skinCtrl.text.trim(),
-                    'height': heightCtrl.text.trim(),
-                    'possible_occupation': occCtrl.text.trim(),
-                    'identification_mark': markCtrl.text.trim(),
-                    'description': descCtrl.text.trim(),
-                    'address': addrCtrl.text.trim(),
-                    'role': 'unidentified_accused',
-                  };
-
-                  setState(() {
-                    if (isEditing) {
-                      _unidentifiedAccusedList[editIndex] = item;
-                    } else {
-                      _unidentifiedAccusedList.add(item);
-                    }
-                    _syncPrimaryUnidentifiedControllers();
-                  });
-
-                  Navigator.pop(ctx);
-                },
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.navyMid),
-                child: Text(
-                    isEditing ? 'Save Changes' : 'Add Unidentified Accused'),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
   Widget _buildUnidentifiedAccusedSection({int? sectionIndex}) {
     return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      margin: _responsiveCardMargin(context),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: _responsiveCardRadius(context),
         boxShadow: [
           BoxShadow(
             color: AppColors.navyDark.withValues(alpha: 0.04),
@@ -4801,13 +4054,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           // Header Bar
           InkWell(
             onTap: () => _toggleSection('Unidentified Accused'),
-            borderRadius: BorderRadius.vertical(
-              top: const Radius.circular(AppRadius.lg),
-              bottom: Radius.circular(
-                  _unidentifiedAccusedSectionExpanded ? 0 : AppRadius.lg),
-            ),
+            borderRadius: _responsiveHeaderBorderRadius(
+                context, _unidentifiedAccusedSectionExpanded),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: _responsiveHeaderPadding(context),
               child: Row(
                 children: [
                   _buildSectionIndexBadge(
@@ -4869,7 +4119,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               children: [
                 const Divider(height: 1, color: AppColors.lightBorder),
                 Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
+                  padding: _responsiveBodyPadding(context),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -5125,668 +4375,6 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     }
   }
 
-  void _showAddCustomArrestedPersonDialog() {
-    final textCtrl = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.lg)),
-        title: Text(
-          'Add Person to Arrest',
-          style: GoogleFonts.poppins(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: AppColors.navyDark),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Enter the name of the accused or suspected person who was arrested:',
-              style: GoogleFonts.poppins(
-                  fontSize: 12, color: AppColors.lightSubText),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: textCtrl,
-              autofocus: true,
-              style:
-                  GoogleFonts.poppins(fontSize: 14, color: AppColors.navyDark),
-              decoration: InputDecoration(
-                hintText: 'e.g. Ramesh Kumar',
-                prefixIcon: const Icon(Icons.person_outline_rounded,
-                    size: 20, color: AppColors.navyMid),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.md)),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancel',
-                style: GoogleFonts.poppins(color: AppColors.lightSubText)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final val = textCtrl.text.trim();
-              if (val.isNotEmpty) {
-                setState(() {
-                  final existingIdx = _arrestRecordsList.indexWhere((it) =>
-                      (it['arrested_person_name'] ??
-                              it['person_name'] ??
-                              it['name'] ??
-                              '')
-                          .toString()
-                          .toLowerCase() ==
-                      val.toLowerCase());
-                  if (existingIdx < 0) {
-                    _arrestRecordsList.add({
-                      'arrested_person_name': val,
-                      'person_name': val,
-                      'name': val,
-                      'arrest_datetime': DateFormat('dd/MM/yyyy HH:mm')
-                          .format(DateTime.now()),
-                      'sec_47_48_bnss': false,
-                      'relative_friend_name': '',
-                      'relative_friend_relation': '',
-                      'release_on_notice': false,
-                      'release_on_notice_datetime': '',
-                      'anticipatory_bail': false,
-                      'anticipatory_bail_datetime': '',
-                      'death_of_accused': false,
-                      'death_of_accused_datetime': '',
-                    });
-                    _syncPrimaryArrestControllers();
-                  }
-                });
-              }
-              Navigator.pop(ctx);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.navyMid),
-            child: const Text('Add & Arrest'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showAddEditArrestDialog({int? editIndex}) {
-    final isEditing = editIndex != null &&
-        editIndex >= 0 &&
-        editIndex < _arrestRecordsList.length;
-    final initial =
-        isEditing ? _arrestRecordsList[editIndex] : <String, dynamic>{};
-
-    final availableNames = _getAvailableAccusedNames();
-    String? selectedName = (initial['arrested_person_name'] ??
-            initial['person_name'] ??
-            initial['name'])
-        ?.toString();
-    if (selectedName != null && selectedName.isEmpty) selectedName = null;
-
-    final customNameCtrl = TextEditingController(
-        text: (selectedName != null && !availableNames.contains(selectedName))
-            ? selectedName
-            : '');
-    bool isCustomName = selectedName != null &&
-        !availableNames.contains(selectedName) &&
-        selectedName != '__custom__';
-
-    final nowStr = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
-    final arrestDateCtrl = TextEditingController(
-        text: initial['arrest_datetime']?.toString().isNotEmpty == true
-            ? initial['arrest_datetime'].toString()
-            : nowStr);
-
-    bool isSec4748 = initial['sec_47_48_bnss'] == true;
-    final relNameCtrl = TextEditingController(
-        text: initial['relative_friend_name']?.toString() ?? '');
-    final relRelationCtrl = TextEditingController(
-        text: initial['relative_friend_relation']?.toString() ?? '');
-
-    bool isReleaseOnNotice = initial['release_on_notice'] == true;
-    final noticeDateCtrl = TextEditingController(
-        text: initial['release_on_notice_datetime']?.toString() ?? '');
-
-    bool isAnticipatoryBail = initial['anticipatory_bail'] == true;
-    final antBailDateCtrl = TextEditingController(
-        text: initial['anticipatory_bail_datetime']?.toString() ?? '');
-
-    bool isDeath = initial['death_of_accused'] == true;
-    final deathDateCtrl = TextEditingController(
-        text: initial['death_of_accused_datetime']?.toString() ?? '');
-
-    final formKey = GlobalKey<FormState>();
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setDlgState) {
-          return AlertDialog(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.lg)),
-            title: Row(
-              children: [
-                Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    color: AppColors.navyMid.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.front_hand_rounded,
-                      size: 18, color: AppColors.navyMid),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    isEditing ? 'Edit Arrest Record' : 'Add Arrest Record',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.navyDark,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            content: SizedBox(
-              width: 520,
-              child: SingleChildScrollView(
-                child: Form(
-                  key: formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Arrested Person Name Selector
-                      if (!isCustomName) ...[
-                        DropdownButtonFormField<String>(
-                          initialValue: (selectedName != null &&
-                                  availableNames.contains(selectedName))
-                              ? selectedName
-                              : null,
-                          decoration: InputDecoration(
-                            labelText: 'Arrested Person Name *',
-                            prefixIcon: const Icon(Icons.person_pin_rounded,
-                                size: 18, color: AppColors.navyMid),
-                            border: OutlineInputBorder(
-                                borderRadius:
-                                    BorderRadius.circular(AppRadius.md)),
-                          ),
-                          hint: const Text('Select Accused / Suspect...'),
-                          items: [
-                            ...availableNames.map((n) => DropdownMenuItem(
-                                  value: n,
-                                  child: Text(n),
-                                )),
-                            const DropdownMenuItem(
-                              value: '__custom__',
-                              child: Text(
-                                '+ Type other name...',
-                                style: TextStyle(
-                                    color: AppColors.navyMid,
-                                    fontWeight: FontWeight.w600),
-                              ),
-                            ),
-                          ],
-                          onChanged: (val) {
-                            if (val == '__custom__') {
-                              setDlgState(() {
-                                isCustomName = true;
-                                selectedName = null;
-                              });
-                            } else {
-                              setDlgState(() {
-                                selectedName = val;
-                              });
-                            }
-                          },
-                          validator: (val) {
-                            if (!isCustomName &&
-                                (selectedName == null ||
-                                    selectedName!.trim().isEmpty)) {
-                              return 'Please select or enter arrested person name';
-                            }
-                            return null;
-                          },
-                        ),
-                      ] else ...[
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                controller: customNameCtrl,
-                                autofocus: true,
-                                style: GoogleFonts.poppins(
-                                    fontSize: 13, color: AppColors.navyDark),
-                                decoration: InputDecoration(
-                                  labelText: 'Arrested Person Name *',
-                                  hintText: 'Enter full name...',
-                                  prefixIcon: const Icon(
-                                      Icons.person_outline_rounded,
-                                      size: 18,
-                                      color: AppColors.navyMid),
-                                  border: OutlineInputBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(AppRadius.md)),
-                                ),
-                                validator: (val) {
-                                  if (val == null || val.trim().isEmpty) {
-                                    return 'Please enter arrested person name';
-                                  }
-                                  return null;
-                                },
-                              ),
-                            ),
-                            if (availableNames.isNotEmpty) ...[
-                              const SizedBox(width: 8),
-                              IconButton(
-                                icon: const Icon(Icons.list_alt_rounded,
-                                    color: AppColors.navyMid),
-                                tooltip: 'Pick from list',
-                                onPressed: () {
-                                  setDlgState(() {
-                                    isCustomName = false;
-                                    selectedName = availableNames.first;
-                                  });
-                                },
-                              ),
-                            ],
-                          ],
-                        ),
-                      ],
-                      const SizedBox(height: 12),
-
-                      // Arrest Date & Time
-                      TextFormField(
-                        controller: arrestDateCtrl,
-                        readOnly: true,
-                        style: GoogleFonts.poppins(
-                            fontSize: 13, color: AppColors.navyDark),
-                        decoration: InputDecoration(
-                          labelText: 'Arrest Date & Time',
-                          prefixIcon: const Icon(Icons.access_time_rounded,
-                              size: 18, color: AppColors.navyMid),
-                          suffixIcon: IconButton(
-                            icon: const Icon(Icons.calendar_month_rounded,
-                                size: 18, color: AppColors.navyMid),
-                            onPressed: () =>
-                                _pickDateTime(context, arrestDateCtrl),
-                          ),
-                          border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.md)),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Section 47/48 BNSS Intimation
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(AppRadius.md),
-                          border: Border.all(color: AppColors.lightBorder),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CheckboxListTile(
-                              title: Text(
-                                'Intimation under Sec 47/48 BNSS',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.navyDark,
-                                ),
-                              ),
-                              subtitle: Text(
-                                'Information given to relative / friend',
-                                style: GoogleFonts.poppins(
-                                    fontSize: 11,
-                                    color: AppColors.lightSubText),
-                              ),
-                              value: isSec4748,
-                              activeColor: AppColors.navyMid,
-                              contentPadding: EdgeInsets.zero,
-                              controlAffinity: ListTileControlAffinity.leading,
-                              onChanged: (val) {
-                                setDlgState(() => isSec4748 = val ?? false);
-                              },
-                            ),
-                            if (isSec4748) ...[
-                              const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: TextFormField(
-                                      controller: relNameCtrl,
-                                      style: GoogleFonts.poppins(
-                                          fontSize: 13,
-                                          color: AppColors.navyDark),
-                                      decoration: InputDecoration(
-                                        labelText: 'Relative / Friend Name',
-                                        hintText: 'e.g. Ramesh',
-                                        prefixIcon: const Icon(
-                                            Icons.person_outline_rounded,
-                                            size: 16,
-                                            color: AppColors.navyMid),
-                                        border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(
-                                                AppRadius.md)),
-                                        filled: true,
-                                        fillColor: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: TextFormField(
-                                      controller: relRelationCtrl,
-                                      style: GoogleFonts.poppins(
-                                          fontSize: 13,
-                                          color: AppColors.navyDark),
-                                      decoration: InputDecoration(
-                                        labelText: 'Relation with Accused',
-                                        hintText: 'e.g. Father / Brother',
-                                        prefixIcon: const Icon(
-                                            Icons.family_restroom_rounded,
-                                            size: 16,
-                                            color: AppColors.navyMid),
-                                        border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(
-                                                AppRadius.md)),
-                                        filled: true,
-                                        fillColor: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Release on Notice under BNSS
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(AppRadius.md),
-                          border: Border.all(color: AppColors.lightBorder),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CheckboxListTile(
-                              title: Text(
-                                'Release on Notice',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.navyDark,
-                                ),
-                              ),
-                              value: isReleaseOnNotice,
-                              activeColor: AppColors.navyMid,
-                              contentPadding: EdgeInsets.zero,
-                              controlAffinity: ListTileControlAffinity.leading,
-                              onChanged: (val) {
-                                setDlgState(() {
-                                  isReleaseOnNotice = val ?? false;
-                                  if (isReleaseOnNotice &&
-                                      noticeDateCtrl.text.isEmpty) {
-                                    noticeDateCtrl.text =
-                                        DateFormat('dd/MM/yyyy HH:mm')
-                                            .format(DateTime.now());
-                                  }
-                                });
-                              },
-                            ),
-                            if (isReleaseOnNotice) ...[
-                              const SizedBox(height: 6),
-                              TextFormField(
-                                controller: noticeDateCtrl,
-                                readOnly: true,
-                                style: GoogleFonts.poppins(
-                                    fontSize: 13, color: AppColors.navyDark),
-                                decoration: InputDecoration(
-                                  labelText: 'Release on Notice Date & Time',
-                                  prefixIcon: const Icon(
-                                      Icons.access_time_rounded,
-                                      size: 16,
-                                      color: AppColors.navyMid),
-                                  suffixIcon: IconButton(
-                                    icon: const Icon(
-                                        Icons.calendar_month_rounded,
-                                        size: 16,
-                                        color: AppColors.navyMid),
-                                    onPressed: () =>
-                                        _pickDateTime(context, noticeDateCtrl),
-                                  ),
-                                  border: OutlineInputBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(AppRadius.md)),
-                                  filled: true,
-                                  fillColor: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Anticipatory Bail
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(AppRadius.md),
-                          border: Border.all(color: AppColors.lightBorder),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CheckboxListTile(
-                              title: Text(
-                                'Anticipatory Bail',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.navyDark,
-                                ),
-                              ),
-                              value: isAnticipatoryBail,
-                              activeColor: AppColors.navyMid,
-                              contentPadding: EdgeInsets.zero,
-                              controlAffinity: ListTileControlAffinity.leading,
-                              onChanged: (val) {
-                                setDlgState(() {
-                                  isAnticipatoryBail = val ?? false;
-                                  if (isAnticipatoryBail &&
-                                      antBailDateCtrl.text.isEmpty) {
-                                    antBailDateCtrl.text =
-                                        DateFormat('dd/MM/yyyy HH:mm')
-                                            .format(DateTime.now());
-                                  }
-                                });
-                              },
-                            ),
-                            if (isAnticipatoryBail) ...[
-                              const SizedBox(height: 6),
-                              TextFormField(
-                                controller: antBailDateCtrl,
-                                readOnly: true,
-                                style: GoogleFonts.poppins(
-                                    fontSize: 13, color: AppColors.navyDark),
-                                decoration: InputDecoration(
-                                  labelText: 'Anticipatory Bail Date & Time',
-                                  prefixIcon: const Icon(
-                                      Icons.access_time_rounded,
-                                      size: 16,
-                                      color: AppColors.navyMid),
-                                  suffixIcon: IconButton(
-                                    icon: const Icon(
-                                        Icons.calendar_month_rounded,
-                                        size: 16,
-                                        color: AppColors.navyMid),
-                                    onPressed: () =>
-                                        _pickDateTime(context, antBailDateCtrl),
-                                  ),
-                                  border: OutlineInputBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(AppRadius.md)),
-                                  filled: true,
-                                  fillColor: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Death of Accused
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(AppRadius.md),
-                          border: Border.all(color: AppColors.lightBorder),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CheckboxListTile(
-                              title: Text(
-                                'Death of Accused',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.dangerRed,
-                                ),
-                              ),
-                              value: isDeath,
-                              activeColor: AppColors.dangerRed,
-                              contentPadding: EdgeInsets.zero,
-                              controlAffinity: ListTileControlAffinity.leading,
-                              onChanged: (val) {
-                                setDlgState(() {
-                                  isDeath = val ?? false;
-                                  if (isDeath && deathDateCtrl.text.isEmpty) {
-                                    deathDateCtrl.text =
-                                        DateFormat('dd/MM/yyyy HH:mm')
-                                            .format(DateTime.now());
-                                  }
-                                });
-                              },
-                            ),
-                            if (isDeath) ...[
-                              const SizedBox(height: 6),
-                              TextFormField(
-                                controller: deathDateCtrl,
-                                readOnly: true,
-                                style: GoogleFonts.poppins(
-                                    fontSize: 13, color: AppColors.navyDark),
-                                decoration: InputDecoration(
-                                  labelText: 'Death Date & Time',
-                                  prefixIcon: const Icon(
-                                      Icons.access_time_rounded,
-                                      size: 16,
-                                      color: AppColors.dangerRed),
-                                  suffixIcon: IconButton(
-                                    icon: const Icon(
-                                        Icons.calendar_month_rounded,
-                                        size: 16,
-                                        color: AppColors.dangerRed),
-                                    onPressed: () =>
-                                        _pickDateTime(context, deathDateCtrl),
-                                  ),
-                                  border: OutlineInputBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(AppRadius.md)),
-                                  filled: true,
-                                  fillColor: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text('Cancel',
-                    style: GoogleFonts.poppins(color: AppColors.lightSubText)),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  if (formKey.currentState?.validate() ?? false) {
-                    final finalName = isCustomName
-                        ? customNameCtrl.text.trim()
-                        : (selectedName ?? '').trim();
-
-                    final item = {
-                      'arrested_person_name': finalName,
-                      'person_name': finalName,
-                      'name': finalName,
-                      'arrest_datetime': arrestDateCtrl.text.trim(),
-                      'sec_47_48_bnss': isSec4748,
-                      'relative_friend_name':
-                          isSec4748 ? relNameCtrl.text.trim() : '',
-                      'relative_friend_relation':
-                          isSec4748 ? relRelationCtrl.text.trim() : '',
-                      'release_on_notice': isReleaseOnNotice,
-                      'release_on_notice_datetime':
-                          isReleaseOnNotice ? noticeDateCtrl.text.trim() : '',
-                      'anticipatory_bail': isAnticipatoryBail,
-                      'anticipatory_bail_datetime':
-                          isAnticipatoryBail ? antBailDateCtrl.text.trim() : '',
-                      'death_of_accused': isDeath,
-                      'death_of_accused_datetime':
-                          isDeath ? deathDateCtrl.text.trim() : '',
-                    };
-
-                    setState(() {
-                      if (isEditing) {
-                        _arrestRecordsList[editIndex] = item;
-                      } else {
-                        _arrestRecordsList.add(item);
-                      }
-                      _syncPrimaryArrestControllers();
-                    });
-
-                    Navigator.pop(ctx);
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.navyMid),
-                child: Text(isEditing ? 'Save Changes' : 'Add Arrest Record'),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
   Widget _buildArrestSection({int? sectionIndex}) {
     // 1. Gather all unique accused/suspect names
     final availableAccused = _getAvailableAccusedNames();
@@ -5807,10 +4395,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      margin: _responsiveCardMargin(context),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: _responsiveCardRadius(context),
         boxShadow: [
           BoxShadow(
             color: AppColors.navyDark.withValues(alpha: 0.04),
@@ -5826,13 +4414,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           // Header Bar
           InkWell(
             onTap: () => _toggleSection('Arrest'),
-            borderRadius: BorderRadius.vertical(
-              top: const Radius.circular(AppRadius.lg),
-              bottom:
-                  Radius.circular(_arrestSectionExpanded ? 0 : AppRadius.lg),
-            ),
+            borderRadius: _responsiveHeaderBorderRadius(
+                context, _arrestSectionExpanded),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: _responsiveHeaderPadding(context),
               child: Row(
                 children: [
                   _buildSectionIndexBadge(
@@ -5892,7 +4477,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               children: [
                 const Divider(height: 1, color: AppColors.lightBorder),
                 Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
+                  padding: _responsiveBodyPadding(context),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -5911,7 +4496,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
-                                  'No accused or suspected persons recorded yet. Add accused persons in the Accused section above, or click "+ Add Person to Arrest" below.',
+                                  'No accused or suspected persons recorded yet. Please add accused persons in the Accused or Suspected Accused section above to record their arrest status.',
                                   style: GoogleFonts.poppins(
                                     fontSize: 12.5,
                                     color: AppColors.lightSubText,
@@ -6831,28 +5416,6 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                           );
                         }),
                       ],
-                      if (!widget.readOnly) ...[
-                        const SizedBox(height: 8),
-                        OutlinedButton.icon(
-                          onPressed: _showAddCustomArrestedPersonDialog,
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.navyMid,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 12),
-                            shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(AppRadius.md)),
-                            side: const BorderSide(color: AppColors.navyMid),
-                          ),
-                          icon: const Icon(Icons.person_add_alt_1_rounded,
-                              size: 18),
-                          label: Text(
-                            'Add Person to Arrest',
-                            style: GoogleFonts.poppins(
-                                fontSize: 12.5, fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                      ],
                     ],
                   ),
                 ),
@@ -6872,10 +5435,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   // ── Unknown Accused Repeating List Section ──────────────────────────────
   Widget _buildUnknownAccusedSection({int? sectionIndex}) {
     return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      margin: _responsiveCardMargin(context),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: _responsiveCardRadius(context),
         boxShadow: [
           BoxShadow(
             color: AppColors.navyDark.withValues(alpha: 0.04),
@@ -6891,13 +5454,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           // Header Bar
           InkWell(
             onTap: () => _toggleSection('Unknown Accused'),
-            borderRadius: BorderRadius.vertical(
-              top: const Radius.circular(AppRadius.lg),
-              bottom:
-                  Radius.circular(_unknownAccusedSectionExpanded ? 0 : AppRadius.lg),
-            ),
+            borderRadius: _responsiveHeaderBorderRadius(
+                context, _unknownAccusedSectionExpanded),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: _responsiveHeaderPadding(context),
               child: Row(
                 children: [
                   _buildSectionIndexBadge(
@@ -6957,7 +5517,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               children: [
                 const Divider(height: 1, color: AppColors.lightBorder),
                 Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
+                  padding: _responsiveBodyPadding(context),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -7120,10 +5680,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
 
     return Container(
       key: const ValueKey('sec_Preventive Action'),
-      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      margin: _responsiveCardMargin(context),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: _responsiveCardRadius(context),
         boxShadow: [
           BoxShadow(
             color: AppColors.navyDark.withValues(alpha: 0.04),
@@ -7139,13 +5699,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           // Section Header with Toggle
           InkWell(
             onTap: () => _toggleSection('Preventive Action'),
-            borderRadius: BorderRadius.vertical(
-              top: const Radius.circular(AppRadius.lg),
-              bottom: Radius.circular(
-                  _preventiveSectionExpanded ? 0 : AppRadius.lg),
-            ),
+            borderRadius: _responsiveHeaderBorderRadius(
+                context, _preventiveSectionExpanded),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: _responsiveHeaderPadding(context),
               child: Row(
                 children: [
                   _buildSectionIndexBadge(sectionIndex, Icons.shield_rounded),
@@ -7208,7 +5765,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               children: [
                 const Divider(height: 1, color: AppColors.lightBorder),
                 Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
+                  padding: _responsiveBodyPadding(context),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -7270,31 +5827,6 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                             },
                           );
                         }),
-                      ],
-
-                      if (!widget.readOnly) ...[
-                        const SizedBox(height: 4),
-                        OutlinedButton.icon(
-                          onPressed: _showAddCustomPreventivePersonDialog,
-                          icon: const Icon(Icons.person_add_alt_1_rounded,
-                              size: 16),
-                          label: Text(
-                            '+ Add Other Person for Preventive Action',
-                            style: GoogleFonts.poppins(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.navyMid,
-                            side: const BorderSide(color: AppColors.navyMid),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                            ),
-                          ),
-                        ),
                       ],
                     ],
                   ),
@@ -7365,53 +5897,6 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     }
   }
 
-  void _showAddCustomPreventivePersonDialog() {
-    final textCtrl = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.lg)),
-        title: Text(
-          'Add Person for Preventive Action',
-          style: GoogleFonts.poppins(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: AppColors.navyDark),
-        ),
-        content: TextField(
-          controller: textCtrl,
-          autofocus: true,
-          decoration: InputDecoration(
-            labelText: 'Person Name',
-            hintText: 'Enter accused / arrested person name...',
-            border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.md)),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final val = textCtrl.text.trim();
-              if (val.isNotEmpty) {
-                setState(() {
-                  _customPreventivePersons.add(val);
-                });
-              }
-              Navigator.pop(ctx);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.navyMid),
-            child: const Text('Add'),
-          ),
-        ],
-      ),
-    );
-  }
-
   Future<void> _pickDateForController(
       BuildContext context, TextEditingController ctrl) async {
     DateTime initial = DateTime.now();
@@ -7448,10 +5933,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      margin: _responsiveCardMargin(context),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: _responsiveCardRadius(context),
         boxShadow: [
           BoxShadow(
             color: AppColors.navyDark.withValues(alpha: 0.04),
@@ -7467,13 +5952,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           // Section Header with Toggle
           InkWell(
             onTap: () => _toggleSection('Remand & Custody'),
-            borderRadius: BorderRadius.vertical(
-              top: const Radius.circular(AppRadius.lg),
-              bottom:
-                  Radius.circular(_custodySectionExpanded ? 0 : AppRadius.lg),
-            ),
+            borderRadius: _responsiveHeaderBorderRadius(
+                context, _custodySectionExpanded),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: _responsiveHeaderPadding(context),
               child: Row(
                 children: [
                   _buildSectionIndexBadge(
@@ -7481,7 +5963,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Remand & Custody',
+                      'Custody & Remand',
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -7537,7 +6019,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               children: [
                 const Divider(height: 1, color: AppColors.lightBorder),
                 Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
+                  padding: _responsiveBodyPadding(context),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -7889,115 +6371,160 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                             ),
                           ],
 
-                          // 3. MCR Sub-options: PR Bond, Bail, Jail (visible only when MCR is chosen)
+                          // 3. MCR Sub-options: PR Bond, Jail, Bail (Mutually Exclusive Radio Options)
                           if (_custodyType == 'MCR') ...[
                             const SizedBox(height: 14),
+                            Text(
+                              'MCR Status / Outcome (Select One)',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.navyDark,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
 
-                            // PR Bond Option
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius:
-                                    BorderRadius.circular(AppRadius.md),
-                                border: Border.all(
-                                  color: _isPrBond
-                                      ? AppColors.navyMid.withValues(alpha: 0.4)
-                                      : AppColors.lightBorder,
-                                ),
-                              ),
-                              child: Column(
-                                children: [
-                                  CheckboxListTile(
-                                    value: _isPrBond,
-                                    activeColor: AppColors.navyMid,
-                                    title: Text(
-                                      'PR Bond',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.navyDark,
-                                      ),
+                            // PR Bond Option (Radio)
+                            Builder(
+                              builder: (context) {
+                                final selectedMcr = _isPrBond
+                                    ? 'PR_BOND'
+                                    : (_isJail
+                                        ? 'JAIL'
+                                        : (_isBail ? 'BAIL' : null));
+                                return Container(
+                                  decoration: BoxDecoration(
+                                    color: _isPrBond
+                                        ? AppColors.navyMid
+                                            .withValues(alpha: 0.04)
+                                        : Colors.white,
+                                    borderRadius:
+                                        BorderRadius.circular(AppRadius.md),
+                                    border: Border.all(
+                                      color: _isPrBond
+                                          ? AppColors.navyMid
+                                          : AppColors.lightBorder,
+                                      width: _isPrBond ? 1.5 : 1.0,
                                     ),
-                                    onChanged: (v) {
-                                      setState(() {
-                                        _isPrBond = v ?? false;
-                                        if (_isPrBond &&
-                                            _prBondDateCtrl.text.isEmpty) {
-                                          _prBondDateCtrl.text =
-                                              DateFormat('dd/MM/yyyy')
-                                                  .format(DateTime.now());
-                                        }
-                                      });
-                                    },
-                                    controlAffinity:
-                                        ListTileControlAffinity.leading,
                                   ),
-                                  if (_isPrBond)
-                                    Padding(
-                                      padding: const EdgeInsets.fromLTRB(
-                                          14, 0, 14, 14),
-                                      child: _buildCustodyDatePicker(
-                                        context: context,
-                                        controller: _prBondDateCtrl,
-                                        label: 'PR Bond Date',
+                                  child: Column(
+                                    children: [
+                                      Material(
+                                        color: Colors.transparent,
+                                        child: RadioListTile<String>(
+                                          value: 'PR_BOND',
+                                          groupValue: selectedMcr,
+                                          activeColor: AppColors.navyMid,
+                                          title: Text(
+                                            'PR Bond',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.navyDark,
+                                            ),
+                                          ),
+                                          onChanged: (v) {
+                                            setState(() {
+                                              _isPrBond = true;
+                                              _isJail = false;
+                                              _isBail = false;
+                                              if (_prBondDateCtrl.text.isEmpty) {
+                                                _prBondDateCtrl.text =
+                                                    DateFormat('dd/MM/yyyy')
+                                                        .format(DateTime.now());
+                                              }
+                                            });
+                                          },
+                                          controlAffinity:
+                                              ListTileControlAffinity.leading,
+                                        ),
                                       ),
-                                    ),
-                                ],
-                              ),
+                                      if (_isPrBond)
+                                        Padding(
+                                          padding: const EdgeInsets.fromLTRB(
+                                              14, 0, 14, 14),
+                                          child: _buildCustodyDatePicker(
+                                            context: context,
+                                            controller: _prBondDateCtrl,
+                                            label: 'PR Bond Date',
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                );
+                              },
                             ),
                             const SizedBox(height: 12),
 
-                            // Jail Option
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius:
-                                    BorderRadius.circular(AppRadius.md),
-                                border: Border.all(
-                                  color: _isJail
-                                      ? AppColors.navyMid.withValues(alpha: 0.4)
-                                      : AppColors.lightBorder,
-                                ),
-                              ),
-                              child: Column(
-                                children: [
-                                  CheckboxListTile(
-                                    value: _isJail,
-                                    activeColor: AppColors.navyMid,
-                                    title: Text(
-                                      'Jail',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.navyDark,
-                                      ),
+                            // Jail Option (Radio)
+                            Builder(
+                              builder: (context) {
+                                final selectedMcr = _isPrBond
+                                    ? 'PR_BOND'
+                                    : (_isJail
+                                        ? 'JAIL'
+                                        : (_isBail ? 'BAIL' : null));
+                                return Container(
+                                  decoration: BoxDecoration(
+                                    color: _isJail
+                                        ? AppColors.navyMid
+                                            .withValues(alpha: 0.04)
+                                        : Colors.white,
+                                    borderRadius:
+                                        BorderRadius.circular(AppRadius.md),
+                                    border: Border.all(
+                                      color: _isJail
+                                          ? AppColors.navyMid
+                                          : AppColors.lightBorder,
+                                      width: _isJail ? 1.5 : 1.0,
                                     ),
-                                    onChanged: (v) {
-                                      setState(() {
-                                        _isJail = v ?? false;
-                                        if (_isJail &&
-                                            _jailDateCtrl.text.isEmpty) {
-                                          _jailDateCtrl.text =
-                                              DateFormat('dd/MM/yyyy')
-                                                  .format(DateTime.now());
-                                        }
-                                      });
-                                    },
-                                    controlAffinity:
-                                        ListTileControlAffinity.leading,
                                   ),
-                                  if (_isJail)
-                                    Padding(
-                                      padding: const EdgeInsets.fromLTRB(
-                                          14, 0, 14, 14),
-                                      child: _buildCustodyDatePicker(
-                                        context: context,
-                                        controller: _jailDateCtrl,
-                                        label: 'Jail Date',
+                                  child: Column(
+                                    children: [
+                                      Material(
+                                        color: Colors.transparent,
+                                        child: RadioListTile<String>(
+                                          value: 'JAIL',
+                                          groupValue: selectedMcr,
+                                          activeColor: AppColors.navyMid,
+                                          title: Text(
+                                            'Jail',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.navyDark,
+                                            ),
+                                          ),
+                                          onChanged: (v) {
+                                            setState(() {
+                                              _isPrBond = false;
+                                              _isJail = true;
+                                              _isBail = false;
+                                              if (_jailDateCtrl.text.isEmpty) {
+                                                _jailDateCtrl.text =
+                                                    DateFormat('dd/MM/yyyy')
+                                                        .format(DateTime.now());
+                                              }
+                                            });
+                                          },
+                                          controlAffinity:
+                                              ListTileControlAffinity.leading,
+                                        ),
                                       ),
-                                    ),
-                                ],
-                              ),
+                                      if (_isJail)
+                                        Padding(
+                                          padding: const EdgeInsets.fromLTRB(
+                                              14, 0, 14, 14),
+                                          child: _buildCustodyDatePicker(
+                                            context: context,
+                                            controller: _jailDateCtrl,
+                                            label: 'Jail Date',
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                );
+                              },
                             ),
                             const SizedBox(height: 12),
 
@@ -8330,75 +6857,45 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
 );
   }
 
-  // ── Bail & Surety Card Widget (exact match with user's screenshot) ─────────
   Widget _buildBailOptionCard() {
+    final selectedMcr =
+        _isPrBond ? 'PR_BOND' : (_isJail ? 'JAIL' : (_isBail ? 'BAIL' : null));
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color:
+            _isBail ? AppColors.navyMid.withValues(alpha: 0.04) : Colors.white,
+        borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(
-          color: _isBail ? const Color(0xFF0EA5E9) : const Color(0xFFE2E8F0),
-          width: _isBail ? 1.8 : 1.0,
+          color: _isBail ? AppColors.navyMid : AppColors.lightBorder,
+          width: _isBail ? 1.5 : 1.0,
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Bail Toggle Row (matches "(O) Bail" in user screenshot)
-          InkWell(
-            onTap: () {
-              setState(() {
-                _isBail = !_isBail;
-                if (_isBail) {
-                  _isMcr =
-                      true; // Auto-activate MCR to satisfy legal constraint
-                }
-              });
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  Container(
-                    width: 22,
-                    height: 22,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: _isBail
-                            ? const Color(0xFF0EA5E9)
-                            : const Color(0xFF94A3B8),
-                        width: 2.0,
-                      ),
-                      color: _isBail ? Colors.white : Colors.transparent,
-                    ),
-                    child: _isBail
-                        ? Center(
-                            child: Container(
-                              width: 12,
-                              height: 12,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Color(0xFF0EA5E9),
-                              ),
-                            ),
-                          )
-                        : null,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Bail',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: _isBail
-                          ? AppColors.navyDark
-                          : const Color(0xFF64748B),
-                    ),
-                  ),
-                ],
+          Material(
+            color: Colors.transparent,
+            child: RadioListTile<String>(
+              value: 'BAIL',
+              groupValue: selectedMcr,
+              activeColor: AppColors.navyMid,
+              title: Text(
+                'Bail',
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.navyDark,
+                ),
               ),
+              onChanged: (v) {
+                setState(() {
+                  _isPrBond = false;
+                  _isJail = false;
+                  _isBail = true;
+                  _isMcr = true;
+                });
+              },
+              controlAffinity: ListTileControlAffinity.leading,
             ),
           ),
 
@@ -9050,6 +7547,509 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     );
   }
 
+  String _getScrutinyVal(String key) {
+    final ctrl = _controllers[key];
+    if (ctrl != null && ctrl.text.trim().isNotEmpty) {
+      return ctrl.text.trim();
+    }
+    return _values[key]?.toString().trim() ?? '';
+  }
+
+  Widget _buildScrutinySection({int? sectionIndex}) {
+    final sdpoSend = _getScrutinyVal('sdpo_acp_send_date');
+    final sdpoGrant = _getScrutinyVal('sdpo_acp_grant_date');
+    final dcpSend = _getScrutinyVal('addl_sp_dcp_send_date');
+    final dcpGrant = _getScrutinyVal('addl_sp_dcp_grant_date');
+    final cpSend = _getScrutinyVal('addl_cp_send_date');
+    final cpGrant = _getScrutinyVal('addl_cp_grant_date');
+    final appSend = _getScrutinyVal('app_send_date');
+    final appGrant = _getScrutinyVal('app_grant_date');
+
+    // Step 1: Always editable unless readOnly
+    final step1HasDate = sdpoSend.isNotEmpty || sdpoGrant.isNotEmpty;
+
+    // Step 2: Enabled only if Step 1 has a date entered; if Step 1 is cleared, Step 2 is re-disabled
+    final step2Enabled = step1HasDate;
+    final step2HasDate = step2Enabled && (dcpSend.isNotEmpty || dcpGrant.isNotEmpty);
+
+    // Step 3: Enabled only if Step 2 has a date entered
+    final step3Enabled = step2HasDate;
+    final step3HasDate = step3Enabled && (cpSend.isNotEmpty || cpGrant.isNotEmpty);
+
+    // Step 4: Enabled only if Step 3 has a date entered
+    final step4Enabled = step3HasDate;
+    final step4HasDate = step4Enabled && (appSend.isNotEmpty || appGrant.isNotEmpty);
+
+    int activeCount = 0;
+    if (step1HasDate) activeCount++;
+    if (step2HasDate) activeCount++;
+    if (step3HasDate) activeCount++;
+    if (step4HasDate) activeCount++;
+
+    return Container(
+      key: const ValueKey('sec_Scrutiny'),
+      margin: _responsiveCardMargin(context),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: _responsiveCardRadius(context),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.navyDark.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+        border: Border.all(color: AppColors.lightBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section Header
+          InkWell(
+            onTap: () => _toggleSection('Scrutiny'),
+            borderRadius: _responsiveHeaderBorderRadius(
+                context, _scrutinySectionExpanded),
+            child: Padding(
+              padding: _responsiveHeaderPadding(context),
+              child: Row(
+                children: [
+                  _buildSectionIndexBadge(
+                      sectionIndex, Icons.rule_folder_rounded),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Scrutiny',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.navyDark,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: activeCount > 0
+                          ? AppColors.navyMid.withValues(alpha: 0.12)
+                          : AppColors.navyMid.withValues(alpha: 0.07),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      activeCount == 4
+                          ? 'Completed (4/4)'
+                          : '$activeCount of 4 Recorded',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.navyMid,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Tooltip(
+                    message: _scrutinySectionExpanded ? 'Collapse' : 'Expand',
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: AnimatedRotation(
+                        turns: _scrutinySectionExpanded ? 0.5 : 0.0,
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeInOutCubic,
+                        child: const Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          color: AppColors.navyMid,
+                          size: 22,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Body Animated CrossFade
+          AnimatedCrossFade(
+            firstChild: const SizedBox(width: double.infinity, height: 0),
+            secondChild: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Divider(height: 1, color: AppColors.lightBorder),
+                Padding(
+                  padding: _responsiveBodyPadding(context),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Stepper: Step 1
+                      _buildScrutinyStepCard(
+                        stepNumber: 1,
+                        title: 'SDPO / ACP Approval',
+                        subtitle: 'Sub-Divisional Police Officer / ACP',
+                        isEnabled: !widget.readOnly,
+                        hasDate: step1HasDate,
+                        sendKey: 'sdpo_acp_send_date',
+                        grantKey: 'sdpo_acp_grant_date',
+                      ),
+
+                      // Stepper: Step 2
+                      _buildScrutinyStepCard(
+                        stepNumber: 2,
+                        title: 'Addl. SP / DCP Approval',
+                        subtitle:
+                            'Additional SP / Deputy Commissioner of Police',
+                        isEnabled: step2Enabled && !widget.readOnly,
+                        hasDate: step2HasDate,
+                        sendKey: 'addl_sp_dcp_send_date',
+                        grantKey: 'addl_sp_dcp_grant_date',
+                      ),
+
+                      // Stepper: Step 3
+                      _buildScrutinyStepCard(
+                        stepNumber: 3,
+                        title: 'Addl. CP Approval',
+                        subtitle: 'Additional Commissioner of Police',
+                        isEnabled: step3Enabled && !widget.readOnly,
+                        hasDate: step3HasDate,
+                        sendKey: 'addl_cp_send_date',
+                        grantKey: 'addl_cp_grant_date',
+                      ),
+
+                      // Stepper: Step 4
+                      _buildScrutinyStepCard(
+                        stepNumber: 4,
+                        title: 'APP Scrutiny',
+                        subtitle: 'Assistant Public Prosecutor Legal Review',
+                        isEnabled: step4Enabled && !widget.readOnly,
+                        hasDate: step4HasDate,
+                        sendKey: 'app_send_date',
+                        grantKey: 'app_grant_date',
+                        isLast: true,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            crossFadeState: _scrutinySectionExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 250),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScrutinyStepCard({
+    required int stepNumber,
+    required String title,
+    required String subtitle,
+    required bool isEnabled,
+    required bool hasDate,
+    required String sendKey,
+    required String grantKey,
+    bool isLast = false,
+  }) {
+    final isCompact = MediaQuery.sizeOf(context).width < 600;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 8),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Step indicator badge & line
+            SizedBox(
+              width: 26,
+              child: Column(
+                children: [
+                  Container(
+                    width: 26,
+                    height: 26,
+                    decoration: BoxDecoration(
+                      color: hasDate
+                          ? AppColors.navyMid
+                          : (isEnabled
+                              ? AppColors.navyMid.withValues(alpha: 0.1)
+                              : const Color(0xFFE2E8F0)),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isEnabled
+                            ? AppColors.navyMid
+                            : const Color(0xFFCBD5E1),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Center(
+                      child: hasDate
+                          ? const Icon(Icons.check_rounded,
+                              size: 15, color: Colors.white)
+                          : Text(
+                              '$stepNumber',
+                              style: GoogleFonts.poppins(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: isEnabled
+                                    ? AppColors.navyMid
+                                    : const Color(0xFF94A3B8),
+                              ),
+                            ),
+                    ),
+                  ),
+                  if (!isLast)
+                    Expanded(
+                      child: Container(
+                        width: 2,
+                        color: isEnabled
+                            ? AppColors.navyMid.withValues(alpha: 0.3)
+                            : const Color(0xFFE2E8F0),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            // Step Content Card
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isEnabled ? Colors.white : const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  border: Border.all(
+                    color: isEnabled
+                        ? (hasDate
+                            ? AppColors.navyMid.withValues(alpha: 0.35)
+                            : AppColors.lightBorder)
+                        : const Color(0xFFE2E8F0),
+                  ),
+                  boxShadow: isEnabled
+                      ? [
+                          BoxShadow(
+                            color: AppColors.navyDark.withValues(alpha: 0.03),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title & Status Badge
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                title,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: isEnabled
+                                      ? AppColors.navyDark
+                                      : const Color(0xFF94A3B8),
+                                ),
+                              ),
+                              Text(
+                                subtitle,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 10.5,
+                                  color: isEnabled
+                                      ? AppColors.lightSubText
+                                      : const Color(0xFF94A3B8),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: !isEnabled
+                                ? const Color(0xFFE2E8F0)
+                                : (hasDate
+                                    ? const Color(0xFFE0F2FE)
+                                    : AppColors.navyMid.withValues(alpha: 0.08)),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                !isEnabled
+                                    ? Icons.lock_outline_rounded
+                                    : (hasDate
+                                        ? Icons.check_circle_outline_rounded
+                                        : Icons.edit_calendar_rounded),
+                                size: 12,
+                                color: !isEnabled
+                                    ? const Color(0xFF64748B)
+                                    : AppColors.navyMid,
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                !isEnabled
+                                    ? 'Locked'
+                                    : (hasDate ? 'Recorded' : 'Active'),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: !isEnabled
+                                      ? const Color(0xFF64748B)
+                                      : AppColors.navyMid,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    // Date picker fields row
+                    if (isCompact)
+                      Column(
+                        children: [
+                          _buildScrutinyDateField(
+                            label: 'Send Date',
+                            fieldKey: sendKey,
+                            enabled: isEnabled,
+                          ),
+                          const SizedBox(height: 6),
+                          _buildScrutinyDateField(
+                            label: 'Grant Date',
+                            fieldKey: grantKey,
+                            enabled: isEnabled,
+                          ),
+                        ],
+                      )
+                    else
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildScrutinyDateField(
+                              label: 'Send Date',
+                              fieldKey: sendKey,
+                              enabled: isEnabled,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildScrutinyDateField(
+                              label: 'Grant Date',
+                              fieldKey: grantKey,
+                              enabled: isEnabled,
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScrutinyDateField({
+    required String label,
+    required String fieldKey,
+    required bool enabled,
+  }) {
+    final ctrl = _controllers.putIfAbsent(fieldKey, () {
+      final v = _values[fieldKey]?.toString() ?? '';
+      return TextEditingController(text: v);
+    });
+    final val = ctrl.text.trim();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 10.5,
+            fontWeight: FontWeight.w600,
+            color: enabled ? AppColors.navyDark : const Color(0xFF94A3B8),
+          ),
+        ),
+        const SizedBox(height: 3),
+        InkWell(
+          onTap: (enabled && !widget.readOnly)
+              ? () async {
+                  await _pickCustodyDate(context, ctrl);
+                  _values[fieldKey] = ctrl.text.trim();
+                  setState(() {});
+                }
+              : null,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            decoration: BoxDecoration(
+              color:
+                  enabled ? const Color(0xFFF8FAFC) : const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              border: Border.all(
+                color:
+                    enabled ? AppColors.lightBorder : const Color(0xFFE2E8F0),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.calendar_today_rounded,
+                  size: 14,
+                  color: enabled ? AppColors.navyMid : const Color(0xFF94A3B8),
+                ),
+                const SizedBox(width: 7),
+                Expanded(
+                  child: Text(
+                    val.isNotEmpty ? val : (enabled ? 'Select Date' : 'Locked'),
+                    style: GoogleFonts.poppins(
+                      fontSize: 11.5,
+                      fontWeight:
+                          val.isNotEmpty ? FontWeight.w600 : FontWeight.w400,
+                      color: enabled
+                          ? (val.isNotEmpty
+                              ? AppColors.navyDark
+                              : AppColors.lightSubText)
+                          : const Color(0xFF94A3B8),
+                    ),
+                  ),
+                ),
+                if (enabled && val.isNotEmpty && !widget.readOnly)
+                  Tooltip(
+                    message: 'Clear date',
+                    child: InkWell(
+                      onTap: () {
+                        ctrl.clear();
+                        _values[fieldKey] = '';
+                        setState(() {});
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: const Padding(
+                        padding: EdgeInsets.all(2.0),
+                        child: Icon(
+                          Icons.clear_rounded,
+                          size: 16,
+                          color: AppColors.dangerRed,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   IconData _iconForSection(String section) {
     final s = section.toLowerCase();
     if (s.contains('registration')) return Icons.assignment_rounded;
@@ -9128,10 +8128,12 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
   late final TextEditingController _casteCtrl;
   late final TextEditingController _addressCtrl;
   String _selectedGender = 'Male';
+  bool _isCollapsed = false;
 
   @override
   void initState() {
     super.initState();
+    _isCollapsed = widget.index > 0;
     _nameCtrl =
         TextEditingController(text: widget.data['name']?.toString() ?? '');
     _ageCtrl =
@@ -9168,6 +8170,16 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
   void _sync(String key, String val) {
     widget.data[key] = val;
     widget.onChanged?.call();
+    if (mounted) setState(() {});
+  }
+
+  String _summaryText() {
+    final n = _nameCtrl.text.trim();
+    final a = _ageCtrl.text.trim();
+    if (n.isNotEmpty) {
+      return a.isNotEmpty ? '$n ($a yrs)' : n;
+    }
+    return _isCollapsed ? 'Tap to enter name' : '';
   }
 
   @override
@@ -9228,85 +8240,192 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
     int maxLines = 1,
     TextInputType? keyboardType,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 6),
-          child: Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 280;
+        final isMultiline = maxLines > 1;
+
+        if (!isWide) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                label,
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  children: [
+                    Text(
+                      label,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.navyDark,
+                      ),
+                    ),
+                    if (isRequired)
+                      const Text(
+                        ' *',
+                        style: TextStyle(
+                          color: AppColors.dangerRed,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              TextFormField(
+                controller: controller,
+                readOnly: widget.readOnly,
+                maxLines: maxLines,
+                keyboardType: keyboardType,
+                style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
+                decoration: _inputDeco(hint),
+              ),
+            ],
+          );
+        }
+
+        return Row(
+          crossAxisAlignment:
+              isMultiline ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 105,
+              child: Padding(
+                padding: EdgeInsets.only(top: isMultiline ? 12 : 0),
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        label,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.navyDark,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (isRequired)
+                      const Text(
+                        ' *',
+                        style: TextStyle(
+                          color: AppColors.dangerRed,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextFormField(
+                controller: controller,
+                readOnly: widget.readOnly,
+                maxLines: maxLines,
+                keyboardType: keyboardType,
+                style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
+                decoration: _inputDeco(hint),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildGenderField() {
+    final genders = ['Male', 'Female', 'Transgender', 'Other'];
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 280;
+        if (!isWide) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  'Gender',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.navyDark,
+                  ),
+                ),
+              ),
+              DropdownButtonFormField<String>(
+                initialValue: genders.contains(_selectedGender) ? _selectedGender : 'Male',
+                items: genders
+                    .map((g) => DropdownMenuItem(
+                          value: g,
+                          child: Text(g,
+                              style: GoogleFonts.poppins(
+                                  fontSize: 13, color: AppColors.lightText)),
+                        ))
+                    .toList(),
+                onChanged: widget.readOnly
+                    ? null
+                    : (val) {
+                        if (val != null) {
+                          setState(() => _selectedGender = val);
+                          _sync('gender', val);
+                        }
+                      },
+                decoration: _inputDeco('Select Gender'),
+                icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                    color: AppColors.navyMid, size: 20),
+                dropdownColor: Colors.white,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+              ),
+            ],
+          );
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 105,
+              child: Text(
+                'Gender',
                 style: GoogleFonts.poppins(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: AppColors.navyDark,
                 ),
               ),
-              if (isRequired)
-                const Text(
-                  ' *',
-                  style: TextStyle(
-                    color: AppColors.dangerRed,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-            ],
-          ),
-        ),
-        TextFormField(
-          controller: controller,
-          readOnly: widget.readOnly,
-          maxLines: maxLines,
-          keyboardType: keyboardType,
-          style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
-          decoration: _inputDeco(hint),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildGenderField() {
-    final genders = ['Male', 'Female', 'Transgender', 'Other'];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 6),
-          child: Text(
-            'Gender',
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppColors.navyDark,
             ),
-          ),
-        ),
-        DropdownButtonFormField<String>(
-          value: genders.contains(_selectedGender) ? _selectedGender : 'Male',
-          items: genders
-              .map((g) => DropdownMenuItem(
-                    value: g,
-                    child: Text(g,
-                        style: GoogleFonts.poppins(
-                            fontSize: 13, color: AppColors.lightText)),
-                  ))
-              .toList(),
-          onChanged: widget.readOnly
-              ? null
-              : (val) {
-                  if (val != null) {
-                    setState(() => _selectedGender = val);
-                    _sync('gender', val);
-                  }
-                },
-          decoration: _inputDeco('Select Gender'),
-          icon: const Icon(Icons.keyboard_arrow_down_rounded,
-              color: AppColors.navyMid, size: 20),
-          dropdownColor: Colors.white,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-        ),
-      ],
+            const SizedBox(width: 8),
+            Expanded(
+              child: DropdownButtonFormField<String>(
+                initialValue: genders.contains(_selectedGender) ? _selectedGender : 'Male',
+                items: genders
+                    .map((g) => DropdownMenuItem(
+                          value: g,
+                          child: Text(g,
+                              style: GoogleFonts.poppins(
+                                  fontSize: 13, color: AppColors.lightText)),
+                        ))
+                    .toList(),
+                onChanged: widget.readOnly
+                    ? null
+                    : (val) {
+                        if (val != null) {
+                          setState(() => _selectedGender = val);
+                          _sync('gender', val);
+                        }
+                      },
+                decoration: _inputDeco('Select Gender'),
+                icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                    color: AppColors.navyMid, size: 20),
+                dropdownColor: Colors.white,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -9323,170 +8442,200 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.navyMid.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  '${widget.roleTitle} #${widget.index + 1}',
-                  style: GoogleFonts.poppins(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.navyMid,
+          InkWell(
+            onTap: () => setState(() => _isCollapsed = !_isCollapsed),
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.navyMid.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      '${widget.roleTitle} #${widget.index + 1}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.navyMid,
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      _summaryText(),
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: _isCollapsed ? AppColors.navyDark : AppColors.lightSubText,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (widget.canRemove && !widget.readOnly)
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline_rounded,
+                          size: 19, color: AppColors.dangerRed),
+                      onPressed: widget.onRemove,
+                      tooltip: 'Remove ${widget.roleTitle}',
+                      splashRadius: 16,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    _isCollapsed
+                        ? Icons.keyboard_arrow_down_rounded
+                        : Icons.keyboard_arrow_up_rounded,
+                    color: AppColors.navyMid,
+                    size: 20,
+                  ),
+                ],
               ),
-              const Spacer(),
-              if (widget.canRemove && !widget.readOnly)
-                IconButton(
-                  icon: const Icon(Icons.delete_outline_rounded,
-                      size: 19, color: AppColors.dangerRed),
-                  onPressed: widget.onRemove,
-                  tooltip: 'Remove ${widget.roleTitle}',
-                  splashRadius: 16,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-            ],
+            ),
           ),
-          const SizedBox(height: 12),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final isWide = constraints.maxWidth > 550;
-              final nameFld = _buildField(
-                label: 'Name',
-                controller: _nameCtrl,
-                hint: 'Enter Name',
-                isRequired: true,
-              );
-              final ageFld = _buildField(
-                label: 'Age',
-                controller: _ageCtrl,
-                hint: 'Enter Age',
-                keyboardType: TextInputType.number,
-              );
-              final genderFld = _buildGenderField();
-              final occFld = _buildField(
-                label: 'Occupation',
-                controller: _occCtrl,
-                hint: 'Enter Occupation',
-              );
-              final mobileFld = _buildField(
-                label: 'Mobile Number',
-                controller: _mobileCtrl,
-                hint: 'Enter Mobile Number',
-                keyboardType: TextInputType.phone,
-              );
-              final aadhaarFld = _buildField(
-                label: 'Aadhar Number',
-                controller: _aadhaarCtrl,
-                hint: 'Enter Aadhar Number',
-                keyboardType: TextInputType.number,
-              );
-              final panFld = _buildField(
-                label: 'PAN Number',
-                controller: _panCtrl,
-                hint: 'Enter PAN Number',
-              );
-              final relFld = _buildField(
-                label: 'Religion',
-                controller: _religionCtrl,
-                hint: 'Enter Religion',
-              );
-              final casteFld = _buildField(
-                label: 'Caste',
-                controller: _casteCtrl,
-                hint: 'Enter Caste',
-              );
-              final addrFld = _buildField(
-                label: 'Address',
-                controller: _addressCtrl,
-                hint: 'Enter detailed notes...',
-                maxLines: 2,
-              );
+          if (!_isCollapsed) ...[
+            const SizedBox(height: 12),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth > 550;
+                final nameFld = _buildField(
+                  label: 'Name',
+                  controller: _nameCtrl,
+                  hint: 'Enter Name',
+                  isRequired: true,
+                );
+                final ageFld = _buildField(
+                  label: 'Age',
+                  controller: _ageCtrl,
+                  hint: 'Enter Age',
+                  keyboardType: TextInputType.number,
+                );
+                final genderFld = _buildGenderField();
+                final occFld = _buildField(
+                  label: 'Occupation',
+                  controller: _occCtrl,
+                  hint: 'Enter Occupation',
+                );
+                final mobileFld = _buildField(
+                  label: 'Mobile Number',
+                  controller: _mobileCtrl,
+                  hint: 'Enter Mobile Number',
+                  keyboardType: TextInputType.phone,
+                );
+                final aadhaarFld = _buildField(
+                  label: 'Aadhar Number',
+                  controller: _aadhaarCtrl,
+                  hint: 'Enter Aadhar Number',
+                  keyboardType: TextInputType.number,
+                );
+                final panFld = _buildField(
+                  label: 'PAN Number',
+                  controller: _panCtrl,
+                  hint: 'Enter PAN Number',
+                );
+                final relFld = _buildField(
+                  label: 'Religion',
+                  controller: _religionCtrl,
+                  hint: 'Enter Religion',
+                );
+                final casteFld = _buildField(
+                  label: 'Caste',
+                  controller: _casteCtrl,
+                  hint: 'Enter Caste',
+                );
+                final addrFld = _buildField(
+                  label: 'Address',
+                  controller: _addressCtrl,
+                  hint: 'Enter Address',
+                  maxLines: 2,
+                );
 
-              if (!isWide) {
+                if (!isWide) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      nameFld,
+                      const SizedBox(height: 12),
+                      ageFld,
+                      const SizedBox(height: 12),
+                      genderFld,
+                      const SizedBox(height: 12),
+                      occFld,
+                      const SizedBox(height: 12),
+                      mobileFld,
+                      const SizedBox(height: 12),
+                      aadhaarFld,
+                      const SizedBox(height: 12),
+                      panFld,
+                      const SizedBox(height: 12),
+                      relFld,
+                      const SizedBox(height: 12),
+                      casteFld,
+                      const SizedBox(height: 12),
+                      addrFld,
+                    ],
+                  );
+                }
+
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    nameFld,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: nameFld),
+                        const SizedBox(width: 16),
+                        Expanded(child: ageFld),
+                      ],
+                    ),
                     const SizedBox(height: 12),
-                    ageFld,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: genderFld),
+                        const SizedBox(width: 16),
+                        Expanded(child: occFld),
+                      ],
+                    ),
                     const SizedBox(height: 12),
-                    genderFld,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: mobileFld),
+                        const SizedBox(width: 16),
+                        Expanded(child: aadhaarFld),
+                      ],
+                    ),
                     const SizedBox(height: 12),
-                    occFld,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: panFld),
+                        const SizedBox(width: 16),
+                        Expanded(child: relFld),
+                      ],
+                    ),
                     const SizedBox(height: 12),
-                    mobileFld,
-                    const SizedBox(height: 12),
-                    aadhaarFld,
-                    const SizedBox(height: 12),
-                    panFld,
-                    const SizedBox(height: 12),
-                    relFld,
-                    const SizedBox(height: 12),
-                    casteFld,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: casteFld),
+                        const SizedBox(width: 16),
+                        const Expanded(child: SizedBox.shrink()),
+                      ],
+                    ),
                     const SizedBox(height: 12),
                     addrFld,
                   ],
                 );
-              }
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: nameFld),
-                      const SizedBox(width: 16),
-                      Expanded(child: ageFld),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: genderFld),
-                      const SizedBox(width: 16),
-                      Expanded(child: occFld),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: mobileFld),
-                      const SizedBox(width: 16),
-                      Expanded(child: aadhaarFld),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: panFld),
-                      const SizedBox(width: 16),
-                      Expanded(child: relFld),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: casteFld),
-                      const SizedBox(width: 16),
-                      Expanded(child: addrFld),
-                    ],
-                  ),
-                ],
-              );
-            },
-          ),
+              },
+            ),
+          ],
         ],
       ),
     );
@@ -9527,10 +8676,12 @@ class _InlineUnidentifiedAccusedCardState
   late final TextEditingController _descCtrl;
   late final TextEditingController _addressCtrl;
   String _selectedGender = 'Male';
+  bool _isCollapsed = false;
 
   @override
   void initState() {
     super.initState();
+    _isCollapsed = widget.index > 0;
     _ageCtrl = TextEditingController(
         text: widget.data['approximate_age']?.toString() ?? '');
     _skinCtrl = TextEditingController(
@@ -9561,6 +8712,19 @@ class _InlineUnidentifiedAccusedCardState
   void _sync(String key, String val) {
     widget.data[key] = val;
     widget.onChanged?.call();
+    if (mounted) setState(() {});
+  }
+
+  String _summaryText() {
+    final parts = <String>[];
+    final a = _ageCtrl.text.trim();
+    if (a.isNotEmpty) parts.add('approx $a yrs');
+    final h = _heightCtrl.text.trim();
+    if (h.isNotEmpty) parts.add(h);
+    final s = _skinCtrl.text.trim();
+    if (s.isNotEmpty) parts.add(s);
+    if (parts.isEmpty) return _isCollapsed ? 'Tap to enter details' : '';
+    return parts.join(' · ');
   }
 
   @override
@@ -9656,7 +8820,7 @@ class _InlineUnidentifiedAccusedCardState
           ),
         ),
         DropdownButtonFormField<String>(
-          value: genders.contains(_selectedGender) ? _selectedGender : 'Male',
+          initialValue: genders.contains(_selectedGender) ? _selectedGender : 'Male',
           items: genders
               .map((g) => DropdownMenuItem(
                     value: g,
@@ -9696,144 +8860,167 @@ class _InlineUnidentifiedAccusedCardState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.navyMid.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  'Unidentified Accused #${widget.index + 1}',
-                  style: GoogleFonts.poppins(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.navyMid,
+          InkWell(
+            onTap: () => setState(() => _isCollapsed = !_isCollapsed),
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.navyMid.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      'Unidentified Accused #${widget.index + 1}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.navyMid,
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      _summaryText(),
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: _isCollapsed ? AppColors.navyDark : AppColors.lightSubText,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (widget.canRemove && !widget.readOnly)
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline_rounded,
+                          size: 19, color: AppColors.dangerRed),
+                      onPressed: widget.onRemove,
+                      tooltip: 'Remove Unidentified Accused',
+                      splashRadius: 16,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    _isCollapsed
+                        ? Icons.keyboard_arrow_down_rounded
+                        : Icons.keyboard_arrow_up_rounded,
+                    color: AppColors.navyMid,
+                    size: 20,
+                  ),
+                ],
               ),
-              const Spacer(),
-              if (widget.canRemove && !widget.readOnly)
-                IconButton(
-                  icon: const Icon(Icons.delete_outline_rounded,
-                      size: 19, color: AppColors.dangerRed),
-                  onPressed: widget.onRemove,
-                  tooltip: 'Remove Unidentified Accused',
-                  splashRadius: 16,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-            ],
+            ),
           ),
-          const SizedBox(height: 12),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final isWide = constraints.maxWidth > 550;
-              final ageFld = _buildField(
-                label: 'Approximate Age',
-                controller: _ageCtrl,
-                hint: 'Enter Approximate Age',
-              );
-              final genderFld = _buildGenderField();
-              final skinFld = _buildField(
-                label: 'Skin Colour / Complexion',
-                controller: _skinCtrl,
-                hint: 'Enter Skin Colour',
-              );
-              final heightFld = _buildField(
-                label: 'Height',
-                controller: _heightCtrl,
-                hint: 'Enter Height (e.g. 5\'8")',
-              );
-              final occFld = _buildField(
-                label: 'Possible Occupation',
-                controller: _occCtrl,
-                hint: 'Enter Possible Occupation',
-              );
-              final markFld = _buildField(
-                label: 'Identification Mark / Tattoos',
-                controller: _markCtrl,
-                hint: 'Enter Identification Marks',
-              );
-              final descFld = _buildField(
-                label: 'Physical Description / Clothing',
-                controller: _descCtrl,
-                hint: 'Enter description of appearance or clothing...',
-                maxLines: 2,
-              );
-              final addrFld = _buildField(
-                label: 'Place / Area Last Seen',
-                controller: _addressCtrl,
-                hint: 'Enter Place / Location...',
-                maxLines: 2,
-              );
+          if (!_isCollapsed) ...[
+            const SizedBox(height: 12),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth > 550;
+                final ageFld = _buildField(
+                  label: 'Approximate Age',
+                  controller: _ageCtrl,
+                  hint: 'Enter Approximate Age',
+                );
+                final genderFld = _buildGenderField();
+                final skinFld = _buildField(
+                  label: 'Skin Colour / Complexion',
+                  controller: _skinCtrl,
+                  hint: 'Enter Skin Colour',
+                );
+                final heightFld = _buildField(
+                  label: 'Height',
+                  controller: _heightCtrl,
+                  hint: 'Enter Height (e.g. 5\'8")',
+                );
+                final occFld = _buildField(
+                  label: 'Possible Occupation',
+                  controller: _occCtrl,
+                  hint: 'Enter Possible Occupation',
+                );
+                final markFld = _buildField(
+                  label: 'Identification Mark / Tattoos',
+                  controller: _markCtrl,
+                  hint: 'Enter Identification Marks',
+                );
+                final descFld = _buildField(
+                  label: 'Physical Description / Clothing',
+                  controller: _descCtrl,
+                  hint: 'Enter description of appearance or clothing...',
+                  maxLines: 2,
+                );
+                final addrFld = _buildField(
+                  label: 'Place / Area Last Seen',
+                  controller: _addressCtrl,
+                  hint: 'Enter Place / Location...',
+                  maxLines: 2,
+                );
 
-              if (!isWide) {
+                if (!isWide) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ageFld,
+                      const SizedBox(height: 12),
+                      genderFld,
+                      const SizedBox(height: 12),
+                      skinFld,
+                      const SizedBox(height: 12),
+                      heightFld,
+                      const SizedBox(height: 12),
+                      occFld,
+                      const SizedBox(height: 12),
+                      markFld,
+                      const SizedBox(height: 12),
+                      descFld,
+                      const SizedBox(height: 12),
+                      addrFld,
+                    ],
+                  );
+                }
+
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ageFld,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: ageFld),
+                        const SizedBox(width: 16),
+                        Expanded(child: genderFld),
+                      ],
+                    ),
                     const SizedBox(height: 12),
-                    genderFld,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: skinFld),
+                        const SizedBox(width: 16),
+                        Expanded(child: heightFld),
+                      ],
+                    ),
                     const SizedBox(height: 12),
-                    skinFld,
-                    const SizedBox(height: 12),
-                    heightFld,
-                    const SizedBox(height: 12),
-                    occFld,
-                    const SizedBox(height: 12),
-                    markFld,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: occFld),
+                        const SizedBox(width: 16),
+                        Expanded(child: markFld),
+                      ],
+                    ),
                     const SizedBox(height: 12),
                     descFld,
                     const SizedBox(height: 12),
                     addrFld,
                   ],
                 );
-              }
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: ageFld),
-                      const SizedBox(width: 16),
-                      Expanded(child: genderFld),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: skinFld),
-                      const SizedBox(width: 16),
-                      Expanded(child: heightFld),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: occFld),
-                      const SizedBox(width: 16),
-                      Expanded(child: markFld),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: descFld),
-                      const SizedBox(width: 16),
-                      Expanded(child: addrFld),
-                    ],
-                  ),
-                ],
-              );
-            },
-          ),
+              },
+            ),
+          ],
         ],
       ),
     );
@@ -9997,7 +9184,13 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
   }
 
   Widget _buildDropdown() {
-    final currentVal = widget.choices.contains(_selectedSection) ? _selectedSection : null;
+    final allChoices = List<String>.from(widget.choices);
+    if (_selectedSection != null &&
+        _selectedSection!.isNotEmpty &&
+        !allChoices.contains(_selectedSection)) {
+      allChoices.insert(0, _selectedSection!);
+    }
+    final currentVal = allChoices.contains(_selectedSection) ? _selectedSection : null;
     return DropdownButtonFormField<String?>(
       key: ValueKey('drop_${widget.personName}_$currentVal'),
       initialValue: currentVal,
@@ -10036,7 +9229,7 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
             style: TextStyle(color: AppColors.lightSubText, fontWeight: FontWeight.normal),
           ),
         ),
-        ...widget.choices.map((c) => DropdownMenuItem<String?>(
+        ...allChoices.map((c) => DropdownMenuItem<String?>(
               value: c,
               child: Text(c),
             )),

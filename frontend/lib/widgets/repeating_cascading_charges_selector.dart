@@ -416,88 +416,177 @@ class _RepeatingCascadingChargesSelectorState
   }
 
   Widget _buildActDropdown(ChargeItemData charge) {
-    return _buildDropdownField<dynamic>(
+    return _buildSearchableDropdown(
+      key: ValueKey('act_${charge.actId}'),
       label: 'Act / Law *',
-      hint: 'Select Act (e.g. BNS 2023, IPC)',
-      value: _actsList.any((a) => a['id'] == charge.actId)
+      hint: 'Search Act (e.g. BNS, IPC)...',
+      initialSelection: _actsList.any((a) => a['id'] == charge.actId)
           ? charge.actId
           : null,
-      items: _actsList.map((a) {
-        return DropdownMenuItem<dynamic>(
+      isEnabled: !widget.readOnly,
+      filterCallback: (entries, filter) {
+        final query = filter.trim().toLowerCase();
+        if (query.isEmpty) return entries;
+        return entries
+            .where((e) => e.label.toLowerCase().contains(query))
+            .toList();
+      },
+      entries: _actsList.map((a) {
+        return DropdownMenuEntry<dynamic>(
           value: a['id'],
-          child: Text(
-            a['act_name']?.toString() ?? '',
-            overflow: TextOverflow.ellipsis,
-          ),
+          label: a['act_name']?.toString() ?? '',
         );
       }).toList(),
-      onChanged: widget.readOnly
-          ? null
-          : (val) {
-              setState(() {
-                charge.actId = val;
-                final match = _actsList.firstWhere(
-                  (a) => a['id'] == val,
-                  orElse: () => {},
-                );
-                charge.actName = match['act_name']?.toString();
-                charge.sectionId = null;
-                charge.sectionNumber = null;
-                charge.sectionTitle = null;
-                charge.subsectionId = null;
-                charge.subsectionCode = null;
-              });
-              if (val != null) {
-                _fetchSectionsForAct(val);
-              }
-              _notifyParent();
-            },
+      onSelected: (val) {
+        setState(() {
+          charge.actId = val;
+          final match = _actsList.firstWhere(
+            (a) => a['id'] == val,
+            orElse: () => {},
+          );
+          charge.actName = match['act_name']?.toString();
+          charge.sectionId = null;
+          charge.sectionNumber = null;
+          charge.sectionTitle = null;
+          charge.subsectionId = null;
+          charge.subsectionCode = null;
+        });
+        if (val != null) {
+          _fetchSectionsForAct(val);
+        }
+        _notifyParent();
+      },
     );
   }
 
   Widget _buildSectionDropdown(
       ChargeItemData charge, List<Map<String, dynamic>> availableSections) {
-    return _buildDropdownField<dynamic>(
+    final bool isEnabled =
+        !widget.readOnly && charge.actId != null && availableSections.isNotEmpty;
+
+    return _buildSearchableDropdown(
+      key: ValueKey('sec_${charge.actId}_${charge.sectionId}'),
       label: 'Section *',
       hint: charge.actId == null
           ? 'Select Act first'
           : (availableSections.isEmpty
               ? 'Loading sections...'
-              : 'Select Section'),
-      value: availableSections.any((s) => s['id'] == charge.sectionId)
+              : 'Search Section (e.g. 101, murder)...'),
+      initialSelection: availableSections.any((s) => s['id'] == charge.sectionId)
           ? charge.sectionId
           : null,
-      items: availableSections.map((s) {
-        return DropdownMenuItem<dynamic>(
+      isEnabled: isEnabled,
+      filterCallback: (entries, filter) {
+        final query = filter.trim().toLowerCase();
+        if (query.isEmpty) return entries;
+        return entries
+            .where((e) => e.label.toLowerCase().contains(query))
+            .toList();
+      },
+      entries: availableSections.map((s) {
+        final sNum = s['section_number']?.toString() ?? '';
+        final sTitle = s['section_title']?.toString() ?? '';
+        final label = sTitle.isNotEmpty ? 'Sec $sNum - $sTitle' : 'Sec $sNum';
+        return DropdownMenuEntry<dynamic>(
           value: s['id'],
-          child: Text(
-            s['display_name']?.toString() ?? 'Sec ${s['section_number']}',
-            overflow: TextOverflow.ellipsis,
-          ),
+          label: label,
         );
       }).toList(),
-      onChanged: (widget.readOnly || charge.actId == null)
-          ? null
-          : (val) {
-              setState(() {
-                charge.sectionId = val;
-                final match = availableSections.firstWhere(
-                  (s) => s['id'] == val,
-                  orElse: () => {},
-                );
-                charge.sectionNumber = match['section_number']?.toString();
-                charge.sectionTitle = match['section_title']?.toString();
-                charge.subsectionId = null;
-                charge.subsectionCode = null;
-              });
-              if (val != null) {
-                _fetchSubsectionsForSection(val);
-              }
-              _notifyParent();
-            },
+      onSelected: (val) {
+        setState(() {
+          charge.sectionId = val;
+          final match = availableSections.firstWhere(
+            (s) => s['id'] == val,
+            orElse: () => {},
+          );
+          charge.sectionNumber = match['section_number']?.toString();
+          charge.sectionTitle = match['section_title']?.toString();
+          charge.subsectionId = null;
+          charge.subsectionCode = null;
+        });
+        if (val != null) {
+          _fetchSubsectionsForSection(val);
+        }
+        _notifyParent();
+      },
     );
   }
 
+  Widget _buildSearchableDropdown({
+    required Key key,
+    required String label,
+    required String hint,
+    required dynamic initialSelection,
+    required bool isEnabled,
+    required List<DropdownMenuEntry<dynamic>> entries,
+    required ValueChanged<dynamic> onSelected,
+    List<DropdownMenuEntry<dynamic>> Function(List<DropdownMenuEntry<dynamic>> entries, String filter)? filterCallback,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 12.5,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF334155),
+          ),
+        ),
+        const SizedBox(height: 6),
+        DropdownMenu<dynamic>(
+          key: key,
+          expandedInsets: EdgeInsets.zero,
+          enabled: isEnabled,
+          initialSelection: initialSelection,
+          enableFilter: true,
+          requestFocusOnTap: true,
+          menuHeight: 320,
+          leadingIcon: const Icon(
+            Icons.search_rounded,
+            size: 19,
+            color: AppColors.navyMid,
+          ),
+          hintText: hint,
+          textStyle: GoogleFonts.poppins(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: AppColors.navyDark,
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+            filled: true,
+            fillColor: isEnabled ? Colors.white : const Color(0xFFF1F5F9),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            hintStyle: GoogleFonts.poppins(
+              fontSize: 12.5,
+              color: const Color(0xFF94A3B8),
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderSide: const BorderSide(color: AppColors.lightBorder),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderSide: const BorderSide(color: AppColors.lightBorder),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderSide:
+                  const BorderSide(color: AppColors.navyMid, width: 1.5),
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+          ),
+          filterCallback: filterCallback,
+          dropdownMenuEntries: entries,
+          onSelected: onSelected,
+        ),
+      ],
+    );
+  }
   Widget _buildSubsectionDropdown(
       ChargeItemData charge, List<Map<String, dynamic>> availableSubsections) {
     return _buildDropdownField<dynamic>(

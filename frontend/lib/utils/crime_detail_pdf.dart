@@ -11,6 +11,7 @@ import '../widgets/form_section_utils.dart';
 import 'form_io_terminology.dart';
 import 'marathi_text_renderer.dart';
 import 'pdf_font_cache.dart';
+import 'pdf_loading_helper.dart';
 
 Map<String, dynamic> mapToCrimeDetailDoc(Map<String, dynamic> source) {
   final out = Map<String, dynamic>.from(source);
@@ -152,19 +153,24 @@ Future<void> previewCrimeDetailPdf(
   BuildContext context,
   Map<String, dynamic> doc,
 ) async {
-  final bytes = await generateCrimeDetailPdf(doc);
   if (!context.mounted) return;
-  final fileName =
-      'Crime_Detail_Form_${DateTime.now().millisecondsSinceEpoch}.pdf';
-  try {
-    if (kIsWeb) {
-      await Printing.sharePdf(bytes: bytes, filename: fileName);
-    } else {
-      await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
-    }
-  } catch (_) {
-    await Printing.sharePdf(bytes: bytes, filename: fileName);
-  }
+  await PdfLoadingHelper.runWithLoading(
+    context: context,
+    action: () async {
+      final bytes = await generateCrimeDetailPdf(doc);
+      final fileName =
+          'Crime_Detail_Form_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      try {
+        if (kIsWeb) {
+          await Printing.sharePdf(bytes: bytes, filename: fileName);
+        } else {
+          await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
+        }
+      } catch (_) {
+        await Printing.sharePdf(bytes: bytes, filename: fileName);
+      }
+    },
+  );
 }
 
 Future<Uint8List> generateCrimeDetailPdf(Map<String, dynamic> rawDoc) async {

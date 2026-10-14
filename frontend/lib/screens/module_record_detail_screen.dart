@@ -560,7 +560,7 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
               actionBtn(
                 label: 'Download PDF',
                 icon: Icons.picture_as_pdf_rounded,
-                onPressed: () => ModulePdfHelper.generatePdf(_record),
+                onPressed: () => ModulePdfHelper.generatePdf(_record, context),
               ),
               if (canSendReminder)
                 actionBtn(

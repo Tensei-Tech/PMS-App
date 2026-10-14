@@ -199,7 +199,7 @@ class ReportCaseListScreen extends StatelessWidget {
                 Container(width: 1, height: 20, color: AppColors.lightBorder),
                 _actionBtn(context, Icons.picture_as_pdf_rounded, 'PDF',
                     AppColors.dangerRed, () {
-                  ModulePdfHelper.generatePdf(record);
+                  ModulePdfHelper.generatePdf(record, context);
                 }),
               ],
             ),

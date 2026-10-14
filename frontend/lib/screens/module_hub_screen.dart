@@ -3860,7 +3860,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       'PDF',
                       AppColors.dangerRed,
                       () {
-                        ModulePdfHelper.generatePdf(record);
+                        ModulePdfHelper.generatePdf(record, ctx);
                       },
                     ),
                   ],
@@ -4076,7 +4076,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             Container(width: 1, height: 24, color: AppColors.lightBorder),
             _actionBtn(Icons.picture_as_pdf_rounded, 'PDF', AppColors.dangerRed,
                 () {
-              ModulePdfHelper.generatePdf(record);
+              ModulePdfHelper.generatePdf(record, ctx);
             }),
             Container(width: 1, height: 24, color: AppColors.lightBorder),
             _actionBtn(Icons.visibility_rounded, 'View', AppColors.goldPrimary,
@@ -4274,7 +4274,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   void _handlePdf(BuildContext ctx, ModuleRecord record) {
     runWithPdfAuthGate(
       ctx,
-      () => ModulePdfHelper.generatePdf(record),
+      () => ModulePdfHelper.generatePdf(record, ctx),
     );
   }
 
@@ -5980,7 +5980,7 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
             icon: Icons.picture_as_pdf_outlined,
             label: 'PDF',
             color: AppColors.dangerRed,
-            onTap: () => ModulePdfHelper.generatePdf(record),
+            onTap: () => ModulePdfHelper.generatePdf(record, context),
           ),
         ],
       );

@@ -15,6 +15,7 @@ import 'package:printing/printing.dart';
 
 import '../screens/ad_form_screen.dart' show ACT_DATA;
 import 'pdf_layout_constants.dart';
+import 'pdf_loading_helper.dart';
 import 'pdf_unicode_fonts.dart';
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -50,25 +51,29 @@ Future<void> previewFormPdf(
   String formSubtitle = 'Khakhi Diary - Maharashtra Police',
 }) async {
   if (!context.mounted) return;
-  final bytes = await generateFormPdf(
-    commonMap,
-    extraMap: extraMap,
-    formTitle: formTitle,
-    formSubtitle: formSubtitle,
+  await PdfLoadingHelper.runWithLoading(
+    context: context,
+    action: () async {
+      final bytes = await generateFormPdf(
+        commonMap,
+        extraMap: extraMap,
+        formTitle: formTitle,
+        formSubtitle: formSubtitle,
+      );
+      final fileName =
+          '${formTitle.replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      try {
+        if (kIsWeb) {
+          await Printing.sharePdf(bytes: bytes, filename: fileName);
+        } else {
+          await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
+        }
+      } catch (_) {
+        // Fallback path if browser print popup is blocked or layoutPdf fails.
+        await Printing.sharePdf(bytes: bytes, filename: fileName);
+      }
+    },
   );
-  if (!context.mounted) return;
-  final fileName =
-      '${formTitle.replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf';
-  try {
-    if (kIsWeb) {
-      await Printing.sharePdf(bytes: bytes, filename: fileName);
-    } else {
-      await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
-    }
-  } catch (_) {
-    // Fallback path if browser print popup is blocked or layoutPdf fails.
-    await Printing.sharePdf(bytes: bytes, filename: fileName);
-  }
 }
 
 /// Returns raw PDF bytes. Save to file or share.
@@ -78,7 +83,9 @@ Future<Uint8List> generateFormPdf(
   String formTitle = 'CASE FORM',
   String formSubtitle = 'Khakhi Diary - Maharashtra Police',
 }) async {
+  await Future.delayed(const Duration(milliseconds: 50));
   final unicodeTheme = await PdfUnicodeFonts.openSansTheme();
+  await Future.delayed(const Duration(milliseconds: 30));
   final pdf = pw.Document(theme: unicodeTheme);
 
   pdf.addPage(
@@ -124,6 +131,7 @@ Future<Uint8List> generateFormPdf(
     ),
   );
 
+  await Future.delayed(const Duration(milliseconds: 30));
   return pdf.save();
 }
 
@@ -304,7 +312,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
       _grid2([
         _f('Village / Town', _v(m['spotVillage'])),
         _f('Area Name', _v(m['spotArea'])),
-        _f('Full Address', _v(m['spotAddress']), full: true),
+        _f('Address', _v(m['spotAddress']), full: true),
       ]),
     ),
   );
