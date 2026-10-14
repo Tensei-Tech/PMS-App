@@ -54,10 +54,7 @@ class ApiConfig {
   static String get baseUrl {
     String url = _envBaseUrl;
     if (url.isEmpty) {
-      throw Exception(
-          'CRITICAL: API_BASE_URL environment variable is missing!\n'
-          'You must run the app with --dart-define=API_BASE_URL=http://...\n'
-          'For local dev: flutter run -d chrome --dart-define=API_BASE_URL=http://127.0.0.1:8001/api');
+      url = 'http://127.0.0.1:8000/api';
     }
 
     // Enforce HTTPS scheme for non-localhost endpoints
@@ -93,6 +90,8 @@ class ApiConfig {
   static String get auditLogs => '$baseUrl/core/audit-logs/';
   static String get sosAlerts => '$baseUrl/core/sos-alerts/';
   static String get announcements => '$baseUrl/master/announcements/';
+
+  static String get designations => '$baseUrl/master/designations/';
 
   // Reference Data Endpoints for Acts & Charges
   static String get acts => '$baseUrl/acts/';

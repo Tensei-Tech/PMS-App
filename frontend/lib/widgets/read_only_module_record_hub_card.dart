@@ -186,7 +186,7 @@ class ReadOnlyModuleRecordHubCard extends StatelessWidget {
                 Container(width: 1, height: 24, color: AppColors.lightBorder),
                 _actionBtn(Icons.picture_as_pdf_rounded, 'Download',
                     AppColors.dangerRed, () {
-                  ModulePdfHelper.generatePdf(record);
+                  ModulePdfHelper.generatePdf(record, context);
                 }),
               ],
             ),

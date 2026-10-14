@@ -1086,7 +1086,7 @@ class CommonFormDocumentView extends StatelessWidget {
             fullWidth: false,
           ),
           (label: 'Area Name', value: _v(m['spotArea']), fullWidth: false),
-          (label: 'Full Address', value: _v(m['spotAddress']), fullWidth: true),
+          (label: 'Address', value: _v(m['spotAddress']), fullWidth: true),
         ]),
       ),
       _sectionShell(sIdx++, 'COMPLAINANT', accent, [
@@ -1400,8 +1400,8 @@ class CommonFormDocumentView extends StatelessWidget {
             );
           }),
       ]),
-      // ── Card 11: Custody & Remand (PCR / MCR) ────────────────────────────
-      _sectionShell(sIdx++, 'CUSTODY & REMAND (PCR / MCR)', accent, [
+      // ── Card 11: Custody & Remand ──────────────────────────────────────────
+      _sectionShell(sIdx++, 'CUSTODY & REMAND', accent, [
         Builder(
           builder: (ctx) {
             final custody = (m['custody'] is Map) ? (m['custody'] as Map) : {};
