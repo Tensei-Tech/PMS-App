@@ -71,11 +71,12 @@ class _ELearningScreenState extends State<ELearningScreen>
     if (_coursesLoading) return;
     setState(() => _coursesLoading = true);
     final courses = await _elearningService.fetchCourses();
-    if (mounted)
+    if (mounted) {
       setState(() {
         _courses = courses;
         _coursesLoading = false;
       });
+    }
   }
 
   Future<void> _loadData() async {
@@ -1100,8 +1101,9 @@ class _ELearningScreenState extends State<ELearningScreen>
                                 DropdownMenuItem(value: c, child: Text(c)))
                             .toList(),
                         onChanged: (val) {
-                          if (val != null)
+                          if (val != null) {
                             setDialogState(() => selectedCategory = val);
+                          }
                         },
                       ),
                       const SizedBox(height: 14),
