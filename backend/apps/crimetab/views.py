@@ -1374,6 +1374,10 @@ class CrimeCaseManageView(APIView):
                             from apps.cases.utils import get_absconded_cases
                             absconded_qs = get_absconded_cases()
                             qs = qs.filter(id__in=absconded_qs.values_list('id', flat=True))
+                        elif mod_lower == 'victim':
+                            from apps.cases.utils import get_victim_cases
+                            victim_qs = get_victim_cases()
+                            qs = qs.filter(id__in=victim_qs.values_list('id', flat=True))
                         elif mod_lower in ['form_1_5', 'form_iv', 'form_i_v', '1_to_5']:
                             from apps.crimetab.models.groupings import CaseCategory
                             group_1_cats = list(CaseCategory.objects.filter(

@@ -14,6 +14,7 @@ class FilteredPendingScreen extends StatefulWidget {
   final String? endDate;
   final bool isUndetected;
   final bool isAbsconded;
+  final bool isVictim;
 
   const FilteredPendingScreen({
     super.key,
@@ -24,6 +25,7 @@ class FilteredPendingScreen extends StatefulWidget {
     this.endDate,
     this.isUndetected = false,
     this.isAbsconded = false,
+    this.isVictim = false,
   });
 
   @override
@@ -56,6 +58,12 @@ class _FilteredPendingScreenState extends State<FilteredPendingScreen> {
       } else if (widget.isUndetected) {
         dataList = await _backend.fetchUndetectedCases(
           ioUid: widget.ioUid,
+          category: widget.category,
+          startDate: widget.startDate,
+          endDate: widget.endDate,
+        );
+      } else if (widget.isVictim) {
+        dataList = await _backend.fetchVictimCases(
           category: widget.category,
           startDate: widget.startDate,
           endDate: widget.endDate,

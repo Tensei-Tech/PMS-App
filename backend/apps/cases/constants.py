@@ -15,6 +15,7 @@ DISPOSAL_KEYS = [
     'disposedCcStNumber',
     'cc_st_number',
     'charge_sheet_no',
+    'charge_sheet_number',
     'a_final_number',
     'b_final_number',
     'c_final_number',
