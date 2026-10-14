@@ -95,7 +95,7 @@ class CategoryNavigationHelper {
         Navigator.push(
           context,
           AppTheme.fadeSlideRoute(
-            page: JuvenileHubScreen(
+            page: const JuvenileHubScreen(
               stationName: 'Current Station', // Will fix if needed
             ),
           ),

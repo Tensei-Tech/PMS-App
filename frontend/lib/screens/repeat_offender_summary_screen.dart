@@ -17,7 +17,6 @@ import '../utils/arrested_table_firestore_mapper.dart';
 import '../utils/case_visibility.dart';
 import '../widgets/repeat_offender_cases_data_table.dart';
 import '../services/ui_config_service.dart';
-import 'common_form_screen.dart';
 
 class RepeatOffenderSummaryScreen extends StatelessWidget {
   const RepeatOffenderSummaryScreen({
@@ -88,44 +87,6 @@ class RepeatOffenderSummaryScreen extends StatelessWidget {
     final title = UiConfigService.repeatOffenderSummary['title'];
     final anyRows = dataset.isNotEmpty;
 
-    Widget sectionBlock(String bucketLabel) {
-      final rows = _rowsForBucket(dataset, bucketLabel);
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Text(
-                bucketLabel,
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.navyDark,
-                ),
-              ),
-            ),
-            if (rows.isEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Text(
-                  UiConfigService.repeatOffenderSummary['no_cases_label'],
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.lightSubText,
-                  ),
-                ),
-              )
-            else
-              RepeatOffenderCasesDataTable(
-                realDataRows: rows,
-              ),
-          ],
-        ),
-      );
-    }
 
     return Scaffold(
       backgroundColor: AppColors.lightBg,
