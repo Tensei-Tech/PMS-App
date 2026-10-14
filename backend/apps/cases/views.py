@@ -13,6 +13,18 @@ from apps.repositories import CaseRepository
 logger = logging.getLogger(__name__)
 
 
+# Mixin providing a default no-op _enrich_data so views that call it
+# (but don't override it) won't raise AttributeError.
+class EnrichMixin:
+    """Default enrichment: guarantees an 'extra_fields' dict on each item."""
+    def _enrich_data(self, data_list):
+        for item in data_list:
+            if not isinstance(item.get("extra_fields"), dict):
+                item["extra_fields"] = {}
+
+EnrichDataMixin = EnrichMixin
+
+
 class StandardCasePagination(PageNumberPagination):
     page_size = 20
     page_size_query_param = 'page_size'
@@ -277,7 +289,7 @@ class CaseRecordViewSet(viewsets.ModelViewSet):
 # Raw SQL Database Views (Secured with Dynamic RBAC, Pagination & Safe Queries)
 # ------------------------------------------------------------------------------
 
-class PendingCasesView(APIView):
+class PendingCasesView(EnrichDataMixin, APIView):
     permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
@@ -410,7 +422,7 @@ class TimeWisePendingView(APIView):
             logger.exception(f"[TimeWisePendingView] Database error: {e}")
             return Response({'error': 'Failed to retrieve Time-wise counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class UndetectedCasesView(APIView):
+class UndetectedCasesView(EnrichDataMixin, APIView):
     permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
@@ -997,15 +1009,43 @@ class CasesByCrimeTypeView(APIView):
 
     def get(self, request, crime_type):
         try:
+            # Use ORM with raw SQL fallback for the crime_type_master join
+            # since crime_type_master has no Django model.
+            db_table = CaseRecord._meta.db_table
+            query = f"""
+                SELECT c.id AS case_id, c.case_number, c.title, c.status, c.priority,
+                       m.crime_type, m.act, m.section, m.sub_section, m.ipc_number
+                FROM "{db_table}" c
+                JOIN crime_type_master m ON m.id = CAST(c.extra_fields ->> 'crime_type_master_id' AS INTEGER)
+                WHERE m.crime_type = %s
+                ORDER BY c.created_at DESC
+            """
+            # Simpler approach: query crime_type_master separately, then filter CaseRecords
             with connection.cursor() as cursor:
-                cursor.execute("""
-                    SELECT c.case_id, c.case_number, c.title, c.status, c.priority,
+                cursor.execute(
+                    "SELECT id FROM crime_type_master WHERE crime_type = %s",
+                    [crime_type]
+                )
+                master_ids = [row[0] for row in cursor.fetchall()]
+
+            if not master_ids:
+                paginator = PageNumberPagination()
+                page = paginator.paginate_queryset([], request)
+                if page is not None:
+                    return paginator.get_paginated_response(page)
+                return Response([])
+
+            # Now join via raw SQL using proper Django table name
+            with connection.cursor() as cursor:
+                placeholders = ','.join(['%s'] * len(master_ids))
+                cursor.execute(f"""
+                    SELECT c.id AS case_id, c.case_number, c.title, c.status, c.priority,
                            m.crime_type, m.act, m.section, m.sub_section, m.ipc_number
-                    FROM cases c
-                    JOIN crime_type_master m ON m.id = c.crime_type_master_id
-                    WHERE m.crime_type = %s
+                    FROM "{db_table}" c
+                    JOIN crime_type_master m ON m.id = c.extra_fields ->> 'crime_type_master_id'
+                    WHERE m.id IN ({placeholders})
                     ORDER BY c.created_at DESC
-                """, [crime_type])
+                """, master_ids)
                 columns = [col[0] for col in cursor.description]
                 rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
@@ -1062,31 +1102,27 @@ class CreateCaseView(APIView):
         validated = serializer.validated_data
 
         try:
-            with transaction.atomic():
-                with connection.cursor() as cursor:
-                    cursor.execute("""
-                        INSERT INTO cases (case_number, title, case_type, priority, status, module, crime_type_master_id)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s)
-                        RETURNING case_id
-                    """, [
-                        validated['case_number'],
-                        validated['title'],
-                        validated.get('case_type', '1-5'),
-                        validated.get('priority', 'Low'),
-                        validated.get('status', 'Draft'),
-                        validated['module'],
-                        validated.get('crime_type_master_id')
-                    ])
-                    row = cursor.fetchone()
-                    case_id = row[0] if row else None
-
-            return Response({'case_id': case_id}, status=status.HTTP_201_CREATED)
+            # Use Django ORM instead of raw INSERT ... RETURNING (Postgres-only)
+            case = CaseRecord.objects.create(
+                case_number=validated['case_number'],
+                title=validated['title'],
+                module_key=validated['module'],
+                priority=validated.get('priority', 'Low'),
+                status=validated.get('status', 'Draft'),
+                description=validated.get('description', ''),
+                station_name=validated.get('station_name', ''),
+                extra_fields={
+                    'case_type': validated.get('case_type', '1-5'),
+                    'crime_type_master_id': validated.get('crime_type_master_id'),
+                },
+            )
+            return Response({'case_id': str(case.pk)}, status=status.HTTP_201_CREATED)
         except Exception as e:
             logger.exception(f"[CreateCaseView] Database insertion failed: {e}")
             return Response({'error': 'Failed to create case record.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class DetectedCasesView(APIView):
+class DetectedCasesView(EnrichDataMixin, APIView):
     permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):

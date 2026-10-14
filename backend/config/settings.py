@@ -115,12 +115,7 @@ def is_ssl_required(db_url: str) -> bool:
 # 1. Primary Database (Writes & Critical Operations)
 is_local = os.getenv('DB_HOST', 'localhost') in ['localhost', '127.0.0.1']
 
-if 'test' in sys.argv:
-    DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': ':memory:',
-    }
-elif os.getenv('DATABASE_URL'):
+if os.getenv('DATABASE_URL'):
     from urllib.parse import urlparse, unquote
     db_url = os.getenv('DATABASE_URL')
     parsed_db = urlparse(db_url)
@@ -142,6 +137,7 @@ elif os.getenv('DATABASE_URL'):
             'keepalives_count': 5,
         },
     }
+
 elif os.getenv('DB_NAME') and os.getenv('DB_PASSWORD') and os.getenv('DB_PASSWORD') != 'YOUR_SUPABASE_DB_PASSWORD':
     DATABASES['default'] = {
         'ENGINE': 'django.db.backends.postgresql',
@@ -161,13 +157,20 @@ elif os.getenv('DB_NAME') and os.getenv('DB_PASSWORD') and os.getenv('DB_PASSWOR
             'keepalives_count': 5,
         },
     }
+
 else:
     from django.core.exceptions import ImproperlyConfigured
     raise ImproperlyConfigured(
         "No PostgreSQL database configured. Set DATABASE_URL (or DB_NAME and DB_PASSWORD) in backend/.env."
     )
 
-DATABASES['default'].setdefault('TEST', {})['MIGRATE'] = False
+# Use existing DB for tests – avoid creating a new test database and running migrations.
+DATABASES['default']['TEST'] = {
+    'MIRROR': 'default',
+    'MIGRATE': False,
+}
+
+
 
 # 2. Read Replica 1 (Optional - High Load Read Offloading)
 is_rep1_local = os.getenv('DB_REPLICA_1_HOST', 'localhost') in ['localhost', '127.0.0.1']
