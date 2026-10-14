@@ -111,8 +111,9 @@ class DynamicControlFactory extends StatelessWidget {
           );
         }
         return Row(
-          crossAxisAlignment:
-              isMultiline ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+          crossAxisAlignment: isMultiline
+              ? CrossAxisAlignment.start
+              : CrossAxisAlignment.center,
           children: [
             SizedBox(
               width: 130,
@@ -142,8 +143,8 @@ class DynamicControlFactory extends StatelessWidget {
                     if (fieldDef.fieldSource == 'custom')
                       Container(
                         margin: const EdgeInsets.only(left: 4),
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 1),
                         decoration: BoxDecoration(
                           color: AppColors.goldPrimary.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(3),
@@ -175,8 +176,8 @@ class DynamicControlFactory extends StatelessWidget {
       PersonSelectOrCustomField(
         label: fieldDef.fieldLabel,
         options: accusedOptions ?? const [],
-        ctrl: controller ??
-            TextEditingController(text: value?.toString() ?? ''),
+        ctrl:
+            controller ?? TextEditingController(text: value?.toString() ?? ''),
         isRequired: fieldDef.isRequired,
         decoration: _inputDecoration(hint: 'Select or Type New Name'),
         style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
@@ -344,10 +345,8 @@ class DynamicControlFactory extends StatelessWidget {
             : () async {
                 final now = DateTime.now();
                 DateTime initial = now;
-                if (controller != null &&
-                    controller!.text.trim().isNotEmpty) {
-                  final parts =
-                      controller!.text.trim().split(RegExp(r'[-/]'));
+                if (controller != null && controller!.text.trim().isNotEmpty) {
+                  final parts = controller!.text.trim().split(RegExp(r'[-/]'));
                   if (parts.length >= 3) {
                     final d = int.tryParse(parts[0]) ?? now.day;
                     final m = int.tryParse(parts[1]) ?? now.month;
@@ -412,8 +411,7 @@ class DynamicControlFactory extends StatelessWidget {
                     pickedTime.hour,
                     pickedTime.minute,
                   );
-                  controller?.text =
-                      DateFormat('dd/MM/yyyy HH:mm').format(dt);
+                  controller?.text = DateFormat('dd/MM/yyyy HH:mm').format(dt);
                   onChanged?.call(controller?.text);
                 }
               },
@@ -442,24 +440,25 @@ class DynamicControlFactory extends StatelessWidget {
   ];
 
   Widget _buildDesignationDropdownField(BuildContext context) {
-    final rawOpts = (designationOptions != null && designationOptions!.isNotEmpty)
-        ? designationOptions!
-        : const [
-            'Police Constable (PC)',
-            'Naik Police Constable (NPC)',
-            'Head Constable (HC)',
-            'Assistant Sub Inspector (ASI)',
-            'Police Sub Inspector (PSI)',
-            'Assistant Police Inspector (API)',
-            'Police Inspector (PI)',
-            'Deputy Superintendent of Police (Dy. SP)',
-            'Assistant Commissioner of Police (ACP)',
-            'Superintendent of Police (SP)',
-            'Deputy Commissioner of Police (DCP)',
-            'Deputy Inspector General (DIG)',
-            'Commissioner of Police (CP)',
-            'Director General of Police (DGP)',
-          ];
+    final rawOpts =
+        (designationOptions != null && designationOptions!.isNotEmpty)
+            ? designationOptions!
+            : const [
+                'Police Constable (PC)',
+                'Naik Police Constable (NPC)',
+                'Head Constable (HC)',
+                'Assistant Sub Inspector (ASI)',
+                'Police Sub Inspector (PSI)',
+                'Assistant Police Inspector (API)',
+                'Police Inspector (PI)',
+                'Deputy Superintendent of Police (Dy. SP)',
+                'Assistant Commissioner of Police (ACP)',
+                'Superintendent of Police (SP)',
+                'Deputy Commissioner of Police (DCP)',
+                'Deputy Inspector General (DIG)',
+                'Commissioner of Police (CP)',
+                'Director General of Police (DGP)',
+              ];
 
     final uniqueOpts = <String>[];
     final seen = <String>{};
@@ -470,7 +469,8 @@ class DynamicControlFactory extends StatelessWidget {
       }
     }
 
-    final currentVal = value?.toString().trim() ?? controller?.text.trim() ?? '';
+    final currentVal =
+        value?.toString().trim() ?? controller?.text.trim() ?? '';
     String? matchedVal;
     if (currentVal.isNotEmpty) {
       for (final opt in uniqueOpts) {
@@ -504,16 +504,18 @@ class DynamicControlFactory extends StatelessWidget {
             child: Text(
               opt,
               overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.poppins(fontSize: 13, color: AppColors.navyDark),
+              style:
+                  GoogleFonts.poppins(fontSize: 13, color: AppColors.navyDark),
             ),
           ),
         );
       }
     }
 
-    final safeValue = (matchedVal != null && itemValuesSeen.contains(matchedVal))
-        ? matchedVal
-        : null;
+    final safeValue =
+        (matchedVal != null && itemValuesSeen.contains(matchedVal))
+            ? matchedVal
+            : null;
 
     return _buildFieldLayout(
       context,
@@ -524,8 +526,8 @@ class DynamicControlFactory extends StatelessWidget {
         style: GoogleFonts.poppins(fontSize: 13, color: AppColors.navyDark),
         decoration: InputDecoration(
           hintText: 'Select Designation...',
-          hintStyle:
-              GoogleFonts.poppins(fontSize: 12.5, color: AppColors.lightSubText),
+          hintStyle: GoogleFonts.poppins(
+              fontSize: 12.5, color: AppColors.lightSubText),
           filled: true,
           fillColor: readOnly ? const Color(0xFFF8FAFC) : Colors.white,
           contentPadding:
@@ -603,8 +605,8 @@ class DynamicControlFactory extends StatelessWidget {
             value: opt,
             child: Text(
               opt,
-              style: GoogleFonts.poppins(
-                  fontSize: 13, color: AppColors.lightText),
+              style:
+                  GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
             ),
           ),
         );
@@ -706,8 +708,7 @@ class DynamicControlFactory extends StatelessWidget {
                   style: GoogleFonts.poppins(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
-                    color:
-                        isChecked ? AppColors.navyDark : AppColors.lightText,
+                    color: isChecked ? AppColors.navyDark : AppColors.lightText,
                   ),
                 ),
               ),

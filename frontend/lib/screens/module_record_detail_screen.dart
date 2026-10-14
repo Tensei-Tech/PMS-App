@@ -139,59 +139,59 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.lg),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (_record.status == 'Transferred Out') ...[
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.red.shade50,
-                              border: Border.all(color: Colors.red.shade200),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(Icons.lock_outline_rounded,
-                                        color: Colors.red.shade700, size: 20),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'Transferred Out (Read-Only)',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.red.shade700,
-                                      ),
-                                    ),
-                                  ],
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (_record.status == 'Transferred Out') ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        border: Border.all(color: Colors.red.shade200),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.lock_outline_rounded,
+                                  color: Colors.red.shade700, size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Transferred Out (Read-Only)',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.red.shade700,
                                 ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Transferred to Bandra Police Station by PI John Doe on ${DateTime.now().toLocal().toString().split(' ')[0]}.\nRemark: Handing over case jurisdiction as per order 1234.',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 13,
-                                    color: Colors.red.shade900,
-                                  ),
-                                ),
-                              ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Transferred to Bandra Police Station by PI John Doe on ${DateTime.now().toLocal().toString().split(' ')[0]}.\nRemark: Handing over case jurisdiction as per order 1234.',
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              color: Colors.red.shade900,
                             ),
                           ),
-                          const SizedBox(height: 16),
                         ],
-                        ModuleRecordDynamicDocumentView(
-                          record: _record,
-                          moduleLabel: moduleLabel,
-                        ),
-                      ],
+                      ),
                     ),
+                    const SizedBox(height: 16),
+                  ],
+                  ModuleRecordDynamicDocumentView(
+                    record: _record,
+                    moduleLabel: moduleLabel,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
+          ),
+        ],
+      ),
       bottomNavigationBar:
           _buildStickyBottomActions(context, moduleLabel, showContent),
     );

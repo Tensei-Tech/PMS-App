@@ -164,7 +164,8 @@ Future<void> previewCrimeDetailPdf(
         if (kIsWeb) {
           await Printing.sharePdf(bytes: bytes, filename: fileName);
         } else {
-          await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
+          await Printing.layoutPdf(
+              onLayout: (_) async => bytes, name: fileName);
         }
       } catch (_) {
         await Printing.sharePdf(bytes: bytes, filename: fileName);

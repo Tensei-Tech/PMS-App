@@ -324,7 +324,8 @@ class _RepeatingCascadingChargesSelectorState
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppColors.navyMid,
                   borderRadius: BorderRadius.circular(6),
@@ -372,7 +373,6 @@ class _RepeatingCascadingChargesSelectorState
             ],
           ),
           const SizedBox(height: 14),
-
           LayoutBuilder(
             builder: (context, constraints) {
               final isWide = constraints.maxWidth >= 650;
@@ -420,9 +420,8 @@ class _RepeatingCascadingChargesSelectorState
       key: ValueKey('act_${charge.actId}'),
       label: 'Act / Law *',
       hint: 'Search Act (e.g. BNS, IPC)...',
-      initialSelection: _actsList.any((a) => a['id'] == charge.actId)
-          ? charge.actId
-          : null,
+      initialSelection:
+          _actsList.any((a) => a['id'] == charge.actId) ? charge.actId : null,
       isEnabled: !widget.readOnly,
       filterCallback: (entries, filter) {
         final query = filter.trim().toLowerCase();
@@ -461,8 +460,9 @@ class _RepeatingCascadingChargesSelectorState
 
   Widget _buildSectionDropdown(
       ChargeItemData charge, List<Map<String, dynamic>> availableSections) {
-    final bool isEnabled =
-        !widget.readOnly && charge.actId != null && availableSections.isNotEmpty;
+    final bool isEnabled = !widget.readOnly &&
+        charge.actId != null &&
+        availableSections.isNotEmpty;
 
     return _buildSearchableDropdown(
       key: ValueKey('sec_${charge.actId}_${charge.sectionId}'),
@@ -472,9 +472,10 @@ class _RepeatingCascadingChargesSelectorState
           : (availableSections.isEmpty
               ? 'Loading sections...'
               : 'Search Section (e.g. 101, murder)...'),
-      initialSelection: availableSections.any((s) => s['id'] == charge.sectionId)
-          ? charge.sectionId
-          : null,
+      initialSelection:
+          availableSections.any((s) => s['id'] == charge.sectionId)
+              ? charge.sectionId
+              : null,
       isEnabled: isEnabled,
       filterCallback: (entries, filter) {
         final query = filter.trim().toLowerCase();
@@ -520,7 +521,9 @@ class _RepeatingCascadingChargesSelectorState
     required bool isEnabled,
     required List<DropdownMenuEntry<dynamic>> entries,
     required ValueChanged<dynamic> onSelected,
-    List<DropdownMenuEntry<dynamic>> Function(List<DropdownMenuEntry<dynamic>> entries, String filter)? filterCallback,
+    List<DropdownMenuEntry<dynamic>> Function(
+            List<DropdownMenuEntry<dynamic>> entries, String filter)?
+        filterCallback,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -587,6 +590,7 @@ class _RepeatingCascadingChargesSelectorState
       ],
     );
   }
+
   Widget _buildSubsectionDropdown(
       ChargeItemData charge, List<Map<String, dynamic>> availableSubsections) {
     return _buildDropdownField<dynamic>(
@@ -596,16 +600,14 @@ class _RepeatingCascadingChargesSelectorState
           : (availableSubsections.isEmpty
               ? 'None available'
               : 'Select Subsection'),
-      value: availableSubsections
-              .any((sub) => sub['id'] == charge.subsectionId)
+      value: availableSubsections.any((sub) => sub['id'] == charge.subsectionId)
           ? charge.subsectionId
           : null,
       items: availableSubsections.map((sub) {
         return DropdownMenuItem<dynamic>(
           value: sub['id'],
           child: Text(
-            sub['display_name']?.toString() ??
-                'Sub. ${sub['subsection_code']}',
+            sub['display_name']?.toString() ?? 'Sub. ${sub['subsection_code']}',
             overflow: TextOverflow.ellipsis,
           ),
         );
@@ -619,8 +621,7 @@ class _RepeatingCascadingChargesSelectorState
                   (sub) => sub['id'] == val,
                   orElse: () => {},
                 );
-                charge.subsectionCode =
-                    match['subsection_code']?.toString();
+                charge.subsectionCode = match['subsection_code']?.toString();
               });
               _notifyParent();
             },

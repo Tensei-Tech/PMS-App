@@ -179,7 +179,8 @@ class ModulePdfHelper {
 
   /// Generates and previews a PDF for any ModuleRecord.
   /// Generates and previews a PDF for any ModuleRecord (titles use [ModuleRecord.firestoreCategoryDisplayName]).
-  static Future<void> generatePdf(ModuleRecord record, [BuildContext? context]) async {
+  static Future<void> generatePdf(ModuleRecord record,
+      [BuildContext? context]) async {
     await PdfLoadingHelper.runWithLoading(
       context: context,
       action: () async => _generatePdfInternal(record),

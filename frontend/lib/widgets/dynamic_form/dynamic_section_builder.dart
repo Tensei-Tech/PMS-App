@@ -157,7 +157,8 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
       margin: EdgeInsets.only(bottom: isCompact ? 10.0 : 14.0),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(isCompact ? AppRadius.md : AppRadius.lg),
+        borderRadius:
+            BorderRadius.circular(isCompact ? AppRadius.md : AppRadius.lg),
         boxShadow: [
           BoxShadow(
             color: AppColors.navyDark.withValues(alpha: 0.04),
@@ -175,7 +176,8 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
             onTap: _handleToggle,
             borderRadius: BorderRadius.vertical(
               top: Radius.circular(isCompact ? AppRadius.md : AppRadius.lg),
-              bottom: Radius.circular(_isExpanded ? 0 : (isCompact ? AppRadius.md : AppRadius.lg)),
+              bottom: Radius.circular(
+                  _isExpanded ? 0 : (isCompact ? AppRadius.md : AppRadius.lg)),
             ),
             child: Padding(
               padding: EdgeInsets.symmetric(
@@ -201,7 +203,9 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                               color: AppColors.navyDark,
                             ),
                           )
-                        : Icon(widget.icon, size: isCompact ? 18 : 20, color: AppColors.navyMid),
+                        : Icon(widget.icon,
+                            size: isCompact ? 18 : 20,
+                            color: AppColors.navyMid),
                   ),
                   SizedBox(width: isCompact ? 10 : 12),
                   Expanded(
@@ -325,7 +329,8 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                           );
                           if (widget.values[f.fieldKey] != null &&
                               fieldCtrl.text.isEmpty) {
-                            fieldCtrl.text = widget.values[f.fieldKey].toString();
+                            fieldCtrl.text =
+                                widget.values[f.fieldKey].toString();
                           }
 
                           return DynamicControlFactory(
@@ -353,7 +358,8 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: visibleFields.map((f) {
                               return Padding(
-                                padding: EdgeInsets.only(bottom: isCompact ? 10 : 12),
+                                padding: EdgeInsets.only(
+                                    bottom: isCompact ? 10 : 12),
                                 child: buildControl(f),
                               );
                             }).toList(),
@@ -364,7 +370,8 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                         if (widget.title.toLowerCase().contains('cctv') &&
                             visibleFields.length == 3) {
                           return Padding(
-                            padding: EdgeInsets.only(bottom: isCompact ? 10 : 12),
+                            padding:
+                                EdgeInsets.only(bottom: isCompact ? 10 : 12),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
@@ -409,7 +416,8 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
 
                           items.add(
                             Padding(
-                              padding: EdgeInsets.only(bottom: isCompact ? 10 : 12),
+                              padding:
+                                  EdgeInsets.only(bottom: isCompact ? 10 : 12),
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -431,7 +439,8 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                         for (final ta in textareas) {
                           items.add(
                             Padding(
-                              padding: EdgeInsets.only(bottom: isCompact ? 10 : 12),
+                              padding:
+                                  EdgeInsets.only(bottom: isCompact ? 10 : 12),
                               child: buildControl(ta),
                             ),
                           );

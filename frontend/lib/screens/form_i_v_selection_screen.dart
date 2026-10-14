@@ -2978,7 +2978,8 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                                 label: 'PDF',
                                 onTap: () => runWithPdfAuthGate(
                                   context,
-                                  () => ModulePdfHelper.generatePdf(record, context),
+                                  () => ModulePdfHelper.generatePdf(
+                                      record, context),
                                 ),
                               ),
                             ],
