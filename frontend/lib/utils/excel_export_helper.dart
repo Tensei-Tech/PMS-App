@@ -108,7 +108,7 @@ class ExcelExportHelper {
         final parsed = jsonDecode(jsonStr);
         return formatSectionAct(parsed);
       } catch (_) {
-        final cleaned = str.replaceAll(RegExp(r"['""\s,:\(\)\[\]\{\}]"), '');
+        final cleaned = str.replaceAll(RegExp(r'''[\"'\s,:(){}\[\]]'''), '');
         final nonNullWords = cleaned
             .replaceAll('None', '')
             .replaceAll('null', '')
