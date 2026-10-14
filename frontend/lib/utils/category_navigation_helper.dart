@@ -89,7 +89,7 @@ class CategoryNavigationHelper {
       if (moduleKey == 'juvenile') {
         // Find auth provider up the tree or just pass empty station name for now
         // But we actually just need stationName. Since CategoryNavigationHelper is static,
-        // it might be tricky to get stationName securely without auth provider context, 
+        // it might be tricky to get stationName securely without auth provider context,
         // but JuvenileHubScreen needs stationName. We can pass a dummy or get it from provider.
         // Actually, AbscondedHubScreen uses `stationName`.
         Navigator.push(

@@ -3,7 +3,9 @@ import 'package:khakhi_diary/utils/excel_export_helper.dart';
 
 void main() {
   group('ExcelExportHelper formatSectionAct tests', () {
-    test('Cleans up Python stringified empty acts_sections dict from Excel export', () {
+    test(
+        'Cleans up Python stringified empty acts_sections dict from Excel export',
+        () {
       const rawUserIssue =
           "[{'act': None, 'act_id': None, 'section': None, 'act_name': None, 'section_id': None, 'subsection': None, 'section_title': None, 'subsection_id': None, 'section_number': None, 'subsection_code': None}]";
 
@@ -49,7 +51,10 @@ void main() {
       expect(ExcelExportHelper.formatAccused('None'), equals(''));
       expect(ExcelExportHelper.formatAccused('John Doe'), equals('John Doe'));
       expect(
-        ExcelExportHelper.formatAccused([{'name': 'Ramesh'}, {'name': 'Suresh'}]),
+        ExcelExportHelper.formatAccused([
+          {'name': 'Ramesh'},
+          {'name': 'Suresh'}
+        ]),
         equals('Ramesh, Suresh'),
       );
     });

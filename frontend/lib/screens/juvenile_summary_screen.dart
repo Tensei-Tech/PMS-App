@@ -70,12 +70,14 @@ class JuvenileSummaryScreen extends StatelessWidget {
     final doc = DynamicMapPdf.buildLandscapeDataTableDocument(
       theme: theme,
       title: 'Juvenile â€” Summary (all periods)',
-      rows: flat.map((e) => {
-        'Cr. No.': e['cr'] ?? '—',
-        'Name of juvenile': e['accused_name'] ?? '—',
-        'Age': e['age'] ?? '—',
-        'Police station name': e['station'] ?? '—',
-      }).toList(),
+      rows: flat
+          .map((e) => {
+                'Cr. No.': e['cr'] ?? '—',
+                'Name of juvenile': e['accused_name'] ?? '—',
+                'Age': e['age'] ?? '—',
+                'Police station name': e['station'] ?? '—',
+              })
+          .toList(),
     );
     await Printing.sharePdf(
       bytes: await doc.save(),
@@ -91,7 +93,6 @@ class JuvenileSummaryScreen extends StatelessWidget {
   }) {
     final title = UiConfigService.juvenileSummary['title'];
     final anyRows = dataset.isNotEmpty;
-
 
     return Scaffold(
       backgroundColor: AppColors.lightBg,
@@ -130,7 +131,6 @@ class JuvenileSummaryScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-
                   GestureDetector(
                     onTap: !anyRows ? null : () => _exportPdf(context, dataset),
                     child: Container(
@@ -221,7 +221,8 @@ class _LiveJuvenileSummaryLoader extends StatefulWidget {
       _LiveJuvenileSummaryLoaderState();
 }
 
-class _LiveJuvenileSummaryLoaderState extends State<_LiveJuvenileSummaryLoader> {
+class _LiveJuvenileSummaryLoaderState
+    extends State<_LiveJuvenileSummaryLoader> {
   final _backend = BackendCaseService();
   String _boundStation = '';
   List<ModuleRecord> _modules = const [];
@@ -333,21 +334,23 @@ class _LiveJuvenileSummaryLoaderState extends State<_LiveJuvenileSummaryLoader> 
     final exclusive = modules.isNotEmpty;
     // We'll reuse the arrestedTableRowsAll for now, but we'll map fields properly in the caller if needed
     final now = DateTime.now();
-    final rawDataset =
-        exclusive ? arrestedTableRowsAll(modules, now) : <Map<String, String>>[];
-        
+    final rawDataset = exclusive
+        ? arrestedTableRowsAll(modules, now)
+        : <Map<String, String>>[];
+
     // Deduplicate by accused_name so each offender only appears once
     final dataset = <Map<String, String>>[];
     final seenAccused = <String>{};
     for (var row in rawDataset) {
       final name = row['accused_name'] ?? '';
-      if (name.isNotEmpty && name != UiConfigService.juvenileSummary['unknown_offender_label']) {
+      if (name.isNotEmpty &&
+          name != UiConfigService.juvenileSummary['unknown_offender_label']) {
         if (seenAccused.contains(name)) continue;
         seenAccused.add(name);
       }
       dataset.add(row);
     }
-    
+
     const showDemoNote = false;
 
     return widget.buildContent(

@@ -83,10 +83,17 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
           if (i < records.length) {
             final m = records[i];
             final rawM = i < dataList.length ? dataList[i] : null;
-            r['nafis_status'] = rawM?['nafis_status'] ?? m.extraFields['nafis_status'] ?? 'Pending';
-            r['nafis_status_color'] = rawM?['nafis_status_color'] ?? m.extraFields['nafis_status_color'] ?? 'red';
-            r['io_name'] = m.assignedOfficer.isNotEmpty ? m.assignedOfficer : (r['io'] ?? '—');
-            r['accused_name'] = m.accused.isNotEmpty ? m.accused : (r['accused_name'] ?? '—');
+            r['nafis_status'] = rawM?['nafis_status'] ??
+                m.extraFields['nafis_status'] ??
+                'Pending';
+            r['nafis_status_color'] = rawM?['nafis_status_color'] ??
+                m.extraFields['nafis_status_color'] ??
+                'red';
+            r['io_name'] = m.assignedOfficer.isNotEmpty
+                ? m.assignedOfficer
+                : (r['io'] ?? '—');
+            r['accused_name'] =
+                m.accused.isNotEmpty ? m.accused : (r['accused_name'] ?? '—');
           }
           enrichedRows.add(r);
         }
@@ -201,9 +208,14 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
           rows: _caseWiseList!.asMap().entries.map((entry) {
             final idx = entry.key;
             final caseItem = entry.value;
-            final isGreen = (caseItem['nafis_status_color'] ?? '').toString().toLowerCase() == 'green' ||
-                (caseItem['nafis_status'] ?? '').toString().toLowerCase() == 'done' ||
-                (caseItem['nafis_status'] ?? '').toString().toLowerCase() == 'chargesheeted';
+            final isGreen = (caseItem['nafis_status_color'] ?? '')
+                        .toString()
+                        .toLowerCase() ==
+                    'green' ||
+                (caseItem['nafis_status'] ?? '').toString().toLowerCase() ==
+                    'done' ||
+                (caseItem['nafis_status'] ?? '').toString().toLowerCase() ==
+                    'chargesheeted';
             final statusText = isGreen ? 'Done' : 'Pending';
             final actionRequired =
                 caseItem['action_required'] == true || !isGreen;
@@ -215,7 +227,9 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
                     '-')
                 .toString();
             final srNo = caseItem['sr_no']?.toString() ?? '${idx + 1}';
-            final extra = caseItem['extra_fields'] is Map ? caseItem['extra_fields'] as Map : {};
+            final extra = caseItem['extra_fields'] is Map
+                ? caseItem['extra_fields'] as Map
+                : {};
             final sectionActRaw = caseItem['section_act'] ??
                 caseItem['acts_sections'] ??
                 caseItem['sections'] ??
@@ -228,7 +242,8 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
                 extra['section'] ??
                 extra['act_section'] ??
                 extra['sectionAct'];
-            final formattedSec = ExcelExportHelper.formatSectionAct(sectionActRaw);
+            final formattedSec =
+                ExcelExportHelper.formatSectionAct(sectionActRaw);
             final sectionAct = formattedSec.isEmpty ? '-' : formattedSec;
             final csDate = (caseItem['charge_sheet_date'] ??
                     caseItem['chargesheet_date'] ??
@@ -284,8 +299,8 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
                           ),
                           onPressed: () async {
                             if (caseId.isNotEmpty) {
-                              final ok = await _backend
-                                  .sendNafisReminderToIO(caseId);
+                              final ok =
+                                  await _backend.sendNafisReminderToIO(caseId);
                               if (!mounted) return;
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -349,10 +364,12 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
 
         return Card(
           elevation: 1,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           margin: const EdgeInsets.only(bottom: 12),
           child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             leading: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
@@ -376,10 +393,13 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
             trailing: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
-                color: count > 0 ? const Color(0xFFFFEBEE) : Colors.grey.shade100,
+                color:
+                    count > 0 ? const Color(0xFFFFEBEE) : Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: count > 0 ? const Color(0xFFEF5350) : Colors.grey.shade300,
+                  color: count > 0
+                      ? const Color(0xFFEF5350)
+                      : Colors.grey.shade300,
                 ),
               ),
               child: Text(
@@ -387,7 +407,9 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
                 style: GoogleFonts.poppins(
                   fontWeight: FontWeight.w700,
                   fontSize: 13,
-                  color: count > 0 ? const Color(0xFFC62828) : Colors.grey.shade700,
+                  color: count > 0
+                      ? const Color(0xFFC62828)
+                      : Colors.grey.shade700,
                 ),
               ),
             ),
@@ -404,7 +426,8 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
     }
     if (_errorIO != null) {
       return Center(
-          child: Text(_errorIO!, style: GoogleFonts.poppins(color: Colors.red)));
+          child:
+              Text(_errorIO!, style: GoogleFonts.poppins(color: Colors.red)));
     }
     if (_ioWiseData == null || _ioWiseData!.isEmpty) {
       return const Center(child: Text("No IO data found"));
@@ -421,10 +444,12 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
 
         return Card(
           elevation: 1,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           margin: const EdgeInsets.only(bottom: 12),
           child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             leading: CircleAvatar(
               backgroundColor: AppColors.navyMid.withValues(alpha: 0.1),
               child: const Icon(Icons.person_rounded, color: AppColors.navyMid),
@@ -447,10 +472,13 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
             trailing: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: count > 0 ? const Color(0xFFFFEBEE) : Colors.grey.shade100,
+                color:
+                    count > 0 ? const Color(0xFFFFEBEE) : Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: count > 0 ? const Color(0xFFEF5350) : Colors.grey.shade300,
+                  color: count > 0
+                      ? const Color(0xFFEF5350)
+                      : Colors.grey.shade300,
                 ),
               ),
               child: Text(
@@ -458,7 +486,9 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
                 style: GoogleFonts.poppins(
                   fontWeight: FontWeight.w700,
                   fontSize: 12,
-                  color: count > 0 ? const Color(0xFFC62828) : Colors.grey.shade700,
+                  color: count > 0
+                      ? const Color(0xFFC62828)
+                      : Colors.grey.shade700,
                 ),
               ),
             ),
@@ -519,14 +549,16 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.description_outlined, color: Color(0xFF107C41)),
+            icon: const Icon(Icons.description_outlined,
+                color: Color(0xFF107C41)),
             tooltip: 'Export to Excel',
             onPressed: () {
               if (_caseWiseList != null && _caseWiseList!.isNotEmpty) {
                 ExcelExportHelper.exportNafisToExcel(dataset: _caseWiseList!);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('NAFIS cases exported to Excel successfully.'),
+                    content:
+                        Text('NAFIS cases exported to Excel successfully.'),
                     backgroundColor: Color(0xFF107C41),
                   ),
                 );
@@ -538,7 +570,8 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
             },
           ),
           IconButton(
-            icon: const Icon(Icons.table_chart_rounded, color: AppColors.navyMid),
+            icon:
+                const Icon(Icons.table_chart_rounded, color: AppColors.navyMid),
             tooltip: 'All Cases Summary',
             onPressed: () {
               Navigator.push(
@@ -556,7 +589,8 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
           unselectedLabelColor: AppColors.lightSubText,
           indicatorColor: AppColors.navyMid,
           indicatorWeight: 3,
-          labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13),
+          labelStyle:
+              GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13),
           tabs: const [
             Tab(text: "Case Wise"),
             Tab(text: "Time Wise"),

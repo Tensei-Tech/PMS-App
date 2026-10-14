@@ -6,35 +6,37 @@ import 'api_config.dart';
 class UiConfigService {
   static const String _cacheKey = 'dynamic_ui_config_cache';
   static Map<String, dynamic> _config = {};
-  
+
   static Map<String, dynamic> get repeatOffenderSummary {
-    return _config['repeat_offender_summary'] ?? {
-      "unknown_offender_label": "Unknown Offender",
-      "other_bucket_label": "Other",
-      "empty_placeholder": "—",
-      "error_message": "Could not load repeat offender cases",
-      "add_button_label": "Add Repeat Offender",
-      "form_module_key": "form_1_5",
-      "form_sub_category": "Repeat Offender",
-      "form_module_label": "Repeat Offender",
-      "no_cases_label": "No cases",
-      "title": "Repeat Offender — Summary"
-    };
+    return _config['repeat_offender_summary'] ??
+        {
+          "unknown_offender_label": "Unknown Offender",
+          "other_bucket_label": "Other",
+          "empty_placeholder": "—",
+          "error_message": "Could not load repeat offender cases",
+          "add_button_label": "Add Repeat Offender",
+          "form_module_key": "form_1_5",
+          "form_sub_category": "Repeat Offender",
+          "form_module_label": "Repeat Offender",
+          "no_cases_label": "No cases",
+          "title": "Repeat Offender — Summary"
+        };
   }
 
   static Map<String, dynamic> get juvenileSummary {
-    return _config['juvenile_summary'] ?? {
-      "unknown_offender_label": "Unknown Offender",
-      "other_bucket_label": "Other",
-      "empty_placeholder": "—",
-      "error_message": "Could not load juvenile cases",
-      "add_button_label": "Add Juvenile",
-      "form_module_key": "pocso",
-      "form_sub_category": "Juvenile",
-      "form_module_label": "Juvenile",
-      "no_cases_label": "No cases",
-      "title": "Juvenile — Summary"
-    };
+    return _config['juvenile_summary'] ??
+        {
+          "unknown_offender_label": "Unknown Offender",
+          "other_bucket_label": "Other",
+          "empty_placeholder": "—",
+          "error_message": "Could not load juvenile cases",
+          "add_button_label": "Add Juvenile",
+          "form_module_key": "pocso",
+          "form_sub_category": "Juvenile",
+          "form_module_label": "Juvenile",
+          "no_cases_label": "No cases",
+          "title": "Juvenile — Summary"
+        };
   }
 
   static Future<void> initialize() async {
@@ -45,7 +47,7 @@ class UiConfigService {
         _config = jsonDecode(cached);
       } catch (_) {}
     }
-    
+
     // Fetch latest from API asynchronously
     _fetchLatest();
   }

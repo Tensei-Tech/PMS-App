@@ -87,7 +87,6 @@ class RepeatOffenderSummaryScreen extends StatelessWidget {
     final title = UiConfigService.repeatOffenderSummary['title'];
     final anyRows = dataset.isNotEmpty;
 
-
     return Scaffold(
       backgroundColor: AppColors.lightBg,
       body: SafeArea(
@@ -125,7 +124,6 @@ class RepeatOffenderSummaryScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-
                   GestureDetector(
                     onTap: !anyRows ? null : () => _exportPdf(context, dataset),
                     child: Container(
@@ -162,7 +160,8 @@ class RepeatOffenderSummaryScreen extends StatelessWidget {
                 child: dataset.isEmpty
                     ? Center(
                         child: Text(
-                          UiConfigService.repeatOffenderSummary['no_cases_label'],
+                          UiConfigService
+                              .repeatOffenderSummary['no_cases_label'],
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -216,7 +215,8 @@ class _LiveRepeatOffenderSummaryLoader extends StatefulWidget {
       _LiveRepeatOffenderSummaryLoaderState();
 }
 
-class _LiveRepeatOffenderSummaryLoaderState extends State<_LiveRepeatOffenderSummaryLoader> {
+class _LiveRepeatOffenderSummaryLoaderState
+    extends State<_LiveRepeatOffenderSummaryLoader> {
   final _backend = BackendCaseService();
   String _boundStation = '';
   List<ModuleRecord> _modules = const [];
@@ -328,21 +328,24 @@ class _LiveRepeatOffenderSummaryLoaderState extends State<_LiveRepeatOffenderSum
     final exclusive = modules.isNotEmpty;
     // We'll reuse the arrestedTableRowsAll for now, but we'll map fields properly in the caller if needed
     final now = DateTime.now();
-    final rawDataset =
-        exclusive ? arrestedTableRowsAll(modules, now) : <Map<String, String>>[];
-        
+    final rawDataset = exclusive
+        ? arrestedTableRowsAll(modules, now)
+        : <Map<String, String>>[];
+
     // Deduplicate by accused_name so each offender only appears once
     final dataset = <Map<String, String>>[];
     final seenAccused = <String>{};
     for (var row in rawDataset) {
       final name = row['accused_name'] ?? '';
-      if (name.isNotEmpty && name != UiConfigService.repeatOffenderSummary['unknown_offender_label']) {
+      if (name.isNotEmpty &&
+          name !=
+              UiConfigService.repeatOffenderSummary['unknown_offender_label']) {
         if (seenAccused.contains(name)) continue;
         seenAccused.add(name);
       }
       dataset.add(row);
     }
-    
+
     const showDemoNote = false;
 
     return widget.buildContent(

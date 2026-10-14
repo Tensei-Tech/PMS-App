@@ -72,11 +72,16 @@ class InchargeAnalyticsSummary {
 
   factory InchargeAnalyticsSummary.fromJson(Map<String, dynamic> json) {
     return InchargeAnalyticsSummary(
-      totalStationPersonnel: (json['total_station_personnel'] as num?)?.toInt() ?? 0,
-      personnelCompletedAtLeastOne: (json['personnel_completed_at_least_one'] as num?)?.toInt() ?? 0,
-      personnelNotCompletedAny: (json['personnel_not_completed_any'] as num?)?.toInt() ?? 0,
-      totalCourseCompletions: (json['total_course_completions'] as num?)?.toInt() ?? 0,
-      completionPercentage: (json['completion_percentage'] as num?)?.toDouble() ?? 0.0,
+      totalStationPersonnel:
+          (json['total_station_personnel'] as num?)?.toInt() ?? 0,
+      personnelCompletedAtLeastOne:
+          (json['personnel_completed_at_least_one'] as num?)?.toInt() ?? 0,
+      personnelNotCompletedAny:
+          (json['personnel_not_completed_any'] as num?)?.toInt() ?? 0,
+      totalCourseCompletions:
+          (json['total_course_completions'] as num?)?.toInt() ?? 0,
+      completionPercentage:
+          (json['completion_percentage'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }
@@ -105,7 +110,8 @@ class OfficerCompletionStat {
       badgeNumber: json['badge_number']?.toString() ?? '',
       designation: json['designation']?.toString() ?? '',
       stationName: json['station_name']?.toString() ?? '',
-      completedCoursesCount: (json['completed_courses_count'] as num?)?.toInt() ?? 0,
+      completedCoursesCount:
+          (json['completed_courses_count'] as num?)?.toInt() ?? 0,
     );
   }
 }
@@ -154,17 +160,21 @@ class InchargeAnalyticsResponse {
 
   factory InchargeAnalyticsResponse.fromJson(Map<String, dynamic> json) {
     final summaryJson = json['summary'] as Map<String, dynamic>? ?? {};
-    final completionsList = (json['individual_officer_completions'] as List<dynamic>?) ?? [];
-    final notCompletedList = (json['officers_not_completed'] as List<dynamic>?) ?? [];
+    final completionsList =
+        (json['individual_officer_completions'] as List<dynamic>?) ?? [];
+    final notCompletedList =
+        (json['officers_not_completed'] as List<dynamic>?) ?? [];
 
     return InchargeAnalyticsResponse(
       stationName: json['station_name']?.toString() ?? '',
       summary: InchargeAnalyticsSummary.fromJson(summaryJson),
       individualCompletions: completionsList
-          .map((item) => OfficerCompletionStat.fromJson(item as Map<String, dynamic>))
+          .map((item) =>
+              OfficerCompletionStat.fromJson(item as Map<String, dynamic>))
           .toList(),
       officersNotCompleted: notCompletedList
-          .map((item) => OfficerNotDoneStat.fromJson(item as Map<String, dynamic>))
+          .map((item) =>
+              OfficerNotDoneStat.fromJson(item as Map<String, dynamic>))
           .toList(),
     );
   }
@@ -218,10 +228,14 @@ class ELearningService {
   }) async {
     try {
       final queryParams = <String, dynamic>{};
-      if (station != null && station.isNotEmpty) queryParams['station'] = station;
-      if (officerUid != null && officerUid.isNotEmpty) queryParams['officer_uid'] = officerUid;
-      if (courseName != null && courseName.isNotEmpty) queryParams['course_name'] = courseName;
-      if (platform != null && platform.isNotEmpty) queryParams['platform'] = platform;
+      if (station != null && station.isNotEmpty)
+        queryParams['station'] = station;
+      if (officerUid != null && officerUid.isNotEmpty)
+        queryParams['officer_uid'] = officerUid;
+      if (courseName != null && courseName.isNotEmpty)
+        queryParams['course_name'] = courseName;
+      if (platform != null && platform.isNotEmpty)
+        queryParams['platform'] = platform;
 
       final res = await _api.get(
         ApiConfig.elearningRecords,
@@ -235,7 +249,9 @@ class ELearningService {
         } else if (res.data is Map && res.data['results'] is List) {
           rawList = res.data['results'];
         }
-        return rawList.map((e) => ELearningRecord.fromJson(e as Map<String, dynamic>)).toList();
+        return rawList
+            .map((e) => ELearningRecord.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
     } catch (e) {
       if (kDebugMode) debugPrint('[ELearningService] fetchRecords error: $e');
@@ -257,7 +273,8 @@ class ELearningService {
         'course_name': courseName,
         'platform': platform,
         'date_of_completion': dateOfCompletion,
-        if (certificateNo != null && certificateNo.isNotEmpty) 'certificate_no': certificateNo,
+        if (certificateNo != null && certificateNo.isNotEmpty)
+          'certificate_no': certificateNo,
         if (remarks != null && remarks.isNotEmpty) 'remarks': remarks,
       };
 
@@ -268,37 +285,47 @@ class ELearningService {
 
       return res.isSuccess;
     } catch (e) {
-      if (kDebugMode) debugPrint('[ELearningService] submitCourseCompletion error: $e');
+      if (kDebugMode)
+        debugPrint('[ELearningService] submitCourseCompletion error: $e');
       return false;
     }
   }
 
   /// Incharge Analytics for Police Station
-  Future<InchargeAnalyticsResponse?> fetchInchargeAnalytics({String? station}) async {
+  Future<InchargeAnalyticsResponse?> fetchInchargeAnalytics(
+      {String? station}) async {
     try {
       final queryParams = <String, dynamic>{};
-      if (station != null && station.isNotEmpty) queryParams['station'] = station;
+      if (station != null && station.isNotEmpty)
+        queryParams['station'] = station;
 
       final res = await _api.get(
         ApiConfig.elearningAnalytics,
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
 
-      if (res.isSuccess && res.data != null && res.data is Map<String, dynamic>) {
-        return InchargeAnalyticsResponse.fromJson(res.data as Map<String, dynamic>);
+      if (res.isSuccess &&
+          res.data != null &&
+          res.data is Map<String, dynamic>) {
+        return InchargeAnalyticsResponse.fromJson(
+            res.data as Map<String, dynamic>);
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('[ELearningService] fetchInchargeAnalytics error: $e');
+      if (kDebugMode)
+        debugPrint('[ELearningService] fetchInchargeAnalytics error: $e');
     }
     return null;
   }
 
   /// Fetch course catalog (available courses for the station)
-  Future<List<CourseEntry>> fetchCourses({String? platform, String? category}) async {
+  Future<List<CourseEntry>> fetchCourses(
+      {String? platform, String? category}) async {
     try {
       final queryParams = <String, dynamic>{};
-      if (platform != null && platform.isNotEmpty) queryParams['platform'] = platform;
-      if (category != null && category.isNotEmpty) queryParams['category'] = category;
+      if (platform != null && platform.isNotEmpty)
+        queryParams['platform'] = platform;
+      if (category != null && category.isNotEmpty)
+        queryParams['category'] = category;
 
       final res = await _api.get(
         ApiConfig.elearningCourses,
@@ -312,7 +339,9 @@ class ELearningService {
         } else if (res.data is Map && res.data['results'] is List) {
           rawList = res.data['results'];
         }
-        return rawList.map((e) => CourseEntry.fromJson(e as Map<String, dynamic>)).toList();
+        return rawList
+            .map((e) => CourseEntry.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
     } catch (e) {
       if (kDebugMode) debugPrint('[ELearningService] fetchCourses error: $e');

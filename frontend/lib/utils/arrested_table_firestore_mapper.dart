@@ -57,7 +57,9 @@ Map<String, String> arrestedModuleRecordToTableRow(
   required int sr,
 }) {
   final io = arrestedIoWiseIoDisplayName(r) ?? r.assignedOfficer.trim();
-  final placeholder = UiConfigService.repeatOffenderSummary['empty_placeholder'] as String? ?? '—';
+  final placeholder =
+      UiConfigService.repeatOffenderSummary['empty_placeholder'] as String? ??
+          '—';
 
   String arrDate = placeholder;
   dynamic rawArr =
@@ -140,7 +142,8 @@ Map<String, String> arrestedModuleRecordToTableRow(
     'sections': _sectionsLine(r),
     'arrest_date': arrDate,
     'io': io.isEmpty ? placeholder : io,
-    'station': r.stationName.trim().isEmpty ? placeholder : r.stationName.trim(),
+    'station':
+        r.stationName.trim().isEmpty ? placeholder : r.stationName.trim(),
     'head': _headLine(r),
     'period': arrestedTablePeriodLabel(r.incidentDate, reference),
     'accused_name': nameStr,

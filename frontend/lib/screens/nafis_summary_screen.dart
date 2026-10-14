@@ -250,7 +250,8 @@ class _LiveNAFISSummaryLoader extends StatefulWidget {
   }) buildContent;
 
   @override
-  State<_LiveNAFISSummaryLoader> createState() => _LiveNAFISSummaryLoaderState();
+  State<_LiveNAFISSummaryLoader> createState() =>
+      _LiveNAFISSummaryLoaderState();
 }
 
 class _LiveNAFISSummaryLoaderState extends State<_LiveNAFISSummaryLoader> {
@@ -332,8 +333,9 @@ class _LiveNAFISSummaryLoaderState extends State<_LiveNAFISSummaryLoader> {
 
     final exclusive = modules.isNotEmpty;
     final now = DateTime.now();
-    final rawDataset =
-        exclusive ? arrestedTableRowsAll(modules, now) : <Map<String, String>>[];
+    final rawDataset = exclusive
+        ? arrestedTableRowsAll(modules, now)
+        : <Map<String, String>>[];
 
     // Ensure status is Pending and enrich rows
     final dataset = <Map<String, dynamic>>[];
@@ -343,8 +345,10 @@ class _LiveNAFISSummaryLoaderState extends State<_LiveNAFISSummaryLoader> {
         final m = modules[i];
         r['nafis_status'] = m.extraFields['nafis_status'] ?? 'Pending';
         r['nafis_status_color'] = m.extraFields['nafis_status_color'] ?? 'red';
-        r['io_name'] = m.assignedOfficer.isNotEmpty ? m.assignedOfficer : (r['io'] ?? '—');
-        r['accused_name'] = m.accused.isNotEmpty ? m.accused : (r['accused_name'] ?? '—');
+        r['io_name'] =
+            m.assignedOfficer.isNotEmpty ? m.assignedOfficer : (r['io'] ?? '—');
+        r['accused_name'] =
+            m.accused.isNotEmpty ? m.accused : (r['accused_name'] ?? '—');
       }
       dataset.add(r);
     }

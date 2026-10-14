@@ -2117,10 +2117,14 @@ class CommonFormState extends State<CommonForm> {
 
     final inv = m['investigationNotes'] as Map?;
     if (inv != null) {
-      _fingerprintVal = inv['fingerprintVal'] as String? ?? m['fingerprintVal'] as String?;
-      _fingerprintDate.text = _s(inv['fingerprintDate'] ?? m['fingerprintDate']);
-      _fingerprintReason.text = _s(inv['fingerprintReason'] ?? m['fingerprintReason']);
-      _nafisFingerprint = inv['nafisFingerprint'] as String? ?? m['nafisFingerprint'] as String?;
+      _fingerprintVal =
+          inv['fingerprintVal'] as String? ?? m['fingerprintVal'] as String?;
+      _fingerprintDate.text =
+          _s(inv['fingerprintDate'] ?? m['fingerprintDate']);
+      _fingerprintReason.text =
+          _s(inv['fingerprintReason'] ?? m['fingerprintReason']);
+      _nafisFingerprint = inv['nafisFingerprint'] as String? ??
+          m['nafisFingerprint'] as String?;
       _nafisDate.text = _s(inv['nafisDate'] ?? m['nafisDate']);
       if (_fingerprintVal == null && inv['fingerprint'] != null) {
         _fingerprintReason.text = _s(inv['fingerprint']);

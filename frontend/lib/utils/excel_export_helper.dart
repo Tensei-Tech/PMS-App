@@ -142,10 +142,9 @@ class ExcelExportHelper {
       return names.join(', ');
     }
     if (raw is Map) {
-      final name =
-          (raw['name'] ?? raw['accused_name'] ?? raw['fullName'] ?? '')
-              .toString()
-              .trim();
+      final name = (raw['name'] ?? raw['accused_name'] ?? raw['fullName'] ?? '')
+          .toString()
+          .trim();
       return (name == 'null' || name == 'None') ? '' : name;
     }
     final s = raw.toString().trim();
@@ -179,7 +178,9 @@ class ExcelExportHelper {
 
     for (var i = 0; i < dataset.length; i++) {
       final r = dataset[i];
-      final cr = (r['cr'] ?? r['cr_no'] ?? r['case_number'] ?? r['crNo'] ?? '').toString().trim();
+      final cr = (r['cr'] ?? r['cr_no'] ?? r['case_number'] ?? r['crNo'] ?? '')
+          .toString()
+          .trim();
       final extra = r['extra_fields'] is Map ? r['extra_fields'] as Map : {};
 
       final sectionActRaw = r['section_act'] ??
@@ -202,7 +203,8 @@ class ExcelExportHelper {
           extra['accused'];
       final accused = formatAccused(accusedRaw);
 
-      final rawStatus = (r['nafis_status'] ?? r['status'] ?? '').toString().trim();
+      final rawStatus =
+          (r['nafis_status'] ?? r['status'] ?? '').toString().trim();
       final isPending = rawStatus.toLowerCase() == 'pending' ||
           rawStatus.toLowerCase() == 'no' ||
           rawStatus.isEmpty;

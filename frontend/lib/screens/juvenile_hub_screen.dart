@@ -75,7 +75,7 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
       if (dataList != null) {
         final records = dataList.map((m) => ModuleRecord.fromMap(m)).toList();
         final mappedRows = arrestedTableRowsAll(records, DateTime.now());
-        
+
         // Add fake accused/multiple cr if missing for demo
         for (var r in mappedRows) {
           if (r['accused_name'] == null) {

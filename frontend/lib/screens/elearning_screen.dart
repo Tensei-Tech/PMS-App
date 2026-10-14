@@ -71,7 +71,11 @@ class _ELearningScreenState extends State<ELearningScreen>
     if (_coursesLoading) return;
     setState(() => _coursesLoading = true);
     final courses = await _elearningService.fetchCourses();
-    if (mounted) setState(() { _courses = courses; _coursesLoading = false; });
+    if (mounted)
+      setState(() {
+        _courses = courses;
+        _coursesLoading = false;
+      });
   }
 
   Future<void> _loadData() async {
@@ -101,12 +105,15 @@ class _ELearningScreenState extends State<ELearningScreen>
     }
   }
 
-
   List<ELearningRecord> get _filteredRecords {
     return _records.where((record) {
       final matchesSearch = _searchQuery.isEmpty ||
-          record.officerName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          record.courseName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          record.officerName
+              .toLowerCase()
+              .contains(_searchQuery.toLowerCase()) ||
+          record.courseName
+              .toLowerCase()
+              .contains(_searchQuery.toLowerCase()) ||
           record.platform.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           record.badgeNumber.toLowerCase().contains(_searchQuery.toLowerCase());
 
@@ -121,10 +128,18 @@ class _ELearningScreenState extends State<ELearningScreen>
     final list = _analytics?.officersNotCompleted ?? [];
     if (_searchQuery.isEmpty) return list;
     return list.where((officer) {
-      return officer.officerName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          officer.badgeNumber.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          officer.designation.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          officer.stationName.toLowerCase().contains(_searchQuery.toLowerCase());
+      return officer.officerName
+              .toLowerCase()
+              .contains(_searchQuery.toLowerCase()) ||
+          officer.badgeNumber
+              .toLowerCase()
+              .contains(_searchQuery.toLowerCase()) ||
+          officer.designation
+              .toLowerCase()
+              .contains(_searchQuery.toLowerCase()) ||
+          officer.stationName
+              .toLowerCase()
+              .contains(_searchQuery.toLowerCase());
     }).toList();
   }
 
@@ -295,8 +310,8 @@ class _ELearningScreenState extends State<ELearningScreen>
               else
                 Flexible(
                   child: ListView.separated(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
                     shrinkWrap: true,
                     itemCount: pendingCourses.length,
                     separatorBuilder: (_, __) =>
@@ -347,7 +362,8 @@ class _ELearningScreenState extends State<ELearningScreen>
                                               const Color(0xFF1D4ED8),
                                               const Color(0xFFEFF6FF)),
                                         if (catalogEntry.isMandatory)
-                                          _miniTag('Mandatory',
+                                          _miniTag(
+                                              'Mandatory',
                                               const Color(0xFF991B1B),
                                               const Color(0xFFFEF2F2)),
                                         if (catalogEntry.durationHours != null)
@@ -397,10 +413,12 @@ class _ELearningScreenState extends State<ELearningScreen>
 
   void _showCompletedCoursesPopup(ELearningRecord item) {
     // All completed records for this officer
-    final completedRecords = _records.where((r) =>
-        r.officerUid == item.officerUid ||
-        r.officerName.trim().toLowerCase() ==
-            item.officerName.trim().toLowerCase()).toList();
+    final completedRecords = _records
+        .where((r) =>
+            r.officerUid == item.officerUid ||
+            r.officerName.trim().toLowerCase() ==
+                item.officerName.trim().toLowerCase())
+        .toList();
 
     showDialog(
       context: context,
@@ -452,8 +470,7 @@ class _ELearningScreenState extends State<ELearningScreen>
                             Text(
                               'Badge: ${item.badgeNumber}',
                               style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  color: AppColors.lightSubText),
+                                  fontSize: 12, color: AppColors.lightSubText),
                             ),
                         ],
                       ),
@@ -600,7 +617,8 @@ class _ELearningScreenState extends State<ELearningScreen>
         ? auth.fullName
         : (auth.username.isNotEmpty ? auth.username : 'Police Personnel');
     final inbuiltBadge = auth.badgeNumber.isNotEmpty ? auth.badgeNumber : 'N/A';
-    final inbuiltStation = auth.stationName.isNotEmpty ? auth.stationName : 'Current Station';
+    final inbuiltStation =
+        auth.stationName.isNotEmpty ? auth.stationName : 'Current Station';
 
     final courseNameCtrl = TextEditingController();
     final platformCtrl = TextEditingController();
@@ -620,7 +638,8 @@ class _ELearningScreenState extends State<ELearningScreen>
                 borderRadius: BorderRadius.circular(16),
               ),
               titlePadding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
               title: Row(
                 children: [
                   Container(
@@ -629,7 +648,8 @@ class _ELearningScreenState extends State<ELearningScreen>
                       color: AppColors.navyMid.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.school_rounded, color: AppColors.navyMid),
+                    child: const Icon(Icons.school_rounded,
+                        color: AppColors.navyMid),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -665,7 +685,9 @@ class _ELearningScreenState extends State<ELearningScreen>
                               radius: 20,
                               backgroundColor: AppColors.navyMid,
                               child: Text(
-                                inbuiltName.isNotEmpty ? inbuiltName[0].toUpperCase() : 'P',
+                                inbuiltName.isNotEmpty
+                                    ? inbuiltName[0].toUpperCase()
+                                    : 'P',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -692,8 +714,10 @@ class _ELearningScreenState extends State<ELearningScreen>
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 6, vertical: 2),
                                         decoration: BoxDecoration(
-                                          color: AppColors.cyanPrimary.withValues(alpha: 0.15),
-                                          borderRadius: BorderRadius.circular(4),
+                                          color: AppColors.cyanPrimary
+                                              .withValues(alpha: 0.15),
+                                          borderRadius:
+                                              BorderRadius.circular(4),
                                         ),
                                         child: const Text(
                                           'Inbuilt Profile Name',
@@ -736,11 +760,13 @@ class _ELearningScreenState extends State<ELearningScreen>
                         controller: courseNameCtrl,
                         decoration: InputDecoration(
                           hintText: 'e.g. Cyber Crime First Responder',
-                          prefixIcon: const Icon(Icons.menu_book_rounded, size: 20),
+                          prefixIcon:
+                              const Icon(Icons.menu_book_rounded, size: 20),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 12),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -758,12 +784,15 @@ class _ELearningScreenState extends State<ELearningScreen>
                       TextField(
                         controller: platformCtrl,
                         decoration: InputDecoration(
-                          hintText: 'Enter platform name (e.g. iGOT Karmayogi, CDTI, Coursera)',
-                          prefixIcon: const Icon(Icons.language_rounded, size: 20),
+                          hintText:
+                              'Enter platform name (e.g. iGOT Karmayogi, CDTI, Coursera)',
+                          prefixIcon:
+                              const Icon(Icons.language_rounded, size: 20),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 12),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -791,21 +820,25 @@ class _ELearningScreenState extends State<ELearningScreen>
                           }
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 12),
                           decoration: BoxDecoration(
                             border: Border.all(color: Colors.grey.shade400),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.calendar_today_rounded, size: 18, color: Colors.black54),
+                              const Icon(Icons.calendar_today_rounded,
+                                  size: 18, color: Colors.black54),
                               const SizedBox(width: 10),
                               Text(
                                 DateFormat('yyyy-MM-dd').format(completionDate),
                                 style: GoogleFonts.inter(fontSize: 14),
                               ),
                               const Spacer(),
-                              const Text('Change', style: TextStyle(color: Colors.blue, fontSize: 12)),
+                              const Text('Change',
+                                  style: TextStyle(
+                                      color: Colors.blue, fontSize: 12)),
                             ],
                           ),
                         ),
@@ -826,11 +859,13 @@ class _ELearningScreenState extends State<ELearningScreen>
                         controller: certificateNoCtrl,
                         decoration: InputDecoration(
                           hintText: 'e.g. IGOT-2026-98124',
-                          prefixIcon: const Icon(Icons.verified_outlined, size: 20),
+                          prefixIcon:
+                              const Icon(Icons.verified_outlined, size: 20),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 12),
                         ),
                       ),
                     ],
@@ -840,7 +875,8 @@ class _ELearningScreenState extends State<ELearningScreen>
               actionsPadding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
               actions: [
                 TextButton(
-                  onPressed: isSubmitting ? null : () => Navigator.pop(dialogContext),
+                  onPressed:
+                      isSubmitting ? null : () => Navigator.pop(dialogContext),
                   child: const Text('Cancel'),
                 ),
                 ElevatedButton.icon(
@@ -850,7 +886,8 @@ class _ELearningScreenState extends State<ELearningScreen>
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 12),
                   ),
                   onPressed: isSubmitting
                       ? null
@@ -858,7 +895,8 @@ class _ELearningScreenState extends State<ELearningScreen>
                           final courseName = courseNameCtrl.text.trim();
                           if (courseName.isEmpty) {
                             ScaffoldMessenger.of(modalContext).showSnackBar(
-                              const SnackBar(content: Text('Please enter course name')),
+                              const SnackBar(
+                                  content: Text('Please enter course name')),
                             );
                             return;
                           }
@@ -866,15 +904,19 @@ class _ELearningScreenState extends State<ELearningScreen>
                           final platform = platformCtrl.text.trim();
                           if (platform.isEmpty) {
                             ScaffoldMessenger.of(modalContext).showSnackBar(
-                              const SnackBar(content: Text('Please enter the platform name')),
+                              const SnackBar(
+                                  content:
+                                      Text('Please enter the platform name')),
                             );
                             return;
                           }
 
                           setDialogState(() => isSubmitting = true);
 
-                          final dateStr = DateFormat('yyyy-MM-dd').format(completionDate);
-                          final ok = await _elearningService.submitCourseCompletion(
+                          final dateStr =
+                              DateFormat('yyyy-MM-dd').format(completionDate);
+                          final ok =
+                              await _elearningService.submitCourseCompletion(
                             courseName: courseName,
                             platform: platform,
                             dateOfCompletion: dateStr,
@@ -888,7 +930,8 @@ class _ELearningScreenState extends State<ELearningScreen>
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('Course recorded successfully for $inbuiltName!'),
+                                  content: Text(
+                                      'Course recorded successfully for $inbuiltName!'),
                                   backgroundColor: AppColors.successGreen,
                                 ),
                               );
@@ -899,7 +942,8 @@ class _ELearningScreenState extends State<ELearningScreen>
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Failed to submit course record. Please try again.'),
+                                  content: Text(
+                                      'Failed to submit course record. Please try again.'),
                                   backgroundColor: AppColors.dangerRed,
                                 ),
                               );
@@ -910,7 +954,8 @@ class _ELearningScreenState extends State<ELearningScreen>
                       ? const SizedBox(
                           width: 16,
                           height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white),
                         )
                       : const Icon(Icons.check_circle_rounded, size: 18),
                   label: Text(isSubmitting ? 'Saving...' : 'Save Completion'),
@@ -933,9 +978,18 @@ class _ELearningScreenState extends State<ELearningScreen>
     bool isSubmitting = false;
 
     const categories = [
-      'General', 'BNS/BNSS', 'Cyber Crime', 'Forensics',
-      'Investigation', 'Traffic', 'Human Rights', 'Anti-Corruption',
-      'Women Safety', 'Leadership', 'First Aid', 'Other',
+      'General',
+      'BNS/BNSS',
+      'Cyber Crime',
+      'Forensics',
+      'Investigation',
+      'Traffic',
+      'Human Rights',
+      'Anti-Corruption',
+      'Women Safety',
+      'Leadership',
+      'First Aid',
+      'Other',
     ];
     showDialog(
       context: context,
@@ -944,9 +998,11 @@ class _ELearningScreenState extends State<ELearningScreen>
         return StatefulBuilder(
           builder: (modalContext, setDialogState) {
             return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
               titlePadding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
               title: Row(
                 children: [
                   Container(
@@ -955,7 +1011,8 @@ class _ELearningScreenState extends State<ELearningScreen>
                       color: AppColors.navyMid.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.library_add_rounded, color: AppColors.navyMid),
+                    child: const Icon(Icons.library_add_rounded,
+                        color: AppColors.navyMid),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -979,81 +1036,121 @@ class _ELearningScreenState extends State<ELearningScreen>
                     children: [
                       const SizedBox(height: 8),
                       // Course Name
-                      Text('Course Name *', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.navyDark)),
+                      Text('Course Name *',
+                          style: GoogleFonts.inter(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.navyDark)),
                       const SizedBox(height: 6),
                       TextField(
                         controller: courseNameCtrl,
                         decoration: InputDecoration(
-                          hintText: 'e.g. Cyber Crime Investigation Fundamentals',
-                          prefixIcon: const Icon(Icons.menu_book_rounded, size: 20),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          hintText:
+                              'e.g. Cyber Crime Investigation Fundamentals',
+                          prefixIcon:
+                              const Icon(Icons.menu_book_rounded, size: 20),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 12),
                           isDense: true,
                         ),
                       ),
                       const SizedBox(height: 14),
                       // Platform (Manual Entry)
-                      Text('Platform *', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.navyDark)),
+                      Text('Platform *',
+                          style: GoogleFonts.inter(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.navyDark)),
                       const SizedBox(height: 6),
                       TextField(
                         controller: platformCtrl,
                         decoration: InputDecoration(
-                          hintText: 'Enter platform name (e.g. iGOT Karmayogi, CDTI, Coursera)',
-                          prefixIcon: const Icon(Icons.language_rounded, size: 20),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          hintText:
+                              'Enter platform name (e.g. iGOT Karmayogi, CDTI, Coursera)',
+                          prefixIcon:
+                              const Icon(Icons.language_rounded, size: 20),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 12),
                           isDense: true,
                         ),
                       ),
                       const SizedBox(height: 14),
                       // Category
-                      Text('Category', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.navyDark)),
+                      Text('Category',
+                          style: GoogleFonts.inter(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.navyDark)),
                       const SizedBox(height: 6),
                       DropdownButtonFormField<String>(
                         initialValue: selectedCategory,
                         decoration: InputDecoration(
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 12),
                           isDense: true,
                         ),
-                        items: categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                        items: categories
+                            .map((c) =>
+                                DropdownMenuItem(value: c, child: Text(c)))
+                            .toList(),
                         onChanged: (val) {
-                          if (val != null) setDialogState(() => selectedCategory = val);
+                          if (val != null)
+                            setDialogState(() => selectedCategory = val);
                         },
                       ),
                       const SizedBox(height: 14),
                       // Duration
-                      Text('Duration (hours)', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.navyDark)),
+                      Text('Duration (hours)',
+                          style: GoogleFonts.inter(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.navyDark)),
                       const SizedBox(height: 6),
                       TextField(
                         controller: durationCtrl,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
                         decoration: InputDecoration(
                           hintText: 'e.g. 4.5',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 12),
                           isDense: true,
                           suffixText: 'hrs',
                         ),
                       ),
                       const SizedBox(height: 14),
                       // Description
-                      Text('Description', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.navyDark)),
+                      Text('Description',
+                          style: GoogleFonts.inter(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.navyDark)),
                       const SizedBox(height: 6),
                       TextField(
                         controller: descriptionCtrl,
                         maxLines: 3,
                         decoration: InputDecoration(
                           hintText: 'Brief course overview...',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 12),
                           isDense: true,
                         ),
                       ),
                       const SizedBox(height: 14),
                       // Mandatory toggle
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 10),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF1F5F9),
                           borderRadius: BorderRadius.circular(10),
@@ -1064,15 +1161,23 @@ class _ELearningScreenState extends State<ELearningScreen>
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Mandatory Course', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600)),
-                                  Text('Officers are required to complete this course', style: GoogleFonts.inter(fontSize: 11, color: AppColors.lightSubText)),
+                                  Text('Mandatory Course',
+                                      style: GoogleFonts.inter(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600)),
+                                  Text(
+                                      'Officers are required to complete this course',
+                                      style: GoogleFonts.inter(
+                                          fontSize: 11,
+                                          color: AppColors.lightSubText)),
                                 ],
                               ),
                             ),
                             Switch(
                               value: isMandatory,
                               activeThumbColor: AppColors.navyMid,
-                              onChanged: (val) => setDialogState(() => isMandatory = val),
+                              onChanged: (val) =>
+                                  setDialogState(() => isMandatory = val),
                             ),
                           ],
                         ),
@@ -1084,30 +1189,37 @@ class _ELearningScreenState extends State<ELearningScreen>
               ),
               actions: [
                 TextButton(
-                  onPressed: isSubmitting ? null : () => Navigator.pop(dialogContext),
+                  onPressed:
+                      isSubmitting ? null : () => Navigator.pop(dialogContext),
                   child: const Text('Cancel'),
                 ),
                 FilledButton.icon(
-                  style: FilledButton.styleFrom(backgroundColor: AppColors.navyMid),
+                  style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.navyMid),
                   onPressed: isSubmitting
                       ? null
                       : () async {
                           final name = courseNameCtrl.text.trim();
                           if (name.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Course name is required'), backgroundColor: AppColors.dangerRed),
+                              const SnackBar(
+                                  content: Text('Course name is required'),
+                                  backgroundColor: AppColors.dangerRed),
                             );
                             return;
                           }
                           final platform = platformCtrl.text.trim();
                           if (platform.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Platform name is required'), backgroundColor: AppColors.dangerRed),
+                              const SnackBar(
+                                  content: Text('Platform name is required'),
+                                  backgroundColor: AppColors.dangerRed),
                             );
                             return;
                           }
                           setDialogState(() => isSubmitting = true);
-                          final duration = double.tryParse(durationCtrl.text.trim());
+                          final duration =
+                              double.tryParse(durationCtrl.text.trim());
                           final ok = await _elearningService.createCourse(
                             name: name,
                             platform: platform,
@@ -1121,15 +1233,23 @@ class _ELearningScreenState extends State<ELearningScreen>
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(ok ? 'Course "$name" added to catalog!' : 'Failed to add course. Please try again.'),
-                                backgroundColor: ok ? AppColors.successGreen : AppColors.dangerRed,
+                                content: Text(ok
+                                    ? 'Course "$name" added to catalog!'
+                                    : 'Failed to add course. Please try again.'),
+                                backgroundColor: ok
+                                    ? AppColors.successGreen
+                                    : AppColors.dangerRed,
                               ),
                             );
                             if (ok) _loadCourses();
                           }
                         },
                   icon: isSubmitting
-                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white))
                       : const Icon(Icons.library_add_rounded, size: 18),
                   label: Text(isSubmitting ? 'Saving...' : 'Add to Catalog'),
                 ),
@@ -1184,14 +1304,20 @@ class _ELearningScreenState extends State<ELearningScreen>
           indicatorWeight: 3,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white60,
-          labelStyle: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13),
-          unselectedLabelStyle: GoogleFonts.inter(fontWeight: FontWeight.w400, fontSize: 13),
+          labelStyle:
+              GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13),
+          unselectedLabelStyle:
+              GoogleFonts.inter(fontWeight: FontWeight.w400, fontSize: 13),
           onTap: (index) {
             if (index == 1 && _courses.isEmpty) _loadCourses();
           },
           tabs: const [
-            Tab(icon: Icon(Icons.school_rounded, size: 18), text: 'Course Records'),
-            Tab(icon: Icon(Icons.library_books_rounded, size: 18), text: 'Manage Courses'),
+            Tab(
+                icon: Icon(Icons.school_rounded, size: 18),
+                text: 'Course Records'),
+            Tab(
+                icon: Icon(Icons.library_books_rounded, size: 18),
+                text: 'Manage Courses'),
           ],
         ),
         actions: [
@@ -1250,7 +1376,8 @@ class _ELearningScreenState extends State<ELearningScreen>
                       ),
                       Text(
                         'Manage e-learning courses available to station personnel',
-                        style: GoogleFonts.inter(fontSize: 12, color: AppColors.lightSubText),
+                        style: GoogleFonts.inter(
+                            fontSize: 12, color: AppColors.lightSubText),
                       ),
                     ],
                   ),
@@ -1258,11 +1385,14 @@ class _ELearningScreenState extends State<ELearningScreen>
                 FilledButton.icon(
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.navyMid,
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 18, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
                   ),
                   icon: const Icon(Icons.add_rounded, size: 20),
-                  label: Text('Add New Course', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                  label: Text('Add New Course',
+                      style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
                   onPressed: _showAddNewCourseDialog,
                 ),
               ],
@@ -1270,7 +1400,8 @@ class _ELearningScreenState extends State<ELearningScreen>
             const SizedBox(height: 16),
 
             if (_coursesLoading)
-              const Center(child: Padding(
+              const Center(
+                  child: Padding(
                 padding: EdgeInsets.all(40),
                 child: CircularProgressIndicator(),
               ))
@@ -1285,16 +1416,21 @@ class _ELearningScreenState extends State<ELearningScreen>
                 ),
                 child: Column(
                   children: [
-                    Icon(Icons.library_books_outlined, size: 56, color: Colors.grey.shade400),
+                    Icon(Icons.library_books_outlined,
+                        size: 56, color: Colors.grey.shade400),
                     const SizedBox(height: 12),
                     Text(
                       'No courses in catalog yet',
-                      style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey.shade700),
+                      style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade700),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       'Tap "Add New Course" to add the first course to the catalog.',
-                      style: GoogleFonts.inter(fontSize: 13, color: Colors.grey.shade500),
+                      style: GoogleFonts.inter(
+                          fontSize: 13, color: Colors.grey.shade500),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -1333,7 +1469,8 @@ class _ELearningScreenState extends State<ELearningScreen>
                               color: AppColors.navyMid.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: const Icon(Icons.book_rounded, color: AppColors.navyMid, size: 22),
+                            child: const Icon(Icons.book_rounded,
+                                color: AppColors.navyMid, size: 22),
                           ),
                           const SizedBox(width: 14),
                           // Info
@@ -1355,15 +1492,21 @@ class _ELearningScreenState extends State<ELearningScreen>
                                     ),
                                     if (course.isMandatory)
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 3),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFEFF6FF),
-                                          borderRadius: BorderRadius.circular(10),
-                                          border: Border.all(color: const Color(0xFFBFDBFE)),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          border: Border.all(
+                                              color: const Color(0xFFBFDBFE)),
                                         ),
                                         child: Text(
                                           'Mandatory',
-                                          style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.bold, color: const Color(0xFF1D4ED8)),
+                                          style: GoogleFonts.inter(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: const Color(0xFF1D4ED8)),
                                         ),
                                       ),
                                   ],
@@ -1373,17 +1516,31 @@ class _ELearningScreenState extends State<ELearningScreen>
                                   spacing: 8,
                                   runSpacing: 4,
                                   children: [
-                                    _courseBadge(Icons.devices_rounded, course.platform, const Color(0xFF7C3AED), const Color(0xFFF5F3FF)),
-                                    _courseBadge(Icons.category_rounded, course.category, const Color(0xFF0369A1), const Color(0xFFE0F2FE)),
+                                    _courseBadge(
+                                        Icons.devices_rounded,
+                                        course.platform,
+                                        const Color(0xFF7C3AED),
+                                        const Color(0xFFF5F3FF)),
+                                    _courseBadge(
+                                        Icons.category_rounded,
+                                        course.category,
+                                        const Color(0xFF0369A1),
+                                        const Color(0xFFE0F2FE)),
                                     if (course.durationHours != null)
-                                      _courseBadge(Icons.timer_outlined, '${course.durationHours}h', const Color(0xFF065F46), const Color(0xFFD1FAE5)),
+                                      _courseBadge(
+                                          Icons.timer_outlined,
+                                          '${course.durationHours}h',
+                                          const Color(0xFF065F46),
+                                          const Color(0xFFD1FAE5)),
                                   ],
                                 ),
                                 if (course.description.isNotEmpty) ...[
                                   const SizedBox(height: 6),
                                   Text(
                                     course.description,
-                                    style: GoogleFonts.inter(fontSize: 12, color: AppColors.lightSubText),
+                                    style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        color: AppColors.lightSubText),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -1404,7 +1561,8 @@ class _ELearningScreenState extends State<ELearningScreen>
     );
   }
 
-  Widget _courseBadge(IconData icon, String label, Color textColor, Color bgColor) {
+  Widget _courseBadge(
+      IconData icon, String label, Color textColor, Color bgColor) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
@@ -1416,7 +1574,9 @@ class _ELearningScreenState extends State<ELearningScreen>
         children: [
           Icon(icon, size: 12, color: textColor),
           const SizedBox(width: 4),
-          Text(label, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: textColor)),
+          Text(label,
+              style: GoogleFonts.inter(
+                  fontSize: 11, fontWeight: FontWeight.w600, color: textColor)),
         ],
       ),
     );
@@ -1442,7 +1602,8 @@ class _ELearningScreenState extends State<ELearningScreen>
                 side: BorderSide(color: Colors.grey.shade300),
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 child: Row(
                   children: [
                     const Icon(Icons.search_rounded, color: Colors.grey),
@@ -1450,7 +1611,8 @@ class _ELearningScreenState extends State<ELearningScreen>
                     Expanded(
                       child: TextField(
                         decoration: const InputDecoration(
-                          hintText: 'Search by officer name, course, badge or platform...',
+                          hintText:
+                              'Search by officer name, course, badge or platform...',
                           border: InputBorder.none,
                           isDense: true,
                         ),
@@ -1477,12 +1639,19 @@ class _ELearningScreenState extends State<ELearningScreen>
                     : constraints.maxWidth;
 
                 final apiTotal = _analytics?.summary.totalStationPersonnel ?? 0;
-                final apiCompleted = _analytics?.summary.personnelCompletedAtLeastOne ?? 0;
-                final apiNotCompleted = _analytics?.summary.personnelNotCompletedAny ?? 0;
-                final distinctRecordsCount = _records.map((r) => r.officerName.toLowerCase().trim()).toSet().length;
+                final apiCompleted =
+                    _analytics?.summary.personnelCompletedAtLeastOne ?? 0;
+                final apiNotCompleted =
+                    _analytics?.summary.personnelNotCompletedAny ?? 0;
+                final distinctRecordsCount = _records
+                    .map((r) => r.officerName.toLowerCase().trim())
+                    .toSet()
+                    .length;
 
-                final completedCount = apiCompleted > 0 ? apiCompleted : distinctRecordsCount;
-                final notCompletedOfficersList = _analytics?.officersNotCompleted ?? [];
+                final completedCount =
+                    apiCompleted > 0 ? apiCompleted : distinctRecordsCount;
+                final notCompletedOfficersList =
+                    _analytics?.officersNotCompleted ?? [];
                 final notCompletedCount = apiNotCompleted > 0
                     ? apiNotCompleted
                     : notCompletedOfficersList.length;
@@ -1491,7 +1660,9 @@ class _ELearningScreenState extends State<ELearningScreen>
                     ? apiTotal
                     : ((completedCount + notCompletedCount > 0)
                         ? (completedCount + notCompletedCount)
-                        : (distinctRecordsCount > 0 ? distinctRecordsCount : 0));
+                        : (distinctRecordsCount > 0
+                            ? distinctRecordsCount
+                            : 0));
 
                 return Wrap(
                   spacing: 12,
@@ -1506,7 +1677,8 @@ class _ELearningScreenState extends State<ELearningScreen>
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         width: halfWidth,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 14),
                         decoration: BoxDecoration(
                           color: _selectedStatusFilter == 'completed'
                               ? const Color(0xFFEFF6FF)
@@ -1534,7 +1706,8 @@ class _ELearningScreenState extends State<ELearningScreen>
                             Container(
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF22C55E).withValues(alpha: 0.12),
+                                color: const Color(0xFF22C55E)
+                                    .withValues(alpha: 0.12),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
@@ -1553,9 +1726,10 @@ class _ELearningScreenState extends State<ELearningScreen>
                                     style: GoogleFonts.inter(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
-                                      color: _selectedStatusFilter == 'completed'
-                                          ? AppColors.navyDark
-                                          : AppColors.lightSubText,
+                                      color:
+                                          _selectedStatusFilter == 'completed'
+                                              ? AppColors.navyDark
+                                              : AppColors.lightSubText,
                                     ),
                                   ),
                                   const SizedBox(height: 3),
@@ -1569,7 +1743,8 @@ class _ELearningScreenState extends State<ELearningScreen>
                                       children: [
                                         TextSpan(
                                           text: '$completedCount',
-                                          style: const TextStyle(color: Color(0xFF16A34A)),
+                                          style: const TextStyle(
+                                              color: Color(0xFF16A34A)),
                                         ),
                                         TextSpan(
                                           text: ' / $totalPersonnel',
@@ -1605,7 +1780,8 @@ class _ELearningScreenState extends State<ELearningScreen>
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         width: halfWidth,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 14),
                         decoration: BoxDecoration(
                           color: _selectedStatusFilter == 'not_completed'
                               ? const Color(0xFFFEF2F2)
@@ -1615,7 +1791,9 @@ class _ELearningScreenState extends State<ELearningScreen>
                             color: _selectedStatusFilter == 'not_completed'
                                 ? AppColors.dangerRed
                                 : Colors.grey.shade300,
-                            width: _selectedStatusFilter == 'not_completed' ? 2 : 1,
+                            width: _selectedStatusFilter == 'not_completed'
+                                ? 2
+                                : 1,
                           ),
                           boxShadow: [
                             BoxShadow(
@@ -1633,7 +1811,8 @@ class _ELearningScreenState extends State<ELearningScreen>
                             Container(
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: AppColors.dangerRed.withValues(alpha: 0.12),
+                                color:
+                                    AppColors.dangerRed.withValues(alpha: 0.12),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
@@ -1652,7 +1831,8 @@ class _ELearningScreenState extends State<ELearningScreen>
                                     style: GoogleFonts.inter(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
-                                      color: _selectedStatusFilter == 'not_completed'
+                                      color: _selectedStatusFilter ==
+                                              'not_completed'
                                           ? AppColors.dangerRed
                                           : AppColors.lightSubText,
                                     ),
@@ -1668,7 +1848,8 @@ class _ELearningScreenState extends State<ELearningScreen>
                                       children: [
                                         TextSpan(
                                           text: '$notCompletedCount',
-                                          style: const TextStyle(color: AppColors.dangerRed),
+                                          style: const TextStyle(
+                                              color: AppColors.dangerRed),
                                         ),
                                         TextSpan(
                                           text: ' / $totalPersonnel',
@@ -1701,7 +1882,8 @@ class _ELearningScreenState extends State<ELearningScreen>
             const SizedBox(height: 14),
 
             // Platform Filter Chips (only relevant when viewing completed course records)
-            if (_selectedStatusFilter == 'completed' && _availablePlatforms.length > 1) ...[
+            if (_selectedStatusFilter == 'completed' &&
+                _availablePlatforms.length > 1) ...[
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -1712,10 +1894,13 @@ class _ELearningScreenState extends State<ELearningScreen>
                       child: ChoiceChip(
                         label: Text(platform),
                         selected: isSelected,
-                        selectedColor: AppColors.navyMid.withValues(alpha: 0.15),
+                        selectedColor:
+                            AppColors.navyMid.withValues(alpha: 0.15),
                         labelStyle: TextStyle(
-                          color: isSelected ? AppColors.navyMid : Colors.black87,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          color:
+                              isSelected ? AppColors.navyMid : Colors.black87,
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.normal,
                           fontSize: 12,
                         ),
                         onSelected: (selected) {
@@ -1751,7 +1936,8 @@ class _ELearningScreenState extends State<ELearningScreen>
                   _selectedStatusFilter == 'completed'
                       ? 'Auto-synced with Officer Inbuilt Profiles'
                       : 'Pending Training Status',
-                  style: GoogleFonts.inter(fontSize: 12, color: AppColors.lightSubText),
+                  style: GoogleFonts.inter(
+                      fontSize: 12, color: AppColors.lightSubText),
                 ),
               ],
             ),
@@ -1761,237 +1947,249 @@ class _ELearningScreenState extends State<ELearningScreen>
             if (_selectedStatusFilter == 'completed') ...[
               if (list.isEmpty)
                 Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(40),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: Column(
-                  children: [
-                    Icon(Icons.school_outlined, size: 56, color: Colors.grey.shade400),
-                    const SizedBox(height: 12),
-                    Text(
-                      'No course completion records found',
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade700,
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(40),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(Icons.school_outlined,
+                          size: 56, color: Colors.grey.shade400),
+                      const SizedBox(height: 12),
+                      Text(
+                        'No course completion records found',
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade700,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Click "+ Add Course Completion" below to record a training course.',
-                      style: GoogleFonts.inter(fontSize: 13, color: Colors.grey.shade500),
-                    ),
-                  ],
-                ),
-              )
-            else
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: DataTable(
-                      headingRowColor: WidgetStateProperty.all(const Color(0xFFF1F5F9)),
-                      dataRowMinHeight: 60,
-                      dataRowMaxHeight: 80,
-                      headingTextStyle: GoogleFonts.inter(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                        color: const Color(0xFF334155),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Click "+ Add Course Completion" below to record a training course.',
+                        style: GoogleFonts.inter(
+                            fontSize: 13, color: Colors.grey.shade500),
                       ),
-                      columns: const [
-                        DataColumn(label: Text('Sr. No.')),
-                        DataColumn(label: Text('Officer Name')),
-                        DataColumn(label: Text('Course Name')),
-                        DataColumn(label: Text('Platform of Course')),
-                        DataColumn(label: Text('Date of Completion')),
-                        DataColumn(label: Text('Status')),
-                      ],
-                      rows: list.asMap().entries.map((entry) {
-                        final index = entry.key + 1;
-                        final item = entry.value;
+                    ],
+                  ),
+                )
+              else
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade300),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        headingRowColor:
+                            WidgetStateProperty.all(const Color(0xFFF1F5F9)),
+                        dataRowMinHeight: 60,
+                        dataRowMaxHeight: 80,
+                        headingTextStyle: GoogleFonts.inter(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                          color: const Color(0xFF334155),
+                        ),
+                        columns: const [
+                          DataColumn(label: Text('Sr. No.')),
+                          DataColumn(label: Text('Officer Name')),
+                          DataColumn(label: Text('Course Name')),
+                          DataColumn(label: Text('Platform of Course')),
+                          DataColumn(label: Text('Date of Completion')),
+                          DataColumn(label: Text('Status')),
+                        ],
+                        rows: list.asMap().entries.map((entry) {
+                          final index = entry.key + 1;
+                          final item = entry.value;
 
-                        return DataRow(
-                          cells: [
-                            // Serial Number
-                            DataCell(
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.blueGrey.shade50,
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  '$index',
-                                  style: GoogleFonts.inter(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blueGrey.shade800,
+                          return DataRow(
+                            cells: [
+                              // Serial Number
+                              DataCell(
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blueGrey.shade50,
+                                    borderRadius: BorderRadius.circular(6),
                                   ),
-                                ),
-                              ),
-                            ),
-                            // Name (user inbuilt name)
-                            DataCell(
-                              GestureDetector(
-                                onTap: () => _showCompletedCoursesPopup(item),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 16,
-                                      backgroundColor: AppColors.navyMid,
-                                      child: Text(
-                                        item.officerName.isNotEmpty
-                                            ? item.officerName[0].toUpperCase()
-                                            : 'P',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          item.officerName,
-                                          style: GoogleFonts.inter(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 13,
-                                            color: AppColors.navyDark,
-                                            decoration: TextDecoration.underline,
-                                            decorationColor:
-                                                AppColors.navyMid.withValues(alpha: 0.4),
-                                          ),
-                                        ),
-                                        Text(
-                                          'Tap to view completed courses',
-                                          style: GoogleFonts.inter(
-                                            fontSize: 10,
-                                            color: AppColors.lightSubText,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Icon(Icons.keyboard_arrow_down_rounded,
-                                        size: 16,
-                                        color: AppColors.navyMid.withValues(alpha: 0.6)),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            // Course Name
-                            DataCell(
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.bookmark_border_rounded,
-                                      size: 16, color: Colors.blueGrey),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    item.courseName,
+                                  child: Text(
+                                    '$index',
                                     style: GoogleFonts.inter(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blueGrey.shade800,
                                     ),
                                   ),
-                                ],
-                              ),
-                            ),
-                            // Platform
-                            DataCell(
-                              Container(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFEFF6FF),
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: const Color(0xFFBFDBFE)),
                                 ),
-                                child: Text(
-                                  item.platform,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF1D4ED8),
+                              ),
+                              // Name (user inbuilt name)
+                              DataCell(
+                                GestureDetector(
+                                  onTap: () => _showCompletedCoursesPopup(item),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 16,
+                                        backgroundColor: AppColors.navyMid,
+                                        child: Text(
+                                          item.officerName.isNotEmpty
+                                              ? item.officerName[0]
+                                                  .toUpperCase()
+                                              : 'P',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            item.officerName,
+                                            style: GoogleFonts.inter(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 13,
+                                              color: AppColors.navyDark,
+                                              decoration:
+                                                  TextDecoration.underline,
+                                              decorationColor: AppColors.navyMid
+                                                  .withValues(alpha: 0.4),
+                                            ),
+                                          ),
+                                          Text(
+                                            'Tap to view completed courses',
+                                            style: GoogleFonts.inter(
+                                              fontSize: 10,
+                                              color: AppColors.lightSubText,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Icon(Icons.keyboard_arrow_down_rounded,
+                                          size: 16,
+                                          color: AppColors.navyMid
+                                              .withValues(alpha: 0.6)),
+                                    ],
                                   ),
                                 ),
                               ),
-                            ),
-                            // Date of Completion
-                            DataCell(
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.calendar_month_outlined,
-                                      size: 15, color: Colors.black45),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    item.dateOfCompletion.isNotEmpty
-                                        ? item.dateOfCompletion
-                                        : 'N/A',
-                                    style: GoogleFonts.inter(fontSize: 13),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            // Status
-                            DataCell(
-                              Container(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: Colors.green.shade50,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.green.shade200),
-                                ),
-                                child: const Row(
+                              // Course Name
+                              DataCell(
+                                Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(Icons.check_circle_rounded,
-                                        size: 14, color: AppColors.successGreen),
-                                    SizedBox(width: 4),
+                                    const Icon(Icons.bookmark_border_rounded,
+                                        size: 16, color: Colors.blueGrey),
+                                    const SizedBox(width: 6),
                                     Text(
-                                      'Completed',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.successGreen,
+                                      item.courseName,
+                                      style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 13,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                            ),
-                          ],
-                        );
-                      }).toList(),
+                              // Platform
+                              DataCell(
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEFF6FF),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                        color: const Color(0xFFBFDBFE)),
+                                  ),
+                                  child: Text(
+                                    item.platform,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: const Color(0xFF1D4ED8),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              // Date of Completion
+                              DataCell(
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.calendar_month_outlined,
+                                        size: 15, color: Colors.black45),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      item.dateOfCompletion.isNotEmpty
+                                          ? item.dateOfCompletion
+                                          : 'N/A',
+                                      style: GoogleFonts.inter(fontSize: 13),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Status
+                              DataCell(
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.shade50,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                        color: Colors.green.shade200),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.check_circle_rounded,
+                                          size: 14,
+                                          color: AppColors.successGreen),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        'Completed',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.successGreen,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        }).toList(),
+                      ),
                     ),
                   ),
                 ),
-              ),
             ] else ...[
               if (_filteredNotCompletedOfficers.isEmpty)
                 Container(
@@ -2004,7 +2202,8 @@ class _ELearningScreenState extends State<ELearningScreen>
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.verified_rounded, color: AppColors.successGreen, size: 32),
+                      const Icon(Icons.verified_rounded,
+                          color: AppColors.successGreen, size: 32),
                       const SizedBox(width: 14),
                       Expanded(
                         child: Column(
@@ -2021,7 +2220,8 @@ class _ELearningScreenState extends State<ELearningScreen>
                             const SizedBox(height: 4),
                             Text(
                               'Every officer in this police station has completed at least one e-learning training course.',
-                              style: GoogleFonts.inter(fontSize: 13, color: Colors.green.shade800),
+                              style: GoogleFonts.inter(
+                                  fontSize: 13, color: Colors.green.shade800),
                             ),
                           ],
                         ),
@@ -2049,7 +2249,8 @@ class _ELearningScreenState extends State<ELearningScreen>
                     child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: DataTable(
-                        headingRowColor: WidgetStateProperty.all(const Color(0xFFFEF2F2)),
+                        headingRowColor:
+                            WidgetStateProperty.all(const Color(0xFFFEF2F2)),
                         dataRowMinHeight: 56,
                         dataRowMaxHeight: 68,
                         headingTextStyle: GoogleFonts.inter(
@@ -2065,7 +2266,10 @@ class _ELearningScreenState extends State<ELearningScreen>
                           DataColumn(label: Text('Station')),
                           DataColumn(label: Text('Training Status')),
                         ],
-                        rows: _filteredNotCompletedOfficers.asMap().entries.map((entry) {
+                        rows: _filteredNotCompletedOfficers
+                            .asMap()
+                            .entries
+                            .map((entry) {
                           final idx = entry.key + 1;
                           final off = entry.value;
 
@@ -2073,7 +2277,8 @@ class _ELearningScreenState extends State<ELearningScreen>
                             cells: [
                               DataCell(
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
                                     color: Colors.red.shade50,
                                     borderRadius: BorderRadius.circular(6),
@@ -2109,8 +2314,10 @@ class _ELearningScreenState extends State<ELearningScreen>
                                       ),
                                       const SizedBox(width: 10),
                                       Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           Text(
                                             off.officerName,
@@ -2118,8 +2325,10 @@ class _ELearningScreenState extends State<ELearningScreen>
                                               fontWeight: FontWeight.w600,
                                               fontSize: 13,
                                               color: Colors.red.shade900,
-                                              decoration: TextDecoration.underline,
-                                              decorationColor: Colors.red.shade300,
+                                              decoration:
+                                                  TextDecoration.underline,
+                                              decorationColor:
+                                                  Colors.red.shade300,
                                             ),
                                           ),
                                           Text(
@@ -2139,36 +2348,52 @@ class _ELearningScreenState extends State<ELearningScreen>
                                 ),
                               ),
                               DataCell(Text(
-                                off.badgeNumber.isNotEmpty ? off.badgeNumber : '—',
+                                off.badgeNumber.isNotEmpty
+                                    ? off.badgeNumber
+                                    : '—',
                                 style: GoogleFonts.inter(fontSize: 13),
                               )),
                               DataCell(Text(
-                                off.designation.isNotEmpty ? off.designation : 'Officer',
+                                off.designation.isNotEmpty
+                                    ? off.designation
+                                    : 'Officer',
                                 style: GoogleFonts.inter(fontSize: 13),
                               )),
                               DataCell(Text(
-                                off.stationName.isNotEmpty ? off.stationName : '—',
+                                off.stationName.isNotEmpty
+                                    ? off.stationName
+                                    : '—',
                                 style: GoogleFonts.inter(fontSize: 13),
                               )),
                               DataCell(
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
                                     color: Colors.red.shade50,
                                     borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(color: Colors.red.shade300),
+                                    border:
+                                        Border.all(color: Colors.red.shade300),
                                   ),
                                   child: Builder(
                                     builder: (_) {
-                                      final completedCount = _records.where((r) =>
-                                          r.officerUid == off.officerUid ||
-                                          r.officerName.trim().toLowerCase() ==
-                                              off.officerName.trim().toLowerCase()).length;
+                                      final completedCount = _records
+                                          .where((r) =>
+                                              r.officerUid == off.officerUid ||
+                                              r.officerName
+                                                      .trim()
+                                                      .toLowerCase() ==
+                                                  off.officerName
+                                                      .trim()
+                                                      .toLowerCase())
+                                          .length;
                                       return Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          const Icon(Icons.pending_actions_rounded,
-                                              size: 14, color: AppColors.dangerRed),
+                                          const Icon(
+                                              Icons.pending_actions_rounded,
+                                              size: 14,
+                                              color: AppColors.dangerRed),
                                           const SizedBox(width: 4),
                                           Text(
                                             '$completedCount Course${completedCount == 1 ? '' : 's'} Completed',

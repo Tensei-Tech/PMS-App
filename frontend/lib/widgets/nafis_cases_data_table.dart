@@ -38,11 +38,14 @@ class NAFISCasesDataTable extends StatelessWidget {
               alignment: align,
               child: Text(
                 s,
-                textAlign: align == Alignment.center ? TextAlign.center : TextAlign.left,
+                textAlign: align == Alignment.center
+                    ? TextAlign.center
+                    : TextAlign.left,
                 style: GoogleFonts.poppins(
                   fontSize: headerFontSize,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF1E293B), // Navy/Slate matching screenshot
+                  color:
+                      const Color(0xFF1E293B), // Navy/Slate matching screenshot
                 ),
               ),
             );
@@ -58,7 +61,9 @@ class NAFISCasesDataTable extends StatelessWidget {
               alignment: align,
               child: Text(
                 s,
-                textAlign: align == Alignment.center ? TextAlign.center : TextAlign.left,
+                textAlign: align == Alignment.center
+                    ? TextAlign.center
+                    : TextAlign.left,
                 style: GoogleFonts.poppins(
                   fontSize: cellFontSize,
                   fontWeight: fontWeight ?? FontWeight.w400,
@@ -72,7 +77,9 @@ class NAFISCasesDataTable extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
-                color: isPending ? const Color(0xFFEF4444) : const Color(0xFF22C55E),
+                color: isPending
+                    ? const Color(0xFFEF4444)
+                    : const Color(0xFF22C55E),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
@@ -103,14 +110,16 @@ class NAFISCasesDataTable extends StatelessWidget {
           }
 
           final caseId = (r['id'] ?? r['case_id'] ?? '').toString();
-          final crNo = (r['cr'] ?? r['cr_no'] ?? r['case_number'] ?? '').toString();
+          final crNo =
+              (r['cr'] ?? r['cr_no'] ?? r['case_number'] ?? '').toString();
 
           return Center(
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFEF4444),
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
                 minimumSize: const Size(80, 30),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
@@ -119,7 +128,8 @@ class NAFISCasesDataTable extends StatelessWidget {
               ),
               onPressed: () async {
                 if (caseId.isNotEmpty) {
-                  final ok = await BackendCaseService().sendNafisReminderToIO(caseId);
+                  final ok =
+                      await BackendCaseService().sendNafisReminderToIO(caseId);
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -156,13 +166,13 @@ class NAFISCasesDataTable extends StatelessWidget {
         }
 
         final columnWidths = <int, TableColumnWidth>{
-          0: const FixedColumnWidth(70),   // Sr. No.
-          1: const FlexColumnWidth(1.2),   // CR No.
-          2: const FlexColumnWidth(1.4),   // Section/Act
-          3: const FlexColumnWidth(1.4),   // Charge Sheet Date
-          4: const FlexColumnWidth(1.5),   // IO Name
-          5: const FixedColumnWidth(140),  // Status
-          6: const FixedColumnWidth(140),  // Action
+          0: const FixedColumnWidth(70), // Sr. No.
+          1: const FlexColumnWidth(1.2), // CR No.
+          2: const FlexColumnWidth(1.4), // Section/Act
+          3: const FlexColumnWidth(1.4), // Charge Sheet Date
+          4: const FlexColumnWidth(1.5), // IO Name
+          5: const FixedColumnWidth(140), // Status
+          6: const FixedColumnWidth(140), // Action
         };
 
         final headers = <Widget>[
@@ -176,9 +186,12 @@ class NAFISCasesDataTable extends StatelessWidget {
         ];
 
         TableRow rowFor(int idx, Map<String, dynamic> r) {
-          final cr = (r['cr'] ?? r['cr_no'] ?? r['case_number'] ?? r['crNo'] ?? '').toString();
-          
-          final extra = r['extra_fields'] is Map ? r['extra_fields'] as Map : {};
+          final cr =
+              (r['cr'] ?? r['cr_no'] ?? r['case_number'] ?? r['crNo'] ?? '')
+                  .toString();
+
+          final extra =
+              r['extra_fields'] is Map ? r['extra_fields'] as Map : {};
           final sectionActRaw = r['section_act'] ??
               r['acts_sections'] ??
               r['sections'] ??
@@ -191,7 +204,8 @@ class NAFISCasesDataTable extends StatelessWidget {
               extra['section'] ??
               extra['act_section'] ??
               extra['sectionAct'];
-          final formattedSection = ExcelExportHelper.formatSectionAct(sectionActRaw);
+          final formattedSection =
+              ExcelExportHelper.formatSectionAct(sectionActRaw);
           final sectionAct = formattedSection.isEmpty ? '-' : formattedSection;
 
           final chargeSheetDate = (r['charge_sheet_date'] ??
@@ -212,7 +226,8 @@ class NAFISCasesDataTable extends StatelessWidget {
               .toString()
               .trim();
 
-          final rawStatus = (r['nafis_status'] ?? r['status'] ?? '').toString().trim();
+          final rawStatus =
+              (r['nafis_status'] ?? r['status'] ?? '').toString().trim();
           final isPending = rawStatus.toLowerCase() == 'pending' ||
               rawStatus.toLowerCase() == 'no' ||
               rawStatus.isEmpty;
@@ -224,7 +239,8 @@ class NAFISCasesDataTable extends StatelessWidget {
               ),
             ),
             children: [
-              dataCell('${serialOffset + idx + 1}', align: Alignment.centerLeft),
+              dataCell('${serialOffset + idx + 1}',
+                  align: Alignment.centerLeft),
               dataCell(cr),
               dataCell(sectionAct),
               dataCell(chargeSheetDate.isEmpty ? 'Pending' : chargeSheetDate),

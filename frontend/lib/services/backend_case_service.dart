@@ -883,7 +883,8 @@ class BackendCaseService {
       }
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('[BackendCaseService] fetchRepeatOffenderCases exception: $e');
+        debugPrint(
+            '[BackendCaseService] fetchRepeatOffenderCases exception: $e');
       }
     }
     return null;
@@ -917,7 +918,8 @@ class BackendCaseService {
       }
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('[BackendCaseService] fetchRepeatOffenderIOWise exception: $e');
+        debugPrint(
+            '[BackendCaseService] fetchRepeatOffenderIOWise exception: $e');
       }
     }
     return null;
@@ -940,7 +942,8 @@ class BackendCaseService {
       }
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('[BackendCaseService] fetchRepeatOffenderTimeWise exception: $e');
+        debugPrint(
+            '[BackendCaseService] fetchRepeatOffenderTimeWise exception: $e');
       }
     }
     return null;

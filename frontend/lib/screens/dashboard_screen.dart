@@ -3937,7 +3937,9 @@ class _HomeTabState extends State<_HomeTab> {
           page: NAFISHubScreen(stationName: auth.stationName),
         ),
       );
-    } else if (item.name == 'E-Learning' || item.moduleKey == 'elearning' || item.name == 'E Learning') {
+    } else if (item.name == 'E-Learning' ||
+        item.moduleKey == 'elearning' ||
+        item.name == 'E Learning') {
       final auth = context.read<AuthProvider>();
       Navigator.push(
         context,
