@@ -228,14 +228,18 @@ class ELearningService {
   }) async {
     try {
       final queryParams = <String, dynamic>{};
-      if (station != null && station.isNotEmpty)
+      if (station != null && station.isNotEmpty) {
         queryParams['station'] = station;
-      if (officerUid != null && officerUid.isNotEmpty)
+      }
+      if (officerUid != null && officerUid.isNotEmpty) {
         queryParams['officer_uid'] = officerUid;
-      if (courseName != null && courseName.isNotEmpty)
+      }
+      if (courseName != null && courseName.isNotEmpty) {
         queryParams['course_name'] = courseName;
-      if (platform != null && platform.isNotEmpty)
+      }
+      if (platform != null && platform.isNotEmpty) {
         queryParams['platform'] = platform;
+      }
 
       final res = await _api.get(
         ApiConfig.elearningRecords,
@@ -285,8 +289,9 @@ class ELearningService {
 
       return res.isSuccess;
     } catch (e) {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint('[ELearningService] submitCourseCompletion error: $e');
+      }
       return false;
     }
   }
@@ -296,8 +301,9 @@ class ELearningService {
       {String? station}) async {
     try {
       final queryParams = <String, dynamic>{};
-      if (station != null && station.isNotEmpty)
+      if (station != null && station.isNotEmpty) {
         queryParams['station'] = station;
+      }
 
       final res = await _api.get(
         ApiConfig.elearningAnalytics,
@@ -311,8 +317,9 @@ class ELearningService {
             res.data as Map<String, dynamic>);
       }
     } catch (e) {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint('[ELearningService] fetchInchargeAnalytics error: $e');
+      }
     }
     return null;
   }
@@ -322,10 +329,12 @@ class ELearningService {
       {String? platform, String? category}) async {
     try {
       final queryParams = <String, dynamic>{};
-      if (platform != null && platform.isNotEmpty)
+      if (platform != null && platform.isNotEmpty) {
         queryParams['platform'] = platform;
-      if (category != null && category.isNotEmpty)
+      }
+      if (category != null && category.isNotEmpty) {
         queryParams['category'] = category;
+      }
 
       final res = await _api.get(
         ApiConfig.elearningCourses,
