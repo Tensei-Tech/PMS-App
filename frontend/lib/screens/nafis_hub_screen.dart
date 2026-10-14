@@ -6,7 +6,6 @@ import 'nafis_summary_screen.dart';
 import '../modules/core/models/base_record.dart';
 import '../utils/arrested_table_firestore_mapper.dart';
 import '../utils/excel_export_helper.dart';
-import '../widgets/nafis_cases_data_table.dart';
 
 class NAFISHubScreen extends StatefulWidget {
   final String stationName;
@@ -28,8 +27,6 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
   List<Map<String, dynamic>>? _timeWiseData;
   List<Map<String, dynamic>>? _ioWiseData;
   List<Map<String, dynamic>>? _caseWiseList;
-  Map<String, List<Map<String, dynamic>>>? _caseWiseData;
-  List<ModuleRecord>? _allRecords;
 
   bool _isLoadingTime = false;
   bool _isLoadingIO = false;
@@ -78,7 +75,6 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
       if (dataList != null) {
         _caseWiseList = dataList;
         final records = dataList.map((m) => ModuleRecord.fromMap(m)).toList();
-        _allRecords = records;
         final mappedRows = arrestedTableRowsAll(records, DateTime.now());
 
         final enrichedRows = <Map<String, dynamic>>[];
@@ -105,7 +101,6 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
 
         setState(() {
           _isLoadingCase = false;
-          _caseWiseData = grouped;
         });
       } else {
         setState(() {
@@ -291,6 +286,7 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
                             if (caseId.isNotEmpty) {
                               final ok = await _backend
                                   .sendNafisReminderToIO(caseId);
+                              if (!mounted) return;
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
