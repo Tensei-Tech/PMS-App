@@ -1077,13 +1077,14 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
             }
         )
 
-    # 10. Forensics
     for_data = m.get('forensics') or m.get('case_forensics') or {}
     inv_notes = m.get('investigationNotes') or {}
-    e_sh = for_data.get('e_shakshya') if 'e_shakshya' in for_data else (m.get('eshakshValue') == 'Yes' or m.get('eshakshValue') is True)
-    fp = for_data.get('fingerprint_taken') if 'fingerprint_taken' in for_data else (inv_notes.get('fingerprintVal') == 'Yes' or inv_notes.get('fingerprintVal') is True)
-    nafis = for_data.get('nafis_fingerprint') if 'nafis_fingerprint' in for_data else bool(inv_notes.get('nafisFingerprint'))
-    if e_sh or fp or nafis or for_data or inv_notes:
+    e_sh = for_data.get('e_shakshya') if 'e_shakshya' in for_data else (m.get('eshakshValue') in ['Yes', 'yes', True])
+    fp_raw = for_data.get('fingerprint_taken') if 'fingerprint_taken' in for_data else inv_notes.get('fingerprintVal')
+    fp = fp_raw in ['Yes', 'yes', True, 'true'] if fp_raw is not None else None
+    nafis_raw = for_data.get('nafis_fingerprint') if 'nafis_fingerprint' in for_data else inv_notes.get('nafisFingerprint')
+    nafis = nafis_raw in ['Yes', 'yes', True, 'true'] if nafis_raw is not None else None
+    if e_sh is not None or fp is not None or nafis is not None or for_data or inv_notes:
         CaseForensics.objects.update_or_create(
             case=case,
             defaults={

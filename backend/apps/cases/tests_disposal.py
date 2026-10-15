@@ -6,38 +6,41 @@ from django.urls import reverse
 class DisposalInverseLogicTests(APITestCase):
     def setUp(self):
         # Pending cases
-        CaseRecord.objects.create(case_number='CR001', extra_fields={}, station_name='Central')
-        CaseRecord.objects.create(case_number='CR002', extra_fields={'ccStNumber': None}, station_name='Central')
-        CaseRecord.objects.create(case_number='CR003', extra_fields={'chargeSheetNumber': ''}, station_name='Central')
-        CaseRecord.objects.create(case_number='CR004', extra_fields={'aFinalNo': '   '}, station_name='Central')
-        CaseRecord.objects.create(case_number='CR005', extra_fields={'stay_by_high_court_date': '2023-01-01', 'quashed_by_high_court_date': '2023-01-02'}, station_name='Central')
-        
+        self.p1 = CaseRecord.objects.create(case_number='CR001', extra_fields={}, station_name='Central')
+        self.p2 = CaseRecord.objects.create(case_number='CR002', extra_fields={'ccStNumber': None}, station_name='Central')
+        self.p3 = CaseRecord.objects.create(case_number='CR003', extra_fields={'chargeSheetNumber': ''}, station_name='Central')
+        self.p4 = CaseRecord.objects.create(case_number='CR004', extra_fields={'aFinalNo': '   '}, station_name='Central')
+        self.p5 = CaseRecord.objects.create(case_number='CR005', extra_fields={'stay_by_high_court_date': '2023-01-01', 'quashed_by_high_court_date': '2023-01-02'}, station_name='Central')
+
         # Disposal cases
-        CaseRecord.objects.create(case_number='CR006', extra_fields={'ccStNumber': 'CC1234'}, station_name='Central')
-        CaseRecord.objects.create(case_number='CR007', extra_fields={'chargeSheetNumber': 'CS123'}, station_name='Central')
-        CaseRecord.objects.create(case_number='CR008', extra_fields={'aFinalNo': 'A1'}, station_name='Central')
-        CaseRecord.objects.create(case_number='CR009', extra_fields={'bFinalNo': 'B1'}, station_name='Central')
-        CaseRecord.objects.create(case_number='CR010', extra_fields={'cFinalNo': 'C1'}, station_name='Central')
-        CaseRecord.objects.create(case_number='CR011', extra_fields={'ncFinalNo': 'NC1'}, station_name='Central')
-        CaseRecord.objects.create(case_number='CR012', extra_fields={'abatedSummaryNo': 'AS1'}, station_name='Central')
-        
+        self.d1 = CaseRecord.objects.create(case_number='CR006', extra_fields={'ccStNumber': 'CC1234'}, station_name='Central')
+        self.d2 = CaseRecord.objects.create(case_number='CR007', extra_fields={'chargeSheetNumber': 'CS123'}, station_name='Central')
+        self.d3 = CaseRecord.objects.create(case_number='CR008', extra_fields={'aFinalNo': 'A1'}, station_name='Central')
+        self.d4 = CaseRecord.objects.create(case_number='CR009', extra_fields={'bFinalNo': 'B1'}, station_name='Central')
+        self.d5 = CaseRecord.objects.create(case_number='CR010', extra_fields={'cFinalNo': 'C1'}, station_name='Central')
+        self.d6 = CaseRecord.objects.create(case_number='CR011', extra_fields={'ncFinalNo': 'NC1'}, station_name='Central')
+        self.d7 = CaseRecord.objects.create(case_number='CR012', extra_fields={'abatedSummaryNo': 'AS1'}, station_name='Central')
+
         # Multiple keys
-        CaseRecord.objects.create(case_number='CR013', extra_fields={'ccStNumber': 'CC1234', 'chargeSheetNumber': 'CS123'}, station_name='Central')
-        
-        # With spaces
-        CaseRecord.objects.create(case_number='CR014', extra_fields={'chargeSheetNumber': '  CS999  '}, station_name='Central')
+        self.d8 = CaseRecord.objects.create(case_number='CR013', extra_fields={'ccStNumber': 'CC1234', 'chargeSheetNumber': 'CS123'}, station_name='Central')
+
+        # With spaces (disposal because stripped value is non-empty)
+        self.d9 = CaseRecord.objects.create(case_number='CR014', extra_fields={'chargeSheetNumber': '  CS999  '}, station_name='Central')
+
+        # Track the 14 IDs created in this test
+        self.created_ids = {
+            self.p1.id, self.p2.id, self.p3.id, self.p4.id, self.p5.id,
+            self.d1.id, self.d2.id, self.d3.id, self.d4.id, self.d5.id,
+            self.d6.id, self.d7.id, self.d8.id, self.d9.id,
+        }
 
     def test_pending_and_disposal_inverses(self):
-        total_cases = CaseRecord.objects.count()
-        self.assertEqual(total_cases, 14)
-        
-        pending_qs = get_cases_by_status('pending')
-        disposal_qs = get_cases_by_status('disposal')
-        
-        pending_ids = set(pending_qs.values_list('id', flat=True))
-        disposal_ids = set(disposal_qs.values_list('id', flat=True))
-        
-        self.assertEqual(len(pending_ids) + len(disposal_ids), total_cases)
+        # Filter to only the 14 cases created in this test (DB may have pre-existing data locally)
+        pending_ids = set(get_cases_by_status('pending').filter(id__in=self.created_ids).values_list('id', flat=True))
+        disposal_ids = set(get_cases_by_status('disposal').filter(id__in=self.created_ids).values_list('id', flat=True))
+
+        self.assertEqual(len(self.created_ids), 14)
+        self.assertEqual(len(pending_ids) + len(disposal_ids), 14)
         self.assertEqual(len(pending_ids.intersection(disposal_ids)), 0)
         self.assertEqual(len(pending_ids), 5)
         self.assertEqual(len(disposal_ids), 9)
@@ -239,19 +242,23 @@ class ADCaseDisposalTests(APITestCase):
     def test_pagination_stability(self):
         from rest_framework.test import APIClient
         from django.contrib.auth import get_user_model
+        from apps.core import tenancy as _tenancy_module
         User = get_user_model()
         user = User.objects.create(username='testpagi', password='123')
         user.station_name = 'Central'
         user.save()
         client = APIClient()
         client.force_authenticate(user=user)
-        
+
+        # Clear any stale tenant schema stack left by previous tests
+        _tenancy_module._thread_local.__dict__.clear()
+
         CaseRecord.objects.all().delete()
-        
-        # Create 25 cases with identical data
+
+        # Create 25 disposal cases with identical timestamps
         from datetime import datetime, timezone
         identical_time = datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
-        
+
         for i in range(25):
             c = CaseRecord.objects.create(
                 module_key='theft',
@@ -259,24 +266,23 @@ class ADCaseDisposalTests(APITestCase):
                 station_name='Central',
                 extra_fields={'ccStNumber': f'CC-{i}', 'disposal_date': '2023-01-01'}
             )
-            # Force same created_at
             CaseRecord.objects.filter(id=c.id).update(created_at=identical_time)
-            
+
         from unittest.mock import patch
-        
+
         with patch('apps.cases.views.check_dynamic_permission', return_value=True), \
-             patch('apps.core.permissions.check_dynamic_permission', return_value=True):
+             patch('apps.core.permissions.check_dynamic_permission', return_value=True), \
+             patch('apps.core.tenancy.get_active_tenant_schema', return_value='public'), \
+             patch('apps.core.tenancy.set_tenant_schema'):
             res1 = client.get('/api/cases/disposal/case-wise/?page=1&page_size=20')
             res2 = client.get('/api/cases/disposal/case-wise/?page=2&page_size=20')
-        
-        # Verify it succeeds
+
         self.assertEqual(res1.status_code, 200, res1.data)
         self.assertEqual(res2.status_code, 200, res2.data)
-        
+
         ids1 = [item['id'] for item in res1.data['results']]
         ids2 = [item['id'] for item in res2.data['results']]
-        
+
         self.assertEqual(len(ids1), 20)
         self.assertEqual(len(ids2), 5)
-        # Ensure no overlap
         self.assertEqual(set(ids1).intersection(set(ids2)), set())

@@ -4,6 +4,7 @@
 import '../modules/core/models/base_record.dart';
 import 'common_form_module.dart';
 import 'arrested_io_wise_logic.dart';
+import '../services/ui_config_service.dart';
 
 /// UI time-period labels aligned with Arrested Cases time-range filters.
 /// Uses [anchor] vs [reference] (usually `DateTime.now()`).
@@ -56,8 +57,11 @@ Map<String, String> arrestedModuleRecordToTableRow(
   required int sr,
 }) {
   final io = arrestedIoWiseIoDisplayName(r) ?? r.assignedOfficer.trim();
+  final placeholder =
+      UiConfigService.repeatOffenderSummary['empty_placeholder'] as String? ??
+          '—';
 
-  String arrDate = '—';
+  String arrDate = placeholder;
   dynamic rawArr =
       r.extraFields['arrest_date'] ?? r.extraFields['arrest_datetime'];
 
@@ -81,15 +85,70 @@ Map<String, String> arrestedModuleRecordToTableRow(
     } catch (_) {}
   }
 
+  String ageStr = placeholder;
+  String nameStr = r.extraFields['accused_name']?.toString() ?? '';
+
+  final list = r.extraFields['accused_list'] ?? r.extraFields['persons'];
+  if (list is List && list.isNotEmpty) {
+    bool foundJuvenile = false;
+    for (final person in list) {
+      if (person is Map) {
+        final a = person['age'];
+        if (a != null && a.toString().trim().isNotEmpty) {
+          int? parsedAge = int.tryParse(a.toString().trim());
+          if (parsedAge != null && parsedAge < 18) {
+            ageStr = a.toString().trim();
+            final n = person['name'];
+            if (n != null && n.toString().trim().isNotEmpty) {
+              nameStr = n.toString().trim();
+            }
+            foundJuvenile = true;
+            break;
+          }
+        }
+      }
+    }
+    if (!foundJuvenile) {
+      final first = list.first;
+      if (first is Map) {
+        if (ageStr == placeholder || ageStr.isEmpty) {
+          final a = first['age'];
+          if (a != null && a.toString().trim().isNotEmpty) {
+            ageStr = a.toString().trim();
+          }
+        }
+        if (nameStr.trim().isEmpty) {
+          final n = first['name'];
+          if (n != null && n.toString().trim().isNotEmpty) {
+            nameStr = n.toString().trim();
+          }
+        }
+      }
+    }
+  } else {
+    final ageRaw = r.extraFields['age'] ?? r.extraFields['accused_age'];
+    if (ageRaw != null && ageRaw.toString().trim().isNotEmpty) {
+      ageStr = ageRaw.toString().trim();
+    }
+  }
+
+  if (nameStr.trim().isEmpty) {
+    nameStr = UiConfigService.repeatOffenderSummary['unknown_offender_label'];
+  }
+
   return {
     'sr': '$sr',
     'cr': r.caseNumber.trim(),
     'sections': _sectionsLine(r),
     'arrest_date': arrDate,
-    'io': io.isEmpty ? '—' : io,
-    'station': r.stationName.trim().isEmpty ? '—' : r.stationName.trim(),
+    'io': io.isEmpty ? placeholder : io,
+    'station':
+        r.stationName.trim().isEmpty ? placeholder : r.stationName.trim(),
     'head': _headLine(r),
     'period': arrestedTablePeriodLabel(r.incidentDate, reference),
+    'accused_name': nameStr,
+    'multiple_cr': r.extraFields['multiple_cr']?.toString() ?? placeholder,
+    'age': ageStr,
   };
 }
 

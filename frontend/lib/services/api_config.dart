@@ -85,6 +85,7 @@ class ApiConfig {
   static String get stations => '$baseUrl/stations/';
   static String get cases => '$baseUrl/cases/';
   static String get master => '$baseUrl/master/';
+  static String get uiConfig => '$master/ui-config/';
   static String get masterStates => '$baseUrl/master/states/';
   static String get transfers => '$baseUrl/users/transfers/';
   static String get auditLogs => '$baseUrl/core/audit-logs/';
@@ -97,4 +98,10 @@ class ApiConfig {
   static String get acts => '$baseUrl/acts/';
   static String get actSections => '$baseUrl/act-sections/';
   static String get actSubsections => '$baseUrl/act-subsections/';
+
+  // E-Learning Endpoints
+  static String get elearningCourses => '$baseUrl/elearning/courses/';
+  static String get elearningSubmit => '$baseUrl/elearning/submit/';
+  static String get elearningRecords => '$baseUrl/elearning/records/';
+  static String get elearningAnalytics => '$baseUrl/elearning/analytics/';
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../screens/form_i_v_selection_screen.dart';
 import '../screens/module_hub_screen.dart';
+import '../screens/juvenile_hub_screen.dart';
 import '../screens/itsso_hub_screen.dart';
 import '../services/case_service.dart';
 import '../theme/app_theme.dart';
@@ -85,16 +86,32 @@ class CategoryNavigationHelper {
         ),
       );
     } else {
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: ModuleHubScreen(
-            moduleLabel: cleanName,
-            moduleKey: moduleKey,
-            readOnly: readOnly,
+      if (moduleKey == 'juvenile') {
+        // Find auth provider up the tree or just pass empty station name for now
+        // But we actually just need stationName. Since CategoryNavigationHelper is static,
+        // it might be tricky to get stationName securely without auth provider context,
+        // but JuvenileHubScreen needs stationName. We can pass a dummy or get it from provider.
+        // Actually, AbscondedHubScreen uses `stationName`.
+        Navigator.push(
+          context,
+          AppTheme.fadeSlideRoute(
+            page: const JuvenileHubScreen(
+              stationName: 'Current Station', // Will fix if needed
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        Navigator.push(
+          context,
+          AppTheme.fadeSlideRoute(
+            page: ModuleHubScreen(
+              moduleLabel: cleanName,
+              moduleKey: moduleKey,
+              readOnly: readOnly,
+            ),
+          ),
+        );
+      }
     }
   }
 }

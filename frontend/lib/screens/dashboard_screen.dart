@@ -84,6 +84,10 @@ import 'undetected_hub_screen.dart';
 import 'detected_hub_screen.dart';
 import 'disposal_hub_screen.dart';
 import 'arrested_hub_screen.dart';
+import 'juvenile_hub_screen.dart';
+import 'repeat_offender_summary_screen.dart';
+import 'nafis_hub_screen.dart';
+import 'elearning_screen.dart';
 import '../widgets/bell_icon_widget.dart';
 import '../widgets/form_iv_category_button.dart';
 import '../widgets/searchable_picker_field.dart';
@@ -225,6 +229,7 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
       return Icons.fingerprint_rounded;
     case 'DAR':
       return Icons.folder_rounded;
+    case 'IRAD':
     case 'IRDA':
       return Icons.analytics_rounded;
     case 'E-Learning':
@@ -530,9 +535,9 @@ Widget _buildGridIcon(
       height: size * 1.5,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
-  } else if (labelTrim == 'IRDA') {
+  } else if (labelTrim == 'IRAD' || labelTrim == 'IRDA') {
     return SvgPicture.asset(
-      'assets/icons/IRDA.svg',
+      'assets/icons/IRAD.svg',
       width: size * 1.5,
       height: size * 1.5,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
@@ -607,9 +612,9 @@ Widget _buildServiceIcon(
       height: size * 1.5,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
-  } else if (labelTrim == 'IRDA') {
+  } else if (labelTrim == 'IRAD' || labelTrim == 'IRDA') {
     return SvgPicture.asset(
-      'assets/icons/IRDA.svg',
+      'assets/icons/IRAD.svg',
       width: size * 1.5,
       height: size * 1.5,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
@@ -3916,6 +3921,32 @@ class _HomeTabState extends State<_HomeTab> {
           page: ArrestedHubScreen(stationName: auth.stationName),
         ),
       );
+    } else if (item.name == 'Repeat Offender') {
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: RepeatOffenderSummaryScreen(stationName: auth.stationName),
+        ),
+      );
+    } else if (item.name == 'NAFIS' || item.moduleKey == 'nafis') {
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: NAFISHubScreen(stationName: auth.stationName),
+        ),
+      );
+    } else if (item.name == 'E-Learning' ||
+        item.moduleKey == 'elearning' ||
+        item.name == 'E Learning') {
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: ELearningScreen(stationName: auth.stationName),
+        ),
+      );
     } else if (item.moduleKey == 'service_tool') {
       Navigator.push(
         context,
@@ -3935,6 +3966,13 @@ class _HomeTabState extends State<_HomeTab> {
         context,
         AppTheme.fadeSlideRoute(
           page: AbscondedHubScreen(stationName: widget.auth.stationName),
+        ),
+      );
+    } else if (item.moduleKey == 'juvenile' || item.name == 'Juvenile') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: JuvenileHubScreen(stationName: widget.auth.stationName),
         ),
       );
     } else {

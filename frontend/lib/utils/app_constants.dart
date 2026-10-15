@@ -306,7 +306,7 @@ class ServiceData {
     ServiceData('ITSSO', Icons.description_rounded, 0xFFE91E63),
     ServiceData('NAFIS', Icons.fingerprint_rounded, 0xFF673AB7),
     ServiceData('DAR', Icons.folder_rounded, 0xFF607D8B),
-    ServiceData('IRDA', Icons.analytics_rounded, 0xFF34495E),
+    ServiceData('IRAD', Icons.analytics_rounded, 0xFF34495E),
     ServiceData('E-Learning', Icons.school_rounded, 0xFF7F8C8D),
   ];
 }

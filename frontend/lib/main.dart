@@ -42,6 +42,7 @@ import 'screens/standalone_selection_screen.dart';
 import 'screens/pin_reauth_screen.dart';
 import 'services/api_config.dart';
 import 'services/backend_case_service.dart';
+import 'services/ui_config_service.dart';
 import 'services/biometric_service.dart';
 import 'services/case_service.dart';
 import 'providers/connectivity_provider.dart';
@@ -60,6 +61,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await UiConfigService.initialize();
 
   // Pre-warm backend immediately on startup to avoid standby delays
   ApiConfig.prewarmBackend();

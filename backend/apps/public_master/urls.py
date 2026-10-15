@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from apps.public_master.views import (
     StateRegistryViewSet, RoleViewSet, PermissionViewSet, RolePermissionViewSet, DesignationViewSet,
     MasterDivisionsView, MasterDistrictsView, MasterStationsView, AvailableUnitsView, MasterRankConfigsView,
-    AppAnnouncementViewSet
+    AppAnnouncementViewSet, UIConfigView
 )
 
 router = DefaultRouter()
@@ -21,6 +21,7 @@ urlpatterns = [
     path('hierarchy/districts/', MasterDistrictsView.as_view(), name='master-districts'),
     path('hierarchy/stations/', MasterStationsView.as_view(), name='master-stations'),
     path('hierarchy/available-units/', AvailableUnitsView.as_view(), name='master-available-units'),
+    path('ui-config/', UIConfigView.as_view(), name='ui-config'),
     path('', include(router.urls)),
 ]
 
