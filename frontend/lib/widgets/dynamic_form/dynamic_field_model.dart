@@ -26,9 +26,16 @@ class DynamicFieldDef {
   });
 
   factory DynamicFieldDef.fromJson(Map<String, dynamic> json) {
+    var rawLabel = json['field_label']?.toString() ?? '';
+    final lowerLabel = rawLabel.toLowerCase().trim();
+    if (lowerLabel == 'crime spot full address' ||
+        lowerLabel == 'spot full address' ||
+        lowerLabel == 'crime spot address') {
+      rawLabel = 'Address';
+    }
     return DynamicFieldDef(
       fieldDefId: json['field_def_id'] as int? ?? 0,
-      fieldLabel: json['field_label']?.toString() ?? '',
+      fieldLabel: rawLabel,
       fieldKey: json['field_key']?.toString() ?? '',
       fieldSource: json['field_source']?.toString() ?? 'common',
       fieldType: json['field_type']?.toString().toLowerCase() ?? 'text',

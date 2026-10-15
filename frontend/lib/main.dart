@@ -20,6 +20,7 @@ import 'l10n/app_localizations.dart';
 import 'theme/app_theme.dart';
 import 'utils/app_constants.dart';
 import 'utils/pdf_auth_gate.dart';
+import 'utils/pdf_loading_helper.dart';
 import 'utils/notification_service.dart';
 import 'services/fcm_service.dart';
 import 'providers/notification_provider.dart';
@@ -306,6 +307,7 @@ class _PoliceMgmtAppState extends State<PoliceMgmtApp>
       title: 'Police Management System',
       debugShowCheckedModeBanner: false,
       navigatorKey: _navKey,
+      scaffoldMessengerKey: rootScaffoldMessengerKey,
       theme: AppTheme.lightTheme(fontScale: settings.fontScale),
       locale: settings.locale,
       localizationsDelegates: const [

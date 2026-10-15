@@ -325,6 +325,7 @@ class CommonFormState extends State<CommonForm> {
   }
 
   // ── Live Voice Dictation State ──────────────────────────────────────────
+  bool _isGeneratingPdf = false;
   String _activeVoiceFieldLabel = 'CR Number';
   String _activeVoiceSectionName = '§1 Crime Registration';
   TextEditingController? _activeVoiceController;
@@ -3038,6 +3039,7 @@ class CommonFormState extends State<CommonForm> {
                     Icons.picture_as_pdf_outlined,
                     _generatePdf,
                     const Color(0xFF0284C7),
+                    isLoading: _isGeneratingPdf,
                   ),
                 ],
               ),
@@ -3189,7 +3191,7 @@ class CommonFormState extends State<CommonForm> {
                           ),
                           _card(
                             11,
-                            'Custody & Remand (PCR / MCR)',
+                            'Custody & Remand',
                             _s10(),
                           ),
                           _card(
@@ -3261,6 +3263,8 @@ class CommonFormState extends State<CommonForm> {
   }
 
   Future<void> _generatePdf() async {
+    if (_isGeneratingPdf) return;
+    setState(() => _isGeneratingPdf = true);
     try {
       final doc = buildDocumentMap();
       final label = widget.moduleLabel?.trim() ?? '';
@@ -3295,30 +3299,54 @@ class CommonFormState extends State<CommonForm> {
           backgroundColor: _kRed,
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() => _isGeneratingPdf = false);
+      }
     }
   }
 
-  Widget _barBtn(String label, IconData icon, VoidCallback onTap, Color color) {
+  Widget _barBtn(
+    String label,
+    IconData icon,
+    VoidCallback? onTap,
+    Color color, {
+    bool isLoading = false,
+  }) {
+    final effectiveColor = isLoading ? Colors.grey : color;
     return InkWell(
-      onTap: onTap,
+      onTap: isLoading ? null : onTap,
       borderRadius: BorderRadius.circular(6),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          border: Border.all(color: color.withValues(alpha: 0.5)),
+          border: Border.all(color: effectiveColor.withValues(alpha: 0.5)),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 13, color: color),
+            if (isLoading)
+              SizedBox(
+                width: 12,
+                height: 12,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: effectiveColor,
+                ),
+              )
+            else
+              Icon(icon, size: 13, color: color),
             const SizedBox(width: 4),
             Text(
-              TranslationHelper.translate(context, label),
+              TranslationHelper.translate(
+                context,
+                isLoading ? 'Generating...' : label,
+              ),
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: color,
+                color: effectiveColor,
               ),
             ),
           ],
@@ -3510,7 +3538,7 @@ class CommonFormState extends State<CommonForm> {
             _tf('Area', _spotArea),
           ]),
           _row([
-            _tf('Spot Address', _spotAddress),
+            _tf('Address', _spotAddress),
           ]),
           _dateTimeField(
             'Date & Time of Occurrence',

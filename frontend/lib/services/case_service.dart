@@ -657,4 +657,21 @@ class CaseService {
     }
     return [];
   }
+
+  /// Fetch list of official police designations from public_master
+  Future<List<Map<String, dynamic>>> fetchDesignations() async {
+    try {
+      final response = await _api.get(ApiConfig.designations);
+      if (response.isSuccess && response.data is List) {
+        return (response.data as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchDesignations exception: $e');
+      }
+    }
+    return [];
+  }
 }

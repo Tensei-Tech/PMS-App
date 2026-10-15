@@ -19,7 +19,7 @@ import '../utils/translation_helper.dart';
 import '../widgets/form_iv_category_button.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
 import '../widgets/dynamic_form/dynamic_form_screen.dart';
-import 'module_record_detail_screen.dart';
+import '../utils/category_icon_helper.dart';
 
 /// Controls where a Form I-V category tap navigates.
 enum FormIVSelectionMode {
@@ -1069,7 +1069,9 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
   }
 
   void _openForm(String category,
-      {ModuleRecord? existingRecord, dynamic categoryId}) async {
+      {ModuleRecord? existingRecord,
+      dynamic categoryId,
+      bool readOnly = false}) async {
     final result = await Navigator.push(
       context,
       AppTheme.fadeSlideRoute(
@@ -1079,7 +1081,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
           moduleKey: widget.moduleKey ?? 'form_1_5',
           subCategory: category,
           existingRecord: existingRecord,
-          readOnly: _readOnly && existingRecord != null,
+          readOnly: readOnly || (_readOnly && existingRecord != null),
         ),
       ),
     );
@@ -1735,60 +1737,50 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                     ],
                   ),
                 ),
-              Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1200),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.grid_view_rounded,
-                          size: 16,
-                          color: AppColors.navyMid,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          TranslationHelper.translate(
-                            context,
-                            _categoryBreadcrumb.isNotEmpty
-                                ? 'Filter by ${_categoryBreadcrumb.last}'
-                                : 'Filter by Case Type',
-                          ),
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.navyDark,
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-                        if (_isLoadingCategory) ...[
-                          const SizedBox(width: 12),
-                          const SizedBox(
-                            width: 14,
-                            height: 14,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Color(0xFF1976D2),
-                            ),
-                          ),
-                        ],
-                      ],
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.grid_view_rounded,
+                      size: 16,
+                      color: AppColors.navyMid,
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    Text(
+                      TranslationHelper.translate(
+                        context,
+                        _categoryBreadcrumb.isNotEmpty
+                            ? 'Filter by ${_categoryBreadcrumb.last}'
+                            : 'Filter by Case Type',
+                      ),
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.navyDark,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                    if (_isLoadingCategory) ...[
+                      const SizedBox(width: 12),
+                      const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Color(0xFF1976D2),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
               Expanded(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1200),
-                    child: _CategoryGridView(
-                      categories: _currentDisplayCategories,
-                      records: statusRecords,
-                      getDescendantNames: _getDescendantCategoryNames,
-                      onCategorySelected: _handleCategoryTap,
-                    ),
-                  ),
+                child: _CategoryGridView(
+                  categories: _currentDisplayCategories,
+                  records: statusRecords,
+                  getDescendantNames: _getDescendantCategoryNames,
+                  onCategorySelected: _handleCategoryTap,
                 ),
               ),
             ] else ...[
@@ -2008,16 +2000,13 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                                   : record.title,
                               existingRecord: record,
                             ),
-                            onView: () {
-                              Navigator.push(
-                                context,
-                                AppTheme.fadeSlideRoute(
-                                  page: ModuleRecordDetailScreen(
-                                    record: record,
-                                  ),
-                                ),
-                              );
-                            },
+                            onView: () => _openForm(
+                              record.subCategory?.isNotEmpty == true
+                                  ? record.subCategory!
+                                  : record.title,
+                              existingRecord: record,
+                              readOnly: true,
+                            ),
                           );
                         },
                       ),
@@ -2191,70 +2180,50 @@ class _CategoryGridView extends StatelessWidget {
   }
 
   IconData _iconForCategory(String category) {
-    switch (category.toLowerCase()) {
-      case 'murder':
-      case 'attempt to murder':
-        return Icons.warning_amber_rounded;
-      case 'dacoity':
-      case 'robbery':
-      case 'thefts':
-      case 'theft':
-      case 'hbt':
-        return Icons.lock_outline_rounded;
-      case 'kidnapping':
-        return Icons.person_search_rounded;
-      case 'cheating':
-      case 'cbt':
-      case 'extortion':
-        return Icons.receipt_long_outlined;
-      case 'riot':
-      case 'unlawful assembly':
-        return Icons.groups_rounded;
-      case 'rape':
-      case 'molestation':
-        return Icons.shield_outlined;
-      case 'suicide':
-      case 'accident':
-      case 'normal accident':
-      case 'road accident':
-      case 'death due to rash driving':
-      case 'other road accident':
-        return Icons.car_crash_rounded;
-      case 'hurts':
-      case 'hurt':
-      case 'assault on public servant':
-        return Icons.healing_outlined;
-      default:
-        return Icons.folder_outlined;
-    }
+    return CategoryIconHelper.getIcon(category);
   }
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final cols = width > 1200 ? 4 : (width > 850 ? 3 : (width > 550 ? 2 : 1));
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableWidth = constraints.maxWidth;
+        final int cols;
+        if (availableWidth >= 900) {
+          cols = 4;
+        } else if (availableWidth >= 650) {
+          cols = 3;
+        } else if (availableWidth >= 420) {
+          cols = 2;
+        } else {
+          cols = 1;
+        }
 
-    return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 88),
-      itemCount: categories.length,
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: cols,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        mainAxisExtent: 74,
-      ),
-      itemBuilder: (context, index) {
-        final category = categories[index];
-        final count = _countFor(category);
-        final isAll = category == FormIVSelectionScreen.allFilterLabel;
-        final transCategory = TranslationHelper.translate(context, category);
+        return GridView.builder(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 88),
+          itemCount: categories.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: cols,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            mainAxisExtent: 74,
+          ),
+          itemBuilder: (context, index) {
+            final category = categories[index];
+            final count = _countFor(category);
+            final isAll = category == FormIVSelectionScreen.allFilterLabel;
+            final transCategory =
+                TranslationHelper.translate(context, category);
 
-        return _CategoryGridCard(
-          category: transCategory,
-          icon: isAll ? Icons.ballot_outlined : _iconForCategory(category),
-          count: count,
-          isAll: isAll,
-          onTap: () => onCategorySelected(category),
+            return _CategoryGridCard(
+              category: transCategory,
+              rawCategory: category,
+              icon: isAll ? Icons.ballot_outlined : _iconForCategory(category),
+              count: count,
+              isAll: isAll,
+              onTap: () => onCategorySelected(category),
+            );
+          },
         );
       },
     );
@@ -2264,6 +2233,7 @@ class _CategoryGridView extends StatelessWidget {
 class _CategoryGridCard extends StatefulWidget {
   const _CategoryGridCard({
     required this.category,
+    this.rawCategory,
     required this.icon,
     required this.count,
     required this.isAll,
@@ -2271,6 +2241,7 @@ class _CategoryGridCard extends StatefulWidget {
   });
 
   final String category;
+  final String? rawCategory;
   final IconData icon;
   final int count;
   final bool isAll;
@@ -2316,12 +2287,12 @@ class _CategoryGridCardState extends State<_CategoryGridCard> {
             onTap: widget.onTap,
             borderRadius: BorderRadius.circular(12),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               child: Row(
                 children: [
                   Container(
-                    width: 42,
-                    height: 42,
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
                       color: widget.isAll
                           ? const Color(0xFF1976D2).withValues(alpha: 0.1)
@@ -2330,8 +2301,10 @@ class _CategoryGridCardState extends State<_CategoryGridCard> {
                               : const Color(0xFFF1F5F9)),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(
-                      widget.icon,
+                    child: CategoryIconHelper.buildWidget(
+                      widget.isAll
+                          ? 'all'
+                          : (widget.rawCategory ?? widget.category),
                       size: 20,
                       color: widget.isAll
                           ? const Color(0xFF1976D2)
@@ -2340,7 +2313,7 @@ class _CategoryGridCardState extends State<_CategoryGridCard> {
                               : AppColors.lightSubText),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2348,12 +2321,13 @@ class _CategoryGridCardState extends State<_CategoryGridCard> {
                       children: [
                         Text(
                           widget.category,
-                          maxLines: 1,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.poppins(
-                            fontSize: 13,
+                            fontSize: 12.5,
                             fontWeight: FontWeight.w600,
                             color: AppColors.navyDark,
+                            height: 1.15,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -2376,7 +2350,7 @@ class _CategoryGridCardState extends State<_CategoryGridCard> {
                   const SizedBox(width: 4),
                   Icon(
                     Icons.chevron_right_rounded,
-                    size: 18,
+                    size: 16,
                     color: _hovered
                         ? const Color(0xFF1976D2)
                         : const Color(0xFFCBD5E1),
@@ -2970,39 +2944,47 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                         const SizedBox(width: 8),
 
                         // 6. Action Buttons: Edit, View, PDF & Chevron
-                        if (!widget.readOnly &&
-                            record.status != 'Disposal') ...[
-                          _buildCompactActionButton(
-                            icon: Icons.fact_check_outlined,
-                            label: 'Dispose',
-                            onTap: () =>
-                                _showQuickDisposeDialog(context, record),
+                        SizedBox(
+                          width: widget.readOnly ? 70 : 146,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              if (!widget.readOnly &&
+                                  record.status != 'Disposal') ...[
+                                _buildCompactActionButton(
+                                  icon: Icons.fact_check_outlined,
+                                  label: 'Dispose',
+                                  onTap: () =>
+                                      _showQuickDisposeDialog(context, record),
+                                ),
+                                const SizedBox(width: 6),
+                              ],
+                              if (!widget.readOnly) ...[
+                                _buildCompactActionButton(
+                                  icon: Icons.edit_outlined,
+                                  label: 'Edit',
+                                  onTap: widget.onEdit,
+                                ),
+                                const SizedBox(width: 6),
+                              ],
+                              _buildCompactActionButton(
+                                icon: Icons.visibility_outlined,
+                                label: 'View',
+                                onTap: widget.onView,
+                              ),
+                              const SizedBox(width: 6),
+                              _buildCompactActionButton(
+                                icon: Icons.picture_as_pdf_outlined,
+                                label: 'PDF',
+                                onTap: () => runWithPdfAuthGate(
+                                  context,
+                                  () => ModulePdfHelper.generatePdf(
+                                      record, context),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 6),
-                        ],
-                        if (!widget.readOnly) ...[
-                          _buildCompactActionButton(
-                            icon: Icons.edit_outlined,
-                            label: 'Edit',
-                            onTap: widget.onEdit,
-                          ),
-                          const SizedBox(width: 6),
-                        ],
-                        _buildCompactActionButton(
-                          icon: Icons.visibility_outlined,
-                          label: 'View',
-                          onTap: widget.onView,
                         ),
-                        const SizedBox(width: 6),
-                        _buildCompactActionButton(
-                          icon: Icons.picture_as_pdf_outlined,
-                          label: 'PDF',
-                          onTap: () => runWithPdfAuthGate(
-                            context,
-                            () => ModulePdfHelper.generatePdf(record),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
                       ],
                     );
                   },
@@ -3272,7 +3254,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                           OutlinedButton.icon(
                             onPressed: () => runWithPdfAuthGate(
                               context,
-                              () => ModulePdfHelper.generatePdf(record),
+                              () => ModulePdfHelper.generatePdf(record, context),
                             ),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: const Color(0xFFC53030),
@@ -3491,7 +3473,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
               label: 'PDF',
               onTap: () => runWithPdfAuthGate(
                 context,
-                () => ModulePdfHelper.generatePdf(record),
+                () => ModulePdfHelper.generatePdf(record, context),
               ),
             ),
           ],

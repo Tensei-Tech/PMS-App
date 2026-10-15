@@ -3,10 +3,12 @@
 // Reuses the existing pdf/printing packages.
 
 import 'dart:typed_data';
+import 'package:flutter/material.dart' show BuildContext;
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'pdf_loading_helper.dart';
 import '../modules/core/models/base_record.dart';
 import '../modules/mpda/utils/mpda_form_pdf.dart';
 import '../modules/preventive/utils/preventive_form_pdf.dart';
@@ -177,7 +179,15 @@ class ModulePdfHelper {
 
   /// Generates and previews a PDF for any ModuleRecord.
   /// Generates and previews a PDF for any ModuleRecord (titles use [ModuleRecord.firestoreCategoryDisplayName]).
-  static Future<void> generatePdf(ModuleRecord record) async {
+  static Future<void> generatePdf(ModuleRecord record,
+      [BuildContext? context]) async {
+    await PdfLoadingHelper.runWithLoading(
+      context: context,
+      action: () async => _generatePdfInternal(record),
+    );
+  }
+
+  static Future<void> _generatePdfInternal(ModuleRecord record) async {
     try {
       if (record.id.trim().isNotEmpty) {
         final pdfBackendData =

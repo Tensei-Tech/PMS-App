@@ -12,6 +12,7 @@ import '../services/case_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/category_navigation_helper.dart';
 import '../utils/translation_helper.dart';
+import '../utils/category_icon_helper.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
 import 'common_form_screen.dart';
 import 'form_i_v_selection_screen.dart';
@@ -441,12 +442,10 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
                     color: Colors.white.withValues(alpha: 0.18),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.folder_special_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
+                  child: CategoryIconHelper.buildWidget(
+                    name,
+                    color: Colors.white,
+                    size: 20,
                   ),
                 ),
                 const SizedBox(width: 10),

@@ -620,6 +620,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
   Future<void> _exportPdf() async {
     if (_isExportingPdf) return;
     setState(() => _isExportingPdf = true);
+    await Future.delayed(const Duration(milliseconds: 100));
     try {
       if (!mounted) return;
       if (_isCrimeDetailForm) {
