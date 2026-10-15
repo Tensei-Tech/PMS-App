@@ -817,7 +817,6 @@ class DisposalCaseWiseView(APIView):
                     cat_map[c.category_name.lower()] = c.category_name
 
             paginator = StandardCasePagination()
-            print("Queryset count in view:", queryset.count())
             page = paginator.paginate_queryset(queryset, request)
             if page is not None:
                 serializer = DisposalCaseRecordSerializer(page, many=True, context={'cat_map': cat_map})
@@ -1009,18 +1008,8 @@ class CasesByCrimeTypeView(APIView):
 
     def get(self, request, crime_type):
         try:
-            # Use ORM with raw SQL fallback for the crime_type_master join
-            # since crime_type_master has no Django model.
             db_table = CaseRecord._meta.db_table
-            query = f"""
-                SELECT c.id AS case_id, c.case_number, c.title, c.status, c.priority,
-                       m.crime_type, m.act, m.section, m.sub_section, m.ipc_number
-                FROM "{db_table}" c
-                JOIN crime_type_master m ON m.id = CAST(c.extra_fields ->> 'crime_type_master_id' AS INTEGER)
-                WHERE m.crime_type = %s
-                ORDER BY c.created_at DESC
-            """
-            # Simpler approach: query crime_type_master separately, then filter CaseRecords
+            rows = []
             with connection.cursor() as cursor:
                 cursor.execute(
                     "SELECT id FROM crime_type_master WHERE crime_type = %s",
@@ -1035,19 +1024,47 @@ class CasesByCrimeTypeView(APIView):
                     return paginator.get_paginated_response(page)
                 return Response([])
 
-            # Now join via raw SQL using proper Django table name
             with connection.cursor() as cursor:
                 placeholders = ','.join(['%s'] * len(master_ids))
+
+                # Check if legacy 'cases' table exists
+                has_cases_table = False
+                if connection.vendor == 'postgresql':
+                    cursor.execute("SELECT to_regclass('cases');")
+                    has_cases_table = cursor.fetchone()[0] is not None
+                else:
+                    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='cases';")
+                    has_cases_table = cursor.fetchone() is not None
+
+                if has_cases_table:
+                    cursor.execute(f"""
+                        SELECT c.case_id, c.case_number, c.title, c.status, c.priority,
+                               m.crime_type, m.act, m.section, m.sub_section, m.ipc_number
+                        FROM cases c
+                        JOIN crime_type_master m ON m.id = c.crime_type_master_id
+                        WHERE m.id IN ({placeholders})
+                        ORDER BY c.created_at DESC
+                    """, master_ids)
+                    columns = [col[0] for col in cursor.description]
+                    rows.extend([dict(zip(columns, row)) for row in cursor.fetchall()])
+
+                # Query CaseRecord table (cases_caserecord)
+                # Cast m.id to text to match JSON string extraction from extra_fields
                 cursor.execute(f"""
                     SELECT c.id AS case_id, c.case_number, c.title, c.status, c.priority,
                            m.crime_type, m.act, m.section, m.sub_section, m.ipc_number
                     FROM "{db_table}" c
-                    JOIN crime_type_master m ON m.id = c.extra_fields ->> 'crime_type_master_id'
+                    JOIN crime_type_master m ON CAST(m.id AS TEXT) = (c.extra_fields ->> 'crime_type_master_id')
                     WHERE m.id IN ({placeholders})
                     ORDER BY c.created_at DESC
                 """, master_ids)
                 columns = [col[0] for col in cursor.description]
-                rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+                existing_numbers = {r.get('case_number') for r in rows}
+                for row in cursor.fetchall():
+                    item = dict(zip(columns, row))
+                    if item.get('case_number') not in existing_numbers:
+                        rows.append(item)
+                        existing_numbers.add(item.get('case_number'))
 
             paginator = PageNumberPagination()
             page = paginator.paginate_queryset(rows, request)
