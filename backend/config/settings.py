@@ -115,7 +115,13 @@ def is_ssl_required(db_url: str) -> bool:
 # 1. Primary Database (Writes & Critical Operations)
 is_local = os.getenv('DB_HOST', 'localhost') in ['localhost', '127.0.0.1']
 
-if os.getenv('DATABASE_URL'):
+if 'test' in sys.argv and not os.getenv('DATABASE_URL'):
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:',
+    }
+
+elif os.getenv('DATABASE_URL'):
     from urllib.parse import urlparse, unquote
     db_url = os.getenv('DATABASE_URL')
     parsed_db = urlparse(db_url)
@@ -164,11 +170,14 @@ else:
         "No PostgreSQL database configured. Set DATABASE_URL (or DB_NAME and DB_PASSWORD) in backend/.env."
     )
 
-# Use existing DB for tests – avoid creating a new test database and running migrations.
-DATABASES['default']['TEST'] = {
-    'MIRROR': 'default',
-    'MIGRATE': False,
-}
+# In CI (disposable test DB container already migrated), mirror default to avoid re-running migrations.
+if os.getenv('GITHUB_ACTIONS') or os.getenv('CI'):
+    DATABASES['default']['TEST'] = {
+        'MIRROR': 'default',
+        'MIGRATE': False,
+    }
+else:
+    DATABASES['default'].setdefault('TEST', {})['MIGRATE'] = False
 
 
 

@@ -21,6 +21,7 @@ urlpatterns = [
     # Enterprise REST API Domain Services (Clean Resource-Oriented Routing)
     path('api/auth/', include('apps.authentication.urls')),
     path('api/master/', include('apps.public_master.urls')),
+    path('api/ui-config/', include('apps.public_master.urls')),
     path('api/users/', include('apps.users.urls')),
     path('api/', include('apps.crimetab.urls')),
     path('api/stations/', include('apps.stations.urls')),

@@ -345,6 +345,18 @@ class UIConfigView(views.APIView):
                     "form_module_label": "Repeat Offender",
                     "no_cases_label": "No cases",
                     "title": "Repeat Offender — Summary"
+                },
+                "juvenile_summary": {
+                    "unknown_offender_label": "Unknown Offender",
+                    "other_bucket_label": "Other",
+                    "empty_placeholder": "—",
+                    "error_message": "Could not load juvenile cases",
+                    "add_button_label": "Add Juvenile",
+                    "form_module_key": "pocso",
+                    "form_sub_category": "Juvenile",
+                    "form_module_label": "Juvenile",
+                    "no_cases_label": "No cases",
+                    "title": "Juvenile — Summary"
                 }
             }
         return Response(data)
