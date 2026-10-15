@@ -610,6 +610,7 @@ class CommonFormState extends State<CommonForm> {
   final _fingerprintDate = TextEditingController();
   final _fingerprintReason = TextEditingController();
   String? _nafisFingerprint;
+  final _nafisDate = TextEditingController();
 
   final List<Map<String, dynamic>> _seizures = [];
 
@@ -888,6 +889,7 @@ class CommonFormState extends State<CommonForm> {
       if (_injuredMedicalExam != null) _injMedicalExam,
       _fingerprintDate,
       _fingerprintReason,
+      _nafisDate,
     ]) {
       c.dispose();
     }
@@ -1441,7 +1443,11 @@ class CommonFormState extends State<CommonForm> {
     _cctvVal = null;
     _cctvChecked = false;
 
+    _fingerprintVal = null;
+    _fingerprintDate.clear();
+    _fingerprintReason.clear();
     _nafisFingerprint = null;
+    _nafisDate.clear();
     _finalSummary.clear();
     _discharge.clear();
     for (final c in _dischargeDates.values) {
@@ -1650,7 +1656,12 @@ class CommonFormState extends State<CommonForm> {
         'fingerprintDate': _fingerprintDate.text,
         'fingerprintReason': _fingerprintReason.text,
         'nafisFingerprint': _nafisFingerprint,
+        'nafisDate': _nafisDate.text,
       },
+      'fingerprintVal': _fingerprintVal,
+      'fingerprintDate': _fingerprintDate.text,
+      'nafisFingerprint': _nafisFingerprint,
+      'nafisDate': _nafisDate.text,
       'seizures': _seizures
           .map(
             (s) => {
@@ -2107,14 +2118,24 @@ class CommonFormState extends State<CommonForm> {
 
     final inv = m['investigationNotes'] as Map?;
     if (inv != null) {
-      _fingerprintVal = inv['fingerprintVal'] as String?;
-      _fingerprintDate.text = _s(inv['fingerprintDate']);
-      _fingerprintReason.text = _s(inv['fingerprintReason']);
-      _nafisFingerprint = inv['nafisFingerprint'] as String?;
+      _fingerprintVal =
+          inv['fingerprintVal'] as String? ?? m['fingerprintVal'] as String?;
+      _fingerprintDate.text =
+          _s(inv['fingerprintDate'] ?? m['fingerprintDate']);
+      _fingerprintReason.text =
+          _s(inv['fingerprintReason'] ?? m['fingerprintReason']);
+      _nafisFingerprint = inv['nafisFingerprint'] as String? ??
+          m['nafisFingerprint'] as String?;
+      _nafisDate.text = _s(inv['nafisDate'] ?? m['nafisDate']);
       if (_fingerprintVal == null && inv['fingerprint'] != null) {
         _fingerprintReason.text = _s(inv['fingerprint']);
         _fingerprintVal = 'no';
       }
+    } else {
+      _fingerprintVal = m['fingerprintVal'] as String?;
+      _fingerprintDate.text = _s(m['fingerprintDate']);
+      _nafisFingerprint = m['nafisFingerprint'] as String?;
+      _nafisDate.text = _s(m['nafisDate']);
     }
 
     for (final s0 in (m['seizures'] as List? ?? [])) {
@@ -4874,19 +4895,37 @@ class CommonFormState extends State<CommonForm> {
               const SizedBox(width: 24),
               Expanded(
                 flex: 3,
-                child: _yesNo(
-                  'Fingerprint taken',
-                  _fingerprintVal,
-                  (v) => setState(() => _fingerprintVal = v),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _yesNo(
+                      'Fingerprint taken',
+                      _fingerprintVal,
+                      (v) => setState(() => _fingerprintVal = v),
+                    ),
+                    if (_fingerprintVal == 'yes') ...[
+                      const SizedBox(height: 6),
+                      _dateTimeField('Date', _fingerprintDate),
+                    ],
+                  ],
                 ),
               ),
               const SizedBox(width: 24),
               Expanded(
                 flex: 3,
-                child: _yesNo(
-                  'Nafis Fingerprint',
-                  _nafisFingerprint,
-                  (v) => setState(() => _nafisFingerprint = v),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _yesNo(
+                      'Nafis Fingerprint',
+                      _nafisFingerprint,
+                      (v) => setState(() => _nafisFingerprint = v),
+                    ),
+                    if (_nafisFingerprint == 'yes') ...[
+                      const SizedBox(height: 6),
+                      _dateTimeField('Date', _nafisDate),
+                    ],
+                  ],
                 ),
               ),
             ],

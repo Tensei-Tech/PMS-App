@@ -204,6 +204,26 @@ def auto_invalidate_designation_cache(sender, instance, **kwargs):
         pass
 
 
+class DynamicUIConfig(models.Model):
+    """
+    Global Dynamic UI Configurations stored in `public.dynamic_ui_configs`.
+    Provides remote configuration data to the frontend apps.
+    """
+    key = models.CharField(max_length=255, primary_key=True)
+    value = models.JSONField(default=dict)
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'dynamic_ui_configs'
+        verbose_name = 'Dynamic UI Config'
+        verbose_name_plural = 'Dynamic UI Configs'
+
+    def __str__(self):
+        return self.key
+
+
 
 class MasterDivision(models.Model):
     """

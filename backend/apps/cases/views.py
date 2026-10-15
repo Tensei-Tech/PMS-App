@@ -13,6 +13,31 @@ from apps.repositories import CaseRepository
 logger = logging.getLogger(__name__)
 
 
+# Mixin providing a default no-op _enrich_data so views that call it
+# (but don't override it) won't raise AttributeError.
+class EnrichMixin:
+    """Default enrichment: guarantees an 'extra_fields' dict on each item."""
+    def _enrich_data(self, data_list):
+        for item in data_list:
+            if not isinstance(item.get("extra_fields"), dict):
+                item["extra_fields"] = {}
+
+EnrichDataMixin = EnrichMixin
+
+
+class StandardCasePagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 10000
+
+    def paginate_queryset(self, queryset, request, view=None):
+        ps = str(request.query_params.get('page_size', '')).lower()
+        if ps == 'all' or str(request.query_params.get('all', '')).lower() == 'true':
+            return None
+        return super().paginate_queryset(queryset, request, view=view)
+
+
+
 from apps.core.cache_decorators import cache_response
 from apps.core.cache import upstash_cache
 
@@ -146,6 +171,10 @@ class CaseRecordViewSet(viewsets.ModelViewSet):
                 from apps.cases.utils import get_absconded_cases
                 absconded_qs = get_absconded_cases()
                 queryset = queryset.filter(id__in=absconded_qs.values_list('id', flat=True))
+            elif mod_lower == 'juvenile':
+                from apps.cases.utils import get_cases_by_status
+                juvenile_qs = get_cases_by_status('juvenile')
+                queryset = queryset.filter(id__in=juvenile_qs.values_list('id', flat=True))
             elif mod_lower in ['form_1_5', 'form_iv', 'form_i_v', '1_to_5']:
                 # Group 1 (Form I to V / Parts 1–5): Form 1-5 + all Group 1 categories
                 group_1_cats = list(CaseCategory.objects.filter(
@@ -260,7 +289,7 @@ class CaseRecordViewSet(viewsets.ModelViewSet):
 # Raw SQL Database Views (Secured with Dynamic RBAC, Pagination & Safe Queries)
 # ------------------------------------------------------------------------------
 
-class PendingCasesView(APIView):
+class PendingCasesView(EnrichDataMixin, APIView):
     permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
@@ -294,14 +323,18 @@ class PendingCasesView(APIView):
 
             from apps.cases.serializers import CaseRecordSerializer
             
-            paginator = PageNumberPagination()
+            paginator = StandardCasePagination()
             page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
             if page is not None:
                 serializer = CaseRecordSerializer(page, many=True)
-                return paginator.get_paginated_response(serializer.data)
+                data = serializer.data
+                self._enrich_data(data)
+                return paginator.get_paginated_response(data)
                 
             serializer = CaseRecordSerializer(queryset.order_by('-created_at'), many=True)
-            return Response(serializer.data)
+            data = serializer.data
+            self._enrich_data(data)
+            return Response(data)
         except Exception as e:
             logger.exception(f"[PendingCasesView] Database error: {e}")
             return Response({'error': 'Failed to retrieve pending cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -389,7 +422,7 @@ class TimeWisePendingView(APIView):
             logger.exception(f"[TimeWisePendingView] Database error: {e}")
             return Response({'error': 'Failed to retrieve Time-wise counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class UndetectedCasesView(APIView):
+class UndetectedCasesView(EnrichDataMixin, APIView):
     permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
@@ -438,14 +471,18 @@ class UndetectedCasesView(APIView):
                 queryset = queryset.filter(created_at__date__lte=end_date)
 
             from apps.cases.serializers import CaseRecordSerializer
-            paginator = PageNumberPagination()
+            paginator = StandardCasePagination()
             page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
             if page is not None:
                 serializer = CaseRecordSerializer(page, many=True)
-                return paginator.get_paginated_response(serializer.data)
+                data = serializer.data
+                self._enrich_data(data)
+                return paginator.get_paginated_response(data)
 
             serializer = CaseRecordSerializer(queryset.order_by('-created_at'), many=True)
-            return Response(serializer.data)
+            data = serializer.data
+            self._enrich_data(data)
+            return Response(data)
         except Exception as e:
             logger.exception(f"[UndetectedCasesView] Database error: {e}")
             return Response({'error': 'Failed to retrieve undetected cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -601,7 +638,7 @@ class AbscondedCasesView(APIView):
                 queryset = queryset.filter(created_at__date__lte=end_date)
 
             from apps.cases.serializers import CaseRecordSerializer
-            paginator = PageNumberPagination()
+            paginator = StandardCasePagination()
             page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
             if page is not None:
                 serializer = CaseRecordSerializer(page, many=True)
@@ -779,11 +816,7 @@ class DisposalCaseWiseView(APIView):
                 if c.category_name:
                     cat_map[c.category_name.lower()] = c.category_name
 
-            from rest_framework.pagination import PageNumberPagination
-            paginator = PageNumberPagination()
-            paginator.page_size = 20
-            paginator.page_size_query_param = 'page_size'
-            print("Queryset count in view:", queryset.count())
+            paginator = StandardCasePagination()
             page = paginator.paginate_queryset(queryset, request)
             if page is not None:
                 serializer = DisposalCaseRecordSerializer(page, many=True, context={'cat_map': cat_map})
@@ -975,17 +1008,63 @@ class CasesByCrimeTypeView(APIView):
 
     def get(self, request, crime_type):
         try:
+            db_table = CaseRecord._meta.db_table
+            rows = []
             with connection.cursor() as cursor:
-                cursor.execute("""
-                    SELECT c.case_id, c.case_number, c.title, c.status, c.priority,
+                cursor.execute(
+                    "SELECT id FROM crime_type_master WHERE crime_type = %s",
+                    [crime_type]
+                )
+                master_ids = [row[0] for row in cursor.fetchall()]
+
+            if not master_ids:
+                paginator = PageNumberPagination()
+                page = paginator.paginate_queryset([], request)
+                if page is not None:
+                    return paginator.get_paginated_response(page)
+                return Response([])
+
+            with connection.cursor() as cursor:
+                placeholders = ','.join(['%s'] * len(master_ids))
+
+                # Check if legacy 'cases' table exists
+                has_cases_table = False
+                if connection.vendor == 'postgresql':
+                    cursor.execute("SELECT to_regclass('cases');")
+                    has_cases_table = cursor.fetchone()[0] is not None
+                else:
+                    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='cases';")
+                    has_cases_table = cursor.fetchone() is not None
+
+                if has_cases_table:
+                    cursor.execute(f"""
+                        SELECT c.case_id, c.case_number, c.title, c.status, c.priority,
+                               m.crime_type, m.act, m.section, m.sub_section, m.ipc_number
+                        FROM cases c
+                        JOIN crime_type_master m ON m.id = c.crime_type_master_id
+                        WHERE m.id IN ({placeholders})
+                        ORDER BY c.created_at DESC
+                    """, master_ids)
+                    columns = [col[0] for col in cursor.description]
+                    rows.extend([dict(zip(columns, row)) for row in cursor.fetchall()])
+
+                # Query CaseRecord table (cases_caserecord)
+                # Cast m.id to text to match JSON string extraction from extra_fields
+                cursor.execute(f"""
+                    SELECT c.id AS case_id, c.case_number, c.title, c.status, c.priority,
                            m.crime_type, m.act, m.section, m.sub_section, m.ipc_number
-                    FROM cases c
-                    JOIN crime_type_master m ON m.id = c.crime_type_master_id
-                    WHERE m.crime_type = %s
+                    FROM "{db_table}" c
+                    JOIN crime_type_master m ON CAST(m.id AS TEXT) = (c.extra_fields ->> 'crime_type_master_id')
+                    WHERE m.id IN ({placeholders})
                     ORDER BY c.created_at DESC
-                """, [crime_type])
+                """, master_ids)
                 columns = [col[0] for col in cursor.description]
-                rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+                existing_numbers = {r.get('case_number') for r in rows}
+                for row in cursor.fetchall():
+                    item = dict(zip(columns, row))
+                    if item.get('case_number') not in existing_numbers:
+                        rows.append(item)
+                        existing_numbers.add(item.get('case_number'))
 
             paginator = PageNumberPagination()
             page = paginator.paginate_queryset(rows, request)
@@ -1040,31 +1119,27 @@ class CreateCaseView(APIView):
         validated = serializer.validated_data
 
         try:
-            with transaction.atomic():
-                with connection.cursor() as cursor:
-                    cursor.execute("""
-                        INSERT INTO cases (case_number, title, case_type, priority, status, module, crime_type_master_id)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s)
-                        RETURNING case_id
-                    """, [
-                        validated['case_number'],
-                        validated['title'],
-                        validated.get('case_type', '1-5'),
-                        validated.get('priority', 'Low'),
-                        validated.get('status', 'Draft'),
-                        validated['module'],
-                        validated.get('crime_type_master_id')
-                    ])
-                    row = cursor.fetchone()
-                    case_id = row[0] if row else None
-
-            return Response({'case_id': case_id}, status=status.HTTP_201_CREATED)
+            # Use Django ORM instead of raw INSERT ... RETURNING (Postgres-only)
+            case = CaseRecord.objects.create(
+                case_number=validated['case_number'],
+                title=validated['title'],
+                module_key=validated['module'],
+                priority=validated.get('priority', 'Low'),
+                status=validated.get('status', 'Draft'),
+                description=validated.get('description', ''),
+                station_name=validated.get('station_name', ''),
+                extra_fields={
+                    'case_type': validated.get('case_type', '1-5'),
+                    'crime_type_master_id': validated.get('crime_type_master_id'),
+                },
+            )
+            return Response({'case_id': str(case.pk)}, status=status.HTTP_201_CREATED)
         except Exception as e:
             logger.exception(f"[CreateCaseView] Database insertion failed: {e}")
             return Response({'error': 'Failed to create case record.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class DetectedCasesView(APIView):
+class DetectedCasesView(EnrichDataMixin, APIView):
     permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
@@ -1087,7 +1162,9 @@ class DetectedCasesView(APIView):
                 
             from apps.cases.serializers import CaseRecordSerializer
             serializer = CaseRecordSerializer(queryset.order_by('-created_at'), many=True)
-            return Response(serializer.data)
+            data = serializer.data
+            self._enrich_data(data)
+            return Response(data)
         except Exception as e:
             logger.exception(f"[DetectedCasesView] Database error: {e}")
             return Response({'error': 'Failed to retrieve detected cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -1198,14 +1275,18 @@ class ArrestedCaseWiseView(PendingCasesView):
 
             from apps.cases.serializers import CaseRecordSerializer
             
-            paginator = PageNumberPagination()
+            paginator = StandardCasePagination()
             page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
             if page is not None:
                 serializer = CaseRecordSerializer(page, many=True)
-                return paginator.get_paginated_response(serializer.data)
+                data = serializer.data
+                self._enrich_data(data)
+                return paginator.get_paginated_response(data)
                 
             serializer = CaseRecordSerializer(queryset.order_by('-created_at'), many=True)
-            return Response(serializer.data)
+            data = serializer.data
+            self._enrich_data(data)
+            return Response(data)
         except Exception as e:
             logger.exception(f'[ArrestedCaseWiseView] Database error: {e}')
             return Response({'error': 'Failed to retrieve arrested cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -1286,6 +1367,509 @@ class TimeWiseArrestedView(TimeWisePendingView):
         except Exception as e:
             logger.exception(f'[TimeWiseArrestedView] Database error: {e}')
             return Response({'error': 'Failed to retrieve Time-wise arrested counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class RepeatOffenderCaseWiseView(PendingCasesView):
+
+    def _enrich_data(self, data_list):
+        from apps.crimetab.models.common_form import CasesPerson
+        from django.db.models import Count
+        repeat_names_qs = CasesPerson.objects.filter(role__in=['accused', 'suspected_accused']).exclude(name__isnull=True).exclude(name__exact='').values('name').annotate(case_count=Count('case_id', distinct=True)).filter(case_count__gt=1)
+        repeat_names = set(repeat_names_qs.values_list('name', flat=True))
+        repeat_persons = CasesPerson.objects.filter(name__in=repeat_names, role__in=['accused', 'suspected_accused']).select_related('case')
+        name_to_crs = {}
+        for p in repeat_persons:
+            name_to_crs.setdefault(p.name, set())
+            if p.case and p.case.case_number:
+                name_to_crs[p.name].add(p.case.case_number)
+        for item in data_list:
+            case_id = item.get('id')
+            if not case_id: continue
+            if not isinstance(item.get('extra_fields'), dict):
+                item['extra_fields'] = {}
+            case_persons = CasesPerson.objects.filter(case_id=case_id, role__in=['accused', 'suspected_accused'])
+            accused_names_in_this_case = [p.name for p in case_persons if p.name in repeat_names]
+            if accused_names_in_this_case:
+                primary = accused_names_in_this_case[0]
+                item['extra_fields']['accused_name'] = primary
+                all_crs = name_to_crs.get(primary, set())
+                other_crs = [cr for cr in all_crs if cr != item.get('case_number')]
+                item['extra_fields']['multiple_cr'] = ', '.join(sorted(other_crs)) if other_crs else '-'
+            else:
+                item['extra_fields']['accused_name'] = 'Unknown'
+                item['extra_fields']['multiple_cr'] = '-'
+
+
+    def get(self, request):
+        try:
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('repeat_offender')
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            io_name = request.query_params.get('io')
+            if io_name:
+                queryset = queryset.filter(assigned_officer=io_name)
+
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            if start_date:
+                queryset = queryset.filter(created_at__date__gte=start_date)
+            if end_date:
+                queryset = queryset.filter(created_at__date__lte=end_date)
+
+            from apps.cases.serializers import CaseRecordSerializer
+            
+            paginator = StandardCasePagination()
+            page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
+            if page is not None:
+                serializer = CaseRecordSerializer(page, many=True)
+                data = serializer.data
+                self._enrich_data(data)
+                return paginator.get_paginated_response(data)
+                
+            serializer = CaseRecordSerializer(queryset.order_by('-created_at'), many=True)
+            data = serializer.data
+            self._enrich_data(data)
+            return Response(data)
+        except Exception as e:
+            logger.exception(f'[RepeatOffenderCaseWiseView] Database error: {e}')
+            return Response({'error': 'Failed to retrieve repeat offender cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class IOWiseRepeatOffenderView(IOWisePendingView):
+    def get(self, request):
+        try:
+            from django.db.models import Count
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('repeat_offender')
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            if start_date:
+                queryset = queryset.filter(created_at__date__gte=start_date)
+            if end_date:
+                queryset = queryset.filter(created_at__date__lte=end_date)
+
+            counts = queryset.values('assigned_officer', 'station_name').annotate(count=Count('id')).order_by('-count')
+            
+            results = []
+            for c in counts:
+                name = c['assigned_officer']
+                results.append({
+                    'io_uid': name,
+                    'io_name': name if name else 'Unassigned',
+                    'io_rank': '',
+                    'station_name': c['station_name'],
+                    'pending_count': c['count']
+                })
+
+            return Response(results)
+        except Exception as e:
+            logger.exception(f'[IOWiseRepeatOffenderView] Database error: {e}')
+            return Response({'error': 'Failed to retrieve IO-wise repeat offender counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class JuvenileCaseWiseView(PendingCasesView):
+    def get(self, request):
+        try:
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('juvenile')
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            io_name = request.query_params.get('io')
+            if io_name:
+                queryset = queryset.filter(assigned_officer=io_name)
+
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            if start_date:
+                queryset = queryset.filter(created_at__date__gte=start_date)
+            if end_date:
+                queryset = queryset.filter(created_at__date__lte=end_date)
+
+            from apps.cases.serializers import CaseRecordSerializer
+            
+            paginator = StandardCasePagination()
+            page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
+            if page is not None:
+                serializer = CaseRecordSerializer(page, many=True)
+                data = serializer.data
+                return paginator.get_paginated_response(data)
+                
+            serializer = CaseRecordSerializer(queryset.order_by('-created_at'), many=True)
+            data = serializer.data
+            return Response(data)
+        except Exception as e:
+            logger.exception(f'[JuvenileCaseWiseView] Database error: {e}')
+            return Response({'error': 'Failed to retrieve juvenile cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class IOWiseJuvenileView(IOWisePendingView):
+    def get(self, request):
+        try:
+            from django.db.models import Count
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('juvenile')
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            if start_date:
+                queryset = queryset.filter(created_at__date__gte=start_date)
+            if end_date:
+                queryset = queryset.filter(created_at__date__lte=end_date)
+
+            counts = queryset.values('assigned_officer', 'station_name').annotate(count=Count('id')).order_by('-count')
+            
+            results = []
+            for c in counts:
+                name = c['assigned_officer']
+                results.append({
+                    'io_uid': name,
+                    'io_name': name if name else 'Unassigned',
+                    'io_rank': '',
+                    'station_name': c['station_name'],
+                    'pending_count': c['count']
+                })
+
+            return Response(results)
+        except Exception as e:
+            logger.exception(f'[IOWiseJuvenileView] Database error: {e}')
+            return Response({'error': 'Failed to retrieve IO-wise juvenile counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class TimeWiseJuvenileView(TimeWisePendingView):
+    def get(self, request):
+        try:
+            from django.db.models import Q
+            from django.utils import timezone
+            from datetime import timedelta
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('juvenile')
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            now = timezone.now()
+            month_1 = now - timedelta(days=30)
+            months_3 = now - timedelta(days=90)
+            months_6 = now - timedelta(days=180)
+            year_1 = now - timedelta(days=365)
+
+            under_1_month = queryset.filter(created_at__gte=month_1).count()
+            months_1_to_3 = queryset.filter(created_at__gte=months_3, created_at__lt=month_1).count()
+            months_3_to_6 = queryset.filter(created_at__gte=months_6, created_at__lt=months_3).count()
+            months_6_to_12 = queryset.filter(created_at__gte=year_1, created_at__lt=months_6).count()
+            more_than_1_year = queryset.filter(created_at__lt=year_1).count()
+            
+            results = [
+                {'period': 'Under 1 month', 'count': under_1_month},
+                {'period': '1 to 3 months', 'count': months_1_to_3},
+                {'period': '3 to 6 months', 'count': months_3_to_6},
+                {'period': '6 to 12 months', 'count': months_6_to_12},
+                {'period': 'More than 1 year', 'count': more_than_1_year},
+                {'period': 'Under 3 months (Total)', 'count': under_1_month + months_1_to_3}
+            ]
+
+            return Response(results)
+        except Exception as e:
+            logger.exception(f'[TimeWiseJuvenileView] Database error: {e}')
+            return Response({'error': 'Failed to retrieve Time-wise juvenile counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class TimeWiseRepeatOffenderView(TimeWisePendingView):
+    def get(self, request):
+        try:
+            from django.db.models import Q
+            from django.utils import timezone
+            from datetime import timedelta
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('repeat_offender')
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            now = timezone.now()
+            month_1 = now - timedelta(days=30)
+            months_3 = now - timedelta(days=90)
+            months_6 = now - timedelta(days=180)
+            year_1 = now - timedelta(days=365)
+
+            under_1_month = queryset.filter(created_at__gte=month_1).count()
+            months_1_to_3 = queryset.filter(created_at__gte=months_3, created_at__lt=month_1).count()
+            months_3_to_6 = queryset.filter(created_at__gte=months_6, created_at__lt=months_3).count()
+            months_6_to_12 = queryset.filter(created_at__gte=year_1, created_at__lt=months_6).count()
+            more_than_1_year = queryset.filter(created_at__lt=year_1).count()
+            
+            results = [
+                {'period': 'Under 1 month', 'count': under_1_month},
+                {'period': '1 to 3 months', 'count': months_1_to_3},
+                {'period': '3 to 6 months', 'count': months_3_to_6},
+                {'period': '6 to 12 months', 'count': months_6_to_12},
+                {'period': 'More than 1 year', 'count': more_than_1_year},
+                {'period': 'Under 3 months (Total)', 'count': under_1_month + months_1_to_3}
+            ]
+
+            return Response(results)
+        except Exception as e:
+            logger.exception(f'[TimeWiseRepeatOffenderView] Database error: {e}')
+            return Response({'error': 'Failed to retrieve Time-wise repeat offender counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class NAFISCaseWiseView(PendingCasesView):
+    def _enrich_data(self, data_list):
+        for item in data_list:
+            if not isinstance(item.get('extra_fields'), dict):
+                item['extra_fields'] = {}
+            extra = item['extra_fields']
+            inv = extra.get('investigationNotes') or extra.get('commonForm', {}).get('investigationNotes') or {}
+            
+            fp_val = str(extra.get('fingerprintVal') or inv.get('fingerprintVal') or '').strip().lower()
+            fp_date = str(extra.get('fingerprintDate') or inv.get('fingerprintDate') or '').strip()
+            nafis_val = str(extra.get('nafisFingerprint') or extra.get('nafis_fingerprint') or inv.get('nafisFingerprint') or '').strip().lower()
+            nafis_date = str(extra.get('nafisDate') or inv.get('nafisDate') or '').strip()
+            
+            # Check if pending: marked as 'no' or false or without any date
+            is_pending = False
+            reasons = []
+            if fp_val in ['no', 'false']:
+                is_pending = True
+                reasons.append('Fingerprint Not Taken')
+            elif fp_val == 'yes' and not fp_date:
+                is_pending = True
+                reasons.append('Fingerprint Date Missing')
+            elif not fp_val and not fp_date:
+                is_pending = True
+                reasons.append('Fingerprint Pending')
+                
+            if nafis_val in ['no', 'false']:
+                is_pending = True
+                reasons.append('NAFIS Not Taken')
+            elif nafis_val == 'yes' and not nafis_date:
+                is_pending = True
+                reasons.append('NAFIS Date Missing')
+            elif not nafis_val and not nafis_date:
+                is_pending = True
+                reasons.append('NAFIS Pending')
+                
+            item['extra_fields']['nafis_status'] = 'Pending' if is_pending else 'Done'
+            item['extra_fields']['nafis_status_color'] = 'red' if is_pending else 'green'
+            item['extra_fields']['nafis_reason'] = ', '.join(reasons) if reasons else 'NAFIS Pending'
+            item['extra_fields']['io_name'] = item.get('assigned_officer') or 'Unassigned'
+            
+            # Enrich Charge Sheet Date and Section/Act
+            court = extra.get('court') or extra.get('commonForm', {}).get('court') or extra.get('courtDisposal') or {}
+            cs_date = (
+                extra.get('chargeSheetDate') or 
+                extra.get('charge_sheet_date') or 
+                extra.get('chargesheet_date') or 
+                extra.get('csDate') or 
+                court.get('chargeSheetDate') or 
+                court.get('charge_sheet_date') or 
+                court.get('chargesheet_date') or 
+                ''
+            )
+            item['charge_sheet_date'] = cs_date
+            item['extra_fields']['charge_sheet_date'] = cs_date
+
+            from apps.cases.serializers import format_section_act
+            sections = ''
+            if extra.get('acts_sections'):
+                sections = format_section_act(extra['acts_sections'])
+            if not sections:
+                for k in ['section_act', 'section', 'act_section', 'sections', 'sectionAct']:
+                    if extra.get(k):
+                        sections = format_section_act(extra[k])
+                        if sections:
+                            break
+            if not sections and item.get('description'):
+                sections = format_section_act(item['description'])
+
+            item['section_act'] = sections
+            item['extra_fields']['section_act'] = sections
+
+    def get(self, request):
+        try:
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('nafis')
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            io_name = request.query_params.get('io')
+            if io_name:
+                queryset = queryset.filter(assigned_officer=io_name)
+
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            if start_date:
+                queryset = queryset.filter(created_at__date__gte=start_date)
+            if end_date:
+                queryset = queryset.filter(created_at__date__lte=end_date)
+
+            from apps.cases.serializers import NafisCaseRecordSerializer, CaseRecordSerializer
+            
+            paginator = StandardCasePagination()
+            page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
+            if page is not None:
+                serializer = NafisCaseRecordSerializer(page, many=True)
+                results = serializer.data
+                page_number = paginator.page.number
+                page_size = paginator.page.paginator.per_page
+                for idx, row in enumerate(results):
+                    row['sr_no'] = (page_number - 1) * page_size + idx + 1
+                return paginator.get_paginated_response(results)
+                
+            serializer = NafisCaseRecordSerializer(queryset.order_by('-created_at'), many=True)
+            results = serializer.data
+            for idx, row in enumerate(results):
+                row['sr_no'] = idx + 1
+            return Response(results)
+        except Exception as e:
+            logger.exception(f'[NAFISCaseWiseView] Database error: {e}')
+            return Response({'error': 'Failed to retrieve NAFIS cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class IOWiseNAFISView(IOWisePendingView):
+    def get(self, request):
+        try:
+            from django.db.models import Count
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('nafis')
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            if start_date:
+                queryset = queryset.filter(created_at__date__gte=start_date)
+            if end_date:
+                queryset = queryset.filter(created_at__date__lte=end_date)
+
+            counts = queryset.values('assigned_officer', 'station_name').annotate(count=Count('id')).order_by('-count')
+            
+            results = []
+            for c in counts:
+                name = c['assigned_officer']
+                results.append({
+                    'io_uid': name,
+                    'io_name': name if name else 'Unassigned',
+                    'io_rank': '',
+                    'station_name': c['station_name'],
+                    'nafis_count': c['count'],
+                    'pending_count': c['count']
+                })
+
+            return Response(results)
+        except Exception as e:
+            logger.exception(f'[IOWiseNAFISView] Database error: {e}')
+            return Response({'error': 'Failed to retrieve IO-wise NAFIS counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class TimeWiseNAFISView(TimeWisePendingView):
+    def get(self, request):
+        try:
+            from django.db.models import Q
+            from django.utils import timezone
+            from datetime import timedelta
+            from apps.cases.utils import get_cases_by_status
+            queryset = get_cases_by_status('nafis')
+            
+            user = request.user
+            if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
+                stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                queryset = queryset.filter(station_name__in=stations)
+
+            now = timezone.now()
+            month_1 = now - timedelta(days=30)
+            months_3 = now - timedelta(days=90)
+            months_6 = now - timedelta(days=180)
+            year_1 = now - timedelta(days=365)
+
+            under_1_month = queryset.filter(created_at__gte=month_1).count()
+            months_1_to_3 = queryset.filter(created_at__gte=months_3, created_at__lt=month_1).count()
+            months_3_to_6 = queryset.filter(created_at__gte=months_6, created_at__lt=months_3).count()
+            months_6_to_12 = queryset.filter(created_at__gte=year_1, created_at__lt=months_6).count()
+            more_than_1_year = queryset.filter(created_at__lt=year_1).count()
+            
+            results = [
+                {'period': 'Under 1 month', 'count': under_1_month},
+                {'period': '1 to 3 months', 'count': months_1_to_3},
+                {'period': '3 to 6 months', 'count': months_3_to_6},
+                {'period': '6 to 12 months', 'count': months_6_to_12},
+                {'period': 'More than 1 year', 'count': more_than_1_year},
+                {'period': 'Under 3 months (Total)', 'count': under_1_month + months_1_to_3}
+            ]
+
+            return Response(results)
+        except Exception as e:
+            logger.exception(f'[TimeWiseNAFISView] Database error: {e}')
+            return Response({'error': 'Failed to retrieve Time-wise NAFIS counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class NafisActionView(APIView):
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def post(self, request, pk):
+        try:
+            case = CaseRecord.objects.get(pk=pk)
+            from apps.users.models import NotificationRecord
+            
+            target_uid = case.assigned_officer_uid
+            officer_name = case.assigned_officer or 'Investigating Officer'
+
+            title = f"Action Required: NAFIS Pending for {case.case_number}"
+            body = f"Please upload NAFIS fingerprint and update Charge Sheet details for case {case.case_number} registered at {case.station_name} immediately."
+            
+            NotificationRecord.objects.create(
+                target_user_uid=target_uid or '',
+                target_station_name=case.station_name,
+                title=title,
+                body=body,
+                category='reminder',
+                registration_uid=case.case_number,
+                status='pending'
+            )
+            
+            from apps.core.models import AuditLog
+            AuditLog.objects.create(
+                event='action_taken_on_case',
+                category='case',
+                uid=request.user.pk,
+                user_name=getattr(request.user, 'name', ''),
+                user_role=getattr(request.user, 'role', ''),
+                station_name=getattr(request.user, 'station_name', ''),
+                action_details=f"NAFIS Reminder sent to IO for case {case.case_number}",
+                metadata={'case_id': str(case.pk), 'assigned_officer_uid': target_uid}
+            )
+            
+            return Response({'status': 'success', 'message': f'Reminder sent to IO for case {case.case_number}.'})
+            
+        except CaseRecord.DoesNotExist:
+            return Response({'error': 'Case not found.'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.exception(f"[NafisActionView] Error: {e}")
+            return Response({'error': 'Failed to send action.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 
 class VictimCaseWiseView(APIView):
     permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
@@ -1550,8 +2134,7 @@ class ItssoCasesView(APIView):
                 ) & ~Q(extra_fields__charge_sheet_number='') & ~Q(extra_fields__charge_sheet_no='') & ~Q(extra_fields__cc_st_number='') & ~Q(extra_fields__ccStNumber='')
                 queryset = queryset.exclude(has_cs_q)
 
-        paginator = PageNumberPagination()
-        paginator.page_size = 20
+        paginator = StandardCasePagination()
         page = paginator.paginate_queryset(queryset.order_by('-created_at'), request)
         if page is not None:
             serializer = ItssoCaseRecordSerializer(page, many=True)
@@ -1706,6 +2289,3 @@ class ItssoActionView(APIView):
         except Exception as e:
             logger.exception(f"[ItssoActionView] Error: {e}")
             return Response({'error': 'Failed to send action.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-

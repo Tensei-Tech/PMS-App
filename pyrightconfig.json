@@ -1,5 +1,11 @@
 {
+  "pythonVersion": "3.12",
+  "pythonPlatform": "Windows",
+  "venvPath": "backend",
+  "venv": "venv",
   "extraPaths": [
     "backend"
-  ]
+  ],
+  "reportMissingImports": "warning",
+  "reportMissingModuleSource": "none"
 }
