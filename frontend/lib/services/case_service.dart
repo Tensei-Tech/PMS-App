@@ -4,6 +4,9 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../modules/core/models/base_record.dart';
+import '../utils/app_constants.dart';
+import '../widgets/form_iv_category_button.dart';
+import '../widgets/form_vi_category_button.dart';
 import 'api_config.dart';
 import 'api_service.dart';
 
@@ -412,9 +415,20 @@ class CaseService {
             : null,
       );
       if (response.isSuccess && response.data is List) {
-        return (response.data as List)
+        final list = (response.data as List)
             .map((e) => Map<String, dynamic>.from(e as Map))
             .toList();
+        final names = list
+            .map((c) =>
+                (c['category_name'] ?? c['name'] ?? '').toString().trim())
+            .where((n) => n.isNotEmpty)
+            .toList();
+        if (groupId == 1 && names.isNotEmpty) {
+          updateDynamicFormIVCategories(names);
+        } else if (groupId == 2 && names.isNotEmpty) {
+          updateDynamicFormVICategories(names);
+        }
+        return list;
       }
     } catch (e) {
       if (kDebugMode) {
@@ -663,9 +677,11 @@ class CaseService {
     try {
       final response = await _api.get(ApiConfig.designations);
       if (response.isSuccess && response.data is List) {
-        return (response.data as List)
+        final list = (response.data as List)
             .map((e) => Map<String, dynamic>.from(e as Map))
             .toList();
+        PoliceDesignations.updateFromBackend(list);
+        return list;
       }
     } catch (e) {
       if (kDebugMode) {

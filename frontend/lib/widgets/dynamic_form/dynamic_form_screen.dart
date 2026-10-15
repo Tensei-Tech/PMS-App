@@ -1467,6 +1467,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     }
   }
 
+
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1990,12 +1991,113 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     allFormFields['scrutiny'] = scrutinyMap;
     allFormFields['scrutiny_pipeline'] = scrutinyMap;
 
+    // Build structured sub-documents
+    final compData = <String, dynamic>{
+      'name': complainant,
+      'age': _controllers['complainant_age']?.text.trim() ?? '',
+      'gender': _values['complainant_gender'] ??
+          _controllers['complainant_gender']?.text.trim() ??
+          'Male',
+      'occupation': _controllers['complainant_occupation']?.text.trim() ?? '',
+      'occ': _controllers['complainant_occupation']?.text.trim() ?? '',
+      'mobile': _controllers['complainant_mobile']?.text.trim() ?? '',
+      'aadhaar': _controllers['complainant_aadhaar']?.text.trim() ?? '',
+      'pan': _controllers['complainant_pan']?.text.trim() ?? '',
+      'religion': _controllers['complainant_religion']?.text.trim() ?? '',
+      'caste': _controllers['complainant_caste']?.text.trim() ?? '',
+      'address': _controllers['complainant_address']?.text.trim() ?? '',
+    };
+
+    final deceasedName = _controllers['deceased_name']?.text.trim() ?? '';
+    final deceasedData = <String, dynamic>{
+      'name': deceasedName,
+      'age': _controllers['deceased_age']?.text.trim() ?? '',
+      'gender': _values['deceased_gender'] ??
+          _controllers['deceased_gender']?.text.trim() ??
+          'Male',
+      'occupation': _controllers['deceased_occupation']?.text.trim() ?? '',
+      'occ': _controllers['deceased_occupation']?.text.trim() ?? '',
+      'mobile': _controllers['deceased_mobile']?.text.trim() ?? '',
+      'aadhaar': _controllers['deceased_aadhaar']?.text.trim() ?? '',
+      'pan': _controllers['deceased_pan']?.text.trim() ?? '',
+      'religion': _controllers['deceased_religion']?.text.trim() ?? '',
+      'caste': _controllers['deceased_caste']?.text.trim() ?? '',
+      'address': _controllers['deceased_address']?.text.trim() ?? '',
+    };
+
+    final caseRespData = <String, dynamic>{
+      'ioDesig': _controllers['io_designation']?.text.trim().isNotEmpty == true
+          ? _controllers['io_designation']!.text.trim()
+          : 'PSI',
+      'ioName': _controllers['io_name']?.text.trim().isNotEmpty == true
+          ? _controllers['io_name']!.text.trim()
+          : auth.displayName,
+      'regDesig': _controllers['registered_by_designation']?.text.trim().isNotEmpty == true
+          ? _controllers['registered_by_designation']!.text.trim()
+          : 'HC',
+      'regName': _controllers['registered_by_name']?.text.trim().isNotEmpty == true
+          ? _controllers['registered_by_name']!.text.trim()
+          : auth.displayName,
+      'cctvValue': (_values['cctv_available'] == true ||
+              _values['cctv_checked'] == true ||
+              _controllers['cctv_available']?.text.toLowerCase() == 'true')
+          ? 'Yes'
+          : 'No',
+      'cctvDateTime': _controllers['cctv_collected_datetime']?.text.trim() ?? '',
+    };
+
+    final courtData = <String, dynamic>{
+      'chargeSheetNumber': _controllers['charge_sheet_no']?.text.trim() ?? '',
+      'chargeSheetDate': _controllers['charge_sheet_date']?.text.trim() ?? '',
+      'ccStNumber': _controllers['cc_st_number']?.text.trim() ?? '',
+      'finalSummary': _values['final_summary'] ??
+          _controllers['final_summary']?.text.trim() ??
+          '',
+      'quashedHighCourt':
+          _controllers['quashed_high_court']?.text.trim() ?? 'No',
+    };
+
+    final List<Map<String, dynamic>> seizuresList = [];
+    final seizedDesc =
+        _controllers['seized_property_description']?.text.trim() ??
+            _controllers['seized_property_type']?.text.trim() ??
+            '';
+    if (seizedDesc.isNotEmpty || _values['seized_property_type'] != null) {
+      seizuresList.add({
+        'desc': seizedDesc.isNotEmpty ? seizedDesc : 'Incriminating Articles',
+        'property':
+            seizedDesc.isNotEmpty ? seizedDesc : 'Incriminating Articles',
+        'fromWhom': _controllers['seized_from_person']?.text.trim() ?? 'Crime Spot',
+        'quantity': _controllers['seized_quantity']?.text.trim() ?? '1',
+        'estValue': _controllers['seized_value']?.text.trim() ?? '5000',
+        'status': _values['seized_status'] ??
+            _controllers['seized_status']?.text.trim() ??
+            'In Police Custody',
+        'custodyLoc': 'Police Station Malkhana',
+        'recoveryDate': DateFormat('dd/MM/yyyy').format(DateTime.now()),
+      });
+    }
+
     // Build commonForm document map for full backward compatibility
     final commonFormDoc = <String, dynamic>{
+      ...allFormFields,
       'crNo': caseNo,
-      'charges': chargesMap,
+      'regDate': DateFormat('dd/MM/yyyy').format(
+          isEdit ? widget.existingRecord!.incidentDate : DateTime.now()),
+      'incidentDate': DateFormat('dd/MM/yyyy').format(
+          isEdit ? widget.existingRecord!.incidentDate : DateTime.now()),
+      'spotVillage':
+          _controllers['village_town']?.text.trim().isNotEmpty == true
+              ? _controllers['village_town']!.text.trim()
+              : loc,
+      'spotArea': _controllers['area_name']?.text.trim() ?? '',
       'spotAddress': loc,
-      'complainant': {'name': complainant},
+      'charges': chargesMap,
+      'complainant': compData,
+      'deceased': deceasedData,
+      'caseResponsibility': caseRespData,
+      'court': courtData,
+      'scrutiny': scrutinyMap,
       'accused': finalAccusedList,
       'suspectedAccused': finalSuspectedList,
       'unidentifiedList': finalUnidentifiedList,
@@ -2010,13 +2112,16 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       'discharges': dischargesList,
       'arrests': finalArrestsList,
       'arrest_records': finalArrestsList,
+      'arrestRelease': finalArrestsList,
       'preventive_actions': prevActionsToSubmit,
       'preventive_action_items': prevActionsToSubmit,
       'custody_records': custodyToSubmit,
       'remand_custody': custodyToSubmit,
       'custodyInfo': custodyToSubmit,
+      'seizures': seizuresList,
+      'proceduralChecks': proceduralChecks,
+      'proceduralDates': proceduralDates,
       'dynamic_extra_fields': dynamicExtraVals,
-      ...allFormFields,
     };
 
     final extraFields = Map<String, dynamic>.from(
@@ -2024,6 +2129,13 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     );
     extraFields.addAll(allFormFields);
     extraFields['commonForm'] = commonFormDoc;
+    extraFields['charges'] = chargesMap;
+    extraFields['complainant'] = compData;
+    extraFields['deceased'] = deceasedData;
+    extraFields['caseResponsibility'] = caseRespData;
+    extraFields['court'] = courtData;
+    extraFields['scrutiny'] = scrutinyMap;
+    extraFields['accused'] = finalAccusedList;
     extraFields['suspectedAccused'] = finalSuspectedList;
     extraFields['unidentifiedList'] = finalUnidentifiedList;
     extraFields['unidentified_accused'] = finalUnidentifiedList;
@@ -2038,8 +2150,15 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     extraFields['discharges'] = dischargesList;
     extraFields['arrests'] = finalArrestsList;
     extraFields['arrest_records'] = finalArrestsList;
+    extraFields['arrestRelease'] = finalArrestsList;
     extraFields['preventive_actions'] = prevActionsToSubmit;
     extraFields['preventive_action_items'] = prevActionsToSubmit;
+    extraFields['custody_records'] = custodyToSubmit;
+    extraFields['remand_custody'] = custodyToSubmit;
+    extraFields['custodyInfo'] = custodyToSubmit;
+    extraFields['seizures'] = seizuresList;
+    extraFields['proceduralChecks'] = proceduralChecks;
+    extraFields['proceduralDates'] = proceduralDates;
     extraFields['is_discharged'] = _dischargedAccusedList.isNotEmpty;
     extraFields['lastEditedBy'] = auth.displayName;
     extraFields['lastEditedAt'] = DateTime.now().toIso8601String();
@@ -2141,6 +2260,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           ],
         ),
         actions: [
+
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -2734,6 +2854,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                     ),
                   ),
                 ),
+
               const SizedBox(height: 40),
             ],
           ),

@@ -39,10 +39,35 @@ class PdfFontCache {
 
   static Future<pw.ThemeData> openSansTheme() async {
     if (_openSansTheme != null) return _openSansTheme!;
-    final base = await openSansRegular();
-    final bold = await openSansBold();
-    final italic = await openSansItalic();
-    return _openSansTheme =
-        pw.ThemeData.withFont(base: base, bold: bold, italic: italic);
+
+    try {
+      final baseFuture = Future.wait([
+        openSansRegular(),
+        openSansBold(),
+        openSansItalic(),
+      ]).timeout(const Duration(seconds: 4));
+
+      pw.Font? devanagari;
+      try {
+        devanagari = await devanagariRegular().timeout(const Duration(seconds: 2));
+      } catch (_) {}
+
+      final fonts = await baseFuture;
+      return _openSansTheme = pw.ThemeData.withFont(
+        base: fonts[0],
+        bold: fonts[1],
+        italic: fonts[2],
+        fontFallback: [
+          if (devanagari != null) devanagari,
+        ],
+      );
+    } catch (_) {
+      // Immediate resilient fallback to core PDF fonts
+      return _openSansTheme = pw.ThemeData.withFont(
+        base: pw.Font.helvetica(),
+        bold: pw.Font.helveticaBold(),
+        italic: pw.Font.helveticaOblique(),
+      );
+    }
   }
 }

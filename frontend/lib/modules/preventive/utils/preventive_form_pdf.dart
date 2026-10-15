@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import '../../../screens/ad_form_screen.dart' show ACT_DATA;
+import '../../../services/backend_case_service.dart';
 import '../../../utils/pdf_unicode_fonts.dart';
 
 class PreventiveFormPdfHelper {
@@ -61,9 +61,9 @@ class PreventiveFormPdfHelper {
 
     if (sectionList.isEmpty) return '—';
 
-    // Build fast lookup dictionary from ACT_DATA master mapping
+    // Build fast lookup dictionary from BackendCaseService.cachedActData
     final Map<String, String> actSectionMap = {};
-    for (final actEntry in ACT_DATA.entries) {
+    for (final actEntry in BackendCaseService.cachedActData.entries) {
       final act = actEntry.key.toUpperCase();
       final secList = actEntry.value['sections'] as List<dynamic>? ?? [];
       for (final sec in secList) {

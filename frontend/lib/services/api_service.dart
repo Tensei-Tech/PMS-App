@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../constants/app_constants.dart';
 import 'api_config.dart';
+import 'connectivity/connectivity_service.dart';
 import 'secure_storage.dart';
 
 /// Response wrapper for API calls
@@ -248,6 +249,7 @@ class ApiService {
       } on SocketException {
         attempt++;
         if (attempt > 1) {
+          ConnectivityService().reportConnectionStatus(false);
           return ApiResponse.error(
             'No Internet connection or server unavailable.',
             statusCode: 503,
@@ -310,6 +312,7 @@ class ApiService {
       } on SocketException {
         attempt++;
         if (attempt > 1) {
+          ConnectivityService().reportConnectionStatus(false);
           return ApiResponse.error(
             'No Internet connection or server unavailable.',
             statusCode: 503,
@@ -344,6 +347,7 @@ class ApiService {
 
       return _processResponse(response);
     } on SocketException {
+      ConnectivityService().reportConnectionStatus(false);
       return ApiResponse.error(
         'No Internet connection or server unavailable.',
         statusCode: 503,
@@ -461,6 +465,7 @@ class ApiService {
     }
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
+      ConnectivityService().reportApiSuccess();
       return ApiResponse.success(bodyData, statusCode: response.statusCode);
     } else {
       String message = 'HTTP Error ${response.statusCode}';

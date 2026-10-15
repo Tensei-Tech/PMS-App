@@ -3324,7 +3324,7 @@ class _HomeTabState extends State<_HomeTab> {
   int _matchingModulesCount(String query) {
     if (query.trim().isEmpty) return 0;
     final q = query.trim().toLowerCase();
-    final matchingFormIV = kFormIVCaseCategories
+    final matchingFormIV = formIVCaseCategories
         .where((cat) => cat.toLowerCase().contains(q))
         .length;
     final allClasses = [...Classification.all, ..._extraSearchClassifications];
@@ -3339,7 +3339,7 @@ class _HomeTabState extends State<_HomeTab> {
     if (query.trim().isEmpty) return const SizedBox.shrink();
     final q = query.trim().toLowerCase();
 
-    final matchingFormIV = kFormIVCaseCategories.where((cat) {
+    final matchingFormIV = formIVCaseCategories.where((cat) {
       return cat.toLowerCase().contains(q);
     }).toList();
 
@@ -4303,7 +4303,7 @@ class _HomeTabState extends State<_HomeTab> {
             const Divider(height: 1),
             Expanded(
               child: FormIVCategoryButtonGrid(
-                labels: kFormIVCaseCategories,
+                labels: formIVCaseCategories,
                 scrollable: true,
                 padding: const EdgeInsets.all(24),
                 onLabelTap: (label) {

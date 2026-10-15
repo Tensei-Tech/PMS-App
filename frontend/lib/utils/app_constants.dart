@@ -328,8 +328,27 @@ class PoliceDesignationEntry {
 class PoliceDesignations {
   PoliceDesignations._();
 
+  static List<String>? _dynamicIoDesignations;
+  static List<String>? _dynamicFormIoAndReg;
+
+  /// Update active designations directly from backend API master (`public.designations`)
+  static void updateFromBackend(List<Map<String, dynamic>> designations) {
+    if (designations.isEmpty) return;
+    final codes = designations
+        .map((d) => (d['code'] ?? d['abbreviation'] ?? '').toString().trim())
+        .where((c) => c.isNotEmpty)
+        .toList();
+    if (codes.isNotEmpty) {
+      _dynamicFormIoAndReg = codes;
+      _dynamicIoDesignations = codes;
+    }
+  }
+
   /// Canonical IO Designations (from HC up to Addl. SP / Addl. CP).
-  static const List<String> ioDesignations = [
+  static List<String> get ioDesignations =>
+      _dynamicIoDesignations ?? _fallbackIoDesignations;
+
+  static const List<String> _fallbackIoDesignations = [
     'HC',
     'ASI',
     'SI',
@@ -348,7 +367,10 @@ class PoliceDesignations {
   ];
 
   /// Form IO / Reg dropdowns (common form, NC, missing).
-  static const List<String> formIoAndReg = [
+  static List<String> get formIoAndReg =>
+      _dynamicFormIoAndReg ?? _fallbackFormIoAndReg;
+
+  static const List<String> _fallbackFormIoAndReg = [
     'HC',
     'PN',
     'PC',

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'api_config.dart';
 import 'api_service.dart';
@@ -907,7 +908,28 @@ class BackendCaseService {
   }
 
   // Reference Data Endpoints for Acts & Charges
-  Future<Map<String, Map<String, dynamic>>?> fetchActDataMap() async {
+  static Map<String, Map<String, dynamic>>? _cachedActDataMap;
+  static Future<Map<String, Map<String, dynamic>>?>? _fetchActDataFuture;
+
+  /// Fast synchronous access to cached acts and sections map
+  static Map<String, Map<String, dynamic>> get cachedActData =>
+      _cachedActDataMap ?? const {};
+
+  Future<Map<String, Map<String, dynamic>>?> fetchActDataMap({
+    bool forceRefresh = false,
+  }) async {
+    if (!forceRefresh &&
+        _cachedActDataMap != null &&
+        _cachedActDataMap!.isNotEmpty) {
+      return _cachedActDataMap;
+    }
+    if (_fetchActDataFuture != null) {
+      return await _fetchActDataFuture!;
+    }
+
+    final completer = Completer<Map<String, Map<String, dynamic>>?>();
+    _fetchActDataFuture = completer.future;
+
     try {
       final actsResponse = await _api.get(ApiConfig.acts);
       final sectionsResponse = await _api.get(ApiConfig.actSections);
@@ -959,13 +981,21 @@ class BackendCaseService {
             });
           }
         }
+        _cachedActDataMap = actData;
+        completer.complete(actData);
         return actData;
+      } else {
+        completer.complete(null);
+        return null;
       }
     } catch (e) {
       if (kDebugMode) {
         debugPrint('[BackendCaseService] fetchActDataMap exception: $e');
       }
+      completer.complete(null);
+      return null;
+    } finally {
+      _fetchActDataFuture = null;
     }
-    return null;
   }
 }
