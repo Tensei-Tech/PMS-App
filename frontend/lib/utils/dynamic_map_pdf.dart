@@ -619,7 +619,8 @@ class DynamicMapPdf {
                 for (var i = 0; i < rows.length; i++)
                   pw.TableRow(
                     children: [
-                      if (effectivePrependSerial) _landscapeBodyCell('${i + 1}'),
+                      if (effectivePrependSerial)
+                        _landscapeBodyCell('${i + 1}'),
                       ...effectiveKeys.map(
                         (k) {
                           final v = rows[i][k];

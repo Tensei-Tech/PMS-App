@@ -20,28 +20,22 @@ class LicenceProvider extends BaseModuleProvider {
 
   static bool isApprovedRecord(ModuleRecord r) {
     final s = r.status.trim().toLowerCase();
-    final vs = (r.extraFields['licence_status'] ?? '')
-        .toString()
-        .trim()
-        .toLowerCase();
+    final vs =
+        (r.extraFields['licence_status'] ?? '').toString().trim().toLowerCase();
     return s == 'approved' || vs == 'approved';
   }
 
   static bool isRejectedRecord(ModuleRecord r) {
     final s = r.status.trim().toLowerCase();
-    final vs = (r.extraFields['licence_status'] ?? '')
-        .toString()
-        .trim()
-        .toLowerCase();
+    final vs =
+        (r.extraFields['licence_status'] ?? '').toString().trim().toLowerCase();
     return s == 'rejected' || vs == 'rejected';
   }
 
   static bool isReturnedRecord(ModuleRecord r) {
     final s = r.status.trim().toLowerCase();
-    final vs = (r.extraFields['licence_status'] ?? '')
-        .toString()
-        .trim()
-        .toLowerCase();
+    final vs =
+        (r.extraFields['licence_status'] ?? '').toString().trim().toLowerCase();
     return s == 'returned' || vs == 'returned';
   }
 

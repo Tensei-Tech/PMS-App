@@ -69,4 +69,3 @@ class PassportProvider extends BaseModuleProvider {
   int get pendingCount =>
       records.fold(0, (sum, r) => sum + getRecordPendingCount(r));
 }
-

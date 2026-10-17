@@ -67,7 +67,8 @@ class _PassportAddEditDialogState extends State<PassportAddEditDialog> {
       final p = widget.initialPending ?? 0;
       _verifiedCtrl.text = v > 0 ? v.toString() : '';
       _pendingCtrl.text = p > 0 ? p.toString() : '';
-    } else if (widget.groupedRecords != null && widget.groupedRecords!.isNotEmpty) {
+    } else if (widget.groupedRecords != null &&
+        widget.groupedRecords!.isNotEmpty) {
       int v = 0;
       int p = 0;
       for (final rec in widget.groupedRecords!) {
@@ -154,16 +155,21 @@ class _PassportAddEditDialogState extends State<PassportAddEditDialog> {
             d.day == _selectedDate.day;
       }).toList();
 
-      final existingList = (widget.groupedRecords != null && widget.groupedRecords!.isNotEmpty)
-          ? widget.groupedRecords!
-          : (widget.existingRecord != null ? [widget.existingRecord!] : sameDayRecords);
+      final existingList =
+          (widget.groupedRecords != null && widget.groupedRecords!.isNotEmpty)
+              ? widget.groupedRecords!
+              : (widget.existingRecord != null
+                  ? [widget.existingRecord!]
+                  : sameDayRecords);
 
       final dateCode = DateFormat('yyMMdd').format(_selectedDate);
-      final randSuffix =
-          (DateTime.now().millisecondsSinceEpoch % 1000).toString().padLeft(3, '0');
-      final fileNo = existingList.isNotEmpty && existingList.first.caseNumber.isNotEmpty
-          ? existingList.first.caseNumber
-          : 'PV-$dateCode-$randSuffix';
+      final randSuffix = (DateTime.now().millisecondsSinceEpoch % 1000)
+          .toString()
+          .padLeft(3, '0');
+      final fileNo =
+          existingList.isNotEmpty && existingList.first.caseNumber.isNotEmpty
+              ? existingList.first.caseNumber
+              : 'PV-$dateCode-$randSuffix';
 
       final extraFields = <String, dynamic>{
         if (existingList.isNotEmpty) ...existingList.first.extraFields,
@@ -411,10 +417,11 @@ class _PassportAddEditDialogState extends State<PassportAddEditDialog> {
                         onPressed: _isSaving
                             ? null
                             : () async {
-                                final provider = context.read<PassportProvider>();
+                                final provider =
+                                    context.read<PassportProvider>();
                                 final nav = Navigator.of(context);
                                 final confirm = await showDialog<bool>(
-                                   context: context,
+                                  context: context,
                                   builder: (ctx) => AlertDialog(
                                     title: Text(TranslationHelper.translate(
                                         context, 'Delete Record?')),
@@ -425,9 +432,8 @@ class _PassportAddEditDialogState extends State<PassportAddEditDialog> {
                                       TextButton(
                                         onPressed: () =>
                                             Navigator.pop(ctx, false),
-                                        child: Text(
-                                            TranslationHelper.translate(
-                                                context, 'Cancel')),
+                                        child: Text(TranslationHelper.translate(
+                                            context, 'Cancel')),
                                       ),
                                       ElevatedButton(
                                         onPressed: () =>
@@ -436,9 +442,8 @@ class _PassportAddEditDialogState extends State<PassportAddEditDialog> {
                                             backgroundColor:
                                                 Colors.red.shade700,
                                             foregroundColor: Colors.white),
-                                        child: Text(
-                                            TranslationHelper.translate(
-                                                context, 'Delete')),
+                                        child: Text(TranslationHelper.translate(
+                                            context, 'Delete')),
                                       ),
                                     ],
                                   ),

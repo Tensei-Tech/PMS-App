@@ -101,8 +101,9 @@ class _LicenceAddEditDialogState extends State<LicenceAddEditDialog> {
       final provider = context.read<LicenceProvider>();
 
       final dateCode = DateFormat('yyMMdd').format(_receivedDate);
-      final randSuffix =
-          (DateTime.now().millisecondsSinceEpoch % 1000).toString().padLeft(3, '0');
+      final randSuffix = (DateTime.now().millisecondsSinceEpoch % 1000)
+          .toString()
+          .padLeft(3, '0');
       final fileNo = isEdit && widget.existingRecord!.caseNumber.isNotEmpty
           ? widget.existingRecord!.caseNumber
           : 'LIC-$dateCode-$randSuffix';
@@ -134,14 +135,16 @@ class _LicenceAddEditDialogState extends State<LicenceAddEditDialog> {
         title: licenceType.isNotEmpty ? licenceType : 'Licence Verification',
         caseNumber: fileNo,
         description: statusToSave,
-        complainant: applicantName.isNotEmpty ? applicantName : 'Licence Applicant',
+        complainant:
+            applicantName.isNotEmpty ? applicantName : 'Licence Applicant',
         accused: businessName.isNotEmpty ? businessName : 'Business / Entity',
         location: '',
         incidentDate: _receivedDate,
         priority: 'Normal',
         status: statusToSave,
         assignedOfficer: '',
-        subCategory: licenceType.isNotEmpty ? licenceType : 'Licence Verification',
+        subCategory:
+            licenceType.isNotEmpty ? licenceType : 'Licence Verification',
         extraFields: extraFields,
         createdAt: isEdit ? widget.existingRecord!.createdAt : DateTime.now(),
       );
@@ -401,7 +404,8 @@ class _LicenceAddEditDialogState extends State<LicenceAddEditDialog> {
                         onPressed: _isSaving
                             ? null
                             : () async {
-                                final provider = context.read<LicenceProvider>();
+                                final provider =
+                                    context.read<LicenceProvider>();
                                 final nav = Navigator.of(context);
                                 final confirm = await showDialog<bool>(
                                   context: context,
@@ -415,9 +419,8 @@ class _LicenceAddEditDialogState extends State<LicenceAddEditDialog> {
                                       TextButton(
                                         onPressed: () =>
                                             Navigator.pop(ctx, false),
-                                        child: Text(
-                                            TranslationHelper.translate(
-                                                context, 'Cancel')),
+                                        child: Text(TranslationHelper.translate(
+                                            context, 'Cancel')),
                                       ),
                                       ElevatedButton(
                                         onPressed: () =>
@@ -426,9 +429,8 @@ class _LicenceAddEditDialogState extends State<LicenceAddEditDialog> {
                                             backgroundColor:
                                                 Colors.red.shade700,
                                             foregroundColor: Colors.white),
-                                        child: Text(
-                                            TranslationHelper.translate(
-                                                context, 'Delete')),
+                                        child: Text(TranslationHelper.translate(
+                                            context, 'Delete')),
                                       ),
                                     ],
                                   ),
@@ -485,7 +487,8 @@ class _LicenceAddEditDialogState extends State<LicenceAddEditDialog> {
                               ),
                             )
                           : Text(
-                              TranslationHelper.translate(context, 'Save Record'),
+                              TranslationHelper.translate(
+                                  context, 'Save Record'),
                               style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w600,
                               ),
@@ -554,8 +557,7 @@ class _LicenceAddEditDialogState extends State<LicenceAddEditDialog> {
         fontSize: 12.5,
         color: AppColors.lightSubText.withValues(alpha: 0.7),
       ),
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
       prefixIcon: prefixIcon != null
           ? Icon(prefixIcon, size: 16, color: AppColors.navyMid)
           : null,

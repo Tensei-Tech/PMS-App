@@ -50,9 +50,8 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
       final auth = context.read<AuthProvider>();
       final licenceProv = context.read<LicenceProvider>();
       licenceProv.setStationContext(
-        stationId: auth.stationName.isNotEmpty
-            ? auth.stationName
-            : widget.stationName,
+        stationId:
+            auth.stationName.isNotEmpty ? auth.stationName : widget.stationName,
         uid: auth.uid,
         visibilityMode: CaseVisibilityMode.stationWide,
       );
@@ -152,13 +151,13 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
         final businessName = (r.extraFields['business_name'] ?? r.accused)
             .toString()
             .toLowerCase();
-        final licenceType = (r.extraFields['licence_type'] ?? r.title)
-            .toString()
-            .toLowerCase();
+        final licenceType =
+            (r.extraFields['licence_type'] ?? r.title).toString().toLowerCase();
         final dateStr = DateFormat('dd/MM/yyyy').format(r.incidentDate);
         final status = r.status.toLowerCase();
-        final remarks =
-            (r.extraFields['remarks'] ?? r.description).toString().toLowerCase();
+        final remarks = (r.extraFields['remarks'] ?? r.description)
+            .toString()
+            .toLowerCase();
 
         return applicantName.contains(_searchQuery) ||
             businessName.contains(_searchQuery) ||
@@ -171,7 +170,6 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
 
     return list;
   }
-
 
   // ── Exports ───────────────────────────────────────────────────────────────
 
@@ -186,8 +184,7 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
           (r.extraFields['applicant_name'] ?? r.complainant).toString();
       final businessName =
           (r.extraFields['business_name'] ?? r.accused).toString();
-      final licenceType =
-          (r.extraFields['licence_type'] ?? r.title).toString();
+      final licenceType = (r.extraFields['licence_type'] ?? r.title).toString();
       final statusLabel = LicenceProvider.isApprovedRecord(r)
           ? 'Approved'
           : LicenceProvider.isRejectedRecord(r)
@@ -246,8 +243,7 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
           (r.extraFields['applicant_name'] ?? r.complainant).toString();
       final businessName =
           (r.extraFields['business_name'] ?? r.accused).toString();
-      final licenceType =
-          (r.extraFields['licence_type'] ?? r.title).toString();
+      final licenceType = (r.extraFields['licence_type'] ?? r.title).toString();
       final statusLabel = LicenceProvider.isApprovedRecord(r)
           ? 'Approved'
           : LicenceProvider.isRejectedRecord(r)
@@ -602,9 +598,8 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
           color: hasFilter ? const Color(0xFFEFF6FF) : Colors.white,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: hasFilter
-                ? const Color(0xFF3B82F6)
-                : const Color(0xFFCBD5E1),
+            color:
+                hasFilter ? const Color(0xFF3B82F6) : const Color(0xFFCBD5E1),
           ),
         ),
         child: Row(
@@ -613,9 +608,8 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
             Icon(
               Icons.calendar_month_rounded,
               size: 16,
-              color: hasFilter
-                  ? const Color(0xFF1E40AF)
-                  : AppColors.lightSubText,
+              color:
+                  hasFilter ? const Color(0xFF1E40AF) : AppColors.lightSubText,
             ),
             const SizedBox(width: 6),
             Text(
@@ -624,9 +618,7 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 12,
                 fontWeight: hasFilter ? FontWeight.w600 : FontWeight.w500,
-                color: hasFilter
-                    ? const Color(0xFF1E40AF)
-                    : AppColors.navyDark,
+                color: hasFilter ? const Color(0xFF1E40AF) : AppColors.navyDark,
               ),
             ),
             if (hasFilter) ...[
@@ -723,8 +715,8 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.navyDark,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 20, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -776,8 +768,8 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
               onPressed: () {
                 _searchCtrl.clear();
                 _clearDateFilter();
-                setState(() =>
-                    _selectedFilter = LicenceStatusFilter.totalReceived);
+                setState(
+                    () => _selectedFilter = LicenceStatusFilter.totalReceived);
               },
               child: Text(
                 TranslationHelper.translate(context, 'Reset All Filters'),
@@ -844,22 +836,28 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
                       ),
                       columns: [
                         DataColumn(
-                          label: Text(TranslationHelper.translate(context, 'Sr.')),
+                          label:
+                              Text(TranslationHelper.translate(context, 'Sr.')),
                         ),
                         DataColumn(
-                          label: Text(TranslationHelper.translate(context, 'Applicant Name')),
+                          label: Text(TranslationHelper.translate(
+                              context, 'Applicant Name')),
                         ),
                         DataColumn(
-                          label: Text(TranslationHelper.translate(context, 'Business Name')),
+                          label: Text(TranslationHelper.translate(
+                              context, 'Business Name')),
                         ),
                         DataColumn(
-                          label: Text(TranslationHelper.translate(context, 'Licence / NOC Type')),
+                          label: Text(TranslationHelper.translate(
+                              context, 'Licence / NOC Type')),
                         ),
                         DataColumn(
-                          label: Text(TranslationHelper.translate(context, 'Received Date')),
+                          label: Text(TranslationHelper.translate(
+                              context, 'Received Date')),
                         ),
                         DataColumn(
-                          label: Text(TranslationHelper.translate(context, 'Status')),
+                          label: Text(
+                              TranslationHelper.translate(context, 'Status')),
                         ),
                       ],
                       rows: records.asMap().entries.map((entry) {
@@ -890,7 +888,8 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
 
                         return DataRow(
                           onSelectChanged: (_) {
-                            LicenceAddEditDialog.show(context, existingRecord: r);
+                            LicenceAddEditDialog.show(context,
+                                existingRecord: r);
                           },
                           cells: [
                             DataCell(
@@ -966,8 +965,7 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(statusIcon,
-                                        size: 14, color: statusFg),
+                                    Icon(statusIcon, size: 14, color: statusFg),
                                     const SizedBox(width: 6),
                                     Text(
                                       TranslationHelper.translate(
