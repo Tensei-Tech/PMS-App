@@ -227,4 +227,16 @@ class ExcelExportHelper {
 
     platformDownloadBytes(bytes, filename, 'text/csv;charset=utf-8');
   }
+
+  /// Generic export of tabular data to CSV with UTF-8 BOM.
+  static void exportTableToCsv({
+    required List<String> headers,
+    required List<List<dynamic>> rows,
+    String filename = 'export.csv',
+  }) {
+    final List<List<dynamic>> allRows = [headers, ...rows];
+    final csvContent = const ListToCsvConverter().convert(allRows);
+    final bytes = [0xEF, 0xBB, 0xBF, ...utf8.encode(csvContent)];
+    platformDownloadBytes(bytes, filename, 'text/csv;charset=utf-8');
+  }
 }

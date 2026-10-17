@@ -49,6 +49,10 @@ import '../modules/nc/providers/nc_provider.dart';
 import '../modules/nc/screens/nc_form_screen.dart';
 import '../modules/ndps/providers/ndps_provider.dart';
 import '../modules/passport/providers/passport_provider.dart';
+import '../modules/passport/screens/passport_hub_screen.dart';
+import '../modules/passport/widgets/passport_add_edit_dialog.dart';
+import '../modules/licence/providers/licence_provider.dart';
+import '../modules/licence/screens/licence_hub_screen.dart';
 import '../modules/pending/providers/pending_provider.dart';
 import '../modules/pocso/providers/pocso_provider.dart';
 import '../modules/preventive/providers/preventive_provider.dart';
@@ -2633,6 +2637,7 @@ class _HomeTabState extends State<_HomeTab> {
       ('Hurt', 'hurt', rec<HurtProvider>((p) => p.records)),
       ('POCSO', 'pocso', rec<PocsoProvider>((p) => p.records)),
       ('Passport/PVR', 'passport', rec<PassportProvider>((p) => p.records)),
+      ('Licence', 'licence', rec<LicenceProvider>((p) => p.records)),
       ('Monthly', 'monthly', rec<MonthlyProvider>((p) => p.records)),
       ('Pending', 'pending', rec<PendingProvider>((p) => p.records)),
       ('Detected', 'detected', rec<DetectedProvider>((p) => p.records)),
@@ -3945,6 +3950,26 @@ class _HomeTabState extends State<_HomeTab> {
         context,
         AppTheme.fadeSlideRoute(
           page: ELearningScreen(stationName: auth.stationName),
+        ),
+      );
+    } else if (label.toLowerCase() == 'licence' ||
+        label.toLowerCase() == 'license' ||
+        item.name.toLowerCase() == 'licence' ||
+        item.name.toLowerCase() == 'license' ||
+        item.moduleKey == 'licence') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: LicenceHubScreen(stationName: widget.auth.stationName),
+        ),
+      );
+    } else if (label.toLowerCase().contains('passport') ||
+        item.name.toLowerCase().contains('passport') ||
+        item.moduleKey == 'passport') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: PassportHubScreen(stationName: widget.auth.stationName),
         ),
       );
     } else if (item.moduleKey == 'service_tool') {
@@ -5478,6 +5503,7 @@ class _CalendarTabState extends State<_CalendarTab> {
     records.addAll(context.watch<HurtProvider>().records);
     records.addAll(context.watch<PocsoProvider>().records);
     records.addAll(context.watch<PassportProvider>().records);
+    records.addAll(context.watch<LicenceProvider>().records);
     records.addAll(context.watch<TwoFourWheelerProvider>().records);
     records.addAll(context.watch<ArrestedProvider>().records);
     records.addAll(context.watch<AbscondedProvider>().records);
@@ -9303,6 +9329,8 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
                   moduleLabel: item.name,
                 ),
               ));
+        } else if (item.moduleKey == 'passport') {
+          PassportAddEditDialog.show(context);
         } else if (moduleUsesCommonCrimeForm(item.moduleKey)) {
           Navigator.push(
               context,

@@ -16,6 +16,7 @@ const Set<String> _kModulesWithoutCommonForm = {
   'nc',
   'missing',
   'preventive',
+  'passport',
 };
 
 /// Dashboard / hub modules that use [CommonForm] instead of [ModuleFormScreen].
