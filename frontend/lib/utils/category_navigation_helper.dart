@@ -5,6 +5,8 @@ import '../screens/form_i_v_selection_screen.dart';
 import '../screens/module_hub_screen.dart';
 import '../screens/juvenile_hub_screen.dart';
 import '../screens/itsso_hub_screen.dart';
+import '../modules/passport/screens/passport_hub_screen.dart';
+import '../modules/licence/screens/licence_hub_screen.dart';
 import '../services/case_service.dart';
 import '../theme/app_theme.dart';
 
@@ -58,6 +60,30 @@ class CategoryNavigationHelper {
     bool readOnly = false,
   }) async {
     final cleanName = categoryName.replaceAll('\n', ' ').trim();
+
+    if (cleanName.toLowerCase().contains('passport') ||
+        moduleKey.toLowerCase() == 'passport') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const PassportHubScreen(stationName: ''),
+        ),
+      );
+      return;
+    }
+
+    if (cleanName.toLowerCase() == 'licence' ||
+        cleanName.toLowerCase() == 'license' ||
+        moduleKey.toLowerCase() == 'licence') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const LicenceHubScreen(stationName: ''),
+        ),
+      );
+      return;
+    }
+
     final children = await getChildren(cleanName);
     if (!context.mounted) return;
 
