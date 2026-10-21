@@ -157,6 +157,7 @@ class _FilteredPendingScreenState extends State<FilteredPendingScreen> {
                                 isAd: false,
                                 realDataRows: _tableRows,
                                 isAbsconded: widget.isAbsconded,
+                                isUndetected: widget.isUndetected,
                               ),
                             ),
             ),

@@ -276,6 +276,8 @@ class _UndetectedHubScreenState extends State<UndetectedHubScreen>
                   page: PendingSummaryScreen(
                     liveRows: cases,
                     stationName: widget.stationName,
+                    title: 'Undetected Cases — $head',
+                    isUndetected: true,
                   ),
                 ),
               );

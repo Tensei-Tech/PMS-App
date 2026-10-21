@@ -86,6 +86,19 @@ String _victimConditionLine(ModuleRecord r) {
   return '';
 }
 
+final Map<String, ModuleRecord> _pendingRecordCache = {};
+
+void cachePendingModuleRecord(ModuleRecord r) {
+  if (r.id.isNotEmpty) _pendingRecordCache[r.id] = r;
+  if (r.caseNumber.trim().isNotEmpty) {
+    _pendingRecordCache[r.caseNumber.trim()] = r;
+  }
+}
+
+ModuleRecord? getPendingModuleRecord(String key) {
+  return _pendingRecordCache[key];
+}
+
 /// One row map: keys `sr`, `cr`, `sections`, `date`, `io`, `reason`, `period`, `head`
 /// plus optional `spot` for AD column and victim fields.
 Map<String, String> pendingModuleRecordToTableRow(
@@ -98,8 +111,14 @@ Map<String, String> pendingModuleRecordToTableRow(
   // Dynamically fetch the head directly from the database record instead of hardcoding
   final dynamicHead = _headLine(r);
 
+  // Cache record in memory for instant retrieval
+  cachePendingModuleRecord(r);
+
   return {
-    'sr': '$sr',
+    'id': r.id,
+    'module_key': r.moduleKey,
+    'sub_category': r.subCategory ?? '',
+    'title': r.title,
     'cr': r.caseNumber.trim(),
     'sections': _sectionsLine(r),
     'accused': r.accused.trim().isEmpty ? '—' : r.accused.trim(),
@@ -110,6 +129,11 @@ Map<String, String> pendingModuleRecordToTableRow(
     'victim_name': _victimNamesLine(r),
     'injured_deceased': _victimConditionLine(r),
     'period': pendingTablePeriodLabel(r.incidentDate, reference),
+    'incident_date': r.incidentDate.toIso8601String(),
+    'complainant': r.complainant.trim().isEmpty ? '—' : r.complainant.trim(),
+    'priority': r.priority,
+    'status': r.status,
+    'description': r.description,
   };
 }
 

@@ -25,6 +25,7 @@ class PendingSummaryScreen extends StatelessWidget {
     this.title = 'Pending Cases — Summary',
     this.isAbsconded = false,
     this.isVictim = false,
+    this.isUndetected = false,
   });
 
   /// When non-null and non-empty, summary uses only this data (skips Firestore stream).
@@ -41,6 +42,9 @@ class PendingSummaryScreen extends StatelessWidget {
 
   /// Whether this screen displays victim cases
   final bool isVictim;
+
+  /// Whether this screen displays undetected cases
+  final bool isUndetected;
 
   static bool _usingExplicitLive(List<Map<String, String>>? live) =>
       live != null && live.isNotEmpty;
@@ -133,6 +137,7 @@ class PendingSummaryScreen extends StatelessWidget {
                 realDataRows: rows,
                 isAbsconded: isAbsconded,
                 isVictim: isVictim,
+                isUndetected: isUndetected,
               ),
           ],
         ),
