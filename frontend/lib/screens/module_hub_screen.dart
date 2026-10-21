@@ -42,6 +42,7 @@ import '../modules/nc/providers/nc_provider.dart';
 import '../modules/nc/screens/nc_form_screen.dart';
 import '../modules/ndps/providers/ndps_provider.dart';
 import '../modules/passport/providers/passport_provider.dart';
+import '../widgets/summons_warrant_report_table.dart';
 import '../modules/pending/providers/pending_provider.dart';
 import '../modules/pocso/providers/pocso_provider.dart';
 import '../modules/preventive/providers/preventive_provider.dart';
@@ -663,6 +664,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           if (widget.moduleKey != 'form_1_5' &&
               widget.moduleKey != 'disposal' &&
               widget.moduleKey != 'monthly' &&
+              widget.moduleKey != 'sam_warrant' &&
               widget.moduleKey != 'pending')
             _buildStatsRow(totalCount, disposalCount, pendingCount),
           if (isTheftOrFormIVStyle) _buildToolbar(displayRecords.length),
@@ -674,6 +676,10 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   // Monthly module is report-only (no records section).
                   SliverToBoxAdapter(
                       child: _buildMonthlyReport(context, allRecords)),
+                ] else if (widget.moduleKey == 'sam_warrant') ...[
+                  // Sam/Warrant module is report-only (fetching dynamically from database).
+                  SliverToBoxAdapter(
+                      child: _buildSamWarrantModuleReportOnly(context)),
                 ] else if (widget.moduleKey == 'pending') ...[
                   SliverToBoxAdapter(
                       child: _buildPendingModuleReportOnly(context)),
@@ -747,12 +753,15 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     final transCase = TranslationHelper.translate(context, caseWord);
     final subtitle = isTheftOrFormIVStyle
         ? '$categoryName · $total $transCase'
-        : '$total $transRecord $transReg';
+        : (widget.moduleKey == 'sam_warrant'
+            ? TranslationHelper.translate(context, 'Summons & Warrant Report')
+            : '$total $transRecord $transReg');
 
     final bool showAddButton = !(widget.readOnly ||
         widget.moduleKey == 'detected' ||
         widget.moduleKey == 'undetected' ||
-        widget.moduleKey == 'disposal');
+        widget.moduleKey == 'disposal' ||
+        widget.moduleKey == 'sam_warrant');
 
     Widget? actionWidget;
     if (showAddButton) {
@@ -3601,6 +3610,161 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
                       color: AppColors.successGreen)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSamWarrantModuleReportOnly(BuildContext context) {
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+
+    final transMonth =
+        TranslationHelper.translate(context, months[_reportMonth - 1]);
+    final monthYearLabel = '$transMonth $_reportYear';
+
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(color: AppColors.lightBorder),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      TranslationHelper.translate(
+                          context, 'Summons & Warrant Report'),
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.navyDark,
+                      ),
+                    ),
+                    Text(
+                      monthYearLabel,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.goldPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Month/Year selector (compact)
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      border: Border.all(color: AppColors.lightBorder),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<int>(
+                        value: _reportMonth,
+                        isExpanded: true,
+                        icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                            color: AppColors.navyMid),
+                        items: List.generate(
+                          12,
+                          (i) => DropdownMenuItem(
+                            value: i + 1,
+                            child: Text(
+                              TranslationHelper.translate(context, months[i]),
+                              style: GoogleFonts.poppins(
+                                  fontSize: 13, fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ),
+                        onChanged: (v) {
+                          if (v != null) {
+                            setState(() => _reportMonth = v);
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    border: Border.all(color: AppColors.lightBorder),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<int>(
+                      value: _reportYear,
+                      icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                          color: AppColors.navyMid),
+                      items: List.generate(
+                        5,
+                        (i) {
+                          final y = DateTime.now().year - i;
+                          return DropdownMenuItem(
+                            value: y,
+                            child: Text(
+                              '$y',
+                              style: GoogleFonts.poppins(
+                                  fontSize: 13, fontWeight: FontWeight.w600),
+                            ),
+                          );
+                        },
+                      ),
+                      onChanged: (v) {
+                        if (v != null) {
+                          setState(() => _reportYear = v);
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // Dynamic Summons & Warrant Report Table from database API
+            SummonsWarrantReportTable(
+              selectedYear: _reportYear,
+              selectedMonth: _reportMonth,
             ),
           ],
         ),

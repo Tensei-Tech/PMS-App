@@ -86,6 +86,7 @@ import 'undetected_hub_screen.dart';
 import 'detected_hub_screen.dart';
 import 'disposal_hub_screen.dart';
 import 'arrested_hub_screen.dart';
+import '../widgets/summons_warrant_report_table.dart';
 import '../widgets/bell_icon_widget.dart';
 import '../widgets/form_iv_category_button.dart';
 import '../widgets/searchable_picker_field.dart';
@@ -5322,7 +5323,7 @@ class _CalendarTab extends StatefulWidget {
   State<_CalendarTab> createState() => _CalendarTabState();
 }
 
-enum _CalendarTabArea { weekly, monthly, yearly, custom }
+enum _CalendarTabArea { weekly, monthly, samWarrant, yearly, custom }
 
 class _CalendarTabState extends State<_CalendarTab> {
   _CalendarTabArea _activeArea = _CalendarTabArea.weekly;
@@ -5516,6 +5517,7 @@ class _CalendarTabState extends State<_CalendarTab> {
               children: [
                 _tabBtn('Weekly', _CalendarTabArea.weekly),
                 _tabBtn('Monthly', _CalendarTabArea.monthly),
+                _tabBtn('Sam/Warrant', _CalendarTabArea.samWarrant),
                 _tabBtn('Yearly', _CalendarTabArea.yearly),
                 _tabBtn('Custom', _CalendarTabArea.custom),
               ],
@@ -5702,6 +5704,23 @@ class _CalendarTabState extends State<_CalendarTab> {
         "December"
       ][_selectedMonth - 1]} $_selectedYear';
       reportTitle = 'MONTHLY REPORT';
+    } else if (area == _CalendarTabArea.samWarrant) {
+      filtered = allRecords;
+      rangeLabel = '${[
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+      ][_selectedMonth - 1]} $_selectedYear';
+      reportTitle = 'SUMMONS & WARRANT REPORT';
     } else if (area == _CalendarTabArea.yearly) {
       filtered =
           allRecords.where((r) => r.incidentDate.year == now.year).toList();
@@ -5970,6 +5989,13 @@ class _CalendarTabState extends State<_CalendarTab> {
                       ),
                   ],
                 ),
+              ),
+            ] else if (area == _CalendarTabArea.samWarrant) ...[
+              _buildMonthSelector(),
+              const SizedBox(height: 16),
+              SummonsWarrantReportTable(
+                selectedYear: _selectedYear,
+                selectedMonth: _selectedMonth,
               ),
             ] else ...[
               if (sortedItems.isEmpty)

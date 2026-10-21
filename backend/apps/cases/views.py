@@ -2155,4 +2155,106 @@ class IradRemindIOView(APIView):
             )
 
 
+class SummonsWarrantReportView(APIView):
+    """
+    API endpoint for the Summons and Warrant (समंस वारंट) Monthly Report.
+    Calculates dynamic counts and percentages across 3 distinct legal sections:
+    1. Summons (समंस)
+    2. BW - Bailable Warrant (जमानती वारंट)
+    3. NBW - Non-Bailable Warrant (पकड वारंट)
+
+    Metrics per section:
+    - Previous Month (मागील)
+    - Current Month (चालु माहे)
+    - Total (बेरीज)
+    - Executed (तामील)
+    - Executed % (तामील टक्के)
+    - Unserved (अदम)
+    - Pending (अखेर)
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        if not user or not user.is_authenticated:
+            raise exceptions.NotAuthenticated("Authentication credentials were not provided.")
+
+        try:
+            from apps.cases.warrant_service import SummonsWarrantReportService
+            from django.utils import timezone
+
+            now = timezone.now()
+
+            # Parse year and month query parameters
+            year_param = request.query_params.get('year')
+            month_param = request.query_params.get('month')
+
+            try:
+                year = int(year_param) if year_param else now.year
+            except (ValueError, TypeError):
+                year = now.year
+
+            try:
+                month = int(month_param) if month_param else now.month
+                if not (1 <= month <= 12):
+                    month = now.month
+            except (ValueError, TypeError):
+                month = now.month
+
+            # Cutoff day or to_date
+            cutoff_day = None
+            to_date_param = request.query_params.get('to_date') or request.query_params.get('as_of_date')
+            cutoff_day_param = request.query_params.get('cutoff_day')
+            if cutoff_day_param:
+                try:
+                    cutoff_day = int(cutoff_day_param)
+                except (ValueError, TypeError):
+                    cutoff_day = None
+            elif to_date_param:
+                try:
+                    if '-' in to_date_param:
+                        parts = to_date_param.split('-')
+                        if len(parts) == 3:
+                            cutoff_day = int(parts[2])
+                    elif '/' in to_date_param:
+                        parts = to_date_param.split('/')
+                        if len(parts) == 3:
+                            cutoff_day = int(parts[0])
+                except (ValueError, TypeError):
+                    cutoff_day = None
+
+            # Station / District filtering with multi-tenancy access checks
+            can_view_all = check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')
+            target_station = request.query_params.get('station_name')
+            target_district = request.query_params.get('district') or request.query_params.get('district_name')
+            allowed_stations = None
+
+            if not can_view_all:
+                user_stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                user_stations = [s for s in user_stations if s]
+                if target_station:
+                    if target_station not in user_stations:
+                        raise exceptions.PermissionDenied("You do not have access to view data for this police station.")
+                else:
+                    allowed_stations = user_stations
+
+            service = SummonsWarrantReportService(
+                station_name=target_station,
+                district_name=target_district,
+                allowed_stations=allowed_stations
+            )
+            result = service.get_report(year=year, month=month, cutoff_day=cutoff_day)
+            return Response(result, status=status.HTTP_200_OK)
+
+        except exceptions.PermissionDenied as pd:
+            raise pd
+        except Exception as e:
+            logger.exception(f"[SummonsWarrantReportView] Database error: {e}")
+            return Response(
+                {'error': 'Failed to generate summons warrant report.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+
 

@@ -49,6 +49,7 @@ from apps.cases.views import (
     IradCasesListView,
     IradSummaryStatsView,
     IradRemindIOView,
+    SummonsWarrantReportView,
 )
 
 router = DefaultRouter()
@@ -78,6 +79,8 @@ urlpatterns = [
     path('cases/disposal/time-wise/', TimeWiseDisposalView.as_view(), name='disposal-time-wise'),
     path('cases/disposal/designation-wise/', DesignationWiseDisposalView.as_view(), name='disposal-designation-wise'),
     path('cases/disposal/crime-type-wise/', DisposalCrimeTypeWiseView.as_view(), name='disposal-crime-type-wise'),
+    path('cases/summons-warrant/', SummonsWarrantReportView.as_view(), name='cases-summons-warrant-report'),
+    path('cases/sam-warrant/', SummonsWarrantReportView.as_view(), name='cases-sam-warrant-report'),
     path('cases/dar/', DarCasesListView.as_view(), name='cases-dar-list'),
     path('cases/dar/cases/', DarCasesListView.as_view(), name='cases-dar-cases-alias'),
     path('cases/dar/stats/', DarSummaryStatsView.as_view(), name='cases-dar-stats'),
@@ -88,6 +91,8 @@ urlpatterns = [
     path('cases/irad/stats/', IradSummaryStatsView.as_view(), name='cases-irad-stats'),
     path('cases/irad/<str:pk>/remind/', IradRemindIOView.as_view(), name='cases-irad-remind'),
     path('cases/irad/<str:pk>/action/', IradRemindIOView.as_view(), name='cases-irad-action'),
+    path('summons-warrant/', SummonsWarrantReportView.as_view(), name='summons-warrant-report-crimetab'),
+    path('sam-warrant/', SummonsWarrantReportView.as_view(), name='sam-warrant-report-crimetab'),
 
     # Explicit Action Endpoints for Cases
     path('cases/counts/', CaseCountsView.as_view(), name='case-counts'),
