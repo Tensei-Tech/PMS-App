@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import '../screens/form_i_v_selection_screen.dart';
 import '../screens/module_hub_screen.dart';
 import '../screens/itsso_hub_screen.dart';
+import '../screens/dar_hub_screen.dart';
+import '../screens/irad_hub_screen.dart';
 import '../services/case_service.dart';
 import '../theme/app_theme.dart';
 
@@ -66,6 +68,28 @@ class CategoryNavigationHelper {
         context,
         AppTheme.fadeSlideRoute(
           page: const ItssoHubScreen(stationName: 'All Stations'),
+        ),
+      );
+      return;
+    }
+    if (cleanName.toUpperCase() == 'DAR' ||
+        moduleKey.toLowerCase() == 'dar') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const DarHubScreen(stationName: 'All Stations'),
+        ),
+      );
+      return;
+    }
+    if (cleanName.toUpperCase() == 'IRAD' ||
+        cleanName.toUpperCase() == 'IRDA' ||
+        moduleKey.toLowerCase() == 'irad' ||
+        moduleKey.toLowerCase() == 'irda') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const IradHubScreen(stationName: 'All Stations'),
         ),
       );
       return;

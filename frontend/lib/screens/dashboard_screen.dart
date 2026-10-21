@@ -80,6 +80,8 @@ import '../utils/universal_search.dart';
 import '../widgets/app_logo.dart';
 import 'pending_hub_screen.dart';
 import 'itsso_hub_screen.dart';
+import 'dar_hub_screen.dart';
+import 'irad_hub_screen.dart';
 import 'undetected_hub_screen.dart';
 import 'detected_hub_screen.dart';
 import 'disposal_hub_screen.dart';
@@ -3843,6 +3845,29 @@ class _HomeTabState extends State<_HomeTab> {
         context,
         AppTheme.fadeSlideRoute(
           page: const ItssoHubScreen(stationName: 'All Stations'),
+        ),
+      );
+      return;
+    }
+    if (label.toUpperCase() == 'DAR' || item.moduleKey.toLowerCase() == 'dar') {
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: DarHubScreen(stationName: auth.stationName),
+        ),
+      );
+      return;
+    }
+    if (label.toUpperCase() == 'IRAD' ||
+        label.toUpperCase() == 'IRDA' ||
+        item.moduleKey.toLowerCase() == 'irad' ||
+        item.moduleKey.toLowerCase() == 'irda') {
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: IradHubScreen(stationName: auth.stationName),
         ),
       );
       return;
@@ -8154,6 +8179,28 @@ class _CalendarTabState extends State<_CalendarTab> {
             context,
             AppTheme.fadeSlideRoute(
                 page: const ItssoHubScreen(stationName: 'All Stations')),
+          );
+          return;
+        }
+        if (meta.moduleKey.toLowerCase() == 'dar' ||
+            meta.label.toUpperCase() == 'DAR') {
+          final auth = context.read<AuthProvider>();
+          Navigator.push(
+            context,
+            AppTheme.fadeSlideRoute(
+                page: DarHubScreen(stationName: auth.stationName)),
+          );
+          return;
+        }
+        if (meta.moduleKey.toLowerCase() == 'irad' ||
+            meta.moduleKey.toLowerCase() == 'irda' ||
+            meta.label.toUpperCase() == 'IRAD' ||
+            meta.label.toUpperCase() == 'IRDA') {
+          final auth = context.read<AuthProvider>();
+          Navigator.push(
+            context,
+            AppTheme.fadeSlideRoute(
+                page: IradHubScreen(stationName: auth.stationName)),
           );
           return;
         }
