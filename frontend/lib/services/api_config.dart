@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:http/http.dart' as http;
+import 'api_service.dart';
 
 /// Configuration class for Django REST API endpoints and base URL.
 class ApiConfig {
@@ -54,6 +55,9 @@ class ApiConfig {
   static String get baseUrl {
     String url = _envBaseUrl;
     if (url.isEmpty) {
+      if (ApiService.isTestEnvironment) {
+        return 'http://127.0.0.1:8001/api';
+      }
       throw Exception(
           'CRITICAL: API_BASE_URL environment variable is missing!\n'
           'You must run the app with --dart-define=API_BASE_URL=http://...\n'
@@ -98,4 +102,12 @@ class ApiConfig {
   static String get acts => '$baseUrl/acts/';
   static String get actSections => '$baseUrl/act-sections/';
   static String get actSubsections => '$baseUrl/act-subsections/';
+
+  // RTI Endpoints
+  static String get rti => '$baseUrl/rti/';
+  static String get rtiCounts => '$baseUrl/rti/counts/';
+  static String get rtiConfig => '$baseUrl/rti/config/';
+  static String get rtiOfficers => '$baseUrl/rti/officers/';
+  static String rtiDetail(dynamic id) => '$baseUrl/rti/$id/';
+  static String rtiPdf(dynamic id) => '$baseUrl/rti/$id/pdf/';
 }

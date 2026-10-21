@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 // lib/widgets/dynamic_form/dynamic_control_factory.dart
 // Factory widget producing standard, pixel-perfect police inputs based on DynamicFieldDef.
 
@@ -6,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+import '../../services/dynamic_options_service.dart';
 import '../../theme/app_theme.dart';
 import '../person_select_or_custom_field.dart';
 import 'dynamic_field_model.dart';
@@ -19,6 +21,7 @@ class DynamicControlFactory extends StatelessWidget {
   final List<String>? accusedOptions;
   final TextEditingController? dateController;
   final ValueChanged<String>? onDateChanged;
+  final String? stationId;
 
   const DynamicControlFactory({
     super.key,
@@ -30,6 +33,7 @@ class DynamicControlFactory extends StatelessWidget {
     this.accusedOptions,
     this.dateController,
     this.onDateChanged,
+    this.stationId,
   });
 
   @override
@@ -49,6 +53,8 @@ class DynamicControlFactory extends StatelessWidget {
         return _buildDateTimeField(context);
       case 'dropdown':
         return _buildDropdownField(context);
+      case 'radio':
+        return _buildRadioGroup(context);
       case 'checkbox':
         return _buildCheckbox(context);
       case 'chips':
@@ -108,23 +114,6 @@ class DynamicControlFactory extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-          if (fieldDef.fieldSource == 'custom')
-            Container(
-              margin: const EdgeInsets.only(left: 6),
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.goldPrimary.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                'SPECIFIC',
-                style: GoogleFonts.poppins(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.navyMid,
-                ),
-              ),
-            ),
         ],
       ),
     );
@@ -165,6 +154,7 @@ class DynamicControlFactory extends StatelessWidget {
         TextFormField(
           controller: controller,
           readOnly: readOnly,
+          onChanged: onChanged,
           style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
           decoration: _inputDecoration(),
           validator: (v) {
@@ -188,6 +178,7 @@ class DynamicControlFactory extends StatelessWidget {
           readOnly: readOnly,
           maxLines: 3,
           minLines: 2,
+          onChanged: onChanged,
           style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
           decoration: _inputDecoration(hint: 'Enter detailed notes...'),
           validator: (v) {
@@ -211,6 +202,7 @@ class DynamicControlFactory extends StatelessWidget {
           readOnly: readOnly,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          onChanged: onChanged,
           style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
           decoration: _inputDecoration(),
           validator: (v) {
@@ -330,67 +322,28 @@ class DynamicControlFactory extends StatelessWidget {
     );
   }
 
-  static const List<String> preventiveActionChoices = [
-    '107 CrPC/126 BNSS',
-    '109 CrPC/128 BNSS',
-    '110 CrPC/129 BNSS',
-    '151(3) CrPC/170 BNSS',
-    '144 CrPC/163 BNSS',
-    '149 CrPC/168 BNSS',
-    '55 MPA',
-    '56 MPA',
-    '57 MPA',
-    '122 MPA',
-    '93 Prohibition Act',
-  ];
-
   Widget _buildDropdownField(BuildContext context) {
-    final isPreventive =
-        fieldDef.fieldKey.toLowerCase().contains('preventive') ||
-            fieldDef.fieldLabel.toLowerCase().contains('preventive');
-    final opts = fieldDef.options.isNotEmpty
-        ? fieldDef.options
-        : (isPreventive
-            ? preventiveActionChoices
-            : (fieldDef.fieldKey.toLowerCase().contains('gender')
-                ? const ['Male', 'Female', 'Other']
-                : const ['Yes', 'No', 'N/A']));
-    final currentVal = value?.toString() ?? controller?.text;
-    final validVal = opts.contains(currentVal) ? currentVal : null;
+    return _DynamicDropdownWidget(
+      fieldDef: fieldDef,
+      controller: controller,
+      value: value,
+      onChanged: onChanged,
+      readOnly: readOnly,
+      stationId: stationId,
+      decoration: _inputDecoration(hint: 'Select ${fieldDef.fieldLabel}'),
+      labelWidget: _buildLabel(context),
+    );
+  }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel(context),
-        DropdownButtonFormField<String>(
-          initialValue: validVal,
-          items: opts.map((opt) {
-            return DropdownMenuItem<String>(
-              value: opt,
-              child: Text(
-                opt,
-                style: GoogleFonts.poppins(
-                    fontSize: 13, color: AppColors.lightText),
-              ),
-            );
-          }).toList(),
-          onChanged: readOnly
-              ? null
-              : (newVal) {
-                  if (controller != null && newVal != null) {
-                    controller!.text = newVal;
-                  }
-                  onChanged?.call(newVal);
-                },
-          decoration: _inputDecoration(hint: 'Select ${fieldDef.fieldLabel}'),
-          validator: (v) {
-            if (fieldDef.isRequired && (v == null || v.isEmpty)) {
-              return '${fieldDef.fieldLabel} is required';
-            }
-            return null;
-          },
-        ),
-      ],
+  Widget _buildRadioGroup(BuildContext context) {
+    return _DynamicRadioWidget(
+      fieldDef: fieldDef,
+      controller: controller,
+      value: value,
+      onChanged: onChanged,
+      readOnly: readOnly,
+      stationId: stationId,
+      labelWidget: _buildLabel(context),
     );
   }
 
@@ -707,6 +660,418 @@ class DynamicControlFactory extends StatelessWidget {
                 ),
             ],
           ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DynamicDropdownWidget extends StatefulWidget {
+  final DynamicFieldDef fieldDef;
+  final TextEditingController? controller;
+  final dynamic value;
+  final ValueChanged<dynamic>? onChanged;
+  final bool readOnly;
+  final String? stationId;
+  final InputDecoration decoration;
+  final Widget labelWidget;
+
+  const _DynamicDropdownWidget({
+    required this.fieldDef,
+    this.controller,
+    this.value,
+    this.onChanged,
+    this.readOnly = false,
+    this.stationId,
+    required this.decoration,
+    required this.labelWidget,
+  });
+
+  @override
+  State<_DynamicDropdownWidget> createState() => _DynamicDropdownWidgetState();
+}
+
+class _DynamicDropdownWidgetState extends State<_DynamicDropdownWidget> {
+  List<String> _options = [];
+  bool _isLoading = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _initOptions();
+  }
+
+  @override
+  void didUpdateWidget(covariant _DynamicDropdownWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.fieldDef.optionsSource != widget.fieldDef.optionsSource ||
+        oldWidget.fieldDef.options != widget.fieldDef.options ||
+        oldWidget.stationId != widget.stationId) {
+      _initOptions();
+    }
+  }
+
+  void _initOptions() {
+    if (widget.fieldDef.options.isNotEmpty) {
+      _options = widget.fieldDef.options;
+      _isLoading = false;
+      _error = null;
+      return;
+    }
+
+    final src = widget.fieldDef.optionsSource;
+    if (src != null && src.trim().isNotEmpty) {
+      final cached = DynamicOptionsService()
+          .getCachedOptions(src, stationId: widget.stationId);
+      if (cached != null) {
+        _options = cached;
+        _isLoading = false;
+        _error = null;
+      } else {
+        _isLoading = true;
+        _error = null;
+        DynamicOptionsService()
+            .fetchOptions(src, stationId: widget.stationId)
+            .then((opts) {
+          if (mounted) {
+            setState(() {
+              _options = opts;
+              _isLoading = false;
+            });
+          }
+        }).catchError((err) {
+          if (mounted) {
+            setState(() {
+              _error = 'Failed to load options';
+              _isLoading = false;
+            });
+          }
+        });
+      }
+    } else {
+      _options = const [];
+      _isLoading = false;
+      _error = null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentVal = widget.value?.toString() ?? widget.controller?.text;
+    final validVal = _options.contains(currentVal) ? currentVal : null;
+
+    if (_isLoading) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          widget.labelWidget,
+          InputDecorator(
+            decoration: widget.decoration.copyWith(
+              suffixIcon: const Padding(
+                padding: EdgeInsets.all(12),
+                child: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: AppColors.navyMid),
+                ),
+              ),
+            ),
+            child: Text(
+              'Loading options...',
+              style: GoogleFonts.poppins(
+                  fontSize: 12, color: AppColors.lightSubText),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (_error != null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          widget.labelWidget,
+          InputDecorator(
+            decoration: widget.decoration.copyWith(
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.refresh,
+                    size: 18, color: AppColors.dangerRed),
+                onPressed: () {
+                  setState(() {
+                    _isLoading = true;
+                    _error = null;
+                  });
+                  final src = widget.fieldDef.optionsSource;
+                  if (src != null) {
+                    DynamicOptionsService()
+                        .fetchOptions(src,
+                            stationId: widget.stationId, forceRefresh: true)
+                        .then((opts) {
+                      if (mounted) {
+                        setState(() {
+                          _options = opts;
+                          _isLoading = false;
+                        });
+                      }
+                    }).catchError((e) {
+                      if (mounted) {
+                        setState(() {
+                          _error = 'Failed to load options';
+                          _isLoading = false;
+                        });
+                      }
+                    });
+                  }
+                },
+              ),
+            ),
+            child: Text(
+              _error!,
+              style:
+                  GoogleFonts.poppins(fontSize: 12, color: AppColors.dangerRed),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        widget.labelWidget,
+        DropdownButtonFormField<String>(
+          initialValue: validVal,
+          items: _options.map((opt) {
+            return DropdownMenuItem<String>(
+              value: opt,
+              child: Text(
+                opt,
+                style: GoogleFonts.poppins(
+                    fontSize: 13, color: AppColors.lightText),
+              ),
+            );
+          }).toList(),
+          onChanged: widget.readOnly
+              ? null
+              : (newVal) {
+                  if (widget.controller != null && newVal != null) {
+                    widget.controller!.text = newVal;
+                  }
+                  widget.onChanged?.call(newVal);
+                },
+          decoration: widget.decoration,
+          validator: (v) {
+            if (widget.fieldDef.isRequired && (v == null || v.isEmpty)) {
+              return '${widget.fieldDef.fieldLabel} is required';
+            }
+            return null;
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _DynamicRadioWidget extends StatefulWidget {
+  final DynamicFieldDef fieldDef;
+  final TextEditingController? controller;
+  final dynamic value;
+  final ValueChanged<dynamic>? onChanged;
+  final bool readOnly;
+  final String? stationId;
+  final Widget labelWidget;
+
+  const _DynamicRadioWidget({
+    required this.fieldDef,
+    this.controller,
+    this.value,
+    this.onChanged,
+    this.readOnly = false,
+    this.stationId,
+    required this.labelWidget,
+  });
+
+  @override
+  State<_DynamicRadioWidget> createState() => _DynamicRadioWidgetState();
+}
+
+class _DynamicRadioWidgetState extends State<_DynamicRadioWidget> {
+  List<String> _options = [];
+  bool _isLoading = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _initOptions();
+  }
+
+  @override
+  void didUpdateWidget(covariant _DynamicRadioWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.fieldDef.optionsSource != widget.fieldDef.optionsSource ||
+        oldWidget.fieldDef.options != widget.fieldDef.options ||
+        oldWidget.stationId != widget.stationId) {
+      _initOptions();
+    }
+  }
+
+  void _initOptions() {
+    if (widget.fieldDef.options.isNotEmpty) {
+      _options = widget.fieldDef.options;
+      _isLoading = false;
+      _error = null;
+      return;
+    }
+
+    final src = widget.fieldDef.optionsSource;
+    if (src != null && src.trim().isNotEmpty) {
+      final cached = DynamicOptionsService()
+          .getCachedOptions(src, stationId: widget.stationId);
+      if (cached != null) {
+        _options = cached;
+        _isLoading = false;
+        _error = null;
+      } else {
+        _isLoading = true;
+        _error = null;
+        DynamicOptionsService()
+            .fetchOptions(src, stationId: widget.stationId)
+            .then((opts) {
+          if (mounted) {
+            setState(() {
+              _options = opts;
+              _isLoading = false;
+            });
+          }
+        }).catchError((err) {
+          if (mounted) {
+            setState(() {
+              _error = 'Failed to load options';
+              _isLoading = false;
+            });
+          }
+        });
+      }
+    } else {
+      _options = const [];
+      _isLoading = false;
+      _error = null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentVal =
+        widget.value?.toString() ?? widget.controller?.text ?? '';
+
+    if (_isLoading) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          widget.labelWidget,
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                  strokeWidth: 2, color: AppColors.navyMid),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (_error != null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          widget.labelWidget,
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Text(
+              _error!,
+              style:
+                  GoogleFonts.poppins(fontSize: 12, color: AppColors.dangerRed),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        widget.labelWidget,
+        Wrap(
+          spacing: 16,
+          runSpacing: 8,
+          children: _options.map((opt) {
+            final isSelected = opt.toLowerCase() == currentVal.toLowerCase();
+            return InkWell(
+              onTap: widget.readOnly
+                  ? null
+                  : () {
+                      if (widget.controller != null) {
+                        widget.controller!.text = opt;
+                      }
+                      widget.onChanged?.call(opt);
+                    },
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.navyMid.withValues(alpha: 0.08)
+                      : Colors.white,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  border: Border.all(
+                    color:
+                        isSelected ? AppColors.navyMid : AppColors.lightBorder,
+                    width: isSelected ? 1.5 : 1.0,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Radio<String>(
+                      value: opt,
+                      groupValue: currentVal,
+                      activeColor: AppColors.navyMid,
+                      onChanged: widget.readOnly
+                          ? null
+                          : (val) {
+                              if (val != null) {
+                                if (widget.controller != null) {
+                                  widget.controller!.text = val;
+                                }
+                                widget.onChanged?.call(val);
+                              }
+                            },
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      opt,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12.5,
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.w500,
+                        color: isSelected
+                            ? AppColors.navyDark
+                            : AppColors.lightText,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
         ),
       ],
     );

@@ -50,6 +50,12 @@ class ApiService {
   @visibleForTesting
   static http.Client? clientForTesting;
 
+  /// Returns true if a test HTTP client has been set for testing
+  static bool get isTestEnvironment => clientForTesting != null;
+
+  /// Active HTTP client (test client if injected, otherwise default client)
+  static http.Client get activeHttpClient => clientForTesting ?? http.Client();
+
   /// Explicitly set the active JWT token in-memory and in secure storage
   Future<void> setAuthToken(String token) async {
     _cachedAuthToken = token;

@@ -35,6 +35,7 @@ class FieldTemplateField(models.Model):
         ('datetime', 'Date-Time Picker'),
         ('dropdown', 'Dropdown Select'),
         ('checkbox', 'Checkbox Toggle'),
+        ('radio', 'Radio Button Group'),
         ('chips', 'Chips Selector'),
         ('file', 'File Upload'),
     )
@@ -53,6 +54,9 @@ class FieldTemplateField(models.Model):
     is_required = models.BooleanField(default=False)
     section = models.CharField(max_length=100, null=True, blank=True)
     display_order = models.IntegerField(default=0)
+    depends_on_field_key = models.CharField(max_length=50, null=True, blank=True)
+    depends_on_value = models.CharField(max_length=100, null=True, blank=True)
+    options_source = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         db_table = 'field_template_fields'
@@ -174,3 +178,45 @@ class CaseExtraFieldValue(models.Model):
 
     def __str__(self):
         return f"Case {self.case_id} -> {self.field_def.field_key}: {self.field_value[:30] if self.field_value else ''}"
+
+
+class OptionValue(models.Model):
+    """
+    Dynamic option lookup values grouped by option_group for forms (e.g. RTI applicant types, mode of receipt, etc.).
+    """
+    id = models.BigAutoField(primary_key=True)
+    option_group = models.CharField(max_length=50)
+    option_value = models.CharField(max_length=100)
+    display_order = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'option_values'
+        verbose_name = 'Option Value'
+        verbose_name_plural = 'Option Values'
+        unique_together = ('option_group', 'option_value')
+        ordering = ['display_order', 'id']
+
+    def __str__(self):
+        return f"{self.option_group} -> {self.option_value} (order: {self.display_order})"
+
+
+class ModuleSetting(models.Model):
+    """
+    Dynamic key-value configuration settings for modules and tabs (e.g. labels, limits, due days, page size).
+    """
+    id = models.BigAutoField(primary_key=True)
+    module_key = models.CharField(max_length=50)
+    setting_key = models.CharField(max_length=100)
+    setting_value = models.TextField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'module_settings'
+        verbose_name = 'Module Setting'
+        verbose_name_plural = 'Module Settings'
+        unique_together = ('module_key', 'setting_key')
+
+    def __str__(self):
+        return f"{self.module_key}.{self.setting_key} = {self.setting_value}"
+
+

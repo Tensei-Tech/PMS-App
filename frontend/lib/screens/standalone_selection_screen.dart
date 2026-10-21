@@ -13,8 +13,6 @@ import '../theme/app_theme.dart';
 import '../utils/category_navigation_helper.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
-import 'common_form_screen.dart';
-import 'form_i_v_selection_screen.dart';
 import 'module_record_detail_screen.dart';
 
 /// Offline fallback list of all 26 standalone category names from database master
@@ -41,7 +39,7 @@ const List<String> kDefaultStandaloneCategories = [
   'Gambling',
   'POCSO',
   'NDPS',
-  'Gowans',
+  'Gowansh',
   'IT Act',
   'M.V Act',
   'UAPA',
@@ -69,8 +67,8 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
   final TextEditingController _searchCtrl = TextEditingController();
 
   String? _selectedCategory;
-  List<ModuleRecord> _categoryCases = [];
-  bool _isLoadingCases = false;
+  final List<ModuleRecord> _categoryCases = [];
+  final bool _isLoadingCases = false;
 
   @override
   void initState() {
@@ -129,66 +127,30 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
   }
 
   void _onCategoryTap(String category) async {
-    final children = await CategoryNavigationHelper.getChildren(category);
-    if (!mounted) return;
-    if (children.isNotEmpty) {
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: FormIVSelectionScreen(
-            initialCategory: category,
-            customTitle: category,
-            moduleKey: 'form_1_5',
-            mode: widget.readOnly
-                ? FormIVSelectionMode.readOnly
-                : FormIVSelectionMode.browse,
-          ),
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      _selectedCategory = category;
-      _isLoadingCases = true;
-    });
-
-    try {
-      final cases = await _caseService.fetchCategoryCases(category);
-      if (!mounted) return;
-      setState(() {
-        _categoryCases = cases;
-        _isLoadingCases = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _categoryCases = [];
-        _isLoadingCases = false;
-      });
-    }
+    await CategoryNavigationHelper.handleDashboardCategoryTap(
+      context: context,
+      categoryName: category,
+      moduleKey: 'standalone',
+      readOnly: widget.readOnly,
+    );
   }
 
-  void _onNewCase() {
+  void _onNewCase() async {
     final category = _selectedCategory ??
         (_filteredCategories.isNotEmpty ? _filteredCategories.first : 'Theft');
-    Navigator.push(
-      context,
-      AppTheme.fadeSlideRoute(
-        page: CommonFormScreen(
-          moduleLabel: category,
-          moduleKey: 'form_1_5',
-          subCategory: category,
-        ),
-      ),
+
+    await CategoryNavigationHelper.handleDashboardCategoryTap(
+      context: context,
+      categoryName: category,
+      moduleKey: 'standalone',
+      readOnly: widget.readOnly,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final subtitle = _selectedCategory != null
-        ? '${TranslationHelper.translate(context, _selectedCategory!)} · ${_categoryCases.length} cases'
-        : '${_filteredCategories.length} ${TranslationHelper.translate(context, 'categories')} (Standalone)';
+    final subtitle =
+        '${_filteredCategories.length} ${TranslationHelper.translate(context, 'categories')} (Standalone)';
 
     final actionWidget = !widget.readOnly
         ? ElevatedButton.icon(

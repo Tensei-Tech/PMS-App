@@ -77,6 +77,7 @@ import 'form_vi_selection_screen.dart' hide FormIVEmptyCasesState;
 import 'hurt_cases_screen.dart';
 import 'module_form_screen.dart';
 import 'module_record_detail_screen.dart';
+import '../widgets/dynamic_form/dynamic_form_screen.dart';
 import 'filtered_pending_screen.dart';
 import 'pending_io_wise_screens.dart';
 import 'pending_summary_screen.dart';
@@ -467,7 +468,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         ),
       );
     } else {
-      final page = moduleUsesCommonCrimeForm(widget.moduleKey)
+      final page = moduleUsesCommonCrimeForm(
+              widget.moduleKey, widget.subCategory ?? widget.moduleLabel)
           ? CommonFormScreen(
               moduleLabel: widget.moduleLabel,
               moduleKey: widget.moduleKey,
@@ -1126,17 +1128,26 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           '(${subSection.pageRange}, subCategory: $subCategory)',
         );
       }
+      final isLinked = isTabLinkedToCommonFormBaseline(
+        moduleKey: 'form_1_5',
+        categoryName: subCategory,
+      );
+      final page = isLinked
+          ? CommonFormScreen(
+              moduleLabel: moduleLabel,
+              moduleKey: 'form_1_5',
+              subCategory: subCategory,
+              formSection: subSection?.sectionId,
+              pageRange: subSection?.pageRange,
+            )
+          : DynamicFormScreen(
+              moduleLabel: moduleLabel,
+              moduleKey: 'form_1_5',
+              subCategory: subCategory,
+            );
       Navigator.push(
         context,
-        AppTheme.fadeSlideRoute(
-          page: CommonFormScreen(
-            moduleLabel: moduleLabel,
-            moduleKey: 'form_1_5',
-            subCategory: subCategory,
-            formSection: subSection?.sectionId,
-            pageRange: subSection?.pageRange,
-          ),
-        ),
+        AppTheme.fadeSlideRoute(page: page),
       );
     }
 
@@ -3836,17 +3847,30 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       'View',
                       AppColors.goldPrimary,
                       () {
+                        final isLinked = isTabLinkedToCommonFormBaseline(
+                          moduleKey: widget.moduleKey,
+                          categoryName: record.subCategory,
+                        );
+                        final page = (isLinked || widget.moduleKey == 'suicide')
+                            ? CommonFormScreen(
+                                moduleLabel:
+                                    record.firestoreCategoryDisplayName,
+                                moduleKey: widget.moduleKey,
+                                subCategory: record.subCategory,
+                                existingRecord: record,
+                                readOnly: true,
+                              )
+                            : DynamicFormScreen(
+                                moduleLabel:
+                                    record.firestoreCategoryDisplayName,
+                                moduleKey: widget.moduleKey,
+                                subCategory: record.subCategory,
+                                existingRecord: record,
+                                readOnly: true,
+                              );
                         Navigator.push(
                           ctx,
-                          AppTheme.fadeSlideRoute(
-                            page: CommonFormScreen(
-                              moduleLabel: record.firestoreCategoryDisplayName,
-                              moduleKey: widget.moduleKey,
-                              subCategory: record.subCategory,
-                              existingRecord: record,
-                              readOnly: true,
-                            ),
-                          ),
+                          AppTheme.fadeSlideRoute(page: page),
                         );
                       },
                     ),
@@ -4058,7 +4082,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 );
                 return;
               }
-              final page = moduleUsesCommonCrimeForm(widget.moduleKey)
+              final page = moduleUsesCommonCrimeForm(widget.moduleKey,
+                      record.subCategory ?? record.firestoreCategoryDisplayName)
                   ? CommonFormScreen(
                       moduleLabel: record.firestoreCategoryDisplayName,
                       moduleKey: widget.moduleKey,

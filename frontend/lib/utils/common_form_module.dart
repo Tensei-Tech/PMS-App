@@ -6,21 +6,141 @@ import '../constants/case_status_constants.dart';
 /// Firestore / [ModuleRecord.extraFields] key for the full common form payload.
 const String kCommonFormExtraFieldsKey = 'commonForm';
 
-const Set<String> _kModulesWithoutCommonForm = {
-  'pending',
-  'monthly',
-  'disposal',
-  'detected',
-  'undetected',
-  'ad',
-  'nc',
-  'missing',
-  'preventive',
+/// Modules linked to "Common Form Baseline Template" in category_field_templates.
+/// A tab opens the Common Form ONLY if it is in this verified set.
+const Set<String> _kCommonFormBaselineModules = {
+  'form_1_5',
+  'form_6',
+  'forms',
+  'murder',
+  'attempt_to_murder',
+  'dacoity',
+  'robbery',
+  'hbt',
+  'theft',
+  'sand_theft',
+  'two_four_wheeler',
+  'two_wheeler',
+  'four_wheeler',
+  'hurt',
+  'kidnapping',
+  'crime_against_women',
+  'crime_women',
+  'accident',
+  'normal_accident',
+  'death_due_to_rash_driving',
+  'other_road_accident',
+  'sec_156_175',
+  'bnss_sec',
+  'coin',
+  'st_drugs',
+  'prohibition',
+  'gambling',
+  'pocso',
+  'ndps',
+  'gowansh',
+  'gowans',
+  'it_act',
+  'mv_act',
+  'm_v_act',
+  'uapa',
+  'absconded',
+  'arrested',
+  'juvenile',
+  'victim',
+  'traffic',
+  'sam_warrant',
+  'muddemal',
+  'bnss',
 };
 
-/// Dashboard / hub modules that use [CommonForm] instead of [ModuleFormScreen].
-bool moduleUsesCommonCrimeForm(String moduleKey) =>
-    !_kModulesWithoutCommonForm.contains(moduleKey);
+/// Standalone category display names linked to "Common Form Baseline Template"
+/// in public.category_field_templates.
+const Set<String> _kCommonFormBaselineCategoryNames = {
+  'murder',
+  'attempt to murder',
+  'dacoity',
+  'robbery',
+  'hbt',
+  'theft',
+  'sand theft',
+  'two/four wheeler theft',
+  'two wheeler theft',
+  'four wheeler theft',
+  'two/four wheeler',
+  'riot',
+  'unlawful assembly',
+  'kidnapping',
+  'cbt',
+  'cheating',
+  'mischief',
+  'hurt',
+  'assault on public servant',
+  'rape',
+  'molestation',
+  'extortion',
+  'ipc (a) 304',
+  '498 (a) ipc',
+  'other ipc',
+  'chain snatching',
+  'crime against women',
+  'accident',
+  'normal accident',
+  'death due to rash driving',
+  'other road accident',
+  'sec 156(3)/175(3)(bnss)',
+  'sec 156(3)/175 (3)(bnss)',
+  'coin',
+  'st drugs',
+  'prohibition',
+  'gambling',
+  'pocso',
+  'ndps',
+  'gowansh',
+  'gowans',
+  'it act',
+  'm.v act',
+  'mv act',
+  'uapa',
+};
+
+/// Checks if a module/category is linked to "Common Form Baseline Template".
+/// Returns false for unlinked tabs (such as RTI, or any new standalone tab).
+bool isTabLinkedToCommonFormBaseline({
+  required String moduleKey,
+  String? categoryName,
+}) {
+  if (categoryName != null && categoryName.trim().isNotEmpty) {
+    final cleanCat =
+        categoryName.trim().toLowerCase().replaceAll('\n', ' ').trim();
+    return _kCommonFormBaselineCategoryNames.contains(cleanCat);
+  }
+  final cleanKey = moduleKey.trim().toLowerCase().replaceAll('-', '_');
+  return _kCommonFormBaselineModules.contains(cleanKey);
+}
+
+/// Checks if a tab has a dedicated form screen (A.D., N.C., Missing, Preventive, MPDA).
+bool isDedicatedFormTab(String? moduleKeyOrCategory) {
+  if (moduleKeyOrCategory == null) return false;
+  final clean = moduleKeyOrCategory
+      .trim()
+      .toLowerCase()
+      .replaceAll('-', '_')
+      .replaceAll('.', '');
+  return clean == 'ad' ||
+      clean == 'nc' ||
+      clean == 'missing' ||
+      clean == 'preventive' ||
+      clean == 'mpda';
+}
+
+/// Only returns true if the tab is linked to "Common Form Baseline Template".
+/// Never defaults to true for new or unlinked tabs.
+bool moduleUsesCommonCrimeForm(String moduleKey, [String? categoryName]) =>
+    isTabLinkedToCommonFormBaseline(
+      moduleKey: moduleKey,
+      categoryName: categoryName,
+    );
 
 /// Checks if a Form I-V (or CommonForm) case is "unarrested":
 /// Checks the Arrest & Release Status section (§9) — if Arrest Date/Time is empty/null,

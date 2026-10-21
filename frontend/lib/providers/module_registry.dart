@@ -145,6 +145,7 @@ const Map<String, String> labelToModuleKey = {
   'Accident': 'accident',
   'Traffic': 'traffic',
   'Application': 'application',
+  'RTI': 'application',
   'Sam (Summons) / Warrant': 'sam_warrant',
   'Muddemal': 'muddemal',
   'Section 186/175/BNSS': 'bnss',

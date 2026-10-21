@@ -20,6 +20,7 @@ class DynamicSectionCard extends StatefulWidget {
   final bool initiallyExpanded;
   final List<String>? accusedOptions;
   final Widget? headerAction;
+  final String? stationId;
 
   const DynamicSectionCard({
     super.key,
@@ -34,6 +35,7 @@ class DynamicSectionCard extends StatefulWidget {
     this.initiallyExpanded = true,
     this.accusedOptions,
     this.headerAction,
+    this.stationId,
   });
 
   @override
@@ -49,41 +51,91 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
     _expanded = widget.initiallyExpanded;
   }
 
-  // Data-driven field dependency graph: child_field_key -> parent_field_key
-  static const Map<String, String> _fieldParentDependency = {
-    // Remand & Custody section dependencies
-    'pr_bond': 'mcr',
-    'bail': 'mcr',
-    'jail': 'mcr',
-    'pr_bond_date': 'pr_bond',
-    'surety_name': 'bail',
-    'surety_age': 'bail',
-    'surety_gender': 'bail',
-    'surety_occupation': 'bail',
-    'surety_mobile': 'bail',
-    'surety_aadhaar': 'bail',
-    'surety_pan': 'bail',
-    'surety_address': 'bail',
-    'surety_relation': 'bail',
-    'jail_date': 'jail',
-  };
-
-  bool _isFieldVisible(DynamicFieldDef f) {
-    var currentKey = f.fieldKey;
-    while (_fieldParentDependency.containsKey(currentKey)) {
-      final parentKey = _fieldParentDependency[currentKey]!;
-      final parentVal =
-          widget.values[parentKey] ?? widget.controllers[parentKey]?.text;
-      final isParentTrue = parentVal == true ||
-          parentVal == 'true' ||
-          parentVal == '1' ||
-          (parentVal is String &&
-              parentVal.trim().isNotEmpty &&
-              parentVal.toLowerCase() != 'false');
-      if (!isParentTrue) return false;
-      currentKey = parentKey;
+  bool _isFieldVisible(DynamicFieldDef f, [Set<String>? visiting]) {
+    // If no dependency is declared, field is visible
+    if (f.dependsOnFieldKey == null || f.dependsOnFieldKey!.trim().isEmpty) {
+      return true;
     }
-    return true;
+
+    final parentKey = f.dependsOnFieldKey!.trim();
+    final visitSet = visiting ?? <String>{};
+    if (visitSet.contains(f.fieldKey)) {
+      return false; // Break cyclic dependencies safely
+    }
+    visitSet.add(f.fieldKey);
+
+    // If parent field exists in this field list, evaluate parent's visibility first (cascading)
+    final parentField =
+        widget.fields.where((item) => item.fieldKey == parentKey).firstOrNull;
+    if (parentField != null) {
+      final isParentVis = _isFieldVisible(parentField, visitSet);
+      if (!isParentVis) return false;
+    }
+
+    final rawVal =
+        widget.values[parentKey] ?? widget.controllers[parentKey]?.text;
+    if (rawVal == null) return false;
+
+    final targetVal = f.dependsOnValue?.trim() ?? '';
+    final currentStr = rawVal.toString().trim();
+
+    if (targetVal.isEmpty) {
+      return currentStr.isNotEmpty &&
+          currentStr.toLowerCase() != 'false' &&
+          currentStr != '0';
+    }
+
+    if (currentStr.toLowerCase() == targetVal.toLowerCase()) {
+      return true;
+    }
+
+    // Match boolean representations
+    if ((currentStr.toLowerCase() == 'true' ||
+            currentStr == '1' ||
+            currentStr.toLowerCase() == 'yes') &&
+        (targetVal.toLowerCase() == 'true' ||
+            targetVal == '1' ||
+            targetVal.toLowerCase() == 'yes')) {
+      return true;
+    }
+
+    return false;
+  }
+
+  void _pruneHiddenFields() {
+    bool changed = true;
+    int maxPasses = 10;
+    while (changed && maxPasses > 0) {
+      changed = false;
+      maxPasses--;
+      for (final f in widget.fields) {
+        if (!_isFieldVisible(f)) {
+          if (widget.values.containsKey(f.fieldKey)) {
+            widget.values.remove(f.fieldKey);
+            widget.onValueChanged(f.fieldKey, null);
+            changed = true;
+          }
+          if (widget.controllers.containsKey(f.fieldKey)) {
+            if (widget.controllers[f.fieldKey]!.text.isNotEmpty) {
+              widget.controllers[f.fieldKey]!.clear();
+              changed = true;
+            }
+          }
+          final dateKey = '${f.fieldKey}_date';
+          if (widget.values.containsKey(dateKey)) {
+            widget.values.remove(dateKey);
+            widget.onValueChanged(dateKey, null);
+            changed = true;
+          }
+          if (widget.controllers.containsKey(dateKey)) {
+            if (widget.controllers[dateKey]!.text.isNotEmpty) {
+              widget.controllers[dateKey]!.clear();
+              changed = true;
+            }
+          }
+        }
+      }
+    }
   }
 
   @override
@@ -209,14 +261,19 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                       controller: fieldCtrl,
                       value: widget.values[f.fieldKey],
                       onChanged: (val) {
+                        widget.values[f.fieldKey] = val;
                         widget.onValueChanged(f.fieldKey, val);
+                        _pruneHiddenFields();
                         if (mounted) setState(() {});
                       },
                       readOnly: widget.readOnly,
                       accusedOptions: widget.accusedOptions,
                       dateController: dateCtrl,
+                      stationId: widget.stationId,
                       onDateChanged: (val) {
+                        widget.values[dateKey] = val;
                         widget.onValueChanged(dateKey, val);
+                        _pruneHiddenFields();
                         if (mounted) setState(() {});
                       },
                     );
