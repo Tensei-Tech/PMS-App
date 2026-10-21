@@ -49,6 +49,54 @@ from apps.crimetab.views_rti import (
     RTIOfficersView,
     RTIDetailView,
     RTIPdfView,
+    RTIChartView,
+    RTIRemindersView,
+    RTIRemindersSeenView,
+    RTISendReminderView,
+)
+
+from apps.crimetab.views_history_sheeter import (
+    HistorySheeterListCreateView,
+    HistorySheeterCountsView,
+    HistorySheeterConfigView,
+    HistorySheeterDetailView,
+    HistorySheeterPDFView,
+    HistorySheeterChartView,
+)
+
+from apps.crimetab.views_mpda import (
+    MpdaListCreateView,
+    MpdaCountsView,
+    MpdaConfigView,
+    MpdaOfficersView,
+    MpdaDetailView,
+    MpdaPDFView,
+    MpdaSummaryView,
+    MpdaDetentionRemindersView,
+    MpdaRemindersSeenView,
+    MpdaSendReminderView,
+)
+
+from apps.crimetab.views_nc import (
+    NcListCreateView,
+    NcCountsView,
+    NcConfigView,
+    NcDetailView,
+    NcPdfView,
+    NcOfficersView,
+)
+
+from apps.crimetab.views_ad import (
+    AdListCreateView,
+    AdCountsView,
+    AdConfigView,
+    AdDetailView,
+    AdPdfView,
+)
+
+from apps.crimetab.views_accident import (
+    RoadAccidentListCreateView,
+    RoadAccidentDetailView,
 )
 
 router = DefaultRouter()
@@ -59,10 +107,53 @@ urlpatterns = [
     # RTI API Endpoints
     path('rti/counts/', RTICountsView.as_view(), name='rti-counts'),
     path('rti/config/', RTIConfigView.as_view(), name='rti-config'),
+    path('rti/chart/', RTIChartView.as_view(), name='rti-chart'),
+    path('rti/reminders/seen/', RTIRemindersSeenView.as_view(), name='rti-reminders-seen'),
+    path('rti/reminders/', RTIRemindersView.as_view(), name='rti-reminders'),
+    path('rti/<int:pk>/remind/', RTISendReminderView.as_view(), name='rti-remind'),
     path('rti/officers/', RTIOfficersView.as_view(), name='rti-officers'),
     path('rti/<int:pk>/pdf/', RTIPdfView.as_view(), name='rti-pdf'),
     path('rti/<int:pk>/', RTIDetailView.as_view(), name='rti-detail'),
     path('rti/', RTIListCreateView.as_view(), name='rti-list-create'),
+
+    # History Sheeter Endpoints
+    path('history-sheeter/counts/', HistorySheeterCountsView.as_view(), name='history-sheeter-counts'),
+    path('history-sheeter/config/', HistorySheeterConfigView.as_view(), name='history-sheeter-config'),
+    path('history-sheeter/chart/', HistorySheeterChartView.as_view(), name='history-sheeter-chart'),
+    path('history-sheeter/<int:pk>/pdf/', HistorySheeterPDFView.as_view(), name='history-sheeter-pdf'),
+    path('history-sheeter/<int:pk>/', HistorySheeterDetailView.as_view(), name='history-sheeter-detail'),
+    path('history-sheeter/', HistorySheeterListCreateView.as_view(), name='history-sheeter-list-create'),
+
+    # MPDA Endpoints
+    path('mpda/counts/', MpdaCountsView.as_view(), name='mpda-counts'),
+    path('mpda/config/', MpdaConfigView.as_view(), name='mpda-config'),
+    path('mpda/summary/', MpdaSummaryView.as_view(), name='mpda-summary'),
+    path('mpda/reminders/seen/', MpdaRemindersSeenView.as_view(), name='mpda-reminders-seen'),
+    path('mpda/reminders/', MpdaDetentionRemindersView.as_view(), name='mpda-reminders'),
+    path('mpda/<int:pk>/remind/', MpdaSendReminderView.as_view(), name='mpda-remind'),
+    path('mpda/officers/', MpdaOfficersView.as_view(), name='mpda-officers'),
+    path('mpda/<int:pk>/pdf/', MpdaPDFView.as_view(), name='mpda-pdf'),
+    path('mpda/<int:pk>/', MpdaDetailView.as_view(), name='mpda-detail'),
+    path('mpda/', MpdaListCreateView.as_view(), name='mpda-list-create'),
+
+    # N.C. Endpoints (independent module, not cases)
+    path('nc/counts/', NcCountsView.as_view(), name='nc-counts'),
+    path('nc/config/', NcConfigView.as_view(), name='nc-config'),
+    path('nc/officers/', NcOfficersView.as_view(), name='nc-officers'),
+    path('nc/<int:pk>/pdf/', NcPdfView.as_view(), name='nc-pdf'),
+    path('nc/<int:pk>/', NcDetailView.as_view(), name='nc-detail'),
+    path('nc/', NcListCreateView.as_view(), name='nc-list-create'),
+
+    # A.D. Endpoints (Suicide / Other sub-tabs; case records with module_key 'ad')
+    path('ad/counts/', AdCountsView.as_view(), name='ad-counts'),
+    path('ad/config/', AdConfigView.as_view(), name='ad-config'),
+    path('ad/<str:pk>/pdf/', AdPdfView.as_view(), name='ad-pdf'),
+    path('ad/<str:pk>/', AdDetailView.as_view(), name='ad-detail'),
+    path('ad/', AdListCreateView.as_view(), name='ad-list-create'),
+
+    # Road Accident Endpoints
+    path('road-accident/<str:pk>/', RoadAccidentDetailView.as_view(), name='road-accident-detail'),
+    path('road-accident/', RoadAccidentListCreateView.as_view(), name='road-accident-list-create'),
 
     # Options route for dynamic drop-downs & radios (e.g. GET /api/options/<group>/)
     path('options/<str:group>/', OptionValuesView.as_view(), name='option-values-by-group'),

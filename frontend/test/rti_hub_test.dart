@@ -32,7 +32,7 @@ void main() {
           return http.Response(
               '''{
             "target_category_code": "STAND_RTI",
-            "sub_tab_labels": {"all": "Total RTI", "pending": "Pending RTI", "disposal": "Resolved RTI"},
+            "sub_tab_labels": {"all": "Total RTI", "pending": "Pending RTI", "disposal": "Resolved RTI", "chart": "Summary RTI"},
             "row_action_labels": {"edit": "Edit Application", "view": "View Application", "pdf": "Print PDF"},
             "add_button_label": "New RTI",
             "serial_label": "Serial No.",
@@ -81,8 +81,10 @@ void main() {
 
       // Verify custom sub-tab labels from config
       expect(find.text('Total RTI'), findsOneWidget);
-      expect(find.text('Pending RTI'), findsOneWidget);
-      expect(find.text('Resolved RTI'), findsOneWidget);
+      expect(find.text('Summary RTI'), findsOneWidget);
+      // Pending and Disposal tabs were removed
+      expect(find.text('Pending RTI'), findsNothing);
+      expect(find.text('Resolved RTI'), findsNothing);
 
       // Verify custom Add button label from config
       expect(find.text('New RTI'), findsOneWidget);

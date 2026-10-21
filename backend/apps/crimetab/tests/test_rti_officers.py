@@ -460,6 +460,243 @@ class RTIOfficersEndpointTestCase(APITestCase):
         self.assertEqual(resp.json().get('results'), [])
         self.assertEqual(resp.json().get('message'), 'User role does not have an officer assignment scope configured.')
 
+    def test_transfer_date_saved_with_transferred_and_cleared_on_other_outcome(self):
+        """Transfer Date is optional, saved with outcome Transferred, cleared when outcome changes."""
+        headers = self._auth_headers(self.officer_a1)
+        payload = {
+            'rti_received_date': '01/10/2026',
+            'rti_applicant_name': 'Transfer Citizen',
+            'rti_outcome': 'Transferred',
+            'rti_transferred_to': 'District Office',
+            'rti_transferred_date': '05/10/2026',
+        }
+        res = self.client.post('/api/rti/', data=json.dumps(payload), content_type='application/json', **headers)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.content)
+        self.assertEqual(res.json()['transferred_date'], '2026-10-05')
+        rti_id = res.json()['rti_id']
+
+        # Optional: Transferred without a date still saves
+        payload_no_date = dict(payload, rti_applicant_name='No Date Citizen')
+        payload_no_date.pop('rti_transferred_date')
+        res2 = self.client.post('/api/rti/', data=json.dumps(payload_no_date), content_type='application/json', **headers)
+        self.assertEqual(res2.status_code, status.HTTP_201_CREATED, res2.content)
+        self.assertIsNone(res2.json()['transferred_date'])
+
+        # Invalid date is rejected
+        bad = dict(payload, rti_transferred_date='not-a-date')
+        res3 = self.client.post('/api/rti/', data=json.dumps(bad), content_type='application/json', **headers)
+        self.assertEqual(res3.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # Switching to Replied clears both transfer fields
+        patch = {'rti_outcome': 'Replied', 'rti_replied_date': '10/10/2026',
+                 'rti_transferred_to': '', 'rti_transferred_date': '05/10/2026'}
+        res4 = self.client.patch(f'/api/rti/{rti_id}/', data=json.dumps(patch), content_type='application/json', **headers)
+        self.assertEqual(res4.status_code, status.HTTP_200_OK, res4.content)
+        self.assertIsNone(res4.json()['transferred_date'])
+        self.assertEqual(res4.json()['replied_date'], '2026-10-10')
+
+    def test_chart_lists_all_station_applications_with_info_given(self):
+        ModuleSetting.objects.update_or_create(module_key='rti', setting_key='chart_info_given_template',
+                                               defaults={'setting_value': '{outcome}|({date})'})
+        ModuleSetting.objects.update_or_create(module_key='rti', setting_key='chart_info_given_separator',
+                                               defaults={'setting_value': ' '})
+        ModuleSetting.objects.update_or_create(module_key='rti', setting_key='chart_person_template',
+                                               defaults={'setting_value': '{name}|{age} Yrs|Mob: {mobile}|{address}'})
+        ModuleSetting.objects.update_or_create(module_key='rti', setting_key='chart_person_separator',
+                                               defaults={'setting_value': ', '})
+        headers = self._auth_headers(self.officer_a1)
+
+        def create(body):
+            res = self.client.post('/api/rti/', data=json.dumps(body), content_type='application/json', **headers)
+            self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.content)
+
+        create({'rti_applicant_name': 'Chart Pending', 'rti_received_date': '01/10/2026',
+                'rti_applicant_age': '40', 'rti_mobile_no': '9876543210', 'rti_address': 'Pune'})
+        create({'rti_applicant_name': 'Chart Replied', 'rti_outcome': 'Replied', 'rti_replied_date': '05/10/2026'})
+        create({'rti_applicant_name': 'Chart Transferred', 'rti_outcome': 'Transferred',
+                'rti_transferred_to': 'District Office'})
+        # Another station's application must not appear
+        other = self._auth_headers(self.officer_b1)
+        self.client.post('/api/rti/', data=json.dumps({'rti_applicant_name': 'Other Station'}),
+                         content_type='application/json', **other)
+
+        res = self.client.get('/api/rti/chart/', **headers)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        data = res.json()
+        self.assertEqual(data['count'], 3)
+        rows = data['results']
+        self.assertEqual(set(rows[0].keys()) - {'rti_id'}, {
+            'sr_no', 'person', 'received_date', 'due_date',
+            'info_type', 'assigned_officer', 'info_given'})
+        # Name, Age, Mobile No. and Address in one column
+        self.assertEqual(rows[0]['person'], 'Chart Pending, 40 Yrs, Mob: 9876543210, Pune')
+        first = rows[0]
+        self.assertEqual(first['received_date'], '01/10/2026')
+        self.assertEqual(first['due_date'], '31/10/2026')  # received + due_days (30)
+        self.assertEqual(first['info_given'], '')
+        self.assertEqual(rows[1]['info_given'], 'Replied (05/10/2026)')
+        self.assertEqual(rows[2]['info_given'], 'Transferred')  # no date given: date part skipped
+
+        # Search narrows the chart too
+        res_q = self.client.get('/api/rti/chart/?q=Replied', **headers)
+        self.assertEqual(res_q.json()['count'], 1)
+
+    def test_reminder_schedule_rule(self):
+        from apps.crimetab.views_rti import rti_reminder_kind
+        import datetime as dt
+        today = dt.date(2026, 10, 16)
+
+        def kind(days_left):
+            return rti_reminder_kind(today + dt.timedelta(days=days_left), today, 30, 25, 24)
+
+        self.assertEqual(kind(31), None)      # too early
+        self.assertEqual(kind(30), 'first')   # 1st reminder: 30 days before
+        self.assertEqual(kind(29), None)
+        self.assertEqual(kind(26), None)
+        self.assertEqual(kind(25), 'second')  # 2nd reminder: 25 days before
+        self.assertEqual(kind(24), 'daily')   # then every day
+        self.assertEqual(kind(1), 'daily')
+        self.assertEqual(kind(0), 'daily')    # due today
+        self.assertEqual(kind(-3), 'daily')   # overdue and still pending
+        self.assertIsNone(rti_reminder_kind(None, today, 30, 25, 24))
+
+    def test_reminders_go_to_assigned_officer_and_manual_send(self):
+        import datetime as dt
+        for key, value in [('reminder_first_days_before', '30'), ('reminder_second_days_before', '25'),
+                           ('reminder_daily_from_days_before', '24'),
+                           ('reminder_title', 'RTI {sr_no} reply due'),
+                           ('manual_reminder_title', 'RTI {sr_no} reminder from {sender}'),
+                           ('manual_reminder_sent_message', 'Reminder sent to {officer}.'),
+                           ('manual_reminder_no_officer_message', 'No officer is assigned.')]:
+            ModuleSetting.objects.update_or_create(module_key='rti', setting_key=key,
+                                                   defaults={'setting_value': value})
+        headers = self._auth_headers(self.officer_a1)
+        today = dt.date.today()
+
+        def create(name, days_left, officer=None, outcome=None):
+            body = {'rti_applicant_name': name,
+                    'rti_received_date': (today - dt.timedelta(days=5)).strftime('%d/%m/%Y'),
+                    'rti_due_date': (today + dt.timedelta(days=days_left)).strftime('%d/%m/%Y')}
+            if officer:
+                body['rti_assigned_officer_uid'] = officer.uid
+            if outcome:
+                body.update({'rti_outcome': 'Replied', 'rti_replied_date': today.strftime('%d/%m/%Y')})
+            res = self.client.post('/api/rti/', data=json.dumps(body), content_type='application/json', **headers)
+            self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.content)
+            return res.json()['rti_id']
+
+        create('Due In 25', 25, self.officer_a1)                       # 2nd reminder today
+        create('Due In 27', 27, self.officer_a1)                       # no reminder today
+        create('Due In 3', 3, self.officer_a1)                         # daily
+        create('Replied Already', 3, self.officer_a1, outcome=True)    # disposed: no reminder
+        create('Other Officer', 3, self.officer_a2)                    # someone else's
+        no_officer_id = create('No Officer', 3)
+
+        res = self.client.get('/api/rti/reminders/', **headers)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        kinds = sorted(r['kind'] for r in res.json()['results'])
+        self.assertEqual(kinds, ['daily', 'second'])
+
+        # Officer a2 only sees their own reminder
+        res_a2 = self.client.get('/api/rti/reminders/', **self._auth_headers(self.officer_a2))
+        self.assertEqual([r['kind'] for r in res_a2.json()['results']], ['daily'])
+
+        # Manual reminder from the Summary tab goes to the assigned officer
+        target_id = create('Manual Target', 20, self.officer_a2)
+        sent = self.client.post(f'/api/rti/{target_id}/remind/', **headers)
+        self.assertEqual(sent.status_code, status.HTTP_201_CREATED, sent.content)
+        self.assertIn('Reminder sent to', sent.json()['message'])
+        res_a2 = self.client.get('/api/rti/reminders/', **self._auth_headers(self.officer_a2))
+        self.assertIn('manual', [r['kind'] for r in res_a2.json()['results']])
+
+        # Marking seen hides manual reminders; scheduled ones stay
+        self.client.post('/api/rti/reminders/seen/', **self._auth_headers(self.officer_a2))
+        res_a2 = self.client.get('/api/rti/reminders/', **self._auth_headers(self.officer_a2))
+        self.assertNotIn('manual', [r['kind'] for r in res_a2.json()['results']])
+
+        # No assigned officer -> 400; another station's RTI -> 404
+        self.assertEqual(self.client.post(f'/api/rti/{no_officer_id}/remind/', **headers).status_code,
+                         status.HTTP_400_BAD_REQUEST)
+        other = self.client.post(f'/api/rti/{target_id}/remind/', **self._auth_headers(self.officer_b1))
+        self.assertEqual(other.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_reminders_stop_once_information_given_date_is_entered(self):
+        import datetime as dt
+        for key, value in [('reminder_first_days_before', '30'), ('reminder_second_days_before', '25'),
+                           ('reminder_daily_from_days_before', '24'),
+                           ('manual_reminder_info_given_message', 'Information already given.')]:
+            ModuleSetting.objects.update_or_create(module_key='rti', setting_key=key,
+                                                   defaults={'setting_value': value})
+        headers = self._auth_headers(self.officer_a1)
+        today = dt.date.today()
+        due = (today + dt.timedelta(days=3)).strftime('%d/%m/%Y')
+
+        def create(name, **extra):
+            body = {'rti_applicant_name': name, 'rti_due_date': due,
+                    'rti_received_date': (today - dt.timedelta(days=5)).strftime('%d/%m/%Y'),
+                    'rti_assigned_officer_uid': self.officer_a1.uid, **extra}
+            res = self.client.post('/api/rti/', data=json.dumps(body), content_type='application/json', **headers)
+            self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.content)
+            return res.json()['rti_id']
+
+        def reminded_ids():
+            res = self.client.get('/api/rti/reminders/', **headers)
+            return {r.get('rti_id') for r in res.json()['results'] if r['kind'] != 'manual'}
+
+        open_id = create('Still Open')
+        # Transferred but no Transfer Date yet: reminders continue
+        no_date_id = create('Transferred No Date', rti_outcome='Transferred', rti_transferred_to='District Office')
+        # Transferred with its date: reminders stop
+        dated_id = create('Transferred Dated', rti_outcome='Transferred', rti_transferred_to='District Office',
+                          rti_transferred_date=today.strftime('%d/%m/%Y'))
+        ids = reminded_ids()
+        self.assertIn(open_id, ids)
+        self.assertIn(no_date_id, ids)
+        self.assertNotIn(dated_id, ids)
+
+        # A manual reminder is hidden once the application gets its Replied Date
+        self.assertEqual(self.client.post(f'/api/rti/{open_id}/remind/', **headers).status_code,
+                         status.HTTP_201_CREATED)
+        patch = {'rti_outcome': 'Replied', 'rti_replied_date': today.strftime('%d/%m/%Y')}
+        self.assertEqual(self.client.patch(f'/api/rti/{open_id}/', data=json.dumps(patch),
+                                           content_type='application/json', **headers).status_code, 200)
+        res = self.client.get('/api/rti/reminders/', **headers).json()['results']
+        self.assertNotIn('manual', [r['kind'] for r in res])
+        self.assertNotIn(open_id, reminded_ids())
+
+        # Send Reminder on an answered application is refused with the setting message
+        refused = self.client.post(f'/api/rti/{dated_id}/remind/', **headers)
+        self.assertEqual(refused.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(refused.json()['error'], 'Information already given.')
+
+    def test_mobile_and_email_are_optional_but_validated_when_filled(self):
+        headers = self._auth_headers(self.officer_a1)
+
+        def post(extra):
+            body = {'rti_applicant_name': 'Validation Citizen', **extra}
+            return self.client.post('/api/rti/', data=json.dumps(body), content_type='application/json', **headers)
+
+        # Both empty: saves (not required)
+        ok = post({'rti_mobile_no': '', 'rti_email': ''})
+        self.assertEqual(ok.status_code, status.HTTP_201_CREATED, ok.content)
+        rti_id = ok.json()['rti_id']
+
+        # Valid values save
+        good = post({'rti_mobile_no': '9876543210', 'rti_email': 'citizen@example.com'})
+        self.assertEqual(good.status_code, status.HTTP_201_CREATED, good.content)
+
+        # More than 10 digits / bad e-mail are rejected with 400
+        self.assertEqual(post({'rti_mobile_no': '98765432101'}).status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(post({'rti_email': 'citizen@'}).status_code, status.HTTP_400_BAD_REQUEST)
+
+        # Same checks on edit (no 500 from the database rule)
+        def patch(extra):
+            return self.client.patch(f'/api/rti/{rti_id}/', data=json.dumps(extra), content_type='application/json', **headers)
+        self.assertEqual(patch({'rti_mobile_no': '123'}).status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(patch({'rti_email': 'no-at-sign'}).status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(patch({'rti_mobile_no': '9123456789', 'rti_email': 'a@b.in'}).status_code, status.HTTP_200_OK)
+        self.assertEqual(patch({'rti_mobile_no': '', 'rti_email': ''}).status_code, status.HTTP_200_OK)
+
     def test_saving_application_with_officer_outside_scope_returns_400(self):
         """
         Saving (POST or PATCH) an application with an officer outside user's role scope returns 400.

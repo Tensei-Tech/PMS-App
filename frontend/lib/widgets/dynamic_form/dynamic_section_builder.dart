@@ -21,6 +21,11 @@ class DynamicSectionCard extends StatefulWidget {
   final List<String>? accusedOptions;
   final Widget? headerAction;
   final String? stationId;
+  final List<dynamic>? copyOnTickRules;
+  final List<DynamicFieldDef>? allFormFields;
+
+  /// Optional per-field character limits (field_key -> max length).
+  final Map<String, int>? fieldMaxLengths;
 
   const DynamicSectionCard({
     super.key,
@@ -36,6 +41,9 @@ class DynamicSectionCard extends StatefulWidget {
     this.accusedOptions,
     this.headerAction,
     this.stationId,
+    this.copyOnTickRules,
+    this.allFormFields,
+    this.fieldMaxLengths,
   });
 
   @override
@@ -76,30 +84,8 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
         widget.values[parentKey] ?? widget.controllers[parentKey]?.text;
     if (rawVal == null) return false;
 
-    final targetVal = f.dependsOnValue?.trim() ?? '';
-    final currentStr = rawVal.toString().trim();
-
-    if (targetVal.isEmpty) {
-      return currentStr.isNotEmpty &&
-          currentStr.toLowerCase() != 'false' &&
-          currentStr != '0';
-    }
-
-    if (currentStr.toLowerCase() == targetVal.toLowerCase()) {
-      return true;
-    }
-
-    // Match boolean representations
-    if ((currentStr.toLowerCase() == 'true' ||
-            currentStr == '1' ||
-            currentStr.toLowerCase() == 'yes') &&
-        (targetVal.toLowerCase() == 'true' ||
-            targetVal == '1' ||
-            targetVal.toLowerCase() == 'yes')) {
-      return true;
-    }
-
-    return false;
+    return dependsOnValueMatches(rawVal, f.dependsOnValue,
+        parentIsMultiSelect: parentField?.fieldType == 'multi_select');
   }
 
   void _pruneHiddenFields() {
@@ -138,9 +124,50 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
     }
   }
 
+  bool _isCopyTrigger(String fieldKey) {
+    return (widget.copyOnTickRules ?? const []).any((rule) =>
+        rule is Map &&
+        (rule['trigger_field'] ?? rule['tick_field'])?.toString() == fieldKey);
+  }
+
+  void _handleCopyOnTick(String triggerKey) {
+    if (widget.copyOnTickRules == null || widget.copyOnTickRules!.isEmpty)
+      return;
+
+    for (final rule in widget.copyOnTickRules!) {
+      if (rule is! Map) continue;
+      final tKey = (rule['trigger_field'] ?? rule['tick_field'])?.toString();
+      if (tKey == triggerKey) {
+        final sKey = (rule['source_field'] ?? rule['from_field'])?.toString();
+        final tgtKey = (rule['target_field'] ?? rule['to_field'])?.toString();
+        if (sKey != null &&
+            tgtKey != null &&
+            sKey.isNotEmpty &&
+            tgtKey.isNotEmpty) {
+          final sVal = widget.controllers[sKey]?.text ??
+              widget.values[sKey]?.toString() ??
+              '';
+          widget.values[tgtKey] = sVal;
+          if (widget.controllers.containsKey(tgtKey)) {
+            widget.controllers[tgtKey]?.text = sVal;
+          } else {
+            try {
+              widget.controllers
+                  .putIfAbsent(tgtKey, () => TextEditingController(text: sVal));
+            } catch (_) {}
+          }
+          widget.onValueChanged(tgtKey, sVal);
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final visibleFields = widget.fields.where(_isFieldVisible).toList();
+    final visibleFields = widget.fields
+        .where((f) => f.parentFieldKey == null || f.parentFieldKey!.isEmpty)
+        .where(_isFieldVisible)
+        .toList();
     if (visibleFields.isEmpty) return const SizedBox.shrink();
 
     return Container(
@@ -234,23 +261,43 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                   final isWide = constraints.maxWidth > 600;
                   Widget buildControl(DynamicFieldDef f) {
                     final dateKey = '${f.fieldKey}_date';
-                    final dateCtrl = widget.controllers.putIfAbsent(
-                      dateKey,
-                      () => TextEditingController(
-                        text: widget.values[dateKey]?.toString() ?? '',
-                      ),
-                    );
+                    TextEditingController? dateCtrl =
+                        widget.controllers[dateKey];
+                    if (dateCtrl == null) {
+                      try {
+                        dateCtrl = widget.controllers.putIfAbsent(
+                          dateKey,
+                          () => TextEditingController(
+                            text: widget.values[dateKey]?.toString() ?? '',
+                          ),
+                        );
+                      } catch (_) {
+                        dateCtrl = TextEditingController(
+                          text: widget.values[dateKey]?.toString() ?? '',
+                        );
+                      }
+                    }
                     if (widget.values[dateKey] != null &&
                         dateCtrl.text.isEmpty) {
                       dateCtrl.text = widget.values[dateKey].toString();
                     }
 
-                    final fieldCtrl = widget.controllers.putIfAbsent(
-                      f.fieldKey,
-                      () => TextEditingController(
-                        text: widget.values[f.fieldKey]?.toString() ?? '',
-                      ),
-                    );
+                    TextEditingController? fieldCtrl =
+                        widget.controllers[f.fieldKey];
+                    if (fieldCtrl == null) {
+                      try {
+                        fieldCtrl = widget.controllers.putIfAbsent(
+                          f.fieldKey,
+                          () => TextEditingController(
+                            text: widget.values[f.fieldKey]?.toString() ?? '',
+                          ),
+                        );
+                      } catch (_) {
+                        fieldCtrl = TextEditingController(
+                          text: widget.values[f.fieldKey]?.toString() ?? '',
+                        );
+                      }
+                    }
                     if (widget.values[f.fieldKey] != null &&
                         fieldCtrl.text.isEmpty) {
                       fieldCtrl.text = widget.values[f.fieldKey].toString();
@@ -261,8 +308,24 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                       controller: fieldCtrl,
                       value: widget.values[f.fieldKey],
                       onChanged: (val) {
+                        final oldVal = widget.values[f.fieldKey];
                         widget.values[f.fieldKey] = val;
                         widget.onValueChanged(f.fieldKey, val);
+
+                        final wasTicked = (oldVal == true ||
+                            oldVal == 'true' ||
+                            oldVal == 1 ||
+                            oldVal == '1' ||
+                            oldVal == 'Yes');
+                        final isTicked = (val == true ||
+                            val == 'true' ||
+                            val == 1 ||
+                            val == '1' ||
+                            val == 'Yes');
+                        if (!wasTicked && isTicked) {
+                          _handleCopyOnTick(f.fieldKey);
+                        }
+
                         _pruneHiddenFields();
                         if (mounted) setState(() {});
                       },
@@ -270,6 +333,21 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                       accusedOptions: widget.accusedOptions,
                       dateController: dateCtrl,
                       stationId: widget.stationId,
+                      allFields: widget.allFormFields ?? widget.fields,
+                      formValues: widget.values,
+                      maxLength: widget.fieldMaxLengths?[f.fieldKey],
+                      compact: f.fieldType == 'checkbox' &&
+                          _isCopyTrigger(f.fieldKey),
+                      onMultiFieldChanged: (extraVals) {
+                        for (final e in extraVals.entries) {
+                          widget.values[e.key] = e.value;
+                          widget.controllers[e.key]?.text =
+                              e.value?.toString() ?? '';
+                          widget.onValueChanged(e.key, e.value);
+                        }
+                        _pruneHiddenFields();
+                        if (mounted) setState(() {});
+                      },
                       onDateChanged: (val) {
                         widget.values[dateKey] = val;
                         widget.onValueChanged(dateKey, val);
@@ -299,8 +377,23 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                         ? visibleFields[i + 1]
                         : null;
 
-                    // If f1 is textarea, give it full row width
-                    if (f1.fieldType == 'textarea') {
+                    // If f1 is textarea or repeating_group, give it full row width
+                    if (f1.fieldType == 'textarea' ||
+                        f1.fieldType == 'repeating_group') {
+                      items.add(
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: buildControl(f1),
+                        ),
+                      );
+                      i -= 1; // Realign single step
+                      continue;
+                    }
+
+                    // If f2 is textarea or repeating_group, render f1 alone full width so f2 starts on next line
+                    if (f2 != null &&
+                        (f2.fieldType == 'textarea' ||
+                            f2.fieldType == 'repeating_group')) {
                       items.add(
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12),

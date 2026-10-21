@@ -7,7 +7,7 @@ class DynamicFieldDef {
   final String fieldKey;
   final String fieldSource; // 'common' or 'custom'
   final String
-      fieldType; // 'text', 'textarea', 'number', 'date', 'datetime', 'dropdown', 'checkbox', 'radio', 'chips', 'file'
+      fieldType; // 'text', 'textarea', 'number', 'date', 'datetime', 'dropdown', 'checkbox', 'radio', 'chips', 'file', 'multi_select', 'repeating_group'
   final bool isRequired;
   final int displayOrder;
   final List<String> options;
@@ -15,6 +15,7 @@ class DynamicFieldDef {
   final String? dependsOnFieldKey;
   final String? dependsOnValue;
   final String? optionsSource;
+  final String? parentFieldKey;
 
   const DynamicFieldDef({
     required this.fieldDefId,
@@ -29,7 +30,51 @@ class DynamicFieldDef {
     this.dependsOnFieldKey,
     this.dependsOnValue,
     this.optionsSource,
+    this.parentFieldKey,
   });
+
+  static const String sumSourcePrefix = 'sum:';
+
+  /// Field keys this number field is the total of: options source
+  /// `sum:<field_key>,<field_key>` (filled automatically, not typed in).
+  List<String> get sumOf {
+    final src = optionsSource ?? '';
+    if (fieldType != 'number' || !src.startsWith(sumSourcePrefix)) {
+      return const [];
+    }
+    return src
+        .substring(sumSourcePrefix.length)
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+  }
+
+  static const String maxDigitsPrefix = 'digits:';
+
+  /// Most digits a number field accepts: options source `digits:<n>` (e.g.
+  /// `digits:3` on age fields); trying to type more shows a message.
+  int? get maxDigits {
+    final src = optionsSource ?? '';
+    if (fieldType != 'number' || !src.startsWith(maxDigitsPrefix)) {
+      return null;
+    }
+    final n = int.tryParse(src.substring(maxDigitsPrefix.length).trim());
+    return n != null && n > 0 ? n : null;
+  }
+
+  static const String maxItemsPrefix = 'max:';
+
+  /// Most rows a repeating group may hold: options source `max:<n>`
+  /// (e.g. `max:1` keeps a single row with no Add / Remove buttons).
+  int? get maxItems {
+    final src = optionsSource ?? '';
+    if (fieldType != 'repeating_group' || !src.startsWith(maxItemsPrefix)) {
+      return null;
+    }
+    final n = int.tryParse(src.substring(maxItemsPrefix.length).trim());
+    return n != null && n > 0 ? n : null;
+  }
 
   DynamicFieldDef copyWith({
     int? fieldDefId,
@@ -44,6 +89,7 @@ class DynamicFieldDef {
     String? dependsOnFieldKey,
     String? dependsOnValue,
     String? optionsSource,
+    String? parentFieldKey,
   }) {
     return DynamicFieldDef(
       fieldDefId: fieldDefId ?? this.fieldDefId,
@@ -58,6 +104,7 @@ class DynamicFieldDef {
       dependsOnFieldKey: dependsOnFieldKey ?? this.dependsOnFieldKey,
       dependsOnValue: dependsOnValue ?? this.dependsOnValue,
       optionsSource: optionsSource ?? this.optionsSource,
+      parentFieldKey: parentFieldKey ?? this.parentFieldKey,
     );
   }
 
@@ -77,6 +124,7 @@ class DynamicFieldDef {
       dependsOnFieldKey: json['depends_on_field_key']?.toString(),
       dependsOnValue: json['depends_on_value']?.toString(),
       optionsSource: json['options_source']?.toString(),
+      parentFieldKey: json['parent_field_key']?.toString(),
     );
   }
 
@@ -93,6 +141,7 @@ class DynamicFieldDef {
         'depends_on_field_key': dependsOnFieldKey,
         'depends_on_value': dependsOnValue,
         'options_source': optionsSource,
+        'parent_field_key': parentFieldKey,
       };
 }
 
@@ -158,4 +207,49 @@ class DynamicFormDefinition {
           : const {},
     );
   }
+}
+
+/// Whether a parent field's current value opens a dependent field
+/// (depends_on_value from field_template_fields).
+/// - empty target: any non-empty, non-false value
+/// - "A|B": any of the listed values
+/// - list / multi-select / comma-separated value: contains the target
+/// - Yes / true / 1 are treated alike
+bool dependsOnValueMatches(dynamic rawVal, String? dependsOnValue,
+    {bool parentIsMultiSelect = false}) {
+  final targetVal = dependsOnValue?.trim() ?? '';
+  final currentStr = rawVal?.toString().trim() ?? '';
+
+  if (targetVal.isEmpty) {
+    return currentStr.isNotEmpty &&
+        currentStr.toLowerCase() != 'false' &&
+        currentStr != '0';
+  }
+
+  final targets = targetVal
+      .split('|')
+      .map((t) => t.trim().toLowerCase())
+      .where((t) => t.isNotEmpty)
+      .toSet();
+
+  if (rawVal is List) {
+    return rawVal
+        .any((item) => targets.contains(item.toString().trim().toLowerCase()));
+  }
+  if (parentIsMultiSelect ||
+      (currentStr.startsWith('[') && currentStr.endsWith(']')) ||
+      currentStr.contains(',')) {
+    final cleaned = currentStr.replaceAll(RegExp(r'^\[|\]$'), '');
+    if (cleaned
+        .split(',')
+        .any((s) => targets.contains(s.trim().toLowerCase()))) {
+      return true;
+    }
+  }
+
+  final current = currentStr.toLowerCase();
+  if (targets.contains(current)) return true;
+
+  bool truthy(String v) => v == 'true' || v == '1' || v == 'yes';
+  return truthy(current) && targets.any(truthy);
 }

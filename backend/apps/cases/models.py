@@ -2,73 +2,27 @@ import uuid
 from django.db import models
 
 
-AD_SUMMARY_NO_KEYS = [
-    'adSummaryNo',
-    'ad_summary_no',
-    'adSummaryNum',
-    'ad_summary_num',
-    'adSummaryNumber',
-    'ad_summary_number',
-    'adSummary',
-    'ad_summary',
-    'summaryNo',
-    'summary_no',
-    'summaryNum',
-    'summary_num',
-    'summaryNumber',
-    'summary_number',
-    'margSummaryNo',
-    'marg_summary_no',
-    'margSummaryNum',
-    'marg_summary_num',
-    'margSummaryNumber',
-    'marg_summary_number',
-    'margSummary',
-    'marg_summary',
-    'marSummaryNo',
-    'mar_summary_no',
-    'marSummaryNum',
-    'mar_summary_num',
-    'adMargSummaryNo',
-    'ad_marg_summary_no',
-    'मर्ग समरी No.',
-    'मर्ग समरी No',
-    'मर्ग समरी नं.',
-    'मर्ग समरी नं',
-    'मर्ग समरी क्रमांक',
-    'मर्ग समरी क्र.',
-    'मर्ग समरी क्र',
-    'मर्ग समरी',
-    'AD Summary No.',
-    'AD Summary No',
-    'AD Summary Number',
-    'AD Summary',
-]
+# A.D. disposal rule from module_settings 'ad' (migration crimetab 0130):
+#   disposal_field_key       answer that decides disposal (e.g. the SDM Granted radio)
+#   disposal_value           value it must have (e.g. Yes)
+#   disposal_date_field_key  date that must also be filled (e.g. SDM Granted Date)
+AD_MODULE_KEY = 'ad'
+AD_DISPOSAL_SETTING_KEYS = ('disposal_field_key', 'disposal_value', 'disposal_date_field_key')
+AD_DISPOSAL_CACHE_KEY = 'ad:disposal_rule'
+AD_DISPOSAL_CACHE_SECONDS = 60
 
-AD_SUMMARY_DATE_KEYS = [
-    'adSummaryDate',
-    'ad_summary_date',
-    'adSummaryDt',
-    'ad_summary_dt',
-    'summaryDate',
-    'summary_date',
-    'summaryDt',
-    'summary_dt',
-    'margSummaryDate',
-    'marg_summary_date',
-    'margSummaryDt',
-    'marg_summary_dt',
-    'marSummaryDate',
-    'mar_summary_date',
-    'adMargSummaryDate',
-    'ad_marg_summary_date',
-    'मर्ग समरी दिनांक',
-    'मर्ग समरी तारीख',
-    'मर्ग समरी Date',
-    'मर्ग समरी Dt',
-    'AD Summary Date',
-    'AD Summary Dt',
-]
+
+def ad_disposal_rule():
+    """{'disposal_field_key', 'disposal_value', 'disposal_date_field_key'} (cached briefly)."""
+    from django.core.cache import cache
+    rule = cache.get(AD_DISPOSAL_CACHE_KEY)
+    if rule is None:
+        from apps.crimetab.models import ModuleSetting
+        rule = dict(ModuleSetting.objects.filter(
+            module_key=AD_MODULE_KEY, setting_key__in=AD_DISPOSAL_SETTING_KEYS,
+        ).values_list('setting_key', 'setting_value'))
+        cache.set(AD_DISPOSAL_CACHE_KEY, rule, AD_DISPOSAL_CACHE_SECONDS)
+    return rule
 
 
 def _extract_first_non_empty(data, candidate_keys):
@@ -102,28 +56,28 @@ def _extract_first_non_empty(data, candidate_keys):
 
 def is_ad_case_disposed(case) -> bool:
     """
-    Checks if an AD case is disposed:
-    Returns True if module is 'ad' and BOTH AD Summary No and AD Summary Date are non-empty.
+    Checks if an AD case is disposed: module is 'ad' (or sub-category A.D.), the
+    module_settings disposal field has the disposal value and its date is filled.
     """
     if isinstance(case, dict):
         mod = str(case.get('module_key') or case.get('moduleKey') or case.get('module') or '').strip().lower()
         sub = str(case.get('sub_category') or case.get('subCategory') or '').strip().lower()
-        if mod != 'ad' and sub not in ['ad', 'accidental death']:
-            return False
         extra = case.get('extra_fields') or case.get('extraFields') or {}
-        num = _extract_first_non_empty(extra, AD_SUMMARY_NO_KEYS) or _extract_first_non_empty(case, AD_SUMMARY_NO_KEYS)
-        dt = _extract_first_non_empty(extra, AD_SUMMARY_DATE_KEYS) or _extract_first_non_empty(case, AD_SUMMARY_DATE_KEYS)
-        return bool(num and dt)
-
-    mod = str(getattr(case, 'module_key', '')).strip().lower()
-    sub = str(getattr(case, 'sub_category', '')).strip().lower()
+    else:
+        mod = str(getattr(case, 'module_key', '')).strip().lower()
+        sub = str(getattr(case, 'sub_category', '')).strip().lower()
+        extra = getattr(case, 'extra_fields', {}) or {}
     if mod != 'ad' and sub not in ['ad', 'accidental death']:
         return False
-
-    extra = getattr(case, 'extra_fields', {}) or {}
-    num = _extract_first_non_empty(extra, AD_SUMMARY_NO_KEYS)
-    dt = _extract_first_non_empty(extra, AD_SUMMARY_DATE_KEYS)
-    return bool(num and dt)
+    rule = ad_disposal_rule()
+    field, value, date_field = (str(rule.get(k) or '').strip() for k in AD_DISPOSAL_SETTING_KEYS)
+    if not (field and value and date_field):
+        import logging
+        logging.getLogger(__name__).warning("[AD] module_settings missing: ad.%s", ', ad.'.join(AD_DISPOSAL_SETTING_KEYS))
+        return False
+    answer = _extract_first_non_empty(extra, [field])
+    answer_date = _extract_first_non_empty(extra, [date_field])
+    return answer.lower() == value.lower() and bool(answer_date)
 
 
 COURT_FILING_DISPOSAL_KEYS = [

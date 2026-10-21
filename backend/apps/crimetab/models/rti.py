@@ -21,6 +21,7 @@ class RTIApplication(models.Model):
     rejected_date = models.DateField(blank=True, null=True)
     rejection_reason = models.TextField(blank=True, null=True)
     transferred_to = models.TextField(blank=True, null=True)
+    transferred_date = models.DateField(blank=True, null=True)
     info_type = models.CharField(max_length=50, blank=True, null=True)
     info_type_other = models.CharField(max_length=50, blank=True, null=True)
     assigned_officer_uid = models.CharField(max_length=128, blank=True, null=True)

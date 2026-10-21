@@ -53,37 +53,39 @@ class ModuleHubScreenAppBar extends StatelessWidget
           size: 20,
         ),
       ),
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      // The add button sits right next to the module name
+      title: Row(
         children: [
-          Text(
-            title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: textColor,
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: textColor,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(fontSize: 11, color: subTextColor),
+                ),
+              ],
             ),
           ),
-          Text(
-            subtitle,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.poppins(fontSize: 11, color: subTextColor),
-          ),
-        ],
-      ),
-      actions: [
-        if (actionWidget != null)
-          Padding(
-            padding: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
-            child: actionWidget!,
-          )
-        else if (onAddPressed != null)
-          Padding(
-            padding: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
-            child: ElevatedButton.icon(
+          if (actionWidget != null) ...[
+            const SizedBox(width: 16),
+            actionWidget!,
+          ] else if (onAddPressed != null) ...[
+            const SizedBox(width: 16),
+            ElevatedButton.icon(
               onPressed: onAddPressed,
               icon: Icon(Icons.add_rounded, color: btnFg, size: 16),
               label: Text(
@@ -107,7 +109,10 @@ class ModuleHubScreenAppBar extends StatelessWidget
                 shadowColor: btnBg.withValues(alpha: 0.3),
               ),
             ),
-          ),
+          ],
+        ],
+      ),
+      actions: [
         if (badgeLabel != null &&
             (!isMobile || (actionWidget == null && onAddPressed == null)))
           ConstrainedBox(

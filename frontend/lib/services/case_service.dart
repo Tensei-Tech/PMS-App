@@ -271,6 +271,23 @@ class CaseService {
     }
   }
 
+  /// Fetch full case details by ID: GET /api/cases/{id}/
+  Future<Map<String, dynamic>?> fetchCaseById(String caseId) async {
+    if (caseId.trim().isEmpty) return null;
+    try {
+      final url = '${ApiConfig.cases}$caseId/';
+      final response = await _api.get(url);
+      if (response.isSuccess && response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchCaseById exception: $e');
+      }
+    }
+    return null;
+  }
+
   /// Fetch Case PDF report payload from Django backend: GET /api/cases/{id}/pdf/
   Future<Map<String, dynamic>?> fetchCasePdfData(String caseId) async {
     if (caseId.trim().isEmpty) return null;
@@ -349,6 +366,16 @@ class CaseService {
   }
 
   List<Map<String, dynamic>>? _allCategoriesCache;
+
+  /// Clear in-memory categories cache
+  void clearCategoryCache() {
+    _allCategoriesCache = null;
+  }
+
+  /// Prime or mock categories cache
+  void setCategoriesCache(List<Map<String, dynamic>> categories) {
+    _allCategoriesCache = categories;
+  }
 
   /// Fetch all master categories: GET /api/categories/
   Future<List<Map<String, dynamic>>> fetchAllCategories({

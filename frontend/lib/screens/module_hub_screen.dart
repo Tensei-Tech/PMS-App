@@ -49,7 +49,6 @@ import '../modules/preventive/screens/preventive_view_screen.dart';
 import '../modules/sam_warrant/providers/sam_warrant_provider.dart';
 import '../modules/sand_theft/providers/sand_theft_provider.dart';
 import '../modules/st_drugs/providers/st_drugs_provider.dart';
-import '../modules/suicide/providers/suicide_provider.dart';
 import '../modules/theft/providers/theft_provider.dart';
 import '../modules/traffic/providers/traffic_provider.dart';
 import '../modules/two_four_wheeler/providers/two_four_wheeler_provider.dart';
@@ -261,8 +260,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         return context.watch<MpdaProvider>();
       case 'coin':
         return context.watch<CoinProvider>();
-      case 'suicide':
-        return context.watch<SuicideProvider>();
       case 'st_drugs':
         return context.watch<StDrugsProvider>();
       default:
@@ -345,8 +342,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         return context.read<MpdaProvider>();
       case 'coin':
         return context.read<CoinProvider>();
-      case 'suicide':
-        return context.read<SuicideProvider>();
       case 'st_drugs':
         return context.read<StDrugsProvider>();
       default:
@@ -3851,7 +3846,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                           moduleKey: widget.moduleKey,
                           categoryName: record.subCategory,
                         );
-                        final page = (isLinked || widget.moduleKey == 'suicide')
+                        final page = isLinked
                             ? CommonFormScreen(
                                 moduleLabel:
                                     record.firestoreCategoryDisplayName,

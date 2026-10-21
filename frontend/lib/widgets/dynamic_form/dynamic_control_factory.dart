@@ -11,6 +11,8 @@ import '../../services/dynamic_options_service.dart';
 import '../../theme/app_theme.dart';
 import '../person_select_or_custom_field.dart';
 import 'dynamic_field_model.dart';
+import 'dynamic_repeating_group_widget.dart';
+import '../repeating_cascading_charges_selector.dart';
 
 class DynamicControlFactory extends StatelessWidget {
   final DynamicFieldDef fieldDef;
@@ -22,6 +24,19 @@ class DynamicControlFactory extends StatelessWidget {
   final TextEditingController? dateController;
   final ValueChanged<String>? onDateChanged;
   final String? stationId;
+  final List<DynamicFieldDef>? allFields;
+  final ValueChanged<Map<String, dynamic>>? onMultiFieldChanged;
+
+  /// Render a checkbox as a small inline tick + label (e.g. "Same as above")
+  final bool compact;
+
+  /// Live form values, used by options sources of the form
+  /// `rows:<repeating_group_key>.<child_field_key>` (options built from the
+  /// current rows of another repeating group, e.g. the Non applicant names).
+  final Map<String, dynamic>? formValues;
+
+  /// Maximum characters for text / textarea fields (null = no limit).
+  final int? maxLength;
 
   const DynamicControlFactory({
     super.key,
@@ -34,7 +49,37 @@ class DynamicControlFactory extends StatelessWidget {
     this.dateController,
     this.onDateChanged,
     this.stationId,
+    this.allFields,
+    this.onMultiFieldChanged,
+    this.compact = false,
+    this.formValues,
+    this.maxLength,
   });
+
+  static const String _rowsOptionsPrefix = 'rows:';
+
+  /// Options for a `rows:<group>.<child>` source from the current form values.
+  List<String> _rowsOptions(String source) {
+    final spec = source.substring(_rowsOptionsPrefix.length);
+    final dot = spec.indexOf('.');
+    if (dot <= 0) return const [];
+    final rows = formValues?[spec.substring(0, dot)];
+    if (rows is! List) return const [];
+    final child = spec.substring(dot + 1);
+    final seen = <String>{};
+    for (final r in rows) {
+      if (r is Map) {
+        final v = r[child]?.toString().trim() ?? '';
+        if (v.isNotEmpty) seen.add(v);
+      }
+    }
+    return seen.toList();
+  }
+
+  List<TextInputFormatter>? get _lengthFormatters =>
+      maxLength != null && maxLength! > 0
+          ? [LengthLimitingTextInputFormatter(maxLength)]
+          : null;
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +92,30 @@ class DynamicControlFactory extends StatelessWidget {
         return _buildTextArea(context);
       case 'number':
         return _buildNumberField(context);
+      case 'mobile':
+        return _buildMobileField(context);
+      case 'email':
+        return _buildEmailField(context);
+      case 'aadhaar':
+        return _buildAadhaarField(context);
+      case 'year':
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildLabel(context),
+            YearPickerField(
+              controller: controller,
+              readOnly: readOnly,
+              isRequired: fieldDef.isRequired,
+              label: fieldDef.fieldLabel,
+              onChanged: onChanged,
+              decoration: _inputDecoration(
+                      hint: 'Select or type year (e.g. 03)')
+                  .copyWith(
+                      suffixIcon: const Icon(Icons.arrow_drop_down_rounded)),
+            ),
+          ],
+        );
       case 'date':
         return _buildDateField(context);
       case 'datetime':
@@ -61,8 +130,19 @@ class DynamicControlFactory extends StatelessWidget {
         return _buildChipsSelector(context);
       case 'file':
         return _buildFileField(context);
+      case 'multi_select':
+        return _buildMultiSelectField(context);
+      case 'repeating_group':
+        return _buildRepeatingGroup(context);
+      case 'charges':
+        return _buildChargesField(context);
       case 'text':
       default:
+        if (fieldDef.optionsSource != null &&
+            (fieldDef.optionsSource!.contains('officer') ||
+                fieldDef.fieldKey.contains('io_name'))) {
+          return _buildOfficerPicker(context);
+        }
         return _buildTextField(context);
     }
   }
@@ -155,11 +235,112 @@ class DynamicControlFactory extends StatelessWidget {
           controller: controller,
           readOnly: readOnly,
           onChanged: onChanged,
+          inputFormatters: _lengthFormatters,
           style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
           decoration: _inputDecoration(),
           validator: (v) {
             if (fieldDef.isRequired && (v == null || v.trim().isEmpty)) {
               return '${fieldDef.fieldLabel} is required';
+            }
+            return null;
+          },
+        ),
+      ],
+    );
+  }
+
+  /// Optional 10-digit mobile number; the error shows under the field while typing.
+  Widget _buildMobileField(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel(context),
+        TextFormField(
+          controller: controller,
+          readOnly: readOnly,
+          onChanged: onChanged,
+          keyboardType: TextInputType.phone,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
+          decoration: _inputDecoration(),
+          validator: (v) {
+            final value = v?.trim() ?? '';
+            if (value.isEmpty) {
+              return fieldDef.isRequired
+                  ? '${fieldDef.fieldLabel} is required'
+                  : null;
+            }
+            if (!RegExp(r'^[0-9]{10}$').hasMatch(value)) {
+              return '${fieldDef.fieldLabel} must be exactly 10 digits';
+            }
+            return null;
+          },
+        ),
+      ],
+    );
+  }
+
+  /// Optional e-mail address; checked only when something is typed.
+  Widget _buildEmailField(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel(context),
+        TextFormField(
+          controller: controller,
+          readOnly: readOnly,
+          onChanged: onChanged,
+          keyboardType: TextInputType.emailAddress,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
+          decoration: _inputDecoration(),
+          validator: (v) {
+            final value = v?.trim() ?? '';
+            if (value.isEmpty) {
+              return fieldDef.isRequired
+                  ? '${fieldDef.fieldLabel} is required'
+                  : null;
+            }
+            if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value)) {
+              return 'Enter a valid ${fieldDef.fieldLabel}';
+            }
+            return null;
+          },
+        ),
+      ],
+    );
+  }
+
+  /// Optional 12-digit Aadhaar number, typed in groups of four
+  /// (1234 5678 9012); the error shows under the field while typing.
+  Widget _buildAadhaarField(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel(context),
+        TextFormField(
+          controller: controller,
+          readOnly: readOnly,
+          onChanged: onChanged,
+          keyboardType: TextInputType.number,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(12),
+            AadhaarGroupFormatter(),
+          ],
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
+          decoration: _inputDecoration(hint: 'XXXX XXXX XXXX'),
+          validator: (v) {
+            final digits = (v ?? '').replaceAll(' ', '');
+            if (digits.isEmpty) {
+              return fieldDef.isRequired
+                  ? '${fieldDef.fieldLabel} is required'
+                  : null;
+            }
+            if (digits.length != 12) {
+              return '${fieldDef.fieldLabel} must be exactly 12 digits';
             }
             return null;
           },
@@ -179,6 +360,8 @@ class DynamicControlFactory extends StatelessWidget {
           maxLines: 3,
           minLines: 2,
           onChanged: onChanged,
+          inputFormatters: _lengthFormatters,
+          maxLength: maxLength,
           style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
           decoration: _inputDecoration(hint: 'Enter detailed notes...'),
           validator: (v) {
@@ -193,21 +376,52 @@ class DynamicControlFactory extends StatelessWidget {
   }
 
   Widget _buildNumberField(BuildContext context) {
+    // A `sum:` total is calculated from other fields, never typed in
+    final isTotal = fieldDef.sumOf.isNotEmpty;
+    // A digit limit from the field definition (options source `digits:<n>`,
+    // e.g. ages): extra digits are refused with a message under the field
+    final maxDigits = fieldDef.maxDigits;
+    if (maxDigits != null && !isTotal) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildLabel(context),
+          _MaxDigitsField(
+            controller: controller,
+            readOnly: readOnly,
+            maxDigits: maxDigits,
+            label: fieldDef.fieldLabel,
+            isRequired: fieldDef.isRequired,
+            onChanged: onChanged,
+            decoration: _inputDecoration(),
+          ),
+        ],
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildLabel(context),
         TextFormField(
           controller: controller,
-          readOnly: readOnly,
+          readOnly: readOnly || isTotal,
+          canRequestFocus: !isTotal,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           onChanged: onChanged,
-          style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
-          decoration: _inputDecoration(),
+          style: GoogleFonts.poppins(
+              fontSize: 13,
+              color: AppColors.lightText,
+              fontWeight: isTotal ? FontWeight.w600 : FontWeight.normal),
+          decoration: isTotal
+              ? _inputDecoration().copyWith(fillColor: const Color(0xFFF8FAFC))
+              : _inputDecoration(),
           validator: (v) {
-            if (fieldDef.isRequired && (v == null || v.trim().isEmpty)) {
-              return '${fieldDef.fieldLabel} is required';
+            final value = v?.trim() ?? '';
+            if (value.isEmpty) {
+              return fieldDef.isRequired
+                  ? '${fieldDef.fieldLabel} is required'
+                  : null;
             }
             return null;
           },
@@ -323,6 +537,22 @@ class DynamicControlFactory extends StatelessWidget {
   }
 
   Widget _buildDropdownField(BuildContext context) {
+    final source = fieldDef.optionsSource ?? '';
+    if (source.startsWith(_rowsOptionsPrefix)) {
+      final opts = _rowsOptions(source);
+      // Options follow the other group's rows: rebuild when they change
+      return _DynamicDropdownWidget(
+        key: ValueKey('${fieldDef.fieldKey}|${opts.join('|')}'),
+        fieldDef: fieldDef.copyWith(options: opts),
+        controller: controller,
+        value: value,
+        onChanged: onChanged,
+        readOnly: readOnly,
+        stationId: stationId,
+        decoration: _inputDecoration(hint: 'Select ${fieldDef.fieldLabel}'),
+        labelWidget: _buildLabel(context),
+      );
+    }
     return _DynamicDropdownWidget(
       fieldDef: fieldDef,
       controller: controller,
@@ -347,6 +577,247 @@ class DynamicControlFactory extends StatelessWidget {
     );
   }
 
+  Widget _buildMultiSelectField(BuildContext context) {
+    return _DynamicMultiSelectWidget(
+      fieldDef: fieldDef,
+      controller: controller,
+      value: value,
+      onChanged: onChanged,
+      readOnly: readOnly,
+      labelWidget: _buildLabel(context),
+      decoration: _inputDecoration(hint: 'Select ${fieldDef.fieldLabel}'),
+    );
+  }
+
+  Widget _buildOfficerPicker(BuildContext context) {
+    return _DynamicOfficerPickerWidget(
+      fieldDef: fieldDef,
+      controller: controller,
+      value: value,
+      onChanged: onChanged,
+      readOnly: readOnly,
+      stationId: stationId,
+      labelWidget: _buildLabel(context),
+      onMultiFieldChanged: onMultiFieldChanged,
+    );
+  }
+
+  Widget _buildChargesField(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel(context),
+        RepeatingCascadingChargesSelector(
+          initialCharges: value is List ? value as List : null,
+          readOnly: readOnly,
+          // Inside a repeating group row: exactly one Act / Section / Subsection
+          maxCharges: fieldDef.parentFieldKey != null ? 1 : null,
+          onChargesChanged: (charges) => onChanged?.call(charges),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRepeatingGroup(BuildContext context) {
+    var children = (allFields ?? [])
+        .where((f) => f.parentFieldKey == fieldDef.fieldKey)
+        .toList();
+    final isMpdaCrime = fieldDef.fieldKey == 'mpda_crime_chart';
+    final isMpdaGang = fieldDef.fieldKey == 'mpda_gang_members';
+    final isMpdaAccused = fieldDef.fieldKey == 'mpda_accused';
+
+    if (children.isEmpty && isMpdaAccused) {
+      children = const [
+        DynamicFieldDef(
+          fieldDefId: 1601,
+          fieldKey: 'mpda_accused_name',
+          fieldLabel: 'Name',
+          fieldSource: 'custom',
+          fieldType: 'text',
+          isRequired: true,
+          displayOrder: 31,
+          parentFieldKey: 'mpda_accused',
+        ),
+        DynamicFieldDef(
+          fieldDefId: 1602,
+          fieldKey: 'mpda_accused_age',
+          fieldLabel: 'Age',
+          fieldSource: 'custom',
+          fieldType: 'number',
+          isRequired: false,
+          displayOrder: 32,
+          parentFieldKey: 'mpda_accused',
+          optionsSource: 'digits:3',
+        ),
+        DynamicFieldDef(
+          fieldDefId: 1603,
+          fieldKey: 'mpda_accused_gender',
+          fieldLabel: 'Gender',
+          fieldSource: 'custom',
+          fieldType: 'dropdown',
+          isRequired: false,
+          displayOrder: 33,
+          parentFieldKey: 'mpda_accused',
+          optionsSource: '/api/options/gender/',
+        ),
+        DynamicFieldDef(
+          fieldDefId: 1604,
+          fieldKey: 'mpda_accused_mobile',
+          fieldLabel: 'Mobile',
+          fieldSource: 'custom',
+          fieldType: 'mobile',
+          isRequired: false,
+          displayOrder: 34,
+          parentFieldKey: 'mpda_accused',
+        ),
+        DynamicFieldDef(
+          fieldDefId: 1605,
+          fieldKey: 'mpda_accused_aadhaar',
+          fieldLabel: 'Aadhaar',
+          fieldSource: 'custom',
+          fieldType: 'aadhaar',
+          isRequired: false,
+          displayOrder: 35,
+          parentFieldKey: 'mpda_accused',
+        ),
+        DynamicFieldDef(
+          fieldDefId: 1606,
+          fieldKey: 'mpda_accused_address',
+          fieldLabel: 'Address',
+          fieldSource: 'custom',
+          fieldType: 'textarea',
+          isRequired: false,
+          displayOrder: 36,
+          parentFieldKey: 'mpda_accused',
+        ),
+        DynamicFieldDef(
+          fieldDefId: 1607,
+          fieldKey: 'mpda_accused_occupation',
+          fieldLabel: 'Occupation',
+          fieldSource: 'custom',
+          fieldType: 'text',
+          isRequired: false,
+          displayOrder: 37,
+          parentFieldKey: 'mpda_accused',
+        ),
+        DynamicFieldDef(
+          fieldDefId: 1608,
+          fieldKey: 'mpda_accused_pan',
+          fieldLabel: 'PAN card',
+          fieldSource: 'custom',
+          fieldType: 'text',
+          isRequired: false,
+          displayOrder: 38,
+          parentFieldKey: 'mpda_accused',
+        ),
+        DynamicFieldDef(
+          fieldDefId: 1609,
+          fieldKey: 'mpda_accused_cast',
+          fieldLabel: 'Caste',
+          fieldSource: 'custom',
+          fieldType: 'text',
+          isRequired: false,
+          displayOrder: 39,
+          parentFieldKey: 'mpda_accused',
+        ),
+        DynamicFieldDef(
+          fieldDefId: 1610,
+          fieldKey: 'mpda_accused_religion',
+          fieldLabel: 'Religion',
+          fieldSource: 'custom',
+          fieldType: 'text',
+          isRequired: false,
+          displayOrder: 40,
+          parentFieldKey: 'mpda_accused',
+        ),
+      ];
+    } else if (children.isEmpty && isMpdaCrime) {
+      children = const [
+        DynamicFieldDef(
+          fieldDefId: 1624,
+          fieldKey: 'mpda_crime_type',
+          fieldLabel: 'Crime Type',
+          fieldSource: 'custom',
+          fieldType: 'dropdown',
+          isRequired: false,
+          displayOrder: 291,
+          parentFieldKey: 'mpda_crime_chart',
+          optionsSource: '/api/options/mpda_crime_types/',
+        ),
+        DynamicFieldDef(
+          fieldDefId: 1625,
+          fieldKey: 'mpda_crime_cr_no',
+          fieldLabel: 'CR No.',
+          fieldSource: 'custom',
+          fieldType: 'text',
+          isRequired: false,
+          displayOrder: 292,
+          parentFieldKey: 'mpda_crime_chart',
+        ),
+        DynamicFieldDef(
+          fieldDefId: 1626,
+          fieldKey: 'mpda_crime_date',
+          fieldLabel: 'Date',
+          fieldSource: 'custom',
+          fieldType: 'date',
+          isRequired: false,
+          displayOrder: 293,
+          parentFieldKey: 'mpda_crime_chart',
+        ),
+        DynamicFieldDef(
+          fieldDefId: 1627,
+          fieldKey: 'mpda_crime_police_station',
+          fieldLabel: 'Police Station',
+          fieldSource: 'custom',
+          fieldType: 'text',
+          isRequired: false,
+          displayOrder: 294,
+          parentFieldKey: 'mpda_crime_chart',
+        ),
+        DynamicFieldDef(
+          fieldDefId: 1628,
+          fieldKey: 'mpda_crime_act_section',
+          fieldLabel: 'Act / Section / Subsection',
+          fieldSource: 'custom',
+          fieldType: 'charges',
+          isRequired: false,
+          displayOrder: 295,
+          parentFieldKey: 'mpda_crime_chart',
+        ),
+      ];
+    } else if (children.isEmpty && isMpdaGang) {
+      children = const [
+        DynamicFieldDef(
+          fieldDefId: 1616,
+          fieldKey: 'mpda_gang_member_name',
+          fieldLabel: 'Member Name',
+          fieldSource: 'custom',
+          fieldType: 'text',
+          isRequired: false,
+          displayOrder: 151,
+          parentFieldKey: 'mpda_gang_members',
+        ),
+      ];
+    }
+
+    final optSource = fieldDef.optionsSource?.isNotEmpty == true &&
+            fieldDef.maxItems == null
+        ? fieldDef.optionsSource
+        : (isMpdaCrime ? '/api/options/mpda_crime_types/' : null);
+
+    return DynamicRepeatingGroupWidget(
+      fieldDef: fieldDef,
+      childFields: children,
+      value: value,
+      onChanged: (rows) => onChanged?.call(rows),
+      readOnly: readOnly,
+      formValues: formValues,
+      groupByFieldKey: isMpdaCrime ? 'mpda_crime_type' : null,
+      groupOptionsSource: optSource,
+      maxItems: fieldDef.maxItems,
+    );
+  }
+
   bool get _isPanchanamaField {
     final k = fieldDef.fieldKey.toLowerCase();
     final l = fieldDef.fieldLabel.toLowerCase();
@@ -364,6 +835,52 @@ class DynamicControlFactory extends StatelessWidget {
         : (controller?.text.toLowerCase() == 'true' ||
             controller?.text.toLowerCase() == 'yes');
     final isPanch = _isPanchanamaField;
+
+    if (compact) {
+      return InkWell(
+        onTap: readOnly
+            ? null
+            : () {
+                final b = !isChecked;
+                controller?.text = b.toString();
+                onChanged?.call(b);
+              },
+        borderRadius: BorderRadius.circular(6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 32,
+              height: 32,
+              child: Checkbox(
+                value: isChecked,
+                activeColor: AppColors.navyMid,
+                visualDensity: VisualDensity.compact,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                onChanged: readOnly
+                    ? null
+                    : (newVal) {
+                        final b = newVal ?? false;
+                        controller?.text = b.toString();
+                        onChanged?.call(b);
+                      },
+              ),
+            ),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                fieldDef.fieldLabel,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.navyDark,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Container(
       margin: const EdgeInsets.only(top: 4, bottom: 8),
@@ -677,6 +1194,7 @@ class _DynamicDropdownWidget extends StatefulWidget {
   final Widget labelWidget;
 
   const _DynamicDropdownWidget({
+    super.key,
     required this.fieldDef,
     this.controller,
     this.value,
@@ -713,7 +1231,10 @@ class _DynamicDropdownWidgetState extends State<_DynamicDropdownWidget> {
   }
 
   void _initOptions() {
-    if (widget.fieldDef.options.isNotEmpty) {
+    if (widget.fieldDef.options.isNotEmpty ||
+        (widget.fieldDef.optionsSource ?? '')
+            .startsWith(DynamicControlFactory._rowsOptionsPrefix)) {
+      // `rows:` sources are built from the form itself; never fetched
       _options = widget.fieldDef.options;
       _isLoading = false;
       _error = null;
@@ -842,12 +1363,14 @@ class _DynamicDropdownWidgetState extends State<_DynamicDropdownWidget> {
       children: [
         widget.labelWidget,
         DropdownButtonFormField<String>(
+          isExpanded: true,
           initialValue: validVal,
           items: _options.map((opt) {
             return DropdownMenuItem<String>(
               value: opt,
               child: Text(
                 opt,
+                overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.poppins(
                     fontSize: 13, color: AppColors.lightText),
               ),
@@ -1074,6 +1597,597 @@ class _DynamicRadioWidgetState extends State<_DynamicRadioWidget> {
           }).toList(),
         ),
       ],
+    );
+  }
+}
+
+class _DynamicMultiSelectWidget extends StatefulWidget {
+  final DynamicFieldDef fieldDef;
+  final TextEditingController? controller;
+  final dynamic value;
+  final ValueChanged<dynamic>? onChanged;
+  final bool readOnly;
+  final Widget labelWidget;
+  final InputDecoration decoration;
+
+  const _DynamicMultiSelectWidget({
+    required this.fieldDef,
+    this.controller,
+    this.value,
+    this.onChanged,
+    this.readOnly = false,
+    required this.labelWidget,
+    required this.decoration,
+  });
+
+  @override
+  State<_DynamicMultiSelectWidget> createState() =>
+      _DynamicMultiSelectWidgetState();
+}
+
+class _DynamicMultiSelectWidgetState extends State<_DynamicMultiSelectWidget> {
+  List<String> _options = [];
+  List<String> _selected = [];
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initSelected();
+    _initOptions();
+  }
+
+  @override
+  void didUpdateWidget(covariant _DynamicMultiSelectWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.value != widget.value) {
+      _initSelected();
+    }
+  }
+
+  void _initSelected() {
+    if (widget.value is List) {
+      _selected =
+          (widget.value as List).map((e) => e.toString().trim()).toList();
+    } else if (widget.controller?.text.isNotEmpty == true) {
+      final text = widget.controller!.text.trim();
+      final cleaned = text.replaceAll(RegExp(r'^\[|\]$'), '');
+      _selected = cleaned
+          .split(',')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+    } else {
+      _selected = [];
+    }
+  }
+
+  void _initOptions() {
+    if (widget.fieldDef.options.isNotEmpty) {
+      _options = widget.fieldDef.options;
+      return;
+    }
+    final src = widget.fieldDef.optionsSource;
+    if (src != null && src.isNotEmpty) {
+      final cached = DynamicOptionsService().getCachedOptions(src);
+      if (cached != null) {
+        _options = cached;
+      } else {
+        _isLoading = true;
+        DynamicOptionsService().fetchOptions(src).then((opts) {
+          if (mounted) {
+            setState(() {
+              _options = opts;
+              _isLoading = false;
+            });
+          }
+        }).catchError((_) {
+          if (mounted) setState(() => _isLoading = false);
+        });
+      }
+    }
+  }
+
+  void _setSelected(List<String> selected) {
+    if (widget.readOnly) return;
+    // Keep the options' display order regardless of tap order
+    final ordered = [
+      ..._options.where(selected.contains),
+      ...selected.where((s) => !_options.contains(s)),
+    ];
+    setState(() => _selected = ordered);
+    if (widget.controller != null) {
+      widget.controller!.text = _selected.join(', ');
+    }
+    widget.onChanged?.call(List<String>.from(_selected));
+  }
+
+  Future<void> _openPicker() async {
+    final temp = List<String>.from(_selected);
+    final result = await showDialog<List<String>>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text(
+            widget.fieldDef.fieldLabel,
+            style: GoogleFonts.poppins(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppColors.navyDark),
+          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 8),
+          content: SizedBox(
+            width: 400,
+            child: ListView(
+              shrinkWrap: true,
+              children: _options.map((opt) {
+                return CheckboxListTile(
+                  value: temp.contains(opt),
+                  dense: true,
+                  activeColor: AppColors.navyMid,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  title: Text(opt,
+                      style: GoogleFonts.poppins(
+                          fontSize: 13, color: AppColors.lightText)),
+                  onChanged: (checked) => setDialogState(() {
+                    if (checked == true) {
+                      temp.add(opt);
+                    } else {
+                      temp.remove(opt);
+                    }
+                  }),
+                );
+              }).toList(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: AppColors.navyMid),
+              onPressed: () => Navigator.pop(ctx, temp),
+              child: const Text('Done'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (result != null) _setSelected(result);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasValue = _selected.isNotEmpty;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        widget.labelWidget,
+        InkWell(
+          onTap: widget.readOnly || _isLoading ? null : _openPicker,
+          borderRadius: BorderRadius.circular(10),
+          child: InputDecorator(
+            isEmpty: !hasValue,
+            decoration: widget.decoration.copyWith(
+              suffixIcon: _isLoading
+                  ? const Padding(
+                      padding: EdgeInsets.all(12),
+                      child: SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2)),
+                    )
+                  : const Icon(Icons.arrow_drop_down_rounded,
+                      color: AppColors.navyMid),
+            ),
+            child: hasValue
+                ? Text(
+                    _selected.join(', '),
+                    style: GoogleFonts.poppins(
+                        fontSize: 13, color: AppColors.lightText),
+                  )
+                : null,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DynamicOfficerPickerWidget extends StatefulWidget {
+  final DynamicFieldDef fieldDef;
+  final TextEditingController? controller;
+  final dynamic value;
+  final ValueChanged<dynamic>? onChanged;
+  final bool readOnly;
+  final String? stationId;
+  final Widget labelWidget;
+  final ValueChanged<Map<String, dynamic>>? onMultiFieldChanged;
+
+  const _DynamicOfficerPickerWidget({
+    required this.fieldDef,
+    this.controller,
+    this.value,
+    this.onChanged,
+    this.readOnly = false,
+    this.stationId,
+    required this.labelWidget,
+    this.onMultiFieldChanged,
+  });
+
+  @override
+  State<_DynamicOfficerPickerWidget> createState() =>
+      _DynamicOfficerPickerWidgetState();
+}
+
+class _DynamicOfficerPickerWidgetState
+    extends State<_DynamicOfficerPickerWidget> {
+  List<Map<String, dynamic>> _officers = [];
+  bool _isLoading = false;
+  late TextEditingController _textCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _textCtrl = widget.controller ??
+        TextEditingController(text: widget.value?.toString() ?? '');
+    _loadOfficers();
+  }
+
+  Future<void> _loadOfficers() async {
+    final src = widget.fieldDef.optionsSource;
+    if (src == null || src.isEmpty) return;
+    setState(() => _isLoading = true);
+    try {
+      final opts = await DynamicOptionsService()
+          .fetchOptions(src, stationId: widget.stationId);
+      if (mounted) {
+        setState(() {
+          _officers = opts
+              .map((name) => {
+                    'name': name,
+                    'label': name,
+                    'designation': '',
+                    'uid': '',
+                  })
+              .toList();
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _onOfficerPicked(String officerName) {
+    _textCtrl.text = officerName;
+    widget.onChanged?.call(officerName);
+    final match = _officers.where((o) => o['name'] == officerName).firstOrNull;
+    final desig = match?['designation']?.toString().trim();
+    String? postToFill;
+    if (desig != null && desig.isNotEmpty) {
+      final postOptions = DynamicOptionsService()
+              .getCachedOptions('/api/options/designations/') ??
+          DynamicOptionsService()
+              .getCachedOptions('/api/master/designations/') ??
+          [];
+      if (postOptions.isEmpty ||
+          postOptions
+              .any((opt) => opt.trim().toLowerCase() == desig.toLowerCase())) {
+        postToFill = desig;
+      }
+    }
+
+    widget.onMultiFieldChanged?.call({
+      widget.fieldDef.fieldKey: officerName,
+      'mpda_io_name': officerName,
+      if (postToFill != null) 'mpda_io_post': postToFill,
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        widget.labelWidget,
+        Autocomplete<String>(
+          initialValue: TextEditingValue(text: _textCtrl.text),
+          optionsBuilder: (TextEditingValue val) {
+            if (val.text.isEmpty) {
+              return _officers.map((o) => o['name'].toString());
+            }
+            return _officers.map((o) => o['name'].toString()).where(
+                (name) => name.toLowerCase().contains(val.text.toLowerCase()));
+          },
+          onSelected: (selection) => _onOfficerPicked(selection),
+          fieldViewBuilder: (context, fieldTextEditingController, focusNode,
+              onFieldSubmitted) {
+            return TextFormField(
+              controller: fieldTextEditingController,
+              focusNode: focusNode,
+              readOnly: widget.readOnly,
+              style:
+                  GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor:
+                    widget.readOnly ? const Color(0xFFF8FAFC) : Colors.white,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  borderSide: const BorderSide(color: AppColors.lightBorder),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  borderSide: const BorderSide(color: AppColors.lightBorder),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  borderSide:
+                      const BorderSide(color: AppColors.navyMid, width: 1.5),
+                ),
+                hintText: null,
+                hintStyle: GoogleFonts.poppins(
+                    fontSize: 13, color: AppColors.lightSubText),
+                suffixIcon: _isLoading
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: Padding(
+                            padding: EdgeInsets.all(12),
+                            child: CircularProgressIndicator(strokeWidth: 2)),
+                      )
+                    : const Icon(Icons.person_search_rounded,
+                        size: 20, color: AppColors.navyMid),
+              ),
+              onChanged: (text) {
+                _textCtrl.text = text;
+                widget.onChanged?.call(text);
+                widget.onMultiFieldChanged?.call({
+                  widget.fieldDef.fieldKey: text,
+                  'mpda_io_name': text,
+                });
+              },
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+/// Shows digits in groups of four: 123456789012 -> 1234 5678 9012.
+class AadhaarGroupFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    final digits = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+    final buf = StringBuffer();
+    for (var i = 0; i < digits.length; i++) {
+      if (i > 0 && i % 4 == 0) buf.write(' ');
+      buf.write(digits[i]);
+    }
+    final text = buf.toString();
+    return TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+  }
+}
+
+/// Digits-only field that stops at [maxDigits]; trying to type more shows
+/// "<label> can be at most N digits" under the field until the next edit.
+class _MaxDigitsField extends StatefulWidget {
+  final TextEditingController? controller;
+  final bool readOnly;
+  final int maxDigits;
+  final String label;
+  final bool isRequired;
+  final ValueChanged<String>? onChanged;
+  final InputDecoration decoration;
+
+  const _MaxDigitsField({
+    required this.controller,
+    required this.readOnly,
+    required this.maxDigits,
+    required this.label,
+    required this.isRequired,
+    required this.onChanged,
+    required this.decoration,
+  });
+
+  @override
+  State<_MaxDigitsField> createState() => _MaxDigitsFieldState();
+}
+
+class _MaxDigitsFieldState extends State<_MaxDigitsField> {
+  bool _tooLong = false;
+
+  void _setTooLong(bool value) {
+    if (_tooLong != value) setState(() => _tooLong = value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: widget.controller,
+      readOnly: widget.readOnly,
+      keyboardType: TextInputType.number,
+      inputFormatters: [
+        FilteringTextInputFormatter.digitsOnly,
+        TextInputFormatter.withFunction((oldValue, newValue) {
+          final tooLong = newValue.text.length > widget.maxDigits;
+          _setTooLong(tooLong);
+          return tooLong ? oldValue : newValue;
+        }),
+      ],
+      onChanged: widget.onChanged,
+      style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
+      decoration: widget.decoration.copyWith(
+        errorText: _tooLong
+            ? '${widget.label} can be at most ${widget.maxDigits} digits'
+            : null,
+      ),
+      validator: (v) {
+        if ((v?.trim() ?? '').isEmpty && widget.isRequired) {
+          return '${widget.label} is required';
+        }
+        return null;
+      },
+    );
+  }
+}
+
+/// Year from a dropdown of 2001-2100 that can also be typed into. A short
+/// year means 20xx: typing "03" lists 2003 first and becomes 2003 when the
+/// field is left ("00" means 2100).
+class YearPickerField extends StatefulWidget {
+  static const int firstYear = 2001;
+  static const int lastYear = 2100;
+
+  final TextEditingController? controller;
+  final bool readOnly;
+  final bool isRequired;
+  final String label;
+  final Function(dynamic)? onChanged;
+  final InputDecoration decoration;
+
+  const YearPickerField({
+    super.key,
+    this.controller,
+    this.readOnly = false,
+    this.isRequired = false,
+    required this.label,
+    this.onChanged,
+    required this.decoration,
+  });
+
+  /// '3' / '03' -> '2003', '00' -> '2100'; anything else is returned as is.
+  static String expand(String text) {
+    final t = text.trim();
+    if (!RegExp(r'^[0-9]{1,2}$').hasMatch(t)) return t;
+    final n = int.parse(t);
+    return '${n == 0 ? lastYear : 2000 + n}';
+  }
+
+  /// Years matching what is typed: a short entry matches the last two digits
+  /// ("0" -> 2001-2009, 2100; "03" -> 2003), a longer one the start.
+  static List<String> matches(String text) {
+    final q = text.trim();
+    final years = [for (var y = firstYear; y <= lastYear; y++) '$y'];
+    if (q.isEmpty || !RegExp(r'^[0-9]+$').hasMatch(q)) return years;
+    if (q.length <= 2) {
+      return years.where((y) => y.substring(2).startsWith(q)).toList();
+    }
+    return years.where((y) => y.startsWith(q)).toList();
+  }
+
+  @override
+  State<YearPickerField> createState() => _YearPickerFieldState();
+}
+
+class _YearPickerFieldState extends State<YearPickerField> {
+  late final TextEditingController _ctrl =
+      widget.controller ?? TextEditingController();
+  final FocusNode _focus = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _focus.addListener(_onFocusChange);
+  }
+
+  @override
+  void dispose() {
+    _focus.removeListener(_onFocusChange);
+    _focus.dispose();
+    if (widget.controller == null) _ctrl.dispose();
+    super.dispose();
+  }
+
+  // Leaving the field turns a short year into the full one
+  void _onFocusChange() {
+    if (!_focus.hasFocus) _expand();
+  }
+
+  void _expand() {
+    final full = YearPickerField.expand(_ctrl.text);
+    if (full != _ctrl.text) {
+      _ctrl.text = full;
+      widget.onChanged?.call(full);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RawAutocomplete<String>(
+      textEditingController: _ctrl,
+      focusNode: _focus,
+      optionsBuilder: (value) =>
+          widget.readOnly ? const [] : YearPickerField.matches(value.text),
+      onSelected: (year) => widget.onChanged?.call(year),
+      fieldViewBuilder: (context, ctrl, focus, onSubmitted) => TextFormField(
+        controller: ctrl,
+        focusNode: focus,
+        readOnly: widget.readOnly,
+        keyboardType: TextInputType.number,
+        inputFormatters: [
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(4),
+        ],
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+        style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
+        decoration: widget.decoration,
+        onChanged: widget.onChanged,
+        onFieldSubmitted: (_) {
+          _expand();
+          onSubmitted();
+        },
+        validator: (v) {
+          final year = YearPickerField.expand(v ?? '');
+          if (year.isEmpty) {
+            return widget.isRequired ? '${widget.label} is required' : null;
+          }
+          final n = int.tryParse(year);
+          if (n == null ||
+              n < YearPickerField.firstYear ||
+              n > YearPickerField.lastYear) {
+            return 'Select a year from ${YearPickerField.firstYear} to ${YearPickerField.lastYear}';
+          }
+          return null;
+        },
+      ),
+      optionsViewBuilder: (context, onSelected, options) => Align(
+        alignment: Alignment.topLeft,
+        child: Material(
+          elevation: 4,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 240, maxWidth: 220),
+            child: ListView.builder(
+              padding: EdgeInsets.zero,
+              shrinkWrap: true,
+              itemCount: options.length,
+              itemBuilder: (context, i) {
+                final year = options.elementAt(i);
+                return InkWell(
+                  onTap: () => onSelected(year),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10),
+                    child: Text(year,
+                        style: GoogleFonts.poppins(
+                            fontSize: 13, color: AppColors.navyDark)),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

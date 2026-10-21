@@ -9,6 +9,8 @@ from apps.users.models import OfficerProfile
 
 class CaseManagementAPITests(TestCase):
     def setUp(self):
+        from apps.cases.tests_disposal import seed_ad_disposal_rule
+        seed_ad_disposal_rule()
         self.client = APIClient()
 
         # 1. Seed Roles & Permissions
@@ -425,29 +427,29 @@ class CaseManagementAPITests(TestCase):
     # Test 9: AD Disposal Detection and Status Setting
     # --------------------------------------------------------------------------
     def test_09_ad_disposal_detection_and_model_save(self):
-        """AD cases with both summary number and date are classified as Disposal."""
+        """AD cases with SDM Granted = Yes and its date are classified as Disposal."""
         from apps.cases.models import CaseRecord, is_ad_case_disposed
 
-        # 1. AD case with English summary number and date in extra_fields
+        # 1. AD case with SDM Granted = Yes and its date in extra_fields
         ad_case_full = CaseRecord.objects.create(
             module_key='ad',
             title='AD Case 01',
             case_number='AD/01/2026',
             status='Pending',
             station_name='Shivajinagar Police Station',
-            extra_fields={'adSummaryNo': 'SUM-12345', 'adSummaryDate': '2026-09-10'}
+            extra_fields={'ad_sdm_granted': 'Yes', 'ad_sdm_granted_date': '2026-09-10'}
         )
         self.assertTrue(is_ad_case_disposed(ad_case_full))
         self.assertEqual(ad_case_full.status, 'Disposal')
 
-        # 2. AD case with Marathi keys in extra_fields
+        # 2. Answer matched case-insensitively ("yes")
         ad_case_marathi = CaseRecord.objects.create(
             module_key='ad',
             title='AD Case 02 Marathi',
             case_number='AD/02/2026',
             status='Pending',
             station_name='Shivajinagar Police Station',
-            extra_fields={'मर्ग समरी No.': 'MARG-999', 'मर्ग समरी दिनांक': '10/09/2026'}
+            extra_fields={'ad_sdm_granted': 'yes', 'ad_sdm_granted_date': '10/09/2026'}
         )
         self.assertTrue(is_ad_case_disposed(ad_case_marathi))
         self.assertEqual(ad_case_marathi.status, 'Disposal')
@@ -459,19 +461,19 @@ class CaseManagementAPITests(TestCase):
             case_number='AD/03/2026',
             status='Pending',
             station_name='Shivajinagar Police Station',
-            extra_fields={'adSummaryNo': 'SUM-999'}
+            extra_fields={'ad_sdm_granted': 'Yes'}
         )
         self.assertFalse(is_ad_case_disposed(ad_missing_date))
         self.assertEqual(ad_missing_date.status, 'Pending')
 
-        # 4. Non-AD case with summary fields is unaffected
+        # 4. Non-AD case with SDM fields is unaffected
         theft_case = CaseRecord.objects.create(
             module_key='theft',
             title='Theft Case',
             case_number='TH-100',
             status='Pending',
             station_name='Shivajinagar Police Station',
-            extra_fields={'adSummaryNo': 'SUM-999', 'adSummaryDate': '2026-09-10'}
+            extra_fields={'ad_sdm_granted': 'Yes', 'ad_sdm_granted_date': '2026-09-10'}
         )
         self.assertFalse(is_ad_case_disposed(theft_case))
         self.assertEqual(theft_case.status, 'Pending')
@@ -495,7 +497,7 @@ class CaseManagementAPITests(TestCase):
             case_number='AD/10/2026',
             status='Pending',
             station_name='Shivajinagar Police Station',
-            extra_fields={'adSummaryNo': 'SUM-10', 'adSummaryDate': '2026-09-10'}
+            extra_fields={'ad_sdm_granted': 'Yes', 'ad_sdm_granted_date': '2026-09-10'}
         )
         CaseRecord.objects.create(
             module_key='ad',

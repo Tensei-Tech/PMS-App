@@ -103,7 +103,8 @@ class DynamicOptionsService {
             .map((item) {
               if (item is String) return item;
               if (item is Map) {
-                return (item['label'] ??
+                return (item['display_name'] ??
+                        item['label'] ??
                         item['option_value'] ??
                         item['name'] ??
                         item['title'] ??

@@ -7,6 +7,9 @@ class FieldTemplate(models.Model):
     """
     template_id = models.BigAutoField(primary_key=True)
     template_name = models.CharField(max_length=100)
+    # True: values of this template's fields are saved as rows in the tenant's
+    # case_extra_field_values table instead of the case's extra_fields JSON
+    store_values_in_table = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -38,6 +41,13 @@ class FieldTemplateField(models.Model):
         ('radio', 'Radio Button Group'),
         ('chips', 'Chips Selector'),
         ('file', 'File Upload'),
+        ('multi_select', 'Multi-Select Dropdown'),
+        ('repeating_group', 'Repeating Group'),
+        ('charges', 'Act & Section Picker'),
+        ('mobile', 'Mobile Number (10 digits)'),
+        ('email', 'E-mail Address'),
+        ('aadhaar', 'Aadhaar Number (12 digits)'),
+        ('year', 'Year (2001-2100)'),
     )
 
     field_def_id = models.BigAutoField(primary_key=True)
@@ -57,6 +67,7 @@ class FieldTemplateField(models.Model):
     depends_on_field_key = models.CharField(max_length=50, null=True, blank=True)
     depends_on_value = models.CharField(max_length=100, null=True, blank=True)
     options_source = models.CharField(max_length=255, null=True, blank=True)
+    parent_field_key = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
         db_table = 'field_template_fields'
@@ -168,13 +179,15 @@ class CaseExtraFieldValue(models.Model):
         db_column='field_def_id'
     )
     field_value = models.TextField(blank=True, null=True)
+    # Repeating-list row / multi-select position (0 for a single value)
+    row_no = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = 'case_extra_field_values'
         verbose_name = 'Case Extra Field Value'
         verbose_name_plural = 'Case Extra Field Values'
-        unique_together = ('case', 'field_def')
+        unique_together = ('case', 'field_def', 'row_no')
 
     def __str__(self):
         return f"Case {self.case_id} -> {self.field_def.field_key}: {self.field_value[:30] if self.field_value else ''}"

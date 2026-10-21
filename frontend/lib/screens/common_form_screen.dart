@@ -14,7 +14,6 @@ import '../modules/application/providers/application_provider.dart';
 import '../modules/arrested/providers/arrested_provider.dart';
 import '../modules/bnss/providers/bnss_provider.dart';
 import '../modules/coin/providers/coin_provider.dart';
-import '../modules/suicide/providers/suicide_provider.dart';
 import '../modules/st_drugs/providers/st_drugs_provider.dart';
 import '../services/case_service.dart';
 import '../modules/core/models/base_record.dart';
@@ -31,7 +30,6 @@ import '../modules/juvenile/providers/juvenile_provider.dart';
 import '../modules/kidnapping/providers/kidnapping_provider.dart';
 import '../modules/kidnapping/widgets/kidnapping_extra_fields.dart';
 import '../modules/sand_theft/widgets/sand_theft_extra_fields.dart';
-import '../modules/theft/widgets/theft_extra_fields.dart';
 import '../modules/mcoca/providers/mcoca_provider.dart';
 import '../modules/missing/providers/missing_provider.dart';
 import '../modules/monthly/providers/monthly_provider.dart';
@@ -164,8 +162,6 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       GlobalKey<TransitRemandFormViewState>();
   final GlobalKey<KidnappingExtraFieldsState> _kidnappingKey =
       GlobalKey<KidnappingExtraFieldsState>();
-  final GlobalKey<TheftExtraFieldsState> _theftKey =
-      GlobalKey<TheftExtraFieldsState>();
   final GlobalKey<SandTheftExtraFieldsState> _sandTheftKey =
       GlobalKey<SandTheftExtraFieldsState>();
   final GlobalKey<PocsoExtraFieldsState> _pocsoKey =
@@ -223,17 +219,6 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
         key.contains('sand') ||
         sub.contains('sand') ||
         label.contains('sand');
-  }
-
-  bool get _hasTheftExtras {
-    if (_hasSandTheftExtras) return false;
-    final key = widget.moduleKey.trim().toLowerCase();
-    final sub = (widget.subCategory ?? '').trim().toLowerCase();
-    final label = widget.moduleLabel.trim().toLowerCase();
-    return key == 'theft' ||
-        key.contains('theft') ||
-        sub.contains('theft') ||
-        label.contains('theft');
   }
 
   bool get _hasPocsoExtras {
@@ -440,17 +425,6 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
             });
           }
         }
-        if (_hasTheftExtras && existing != null) {
-          final tRaw = existing.extraFields['theft_extra'];
-          if (tRaw is Map) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (!mounted) return;
-              _theftKey.currentState?.hydrateFrom(
-                Map<String, dynamic>.from(tRaw),
-              );
-            });
-          }
-        }
         if (_hasSandTheftExtras && existing != null) {
           final sRaw = existing.extraFields['sand_theft_extra'] ??
               existing.extraFields['theft_extra'];
@@ -552,8 +526,6 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
         return context.read<CoinProvider>();
       case 'ad':
         return context.read<AdProvider>();
-      case 'suicide':
-        return context.read<SuicideProvider>();
       case 'st_drugs':
         return context.read<StDrugsProvider>();
       default:
@@ -1282,12 +1254,6 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       final kData = _kidnappingKey.currentState?.collectData();
       if (kData != null && kData.isNotEmpty) {
         extra['kidnapping_extra'] = kData;
-      }
-    }
-    if (!_isCrimeDetailForm && _hasTheftExtras) {
-      final tData = _theftKey.currentState?.collectData();
-      if (tData != null && tData.isNotEmpty) {
-        extra['theft_extra'] = tData;
       }
     }
     if (!_isCrimeDetailForm && _hasSandTheftExtras) {
@@ -2094,24 +2060,17 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                                                                         )
                                                                                       : _hasSandTheftExtras
                                                                                           ? SandTheftExtraFields(key: _sandTheftKey)
-                                                                                          : _hasTheftExtras
-                                                                                              ? TheftExtraFields(
-                                                                                                  key: _theftKey,
+                                                                                          : _hasPocsoExtras
+                                                                                              ? PocsoExtraFields(
+                                                                                                  key: _pocsoKey,
+                                                                                                  onVictimNameChanged: (v) {
+                                                                                                    _formKey.currentState?.setVictimName(v);
+                                                                                                  },
                                                                                                   onActiveFieldTap: (label, ctrl, [section = '']) {
                                                                                                     _formKey.currentState?.setActiveVoiceField(label, ctrl, section);
                                                                                                   },
                                                                                                 )
-                                                                                              : _hasPocsoExtras
-                                                                                                  ? PocsoExtraFields(
-                                                                                                      key: _pocsoKey,
-                                                                                                      onVictimNameChanged: (v) {
-                                                                                                        _formKey.currentState?.setVictimName(v);
-                                                                                                      },
-                                                                                                      onActiveFieldTap: (label, ctrl, [section = '']) {
-                                                                                                        _formKey.currentState?.setActiveVoiceField(label, ctrl, section);
-                                                                                                      },
-                                                                                                    )
-                                                                                                  : null,
+                                                                                              : null,
                                                                                 ),
       bottomNavigationBar: SafeArea(
         child: Padding(

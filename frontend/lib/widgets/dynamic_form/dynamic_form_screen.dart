@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../modules/core/models/base_record.dart';
+import '../../modules/kidnapping/widgets/kidnapping_extra_fields.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/case_service.dart';
 import '../../theme/app_theme.dart';
@@ -26,6 +27,19 @@ class DynamicFormScreen extends StatefulWidget {
   final Future<Map<String, dynamic>?> Function(
       Map<String, dynamic> payload, bool isEdit)? onSubmitCustom;
   final bool readOnly;
+  final List<dynamic>? copyOnTickRules;
+
+  /// Rules {source_field, target_field, days}: when the source date changes,
+  /// the target date is set to source + days (e.g. RTI Due Date).
+  final List<dynamic>? dateOffsetRules;
+
+  /// Optional per-field character limits from the module config (field_key -> max).
+  final Map<String, int>? fieldMaxLengths;
+
+  /// Draw sections strictly in the database display_order of their fields,
+  /// instead of the fixed Common Form section order (used by independent
+  /// modules such as N.C.). Default false keeps every existing form unchanged.
+  final bool sectionsInDisplayOrder;
 
   const DynamicFormScreen({
     super.key,
@@ -37,6 +51,10 @@ class DynamicFormScreen extends StatefulWidget {
     this.initialData,
     this.onSubmitCustom,
     this.readOnly = false,
+    this.copyOnTickRules,
+    this.dateOffsetRules,
+    this.fieldMaxLengths,
+    this.sectionsInDisplayOrder = false,
   });
 
   @override
@@ -50,6 +68,33 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   DynamicFormDefinition? _formDef;
   bool _isLoading = true;
   String? _errorMessage;
+  List<dynamic> _copyOnTickRules = [];
+  final Map<String, dynamic> _previousValues = {};
+
+  // Category-specific extra section (Kidnapping); same rules and saved keys as
+  // CommonFormScreen. Theft's, Sand Theft's and POCSO's questions come from
+  // their database templates like any other field.
+  final GlobalKey<KidnappingExtraFieldsState> _kidnappingKey =
+      GlobalKey<KidnappingExtraFieldsState>();
+
+  String get _extrasMatchText => [
+        widget.moduleKey,
+        widget.subCategory ?? '',
+        widget.moduleLabel,
+      ].join(' ').trim().toLowerCase();
+
+  bool get _hasKidnappingExtras {
+    final key = widget.moduleKey.trim().toLowerCase();
+    return key == 'kid' || _extrasMatchText.contains('kidnap');
+  }
+
+  /// The extra section widget for this category, or null.
+  Widget? _buildCategoryExtras() {
+    if (_hasKidnappingExtras) {
+      return KidnappingExtraFields(key: _kidnappingKey);
+    }
+    return null;
+  }
 
   // Controllers & Values keyed by fieldKey
   final Map<String, TextEditingController> _controllers = {};
@@ -88,6 +133,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   String _selectedPreventiveType = '';
   final TextEditingController _preventiveDateCtrl = TextEditingController();
   final TextEditingController _preventiveOutwardCtrl = TextEditingController();
+  final TextEditingController _preventiveNumberCtrl = TextEditingController();
   final TextEditingController _preventiveBondDateCtrl = TextEditingController();
   final TextEditingController _preventiveBondCancelDateCtrl =
       TextEditingController();
@@ -147,11 +193,16 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     'Other',
   ];
 
-  bool get isEdit => widget.existingRecord != null;
+  bool get isEdit =>
+      widget.existingRecord != null ||
+      (widget.initialData != null && !widget.readOnly);
 
   @override
   void initState() {
     super.initState();
+    if (widget.copyOnTickRules != null) {
+      _copyOnTickRules = List<dynamic>.from(widget.copyOnTickRules!);
+    }
     _loadFormDefinition();
     _loadGenderOptions();
   }
@@ -161,6 +212,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     _triggerBDebounce?.cancel();
     _preventiveDateCtrl.dispose();
     _preventiveOutwardCtrl.dispose();
+    _preventiveNumberCtrl.dispose();
     _preventiveBondDateCtrl.dispose();
     _preventiveBondCancelDateCtrl.dispose();
     _pcrDaysCtrl.dispose();
@@ -228,6 +280,28 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         if ((isEdit || widget.initialData != null) &&
             _selectedCharges.isEmpty) {
           _hydrateFromExistingRecord();
+        }
+
+        // Fetch latest full case details by ID to ensure all child table data and extra_fields are refreshed
+        if (widget.existingRecord != null &&
+            widget.existingRecord!.id.trim().isNotEmpty) {
+          _caseService
+              .fetchCaseById(widget.existingRecord!.id)
+              .then((caseDetail) {
+            if (caseDetail != null && mounted) {
+              if (caseDetail['extra_fields'] is Map) {
+                widget.existingRecord!.extraFields.addAll(
+                  Map<String, dynamic>.from(caseDetail['extra_fields'] as Map),
+                );
+              }
+              if (caseDetail['road_accident'] is Map) {
+                widget.existingRecord!.extraFields.addAll(
+                  Map<String, dynamic>.from(caseDetail['road_accident'] as Map),
+                );
+              }
+              _hydrateFromExistingRecord();
+            }
+          }).catchError((_) {});
         }
       } else {
         setState(() {
@@ -1001,6 +1075,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           final aType = it['action_type'] ?? it['action'];
           final aDate = it['action_date'] ?? it['actionDate'];
           final aOut = it['outward_number'] ?? it['outwardNumber'];
+          final aNum = it['preventive_number'] ?? it['preventiveNumber'];
           final aName = it['name'] ??
               it['person_name'] ??
               it['accusedName'] ??
@@ -1013,6 +1088,13 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               'action_type': aType.toString(),
               'action_date': aDate?.toString() ?? '',
               'outward_number': aOut?.toString() ?? '',
+              'preventive_number': aNum?.toString() ?? '',
+              'bond_date':
+                  (it['bond_date'] ?? it['bondDate'])?.toString() ?? '',
+              'bond_cancellation_date':
+                  (it['bond_cancellation_date'] ?? it['bondCancellationDate'])
+                          ?.toString() ??
+                      '',
             });
           }
         }
@@ -1278,21 +1360,324 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         });
       }
     }
+
+    // Hydrate dynamic repeating groups (MPDA, History Sheeter, Road Accident, etc.)
+    if (_formDef != null) {
+      for (final f in _formDef!.fields
+          .where((fd) => fd.fieldType == 'repeating_group')) {
+        final noPref =
+            f.fieldKey.replaceFirst(RegExp(r'^(mpda_|hs_|rti_|acc_)'), '');
+        final candidates = [
+          f.fieldKey,
+          noPref,
+          if (f.fieldKey == 'mpda_accused') ...[
+            'accused_persons',
+            'accused',
+            'accusedList'
+          ],
+          if (f.fieldKey == 'mpda_gang_members') ...[
+            'gang_members',
+            'gangMembers'
+          ],
+          if (f.fieldKey == 'mpda_crime_chart') ...[
+            'crime_chart',
+            'crime_chart_entries',
+            'crimeChart'
+          ],
+          if (f.fieldKey == 'hs_associates') ...[
+            'associates',
+            'related_persons'
+          ],
+          if (f.fieldKey == 'hs_rivals') ...['rivals', 'related_persons'],
+          if (f.fieldKey == 'hs_sureties') ...['sureties', 'related_persons'],
+          if (f.fieldKey == 'hs_preventive_actions') ...[
+            'preventive_actions',
+            'preventiveActions'
+          ],
+          if (f.fieldKey == 'hs_crime_chart') ...[
+            'crime_chart',
+            'crimes',
+            'crimeChart'
+          ],
+          if (f.fieldKey == 'acc_vehicles') ...[
+            'vehicles',
+            'accident_vehicles',
+            'veh_list'
+          ],
+          if (f.fieldKey == 'acc_injured') ...[
+            'injured',
+            'injured_persons',
+            'inj_list'
+          ],
+          if (f.fieldKey == 'acc_deceased') ...[
+            'deceased',
+            'deceased_persons',
+            'dec_list'
+          ],
+        ];
+
+        dynamic rawList;
+        for (final cand in candidates) {
+          if (extra[cand] is List && (extra[cand] as List).isNotEmpty) {
+            rawList = extra[cand];
+            break;
+          }
+        }
+
+        if (rawList is List) {
+          final children = _formDef!.fields
+              .where((cf) => cf.parentFieldKey == f.fieldKey)
+              .toList();
+
+          final normalizedRows = <Map<String, dynamic>>[];
+          for (final rawItem in rawList) {
+            if (rawItem is Map) {
+              final rowMap = Map<String, dynamic>.from(rawItem);
+              for (final child in children) {
+                if (rowMap[child.fieldKey] == null) {
+                  final childNoPref = child.fieldKey.replaceFirst(
+                    RegExp(
+                        r'^(mpda_accused_|mpda_|hs_assoc_|hs_rival_|hs_surety_|hs_preventive_|hs_crime_|hs_|rti_|acc_veh_|acc_inj_|acc_dec_|acc_)'),
+                    '',
+                  );
+                  dynamic foundVal = rowMap[childNoPref];
+                  if (foundVal == null) {
+                    if (childNoPref == 'cast' || childNoPref == 'caste') {
+                      foundVal = rowMap['caste'] ?? rowMap['cast'];
+                    } else if (childNoPref == 'action_type' ||
+                        childNoPref == 'action') {
+                      foundVal = rowMap['action_type'] ?? rowMap['action'];
+                    } else if (childNoPref == 'cr_no' ||
+                        childNoPref == 'crime_cr_no') {
+                      foundVal = rowMap['cr_no'] ?? rowMap['crime_cr_no'];
+                    } else if (childNoPref == 'mobile' ||
+                        childNoPref == 'mobile_no') {
+                      foundVal = rowMap['mobile_no'] ?? rowMap['mobile'];
+                    } else if (childNoPref == 'number' ||
+                        childNoPref == 'vehicle_number') {
+                      foundVal = rowMap['vehicle_number'] ??
+                          rowMap['veh_number'] ??
+                          rowMap['number'];
+                    } else if (childNoPref == 'name' ||
+                        childNoPref == 'vehicle_name') {
+                      foundVal = rowMap['vehicle_name'] ?? rowMap['name'];
+                    } else if (childNoPref == 'company' ||
+                        childNoPref == 'company_name') {
+                      foundVal = rowMap['company_name'] ?? rowMap['company'];
+                    } else if (childNoPref == 'company_other' ||
+                        childNoPref == 'company_name_other') {
+                      foundVal = rowMap['company_name_other'] ??
+                          rowMap['company_other'];
+                    } else if (childNoPref == 'owner_details' ||
+                        childNoPref == 'owner_name_address') {
+                      foundVal = rowMap['owner_name_address'] ??
+                          rowMap['owner_details'] ??
+                          rowMap['owner_name'];
+                    } else if (childNoPref == 'driver_details' ||
+                        childNoPref == 'driver_name_address') {
+                      foundVal = rowMap['driver_name_address'] ??
+                          rowMap['driver_details'] ??
+                          rowMap['driver_name'];
+                    } else if (childNoPref == 'aadhaar' ||
+                        childNoPref == 'aadhaar_card') {
+                      foundVal = rowMap['aadhaar_card'] ?? rowMap['aadhaar'];
+                    } else if (childNoPref == 'pan' ||
+                        childNoPref == 'pan_card') {
+                      foundVal = rowMap['pan_card'] ?? rowMap['pan'];
+                    } else if (childNoPref == 'death_date') {
+                      foundVal =
+                          rowMap['death_date_display'] ?? rowMap['death_date'];
+                    } else if (childNoPref == 'post_mortem' ||
+                        childNoPref == 'pm') {
+                      foundVal = rowMap['post_mortem'] ?? rowMap['pm'];
+                    }
+                  }
+                  if (foundVal != null) {
+                    if (child.fieldType == 'date' ||
+                        child.fieldType == 'datetime') {
+                      final s = foundVal.toString().trim();
+                      final isoMatch =
+                          RegExp(r'^(\d{4})-(\d{2})-(\d{2})').firstMatch(s);
+                      if (isoMatch != null) {
+                        foundVal =
+                            '${isoMatch.group(3)}/${isoMatch.group(2)}/${isoMatch.group(1)}';
+                      }
+                    }
+                    rowMap[child.fieldKey] = foundVal;
+                  }
+                }
+              }
+              normalizedRows.add(rowMap);
+            }
+          }
+          if (normalizedRows.isNotEmpty) {
+            _values[f.fieldKey] = normalizedRows;
+            _values[noPref] = normalizedRows;
+          }
+        }
+      }
+    }
+
+    // Category extra sections: fill them once their widgets are built
+    void hydrateExtra(GlobalKey key, dynamic raw) {
+      if (raw is! Map) return;
+      final data = Map<String, dynamic>.from(raw);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final state = key.currentState;
+        if (state is KidnappingExtraFieldsState) state.hydrateFrom(data);
+      });
+    }
+
+    if (_hasKidnappingExtras) {
+      hydrateExtra(_kidnappingKey, extra['kidnapping_extra']);
+    }
+
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void _setField(String key, dynamic val) {
     if (val == null) return;
     final cleanKey = key.trim();
-    final withPrefix = cleanKey.startsWith('rti_') ? cleanKey : 'rti_$cleanKey';
-    final withoutPrefix =
-        cleanKey.startsWith('rti_') ? cleanKey.substring(4) : cleanKey;
+    if (cleanKey.isEmpty) return;
 
-    final strVal = val.toString();
-    for (final k in [cleanKey, withPrefix, withoutPrefix]) {
-      if (_controllers.containsKey(k)) {
-        _controllers[k]!.text = strVal;
+    final noPrefix =
+        cleanKey.replaceFirst(RegExp(r'^(mpda_|hs_|rti_|acc_)'), '');
+    final candidates = <String>{
+      cleanKey,
+      noPrefix,
+      'mpda_$noPrefix',
+      'hs_$noPrefix',
+      'rti_$noPrefix',
+      'acc_$noPrefix',
+    };
+
+    if (noPrefix == 'govt_confirmation' ||
+        noPrefix == 'government_confirmation') {
+      candidates.addAll([
+        'government_confirmation',
+        'govt_confirmation',
+        'mpda_govt_confirmation'
+      ]);
+    } else if (noPrefix == 'order_revoked' ||
+        noPrefix == 'detention_order_revoked') {
+      candidates.addAll(
+          ['detention_order_revoked', 'order_revoked', 'mpda_order_revoked']);
+    } else if (noPrefix == 'io_post' || noPrefix == 'designation') {
+      candidates.addAll(
+          ['mpda_io_post', 'io_post', 'designation', 'mpda_designation']);
+    } else if (noPrefix == 'serious_crimes' ||
+        noPrefix == 'serious_crime' ||
+        noPrefix == 'total_serious_crimes' ||
+        noPrefix == 'total_serious_crime') {
+      candidates.addAll([
+        'mpda_serious_crimes',
+        'serious_crimes',
+        'serious_crime',
+        'total_serious_crimes',
+        'total_serious_crime',
+        'mpda_total_serious_crime',
+        'mpda_total_serious_crimes',
+      ]);
+    } else if (noPrefix == 'total_misc_crime' ||
+        noPrefix == 'total_misc_crimes' ||
+        noPrefix == 'misc_crimes' ||
+        noPrefix == 'misc_crime') {
+      candidates.addAll([
+        'mpda_total_misc_crime',
+        'total_misc_crime',
+        'total_misc_crimes',
+        'misc_crimes',
+        'misc_crime',
+        'mpda_misc_crimes',
+        'mpda_total_misc_crimes',
+      ]);
+    } else if (noPrefix == 'category_type' || noPrefix == 'categories') {
+      candidates.addAll(['categories', 'category_type', 'hs_category_type']);
+    } else if (noPrefix == 'category_type_other' ||
+        noPrefix == 'category_other') {
+      candidates.addAll(
+          ['category_other', 'category_type_other', 'hs_category_type_other']);
+    } else if (noPrefix == 'nature_of_accident') {
+      candidates.addAll(['acc_nature_of_accident', 'nature_of_accident']);
+    } else if (noPrefix == 'nature_of_accident_other') {
+      candidates
+          .addAll(['acc_nature_of_accident_other', 'nature_of_accident_other']);
+    } else if (noPrefix == 'vehicle_abandoned') {
+      candidates.addAll(['acc_vehicle_abandoned', 'vehicle_abandoned']);
+    } else if (noPrefix == 'driver_subsequently_traced') {
+      candidates.addAll(
+          ['acc_driver_subsequently_traced', 'driver_subsequently_traced']);
+    } else if (noPrefix == 'victim_identity_established') {
+      candidates.addAll(
+          ['acc_victim_identity_established', 'victim_identity_established']);
+    } else if (noPrefix == 'eyewitnesses_identity' ||
+        noPrefix == 'eye_witnesses_identity') {
+      candidates.addAll([
+        'acc_eyewitnesses_identity',
+        'eye_witnesses_identity',
+        'eyewitnesses_identity'
+      ]);
+    } else if (noPrefix == 'irad') {
+      candidates.addAll(['acc_irad', 'irad']);
+    } else if (noPrefix == 'irad_date') {
+      candidates.addAll(['acc_irad_date', 'irad_date']);
+    } else if (noPrefix == 'dar') {
+      candidates.addAll(['acc_dar', 'dar']);
+    } else if (noPrefix == 'dar_date') {
+      candidates.addAll(['acc_dar_date', 'dar_date']);
+    }
+
+    for (final k in candidates) {
+      final fieldDef = _formDef?.fields.cast<DynamicFieldDef?>().firstWhere(
+            (f) => f?.fieldKey == k,
+            orElse: () => null,
+          );
+
+      String formattedStr = val.toString();
+      if (val is List && fieldDef?.fieldType != 'repeating_group') {
+        formattedStr = val.join(', ');
+      } else if (fieldDef != null &&
+          (fieldDef.fieldType == 'date' || fieldDef.fieldType == 'datetime')) {
+        final s = val.toString().trim();
+        final isoMatch =
+            RegExp(r'^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2}))?')
+                .firstMatch(s);
+        if (isoMatch != null) {
+          final y = isoMatch.group(1);
+          final m = isoMatch.group(2);
+          final d = isoMatch.group(3);
+          final hr = isoMatch.group(4);
+          final min = isoMatch.group(5);
+          if (hr != null && min != null && fieldDef.fieldType == 'datetime') {
+            formattedStr = '$d/$m/$y $hr:$min';
+          } else {
+            formattedStr = '$d/$m/$y';
+          }
+        }
       }
-      _values[k] = val;
+
+      if (_controllers.containsKey(k)) {
+        _controllers[k]!.text = formattedStr;
+      }
+
+      if (fieldDef?.fieldType == 'checkbox') {
+        _values[k] = (val == true ||
+            val.toString().toLowerCase() == 'true' ||
+            val.toString().toLowerCase() == 'yes');
+      } else if (fieldDef?.fieldType == 'dropdown') {
+        String sVal = val.toString().trim();
+        if (sVal.toUpperCase() == 'Y') sVal = 'Yes';
+        if (sVal.toUpperCase() == 'N') sVal = 'No';
+        _values[k] = sVal;
+        if (_controllers.containsKey(k)) {
+          _controllers[k]!.text = sVal;
+        }
+      } else {
+        _values[k] = val;
+      }
     }
   }
 
@@ -1314,9 +1699,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     final caseNo = _controllers['cr_number']?.text.trim() ??
         _controllers['crNo']?.text.trim() ??
         _controllers['case_number']?.text.trim() ??
-        (isEdit
-            ? widget.existingRecord!.caseNumber
-            : 'CR/${DateTime.now().millisecondsSinceEpoch}');
+        widget.existingRecord?.caseNumber ??
+        'CR/${DateTime.now().millisecondsSinceEpoch}';
 
     final title = _controllers['title']?.text.trim().isNotEmpty == true
         ? _controllers['title']!.text.trim()
@@ -1634,6 +2018,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           'bondDate': item['bond_date'],
           'bond_cancellation_date': item['bond_cancellation_date'],
           'bondCancellationDate': item['bond_cancellation_date'],
+          'preventive_number': item['preventive_number'],
+          'preventiveNumber': item['preventive_number'],
         });
       }
     }
@@ -1819,6 +2205,13 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     extraFields['is_discharged'] = _dischargedAccusedList.isNotEmpty;
     extraFields['lastEditedBy'] = auth.displayName;
     extraFields['lastEditedAt'] = DateTime.now().toIso8601String();
+    // Category extra sections (same keys as CommonFormScreen)
+    if (_hasKidnappingExtras) {
+      final kData = _kidnappingKey.currentState?.collectData();
+      if (kData != null && kData.isNotEmpty) {
+        extraFields['kidnapping_extra'] = kData;
+      }
+    }
 
     if (widget.onSubmitCustom != null) {
       try {
@@ -1938,9 +2331,11 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              isEdit
-                  ? 'Edit ${widget.subCategory ?? widget.moduleLabel}'
-                  : '${widget.subCategory ?? widget.moduleLabel} Registration',
+              widget.readOnly
+                  ? 'View ${widget.subCategory ?? widget.moduleLabel}'
+                  : (isEdit
+                      ? 'Edit ${widget.subCategory ?? widget.moduleLabel}'
+                      : '${widget.subCategory ?? widget.moduleLabel} Registration'),
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -1992,29 +2387,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     final rawVal = _values[parentKey] ?? _controllers[parentKey]?.text;
     if (rawVal == null) return false;
 
-    final targetVal = f.dependsOnValue?.trim() ?? '';
-    final currentStr = rawVal.toString().trim();
-
-    if (targetVal.isEmpty) {
-      return currentStr.isNotEmpty &&
-          currentStr.toLowerCase() != 'false' &&
-          currentStr != '0';
-    }
-
-    if (currentStr.toLowerCase() == targetVal.toLowerCase()) {
-      return true;
-    }
-
-    if ((currentStr.toLowerCase() == 'true' ||
-            currentStr == '1' ||
-            currentStr.toLowerCase() == 'yes') &&
-        (targetVal.toLowerCase() == 'true' ||
-            targetVal == '1' ||
-            targetVal.toLowerCase() == 'yes')) {
-      return true;
-    }
-
-    return false;
+    return dependsOnValueMatches(rawVal, f.dependsOnValue,
+        parentIsMultiSelect: parentField?.fieldType == 'multi_select');
   }
 
   void _pruneHiddenFields() {
@@ -2030,14 +2404,114 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     }
   }
 
+  /// Recalculates every `sum:` total field that adds up [changedKey]
+  /// (e.g. Total Crime = Serious + Miscellaneous). Empty parts count as 0;
+  /// when every part is empty the total is cleared.
+  void _applySumTotals(String changedKey) {
+    for (final f in _formDef?.fields ?? const <DynamicFieldDef>[]) {
+      final parts = f.sumOf;
+      if (!parts.contains(changedKey)) continue;
+      var total = 0;
+      var anyValue = false;
+      for (final p in parts) {
+        final raw =
+            (_controllers[p]?.text ?? _values[p]?.toString() ?? '').trim();
+        final n = int.tryParse(raw);
+        if (n != null) {
+          total += n;
+          anyValue = true;
+        }
+      }
+      final text = anyValue ? '$total' : '';
+      _controllers.putIfAbsent(f.fieldKey, () => TextEditingController());
+      if (_controllers[f.fieldKey]!.text != text) {
+        _controllers[f.fieldKey]!.text = text;
+      }
+      if (anyValue) {
+        _values[f.fieldKey] = text;
+      } else {
+        _values.remove(f.fieldKey);
+      }
+      _previousValues[f.fieldKey] = anyValue ? text : null;
+    }
+  }
+
+  void _applyDateOffsets(String sourceKey, dynamic value) {
+    final rules = widget.dateOffsetRules;
+    if (rules == null || rules.isEmpty) return;
+    final text = value?.toString().trim() ?? '';
+    if (text.isEmpty) return;
+    final fmt = DateFormat('dd/MM/yyyy');
+    for (final rule in rules) {
+      if (rule is! Map || rule['source_field']?.toString() != sourceKey) {
+        continue;
+      }
+      final target = rule['target_field']?.toString() ?? '';
+      final days = int.tryParse('${rule['days']}');
+      if (target.isEmpty || days == null) continue;
+      DateTime source;
+      try {
+        source = fmt.parseStrict(text);
+      } catch (_) {
+        continue;
+      }
+      final result = fmt.format(source.add(Duration(days: days)));
+      _values[target] = result;
+      _previousValues[target] = result;
+      _controllers.putIfAbsent(target, () => TextEditingController()).text =
+          result;
+    }
+  }
+
   void _onDynamicFieldValueChanged(String k, dynamic v) {
     setState(() {
+      final oldVal = _previousValues[k];
+      _previousValues[k] = v;
       _values[k] = v;
       if (v == null) {
         _values.remove(k);
         _controllers[k]?.clear();
       }
+      _applySumTotals(k);
+      _applyDateOffsets(k, v);
       _pruneHiddenFields();
+
+      final wasTicked = (oldVal == true ||
+          oldVal == 'true' ||
+          oldVal == 1 ||
+          oldVal == '1' ||
+          oldVal == 'Yes');
+      final isTicked =
+          (v == true || v == 'true' || v == 1 || v == '1' || v == 'Yes');
+      if (!wasTicked && isTicked && _copyOnTickRules.isNotEmpty) {
+        for (final rule in _copyOnTickRules) {
+          if (rule is! Map) continue;
+          final tKey =
+              (rule['trigger_field'] ?? rule['tick_field'])?.toString();
+          if (tKey == k) {
+            final sKey =
+                (rule['source_field'] ?? rule['from_field'])?.toString();
+            final tgtKey =
+                (rule['target_field'] ?? rule['to_field'])?.toString();
+            if (sKey != null &&
+                tgtKey != null &&
+                sKey.isNotEmpty &&
+                tgtKey.isNotEmpty) {
+              final sVal =
+                  _controllers[sKey]?.text ?? _values[sKey]?.toString() ?? '';
+              _values[tgtKey] = sVal;
+              if (_controllers.containsKey(tgtKey)) {
+                _controllers[tgtKey]?.text = sVal;
+              } else {
+                try {
+                  _controllers.putIfAbsent(
+                      tgtKey, () => TextEditingController(text: sVal));
+                } catch (_) {}
+              }
+            }
+          }
+        }
+      }
       if (_panchanamaKeyToName.containsKey(k) || k.contains('panchanama')) {
         final dateKey = '${k}_date';
         if (v == true) {
@@ -2198,8 +2672,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       'Officer',
       'Arrest',
       'Remand & Custody',
+      'Absconding Accused',
       'CCTV and CDR Investigation',
       'All Panchnama',
+      'Vehicle Log Book',
       'Evidence',
       'Seizure Records',
       'Preventive Action',
@@ -2215,98 +2691,15 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     final sectionCards = <Widget>[];
     final hasBaseline = _formDef?.hasCommonFormBaseline ?? false;
 
-    for (final secKey in orderedSectionKeys) {
-      if (secKey == 'Acts & Sections Filed') {
-        if (hasBaseline ||
-            (groupedBySection['Acts & Sections Filed']?.isNotEmpty ?? false)) {
-          sectionCards.add(_buildLegalChargesSection());
-        }
-      } else if (secKey == 'Special Section / Template Details') {
-        final specFields =
-            groupedBySection['Special Section / Template Details'];
-        if (specFields != null && specFields.isNotEmpty) {
-          sectionCards.add(
-            DynamicSectionCard(
-              title:
-                  'Special Section / Template Details (${specFields.length})',
-              icon: Icons.featured_play_list_rounded,
-              fields: specFields,
-              controllers: _controllers,
-              values: _values,
-              onValueChanged: _onDynamicFieldValueChanged,
-              readOnly: widget.readOnly,
-              accusedOptions: accusedOptions,
-              stationId: currentStation,
-            ),
-          );
-        }
-      } else if (secKey == 'Remand & Custody') {
-        if (hasBaseline ||
-            (groupedBySection['Remand & Custody']?.isNotEmpty ?? false)) {
-          sectionCards.add(_buildRemandCustodySection());
-        }
-      } else if (secKey == 'Preventive Action') {
-        if (hasBaseline ||
-            (groupedBySection['Preventive Action']?.isNotEmpty ?? false)) {
-          sectionCards.add(_buildPreventiveActionSection());
-        }
-      } else if (secKey == 'Discharge Accused') {
-        if (hasBaseline ||
-            (groupedBySection['Discharge Accused']?.isNotEmpty ?? false)) {
-          sectionCards.add(_buildDischargeAccusedSection());
-        }
-      } else if (secKey == 'Accused') {
-        if (hasBaseline || (groupedBySection['Accused']?.isNotEmpty ?? false)) {
-          sectionCards.add(_buildAccusedSection());
-        }
-      } else if (secKey == 'Suspected Accused') {
-        if (hasBaseline ||
-            (groupedBySection['Suspected Accused']?.isNotEmpty ?? false)) {
-          sectionCards.add(_buildSuspectedAccusedSection());
-        }
-      } else if (secKey == 'Unidentified Accused') {
-        if (hasBaseline ||
-            (groupedBySection['Unidentified Accused']?.isNotEmpty ?? false)) {
-          sectionCards.add(_buildUnidentifiedAccusedSection());
-        }
-      } else if (secKey == 'Unknown Accused') {
-        if (hasBaseline ||
-            (groupedBySection['Unknown Accused']?.isNotEmpty ?? false)) {
-          sectionCards.add(_buildUnknownAccusedSection());
-        }
-      } else if (secKey == 'Arrest') {
-        if (hasBaseline || (groupedBySection['Arrest']?.isNotEmpty ?? false)) {
-          sectionCards.add(_buildArrestSection());
-        }
-      } else {
-        final secFields = groupedBySection[secKey];
-        if (secFields != null && secFields.isNotEmpty) {
-          sectionCards.add(
-            DynamicSectionCard(
-              title: secKey,
-              icon: _iconForSection(secKey),
-              fields: secFields,
-              controllers: _controllers,
-              values: _values,
-              onValueChanged: _onDynamicFieldValueChanged,
-              readOnly: widget.readOnly,
-              accusedOptions: accusedOptions,
-              stationId: currentStation,
-            ),
-          );
-        }
-      }
-    }
-
-    // Append any extra/unmapped sections from DB that were not in standard list
-    for (final entry in groupedBySection.entries) {
-      if (!orderedSectionKeys.contains(entry.key) && entry.value.isNotEmpty) {
-        final lower = entry.key.toLowerCase();
-        if (lower.contains('remand') ||
-            lower.contains('custody') ||
-            lower == 'bond') {
-          continue;
-        }
+    if (widget.sectionsInDisplayOrder) {
+      int firstOrder(List<DynamicFieldDef> fs) => fs.isEmpty
+          ? 1 << 30
+          : fs.map((f) => f.displayOrder).reduce((x, y) => x < y ? x : y);
+      final entries = groupedBySection.entries
+          .where((e) => e.value.isNotEmpty)
+          .toList()
+        ..sort((x, y) => firstOrder(x.value).compareTo(firstOrder(y.value)));
+      for (final entry in entries) {
         sectionCards.add(
           DynamicSectionCard(
             title: entry.key,
@@ -2318,9 +2711,140 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             readOnly: widget.readOnly,
             accusedOptions: accusedOptions,
             stationId: currentStation,
+            copyOnTickRules: _copyOnTickRules,
+            fieldMaxLengths: widget.fieldMaxLengths,
+            allFormFields: fields,
           ),
         );
       }
+    } else {
+      for (final secKey in orderedSectionKeys) {
+        if (secKey == 'Acts & Sections Filed') {
+          if (hasBaseline ||
+              (groupedBySection['Acts & Sections Filed']?.isNotEmpty ??
+                  false)) {
+            sectionCards.add(_buildLegalChargesSection());
+          }
+        } else if (secKey == 'Special Section / Template Details') {
+          final specFields =
+              groupedBySection['Special Section / Template Details'];
+          if (specFields != null && specFields.isNotEmpty) {
+            sectionCards.add(
+              DynamicSectionCard(
+                title:
+                    'Special Section / Template Details (${specFields.length})',
+                icon: Icons.featured_play_list_rounded,
+                fields: specFields,
+                controllers: _controllers,
+                values: _values,
+                onValueChanged: _onDynamicFieldValueChanged,
+                readOnly: widget.readOnly,
+                accusedOptions: accusedOptions,
+                stationId: currentStation,
+                copyOnTickRules: _copyOnTickRules,
+                fieldMaxLengths: widget.fieldMaxLengths,
+                allFormFields: fields,
+              ),
+            );
+          }
+        } else if (secKey == 'Remand & Custody') {
+          if (hasBaseline ||
+              (groupedBySection['Remand & Custody']?.isNotEmpty ?? false)) {
+            sectionCards.add(_buildRemandCustodySection());
+          }
+        } else if (secKey == 'Preventive Action') {
+          if (hasBaseline ||
+              (groupedBySection['Preventive Action']?.isNotEmpty ?? false)) {
+            sectionCards.add(_buildPreventiveActionSection());
+          }
+        } else if (secKey == 'Discharge Accused') {
+          if (hasBaseline ||
+              (groupedBySection['Discharge Accused']?.isNotEmpty ?? false)) {
+            sectionCards.add(_buildDischargeAccusedSection());
+          }
+        } else if (secKey == 'Accused') {
+          if (hasBaseline ||
+              (groupedBySection['Accused']?.isNotEmpty ?? false)) {
+            sectionCards.add(_buildAccusedSection());
+          }
+        } else if (secKey == 'Suspected Accused') {
+          if (hasBaseline ||
+              (groupedBySection['Suspected Accused']?.isNotEmpty ?? false)) {
+            sectionCards.add(_buildSuspectedAccusedSection());
+          }
+        } else if (secKey == 'Unidentified Accused') {
+          if (hasBaseline ||
+              (groupedBySection['Unidentified Accused']?.isNotEmpty ?? false)) {
+            sectionCards.add(_buildUnidentifiedAccusedSection());
+          }
+        } else if (secKey == 'Unknown Accused') {
+          if (hasBaseline ||
+              (groupedBySection['Unknown Accused']?.isNotEmpty ?? false)) {
+            sectionCards.add(_buildUnknownAccusedSection());
+          }
+        } else if (secKey == 'Arrest') {
+          if (hasBaseline ||
+              (groupedBySection['Arrest']?.isNotEmpty ?? false)) {
+            sectionCards.add(_buildArrestSection());
+          }
+        } else {
+          final secFields = groupedBySection[secKey];
+          if (secFields != null && secFields.isNotEmpty) {
+            sectionCards.add(
+              DynamicSectionCard(
+                title: secKey,
+                icon: _iconForSection(secKey),
+                fields: secFields,
+                controllers: _controllers,
+                values: _values,
+                onValueChanged: _onDynamicFieldValueChanged,
+                readOnly: widget.readOnly,
+                accusedOptions: accusedOptions,
+                stationId: currentStation,
+                copyOnTickRules: _copyOnTickRules,
+                fieldMaxLengths: widget.fieldMaxLengths,
+                allFormFields: fields,
+              ),
+            );
+          }
+        }
+      }
+
+      // Append any extra/unmapped sections from DB that were not in standard list
+      for (final entry in groupedBySection.entries) {
+        if (!orderedSectionKeys.contains(entry.key) && entry.value.isNotEmpty) {
+          final lower = entry.key.toLowerCase();
+          if (lower.contains('remand') ||
+              lower.contains('custody') ||
+              lower == 'bond') {
+            continue;
+          }
+          sectionCards.add(
+            DynamicSectionCard(
+              title: entry.key,
+              icon: _iconForSection(entry.key),
+              fields: entry.value,
+              controllers: _controllers,
+              values: _values,
+              onValueChanged: _onDynamicFieldValueChanged,
+              readOnly: widget.readOnly,
+              accusedOptions: accusedOptions,
+              stationId: currentStation,
+              copyOnTickRules: _copyOnTickRules,
+              fieldMaxLengths: widget.fieldMaxLengths,
+              allFormFields: fields,
+            ),
+          );
+        }
+      }
+    }
+
+    final categoryExtras = _buildCategoryExtras();
+    if (categoryExtras != null) {
+      final spotIdx = sectionCards.indexWhere((c) =>
+          c is DynamicSectionCard && c.title.toLowerCase().contains('spot'));
+      final at = spotIdx >= 0 ? spotIdx + 1 : (sectionCards.isEmpty ? 0 : 1);
+      sectionCards.insert(at, categoryExtras);
     }
 
     return Form(
@@ -2357,7 +2881,11 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                 icon:
                     const Icon(Icons.check_circle_rounded, color: Colors.white),
                 label: Text(
-                  isEdit ? 'Update Case Record' : 'Submit',
+                  isEdit
+                      ? (widget.onSubmitCustom != null
+                          ? 'Save Changes'
+                          : 'Update Case Record')
+                      : 'Submit',
                   style: GoogleFonts.poppins(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -6357,6 +6885,15 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                                   context),
                                         ),
                                         const SizedBox(width: 12),
+                                        Expanded(
+                                          child: _buildPreventiveNumberField(),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
                                         ElevatedButton.icon(
                                           onPressed: _addPreventiveAction,
                                           style: ElevatedButton.styleFrom(
@@ -6398,6 +6935,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                     const SizedBox(height: 12),
                                     _buildPreventiveBondCancelDateField(
                                         context),
+                                    const SizedBox(height: 12),
+                                    _buildPreventiveNumberField(),
                                     const SizedBox(height: 12),
                                     SizedBox(
                                       width: double.infinity,
@@ -6458,6 +6997,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                       final pType = item['action_type']?.toString() ?? '';
                       final pDate = item['action_date']?.toString() ?? '';
                       final pOut = item['outward_number']?.toString() ?? '';
+                      final pNum = item['preventive_number']?.toString() ?? '';
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 8),
@@ -6538,6 +7078,21 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                         const SizedBox(width: 2),
                                         Text(
                                           'Outward: $pOut',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 11,
+                                            color: AppColors.lightSubText,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                      if (pNum.isNotEmpty) ...[
+                                        const SizedBox(width: 12),
+                                        const Icon(Icons.numbers_rounded,
+                                            size: 12,
+                                            color: AppColors.lightSubText),
+                                        const SizedBox(width: 2),
+                                        Text(
+                                          'Preventive No: $pNum',
                                           style: GoogleFonts.poppins(
                                             fontSize: 11,
                                             color: AppColors.lightSubText,
@@ -6705,6 +7260,41 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       decoration: InputDecoration(
         labelText: 'Preventive Action Outward No',
         hintText: 'Enter Outward Number...',
+        labelStyle:
+            GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText),
+        hintStyle:
+            GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: const BorderSide(color: AppColors.lightBorder),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: const BorderSide(color: AppColors.lightBorder),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: const BorderSide(color: AppColors.navyMid, width: 1.5),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPreventiveNumberField() {
+    return TextFormField(
+      controller: _preventiveNumberCtrl,
+      style: GoogleFonts.poppins(
+        fontSize: 13,
+        fontWeight: FontWeight.w500,
+        color: AppColors.navyDark,
+      ),
+      decoration: InputDecoration(
+        labelText: 'Preventive Number',
+        hintText: 'Enter Preventive Number...',
         labelStyle:
             GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText),
         hintStyle:
@@ -6901,6 +7491,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         ? _preventiveDateCtrl.text.trim()
         : DateFormat('dd/MM/yyyy').format(DateTime.now());
     final outward = _preventiveOutwardCtrl.text.trim();
+    final prevNumber = _preventiveNumberCtrl.text.trim();
     final bDate = _preventiveBondDateCtrl.text.trim();
     final bCancelDate = _preventiveBondCancelDateCtrl.text.trim();
 
@@ -6917,6 +7508,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         'outward_number': outward,
         'bond_date': bDate,
         'bond_cancellation_date': bCancelDate,
+        'preventive_number': prevNumber,
       };
 
       if (existingIndex >= 0) {
@@ -6926,6 +7518,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       }
 
       _preventiveOutwardCtrl.clear();
+      _preventiveNumberCtrl.clear();
       _preventiveBondDateCtrl.clear();
       _preventiveBondCancelDateCtrl.clear();
 
@@ -8538,6 +9131,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       return Icons.lock_clock_rounded;
     }
     if (s.contains('cctv') || s.contains('cdr')) return Icons.videocam_rounded;
+    if (s.contains('log book')) return Icons.menu_book_rounded;
+    if (s.contains('absconding')) return Icons.person_off_rounded;
     if (s.contains('panchnama') || s.contains('checklist')) {
       return Icons.checklist_rounded;
     }

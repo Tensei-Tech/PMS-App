@@ -17,7 +17,8 @@ const Set<String> _kCommonFormBaselineModules = {
   'dacoity',
   'robbery',
   'hbt',
-  'theft',
+  // 'theft' opens the dynamic form: its extra questions come from the
+  // "Property / Theft Extra Template" in the database
   'sand_theft',
   'two_four_wheeler',
   'two_wheeler',
@@ -28,8 +29,9 @@ const Set<String> _kCommonFormBaselineModules = {
   'crime_women',
   'accident',
   'normal_accident',
-  'death_due_to_rash_driving',
-  'other_road_accident',
+  // Road Accident tabs (road_accident, death_due_to_rash_driving,
+  // other_road_accident) open the dynamic form: it draws the common form and
+  // the Road Accident template's lists (vehicles, injured, deceased)
   'sec_156_175',
   'bnss_sec',
   'coin',
@@ -62,7 +64,7 @@ const Set<String> _kCommonFormBaselineCategoryNames = {
   'dacoity',
   'robbery',
   'hbt',
-  'theft',
+  // 'theft' opens the dynamic form (database template), see above
   'sand theft',
   'two/four wheeler theft',
   'two wheeler theft',
@@ -86,8 +88,7 @@ const Set<String> _kCommonFormBaselineCategoryNames = {
   'crime against women',
   'accident',
   'normal accident',
-  'death due to rash driving',
-  'other road accident',
+  // Road Accident tabs open the dynamic form (see above)
   'sec 156(3)/175(3)(bnss)',
   'sec 156(3)/175 (3)(bnss)',
   'coin',
@@ -130,8 +131,7 @@ bool isDedicatedFormTab(String? moduleKeyOrCategory) {
   return clean == 'ad' ||
       clean == 'nc' ||
       clean == 'missing' ||
-      clean == 'preventive' ||
-      clean == 'mpda';
+      clean == 'preventive';
 }
 
 /// Only returns true if the tab is linked to "Common Form Baseline Template".

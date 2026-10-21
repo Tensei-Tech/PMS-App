@@ -45,7 +45,15 @@ class FormVISelectionScreen extends StatefulWidget {
 
   final FormVISelectionMode mode;
 
-  const FormVISelectionScreen({super.key, this.mode = FormVISelectionMode.add});
+  /// Open directly on this category's case list (e.g. from a dashboard tile);
+  /// Back then closes the screen instead of showing the Part 6 grid.
+  final String? openCategory;
+
+  const FormVISelectionScreen({
+    super.key,
+    this.mode = FormVISelectionMode.add,
+    this.openCategory,
+  });
 
   static bool recordMatchesCategory(
     ModuleRecord r,
@@ -145,6 +153,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
         context.read<FormVIProvider>().ensureInitialized();
       }
     });
+    _selectedCategory = widget.openCategory;
     _loadGroupCategories();
   }
 
@@ -274,7 +283,10 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
   }
 
   void _handleBackNavigation() {
-    if (_selectedCategory != null) {
+    if (widget.openCategory != null &&
+        _selectedCategory == widget.openCategory) {
+      Navigator.pop(context);
+    } else if (_selectedCategory != null) {
       setState(() => _selectedCategory = null);
     } else if (_categoryBreadcrumb.isNotEmpty) {
       setState(() => _categoryBreadcrumb.removeLast());
@@ -1440,7 +1452,9 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
         : null;
 
     return PopScope(
-      canPop: _selectedCategory == null && _categoryBreadcrumb.isEmpty,
+      canPop: (widget.openCategory != null &&
+              _selectedCategory == widget.openCategory) ||
+          (_selectedCategory == null && _categoryBreadcrumb.isEmpty),
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         _handleBackNavigation();

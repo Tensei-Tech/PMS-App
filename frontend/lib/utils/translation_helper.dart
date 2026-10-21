@@ -42,7 +42,7 @@ class TranslationHelper {
       'itsso': 'ITSSO',
       'nafis': 'NAFIS',
       'dar': 'DAR',
-      'irda': 'IRDA',
+      'irad': 'IRAD',
       'fir': 'FIR',
       'bnss': 'BNSS',
       'hbt': 'HBT',

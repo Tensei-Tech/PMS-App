@@ -15,6 +15,11 @@ import '../models/user_model.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/permission_service.dart';
 import '../services/dynamic_options_service.dart';
+import '../services/case_service.dart';
+import '../services/history_sheeter_service.dart';
+import '../services/mpda_service.dart';
+import '../services/rti_service.dart';
+import '../utils/category_navigation_helper.dart';
 
 void _secureLog(String message) {
   if (kDebugMode) debugPrint('[AuthProvider] $message');
@@ -828,6 +833,11 @@ class AuthProvider extends ChangeNotifier {
     await ApiService().clearAuthToken();
     await _secure.deleteAll();
     DynamicOptionsService().clearCache();
+    CaseService().clearCategoryCache();
+    CategoryNavigationHelper.clearCache();
+    RtiService().clearConfigCache();
+    HistorySheeterService().clearConfigCache();
+    MpdaService().clearConfigCache();
 
     if (savedEmail != null) {
       await _secure.write(key: StorageKeys.email, value: savedEmail);

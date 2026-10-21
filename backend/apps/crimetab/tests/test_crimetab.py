@@ -63,6 +63,14 @@ class CommonFormE2ETests(TestCase):
         CaseCategoryLink.objects.all().delete()
         CaseRecord.objects.all().delete()
 
+        # Preventive provisions are read from option_values (seeded by migration 0051)
+        from apps.crimetab.models.dynamic_engine import OptionValue
+        for order, opt in enumerate(['107 CrPC/126 BNSS', '93 Prohibition Act'], 1):
+            OptionValue.objects.get_or_create(
+                option_group='preventive_action_types', option_value=opt,
+                defaults={'display_order': order * 10, 'is_active': True},
+            )
+
         # 1. Category Groups
         self.group_1to5, _ = CaseCategoryGroup.objects.get_or_create(
             group_id=1,

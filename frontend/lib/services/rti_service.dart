@@ -13,6 +13,11 @@ class RtiService {
   final ApiService _api = ApiService();
   Map<String, dynamic>? _cachedConfig;
 
+  /// Clear cached configuration
+  void clearConfigCache() {
+    _cachedConfig = null;
+  }
+
   /// Fetch dynamic configuration (labels, limits, target_category_code) from backend
   Future<Map<String, dynamic>> fetchConfig({bool forceRefresh = false}) async {
     if (!forceRefresh && _cachedConfig != null) {
@@ -78,6 +83,26 @@ class RtiService {
     return {'count': 0, 'page': page, 'page_size': 20, 'results': []};
   }
 
+  /// Chart tab: all RTI applications of the station, one row each
+  Future<Map<String, dynamic>> fetchChart({int page = 1, String q = ''}) async {
+    try {
+      final params = <String, String>{'page': page.toString()};
+      if (q.trim().isNotEmpty) params['q'] = q.trim();
+      final response = await _api.get(
+        ApiConfig.rtiChart,
+        queryParameters: params,
+      );
+      if (response.isSuccess && response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[RtiService] fetchChart error: $e');
+      }
+    }
+    return {'count': 0, 'page': page, 'page_size': 20, 'results': []};
+  }
+
   /// Fetch full details for a single RTI application
   Future<Map<String, dynamic>?> fetchApplicationDetail(dynamic rtiId) async {
     try {
@@ -97,6 +122,41 @@ class RtiService {
   Future<ApiResponse> createApplication(Map<String, dynamic> data) async {
     try {
       return await _api.post(ApiConfig.rti, data: data);
+    } catch (e) {
+      return ApiResponse.error('Exception: $e');
+    }
+  }
+
+  /// Due-date reminders for the logged-in officer (scheduled + manual)
+  Future<Map<String, dynamic>> fetchReminders() async {
+    try {
+      final response = await _api.get(ApiConfig.rtiReminders);
+      if (response.isSuccess && response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[RtiService] fetchReminders error: $e');
+      }
+    }
+    return {'count': 0, 'results': []};
+  }
+
+  /// Mark the officer's manual reminders as read
+  Future<void> markRemindersSeen() async {
+    try {
+      await _api.post(ApiConfig.rtiRemindersSeen);
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[RtiService] markRemindersSeen error: $e');
+      }
+    }
+  }
+
+  /// Summary tab action: send a reminder now to the assigned officer
+  Future<ApiResponse> sendReminder(dynamic rtiId) async {
+    try {
+      return await _api.post(ApiConfig.rtiRemind(rtiId));
     } catch (e) {
       return ApiResponse.error('Exception: $e');
     }

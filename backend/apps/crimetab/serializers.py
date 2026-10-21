@@ -93,7 +93,8 @@ class CaseExtraFieldValueSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CaseExtraFieldValue
-        fields = ['value_id', 'case', 'field_def', 'field_key', 'field_label', 'field_value', 'created_at']
+        fields = ['value_id', 'case', 'field_def', 'field_key', 'field_label', 'field_value', 'row_no',
+                  'created_at']
 
 
 class OptionValueSerializer(serializers.ModelSerializer):
@@ -286,9 +287,35 @@ class CaseListSerializer(serializers.ModelSerializer):
             'id', 'module_key', 'title', 'case_number', 'description',
             'complainant', 'accused', 'location', 'incident_date',
             'priority', 'status', 'assigned_officer', 'assigned_officer_uid',
-            'sub_category', 'created_by', 'station_name',
+            'sub_category', 'created_by', 'station_name', 'extra_fields',
             'created_at', 'updated_at'
         ]
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        try:
+            from apps.crimetab.models.accident import RoadAccidentRecord
+            from apps.crimetab.serializers_accident import RoadAccidentRecordSerializer
+            acc_rec = RoadAccidentRecord.objects.filter(case_id=str(instance.id)).first()
+            if acc_rec:
+                acc_data = RoadAccidentRecordSerializer(acc_rec).data
+                data['road_accident'] = acc_data
+                extra = data.get('extra_fields')
+                if not isinstance(extra, dict):
+                    extra = {}
+                    data['extra_fields'] = extra
+                for k, v in acc_data.items():
+                    if k not in extra or extra[k] is None or extra[k] == '':
+                        extra[k] = v
+                extra['acc_vehicles'] = acc_data.get('acc_vehicles', [])
+                extra['vehicles'] = acc_data.get('vehicles', [])
+                extra['acc_injured'] = acc_data.get('acc_injured', [])
+                extra['injured'] = acc_data.get('injured', [])
+                extra['acc_deceased'] = acc_data.get('acc_deceased', [])
+                extra['deceased'] = acc_data.get('deceased', [])
+        except Exception:
+            pass
+        return data
 
 
 # ==========================================
@@ -325,3 +352,42 @@ class FullCaseDetailSerializer(serializers.ModelSerializer):
             'scrutiny_pipeline', 'final_verdict',
             'category_links', 'extra_field_values'
         ]
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # Table-stored template fields go back into extra_fields for the form
+        try:
+            from apps.crimetab.services.table_field_values import table_values_for_case
+            table_vals = table_values_for_case(instance, list(instance.extra_field_values.all()))
+            if table_vals:
+                extra = data.get('extra_fields')
+                if not isinstance(extra, dict):
+                    extra = {}
+                    data['extra_fields'] = extra
+                extra.update(table_vals)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"[FullCaseDetailSerializer] table field values not loaded: {e}")
+        try:
+            from apps.crimetab.models.accident import RoadAccidentRecord
+            from apps.crimetab.serializers_accident import RoadAccidentRecordSerializer
+            acc_rec = RoadAccidentRecord.objects.filter(case_id=str(instance.id)).first()
+            if acc_rec:
+                acc_data = RoadAccidentRecordSerializer(acc_rec).data
+                data['road_accident'] = acc_data
+                extra = data.get('extra_fields')
+                if not isinstance(extra, dict):
+                    extra = {}
+                    data['extra_fields'] = extra
+                for k, v in acc_data.items():
+                    if k not in extra or extra[k] is None or extra[k] == '':
+                        extra[k] = v
+                extra['acc_vehicles'] = acc_data.get('acc_vehicles', [])
+                extra['vehicles'] = acc_data.get('vehicles', [])
+                extra['acc_injured'] = acc_data.get('acc_injured', [])
+                extra['injured'] = acc_data.get('injured', [])
+                extra['acc_deceased'] = acc_data.get('acc_deceased', [])
+                extra['deceased'] = acc_data.get('deceased', [])
+        except Exception:
+            pass
+        return data

@@ -208,6 +208,8 @@ class MpdaFormViewState extends State<MpdaFormView> {
       TextEditingController(text: '000');
   final TextEditingController seriousCrimesController =
       TextEditingController(text: '000');
+  final TextEditingController miscCrimesController =
+      TextEditingController(text: '000');
 
   // The 12 independent crime categories
   final Map<String, List<CrimeEntry>> crimeCategories = {
@@ -272,6 +274,7 @@ class MpdaFormViewState extends State<MpdaFormView> {
 
     totalCrimeController.text = '000';
     seriousCrimesController.text = '000';
+    miscCrimesController.text = '000';
 
     for (final list in crimeCategories.values) {
       for (final e in list) {
@@ -421,6 +424,12 @@ class MpdaFormViewState extends State<MpdaFormView> {
     seriousCrimesController.text =
         (chart['seriousCrimes'] ?? rawData['seriousCrimes'] ?? '000')
             .toString();
+    miscCrimesController.text = (chart['miscCrimes'] ??
+            rawData['miscCrimes'] ??
+            rawData['total_misc_crime'] ??
+            rawData['mpda_total_misc_crime'] ??
+            '000')
+        .toString();
 
     final catsData = chart['categories'] as Map<String, dynamic>? ?? {};
     for (final entry in crimeCategories.entries) {
@@ -470,6 +479,7 @@ class MpdaFormViewState extends State<MpdaFormView> {
 
     totalCrimeController.dispose();
     seriousCrimesController.dispose();
+    miscCrimesController.dispose();
 
     for (final list in crimeCategories.values) {
       for (final entry in list) {
@@ -539,6 +549,7 @@ class MpdaFormViewState extends State<MpdaFormView> {
         'crimeChart': {
           'totalCrime': totalCrimeController.text.trim().padLeft(3, '0'),
           'seriousCrimes': seriousCrimesController.text.trim().padLeft(3, '0'),
+          'miscCrimes': miscCrimesController.text.trim().padLeft(3, '0'),
           'categories': categoriesMap,
         },
       },
@@ -564,6 +575,8 @@ class MpdaFormViewState extends State<MpdaFormView> {
       'detentionRevokedDate': detentionRevokedDateController.text.trim(),
       'totalCrime': totalCrimeController.text.trim(),
       'seriousCrimes': seriousCrimesController.text.trim(),
+      'miscCrimes': miscCrimesController.text.trim(),
+      'total_misc_crime': miscCrimesController.text.trim(),
     };
   }
 
@@ -1126,7 +1139,7 @@ class MpdaFormViewState extends State<MpdaFormView> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildTextField(
-                label: 'IO Post (Designation)',
+                label: 'Designation',
                 controller: ioPostController,
                 hintText: 'e.g. PI / API / PSI',
               ),
@@ -1336,8 +1349,18 @@ class MpdaFormViewState extends State<MpdaFormView> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildTextField(
-                label: 'Serious Crimes (3-digit format e.g. 000)',
+                label: 'Total Serious Crime (3-digit format e.g. 000)',
                 controller: seriousCrimesController,
+                hintText: '000',
+                keyboardType: TextInputType.number,
+                maxLength: 3,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildTextField(
+                label: 'Total Miscellaneous Crime (3-digit format e.g. 000)',
+                controller: miscCrimesController,
                 hintText: '000',
                 keyboardType: TextInputType.number,
                 maxLength: 3,

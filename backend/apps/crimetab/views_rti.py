@@ -6,6 +6,8 @@ from django.db import connection, transaction
 from django.db.models import Q, Max, Count
 from django.db.models.functions import Trim
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.views import APIView
@@ -254,6 +256,14 @@ def ensure_date_format_setting():
         return s.setting_value.strip()
 
 
+def _is_valid_email(value):
+    try:
+        validate_email(value)
+        return True
+    except ValidationError:
+        return False
+
+
 def _format_rti_date(val, date_fmt):
     if not val:
         return ""
@@ -367,6 +377,7 @@ def get_rti_display_rows(rti, schema='public'):
         'rti_rejected_date': _format_rti_date(rti.rejected_date, date_fmt),
         'rti_rejection_reason': _safe_rti_str(rti.rejection_reason),
         'rti_transferred_to': _safe_rti_str(rti.transferred_to),
+        'rti_transferred_date': _format_rti_date(rti.transferred_date, date_fmt),
         'rti_remark': _safe_rti_str(rti.remark),
         'rti_appealed': _format_rti_bool(rti.appealed),
         'rti_appeal_date': _format_rti_date(rti.appeal_date, date_fmt),
@@ -467,7 +478,7 @@ class RTIListCreateView(APIView):
             'applicant_age', 'mobile_no', 'address', 'email', 'is_bpl',
             'info_type', 'info_type_other', 'assigned_officer_uid',
             'rti_outcome', 'replied_date', 'rejected_date', 'rejection_reason',
-            'transferred_to', 'remark', 'appealed', 'appeal_date'
+            'transferred_to', 'transferred_date', 'remark', 'appealed', 'appeal_date'
         ]
         has_any_field = False
         for fk in form_keys:
@@ -547,6 +558,11 @@ class RTIListCreateView(APIView):
         else:
             mobile_no = None
 
+        # E-mail (optional): checked only when filled
+        email_val = str(data.get('email') or '').strip()
+        if email_val and not _is_valid_email(email_val):
+            return Response({'error': 'email must be a valid e-mail address.'}, status=status.HTTP_400_BAD_REQUEST)
+
         # Info Type (optional)
         info_type = data.get('info_type', '')
         info_type = str(info_type).strip() if info_type else None
@@ -598,6 +614,7 @@ class RTIListCreateView(APIView):
         rejected_date = None
         rejection_reason = None
         transferred_to = None
+        transferred_date = None
 
         if outcome == 'Replied':
             r_str = data.get('replied_date')
@@ -629,6 +646,12 @@ class RTIListCreateView(APIView):
             max_words = _get_setting('max_words_transfer', 20)
             if _word_count(transferred_to) > max_words:
                 return Response({'error': f'transferred_to exceeds maximum limit of {max_words} words.'}, status=status.HTTP_400_BAD_REQUEST)
+            # Transfer Date is optional
+            td_str = data.get('transferred_date')
+            if td_str and str(td_str).strip():
+                transferred_date = _parse_rti_date(td_str)
+                if not transferred_date:
+                    return Response({'error': 'transferred_date must be a valid date.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Remark
         remark = data.get('remark', '')
@@ -664,13 +687,14 @@ class RTIListCreateView(APIView):
                     applicant_age=applicant_age,
                     mobile_no=mobile_no,
                     address=address,
-                    email=data.get('email', '').strip() or None,
+                    email=email_val or None,
                     received_date=received_date,
                     due_date=due_date,
                     replied_date=replied_date,
                     rejected_date=rejected_date,
                     rejection_reason=rejection_reason,
                     transferred_to=transferred_to,
+                    transferred_date=transferred_date,
                     info_type=info_type,
                     info_type_other=info_type_other,
                     assigned_officer_uid=officer.uid if officer else None,
@@ -748,17 +772,29 @@ class RTIConfigView(APIView):
                 'all': settings_map.get('tab_total_label', 'Total'),
                 'pending': settings_map.get('tab_pending_label', 'Pending'),
                 'disposal': settings_map.get('tab_disposal_label', 'Disposal'),
+                'chart': settings_map.get('tab_chart_label', ''),
+            },
+            'chart_headers': {
+                k: settings_map.get(f'chart_header_{k}', '') for k in _RTI_CHART_COLUMNS
             },
             'row_action_labels': {
                 'edit': settings_map.get('action_edit_label', 'Edit'),
                 'view': settings_map.get('action_view_label', 'View'),
                 'pdf': settings_map.get('action_pdf_label', 'PDF'),
+                'remind': settings_map.get('action_remind_label', ''),
             },
             'add_button_label': settings_map.get('add_button_label', 'Add RTI Application'),
             'serial_label': settings_map.get('serial_label', 'Sr. No.'),
             'empty_list_message': settings_map.get('empty_list_message', 'No RTI applications found'),
             'no_form_message': settings_map.get('no_form_message', 'No form configured for this tab'),
             'page_size': int(settings_map.get('page_size', '20')),
+            # Form fills Due Date = Received Date + due_days as soon as Received Date is
+            # picked (same rule the backend applies when Due Date is left blank)
+            'date_offset_rules': [{
+                'source_field': 'rti_received_date',
+                'target_field': 'rti_due_date',
+                'days': int(settings_map.get('due_days', '30')),
+            }],
             'limits': {
                 'due_days': int(settings_map.get('due_days', '30')),
                 'max_words_reason': int(settings_map.get('max_words_reason', '20')),
@@ -768,6 +804,347 @@ class RTIConfigView(APIView):
             }
         }
         return Response(data)
+
+
+# Chart tab columns, in display order (header text: module_settings chart_header_<key>)
+_RTI_CHART_COLUMNS = (
+    'sr_no', 'person', 'received_date', 'due_date',
+    'info_type', 'assigned_officer', 'info_given', 'action',
+)
+
+
+def _render_parts(values, template, separator):
+    """
+    Text from a module_settings template: split on '|' into parts; a part whose
+    placeholders are all empty is skipped; parts are joined with separator.
+    """
+    parts = []
+    for segment in (template or '').split('|'):
+        keys = [k for k in values if '{' + k + '}' in segment]
+        if not keys or all(not values[k] for k in keys):
+            continue
+        try:
+            parts.append(segment.format(**values).strip())
+        except (KeyError, IndexError, ValueError):
+            continue
+    return (separator or '').join(p for p in parts if p)
+
+
+def _rti_info_given(rti, date_fmt, template, separator):
+    """
+    'Information Given' cell: the outcome chosen by the user with its date, from
+    the module_settings template. Parts are split on '|'; a part whose
+    placeholders are all empty is skipped. Empty when no outcome is chosen yet.
+    """
+    if rti.replied_date:
+        outcome, date_val = 'Replied', rti.replied_date
+    elif rti.rejected_date or (rti.rejection_reason and str(rti.rejection_reason).strip()):
+        outcome, date_val = 'Rejected', rti.rejected_date
+    elif rti.transferred_to and str(rti.transferred_to).strip():
+        outcome, date_val = 'Transferred', rti.transferred_date
+    else:
+        return ''
+    values = {'outcome': outcome, 'date': _format_rti_date(date_val, date_fmt)}
+    return _render_parts(values, template, separator)
+
+
+class RTIChartView(APIView):
+    """
+    GET /api/rti/chart/?page=&q= - Chart tab: ALL RTI applications of the user's
+    station (pending and disposal), one row per application, in serial order.
+    Settings are read in one query; one query for the page plus one COUNT.
+    """
+
+    def get(self, request):
+        schema, err = _resolve_tenant_and_auth(request, 'rti:view')
+        if err:
+            return err
+
+        user = request.user
+        station_name = getattr(user, 'station_name', '').strip()
+        if not station_name:
+            return Response({'error': 'User does not belong to a valid police station.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        smap = {
+            s_.setting_key: s_.setting_value for s_ in ModuleSetting.objects.filter(
+                module_key='rti',
+                setting_key__in=['page_size', 'date_format', 'serial_prefix', 'serial_format',
+                                 'chart_info_given_template', 'chart_info_given_separator',
+                                 'chart_person_template', 'chart_person_separator'],
+            )
+        }
+        try:
+            page_size = int(smap.get('page_size') or 20)
+            page = max(int(request.query_params.get('page', 1)), 1)
+        except ValueError:
+            page_size, page = 20, 1
+        date_fmt = (smap.get('date_format') or '%d/%m/%Y').strip()
+        prefix = (smap.get('serial_prefix') or 'RTI').strip()
+        serial_fmt = (smap.get('serial_format') or '{prefix}-{year}/{serial_no}').strip()
+        template = smap.get('chart_info_given_template')
+        separator = smap.get('chart_info_given_separator')
+        if template is None:
+            logger.warning("[RTI] module_settings missing: rti.chart_info_given_template")
+        person_template = smap.get('chart_person_template')
+        person_separator = smap.get('chart_person_separator')
+        if person_template is None:
+            logger.warning("[RTI] module_settings missing: rti.chart_person_template")
+
+        def serial(r):
+            try:
+                return serial_fmt.format(prefix=prefix, year=r.serial_year, serial_no=r.serial_no)
+            except (KeyError, IndexError, ValueError):
+                return f"{prefix}-{r.serial_year}/{r.serial_no}"
+
+        with TenantContext(schema):
+            qs = RTIApplication.objects.filter(station_name__iexact=station_name)
+            q = request.query_params.get('q', '').strip()
+            if q:
+                if q.isdigit():
+                    qs = qs.filter(Q(serial_no=int(q)) | Q(applicant_name__icontains=q))
+                else:
+                    qs = qs.filter(applicant_name__icontains=q)
+
+            total_count = qs.count()
+            rows = list(qs.order_by('serial_year', 'serial_no', 'rti_id')[(page - 1) * page_size: page * page_size])
+
+        results = []
+        for r in rows:
+            info_type = _safe_rti_str(r.info_type)
+            info_other = _safe_rti_str(r.info_type_other)
+            officer = ', '.join(p for p in (_safe_rti_str(r.assigned_officer_name),
+                                            _safe_rti_str(r.assigned_officer_designation)) if p)
+            results.append({
+                'rti_id': r.rti_id,
+                'sr_no': serial(r),
+                # Name, Age, Mobile No. and Address in one column
+                'person': _render_parts({
+                    'name': _safe_rti_str(r.applicant_name),
+                    'age': _safe_rti_str(r.applicant_age),
+                    'mobile': _safe_rti_str(r.mobile_no),
+                    'address': _safe_rti_str(r.address),
+                }, person_template, person_separator),
+                'received_date': _format_rti_date(r.received_date, date_fmt),
+                'due_date': _format_rti_date(r.due_date, date_fmt),
+                'info_type': f"{info_type} ({info_other})" if info_type and info_other else (info_type or info_other),
+                'assigned_officer': officer,
+                'info_given': _rti_info_given(r, date_fmt, template, separator),
+            })
+        return Response({'count': total_count, 'page': page, 'page_size': page_size, 'results': results})
+
+
+# ── RTI due-date reminders ─────────────────────────────────────────────────
+# Reminders go only to the assigned officer of a pending application:
+#   1st reminder  : reminder_first_days_before  days before the Due Date
+#   2nd reminder  : reminder_second_days_before days before the Due Date
+#   then daily    : from reminder_daily_from_days_before days before the Due
+#                   Date, every day until the application is disposed
+# Computed on every request (no scheduler). Manual reminders sent from the
+# Summary tab are stored as users_notificationrecord rows (category below).
+RTI_MANUAL_REMINDER_CATEGORY = 'rti_reminder'
+
+
+def rti_info_given_q():
+    """Applications whose 'Information Given' date is filled: reminders stop for them."""
+    return (Q(replied_date__isnull=False) | Q(rejected_date__isnull=False)
+            | Q(transferred_date__isnull=False))
+
+_RTI_REMINDER_SETTING_KEYS = [
+    'reminder_first_days_before', 'reminder_second_days_before', 'reminder_daily_from_days_before',
+    'reminder_title', 'reminder_message', 'reminder_tab_label', 'reminder_banner',
+    'manual_reminder_title', 'manual_reminder_message', 'manual_reminder_sent_message',
+    'manual_reminder_no_officer_message', 'manual_reminder_info_given_message',
+    'date_format', 'serial_prefix', 'serial_format',
+]
+
+
+def _rti_int(smap, key, default):
+    try:
+        return int(str(smap.get(key)).strip())
+    except (TypeError, ValueError):
+        return default
+
+
+def rti_reminder_kind(due_date, today, first, second, daily_from):
+    """'first' / 'second' / 'daily' when a reminder is due today, else None."""
+    if not due_date:
+        return None
+    days_left = (due_date - today).days
+    if days_left == first:
+        return 'first'
+    if days_left == second:
+        return 'second'
+    if days_left <= daily_from:
+        return 'daily'
+    return None
+
+
+def _safe_format(template, values):
+    try:
+        return (template or '').format(**values)
+    except (KeyError, IndexError, ValueError):
+        return template or ''
+
+
+class RTIRemindersView(APIView):
+    """
+    GET /api/rti/reminders/ - Reminders for the logged-in officer: scheduled
+    due-date reminders of the pending applications assigned to them, plus unread
+    manual reminders. Two queries (settings + applications) and one for manual.
+    """
+
+    def get(self, request):
+        schema, err = _resolve_tenant_and_auth(request, 'rti:view')
+        if err:
+            return err
+
+        uid = str(getattr(request.user, 'uid', '') or '').strip()
+        smap = {s_.setting_key: s_.setting_value for s_ in
+                ModuleSetting.objects.filter(module_key='rti', setting_key__in=_RTI_REMINDER_SETTING_KEYS)}
+        first = _rti_int(smap, 'reminder_first_days_before', 30)
+        second = _rti_int(smap, 'reminder_second_days_before', 25)
+        daily_from = _rti_int(smap, 'reminder_daily_from_days_before', 24)
+        labels = {'tab': smap.get('reminder_tab_label') or '', 'banner': smap.get('reminder_banner') or ''}
+        if not uid:
+            return Response({'count': 0, 'labels': labels, 'results': []})
+
+        date_fmt = (smap.get('date_format') or '%d/%m/%Y').strip()
+        prefix = (smap.get('serial_prefix') or 'RTI').strip()
+        serial_fmt = (smap.get('serial_format') or '{prefix}-{year}/{serial_no}').strip()
+        today = datetime.date.today()
+
+        with TenantContext(schema):
+            rows = list(
+                RTIApplication.objects.filter(assigned_officer_uid=uid, due_date__isnull=False)
+                # Reminders stop once the Information Given date is entered
+                .exclude(rti_info_given_q())
+                .filter(Q(due_date=today + datetime.timedelta(days=first)) |
+                        Q(due_date=today + datetime.timedelta(days=second)) |
+                        Q(due_date__lte=today + datetime.timedelta(days=daily_from)))
+                .order_by('due_date', 'rti_id')
+            )
+            from apps.users.models import NotificationRecord
+            manual = list(NotificationRecord.objects.filter(
+                category=RTI_MANUAL_REMINDER_CATEGORY, target_user_uid=uid, is_read=False,
+            ).order_by('-created_at')[:50])
+            # Manual reminders of applications that are now answered are dropped too
+            manual_rti_ids = {int(m.registration_uid) for m in manual
+                              if str(m.registration_uid or '').isdigit()}
+            answered = set(
+                RTIApplication.objects.filter(rti_id__in=manual_rti_ids).filter(rti_info_given_q())
+                .values_list('rti_id', flat=True)
+            ) if manual_rti_ids else set()
+            manual = [m for m in manual
+                      if not (str(m.registration_uid or '').isdigit() and int(m.registration_uid) in answered)]
+
+        results = []
+        for m in manual:
+            results.append({
+                'id': f'manual-{m.id}', 'kind': 'manual', 'title': m.title, 'message': m.body,
+                'days_left': None, 'due_date': '',
+            })
+        for r in rows:
+            kind = rti_reminder_kind(r.due_date, today, first, second, daily_from)
+            if not kind:
+                continue
+            try:
+                sr_no = serial_fmt.format(prefix=prefix, year=r.serial_year, serial_no=r.serial_no)
+            except (KeyError, IndexError, ValueError):
+                sr_no = f"{prefix}-{r.serial_year}/{r.serial_no}"
+            values = {
+                'sr_no': sr_no,
+                'applicant': _safe_rti_str(r.applicant_name),
+                'due_date': _format_rti_date(r.due_date, date_fmt),
+                'days_left': str((r.due_date - today).days),
+            }
+            results.append({
+                'id': f'rti-{r.rti_id}', 'rti_id': r.rti_id, 'kind': kind,
+                'title': _safe_format(smap.get('reminder_title'), values),
+                'message': _safe_format(smap.get('reminder_message'), values),
+                'days_left': int(values['days_left']), 'due_date': values['due_date'],
+            })
+        return Response({'count': len(results), 'labels': labels, 'results': results})
+
+
+class RTIRemindersSeenView(APIView):
+    """POST /api/rti/reminders/seen/ - mark the officer's manual reminders as read."""
+
+    def post(self, request):
+        schema, err = _resolve_tenant_and_auth(request, 'rti:view')
+        if err:
+            return err
+        uid = str(getattr(request.user, 'uid', '') or '').strip()
+        updated = 0
+        if uid:
+            from apps.users.models import NotificationRecord
+            with TenantContext(schema):
+                updated = NotificationRecord.objects.filter(
+                    category=RTI_MANUAL_REMINDER_CATEGORY, target_user_uid=uid, is_read=False,
+                ).update(is_read=True)
+        return Response({'updated': updated})
+
+
+class RTISendReminderView(APIView):
+    """
+    POST /api/rti/<pk>/remind/ - Summary tab action: send a reminder now to the
+    officer assigned to this application (same station only).
+    """
+
+    def post(self, request, pk):
+        schema, err = _resolve_tenant_and_auth(request, 'rti:update')
+        if err:
+            return err
+
+        user = request.user
+        station_name = str(getattr(user, 'station_name', '') or '').strip()
+        if not station_name:
+            return Response({'error': 'User does not belong to a valid police station.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        smap = {s_.setting_key: s_.setting_value for s_ in
+                ModuleSetting.objects.filter(module_key='rti', setting_key__in=_RTI_REMINDER_SETTING_KEYS)}
+        date_fmt = (smap.get('date_format') or '%d/%m/%Y').strip()
+        prefix = (smap.get('serial_prefix') or 'RTI').strip()
+        serial_fmt = (smap.get('serial_format') or '{prefix}-{year}/{serial_no}').strip()
+
+        from apps.users.models import NotificationRecord
+        with TenantContext(schema):
+            rti = RTIApplication.objects.filter(rti_id=pk, station_name__iexact=station_name).first()
+            if not rti:
+                return Response({'error': _get_setting('not_found_message', 'RTI application not found.')},
+                                status=status.HTTP_404_NOT_FOUND)
+            officer_uid = _safe_rti_str(rti.assigned_officer_uid)
+            if not officer_uid:
+                return Response({'error': smap.get('manual_reminder_no_officer_message') or ''},
+                                status=status.HTTP_400_BAD_REQUEST)
+            if rti.replied_date or rti.rejected_date or rti.transferred_date:
+                return Response({'error': smap.get('manual_reminder_info_given_message') or ''},
+                                status=status.HTTP_400_BAD_REQUEST)
+            try:
+                sr_no = serial_fmt.format(prefix=prefix, year=rti.serial_year, serial_no=rti.serial_no)
+            except (KeyError, IndexError, ValueError):
+                sr_no = f"{prefix}-{rti.serial_year}/{rti.serial_no}"
+            today = datetime.date.today()
+            values = {
+                'sr_no': sr_no,
+                'applicant': _safe_rti_str(rti.applicant_name),
+                'due_date': _format_rti_date(rti.due_date, date_fmt),
+                'days_left': str((rti.due_date - today).days) if rti.due_date else '',
+                'sender': _safe_rti_str(getattr(user, 'name', '')),
+                'officer': _safe_rti_str(rti.assigned_officer_name),
+            }
+            NotificationRecord.objects.create(
+                target_user_uid=officer_uid,
+                target_station_name=station_name,
+                title=_safe_format(smap.get('manual_reminder_title'), values),
+                body=_safe_format(smap.get('manual_reminder_message'), values),
+                category=RTI_MANUAL_REMINDER_CATEGORY,
+                registration_uid=str(rti.rti_id),
+                status='sent',
+            )
+
+        _log_rti_audit(request, 'rti:remind', pk)
+        return Response({'message': _safe_format(smap.get('manual_reminder_sent_message'), values)},
+                        status=status.HTTP_201_CREATED)
 
 
 class RTIOfficersView(APIView):
@@ -852,7 +1229,7 @@ class RTIDetailView(APIView):
             changed_fields = []
 
             # Date fields parsing
-            date_fields = ('received_date', 'due_date', 'replied_date', 'rejected_date', 'appeal_date')
+            date_fields = ('received_date', 'due_date', 'replied_date', 'rejected_date', 'appeal_date', 'transferred_date')
             parsed_dates = {}
             for df in date_fields:
                 if df in data:
@@ -887,13 +1264,27 @@ class RTIDetailView(APIView):
                     rti.rejected_date = None
                     rti.rejection_reason = None
                     rti.transferred_to = None
+                    rti.transferred_date = None
+                    data.pop('transferred_date', None)
                 elif out_val == 'Rejected':
                     rti.replied_date = None
                     rti.transferred_to = None
+                    rti.transferred_date = None
+                    data.pop('transferred_date', None)
                 elif out_val == 'Transferred':
                     rti.replied_date = None
                     rti.rejected_date = None
                     rti.rejection_reason = None
+
+            # Mobile No. / E-mail on patch (optional; checked only when filled)
+            if 'mobile_no' in data:
+                mob_str = str(data['mobile_no'] or '').strip()
+                if mob_str and not re.match(r'^[0-9]{10}$', mob_str):
+                    return Response({'error': 'mobile_no must be exactly 10 digits.'}, status=status.HTTP_400_BAD_REQUEST)
+            if 'email' in data:
+                email_str = str(data['email'] or '').strip()
+                if email_str and not _is_valid_email(email_str):
+                    return Response({'error': 'email must be a valid e-mail address.'}, status=status.HTTP_400_BAD_REQUEST)
 
             # Validation of setting word limits on patch
             if 'remark' in data and data['remark']:

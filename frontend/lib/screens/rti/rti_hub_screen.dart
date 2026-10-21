@@ -7,7 +7,9 @@ import '../../services/rti_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/translation_helper.dart';
 import '../../widgets/dynamic_form/dynamic_form_screen.dart';
+import '../../widgets/custom_pdf_preview_dialog.dart';
 import '../../widgets/module_hub_screen_app_bar.dart';
+import '../../widgets/pdf_document_view_screen.dart';
 
 class RTIHubScreen extends StatefulWidget {
   final String categoryName;
@@ -33,12 +35,13 @@ class _RTIHubScreenState extends State<RTIHubScreen>
   Map<String, dynamic> _config = {};
   Map<String, dynamic> _counts = {'total': 0, 'pending': 0, 'disposal': 0};
 
-  // Search & Pagination per tab index (0=all, 1=pending, 2=disposal)
-  final List<String> _statuses = ['all', 'pending', 'disposal'];
-  final Map<int, List<dynamic>> _itemsMap = {0: [], 1: [], 2: []};
-  final Map<int, int> _pageMap = {0: 1, 1: 1, 2: 1};
-  final Map<int, int> _totalCountMap = {0: 0, 1: 0, 2: 0};
-  final Map<int, bool> _loadingMap = {0: true, 1: true, 2: true};
+  // Search & Pagination per tab index (0=all, 1=summary chart)
+  final List<String> _statuses = ['all', 'chart'];
+  static const String _chartTab = 'chart';
+  final Map<int, List<dynamic>> _itemsMap = {0: [], 1: []};
+  final Map<int, int> _pageMap = {0: 1, 1: 1};
+  final Map<int, int> _totalCountMap = {0: 0, 1: 0};
+  final Map<int, bool> _loadingMap = {0: true, 1: true};
   final TextEditingController _searchCtrl = TextEditingController();
   String _searchQuery = '';
   Timer? _searchDebounce;
@@ -46,7 +49,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: _statuses.length, vsync: this);
     _tabController.addListener(_onTabChanged);
     _initializeData();
   }
@@ -73,9 +76,9 @@ class _RTIHubScreenState extends State<RTIHubScreen>
       _config = config;
       _counts = counts;
     });
-    _fetchItemsForTab(0);
-    _fetchItemsForTab(1);
-    _fetchItemsForTab(2);
+    for (int i = 0; i < _statuses.length; i++) {
+      _fetchItemsForTab(i);
+    }
   }
 
   Future<void> _refreshCounts() async {
@@ -94,11 +97,13 @@ class _RTIHubScreenState extends State<RTIHubScreen>
       _loadingMap[tabIndex] = true;
     });
 
-    final data = await _rtiService.fetchApplications(
-      status: status,
-      page: currentPage,
-      q: _searchQuery,
-    );
+    final data = status == _chartTab
+        ? await _rtiService.fetchChart(page: currentPage, q: _searchQuery)
+        : await _rtiService.fetchApplications(
+            status: status,
+            page: currentPage,
+            q: _searchQuery,
+          );
 
     if (!mounted) return;
 
@@ -132,6 +137,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
           categoryId: widget.categoryCode,
           moduleLabel: widget.categoryName,
           moduleKey: widget.moduleKey,
+          dateOffsetRules: _config['date_offset_rules'] as List?,
           onSubmitCustom: (payload, isEdit) async {
             final res = await _rtiService.createApplication(payload);
             if (res.isSuccess) {
@@ -169,6 +175,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
           moduleLabel: widget.categoryName,
           moduleKey: widget.moduleKey,
           initialData: detail,
+          dateOffsetRules: _config['date_offset_rules'] as List?,
           onSubmitCustom: (payload, isEdit) async {
             final res = await _rtiService.updateApplication(rtiId, payload);
             if (res.isSuccess) {
@@ -188,31 +195,21 @@ class _RTIHubScreenState extends State<RTIHubScreen>
     }
   }
 
+  /// View shows the application exactly as its PDF looks, read-only.
   void _openViewModal(dynamic rtiId) async {
-    final detail = await _rtiService.fetchApplicationDetail(rtiId);
+    final pdfBytes = await _rtiService.fetchPdfBytes(rtiId);
     if (!mounted) return;
-    if (detail == null) {
+    if (pdfBytes == null || pdfBytes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to load application details.')),
       );
       return;
     }
-
-    Navigator.push(
-      context,
-      AppTheme.fadeSlideRoute(
-        page: DynamicFormScreen(
-          categoryId: widget.categoryCode,
-          moduleLabel: widget.categoryName,
-          moduleKey: widget.moduleKey,
-          initialData: detail,
-          readOnly: true,
-        ),
-      ),
-    );
+    PdfDocumentViewScreen.open(context,
+        pdfBytes: pdfBytes, moduleName: widget.categoryName);
   }
 
-  void _downloadPdf(dynamic rtiId) async {
+  void _downloadPdf(dynamic rtiId, [String? serial]) async {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -227,26 +224,14 @@ class _RTIHubScreenState extends State<RTIHubScreen>
     if (!mounted) return;
 
     if (pdfBytes != null && pdfBytes.isNotEmpty) {
-      showDialog(
+      final docTitle = [widget.categoryName, serial ?? '']
+          .where((x) => x.isNotEmpty && x != '-')
+          .join(' - ');
+      await CustomPdfPreviewDialog.show(
         context: context,
-        builder: (ctx) => AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          title: Text(
-            'RTI Report Generated',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-          ),
-          content: Text(
-            'PDF generated successfully (${pdfBytes.length} bytes).',
-            style: GoogleFonts.poppins(),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text('Close', style: GoogleFonts.poppins()),
-            ),
-          ],
-        ),
+        title: docTitle,
+        fileName: '${docTitle.replaceAll(RegExp(r'[^A-Za-z0-9]+'), '_')}.pdf',
+        buildPdf: (_) async => pdfBytes,
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -265,8 +250,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
   Widget build(BuildContext context) {
     final subTabLabels = (_config['sub_tab_labels'] as Map?) ?? {};
     final labelAll = subTabLabels['all']?.toString() ?? 'Total';
-    final labelPending = subTabLabels['pending']?.toString() ?? 'Pending';
-    final labelDisposal = subTabLabels['disposal']?.toString() ?? 'Disposal';
+    final labelChart = subTabLabels['chart']?.toString() ?? '';
 
     final addButtonLabel =
         _config['add_button_label']?.toString() ?? 'Add RTI Application';
@@ -307,6 +291,8 @@ class _RTIHubScreenState extends State<RTIHubScreen>
             color: Colors.white,
             child: TabBar(
               controller: _tabController,
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
               indicatorColor: AppColors.navyMid,
               indicatorWeight: 3,
               labelColor: AppColors.navyDark,
@@ -335,21 +321,9 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(TranslationHelper.translate(context, labelPending)),
+                      const Icon(Icons.table_chart_rounded, size: 16),
                       const SizedBox(width: 6),
-                      _buildCountBadge(
-                          _counts['pending'] ?? 0, Colors.amber.shade800),
-                    ],
-                  ),
-                ),
-                Tab(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(TranslationHelper.translate(context, labelDisposal)),
-                      const SizedBox(width: 6),
-                      _buildCountBadge(
-                          _counts['disposal'] ?? 0, AppColors.successGreen),
+                      Text(TranslationHelper.translate(context, labelChart)),
                     ],
                   ),
                 ),
@@ -406,9 +380,8 @@ class _RTIHubScreenState extends State<RTIHubScreen>
             child: TabBarView(
               controller: _tabController,
               children: [
-                _buildTabListContent(0),
-                _buildTabListContent(1),
-                _buildTabListContent(2),
+                for (int i = 0; i < _statuses.length; i++)
+                  _buildTabListContent(i),
               ],
             ),
           ),
@@ -475,15 +448,17 @@ class _RTIHubScreenState extends State<RTIHubScreen>
     return Column(
       children: [
         Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.all(14),
-            itemCount: items.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (context, i) {
-              final item = items[i] as Map<String, dynamic>;
-              return _buildRTIApplicationCard(item);
-            },
-          ),
+          child: _statuses[tabIndex] == _chartTab
+              ? _buildChartTable(items)
+              : ListView.separated(
+                  padding: const EdgeInsets.all(14),
+                  itemCount: items.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  itemBuilder: (context, i) {
+                    final item = items[i] as Map<String, dynamic>;
+                    return _buildRTIApplicationCard(item);
+                  },
+                ),
         ),
 
         // Pagination Bar
@@ -517,6 +492,232 @@ class _RTIHubScreenState extends State<RTIHubScreen>
         ),
       ],
     );
+  }
+
+  // Chart tab columns, in display order (headers from config chart_headers)
+  static const List<String> _chartColumns = [
+    'sr_no',
+    'person',
+    'received_date',
+    'due_date',
+    'info_type',
+    'assigned_officer',
+    'info_given',
+    'action',
+  ];
+
+  /// Summary "Send Reminder": notify the assigned officer now.
+  Future<void> _sendReminder(dynamic rtiId) async {
+    final res = await _rtiService.sendReminder(rtiId);
+    if (!mounted) return;
+    final data = res.data is Map ? res.data as Map : const {};
+    final message = res.isSuccess
+        ? data['message']?.toString() ?? ''
+        : (data['error']?.toString() ?? res.errorMessage ?? '');
+    if (message.isEmpty) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: GoogleFonts.poppins()),
+        backgroundColor:
+            res.isSuccess ? AppColors.successGreen : AppColors.dangerRed,
+      ),
+    );
+  }
+
+  /// Popup with only one cell's information (column header + value).
+  void _showChartCellInfo(String header, String value) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: Text(
+          TranslationHelper.translate(context, header),
+          style: GoogleFonts.poppins(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: AppColors.navyDark),
+        ),
+        content: SelectableText(
+          value,
+          style: GoogleFonts.poppins(fontSize: 13.5, color: AppColors.navyDark),
+        ),
+        actions: [
+          IconButton(
+            onPressed: () => Navigator.pop(ctx),
+            icon: const Icon(Icons.close_rounded),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Chart tab: one row per application. The serial number opens the full
+  /// application (read-only View); any other cell shows only its own value.
+  Widget _buildChartTable(List<dynamic> items) {
+    final headers = (_config['chart_headers'] as Map?) ?? {};
+    final headStyle = GoogleFonts.poppins(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: Colors.white,
+        height: 1.25);
+    final textStyle = GoogleFonts.poppins(
+        fontSize: 12.5, color: AppColors.navyDark, height: 1.35);
+    const border = Color(0xFFE2E8F0);
+
+    String text(Map<String, dynamic> row, String key) {
+      final v = row[key];
+      final s = v == null ? '' : v.toString().trim();
+      return s.isEmpty ? '-' : s;
+    }
+
+    final rowActionLabels = (_config['row_action_labels'] as Map?) ?? {};
+    final remindLabel = rowActionLabels['remind']?.toString() ?? '';
+
+    Widget cell(Map<String, dynamic> row, String key) {
+      if (key == 'action') {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: remindLabel.isEmpty
+              ? const SizedBox.shrink()
+              : ElevatedButton.icon(
+                  onPressed: () => _sendReminder(row['rti_id']),
+                  icon:
+                      const Icon(Icons.notifications_active_rounded, size: 15),
+                  label: Text(
+                    TranslationHelper.translate(context, remindLabel),
+                    style: GoogleFonts.poppins(
+                        fontSize: 11.5, fontWeight: FontWeight.w600),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.navyMid,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+        );
+      }
+      final isSr = key == 'sr_no';
+      final value = text(row, key);
+      final isInfoGiven = key == 'info_given' && value != '-';
+      final highlight = isSr || isInfoGiven;
+      Widget content = Text(
+        value,
+        softWrap: true,
+        textAlign: isSr ? TextAlign.center : TextAlign.left,
+        style: highlight
+            ? textStyle.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.navyMid,
+                decoration: TextDecoration.underline)
+            : textStyle,
+      );
+      if (highlight) {
+        content = Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: AppColors.navyMid.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: content,
+        );
+      }
+      final VoidCallback? onTap = isSr
+          ? () => _openViewModal(row['rti_id'])
+          : (value == '-'
+              ? null
+              : () =>
+                  _showChartCellInfo(headers[key]?.toString() ?? '', value));
+      return TableRowInkWell(
+        onTap: onTap,
+        child: MouseRegion(
+          cursor: onTap == null ? MouseCursor.defer : SystemMouseCursors.click,
+          child: Tooltip(
+            // Every clickable cell (Sr. No., officer, dates, ...) explains itself
+            message: onTap == null
+                ? ''
+                : TranslationHelper.translate(context, 'Click to see info'),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+              child: Align(
+                alignment: isSr ? Alignment.center : Alignment.centerLeft,
+                child: content,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    TableRow dataRow(int i) {
+      final row = Map<String, dynamic>.from(items[i] as Map);
+      return TableRow(
+        decoration: BoxDecoration(
+          color: i.isOdd ? const Color(0xFFF8FAFC) : Colors.white,
+          border: const Border(top: BorderSide(color: border)),
+        ),
+        children: [for (final k in _chartColumns) cell(row, k)],
+      );
+    }
+
+    final headerRow = TableRow(
+      decoration: const BoxDecoration(color: AppColors.navyMid),
+      children: [
+        for (final k in _chartColumns)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+            child: Text(
+              TranslationHelper.translate(
+                  context, headers[k]?.toString() ?? ''),
+              style: headStyle,
+              textAlign: k == 'sr_no' ? TextAlign.center : TextAlign.left,
+            ),
+          ),
+      ],
+    );
+
+    return LayoutBuilder(builder: (context, constraints) {
+      // Fill the available width; scroll sideways only on narrow screens
+      final available = constraints.maxWidth - 28;
+      final tableWidth = available < 1250 ? 1250.0 : available;
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(14),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Container(
+            width: tableWidth,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: border),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Table(
+              columnWidths: const {
+                0: FixedColumnWidth(110),
+                1: FlexColumnWidth(3.0),
+                2: FlexColumnWidth(1.1),
+                3: FlexColumnWidth(1.1),
+                4: FlexColumnWidth(1.5),
+                5: FlexColumnWidth(1.7),
+                6: FlexColumnWidth(1.5),
+                7: FixedColumnWidth(150),
+              },
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              children: [
+                headerRow,
+                for (int i = 0; i < items.length; i++) dataRow(i),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
   }
 
   Widget _buildRTIApplicationCard(Map<String, dynamic> item) {
@@ -649,7 +850,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton.icon(
-                  onPressed: () => _downloadPdf(rtiId),
+                  onPressed: () => _downloadPdf(rtiId, serialDisplay),
                   icon: const Icon(Icons.picture_as_pdf_rounded, size: 14),
                   label: Text(
                     TranslationHelper.translate(context, pdfLabel),

@@ -6,7 +6,8 @@ from apps.crimetab.models.dynamic_engine import (
     FieldTemplateField,
     SectionFieldTemplate,
 )
-from apps.crimetab.models.common_form import Act, ActSection
+from apps.crimetab.act_names import get_act
+from apps.crimetab.models.common_form import ActSection
 
 
 class Command(BaseCommand):
@@ -43,8 +44,8 @@ class Command(BaseCommand):
         tmpl_sexual, _ = FieldTemplate.objects.get_or_create(template_name='Sexual Offence Extra Template')
 
         # 3. Acts & Sections
-        act_bns, _ = Act.objects.get_or_create(act_name='BNS')
-        act_ipc, _ = Act.objects.get_or_create(act_name='IPC')
+        # The BNS act `import_acts` created (name resolved via data/acts/act_aliases.xlsx)
+        act_bns = get_act('BNS')
 
         sec_robbery, _ = ActSection.objects.get_or_create(act=act_bns, section_number='309', defaults={'section_title': 'Robbery'})
         sec_dacoity, _ = ActSection.objects.get_or_create(act=act_bns, section_number='310', defaults={'section_title': 'Dacoity'})
@@ -165,14 +166,13 @@ class Command(BaseCommand):
             )
 
         # =========================================================================
-        # D. STANDALONE-ONLY CATEGORIES (3 items: Suicide, A.D., N.C.)
+        # D. STANDALONE-ONLY CATEGORIES (2 items: A.D., N.C.)
         # =========================================================================
         standalone_only = [
-            ('Suicide', 'STAND_SUICIDE', tmpl_general),
             ('A.D.', 'STAND_AD', tmpl_general),
             ('N.C.', 'STAND_NC', tmpl_general),
         ]
-        for order, (name, code, tmpl) in enumerate(standalone_only, start=39):
+        for order, (name, code, tmpl) in enumerate(standalone_only, start=40):
             CaseCategory.objects.create(
                 group=None,
                 category_name=name,

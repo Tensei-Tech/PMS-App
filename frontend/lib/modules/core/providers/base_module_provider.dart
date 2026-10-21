@@ -219,12 +219,8 @@ class BaseModuleProvider extends ChangeNotifier {
         'Cannot add a ${record.moduleKey} record into $moduleKey module!',
       );
     }
-    final autoStatus = isAdDisposalCase(record) &&
-            (record.status == 'Open' || record.status == 'Pending')
-        ? 'Disposal'
-        : record.status;
+    // Status (e.g. A.D. Disposal) is set by the backend on save
     final enriched = record.copyWith(
-      status: autoStatus,
       stationName: record.stationName.isEmpty ? _stationId : record.stationName,
       createdBy: record.createdBy.isEmpty ? _uid : record.createdBy,
       assignedOfficerUid: record.assignedOfficerUid ??
@@ -256,12 +252,8 @@ class BaseModuleProvider extends ChangeNotifier {
         'Cannot update a ${record.moduleKey} record in $moduleKey module!',
       );
     }
-    final autoStatus = isAdDisposalCase(record) &&
-            (record.status == 'Open' || record.status == 'Pending')
-        ? 'Disposal'
-        : record.status;
+    // Status (e.g. A.D. Disposal) is set by the backend on save
     final enriched = record.copyWith(
-      status: autoStatus,
       stationName: record.stationName.isEmpty ? _stationId : record.stationName,
       createdBy: record.createdBy.isEmpty ? _uid : record.createdBy,
       assignedOfficerUid: record.assignedOfficerUid ??

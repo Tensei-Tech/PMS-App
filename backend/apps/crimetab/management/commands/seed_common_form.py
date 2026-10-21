@@ -12,8 +12,8 @@ from apps.crimetab.models.dynamic_engine import (
     CategoryFieldTemplate,
     SectionFieldTemplate,
 )
+from apps.crimetab.act_names import get_act
 from apps.crimetab.models.common_form import (
-    Act,
     ActSection,
     ActSubsection,
 )
@@ -33,10 +33,8 @@ class Command(BaseCommand):
         # -------------------------------------------------------------
         self.stdout.write("Seeding Acts & Sections...")
 
-        bns_act, _ = Act.objects.get_or_create(
-            act_name="Bharatiya Nyaya Sanhita 2023",
-            defaults={"display_order": 1}
-        )
+        # The BNS act `import_acts` created (name resolved via data/acts/act_aliases.xlsx)
+        bns_act = get_act("BNS 2023")
 
         bns_json_path = Path(settings.BASE_DIR).parent / "backend" / "data" / "bns_2023_sections.json"
         if not bns_json_path.exists():
@@ -55,7 +53,8 @@ class Command(BaseCommand):
                 if not sec_num:
                     continue
 
-                act_sec, _ = ActSection.objects.update_or_create(
+                # Never overwrite a title the act import already filled
+                act_sec, _ = ActSection.objects.get_or_create(
                     act=bns_act,
                     section_number=sec_num,
                     defaults={"section_title": sec_title or f"Section {sec_num}"}
@@ -247,13 +246,13 @@ class Command(BaseCommand):
             )
         self.stdout.write(f"  Created CategoryFieldTemplate rows for all {target_cats.count()} sub-tabs.")
 
-        # Explicitly ensure Standalone categories (A.D., Suicide, N.C.) are NOT linked
+        # Explicitly ensure Standalone categories (A.D., N.C.) are NOT linked
         standalone_excluded = CaseCategory.objects.filter(
             group__isnull=True
         )
         standalone_excluded.update(template=None)
         CategoryFieldTemplate.objects.filter(category__in=standalone_excluded).delete()
-        self.stdout.write(f"  Confirmed {standalone_excluded.count()} standalone categories (A.D., Suicide, N.C., etc.) are UNLINKED.")
+        self.stdout.write(f"  Confirmed {standalone_excluded.count()} standalone categories (A.D., N.C., etc.) are UNLINKED.")
 
         # -------------------------------------------------------------
         # 4. Extra Templates (Trigger A extra & Trigger B dynamic)
@@ -300,30 +299,11 @@ class Command(BaseCommand):
                 display_order=order,
             )
 
-        # Gowansh Extra Template
+        # Gowansh Extra Template: its fields come from migration 0112 (full
+        # checklist), so they are not deleted or recreated here
         tmpl_gowansh_extra, _ = FieldTemplate.objects.get_or_create(
             template_name='Gowansh Extra Fields'
         )
-        FieldTemplateField.objects.filter(template=tmpl_gowansh_extra).delete()
-        gowansh_extra_fields = [
-            ('Type of Animal', 'gowansh_animal_type', 'custom', 'text', False, 'Animal Details', 10),
-            ('Number of Animals', 'gowansh_animal_count', 'custom', 'number', False, 'Animal Details', 20),
-            ('Estimated Value', 'gowansh_est_value', 'custom', 'number', False, 'Animal Details', 30),
-            ('Vehicle Number', 'gowansh_vehicle_no', 'custom', 'text', False, 'Transport Details', 40),
-            ('Seizure Location', 'gowansh_seizure_loc', 'custom', 'textarea', False, 'Transport Details', 50),
-            ('Goshala / Custody Place', 'gowansh_custody_place', 'custom', 'text', False, 'Custody', 60),
-        ]
-        for label, key, src, ftype, req, sec, order in gowansh_extra_fields:
-            FieldTemplateField.objects.create(
-                template=tmpl_gowansh_extra,
-                field_label=label,
-                field_key=key,
-                field_source=src,
-                field_type=ftype,
-                is_required=req,
-                section=sec,
-                display_order=order,
-            )
 
         # Trigger A fix: Link Gowansh categories (Part 6 and Standalone) to Gowansh Extra Template
         for gowansh_cat in CaseCategory.objects.filter(category_name='Gowansh'):

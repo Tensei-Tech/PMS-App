@@ -31,10 +31,8 @@ const List<String> kDefaultStandaloneCategories = [
   'Accident',
   'Sec 156(3)/175(3)(BNSS)',
   'Coin',
-  'Suicide',
   'A.D.',
   'N.C.',
-  'ST Drugs',
   'Prohibition',
   'Gambling',
   'POCSO',
@@ -70,6 +68,8 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
   final List<ModuleRecord> _categoryCases = [];
   final bool _isLoadingCases = false;
 
+  List<Map<String, dynamic>> _rawCategories = [];
+
   @override
   void initState() {
     super.initState();
@@ -88,6 +88,7 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
       final cats = await _caseService.fetchStandaloneCategories();
       if (!mounted) return;
       if (cats.isNotEmpty) {
+        _rawCategories = cats;
         final names = cats
             .map((c) =>
                 (c['category_name'] ?? c['name'] ?? '').toString().trim())
@@ -100,6 +101,7 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
           _isUsingFallback = false;
         });
       } else {
+        _rawCategories = [];
         setState(() {
           _displayCategories = List.from(kDefaultStandaloneCategories);
           _isLoading = false;
@@ -108,6 +110,7 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
       }
     } catch (e) {
       if (!mounted) return;
+      _rawCategories = [];
       setState(() {
         _displayCategories = List.from(kDefaultStandaloneCategories);
         _isLoading = false;
@@ -127,10 +130,16 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
   }
 
   void _onCategoryTap(String category) async {
+    final matched = _rawCategories.firstWhere(
+      (c) => (c['category_name'] ?? c['name'] ?? '').toString().trim() == category,
+      orElse: () => <String, dynamic>{},
+    );
     await CategoryNavigationHelper.handleDashboardCategoryTap(
       context: context,
       categoryName: category,
       moduleKey: 'standalone',
+      categoryId: matched['category_id'],
+      categoryCode: matched['category_code']?.toString(),
       readOnly: widget.readOnly,
     );
   }
@@ -138,11 +147,17 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
   void _onNewCase() async {
     final category = _selectedCategory ??
         (_filteredCategories.isNotEmpty ? _filteredCategories.first : 'Theft');
+    final matched = _rawCategories.firstWhere(
+      (c) => (c['category_name'] ?? c['name'] ?? '').toString().trim() == category,
+      orElse: () => <String, dynamic>{},
+    );
 
     await CategoryNavigationHelper.handleDashboardCategoryTap(
       context: context,
       categoryName: category,
       moduleKey: 'standalone',
+      categoryId: matched['category_id'],
+      categoryCode: matched['category_code']?.toString(),
       readOnly: widget.readOnly,
     );
   }

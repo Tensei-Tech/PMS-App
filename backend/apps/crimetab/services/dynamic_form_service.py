@@ -9,14 +9,25 @@ from apps.crimetab.models.dynamic_engine import (
     CategoryFieldTemplate,
     SectionFieldTemplate,
 )
+from apps.crimetab.models.dynamic_engine import OptionValue
 from apps.crimetab.models.common_form import (
     CrimeCaseActsSections,
     Act,
     ActSection,
-    PreventiveActionItems,
 )
 
 logger = logging.getLogger(__name__)
+
+PREVENTIVE_ACTION_OPTION_GROUP = 'preventive_action_types'
+
+
+def get_preventive_action_types() -> List[str]:
+    """Active Common Form preventive provisions from public.option_values, in display order."""
+    return list(
+        OptionValue.objects.filter(option_group=PREVENTIVE_ACTION_OPTION_GROUP, is_active=True)
+        .order_by('display_order', 'id')
+        .values_list('option_value', flat=True)
+    )
 
 
 def _fetch_field_template_fields(qs):
@@ -123,6 +134,7 @@ def get_form_definition(
                 'depends_on_field_key': _safe_get_attr(f, 'depends_on_field_key'),
                 'depends_on_value': _safe_get_attr(f, 'depends_on_value'),
                 'options_source': _safe_get_attr(f, 'options_source'),
+                'parent_field_key': _safe_get_attr(f, 'parent_field_key'),
             })
 
     # 5. Master Acts & Sections
@@ -220,7 +232,7 @@ def get_form_definition(
         if k not in acts_dict:
             acts_dict[k] = v
 
-    preventive_choices = [c[0] for c in PreventiveActionItems.ACTION_TYPE_CHOICES]
+    preventive_choices = get_preventive_action_types() if has_linked_bundle else []
     gender_choices = ['Male', 'Female', 'Other']
     procedural_map = {
         'chkPanchSpot': 'Spot Panchanama',

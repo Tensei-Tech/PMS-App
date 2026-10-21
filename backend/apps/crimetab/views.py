@@ -50,7 +50,7 @@ from apps.crimetab.serializers import (
     ActSerializer,
     ActSectionSerializer,
 )
-from apps.crimetab.services.dynamic_form_service import get_form_definition
+from apps.crimetab.services.dynamic_form_service import get_form_definition, get_preventive_action_types
 from apps.crimetab.services.counter_service import (
     get_group_counters,
     get_category_counters,
@@ -1206,6 +1206,17 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
         if isinstance(prev_map, dict):
             prev_actions = prev_map.get('items') or prev_map.get('actions')
 
+    allowed_prev_types = None
+
+    def _check_prev_type(act_type):
+        # Allowed provisions come from public.option_values, not a hardcoded list
+        nonlocal allowed_prev_types
+        if allowed_prev_types is None:
+            allowed_prev_types = set(get_preventive_action_types())
+        if act_type not in allowed_prev_types:
+            raise ValueError(f"Invalid preventive action type: '{act_type}'.")
+        return act_type
+
     if prev_actions is not None and isinstance(prev_actions, list):
         PreventiveActionItems.objects.filter(case=case).delete()
         for pa in prev_actions:
@@ -1224,6 +1235,7 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
                         role='accused'
                     )
                 if act_type and act_date:
+                    _check_prev_type(act_type)
                     b_dt = _parse_d(pa.get('bond_date') or pa.get('bondDate'))
                     b_c_dt = _parse_d(pa.get('bond_cancellation_date') or pa.get('bondCancellationDate'))
                     PreventiveActionItems.objects.update_or_create(
@@ -1236,6 +1248,7 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
                             'outward_number': outward,
                             'bond_date': b_dt,
                             'bond_cancellation_date': b_c_dt,
+                            'preventive_number': (str(pa.get('preventive_number') or pa.get('preventiveNumber') or '').strip() or None),
                         }
                     )
     elif 'preventive' in m:
@@ -1246,11 +1259,12 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
             PreventiveActionItems.objects.filter(case=case).delete()
             PreventiveActionItems.objects.create(
                 case=case,
-                action_type=act_type,
+                action_type=_check_prev_type(act_type),
                 action_date=act_date,
                 outward_number=prev_map.get('outwardNumber') or prev_map.get('outward_number'),
                 bond_date=_parse_d(prev_map.get('bondDate') or prev_map.get('bond_date')),
                 bond_cancellation_date=_parse_d(prev_map.get('bondCancellation') or prev_map.get('bond_cancellation_date')),
+                preventive_number=(str(prev_map.get('preventiveNumber') or prev_map.get('preventive_number') or '').strip() or None),
             )
     elif m.get('preventive_action_type'):
         act_type = m.get('preventive_action_type')
@@ -1258,11 +1272,12 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
         PreventiveActionItems.objects.filter(case=case).delete()
         PreventiveActionItems.objects.create(
             case=case,
-            action_type=act_type,
+            action_type=_check_prev_type(act_type),
             action_date=act_date,
             outward_number=m.get('preventive_outward_no') or m.get('preventive_action_outward_no'),
             bond_date=_parse_d(m.get('bond_date')),
             bond_cancellation_date=_parse_d(m.get('bond_cancellation_date')),
+            preventive_number=(str(m.get('preventive_number') or '').strip() or None),
         )
 
     # 13. Scrutiny Pipeline
@@ -1326,6 +1341,11 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
                 is_primary=is_pri
             )
 
+    # 16a. Fields of templates stored in a table (store_values_in_table):
+    #      rows in case_extra_field_values, removed from the extra_fields JSON
+    from apps.crimetab.services.table_field_values import save_table_values
+    table_keys = save_table_values(case, data)
+
     # 16. Custom Dynamic Extra Fields
     extra_field_vals = (
         data.get('extra_field_values') or
@@ -1335,11 +1355,14 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
     )
     if isinstance(extra_field_vals, dict):
         for k, v in extra_field_vals.items():
+            if k in table_keys or k in ROAD_ACCIDENT_FIELD_KEYS:
+                continue  # saved in their own table rows (16a / 18)
             f_def = FieldTemplateField.objects.filter(field_key=k).first()
             if f_def:
                 CaseExtraFieldValue.objects.update_or_create(
                     case=case,
                     field_def=f_def,
+                    row_no=0,
                     defaults={'field_value': str(v) if v is not None else ''}
                 )
 
@@ -1348,6 +1371,212 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
     if is_case_disposed_by_court_filing(case) and case.status != 'Disposal':
         case.status = 'Disposal'
         case.save(update_fields=['status'])
+
+    # 18. Road Accident Records & Repeating Child Entities (Vehicles, Injured, Deceased)
+    _save_road_accident_child_entities(case, data)
+
+
+# Road Accident Extra Template questions saved in the road_accident_* tables
+# (step 18); they are removed from the case's extra_fields JSON once saved.
+# cr_number is shared with the baseline form (the case number), so it stays.
+ROAD_ACCIDENT_FIELD_KEYS = frozenset({
+    'accident_datetime', 'accident_spot',
+    'acc_nature_of_accident', 'acc_nature_of_accident_other', 'acc_vehicle_abandoned',
+    'acc_driver_subsequently_traced', 'acc_victim_identity_established', 'acc_eyewitnesses_identity',
+    'acc_irad', 'acc_irad_date', 'acc_dar', 'acc_dar_date',
+    'acc_vehicles', 'acc_injured', 'acc_deceased',
+})
+
+
+def _parse_accident_datetime(val):
+    """'dd/mm/yyyy HH:MM' (the form's date-time picker) or ISO -> aware datetime."""
+    text = str(val or '').strip()
+    if not text:
+        return None
+    from datetime import datetime
+    from django.utils import timezone
+    dt = None
+    for fmt in ('%d/%m/%Y %H:%M', '%d/%m/%Y %I:%M %p', '%d/%m/%Y'):
+        try:
+            dt = datetime.strptime(text, fmt)
+            break
+        except ValueError:
+            continue
+    if dt is None:
+        try:
+            dt = datetime.fromisoformat(text)
+        except ValueError:
+            return None
+    return timezone.make_aware(dt) if timezone.is_naive(dt) else dt
+
+
+def _parse_accident_date(val):
+    if not val:
+        return None
+    val_str = str(val).strip()
+    if not val_str:
+        return None
+    from datetime import datetime
+    for fmt in ('%d/%m/%Y', '%Y-%m-%d', '%d-%m-%Y', '%Y/%m/%d'):
+        try:
+            return datetime.strptime(val_str[:10], fmt).date()
+        except Exception:
+            pass
+    return None
+
+
+def _save_road_accident_child_entities(case: CaseRecord, data: dict):
+    """
+    Saves/syncs Road Accident data and repeating groups (vehicles, injured, deceased)
+    to tenant schema tables (e.g. `<schema>.road_accident_records`, etc.).
+    """
+    m = data.get('extra_fields') or {}
+    if not isinstance(m, dict):
+        m = {}
+    dyn = data.get('dynamic_extra_fields') or m.get('dynamic_extra_fields') or {}
+    if not isinstance(dyn, dict):
+        dyn = {}
+
+    def _get_val(k, alt=None):
+        return (
+            data.get(k) or
+            m.get(k) or
+            dyn.get(k) or
+            (data.get(alt) if alt else None) or
+            (m.get(alt) if alt else None) or
+            (dyn.get(alt) if alt else None) or
+            ''
+        )
+
+    nature = _get_val('acc_nature_of_accident', 'nature_of_accident')
+    nature_other = _get_val('acc_nature_of_accident_other', 'nature_of_accident_other')
+    veh_abandoned = _get_val('acc_vehicle_abandoned', 'vehicle_abandoned')
+    driver_traced = _get_val('acc_driver_subsequently_traced', 'driver_subsequently_traced')
+    victim_ident = _get_val('acc_victim_identity_established', 'victim_identity_established')
+    witness_ident = _get_val('acc_eyewitnesses_identity', 'eye_witnesses_identity')
+    irad = _get_val('acc_irad', 'irad')
+    irad_dt = _parse_accident_date(_get_val('acc_irad_date', 'irad_date'))
+    dar = _get_val('acc_dar', 'dar')
+    dar_dt = _parse_accident_date(_get_val('acc_dar_date', 'dar_date'))
+    acc_dt = _parse_accident_datetime(_get_val('accident_datetime'))
+    acc_spot = _get_val('accident_spot')
+
+    raw_vehs = data.get('acc_vehicles') or m.get('acc_vehicles') or dyn.get('acc_vehicles') or data.get('vehicles') or m.get('vehicles') or []
+    raw_inj = data.get('acc_injured') or m.get('acc_injured') or dyn.get('acc_injured') or data.get('injured') or m.get('injured') or []
+    raw_dec = data.get('acc_deceased') or m.get('acc_deceased') or dyn.get('acc_deceased') or data.get('deceased') or m.get('deceased') or []
+
+    has_acc_data = bool(
+        nature or nature_other or veh_abandoned or driver_traced or
+        victim_ident or witness_ident or irad or irad_dt or dar or dar_dt or acc_dt or acc_spot or
+        raw_vehs or raw_inj or raw_dec or
+        (case.sub_category and any(w in case.sub_category.lower() for w in ['accident', 'rash', 'road']))
+    )
+
+    if not has_acc_data:
+        return
+
+    try:
+        from apps.crimetab.models.accident import (
+            RoadAccidentRecord,
+            RoadAccidentVehicle,
+            RoadAccidentInjured,
+            RoadAccidentDeceased,
+        )
+
+        acc_rec, _ = RoadAccidentRecord.objects.update_or_create(
+            case_id=str(case.id),
+            defaults={
+                'station_name': case.station_name,
+                'nature_of_accident': str(nature).strip() if nature else None,
+                'nature_of_accident_other': str(nature_other).strip() if nature_other else None,
+                'vehicle_abandoned': str(veh_abandoned).strip() if veh_abandoned else None,
+                'driver_subsequently_traced': str(driver_traced).strip() if driver_traced else None,
+                'victim_identity_established': str(victim_ident).strip() if victim_ident else None,
+                'eye_witnesses_identity': str(witness_ident).strip() if witness_ident else None,
+                'irad': str(irad).strip() if irad else None,
+                'irad_date': irad_dt,
+                'dar': str(dar).strip() if dar else None,
+                'dar_date': dar_dt,
+                'accident_datetime': acc_dt,
+                'accident_spot': str(acc_spot).strip() if acc_spot else None,
+            }
+        )
+
+        # 1. Vehicles
+        if isinstance(raw_vehs, list):
+            RoadAccidentVehicle.objects.filter(accident_record=acc_rec).delete()
+            for idx, item in enumerate(raw_vehs):
+                if isinstance(item, dict):
+                    RoadAccidentVehicle.objects.create(
+                        accident_record=acc_rec,
+                        case_id=str(case.id),
+                        display_order=idx + 1,
+                        vehicle_number=item.get('acc_veh_number') or item.get('vehicle_number') or item.get('veh_number'),
+                        vehicle_name=item.get('acc_veh_name') or item.get('vehicle_name') or item.get('veh_name'),
+                        company_name=item.get('acc_veh_company') or item.get('company_name') or item.get('company'),
+                        company_name_other=item.get('acc_veh_company_other') or item.get('company_name_other'),
+                        model=item.get('acc_veh_model') or item.get('model'),
+                        owner_name_address=item.get('acc_veh_owner_details') or item.get('owner_name_address') or item.get('owner_details'),
+                        driver_name_address=item.get('acc_veh_driver_details') or item.get('driver_name_address') or item.get('driver_details'),
+                    )
+
+        # 2. Injured Persons
+        if isinstance(raw_inj, list):
+            RoadAccidentInjured.objects.filter(accident_record=acc_rec).delete()
+            for idx, item in enumerate(raw_inj):
+                if isinstance(item, dict):
+                    age_raw = item.get('acc_inj_age') or item.get('age')
+                    age_int = int(age_raw) if (age_raw is not None and str(age_raw).isdigit()) else None
+                    RoadAccidentInjured.objects.create(
+                        accident_record=acc_rec,
+                        case_id=str(case.id),
+                        display_order=idx + 1,
+                        name=item.get('acc_inj_name') or item.get('name'),
+                        age=age_int,
+                        gender=item.get('acc_inj_gender') or item.get('gender') or 'Male',
+                        address=item.get('acc_inj_address') or item.get('address'),
+                        occupation=item.get('acc_inj_occupation') or item.get('occupation'),
+                        mobile_no=item.get('acc_inj_mobile') or item.get('mobile_no') or item.get('mobile'),
+                        aadhaar_card=item.get('acc_inj_aadhaar') or item.get('aadhaar_card') or item.get('aadhaar'),
+                        pan_card=item.get('acc_inj_pan') or item.get('pan_card') or item.get('pan'),
+                        caste=item.get('acc_inj_caste') or item.get('caste') or item.get('cast'),
+                        religion=item.get('acc_inj_religion') or item.get('religion'),
+                        death=item.get('acc_inj_death') or item.get('death') or item.get('is_death'),
+                        death_date=_parse_accident_date(item.get('acc_inj_death_date') or item.get('death_date')),
+                    )
+
+        # 3. Deceased Persons
+        if isinstance(raw_dec, list):
+            RoadAccidentDeceased.objects.filter(accident_record=acc_rec).delete()
+            for idx, item in enumerate(raw_dec):
+                if isinstance(item, dict):
+                    age_raw = item.get('acc_dec_age') or item.get('age')
+                    age_int = int(age_raw) if (age_raw is not None and str(age_raw).isdigit()) else None
+                    RoadAccidentDeceased.objects.create(
+                        accident_record=acc_rec,
+                        case_id=str(case.id),
+                        display_order=idx + 1,
+                        name=item.get('acc_dec_name') or item.get('name'),
+                        age=age_int,
+                        gender=item.get('acc_dec_gender') or item.get('gender') or 'Male',
+                        address=item.get('acc_dec_address') or item.get('address'),
+                        occupation=item.get('acc_dec_occupation') or item.get('occupation'),
+                        mobile_no=item.get('acc_dec_mobile') or item.get('mobile_no') or item.get('mobile'),
+                        aadhaar_card=item.get('acc_dec_aadhaar') or item.get('aadhaar_card') or item.get('aadhaar'),
+                        pan_card=item.get('acc_dec_pan') or item.get('pan_card') or item.get('pan'),
+                        caste=item.get('acc_dec_caste') or item.get('caste') or item.get('cast'),
+                        religion=item.get('acc_dec_religion') or item.get('religion'),
+                        post_mortem=item.get('acc_dec_post_mortem') or item.get('post_mortem'),
+                        pm_report_received=item.get('acc_dec_pm_report_received') or item.get('pm_report_received'),
+                        viscera_sent_fsl=item.get('acc_dec_viscera_sent_fsl') or item.get('viscera_sent_fsl'),
+                        fsl_report_received=item.get('acc_dec_fsl_report_received') or item.get('fsl_report_received'),
+                    )
+
+        # Saved in the road_accident_* tables: no copy in the extra_fields JSON
+        from apps.crimetab.services.table_field_values import strip_keys_from_json
+        strip_keys_from_json(case, set(ROAD_ACCIDENT_FIELD_KEYS))
+    except Exception as e:
+        logger.warning(f"[_save_road_accident_child_entities] Failed to save accident entities: {e}")
 
 
 # ==========================================
@@ -1453,58 +1682,12 @@ class CrimeCaseManageView(APIView):
                             absconded_qs = get_absconded_cases()
                             qs = qs.filter(id__in=absconded_qs.values_list('id', flat=True))
                         elif mod_lower in ['form_1_5', 'form_iv', 'form_i_v', '1_to_5']:
-                            from apps.crimetab.models.groupings import CaseCategory
-                            group_1_cats = list(CaseCategory.objects.filter(
-                                Q(group_id=1) | Q(group__group_code__iexact='I TO V')
-                            ).values_list('category_name', flat=True))
-                            group_1_codes = list(CaseCategory.objects.filter(
-                                Q(group_id=1) | Q(group__group_code__iexact='I TO V')
-                            ).values_list('category_code', flat=True))
-                            known_g1 = {
-                                'form_1_5', 'murder', 'attempt_to_murder', 'dacoity', 'robbery', 'hbt',
-                                'theft', 'riot', 'unlawful_assembly', 'kidnapping', 'cbt', 'cheating',
-                                'mischief', 'hurt', 'assault_on_public_servant', 'rape', 'molestation',
-                                'extortion', 'ipc_304', '498_a_ipc', 'other_ipc', 'chain_snatching',
-                                'sand_theft', 'two_four_wheeler', 'two_wheeler', 'missing',
-                                'crime_women', 'accident', 'bnss', 'coin', 'suicide', 'absconded',
-                                'arrested', 'juvenile', 'victim'
-                            }
-                            for c in group_1_codes:
-                                if c:
-                                    known_g1.add(c.lower().strip())
-                            q_group = (
-                                Q(module_key__in=list(known_g1)) |
-                                Q(category_links__category__group_id=1) |
-                                Q(category_links__category__group__group_code__iexact='I TO V')
-                            )
-                            for name in group_1_cats:
-                                if name:
-                                    q_group |= Q(sub_category__iexact=name)
+                            from apps.cases.group_filters import group_case_q
+                            q_group = group_case_q(1)
                             qs = qs.filter(q_group).distinct()
                         elif mod_lower in ['form_6', 'form_vi', 'part_6']:
-                            from apps.crimetab.models.groupings import CaseCategory
-                            group_2_cats = list(CaseCategory.objects.filter(
-                                Q(group_id=2) | Q(group__group_code__iexact='VI')
-                            ).values_list('category_name', flat=True))
-                            group_2_codes = list(CaseCategory.objects.filter(
-                                Q(group_id=2) | Q(group__group_code__iexact='VI')
-                            ).values_list('category_code', flat=True))
-                            known_g2 = {
-                                'form_6', 'st_drugs', 'prohibition', 'gambling', 'pocso', 'ndps',
-                                'gowans', 'it_act', 'mv_act', 'traffic', 'uapa', 'mcoca', 'mpda',
-                                'passport', 'sam_warrant', 'muddemal', 'application'
-                            }
-                            for c in group_2_codes:
-                                if c:
-                                    known_g2.add(c.lower().strip())
-                            q_group = (
-                                Q(module_key__in=list(known_g2)) |
-                                Q(category_links__category__group_id=2) |
-                                Q(category_links__category__group__group_code__iexact='VI')
-                            )
-                            for name in group_2_cats:
-                                if name:
-                                    q_group |= Q(sub_category__iexact=name)
+                            from apps.cases.group_filters import group_case_q
+                            q_group = group_case_q(2)
                             qs = qs.filter(q_group).distinct()
                         else:
                             norm_name = module_key.replace('_', ' ').strip()
@@ -1991,12 +2174,22 @@ class OptionValuesView(APIView):
     @cache_response(ttl=60, key_prefix="options")
     def get(self, request, group):
         try:
+            group_clean = str(group or '').strip()
+            if not group_clean:
+                return Response([], status=status.HTTP_200_OK)
+
+            if group_clean.lower() in ('designations', 'posts', 'designation', 'post'):
+                from apps.public_master.models import Designation
+                desigs = list(
+                    Designation.objects.filter(is_active=True)
+                    .order_by('rank_level', 'code')
+                    .values_list('display_name', 'title')
+                )
+                values = [d[0] or d[1] for d in desigs if (d[0] or d[1])]
+                return Response(values, status=status.HTTP_200_OK)
+
             tenant_schema = get_active_tenant_schema(request)
             with TenantContext(tenant_schema):
-                group_clean = str(group or '').strip()
-                if not group_clean:
-                    return Response([], status=status.HTTP_200_OK)
-
                 values = list(
                     OptionValue.objects.filter(
                         option_group__iexact=group_clean,
