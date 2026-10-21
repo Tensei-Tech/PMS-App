@@ -172,7 +172,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
             decoration: BoxDecoration(color: bg),
             children: [
               dataCell('${serialOffset + idx + 1}'),
-              isUndetected ? clickableCrCell(r) : dataCell(r['cr']!),
+              clickableCrCell(r),
               dataCell(r['sections']!),
               if (isAbsconded)
                 dataCell(
@@ -412,6 +412,34 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                 final period = row['period'] ?? '';
                 final complainant = row['complainant'];
 
+                final statusText = isAbsconded
+                    ? 'Absconded'
+                    : (isUndetected
+                        ? 'Undetected'
+                        : (isVictim
+                            ? 'Victim'
+                            : (row['status']?.isNotEmpty == true
+                                ? row['status']!
+                                : 'Pending')));
+
+                Color badgeBg = const Color(0xFFF1F5F9);
+                Color badgeBorder = const Color(0xFFCBD5E1);
+                Color badgeText = const Color(0xFF475569);
+
+                if (isAbsconded) {
+                  badgeBg = const Color(0xFFFEF2F2);
+                  badgeBorder = const Color(0xFFFECACA);
+                  badgeText = const Color(0xFFB91C1C);
+                } else if (isUndetected) {
+                  badgeBg = const Color(0xFFFFFBEB);
+                  badgeBorder = const Color(0xFFFDE68A);
+                  badgeText = const Color(0xFFB45309);
+                } else if (isVictim) {
+                  badgeBg = const Color(0xFFF0FDF4);
+                  badgeBorder = const Color(0xFFBBF7D0);
+                  badgeText = const Color(0xFF15803D);
+                }
+
                 return Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(
@@ -427,8 +455,10 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                               color: AppColors.navyMid.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: const Icon(
-                              Icons.folder_open_rounded,
+                            child: Icon(
+                              isAbsconded
+                                  ? Icons.directions_run_rounded
+                                  : Icons.folder_open_rounded,
                               color: AppColors.navyMid,
                               size: 22,
                             ),
@@ -461,17 +491,16 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFFFBEB),
-                              border:
-                                  Border.all(color: const Color(0xFFFDE68A)),
+                              color: badgeBg,
+                              border: Border.all(color: badgeBorder),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              'Undetected',
+                              statusText,
                               style: GoogleFonts.poppins(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
-                                color: const Color(0xFFB45309),
+                                color: badgeText,
                               ),
                             ),
                           ),
@@ -503,10 +532,15 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                               ),
                               const SizedBox(height: 10),
                               _infoRow(
-                                icon: Icons.person_off_rounded,
-                                label: 'Accused (आरोपी)',
+                                icon: isAbsconded
+                                    ? Icons.directions_run_rounded
+                                    : Icons.person_off_rounded,
+                                label: isAbsconded
+                                    ? 'Accused Name (फरार आरोपी)'
+                                    : 'Accused (आरोपी)',
                                 value: accused,
-                                highlight: accused.contains('Unknown') ||
+                                highlight: isAbsconded ||
+                                    accused.contains('Unknown') ||
                                     accused.contains('अज्ञात') ||
                                     accused == '—',
                               ),
@@ -538,6 +572,30 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                                   icon: Icons.person_outline_rounded,
                                   label: 'Complainant',
                                   value: complainant,
+                                ),
+                              ],
+                              if (row['victim_head']?.isNotEmpty == true) ...[
+                                const SizedBox(height: 10),
+                                _infoRow(
+                                  icon: Icons.category_rounded,
+                                  label: 'Victim Head',
+                                  value: row['victim_head']!,
+                                ),
+                              ],
+                              if (row['victim_name']?.isNotEmpty == true) ...[
+                                const SizedBox(height: 10),
+                                _infoRow(
+                                  icon: Icons.person_rounded,
+                                  label: 'Victim Name',
+                                  value: row['victim_name']!,
+                                ),
+                              ],
+                              if (row['injured_deceased']?.isNotEmpty == true) ...[
+                                const SizedBox(height: 10),
+                                _infoRow(
+                                  icon: Icons.healing_rounded,
+                                  label: 'Injured / Deceased',
+                                  value: row['injured_deceased']!,
                                 ),
                               ],
                             ],

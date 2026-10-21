@@ -88,6 +88,50 @@ class AbscondedLogicTests(TestCase):
             }
         )
 
+        # Case 4: License case (no arrest date, accused populated) -> NOT Absconded
+        self.c_license = CaseRecord.objects.create(
+            module_key='licence',
+            title='Licence Verification',
+            sub_category='Licence Verification',
+            case_number='LIC-261016-052',
+            accused='Applicant License Person',
+            station_name='Crime Branch',
+            assigned_officer='IO Absconded Test',
+            assigned_officer_uid=self.officer.uid,
+            created_by=self.officer.uid,
+            extra_fields={}
+        )
+
+        # Case 5: Passport case (no arrest date, accused populated) -> NOT Absconded
+        self.c_passport = CaseRecord.objects.create(
+            module_key='passport',
+            title='Passport Verification',
+            sub_category='Passport Verification',
+            case_number='PV-261016-418',
+            accused='Applicant Passport Person',
+            station_name='Crime Branch',
+            assigned_officer='IO Absconded Test',
+            assigned_officer_uid=self.officer.uid,
+            created_by=self.officer.uid,
+            extra_fields={}
+        )
+
+    def test_license_and_passport_not_in_absconded(self):
+        """License and Passport cases must NOT appear in Absconded."""
+        absconded_ids = set(str(x) for x in get_absconded_cases().values_list('id', flat=True))
+        self.assertNotIn(str(self.c_license.id), absconded_ids)
+        self.assertNotIn(str(self.c_passport.id), absconded_ids)
+
+        resp = self.client.get(
+            '/api/cases/absconded/',
+            HTTP_AUTHORIZATION=f'Bearer {self.token}'
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        results = resp.data.get('results') if isinstance(resp.data, dict) else resp.data
+        case_ids = [str(r['id']) for r in results]
+        self.assertNotIn(str(self.c_license.id), case_ids)
+        self.assertNotIn(str(self.c_passport.id), case_ids)
+
     def test_absconded_with_cc_in_disposal_and_absconded(self):
         """Case with missing arrest date and CC ST Number must appear under both Disposal and Absconded."""
         absconded_ids = set(str(x) for x in get_absconded_cases().values_list('id', flat=True))

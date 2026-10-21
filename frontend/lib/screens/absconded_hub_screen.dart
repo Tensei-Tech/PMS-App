@@ -78,10 +78,17 @@ class _AbscondedHubScreenState extends State<AbscondedHubScreen>
             pendingModuleRecordsToTableRows(records, DateTime.now());
 
         final grouped = <String, List<Map<String, String>>>{};
-        for (final r in mappedRows) {
+        for (int i = 0; i < mappedRows.length; i++) {
+          final r = mappedRows[i];
+          final rec = i < records.length ? records[i] : null;
           final head = r['head']?.trim().isNotEmpty == true
               ? r['head']!.trim()
               : 'Other';
+
+          if (rec != null && _isExcludedLicensePassportCase(head, rec)) {
+            continue;
+          }
+
           grouped.putIfAbsent(head, () => []).add(r);
         }
 
@@ -96,6 +103,32 @@ class _AbscondedHubScreenState extends State<AbscondedHubScreen>
         });
       }
     }
+  }
+
+  bool _isExcludedLicensePassportCase(String head, ModuleRecord record) {
+    final h = head.toLowerCase().trim();
+    final sub = (record.subCategory ?? '').toLowerCase().trim();
+    final mod = record.moduleKey.toLowerCase().trim();
+    final title = record.title.toLowerCase().trim();
+
+    if (h.contains('license') ||
+        h.contains('licence') ||
+        sub.contains('license') ||
+        sub.contains('licence') ||
+        mod == 'license' ||
+        mod == 'licence' ||
+        mod.contains('license') ||
+        mod.contains('licence') ||
+        h.contains('passport') ||
+        sub.contains('passport') ||
+        mod == 'passport' ||
+        mod.contains('passport') ||
+        title.contains('license') ||
+        title.contains('licence') ||
+        title.contains('passport')) {
+      return true;
+    }
+    return false;
   }
 
   Future<void> _loadTimeWise() async {
@@ -189,7 +222,7 @@ class _AbscondedHubScreenState extends State<AbscondedHubScreen>
                 context,
                 AppTheme.fadeSlideRoute(
                   page: PendingSummaryScreen(
-                    title: 'Absconded Cases — Summary',
+                    title: 'Absconded Cases — $head',
                     isAbsconded: true,
                     liveRows: cases,
                     stationName: widget.stationName,

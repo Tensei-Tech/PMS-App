@@ -63,6 +63,23 @@ def _has_arrest_date(extra: dict) -> bool:
     return False
 
 
+def get_license_passport_excluded_q():
+    """
+    Returns Q expression to match License and Passport verification records.
+    """
+    return (
+        Q(module_key__in=['license', 'licence', 'arms_license', 'arms_licence', 'passport', 'passport_pvr_lic']) |
+        Q(sub_category__icontains='license') |
+        Q(sub_category__icontains='licence') |
+        Q(sub_category__icontains='passport') |
+        Q(category_links__category__category_code__in=['STAND_LICENSE', 'STAND_LICENCE', 'STAND_PASSPORT']) |
+        Q(category_links__category__category_name__in=['License', 'Licence', 'Passport/PVR/Lic', 'Arms License']) |
+        Q(title__icontains='passport') |
+        Q(title__icontains='license') |
+        Q(title__icontains='licence')
+    )
+
+
 def get_absconded_cases():
     """
     Returns absconded cases. 
@@ -70,6 +87,7 @@ def get_absconded_cases():
     Accused must be identified (not unknown/empty).
     Cases with CC ST Number are included (and will appear under Disposal as well).
     Cases without CC ST Number are included (and will appear under Pending as well).
+    License and Passport cases are excluded.
     """
     from apps.core.tenancy import get_active_tenant_schema, set_tenant_schema
     
@@ -86,7 +104,7 @@ def get_absconded_cases():
         ~Q(accused__iexact='unidentified')
     )
     
-    queryset = CaseRecord.objects.filter(detected_q)
+    queryset = CaseRecord.objects.filter(detected_q).exclude(get_license_passport_excluded_q())
     
     # Check arrest date: if arrested date is null/missing -> absconded
     absconded_ids = []
@@ -98,7 +116,7 @@ def get_absconded_cases():
     if schema and schema != 'public':
         set_tenant_schema(schema)
     
-    return CaseRecord.objects.filter(id__in=absconded_ids)
+    return CaseRecord.objects.filter(id__in=absconded_ids).exclude(get_license_passport_excluded_q())
 
 def get_victim_cases():
     """
