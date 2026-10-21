@@ -78,10 +78,17 @@ class _UndetectedHubScreenState extends State<UndetectedHubScreen>
             pendingModuleRecordsToTableRows(records, DateTime.now());
 
         final grouped = <String, List<Map<String, String>>>{};
-        for (final r in mappedRows) {
+        for (int i = 0; i < mappedRows.length; i++) {
+          final r = mappedRows[i];
+          final rec = i < records.length ? records[i] : null;
           final head = r['head']?.trim().isNotEmpty == true
               ? r['head']!.trim()
               : 'Other';
+
+          if (rec != null && _isExcludedUndetectedCrimeType(head, rec)) {
+            continue;
+          }
+
           grouped.putIfAbsent(head, () => []).add(r);
         }
 
@@ -96,6 +103,84 @@ class _UndetectedHubScreenState extends State<UndetectedHubScreen>
         });
       }
     }
+  }
+
+  bool _isExcludedUndetectedCrimeType(String head, ModuleRecord record) {
+    final h = head.toLowerCase().trim();
+    final sub = (record.subCategory ?? '').toLowerCase().trim();
+    final mod = record.moduleKey.toLowerCase().trim();
+    final title = record.title.toLowerCase().trim();
+
+    // DAR
+    if (h == 'dar' ||
+        sub == 'dar' ||
+        mod == 'dar' ||
+        title.startsWith('dar ') ||
+        title == 'dar' ||
+        sub.contains('detailed accident')) {
+      return true;
+    }
+    // Missing
+    if (h == 'missing' ||
+        sub == 'missing' ||
+        mod == 'missing' ||
+        title.startsWith('missing')) {
+      return true;
+    }
+    // RTI
+    if (h == 'rti' ||
+        sub == 'rti' ||
+        mod == 'rti' ||
+        title.startsWith('rti ') ||
+        title == 'rti') {
+      return true;
+    }
+    // Repeat Offender / History Sheeter
+    if (h.contains('repeat offender') ||
+        sub.contains('repeat offender') ||
+        mod.contains('repeat_offender') ||
+        mod.contains('repeat-offender') ||
+        h.contains('history sheeter') ||
+        sub.contains('history sheeter') ||
+        mod.contains('history_sheeter') ||
+        title.contains('repeat offender') ||
+        title.contains('history sheeter')) {
+      return true;
+    }
+    // Tadipar / Externment
+    if (h.contains('tadipar') ||
+        sub.contains('tadipar') ||
+        mod == 'tadipar' ||
+        h.contains('externment') ||
+        sub.contains('externment') ||
+        title.contains('tadipar')) {
+      return true;
+    }
+    // Victim
+    if (h == 'victim' ||
+        sub == 'victim' ||
+        mod == 'victim' ||
+        title.startsWith('victim')) {
+      return true;
+    }
+    // License / Licence / Passport / Arms License
+    if (h.contains('license') ||
+        h.contains('licence') ||
+        sub.contains('license') ||
+        sub.contains('licence') ||
+        mod == 'license' ||
+        mod == 'licence' ||
+        mod.contains('license') ||
+        mod.contains('licence') ||
+        h.contains('passport') ||
+        sub.contains('passport') ||
+        mod == 'passport' ||
+        title.contains('license') ||
+        title.contains('licence')) {
+      return true;
+    }
+
+    return false;
   }
 
   Future<void> _loadTimeWise() async {

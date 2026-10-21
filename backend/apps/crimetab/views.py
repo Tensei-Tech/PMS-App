@@ -1353,14 +1353,8 @@ class CrimeCaseManageView(APIView):
                     if module_key and module_key.lower() not in ['all', '']:
                         mod_lower = module_key.lower().strip()
                         if mod_lower == 'undetected':
-                            undetected_q = (
-                                Q(accused__isnull=True) |
-                                Q(accused__exact='') |
-                                Q(accused__iexact='unknown') |
-                                Q(accused__iexact='अज्ञात') |
-                                Q(accused__iexact='unidentified')
-                            )
-                            qs = qs.filter(undetected_q).exclude(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved'])
+                            from apps.cases.utils import get_undetected_base_queryset
+                            qs = get_undetected_base_queryset(qs)
                         elif mod_lower == 'detected':
                             detected_q = (
                                 Q(accused__isnull=False) &

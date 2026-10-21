@@ -125,14 +125,8 @@ class CaseRecordViewSet(viewsets.ModelViewSet):
             from apps.crimetab.models.groupings import CaseCategory
             mod_lower = module_key.lower().strip()
             if mod_lower == 'undetected':
-                undetected_q = (
-                    Q(accused__isnull=True) |
-                    Q(accused__exact='') |
-                    Q(accused__iexact='unknown') |
-                    Q(accused__iexact='अज्ञात') |
-                    Q(accused__iexact='unidentified')
-                )
-                queryset = queryset.filter(undetected_q).exclude(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved'])
+                from apps.cases.utils import get_undetected_base_queryset
+                queryset = get_undetected_base_queryset(queryset)
             elif mod_lower == 'detected':
                 detected_q = (
                     Q(accused__isnull=False) &
@@ -394,17 +388,8 @@ class UndetectedCasesView(APIView):
 
     def get(self, request):
         try:
-            from django.db.models import Q
-            undetected_q = (
-                Q(accused__isnull=True) |
-                Q(accused__exact='') |
-                Q(accused__iexact='unknown') |
-                Q(accused__iexact='अज्ञात') |
-                Q(accused__iexact='unidentified')
-            )
-            queryset = CaseRecord.objects.filter(undetected_q).exclude(
-                status__in=['Disposal', 'Disposed', 'Closed', 'Resolved']
-            )
+            from apps.cases.utils import get_undetected_base_queryset
+            queryset = get_undetected_base_queryset()
 
             # Enforce station-level visibility
             user = request.user
@@ -456,17 +441,9 @@ class UndetectedIOWiseView(APIView):
 
     def get(self, request):
         try:
-            from django.db.models import Count, Q
-            undetected_q = (
-                Q(accused__isnull=True) |
-                Q(accused__exact='') |
-                Q(accused__iexact='unknown') |
-                Q(accused__iexact='अज्ञात') |
-                Q(accused__iexact='unidentified')
-            )
-            queryset = CaseRecord.objects.filter(undetected_q).exclude(
-                status__in=['Disposal', 'Disposed', 'Closed', 'Resolved']
-            )
+            from django.db.models import Count
+            from apps.cases.utils import get_undetected_base_queryset
+            queryset = get_undetected_base_queryset()
 
             user = request.user
             if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
@@ -504,20 +481,10 @@ class UndetectedTimeWiseView(APIView):
 
     def get(self, request):
         try:
-            from django.db.models import Q
             from django.utils import timezone
             from datetime import timedelta
-
-            undetected_q = (
-                Q(accused__isnull=True) |
-                Q(accused__exact='') |
-                Q(accused__iexact='unknown') |
-                Q(accused__iexact='अज्ञात') |
-                Q(accused__iexact='unidentified')
-            )
-            queryset = CaseRecord.objects.filter(undetected_q).exclude(
-                status__in=['Disposal', 'Disposed', 'Closed', 'Resolved']
-            )
+            from apps.cases.utils import get_undetected_base_queryset
+            queryset = get_undetected_base_queryset()
 
             user = request.user
             if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
