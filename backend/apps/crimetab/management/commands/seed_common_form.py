@@ -94,7 +94,7 @@ class Command(BaseCommand):
             # 2. Crime Spot
             ('Village / Town', 'village_town', 'common', 'text', False, 40),
             ('Area Name', 'area_name', 'common', 'text', False, 50),
-            ('Crime Spot Full Address', 'full_address', 'common', 'textarea', False, 60),
+            ('Address', 'full_address', 'common', 'textarea', False, 60),
             ('Occurrence Date & Time', 'occurrence_datetime', 'common', 'datetime', False, 70),
 
             # 3. Acts & Sections (Charges)

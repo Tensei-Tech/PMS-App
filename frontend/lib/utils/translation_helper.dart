@@ -43,6 +43,7 @@ class TranslationHelper {
       'nafis': 'NAFIS',
       'dar': 'DAR',
       'irad': 'IRAD',
+      'irda': 'IRAD',
       'fir': 'FIR',
       'bnss': 'BNSS',
       'hbt': 'HBT',

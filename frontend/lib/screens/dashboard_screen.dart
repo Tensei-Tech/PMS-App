@@ -81,10 +81,15 @@ import '../utils/translation_helper.dart';
 import '../utils/universal_search.dart';
 import '../widgets/app_logo.dart';
 import 'pending_hub_screen.dart';
+import 'itsso_hub_screen.dart';
 import 'undetected_hub_screen.dart';
 import 'detected_hub_screen.dart';
 import 'disposal_hub_screen.dart';
 import 'arrested_hub_screen.dart';
+import 'juvenile_hub_screen.dart';
+import 'repeat_offender_summary_screen.dart';
+import 'nafis_hub_screen.dart';
+import 'elearning_screen.dart';
 import '../widgets/bell_icon_widget.dart';
 import '../widgets/form_iv_category_button.dart';
 import '../widgets/searchable_picker_field.dart';
@@ -234,6 +239,7 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
     case 'DAR':
       return Icons.folder_rounded;
     case 'IRAD':
+    case 'IRDA':
       return Icons.analytics_rounded;
     case 'E-Learning':
       return Icons.school_rounded;
@@ -531,9 +537,9 @@ Widget _buildGridIcon(
       height: size * 1.5,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
-  } else if (labelTrim == 'IRAD') {
+  } else if (labelTrim == 'IRAD' || labelTrim == 'IRDA') {
     return SvgPicture.asset(
-      'assets/icons/IRDA.svg',
+      'assets/icons/IRAD.svg',
       width: size * 1.5,
       height: size * 1.5,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
@@ -608,9 +614,9 @@ Widget _buildServiceIcon(
       height: size * 1.5,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
-  } else if (labelTrim == 'IRAD') {
+  } else if (labelTrim == 'IRAD' || labelTrim == 'IRDA') {
     return SvgPicture.asset(
-      'assets/icons/IRDA.svg',
+      'assets/icons/IRAD.svg',
       width: size * 1.5,
       height: size * 1.5,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
@@ -4028,6 +4034,15 @@ class _HomeTabState extends State<_HomeTab> {
 
   void _openClassificationItem(BuildContext context, Classification item) {
     final label = item.name.replaceAll('\n', ' ');
+    if (label.toUpperCase() == 'ITSSO') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const ItssoHubScreen(stationName: 'All Stations'),
+        ),
+      );
+      return;
+    }
     if (item.name == 'I to V') {
       Navigator.push(
         context,
@@ -4097,6 +4112,32 @@ class _HomeTabState extends State<_HomeTab> {
           page: ArrestedHubScreen(stationName: auth.stationName),
         ),
       );
+    } else if (item.name == 'Repeat Offender') {
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: RepeatOffenderSummaryScreen(stationName: auth.stationName),
+        ),
+      );
+    } else if (item.name == 'NAFIS' || item.moduleKey == 'nafis') {
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: NAFISHubScreen(stationName: auth.stationName),
+        ),
+      );
+    } else if (item.name == 'E-Learning' ||
+        item.moduleKey == 'elearning' ||
+        item.name == 'E Learning') {
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: ELearningScreen(stationName: auth.stationName),
+        ),
+      );
     } else if (item.moduleKey == 'service_tool') {
       final cleanLabel = label.trim().toLowerCase();
       if (cleanLabel == 'history sheeter' ||
@@ -4149,6 +4190,13 @@ class _HomeTabState extends State<_HomeTab> {
         context,
         AppTheme.fadeSlideRoute(
           page: AbscondedHubScreen(stationName: widget.auth.stationName),
+        ),
+      );
+    } else if (item.moduleKey == 'juvenile' || item.name == 'Juvenile') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: JuvenileHubScreen(stationName: widget.auth.stationName),
         ),
       );
     } else {
@@ -8435,6 +8483,29 @@ class _CalendarTabState extends State<_CalendarTab> {
   Widget _buildReportTile(_CalCategoryMeta meta) {
     return GestureDetector(
       onTap: () {
+        if (meta.moduleKey.toLowerCase() == 'itsso' ||
+            meta.label.toUpperCase() == 'ITSSO') {
+          Navigator.push(
+            context,
+            AppTheme.fadeSlideRoute(
+                page: const ItssoHubScreen(stationName: 'All Stations')),
+          );
+          return;
+        }
+        // A tile for one sub-category opens that module's list filtered to it
+        final sub = meta.subCategory?.trim() ?? '';
+        if (sub.isNotEmpty) {
+          Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(
+                  page: ModuleHubScreen(
+                moduleLabel: meta.label,
+                moduleKey: meta.moduleKey,
+                subCategory: meta.subCategory,
+                readOnly: true,
+              )));
+          return;
+        }
         CategoryNavigationHelper.handleDashboardCategoryTap(
           context: context,
           categoryName: meta.label,

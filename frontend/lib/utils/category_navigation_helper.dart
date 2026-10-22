@@ -11,6 +11,8 @@ import '../screens/nc/nc_hub_screen.dart';
 import '../screens/no_form_configured_screen.dart';
 import '../screens/rti/rti_hub_screen.dart';
 import '../services/ad_service.dart';
+import '../screens/juvenile_hub_screen.dart';
+import '../screens/itsso_hub_screen.dart';
 import '../services/case_service.dart';
 import '../services/history_sheeter_service.dart';
 import '../services/mpda_service.dart';
@@ -317,6 +319,16 @@ class CategoryNavigationHelper {
 
     if (!context.mounted) return;
 
+    if (cleanName.toUpperCase() == 'ITSSO' ||
+        moduleKey.toLowerCase() == 'itsso') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const ItssoHubScreen(stationName: 'All Stations'),
+        ),
+      );
+      return;
+    }
     if (children.isNotEmpty) {
       Navigator.push(
         context,
@@ -329,6 +341,19 @@ class CategoryNavigationHelper {
             mode: readOnly
                 ? FormIVSelectionMode.readOnly
                 : FormIVSelectionMode.browse,
+          ),
+        ),
+      );
+      return;
+    }
+
+    // Juvenile has its own hub
+    if (moduleKey == 'juvenile') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const JuvenileHubScreen(
+            stationName: 'Current Station',
           ),
         ),
       );

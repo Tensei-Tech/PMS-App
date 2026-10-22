@@ -20,6 +20,7 @@ import 'l10n/app_localizations.dart';
 import 'theme/app_theme.dart';
 import 'utils/app_constants.dart';
 import 'utils/pdf_auth_gate.dart';
+import 'utils/pdf_loading_helper.dart';
 import 'utils/notification_service.dart';
 import 'services/fcm_service.dart';
 import 'providers/notification_provider.dart';
@@ -40,6 +41,7 @@ import 'screens/classification_list_screen.dart';
 import 'screens/standalone_selection_screen.dart';
 import 'screens/pin_reauth_screen.dart';
 import 'services/api_config.dart';
+import 'services/ui_config_service.dart';
 import 'services/biometric_service.dart';
 import 'package:flutter_web_plugins/url_strategy.dart'; // PLATFORM FIX: Web path URL routing parity
 
@@ -56,6 +58,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await UiConfigService.initialize();
 
   // Pre-warm backend immediately on startup to avoid standby delays
   ApiConfig.prewarmBackend();
@@ -303,6 +307,7 @@ class _PoliceMgmtAppState extends State<PoliceMgmtApp>
       title: 'Police Management System',
       debugShowCheckedModeBanner: false,
       navigatorKey: _navKey,
+      scaffoldMessengerKey: rootScaffoldMessengerKey,
       theme: AppTheme.lightTheme(fontScale: settings.fontScale),
       locale: settings.locale,
       localizationsDelegates: const [

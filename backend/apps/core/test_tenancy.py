@@ -286,6 +286,9 @@ class TenancyStackSafetyTests(TestCase):
         from apps.crimetab.views import LocationDivisionsView
         from apps.public_master.models import StateRegistry
 
+        if connection.vendor == 'postgresql':
+            provision_state_schema('maharashtra', state_code='MH', state_name='Maharashtra')
+
         StateRegistry.objects.get_or_create(
             state_code='MH',
             defaults={'state_name': 'Maharashtra', 'schema_name': 'maharashtra', 'is_active': True}

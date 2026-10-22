@@ -11,14 +11,26 @@ import '../theme/app_theme.dart';
 
 class SendReminderDialog extends StatefulWidget {
   final ModuleRecord record;
+  final String? initialPreset;
 
-  const SendReminderDialog({super.key, required this.record});
+  const SendReminderDialog({
+    super.key,
+    required this.record,
+    this.initialPreset,
+  });
 
-  static Future<void> show(BuildContext context, ModuleRecord record) {
+  static Future<void> show(
+    BuildContext context,
+    ModuleRecord record, {
+    String? initialPreset,
+  }) {
     return showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (_) => SendReminderDialog(record: record),
+      builder: (_) => SendReminderDialog(
+        record: record,
+        initialPreset: initialPreset,
+      ),
     );
   }
 
@@ -29,10 +41,11 @@ class SendReminderDialog extends StatefulWidget {
 class _SendReminderDialogState extends State<SendReminderDialog> {
   final FirestoreService _firestore = FirestoreService();
   final TextEditingController _notesCtrl = TextEditingController();
-  String _selectedPreset = 'PCR Not Sent';
+  late String _selectedPreset;
   bool _isSubmitting = false;
 
   static const List<String> _presets = [
+    'NAFIS Fingerprint Pending',
     'PCR Not Sent',
     'Pending FSL Report',
     'Charge Sheet Due',
@@ -41,6 +54,15 @@ class _SendReminderDialogState extends State<SendReminderDialog> {
     'Medical Report Pending',
     'Urgent Case Review',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedPreset = (widget.initialPreset != null &&
+            _presets.contains(widget.initialPreset))
+        ? widget.initialPreset!
+        : _presets.first;
+  }
 
   @override
   void dispose() {

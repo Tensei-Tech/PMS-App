@@ -11,6 +11,7 @@ import 'package:khakhi_diary/services/api_service.dart';
 import 'package:khakhi_diary/services/case_service.dart';
 import 'package:khakhi_diary/widgets/dynamic_form/dynamic_field_model.dart';
 import 'package:khakhi_diary/widgets/dynamic_form/dynamic_form_screen.dart';
+import 'package:khakhi_diary/widgets/dynamic_form/dynamic_section_builder.dart';
 
 const _formDefinition = '''{
   "category_id": 1,
@@ -80,6 +81,7 @@ void main() {
       ),
     ));
     await tester.pumpAndSettle();
+    await openFirstSection(tester);
 
     TextField fieldAfter(String label) => tester.widget<TextField>(find
         .descendant(
@@ -91,22 +93,41 @@ void main() {
     expect(fieldAfter('TEST Total').readOnly, isTrue);
 
     await tester.enterText(
-        find.descendant(
-            of: find.ancestor(
-                of: find.text('TEST Serious'),
-                matching: find.byType(Column)).first,
-            matching: find.byType(TextField)),
+        fieldFor('TEST Serious'),
         '3');
     await tester.pump();
     expect(fieldAfter('TEST Total').controller!.text, '3');
 
     await tester.enterText(
-        find.descendant(
-            of: find.ancestor(
-                of: find.text('TEST Misc'), matching: find.byType(Column)).first,
-            matching: find.byType(TextField)),
+        fieldFor('TEST Misc'),
         '4');
     await tester.pump();
     expect(fieldAfter('TEST Total').controller!.text, '7');
   });
+}
+
+/// Opens the first section (sections start collapsed in the accordion form).
+Future<void> openFirstSection(WidgetTester tester) async {
+  final header = find
+      .descendant(
+          of: find.byType(DynamicSectionCard).first,
+          matching: find.byType(InkWell))
+      .first;
+  await tester.tap(header);
+  await tester.pumpAndSettle();
+}
+
+/// The text box of the field labelled [label]: the smallest Row / Column
+/// around the label that holds exactly one TextField (label beside or above).
+Finder fieldFor(String label) {
+  for (final e in find
+      .ancestor(
+          of: find.text(label),
+          matching: find.byWidgetPredicate((w) => w is Row || w is Column))
+      .evaluate()) {
+    final boxes = find.descendant(
+        of: find.byWidget(e.widget), matching: find.byType(TextField));
+    if (boxes.evaluate().length == 1) return boxes;
+  }
+  throw StateError('No single TextField found for $label');
 }

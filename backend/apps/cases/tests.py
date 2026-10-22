@@ -389,6 +389,7 @@ class CaseManagementAPITests(TestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.officer_token}')
 
         # Create a case linked to crime_type_master
+        from apps.cases.models import CaseRecord
         with connection.cursor() as cursor:
             cursor.execute("SELECT id FROM crime_type_master WHERE crime_type = 'Theft' LIMIT 1;")
             m_id = cursor.fetchone()[0]
@@ -396,6 +397,16 @@ class CaseManagementAPITests(TestCase):
                 INSERT INTO cases (case_number, title, module, priority, status, case_type, crime_type_master_id)
                 VALUES ('FIR-2026-777', 'Vehicle Theft', 'theft', 'High', 'Pending', '1-5', %s);
             """, [m_id])
+
+        CaseRecord.objects.create(
+            case_number='FIR-2026-777',
+            title='Vehicle Theft',
+            module_key='theft',
+            priority='High',
+            status='Pending',
+            station_name='Shivajinagar Police Station',
+            extra_fields={'crime_type_master_id': m_id, 'case_type': '1-5'}
+        )
 
         resp = self.client.get('/api/cases/crime-types/Theft/cases/')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
