@@ -68,7 +68,10 @@ class CrimeAgainstWomenExtraFieldsTests(TestCase):
     def test_idempotent_and_reversible(self):
         caw.forwards(django_apps, None)
         qs = FieldTemplateField.objects.filter(template__template_name=caw.TEMPLATE_NAME)
-        self.assertEqual(qs.count(), len(caw.FIELDS))
+        total = qs.count()  # later migrations may have added more fields to the template
+        self.assertEqual(qs.filter(field_key__in=[f[1] for f in caw.FIELDS]).count(), len(caw.FIELDS))
+        caw.forwards(django_apps, None)
+        self.assertEqual(qs.count(), total)
         caw.backwards(django_apps, None)
         self.assertFalse(FieldTemplate.objects.filter(template_name=caw.TEMPLATE_NAME).exists())
         self.assertFalse(OptionValue.objects.filter(option_group='caw_victim_names').exists())

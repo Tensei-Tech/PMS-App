@@ -40,6 +40,14 @@ from apps.crimetab.services.dynamic_form_service import get_form_definition
 from apps.crimetab.services.counter_service import get_group_counters, get_category_counters
 
 
+def dummy_schema_editor(connection):
+    """Stand-in for a migration's schema_editor: the connection plus execute()."""
+    def execute(self, sql, params=()):
+        with connection.cursor() as cursor:
+            cursor.execute(sql, params)
+    return type('DummyEditor', (), {'connection': connection, 'execute': execute})()
+
+
 class CommonFormE2ETests(TestCase):
     def setUp(self):
         from django.db import connection
@@ -1313,9 +1321,11 @@ class AccidentSubcategoriesMigrationTests(TestCase):
         )
 
         # Baseline Template
-        self.baseline_tmpl = FieldTemplate.objects.create(
+        # Migration 0025 links the accident tabs to template 1; on a migrated database
+        # that id is already taken, so take it over for this test (rolled back after).
+        self.baseline_tmpl, _ = FieldTemplate.objects.update_or_create(
             template_id=1,
-            template_name='Common Form Baseline Template'
+            defaults={'template_name': 'Common Form Baseline Template'}
         )
 
         # Seed 1-to-5 base categories including Group Accident
@@ -1658,7 +1668,7 @@ class EnginePrerequisitesTests(TestCase):
         # Non-postgresql / ORM test run
         from django.apps import apps as django_apps
         from apps.crimetab.models.dynamic_engine import FieldTemplate
-        editor = type('DummyEditor', (), {'connection': connection})()
+        editor = dummy_schema_editor(connection)
         # First execution
         mig.remove_general_crime_baseline_template(django_apps, editor)
         # Second execution (second run changes nothing and passes cleanly)
@@ -1673,6 +1683,9 @@ class EnginePrerequisitesTests(TestCase):
 
         if connection.vendor == 'postgresql':
             with connection.cursor() as cursor:
+                # Rows written earlier in this test transaction leave deferred FK checks
+                # queued, and PostgreSQL refuses ALTER TABLE until they have run.
+                cursor.execute('SET CONSTRAINTS ALL IMMEDIATE')
                 # First run
                 cursor.execute(sql_up)
                 # Second run (must not raise error)
@@ -1683,7 +1696,7 @@ class EnginePrerequisitesTests(TestCase):
         from django.apps import apps as django_apps
         from django.db import connection
         mig29 = importlib.import_module('apps.crimetab.migrations.0029_add_rti_category_template_and_seed_data')
-        editor = type('DummyEditor', (), {'connection': connection})()
+        editor = dummy_schema_editor(connection)
         # Run seed migration twice to ensure idempotency (second run changes nothing)
         mig29.seed_rti_data(django_apps, editor)
         mig29.seed_rti_data(django_apps, editor)
@@ -1748,7 +1761,7 @@ class RTIAPIEndpointsTests(TestCase):
         from django.apps import apps as django_apps
         mig29 = importlib.import_module('apps.crimetab.migrations.0029_add_rti_category_template_and_seed_data')
         mig31 = importlib.import_module('apps.crimetab.migrations.0031_add_rti_enforce_permissions_setting')
-        editor = type('DummyEditor', (), {'connection': connection})()
+        editor = dummy_schema_editor(connection)
         mig29.seed_rti_data(django_apps, editor)
         mig31.seed_enforce_permissions(django_apps, editor)
 

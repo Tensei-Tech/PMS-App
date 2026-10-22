@@ -469,7 +469,9 @@ class MpdaBackendTestCase(TestCase):
         force_authenticate(req_opt, user=self.user)
         res_opt = OptionValuesView.as_view()(req_opt, group='mpda_crime_types')
         self.assertEqual(res_opt.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(res_opt.data), 12)
+        active = OptionValue.objects.filter(option_group='mpda_crime_types', is_active=True).count()
+        self.assertEqual(len(res_opt.data), active)  # every active crime type from the database
+        self.assertGreaterEqual(active, 12)
 
         # 2. Group by field setting is seeded
         grp_setting = ModuleSetting.objects.get(module_key='mpda', setting_key='crime_chart_group_by_field')
@@ -495,7 +497,7 @@ class MpdaBackendTestCase(TestCase):
         force_authenticate(req_det, user=self.user)
         res_det = MpdaDetailView.as_view()(req_det, pk=prop_id)
         self.assertEqual(res_det.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(res_det.data['crime_chart']), 12)
+        self.assertEqual(len(res_det.data['crime_chart']), len(entries))
 
     def test_crime_chart_act_section_subsection_round_trip(self):
         """Crime Chart rows keep the Act / Section / Subsection picked from the Acts master."""

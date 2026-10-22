@@ -62,6 +62,7 @@ class DisposalAPITests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='test_officer', password='pw')
         self.user.station_name = 'Central'
+        self.user.state_code = 'MH'  # case views need the officer's state (tenant)
         self.user.save()
         
         self.client.force_authenticate(user=self.user)
@@ -280,6 +281,7 @@ class ADCaseDisposalTests(APITestCase):
         User = get_user_model()
         user = User.objects.create(username='testpagi', password='123')
         user.station_name = 'Central'
+        user.state_code = 'MH'  # case views need the officer's state (tenant)
         user.save()
         client = APIClient()
         client.force_authenticate(user=user)

@@ -59,9 +59,11 @@ class PocsoExtraFieldsTests(TestCase):
 
     def test_idempotent_and_reversible(self):
         mig.forwards(django_apps, None)
-        self.assertEqual(
-            FieldTemplateField.objects.filter(template__template_name=mig.TEMPLATE_NAME).count(),
-            len(mig.FIELDS))
+        qs = FieldTemplateField.objects.filter(template__template_name=mig.TEMPLATE_NAME)
+        total = qs.count()  # later migrations may have added more fields to the template
+        self.assertEqual(qs.filter(field_key__in=[f[1] for f in mig.FIELDS]).count(), len(mig.FIELDS))
+        mig.forwards(django_apps, None)
+        self.assertEqual(qs.count(), total)
         mig.backwards(django_apps, None)
         self.assertFalse(FieldTemplate.objects.filter(template_name=mig.TEMPLATE_NAME).exists())
         self.assertFalse(OptionValue.objects.filter(option_group='pocso_victim_names').exists())

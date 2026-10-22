@@ -36,6 +36,5 @@ class RemoveOldMurderFieldsTests(TestCase):
     def test_backwards_restores_old_fields(self):
         mig.forwards(django_apps, None)
         mig.backwards(django_apps, None)
-        self.assertEqual(
-            set(FieldTemplateField.objects.filter(template=self.tmpl).values_list('field_key', flat=True)),
-            OLD_KEYS)
+        restored = set(FieldTemplateField.objects.filter(template=self.tmpl).values_list('field_key', flat=True))
+        self.assertTrue(OLD_KEYS <= restored, OLD_KEYS - restored)

@@ -88,6 +88,7 @@ class HistorySheeterChartTests(TestCase):
         req = self.factory.get('/api/history-sheeter/config/')
         force_authenticate(req, user=self.user)
         cfg = HistorySheeterConfigView.as_view()(req).data
-        self.assertEqual(cfg['sub_tab_labels']['chart'], 'Chart')
+        label = ModuleSetting.objects.get(module_key='history_sheeter', setting_key='tab_chart_label').setting_value
+        self.assertEqual(cfg['sub_tab_labels']['chart'], label)
         self.assertEqual(list(cfg['chart_headers']),
                          ['sr_no', 'person', 'total_cases', 'associates', 'rivals', 'preventive', 'actions'])

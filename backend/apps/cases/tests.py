@@ -43,16 +43,12 @@ class CaseManagementAPITests(TestCase):
             group_id=1,
             defaults={'group_name': 'Form I to V', 'group_code': 'I TO V', 'display_order': 1}
         )
-        self.cat_theft, _ = CaseCategory.objects.get_or_create(
-            category_id=1,
-            defaults={
-                'category_name': 'Theft',
-                'category_code': 'theft',
-                'group': self.cat_group_1,
-                'is_active': True,
-                'display_order': 1,
-            }
-        )
+        # Group 1 tabs the tests use, found by code (ids differ between databases)
+        for order, (name, code) in enumerate([('Theft', 'theft'), ('Murder', 'murder'), ('Dacoity', 'dacoity')], 1):
+            CaseCategory.objects.get_or_create(
+                category_code=code,
+                defaults={'category_name': name, 'group': self.cat_group_1, 'is_active': True, 'display_order': order},
+            )
 
         # 3. Create tables / mock views if not present in test DB
         with connection.cursor() as cursor:
@@ -605,6 +601,15 @@ class CaseManagementAPITests(TestCase):
         ka_token = self._register_and_login(
             'officer_ka_seq@kapolice.gov.in', 'OfficerPass123!', 'officer', 'KA'
         )
+
+        # Each state keeps its cases in its own schema. A fresh database has no
+        # per-state case tables yet, so give both states one (rolled back after).
+        if connection.vendor == 'postgresql':
+            with connection.cursor() as cursor:
+                for schema in ('maharashtra', 'karnataka'):
+                    cursor.execute(f'CREATE SCHEMA IF NOT EXISTS "{schema}"')
+                    cursor.execute(f'CREATE TABLE IF NOT EXISTS "{schema}".cases_caserecord '
+                                   f'(LIKE public.cases_caserecord INCLUDING ALL)')
 
         # Seed distinct cases in MH and KA schemas
         with TenantContext('maharashtra'):

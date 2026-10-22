@@ -202,6 +202,14 @@ def provision_state_schema(schema_name: str, state_code: str = None, state_name:
             created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
         );
+        """)
+        create_module_tables(cursor, clean_schema)
+    logger.info(f"[Tenancy] Provisioned PostgreSQL schema & tables: {clean_schema} (State: {resolved_name}/{resolved_code})")
+
+
+def create_module_tables(cursor, clean_schema: str):
+    """RTI, History Sheeter, MPDA and N.C. tables of one tenant schema. Idempotent."""
+    cursor.execute(f"""
         CREATE TABLE IF NOT EXISTS "{clean_schema}".rti_applications (
             rti_id BIGSERIAL PRIMARY KEY,
             station_name VARCHAR(255) NOT NULL,
@@ -381,6 +389,8 @@ def provision_state_schema(schema_name: str, state_code: str = None, state_name:
         );
         CREATE INDEX IF NOT EXISTS mpda_station_outcome_idx ON "{clean_schema}".mpda_proposals (station_name, proposal_outcome);
         ALTER TABLE "{clean_schema}".mpda_proposals
+            ADD COLUMN IF NOT EXISTS proposal_no VARCHAR(50),
+            ADD COLUMN IF NOT EXISTS proposal_year VARCHAR(10),
             ADD COLUMN IF NOT EXISTS proposal_revoked VARCHAR(10),
             ADD COLUMN IF NOT EXISTS proposal_revoked_date DATE;
 
@@ -442,10 +452,9 @@ def provision_state_schema(schema_name: str, state_code: str = None, state_name:
             ADD COLUMN IF NOT EXISTS act_section TEXT;
         """)
 
-        # N.C. tables (same DDL as migration 0054)
-        from apps.crimetab.nc_schema import create_nc_tables
-        create_nc_tables(cursor, clean_schema)
-        logger.info(f"[Tenancy] Provisioned PostgreSQL schema & tables: {clean_schema} (State: {resolved_name}/{resolved_code})")
+    # N.C. tables (same DDL as migration 0054)
+    from apps.crimetab.nc_schema import create_nc_tables
+    create_nc_tables(cursor, clean_schema)
 
 
 def get_active_tenant_schema(request=None) -> str:
