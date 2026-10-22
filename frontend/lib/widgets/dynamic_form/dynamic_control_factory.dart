@@ -111,8 +111,7 @@ class DynamicControlFactory extends StatelessWidget {
         (fieldDef.fieldKey == 'io_designation' ||
             fieldDef.fieldKey == 'registered_by_designation' ||
             (fieldDef.fieldLabel.toLowerCase().contains('designation') &&
-                fieldDef.section?.toLowerCase().contains('officer') ==
-                    true))) {
+                fieldDef.section?.toLowerCase().contains('officer') == true))) {
       return _buildDesignationDropdownField(context);
     }
 
@@ -1016,10 +1015,10 @@ class DynamicControlFactory extends StatelessWidget {
       ];
     }
 
-    final optSource = fieldDef.optionsSource?.isNotEmpty == true &&
-            fieldDef.maxItems == null
-        ? fieldDef.optionsSource
-        : (isMpdaCrime ? '/api/options/mpda_crime_types/' : null);
+    final optSource =
+        fieldDef.optionsSource?.isNotEmpty == true && fieldDef.maxItems == null
+            ? fieldDef.optionsSource
+            : (isMpdaCrime ? '/api/options/mpda_crime_types/' : null);
 
     return DynamicRepeatingGroupWidget(
       fieldDef: fieldDef,

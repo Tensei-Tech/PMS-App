@@ -14,7 +14,9 @@ void main() {
         .whereType<File>()
         .where((file) => file.path.endsWith('.dart'))
         // Exclude legacy mpda module files which are retained unused per instructions ('keep MpdaFormScreen and its files, unused, and delete nothing')
-        .where((file) => !file.path.contains('modules${Platform.pathSeparator}mpda') && !file.path.contains('modules/mpda'));
+        .where((file) =>
+            !file.path.contains('modules${Platform.pathSeparator}mpda') &&
+            !file.path.contains('modules/mpda'));
 
     final forbiddenPatterns = [
       // Hardcoded option lists for History Sheeter or MPDA

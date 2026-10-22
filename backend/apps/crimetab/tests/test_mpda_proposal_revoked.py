@@ -8,10 +8,12 @@ from apps.crimetab.models.mpda import MpdaProposal
 from apps.crimetab.serializers_mpda import MpdaProposalDetailSerializer
 from apps.crimetab.tests.test_mpda_backend import MpdaBackendTestCase
 from apps.crimetab.views_mpda import MpdaDetailView, MpdaListCreateView, MpdaPDFView
+from apps.crimetab.tests.state_schema import enter_state_schema
 
 
 class MpdaProposalRevokedTests(TestCase):
     def setUp(self):
+        enter_state_schema(self)
         MpdaBackendTestCase.setUp(self)
         ModuleSetting.objects.update_or_create(module_key='mpda', setting_key='enforce_permissions',
                                                defaults={'setting_value': 'false'})

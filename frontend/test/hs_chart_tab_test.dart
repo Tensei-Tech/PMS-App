@@ -25,7 +25,8 @@ void main() {
   });
   tearDown(() => ApiService.clientForTesting = null);
 
-  testWidgets('Summary tab: last tab, no badge, table of all sheets with View',
+  testWidgets(
+      'Summary tab: first tab, no Total tab, table of all sheets with View',
       (tester) async {
     final chartCalls = <Uri>[];
     ApiService.clientForTesting = MockClient((req) async {
@@ -93,15 +94,16 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    // Status tabs (incl. Total / Jail / Bail) and the Summary tab last
+    // Summary tab first (it carries the total), then the status tabs; no Total tab
     expect(find.text('TEST Active'), findsOneWidget);
     expect(find.text('TEST Open'), findsOneWidget);
     expect(find.text('TEST Closed'), findsOneWidget);
     expect(find.text('TEST Summary'), findsOneWidget);
-    expect(find.text('TEST Total HS'), findsOneWidget);
+    expect(find.text('TEST Total HS'), findsNothing);
     expect(find.text('TEST Jail'), findsOneWidget);
     expect(find.text('TEST Bail'), findsOneWidget);
-    expect(find.text('5'), findsNothing); // the summary tab has no count badge
+    expect(find.text('5'),
+        findsNothing); // the badge is the counts total, not the chart count
 
     // Seven tabs: scroll the tab bar so the Summary tab is on screen
     await tester.ensureVisible(find.text('TEST Summary'));
@@ -145,8 +147,15 @@ void main() {
           'page': 1,
           'page_size': 20,
           'results': [
-            {'id': 9, 'sr_no': 2, 'person': 'TEST', 'total_cases': 0,
-             'associates': 2, 'rivals': 0, 'preventive': 0}
+            {
+              'id': 9,
+              'sr_no': 2,
+              'person': 'TEST',
+              'total_cases': 0,
+              'associates': 2,
+              'rivals': 0,
+              'preventive': 0
+            }
           ],
         });
       }

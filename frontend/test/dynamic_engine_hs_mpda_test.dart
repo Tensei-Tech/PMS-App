@@ -326,7 +326,10 @@ void main() {
       await tester.tap(find.text('Murder'));
       await tester.pumpAndSettle();
       expect(updatedRows.length, 2);
-      expect(updatedRows.any((r) => r['mpda_crime_type'] == 'Crimes against the body'), isTrue);
+      expect(
+          updatedRows
+              .any((r) => r['mpda_crime_type'] == 'Crimes against the body'),
+          isTrue);
       expect(updatedRows.any((r) => r['mpda_crime_type'] == 'Murder'), isTrue);
 
       // Tap on "Other special" -> All 3 are selected simultaneously and "Specify Crime Type" appears
@@ -334,22 +337,30 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Specify Crime Type / Name'), findsOneWidget);
       expect(updatedRows.length, 3);
-      expect(updatedRows.any((r) => r['mpda_crime_type'] == 'Other special'), isTrue);
+      expect(updatedRows.any((r) => r['mpda_crime_type'] == 'Other special'),
+          isTrue);
 
       // Type in the custom crime field
-      final customCrimeFinder = find.byWidgetPredicate(
-          (w) => w is TextField && w.decoration?.hintText?.contains('other crime') == true);
+      final customCrimeFinder = find.byWidgetPredicate((w) =>
+          w is TextField &&
+          w.decoration?.hintText?.contains('other crime') == true);
       await tester.enterText(customCrimeFinder, 'Cyber Crime');
       await tester.pumpAndSettle();
-      expect(updatedRows.any((r) => r['mpda_crime_type'] == 'Cyber Crime'), isTrue);
-      expect(updatedRows.any((r) => r['mpda_crime_other_type'] == 'Cyber Crime'), isTrue);
+      expect(updatedRows.any((r) => r['mpda_crime_type'] == 'Cyber Crime'),
+          isTrue);
+      expect(
+          updatedRows.any((r) => r['mpda_crime_other_type'] == 'Cyber Crime'),
+          isTrue);
 
       // Tap on "Murder" again -> unselects only "Murder", leaving 2 selected
       await tester.tap(find.text('Murder'));
       await tester.pumpAndSettle();
       expect(updatedRows.length, 2);
       expect(updatedRows.any((r) => r['mpda_crime_type'] == 'Murder'), isFalse);
-      expect(updatedRows.any((r) => r['mpda_crime_type'] == 'Crimes against the body'), isTrue);
+      expect(
+          updatedRows
+              .any((r) => r['mpda_crime_type'] == 'Crimes against the body'),
+          isTrue);
 
       ApiService.clientForTesting = null;
     });

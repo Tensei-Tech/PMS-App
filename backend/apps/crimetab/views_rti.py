@@ -484,9 +484,11 @@ class RTIListCreateView(APIView):
         for fk in form_keys:
             val = data.get(fk)
             if val is not None:
-                if isinstance(val, bool) and val is True:
-                    has_any_field = True
-                    break
+                if isinstance(val, bool):
+                    # bool is also an int: only a ticked box counts as filled
+                    if val:
+                        has_any_field = True
+                        break
                 elif isinstance(val, (int, float)):
                     has_any_field = True
                     break

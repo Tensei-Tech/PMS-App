@@ -8,7 +8,8 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('Same As Above - Dynamic Generic Copy-on-Tick Tests', () {
-    testWidgets('1. Ticking copies the value and target field stays editable', (tester) async {
+    testWidgets('1. Ticking copies the value and target field stays editable',
+        (tester) async {
       final controllers = <String, TextEditingController>{};
       final values = <String, dynamic>{};
 
@@ -97,10 +98,12 @@ void main() {
       values[tgtKey] = '123 MG Road, Pune - Near Station';
       await tester.pumpAndSettle();
 
-      expect(controllers[tgtKey]?.text, equals('123 MG Road, Pune - Near Station'));
+      expect(controllers[tgtKey]?.text,
+          equals('123 MG Road, Pune - Near Station'));
     });
 
-    testWidgets('2. Ticking when source is empty copies an empty value', (tester) async {
+    testWidgets('2. Ticking when source is empty copies an empty value',
+        (tester) async {
       final controllers = <String, TextEditingController>{};
       final values = <String, dynamic>{};
 
@@ -180,7 +183,8 @@ void main() {
       expect(controllers[tgtKey]?.text, equals(''));
     });
 
-    testWidgets('3. Unticking changes nothing (target keeps current value)', (tester) async {
+    testWidgets('3. Unticking changes nothing (target keeps current value)',
+        (tester) async {
       final controllers = <String, TextEditingController>{};
       final values = <String, dynamic>{};
 
@@ -271,7 +275,8 @@ void main() {
       expect(values[tgtKey], equals('Modified Target Text'));
     });
 
-    testWidgets('4. Editing source address after the tick changes nothing', (tester) async {
+    testWidgets('4. Editing source address after the tick changes nothing',
+        (tester) async {
       final controllers = <String, TextEditingController>{};
       final values = <String, dynamic>{};
 
@@ -358,7 +363,9 @@ void main() {
       expect(values[tgtKey], equals('Original Address'));
     });
 
-    testWidgets('5. Changing the setting to other field keys changes which fields copy, with no code change', (tester) async {
+    testWidgets(
+        '5. Changing the setting to other field keys changes which fields copy, with no code change',
+        (tester) async {
       final controllers = <String, TextEditingController>{};
       final values = <String, dynamic>{};
 
@@ -441,7 +448,9 @@ void main() {
       expect(values[tgtKey], equals('Alpha Data Value'));
     });
 
-    test('6. Verify Flutter codebase contains NO hardcoded hs_same_as_above, hs_permanent_address, or hs_present_address', () {
+    test(
+        '6. Verify Flutter codebase contains NO hardcoded hs_same_as_above, hs_permanent_address, or hs_present_address',
+        () {
       final libDir = Directory('lib');
       final forbiddenKeys = [
         'hs_same_as_above',
@@ -454,7 +463,8 @@ void main() {
           .whereType<File>()
           .where((f) => f.path.endsWith('.dart'))
           // Exclude legacy dead files in modules/mpda as per instructions
-          .where((f) => !f.path.replaceAll(r'\', '/').contains('/modules/mpda/'))
+          .where(
+              (f) => !f.path.replaceAll(r'\', '/').contains('/modules/mpda/'))
           .toList();
 
       final violations = <String>[];
@@ -463,7 +473,8 @@ void main() {
         final content = file.readAsStringSync();
         for (final key in forbiddenKeys) {
           if (content.contains(key)) {
-            violations.add('${file.path} contains forbidden field key literal "$key"');
+            violations.add(
+                '${file.path} contains forbidden field key literal "$key"');
           }
         }
       }
@@ -471,7 +482,8 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason: 'Flutter must NOT contain hardcoded History Sheeter address field keys:\n${violations.join('\n')}',
+        reason:
+            'Flutter must NOT contain hardcoded History Sheeter address field keys:\n${violations.join('\n')}',
       );
     });
   });

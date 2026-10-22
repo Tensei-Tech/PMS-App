@@ -132,7 +132,8 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
 
   void _onCategoryTap(String category) async {
     final matched = _rawCategories.firstWhere(
-      (c) => (c['category_name'] ?? c['name'] ?? '').toString().trim() == category,
+      (c) =>
+          (c['category_name'] ?? c['name'] ?? '').toString().trim() == category,
       orElse: () => <String, dynamic>{},
     );
     await CategoryNavigationHelper.handleDashboardCategoryTap(
@@ -149,7 +150,8 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
     final category = _selectedCategory ??
         (_filteredCategories.isNotEmpty ? _filteredCategories.first : 'Theft');
     final matched = _rawCategories.firstWhere(
-      (c) => (c['category_name'] ?? c['name'] ?? '').toString().trim() == category,
+      (c) =>
+          (c['category_name'] ?? c['name'] ?? '').toString().trim() == category,
       orElse: () => <String, dynamic>{},
     );
 

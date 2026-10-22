@@ -11,6 +11,7 @@ from apps.crimetab.views_mpda import (
     MpdaPDFView,
     get_mpda_repeating_sections,
 )
+from apps.crimetab.tests.state_schema import enter_state_schema
 
 GANG = {
     'mpda_gang_member_name': 'TEST Raju', 'mpda_gang_member_age': '28',
@@ -23,6 +24,7 @@ GANG = {
 
 class MpdaGangMemberDetailsTests(TestCase):
     def setUp(self):
+        enter_state_schema(self)
         # Same seeded settings / options / user as the MPDA backend suite
         MpdaBackendTestCase.setUp(self)
         ModuleSetting.objects.update_or_create(module_key='mpda', setting_key='enforce_permissions',

@@ -72,7 +72,8 @@ void main() {
   _liveNamesTest();
   chargesInRowTest();
 
-  testWidgets('NC hub draws tabs, counts, list and actions from the backend only',
+  testWidgets(
+      'NC hub draws tabs, counts, list and actions from the backend only',
       (tester) async {
     final requests = <Uri>[];
     ApiService.clientForTesting = MockClient((req) async {
@@ -128,8 +129,11 @@ void main() {
     expect(find.text('TEST Outward Number'), findsOneWidget);
     // All boxes on ONE line: every label starts at the same height
     final labelTops = [
-      'TEST NC No.', 'TEST Act', 'TEST Complainant Label',
-      'TEST Outward Number', 'TEST Bond Date',
+      'TEST NC No.',
+      'TEST Act',
+      'TEST Complainant Label',
+      'TEST Outward Number',
+      'TEST Bond Date',
     ].map((t) => tester.getTopLeft(find.text(t)).dy).toSet();
     expect(labelTops.length, 1);
     expect(find.text('TEST-OUT-1'), findsOneWidget);
@@ -153,7 +157,8 @@ void main() {
     expect(find.text('TEST pending means incomplete preventive'), findsNothing);
     await tester.tap(find.text('TEST Pending'));
     await tester.pumpAndSettle();
-    expect(find.text('TEST pending means incomplete preventive'), findsOneWidget);
+    expect(
+        find.text('TEST pending means incomplete preventive'), findsOneWidget);
   });
 
   testWidgets('a changed tab label in config is shown with no code change',
@@ -278,14 +283,19 @@ void main() {
     });
   });
 
-  testWidgets('the N.C tile routes to the N.C. hub through target_category_code',
+  testWidgets(
+      'the N.C tile routes to the N.C. hub through target_category_code',
       (tester) async {
     ApiService.clientForTesting = MockClient((req) async {
       final p = req.url.path;
       if (p.endsWith('/api/nc/config/')) return _json(_config());
-      if (p.contains('/config/')) return _json({'target_category_code': 'TEST_OTHER'});
+      if (p.contains('/config/')) {
+        return _json({'target_category_code': 'TEST_OTHER'});
+      }
       if (p.endsWith('/api/nc/counts/')) return _json({});
-      if (p.endsWith('/api/nc/')) return _json({'results': [], 'next_cursor': null});
+      if (p.endsWith('/api/nc/')) {
+        return _json({'results': [], 'next_cursor': null});
+      }
       return _json(<dynamic>[]);
     });
     CaseService().setCategoriesCache([
@@ -320,22 +330,42 @@ void _liveNamesTest() {
   testWidgets('Preventive person dropdown lists Non Applicant names as typed',
       (tester) async {
     const naGroup = DynamicFieldDef(
-      fieldDefId: 60, fieldKey: 'nc_non_applicants', fieldLabel: 'TEST Non Applicant',
-      fieldSource: 'custom', fieldType: 'repeating_group', isRequired: false,
-      displayOrder: 60, section: 'TEST Non Applicant');
+        fieldDefId: 60,
+        fieldKey: 'nc_non_applicants',
+        fieldLabel: 'TEST Non Applicant',
+        fieldSource: 'custom',
+        fieldType: 'repeating_group',
+        isRequired: false,
+        displayOrder: 60,
+        section: 'TEST Non Applicant');
     const naName = DynamicFieldDef(
-      fieldDefId: 61, fieldKey: 'nc_na_name', fieldLabel: 'TEST Name',
-      fieldSource: 'custom', fieldType: 'text', isRequired: false,
-      displayOrder: 61, parentFieldKey: 'nc_non_applicants');
+        fieldDefId: 61,
+        fieldKey: 'nc_na_name',
+        fieldLabel: 'TEST Name',
+        fieldSource: 'custom',
+        fieldType: 'text',
+        isRequired: false,
+        displayOrder: 61,
+        parentFieldKey: 'nc_non_applicants');
     const prevGroup = DynamicFieldDef(
-      fieldDefId: 100, fieldKey: 'nc_preventive_actions', fieldLabel: 'TEST Preventive',
-      fieldSource: 'custom', fieldType: 'repeating_group', isRequired: false,
-      displayOrder: 100, section: 'TEST Preventive');
+        fieldDefId: 100,
+        fieldKey: 'nc_preventive_actions',
+        fieldLabel: 'TEST Preventive',
+        fieldSource: 'custom',
+        fieldType: 'repeating_group',
+        isRequired: false,
+        displayOrder: 100,
+        section: 'TEST Preventive');
     const prevPerson = DynamicFieldDef(
-      fieldDefId: 101, fieldKey: 'nc_prev_person', fieldLabel: 'TEST Person',
-      fieldSource: 'custom', fieldType: 'dropdown', isRequired: false,
-      displayOrder: 101, parentFieldKey: 'nc_preventive_actions',
-      optionsSource: 'rows:nc_non_applicants.nc_na_name');
+        fieldDefId: 101,
+        fieldKey: 'nc_prev_person',
+        fieldLabel: 'TEST Person',
+        fieldSource: 'custom',
+        fieldType: 'dropdown',
+        isRequired: false,
+        displayOrder: 101,
+        parentFieldKey: 'nc_preventive_actions',
+        optionsSource: 'rows:nc_non_applicants.nc_na_name');
     const all = [naGroup, naName, prevGroup, prevPerson];
 
     final values = <String, dynamic>{
@@ -355,12 +385,20 @@ void _liveNamesTest() {
           void changed(String k, dynamic v) => setState(() => values[k] = v);
           return ListView(children: [
             DynamicSectionCard(
-                title: 'TEST Non Applicant', icon: Icons.person, fields: const [naGroup],
-                controllers: controllers, values: values, onValueChanged: changed,
+                title: 'TEST Non Applicant',
+                icon: Icons.person,
+                fields: const [naGroup],
+                controllers: controllers,
+                values: values,
+                onValueChanged: changed,
                 allFormFields: all),
             DynamicSectionCard(
-                title: 'TEST Preventive', icon: Icons.shield, fields: const [prevGroup],
-                controllers: controllers, values: values, onValueChanged: changed,
+                title: 'TEST Preventive',
+                icon: Icons.shield,
+                fields: const [prevGroup],
+                controllers: controllers,
+                values: values,
+                onValueChanged: changed,
                 allFormFields: all),
           ]);
         }),

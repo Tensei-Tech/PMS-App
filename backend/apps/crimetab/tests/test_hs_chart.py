@@ -16,6 +16,7 @@ from apps.crimetab.models.history_sheeter import (
 )
 from apps.crimetab.tests.test_history_sheeter_backend import DummyOfficerUser
 from apps.crimetab.views_history_sheeter import HistorySheeterChartView, HistorySheeterConfigView
+from apps.crimetab.tests.state_schema import enter_state_schema
 
 
 class _Editor:
@@ -24,6 +25,7 @@ class _Editor:
 
 class HistorySheeterChartTests(TestCase):
     def setUp(self):
+        enter_state_schema(self)
         cache.clear()
         importlib.import_module('apps.crimetab.migrations.0069_hs_chart_tab_settings').seed(django_apps, _Editor())
         ModuleSetting.objects.update_or_create(module_key='history_sheeter', setting_key='enforce_permissions',

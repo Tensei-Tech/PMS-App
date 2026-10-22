@@ -15,6 +15,9 @@ Migration 0133: tenant module tables and id sequences (fresh databases)
    a duplicate key. Every sequence is moved up to the highest id in its table;
    a sequence is never moved down.
 
+3. field_templates.store_values_in_table (added by 0101 through Django) gets a
+   database default of FALSE, so raw-SQL seeds that do not name it still work.
+
 PostgreSQL only; nothing to undo.
 """
 
@@ -76,6 +79,9 @@ def forwards(apps, schema_editor):
             cursor.execute(f'CREATE SCHEMA IF NOT EXISTS "{schema}";')
             create_module_tables(cursor, schema)
         cursor.execute(SQL_SYNC_SEQUENCES)
+        cursor.execute(
+            'ALTER TABLE public.field_templates ALTER COLUMN store_values_in_table SET DEFAULT FALSE'
+        )
 
 
 class Migration(migrations.Migration):

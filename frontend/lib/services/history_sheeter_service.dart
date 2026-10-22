@@ -5,7 +5,8 @@ import 'api_service.dart';
 
 /// Service handling all API communications for the History Sheeter Module.
 class HistorySheeterService {
-  static final HistorySheeterService _instance = HistorySheeterService._internal();
+  static final HistorySheeterService _instance =
+      HistorySheeterService._internal();
   factory HistorySheeterService() => _instance;
   HistorySheeterService._internal();
 
@@ -112,7 +113,8 @@ class HistorySheeterService {
       }
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('[HistorySheeterService] fetchHistorySheeterDetail error: $e');
+        debugPrint(
+            '[HistorySheeterService] fetchHistorySheeterDetail error: $e');
       }
     }
     return null;
@@ -131,7 +133,8 @@ class HistorySheeterService {
   }
 
   /// Update an existing History Sheeter (PATCH)
-  Future<ApiResponse> updateHistorySheeter(dynamic id, Map<String, dynamic> data) async {
+  Future<ApiResponse> updateHistorySheeter(
+      dynamic id, Map<String, dynamic> data) async {
     try {
       return await _api.patch(ApiConfig.historySheeterDetail(id), data: data);
     } catch (e) {

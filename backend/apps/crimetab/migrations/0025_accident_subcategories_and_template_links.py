@@ -13,6 +13,8 @@ DECLARE
     baseline_tmpl_id BIGINT;
     cat_rec RECORD;
     next_cat_id BIGINT;
+    -- EXECUTE does not set FOUND, so existence checks read into this flag
+    row_exists BOOLEAN;
 BEGIN
     -- Gather all candidate schemas (public + tenant state schemas)
     FOR sch_rec IN
@@ -58,11 +60,11 @@ BEGIN
             IF grp_accident_id IS NOT NULL THEN
                 -- (a) Normal Accident under Group 1 Accident
                 EXECUTE format('
-                    SELECT 1 FROM %I.case_categories
-                    WHERE category_name = ''Normal Accident'' AND parent_category_id = $1
-                ', sch_name) USING grp_accident_id;
+                    SELECT EXISTS (SELECT 1 FROM %I.case_categories
+                    WHERE category_name = ''Normal Accident'' AND parent_category_id = $1)
+                ', sch_name) USING grp_accident_id INTO row_exists;
                 
-                IF NOT FOUND THEN
+                IF NOT row_exists THEN
                     EXECUTE format('
                         SELECT COALESCE(MAX(category_id), 0) + 1 FROM %I.case_categories
                     ', sch_name) INTO next_cat_id;
@@ -75,11 +77,11 @@ BEGIN
 
                 -- (b) Road Accident under Group 1 Accident
                 EXECUTE format('
-                    SELECT 1 FROM %I.case_categories
-                    WHERE category_name = ''Road Accident'' AND parent_category_id = $1
-                ', sch_name) USING grp_accident_id;
+                    SELECT EXISTS (SELECT 1 FROM %I.case_categories
+                    WHERE category_name = ''Road Accident'' AND parent_category_id = $1)
+                ', sch_name) USING grp_accident_id INTO row_exists;
 
-                IF NOT FOUND THEN
+                IF NOT row_exists THEN
                     EXECUTE format('
                         SELECT COALESCE(MAX(category_id), 0) + 1 FROM %I.case_categories
                     ', sch_name) INTO next_cat_id;
@@ -101,11 +103,11 @@ BEGIN
                 IF grp_road_accident_id IS NOT NULL THEN
                     -- (c) Death Due to Rash Driving under Group 1 Road Accident
                     EXECUTE format('
-                        SELECT 1 FROM %I.case_categories
-                        WHERE category_name = ''Death Due to Rash Driving'' AND parent_category_id = $1
-                    ', sch_name) USING grp_road_accident_id;
+                        SELECT EXISTS (SELECT 1 FROM %I.case_categories
+                        WHERE category_name = ''Death Due to Rash Driving'' AND parent_category_id = $1)
+                    ', sch_name) USING grp_road_accident_id INTO row_exists;
 
-                    IF NOT FOUND THEN
+                    IF NOT row_exists THEN
                         EXECUTE format('
                             SELECT COALESCE(MAX(category_id), 0) + 1 FROM %I.case_categories
                         ', sch_name) INTO next_cat_id;
@@ -118,11 +120,11 @@ BEGIN
 
                     -- (d) Other Road Accident under Group 1 Road Accident
                     EXECUTE format('
-                        SELECT 1 FROM %I.case_categories
-                        WHERE category_name = ''Other Road Accident'' AND parent_category_id = $1
-                    ', sch_name) USING grp_road_accident_id;
+                        SELECT EXISTS (SELECT 1 FROM %I.case_categories
+                        WHERE category_name = ''Other Road Accident'' AND parent_category_id = $1)
+                    ', sch_name) USING grp_road_accident_id INTO row_exists;
 
-                    IF NOT FOUND THEN
+                    IF NOT row_exists THEN
                         EXECUTE format('
                             SELECT COALESCE(MAX(category_id), 0) + 1 FROM %I.case_categories
                         ', sch_name) INTO next_cat_id;
@@ -141,11 +143,11 @@ BEGIN
             IF stand_accident_id IS NOT NULL THEN
                 -- (a) Normal Accident under Standalone Accident
                 EXECUTE format('
-                    SELECT 1 FROM %I.case_categories
-                    WHERE category_name = ''Normal Accident'' AND parent_category_id = $1
-                ', sch_name) USING stand_accident_id;
+                    SELECT EXISTS (SELECT 1 FROM %I.case_categories
+                    WHERE category_name = ''Normal Accident'' AND parent_category_id = $1)
+                ', sch_name) USING stand_accident_id INTO row_exists;
 
-                IF NOT FOUND THEN
+                IF NOT row_exists THEN
                     EXECUTE format('
                         SELECT COALESCE(MAX(category_id), 0) + 1 FROM %I.case_categories
                     ', sch_name) INTO next_cat_id;
@@ -158,11 +160,11 @@ BEGIN
 
                 -- (b) Road Accident under Standalone Accident
                 EXECUTE format('
-                    SELECT 1 FROM %I.case_categories
-                    WHERE category_name = ''Road Accident'' AND parent_category_id = $1
-                ', sch_name) USING stand_accident_id;
+                    SELECT EXISTS (SELECT 1 FROM %I.case_categories
+                    WHERE category_name = ''Road Accident'' AND parent_category_id = $1)
+                ', sch_name) USING stand_accident_id INTO row_exists;
 
-                IF NOT FOUND THEN
+                IF NOT row_exists THEN
                     EXECUTE format('
                         SELECT COALESCE(MAX(category_id), 0) + 1 FROM %I.case_categories
                     ', sch_name) INTO next_cat_id;
@@ -184,11 +186,11 @@ BEGIN
                 IF stand_road_accident_id IS NOT NULL THEN
                     -- (c) Death Due to Rash Driving under Standalone Road Accident
                     EXECUTE format('
-                        SELECT 1 FROM %I.case_categories
-                        WHERE category_name = ''Death Due to Rash Driving'' AND parent_category_id = $1
-                    ', sch_name) USING stand_road_accident_id;
+                        SELECT EXISTS (SELECT 1 FROM %I.case_categories
+                        WHERE category_name = ''Death Due to Rash Driving'' AND parent_category_id = $1)
+                    ', sch_name) USING stand_road_accident_id INTO row_exists;
 
-                    IF NOT FOUND THEN
+                    IF NOT row_exists THEN
                         EXECUTE format('
                             SELECT COALESCE(MAX(category_id), 0) + 1 FROM %I.case_categories
                         ', sch_name) INTO next_cat_id;
@@ -201,11 +203,11 @@ BEGIN
 
                     -- (d) Other Road Accident under Standalone Road Accident
                     EXECUTE format('
-                        SELECT 1 FROM %I.case_categories
-                        WHERE category_name = ''Other Road Accident'' AND parent_category_id = $1
-                    ', sch_name) USING stand_road_accident_id;
+                        SELECT EXISTS (SELECT 1 FROM %I.case_categories
+                        WHERE category_name = ''Other Road Accident'' AND parent_category_id = $1)
+                    ', sch_name) USING stand_road_accident_id INTO row_exists;
 
-                    IF NOT FOUND THEN
+                    IF NOT row_exists THEN
                         EXECUTE format('
                             SELECT COALESCE(MAX(category_id), 0) + 1 FROM %I.case_categories
                         ', sch_name) INTO next_cat_id;

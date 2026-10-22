@@ -27,7 +27,9 @@ void main() {
   group('AD Disposal Helper Tests', () {
     test('AD case is recognised by module key or sub-category', () {
       expect(isAdCase(_record(moduleKey: 'ad', status: 'Pending')), isTrue);
-      expect(isAdCase({'module_key': 'missing', 'sub_category': 'Accidental Death'}),
+      expect(
+          isAdCase(
+              {'module_key': 'missing', 'sub_category': 'Accidental Death'}),
           isTrue);
       expect(isAdCase(_record(moduleKey: 'theft', status: 'Pending')), isFalse);
     });

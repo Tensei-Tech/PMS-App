@@ -36,7 +36,8 @@ void main() {
   });
   tearDown(() => ApiService.clientForTesting = null);
 
-  testWidgets('Picking the source date fills the target date with source + days',
+  testWidgets(
+      'Picking the source date fills the target date with source + days',
       (tester) async {
     ApiService.clientForTesting = MockClient((req) async {
       if (req.url.path.contains('/form-definition/')) {

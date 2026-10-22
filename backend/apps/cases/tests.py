@@ -9,6 +9,10 @@ from apps.users.models import OfficerProfile
 
 class CaseManagementAPITests(TestCase):
     def setUp(self):
+        # Earlier tests can leave the connection on a state schema; the helper tables
+        # below belong in public, where every later query can see them.
+        from apps.core.tenancy import set_tenant_schema
+        set_tenant_schema('public')
         from apps.cases.tests_disposal import seed_ad_disposal_rule
         seed_ad_disposal_rule()
         self.client = APIClient()
@@ -43,11 +47,17 @@ class CaseManagementAPITests(TestCase):
             group_id=1,
             defaults={'group_name': 'Form I to V', 'group_code': 'I TO V', 'display_order': 1}
         )
-        # Group 1 tabs the tests use, found by code (ids differ between databases)
-        for order, (name, code) in enumerate([('Theft', 'theft'), ('Murder', 'murder'), ('Dacoity', 'dacoity')], 1):
+        cat_group_2, _ = CaseCategoryGroup.objects.get_or_create(
+            group_id=2,
+            defaults={'group_name': 'Part 6', 'group_code': 'VI', 'display_order': 2}
+        )
+        # Tabs the tests use, found by code (ids differ between databases)
+        tabs = [('Theft', 'theft', self.cat_group_1), ('Murder', 'murder', self.cat_group_1),
+                ('Dacoity', 'dacoity', self.cat_group_1), ('NDPS', 'ndps', cat_group_2)]
+        for order, (name, code, group) in enumerate(tabs, 1):
             CaseCategory.objects.get_or_create(
                 category_code=code,
-                defaults={'category_name': name, 'group': self.cat_group_1, 'is_active': True, 'display_order': order},
+                defaults={'category_name': name, 'group': group, 'is_active': True, 'display_order': order},
             )
 
         # 3. Create tables / mock views if not present in test DB
@@ -759,8 +769,14 @@ class CaseManagementAPITests(TestCase):
         self.assertEqual(g1['pending'], 2)
         self.assertEqual(g1['disposal'], 1)
 
-        # 2. Test Pagination and Lightweight Serializer on List
-        list_resp = self.client.get('/api/cases/?station_name=Shivajinagar Police Station')
+        # 2. Test Pagination and Lightweight Serializer on List. GET /api/cases/ is
+        # answered by crimetab's case view (registered first, list with extra_fields),
+        # so call the cases viewset's list directly.
+        from rest_framework.test import APIRequestFactory
+        from apps.cases.views import CaseRecordViewSet
+        list_req = APIRequestFactory().get('/api/cases/', {'station_name': 'Shivajinagar Police Station'},
+                                           HTTP_AUTHORIZATION=f'Bearer {self.officer_token}')
+        list_resp = CaseRecordViewSet.as_view({'get': 'list'})(list_req)
         self.assertEqual(list_resp.status_code, status.HTTP_200_OK)
         self.assertIn('results', list_resp.data)
         self.assertIn('count', list_resp.data)

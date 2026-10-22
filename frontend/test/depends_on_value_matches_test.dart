@@ -6,15 +6,18 @@ void main() {
     test('any of "A|B" against a multi-select list', () {
       const target = 'Cash|ATM and Banking Related';
       expect(dependsOnValueMatches(['Vehicle Theft', 'Cash'], target), isTrue);
-      expect(dependsOnValueMatches(['ATM and Banking Related'], target), isTrue);
+      expect(
+          dependsOnValueMatches(['ATM and Banking Related'], target), isTrue);
       expect(dependsOnValueMatches(['Vehicle Theft'], target), isFalse);
       expect(dependsOnValueMatches(<String>[], target), isFalse);
     });
 
     test('single value, comma text and yes/true', () {
       expect(dependsOnValueMatches('Other', 'Other'), isTrue);
-      expect(dependsOnValueMatches('Copper, Other Metal', 'Other Metal',
-          parentIsMultiSelect: true), isTrue);
+      expect(
+          dependsOnValueMatches('Copper, Other Metal', 'Other Metal',
+              parentIsMultiSelect: true),
+          isTrue);
       expect(dependsOnValueMatches('true', 'Yes'), isTrue);
       expect(dependsOnValueMatches('No', 'Yes'), isFalse);
     });

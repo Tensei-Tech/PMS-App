@@ -50,90 +50,90 @@ BEGIN
         IF to_regclass('public.field_template_fields') IS NOT NULL THEN
             -- Section: Application Details
             INSERT INTO public.field_template_fields (template_id, field_label, field_key, field_source, field_type, is_required, section, display_order, depends_on_field_key, depends_on_value, options_source)
-            VALUES (rti_tmpl_id, 'Received Date', 'rti_received_date', 'custom', 'date', FALSE, 'Application Details', 10, NULL, NULL, NULL)
-            ON CONFLICT DO NOTHING;
+            SELECT rti_tmpl_id, 'Received Date', 'rti_received_date', 'custom', 'date', FALSE, 'Application Details', 10, NULL, NULL, NULL
+            WHERE NOT EXISTS (SELECT 1 FROM public.field_template_fields WHERE template_id = rti_tmpl_id AND field_key = 'rti_received_date');
 
             INSERT INTO public.field_template_fields (template_id, field_label, field_key, field_source, field_type, is_required, section, display_order, depends_on_field_key, depends_on_value, options_source)
-            VALUES (rti_tmpl_id, 'Due Date', 'rti_due_date', 'custom', 'date', FALSE, 'Application Details', 20, NULL, NULL, NULL)
-            ON CONFLICT DO NOTHING;
+            SELECT rti_tmpl_id, 'Due Date', 'rti_due_date', 'custom', 'date', FALSE, 'Application Details', 20, NULL, NULL, NULL
+            WHERE NOT EXISTS (SELECT 1 FROM public.field_template_fields WHERE template_id = rti_tmpl_id AND field_key = 'rti_due_date');
 
             INSERT INTO public.field_template_fields (template_id, field_label, field_key, field_source, field_type, is_required, section, display_order, depends_on_field_key, depends_on_value, options_source)
-            VALUES (rti_tmpl_id, 'Mode of Receipt', 'rti_mode_of_receipt', 'custom', 'dropdown', FALSE, 'Application Details', 30, NULL, NULL, '/api/options/rti_mode_of_receipt/')
-            ON CONFLICT DO NOTHING;
+            SELECT rti_tmpl_id, 'Mode of Receipt', 'rti_mode_of_receipt', 'custom', 'dropdown', FALSE, 'Application Details', 30, NULL, NULL, '/api/options/rti_mode_of_receipt/'
+            WHERE NOT EXISTS (SELECT 1 FROM public.field_template_fields WHERE template_id = rti_tmpl_id AND field_key = 'rti_mode_of_receipt');
 
             -- Section: Application Details
             INSERT INTO public.field_template_fields (template_id, field_label, field_key, field_source, field_type, is_required, section, display_order, depends_on_field_key, depends_on_value, options_source)
-            VALUES (rti_tmpl_id, 'Applicant Name', 'rti_applicant_name', 'custom', 'text', FALSE, 'Application Details', 40, NULL, NULL, NULL)
-            ON CONFLICT DO NOTHING;
+            SELECT rti_tmpl_id, 'Applicant Name', 'rti_applicant_name', 'custom', 'text', FALSE, 'Application Details', 40, NULL, NULL, NULL
+            WHERE NOT EXISTS (SELECT 1 FROM public.field_template_fields WHERE template_id = rti_tmpl_id AND field_key = 'rti_applicant_name');
 
             INSERT INTO public.field_template_fields (template_id, field_label, field_key, field_source, field_type, is_required, section, display_order, depends_on_field_key, depends_on_value, options_source)
-            VALUES (rti_tmpl_id, 'Age', 'rti_applicant_age', 'custom', 'number', FALSE, 'Application Details', 50, NULL, NULL, NULL)
-            ON CONFLICT DO NOTHING;
+            SELECT rti_tmpl_id, 'Age', 'rti_applicant_age', 'custom', 'number', FALSE, 'Application Details', 50, NULL, NULL, NULL
+            WHERE NOT EXISTS (SELECT 1 FROM public.field_template_fields WHERE template_id = rti_tmpl_id AND field_key = 'rti_applicant_age');
 
             INSERT INTO public.field_template_fields (template_id, field_label, field_key, field_source, field_type, is_required, section, display_order, depends_on_field_key, depends_on_value, options_source)
-            VALUES (rti_tmpl_id, 'Mobile No.', 'rti_mobile_no', 'custom', 'text', FALSE, 'Application Details', 60, NULL, NULL, NULL)
-            ON CONFLICT DO NOTHING;
+            SELECT rti_tmpl_id, 'Mobile No.', 'rti_mobile_no', 'custom', 'text', FALSE, 'Application Details', 60, NULL, NULL, NULL
+            WHERE NOT EXISTS (SELECT 1 FROM public.field_template_fields WHERE template_id = rti_tmpl_id AND field_key = 'rti_mobile_no');
 
             INSERT INTO public.field_template_fields (template_id, field_label, field_key, field_source, field_type, is_required, section, display_order, depends_on_field_key, depends_on_value, options_source)
-            VALUES (rti_tmpl_id, 'Address', 'rti_address', 'custom', 'textarea', FALSE, 'Application Details', 70, NULL, NULL, NULL)
-            ON CONFLICT DO NOTHING;
+            SELECT rti_tmpl_id, 'Address', 'rti_address', 'custom', 'textarea', FALSE, 'Application Details', 70, NULL, NULL, NULL
+            WHERE NOT EXISTS (SELECT 1 FROM public.field_template_fields WHERE template_id = rti_tmpl_id AND field_key = 'rti_address');
 
             INSERT INTO public.field_template_fields (template_id, field_label, field_key, field_source, field_type, is_required, section, display_order, depends_on_field_key, depends_on_value, options_source)
-            VALUES (rti_tmpl_id, 'E-mail', 'rti_email', 'custom', 'text', FALSE, 'Application Details', 80, NULL, NULL, NULL)
-            ON CONFLICT DO NOTHING;
+            SELECT rti_tmpl_id, 'E-mail', 'rti_email', 'custom', 'text', FALSE, 'Application Details', 80, NULL, NULL, NULL
+            WHERE NOT EXISTS (SELECT 1 FROM public.field_template_fields WHERE template_id = rti_tmpl_id AND field_key = 'rti_email');
 
             INSERT INTO public.field_template_fields (template_id, field_label, field_key, field_source, field_type, is_required, section, display_order, depends_on_field_key, depends_on_value, options_source)
-            VALUES (rti_tmpl_id, 'BPL', 'rti_is_bpl', 'custom', 'radio', FALSE, 'Application Details', 90, NULL, NULL, '/api/options/yes_no/')
-            ON CONFLICT DO NOTHING;
+            SELECT rti_tmpl_id, 'BPL', 'rti_is_bpl', 'custom', 'radio', FALSE, 'Application Details', 90, NULL, NULL, '/api/options/yes_no/'
+            WHERE NOT EXISTS (SELECT 1 FROM public.field_template_fields WHERE template_id = rti_tmpl_id AND field_key = 'rti_is_bpl');
 
             -- Section: Information Requested
             INSERT INTO public.field_template_fields (template_id, field_label, field_key, field_source, field_type, is_required, section, display_order, depends_on_field_key, depends_on_value, options_source)
-            VALUES (rti_tmpl_id, 'Type of Info', 'rti_info_type', 'custom', 'dropdown', FALSE, 'Information Requested', 100, NULL, NULL, '/api/options/rti_info_type/')
-            ON CONFLICT DO NOTHING;
+            SELECT rti_tmpl_id, 'Type of Info', 'rti_info_type', 'custom', 'dropdown', FALSE, 'Information Requested', 100, NULL, NULL, '/api/options/rti_info_type/'
+            WHERE NOT EXISTS (SELECT 1 FROM public.field_template_fields WHERE template_id = rti_tmpl_id AND field_key = 'rti_info_type');
 
             INSERT INTO public.field_template_fields (template_id, field_label, field_key, field_source, field_type, is_required, section, display_order, depends_on_field_key, depends_on_value, options_source)
-            VALUES (rti_tmpl_id, 'Other (specify)', 'rti_info_type_other', 'custom', 'text', FALSE, 'Information Requested', 110, 'rti_info_type', 'Other', NULL)
-            ON CONFLICT DO NOTHING;
+            SELECT rti_tmpl_id, 'Other (specify)', 'rti_info_type_other', 'custom', 'text', FALSE, 'Information Requested', 110, 'rti_info_type', 'Other', NULL
+            WHERE NOT EXISTS (SELECT 1 FROM public.field_template_fields WHERE template_id = rti_tmpl_id AND field_key = 'rti_info_type_other');
 
             -- Section: Assigned Officer
             INSERT INTO public.field_template_fields (template_id, field_label, field_key, field_source, field_type, is_required, section, display_order, depends_on_field_key, depends_on_value, options_source)
-            VALUES (rti_tmpl_id, 'Assigned Officer', 'rti_assigned_officer', 'custom', 'dropdown', FALSE, 'Assigned Officer', 120, NULL, NULL, '/api/rti/officers/')
-            ON CONFLICT DO NOTHING;
+            SELECT rti_tmpl_id, 'Assigned Officer', 'rti_assigned_officer', 'custom', 'dropdown', FALSE, 'Assigned Officer', 120, NULL, NULL, '/api/rti/officers/'
+            WHERE NOT EXISTS (SELECT 1 FROM public.field_template_fields WHERE template_id = rti_tmpl_id AND field_key = 'rti_assigned_officer');
 
             -- Section: Outcome
             INSERT INTO public.field_template_fields (template_id, field_label, field_key, field_source, field_type, is_required, section, display_order, depends_on_field_key, depends_on_value, options_source)
-            VALUES (rti_tmpl_id, 'Outcome', 'rti_outcome', 'custom', 'radio', FALSE, 'Outcome', 130, NULL, NULL, '/api/options/rti_outcome/')
-            ON CONFLICT DO NOTHING;
+            SELECT rti_tmpl_id, 'Outcome', 'rti_outcome', 'custom', 'radio', FALSE, 'Outcome', 130, NULL, NULL, '/api/options/rti_outcome/'
+            WHERE NOT EXISTS (SELECT 1 FROM public.field_template_fields WHERE template_id = rti_tmpl_id AND field_key = 'rti_outcome');
 
             INSERT INTO public.field_template_fields (template_id, field_label, field_key, field_source, field_type, is_required, section, display_order, depends_on_field_key, depends_on_value, options_source)
-            VALUES (rti_tmpl_id, 'Replied Date', 'rti_replied_date', 'custom', 'date', FALSE, 'Outcome', 140, 'rti_outcome', 'Replied', NULL)
-            ON CONFLICT DO NOTHING;
+            SELECT rti_tmpl_id, 'Replied Date', 'rti_replied_date', 'custom', 'date', FALSE, 'Outcome', 140, 'rti_outcome', 'Replied', NULL
+            WHERE NOT EXISTS (SELECT 1 FROM public.field_template_fields WHERE template_id = rti_tmpl_id AND field_key = 'rti_replied_date');
 
             INSERT INTO public.field_template_fields (template_id, field_label, field_key, field_source, field_type, is_required, section, display_order, depends_on_field_key, depends_on_value, options_source)
-            VALUES (rti_tmpl_id, 'Rejected Date', 'rti_rejected_date', 'custom', 'date', FALSE, 'Outcome', 150, 'rti_outcome', 'Rejected', NULL)
-            ON CONFLICT DO NOTHING;
+            SELECT rti_tmpl_id, 'Rejected Date', 'rti_rejected_date', 'custom', 'date', FALSE, 'Outcome', 150, 'rti_outcome', 'Rejected', NULL
+            WHERE NOT EXISTS (SELECT 1 FROM public.field_template_fields WHERE template_id = rti_tmpl_id AND field_key = 'rti_rejected_date');
 
             INSERT INTO public.field_template_fields (template_id, field_label, field_key, field_source, field_type, is_required, section, display_order, depends_on_field_key, depends_on_value, options_source)
-            VALUES (rti_tmpl_id, 'Reason for Rejection', 'rti_rejection_reason', 'custom', 'textarea', FALSE, 'Outcome', 160, 'rti_outcome', 'Rejected', NULL)
-            ON CONFLICT DO NOTHING;
+            SELECT rti_tmpl_id, 'Reason for Rejection', 'rti_rejection_reason', 'custom', 'textarea', FALSE, 'Outcome', 160, 'rti_outcome', 'Rejected', NULL
+            WHERE NOT EXISTS (SELECT 1 FROM public.field_template_fields WHERE template_id = rti_tmpl_id AND field_key = 'rti_rejection_reason');
 
             INSERT INTO public.field_template_fields (template_id, field_label, field_key, field_source, field_type, is_required, section, display_order, depends_on_field_key, depends_on_value, options_source)
-            VALUES (rti_tmpl_id, 'Transfer To', 'rti_transferred_to', 'custom', 'textarea', FALSE, 'Outcome', 170, 'rti_outcome', 'Transferred', NULL)
-            ON CONFLICT DO NOTHING;
+            SELECT rti_tmpl_id, 'Transfer To', 'rti_transferred_to', 'custom', 'textarea', FALSE, 'Outcome', 170, 'rti_outcome', 'Transferred', NULL
+            WHERE NOT EXISTS (SELECT 1 FROM public.field_template_fields WHERE template_id = rti_tmpl_id AND field_key = 'rti_transferred_to');
 
             -- Section: Remark
             INSERT INTO public.field_template_fields (template_id, field_label, field_key, field_source, field_type, is_required, section, display_order, depends_on_field_key, depends_on_value, options_source)
-            VALUES (rti_tmpl_id, 'Remark', 'rti_remark', 'custom', 'textarea', FALSE, 'Remark', 180, NULL, NULL, NULL)
-            ON CONFLICT DO NOTHING;
+            SELECT rti_tmpl_id, 'Remark', 'rti_remark', 'custom', 'textarea', FALSE, 'Remark', 180, NULL, NULL, NULL
+            WHERE NOT EXISTS (SELECT 1 FROM public.field_template_fields WHERE template_id = rti_tmpl_id AND field_key = 'rti_remark');
 
             -- Section: Appeal
             INSERT INTO public.field_template_fields (template_id, field_label, field_key, field_source, field_type, is_required, section, display_order, depends_on_field_key, depends_on_value, options_source)
-            VALUES (rti_tmpl_id, 'Appealed', 'rti_appealed', 'custom', 'radio', FALSE, 'Appeal', 190, NULL, NULL, '/api/options/yes_no/')
-            ON CONFLICT DO NOTHING;
+            SELECT rti_tmpl_id, 'Appealed', 'rti_appealed', 'custom', 'radio', FALSE, 'Appeal', 190, NULL, NULL, '/api/options/yes_no/'
+            WHERE NOT EXISTS (SELECT 1 FROM public.field_template_fields WHERE template_id = rti_tmpl_id AND field_key = 'rti_appealed');
 
             INSERT INTO public.field_template_fields (template_id, field_label, field_key, field_source, field_type, is_required, section, display_order, depends_on_field_key, depends_on_value, options_source)
-            VALUES (rti_tmpl_id, 'Appeal Date', 'rti_appeal_date', 'custom', 'date', FALSE, 'Appeal', 200, 'rti_appealed', 'Yes', NULL)
-            ON CONFLICT DO NOTHING;
+            SELECT rti_tmpl_id, 'Appeal Date', 'rti_appeal_date', 'custom', 'date', FALSE, 'Appeal', 200, 'rti_appealed', 'Yes', NULL
+            WHERE NOT EXISTS (SELECT 1 FROM public.field_template_fields WHERE template_id = rti_tmpl_id AND field_key = 'rti_appeal_date');
         END IF;
     END IF;
 

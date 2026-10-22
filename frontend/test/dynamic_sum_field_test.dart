@@ -85,22 +85,19 @@ void main() {
 
     TextField fieldAfter(String label) => tester.widget<TextField>(find
         .descendant(
-            of: find.ancestor(
-                of: find.text(label), matching: find.byType(Column)).first,
+            of: find
+                .ancestor(of: find.text(label), matching: find.byType(Column))
+                .first,
             matching: find.byType(TextField))
         .first);
 
     expect(fieldAfter('TEST Total').readOnly, isTrue);
 
-    await tester.enterText(
-        fieldFor('TEST Serious'),
-        '3');
+    await tester.enterText(fieldFor('TEST Serious'), '3');
     await tester.pump();
     expect(fieldAfter('TEST Total').controller!.text, '3');
 
-    await tester.enterText(
-        fieldFor('TEST Misc'),
-        '4');
+    await tester.enterText(fieldFor('TEST Misc'), '4');
     await tester.pump();
     expect(fieldAfter('TEST Total').controller!.text, '7');
   });

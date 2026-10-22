@@ -44,7 +44,8 @@ void main() {
     expect(twin('Theft'), 'Theft');
   });
 
-  test('standalone-only tabs, sub-categories and combined tiles have no twin', () {
+  test('standalone-only tabs, sub-categories and combined tiles have no twin',
+      () {
     expect(twin('A.D'), isNull);
     expect(twin('MPDA'), isNull);
     expect(twin('Normal Accident'), isNull);

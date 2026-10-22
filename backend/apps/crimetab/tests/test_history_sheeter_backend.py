@@ -29,6 +29,7 @@ from apps.crimetab.views_history_sheeter import (
     HistorySheeterPDFView,
     _get_active_cutoff_date,
 )
+from apps.crimetab.tests.state_schema import enter_state_schema
 
 
 class DummyOfficerUser:
@@ -48,6 +49,7 @@ class DummyOfficerUser:
 
 class HistorySheeterBackendTestCase(TestCase):
     def setUp(self):
+        enter_state_schema(self)
         cache.clear()
         self.factory = APIRequestFactory()
         self.user = DummyOfficerUser()

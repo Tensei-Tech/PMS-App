@@ -537,7 +537,8 @@ class HistorySheeterListCreateView(APIView):
             cat = request.query_params.get('category', '').strip()
             if cat:
                 if connection.vendor == 'postgresql':
-                    qs = qs.filter(categories__contains=[cat])
+                    # The column is TEXT[]; the ORM would compare it with a VARCHAR[]
+                    qs = qs.extra(where=['"history_sheeters"."categories" @> ARRAY[%s]::text[]'], params=[cat])
                 else:
                     # SQLite test fallback
                     qs = qs.filter(categories__contains=cat)

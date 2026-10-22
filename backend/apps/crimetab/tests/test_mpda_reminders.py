@@ -15,10 +15,12 @@ from apps.crimetab.views_mpda import (
     MpdaSummaryView,
 )
 from apps.users.models import NotificationRecord, OfficerProfile
+from apps.crimetab.tests.state_schema import enter_state_schema
 
 
 class MpdaDetentionReminderTests(TestCase):
     def setUp(self):
+        enter_state_schema(self)
         MpdaBackendTestCase.setUp(self)
         for key, value in [('enforce_permissions', 'false'),
                            ('detention_reminder_first_days', '30'),

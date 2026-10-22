@@ -663,9 +663,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               'name': n,
               'age':
                   (it['age'] ?? it['suspected_accused_age'] ?? '').toString(),
-              'gender':
-                  (it['gender'] ?? it['suspected_accused_gender'] ?? '')
-                      .toString(),
+              'gender': (it['gender'] ?? it['suspected_accused_gender'] ?? '')
+                  .toString(),
               'occupation': (it['occupation'] ??
                       it['occ'] ??
                       it['suspected_accused_occupation'] ??
@@ -1302,8 +1301,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             final suretyNm = it['surety_name'] ?? it['suretyName'] ?? '';
             final suretyAge = it['surety_age'] ?? it['suretyAge'] ?? '';
             final suretyGender =
-                (it['surety_gender'] ?? it['suretyGender'] ?? '')
-                    .toString();
+                (it['surety_gender'] ?? it['suretyGender'] ?? '').toString();
             final suretyOcc =
                 it['surety_occupation'] ?? it['suretyOccupation'] ?? '';
             final suretyMob = it['surety_mobile'] ??
@@ -1385,8 +1383,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               'surety_age':
                   (rc['surety_age'] ?? rc['suretyAge'] ?? '').toString(),
               'surety_gender':
-                  (rc['surety_gender'] ?? rc['suretyGender'] ?? '')
-                      .toString(),
+                  (rc['surety_gender'] ?? rc['suretyGender'] ?? '').toString(),
               'surety_occupation':
                   (rc['surety_occupation'] ?? rc['suretyOccupation'] ?? '')
                       .toString(),
@@ -1437,8 +1434,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       final suretyNm = common['surety_name'] ?? extra['surety_name'] ?? '';
       final suretyAge = common['surety_age'] ?? extra['surety_age'] ?? '';
       final suretyGender =
-          (common['surety_gender'] ?? extra['surety_gender'] ?? '')
-              .toString();
+          (common['surety_gender'] ?? extra['surety_gender'] ?? '').toString();
       final suretyOcc =
           common['surety_occupation'] ?? extra['surety_occupation'] ?? '';
       final suretyMob = common['surety_mobile'] ?? extra['surety_mobile'] ?? '';
@@ -3253,8 +3249,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       }
     }
 
-    for (final secKey
-        in widget.sectionsInDisplayOrder ? const <String>[] : orderedSectionKeys) {
+    for (final secKey in widget.sectionsInDisplayOrder
+        ? const <String>[]
+        : orderedSectionKeys) {
       if (secKey == 'Acts & Sections Filed') {
         if (showSection(secKey)) {
           final idx = sectionCounter++;
@@ -4371,8 +4368,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       _controllers['accused_name']?.text = first['name']?.toString() ?? '';
       _controllers['accused_age']?.text = first['age']?.toString() ?? '';
       _values['accused_gender'] = first['gender']?.toString() ?? '';
-      _controllers['accused_gender']?.text =
-          first['gender']?.toString() ?? '';
+      _controllers['accused_gender']?.text = first['gender']?.toString() ?? '';
       _controllers['accused_occupation']?.text =
           first['occupation']?.toString() ?? '';
       _controllers['accused_mobile']?.text = first['mobile']?.toString() ?? '';
@@ -4550,8 +4546,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                           OutlinedButton.icon(
                             onPressed: () {
                               setState(() {
-                                _accusedList
-                                    .add({'name': '', 'gender': ''});
+                                _accusedList.add({'name': '', 'gender': ''});
                                 _syncPrimaryAccusedControllers();
                               });
                             },
@@ -4597,8 +4592,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           first['name']?.toString() ?? '';
       _controllers['suspected_accused_age']?.text =
           first['age']?.toString() ?? '';
-      _values['suspected_accused_gender'] =
-          first['gender']?.toString() ?? '';
+      _values['suspected_accused_gender'] = first['gender']?.toString() ?? '';
       _controllers['suspected_accused_gender']?.text =
           first['gender']?.toString() ?? '';
       _controllers['suspected_accused_occupation']?.text =
@@ -5014,8 +5008,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                           OutlinedButton.icon(
                             onPressed: () {
                               setState(() {
-                                _unidentifiedAccusedList.add(
-                                    {'approximate_age': '', 'gender': ''});
+                                _unidentifiedAccusedList
+                                    .add({'approximate_age': '', 'gender': ''});
                                 _syncPrimaryUnidentifiedControllers();
                               });
                             },
@@ -9222,9 +9216,8 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
                 ),
               ),
               DropdownButtonFormField<String>(
-                initialValue: genders.contains(_selectedGender)
-                    ? _selectedGender
-                    : null,
+                initialValue:
+                    genders.contains(_selectedGender) ? _selectedGender : null,
                 items: genders
                     .map((g) => DropdownMenuItem(
                           value: g,
@@ -9268,9 +9261,8 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
             const SizedBox(width: 8),
             Expanded(
               child: DropdownButtonFormField<String>(
-                initialValue: genders.contains(_selectedGender)
-                    ? _selectedGender
-                    : null,
+                initialValue:
+                    genders.contains(_selectedGender) ? _selectedGender : null,
                 items: genders
                     .map((g) => DropdownMenuItem(
                           value: g,
@@ -9700,9 +9692,7 @@ class _InlineUnidentifiedAccusedCardState
         ),
         DropdownButtonFormField<String>(
           initialValue:
-              genders.contains(_selectedGender)
-                  ? _selectedGender
-                  : null,
+              genders.contains(_selectedGender) ? _selectedGender : null,
           items: genders
               .map((g) => DropdownMenuItem(
                     value: g,

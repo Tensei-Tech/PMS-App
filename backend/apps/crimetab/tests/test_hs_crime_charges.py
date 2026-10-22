@@ -8,6 +8,7 @@ from apps.crimetab.models.history_sheeter import HistorySheeterCrime
 from apps.crimetab.serializers_history_sheeter import HistorySheeterDetailSerializer
 from apps.crimetab.tests.test_history_sheeter_backend import DummyOfficerUser
 from apps.crimetab.views_history_sheeter import HistorySheeterDetailView, HistorySheeterListCreateView
+from apps.crimetab.tests.state_schema import enter_state_schema
 
 CHARGE = {'act_id': 1, 'act_name': 'TEST Act', 'section_id': 2, 'section_number': 'TEST 10',
           'section_title': 'TEST title', 'subsection_id': 3, 'subsection_code': 'TEST (a)'}
@@ -15,6 +16,7 @@ CHARGE = {'act_id': 1, 'act_name': 'TEST Act', 'section_id': 2, 'section_number'
 
 class HistorySheeterCrimeChargeTests(TestCase):
     def setUp(self):
+        enter_state_schema(self)
         cache.clear()
         ModuleSetting.objects.update_or_create(module_key='history_sheeter', setting_key='enforce_permissions',
                                                defaults={'setting_value': 'false'})

@@ -6,10 +6,12 @@ from apps.crimetab.models import FieldTemplate, FieldTemplateField, ModuleSettin
 from apps.crimetab.models.history_sheeter import HistorySheeterPreventiveAction
 from apps.crimetab.tests.test_history_sheeter_backend import DummyOfficerUser
 from apps.crimetab.views_history_sheeter import HistorySheeterDetailView, HistorySheeterListCreateView
+from apps.crimetab.tests.state_schema import enter_state_schema
 
 
 class HistorySheeterMultiPreventiveTests(TestCase):
     def setUp(self):
+        enter_state_schema(self)
         cache.clear()
         ModuleSetting.objects.update_or_create(module_key='history_sheeter', setting_key='enforce_permissions',
                                                defaults={'setting_value': 'false'})

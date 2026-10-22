@@ -43,8 +43,12 @@ void main() {
     ApiService.clientForTesting = null;
   });
 
-  group('Requirement 4: Tap every dashboard tile and record screen opened before and after', () {
-    testWidgets('Records destination screen for every tile before and after fix', (tester) async {
+  group(
+      'Requirement 4: Tap every dashboard tile and record screen opened before and after',
+      () {
+    testWidgets(
+        'Records destination screen for every tile before and after fix',
+        (tester) async {
       final mockCategories = [
         {
           'category_id': 275,
@@ -83,7 +87,8 @@ void main() {
       final mockClient = MockClient((request) async {
         final path = request.url.path;
         if (path.contains('/children/')) {
-          return http.Response('[]', 200, headers: {'content-type': 'application/json'});
+          return http.Response('[]', 200,
+              headers: {'content-type': 'application/json'});
         }
         if (path.contains('/api/categories/')) {
           return http.Response(
@@ -118,9 +123,11 @@ void main() {
           );
         }
         if (path.contains('/counts/')) {
-          return http.Response('{}', 200, headers: {'content-type': 'application/json'});
+          return http.Response('{}', 200,
+              headers: {'content-type': 'application/json'});
         }
-        return http.Response('[]', 200, headers: {'content-type': 'application/json'});
+        return http.Response('[]', 200,
+            headers: {'content-type': 'application/json'});
       });
 
       ApiService.clientForTesting = mockClient;
@@ -293,7 +300,8 @@ void main() {
           Navigator.push(
             testContext!,
             MaterialPageRoute(
-              builder: (_) => const FormIVSelectionScreen(mode: FormIVSelectionMode.browse),
+              builder: (_) =>
+                  const FormIVSelectionScreen(mode: FormIVSelectionMode.browse),
               settings: const RouteSettings(name: 'FormIVSelectionScreen'),
             ),
           );
@@ -371,17 +379,25 @@ void main() {
       // Print recorded before-and-after table
       debugPrint('=== Dashboard Tile Routing Audit Table ===');
       for (final r in recordedResults) {
-        debugPrint('Tile: ${r['tile'].toString().padRight(24)} | Before: ${r['screenBefore'].toString().padRight(35)} | After: ${r['screenAfter']}');
+        debugPrint(
+            'Tile: ${r['tile'].toString().padRight(24)} | Before: ${r['screenBefore'].toString().padRight(35)} | After: ${r['screenAfter']}');
       }
       expect(recordedResults.length, equals(11));
     });
   });
 
-  group('Requirement 5: Cache clearing on dashboard open/logout and dynamic category appearance', () {
-    testWidgets('Clear cache methods invalidate category and hub config caches', (tester) async {
+  group(
+      'Requirement 5: Cache clearing on dashboard open/logout and dynamic category appearance',
+      () {
+    testWidgets('Clear cache methods invalidate category and hub config caches',
+        (tester) async {
       // 1. Prime caches
-      CaseService().setCategoriesCache([{'category_name': 'Test Cat'}]);
-      CategoryNavigationHelper.primeCache('test', [{'id': 1}]);
+      CaseService().setCategoriesCache([
+        {'category_name': 'Test Cat'}
+      ]);
+      CategoryNavigationHelper.primeCache('test', [
+        {'id': 1}
+      ]);
 
       expect(CategoryNavigationHelper.getCachedChildren('test'), isNotNull);
 
@@ -396,7 +412,9 @@ void main() {
       expect(CategoryNavigationHelper.getCachedChildren('test'), isNull);
     });
 
-    testWidgets('A category added to /api/categories/ after first load dynamically appears', (tester) async {
+    testWidgets(
+        'A category added to /api/categories/ after first load dynamically appears',
+        (tester) async {
       int fetchCount = 0;
       final mockClient = MockClient((request) async {
         if (request.url.path.contains('/api/categories/')) {
@@ -424,7 +442,8 @@ void main() {
             );
           }
         }
-        return http.Response('[]', 200, headers: {'content-type': 'application/json'});
+        return http.Response('[]', 200,
+            headers: {'content-type': 'application/json'});
       });
 
       ApiService.clientForTesting = mockClient;
@@ -432,7 +451,8 @@ void main() {
       // 1. First load
       final initialCats = await CaseService().fetchAllCategories();
       expect(initialCats.length, equals(2));
-      expect(initialCats.any((c) => c['category_code'] == 'STAND_CYBER'), isFalse);
+      expect(
+          initialCats.any((c) => c['category_code'] == 'STAND_CYBER'), isFalse);
 
       // 2. Clear cache as done on dashboard refresh / open
       CaseService().clearCategoryCache();
@@ -440,14 +460,19 @@ void main() {
       // 3. Second load (category added)
       final updatedCats = await CaseService().fetchAllCategories();
       expect(updatedCats.length, equals(3));
-      expect(updatedCats.any((c) => c['category_code'] == 'STAND_CYBER'), isTrue);
-      final newCat = updatedCats.firstWhere((c) => c['category_code'] == 'STAND_CYBER');
+      expect(
+          updatedCats.any((c) => c['category_code'] == 'STAND_CYBER'), isTrue);
+      final newCat =
+          updatedCats.firstWhere((c) => c['category_code'] == 'STAND_CYBER');
       expect(newCat['category_name'], equals('Cyber Crime Hub'));
     });
   });
 
-  group('Requirement 6: Routing with app language set to Hindi and Marathi', () {
-    testWidgets('History Sheeter routes to HistorySheeterHubScreen with Hindi and Marathi labels', (tester) async {
+  group('Requirement 6: Routing with app language set to Hindi and Marathi',
+      () {
+    testWidgets(
+        'History Sheeter routes to HistorySheeterHubScreen with Hindi and Marathi labels',
+        (tester) async {
       final mockClient = MockClient((request) async {
         if (request.url.path.contains('/api/categories/')) {
           return http.Response(
@@ -473,7 +498,8 @@ void main() {
             headers: {'content-type': 'application/json'},
           );
         }
-        return http.Response('{}', 200, headers: {'content-type': 'application/json'});
+        return http.Response('{}', 200,
+            headers: {'content-type': 'application/json'});
       });
 
       ApiService.clientForTesting = mockClient;

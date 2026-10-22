@@ -12,6 +12,7 @@ from apps.crimetab.models import ModuleSetting
 from apps.crimetab.models.mpda import MpdaAccusedPerson, MpdaGangMember, MpdaProposal
 from apps.crimetab.tests.test_mpda_backend import DummyMpdaOfficerUser
 from apps.crimetab.views_mpda import MpdaConfigView, MpdaSummaryView
+from apps.crimetab.tests.state_schema import enter_state_schema
 
 
 class _Editor:
@@ -20,6 +21,7 @@ class _Editor:
 
 class MpdaSummaryTests(TestCase):
     def setUp(self):
+        enter_state_schema(self)
         cache.clear()
         importlib.import_module('apps.crimetab.migrations.0074_mpda_summary_settings').seed(django_apps, _Editor())
         ModuleSetting.objects.update_or_create(module_key='mpda', setting_key='enforce_permissions',

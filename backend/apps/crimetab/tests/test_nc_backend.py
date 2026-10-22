@@ -20,6 +20,7 @@ from apps.crimetab.views_nc import (
     NcListCreateView,
     NcPdfView,
 )
+from apps.crimetab.tests.state_schema import enter_state_schema
 
 DATE_ONLY = '149 CrPC/168 BNSS'
 OTHER = '107 CrPC/126 BNSS'
@@ -73,6 +74,7 @@ def full_other_row(**kw):
 
 class NcBackendTests(TestCase):
     def setUp(self):
+        enter_state_schema(self)
         cache.clear()
         _seed_nc_public_data()
         self.factory = APIRequestFactory()
@@ -391,6 +393,7 @@ class NcBackendTests(TestCase):
 
 class NcOfficerAndDesignationTests(TestCase):
     def setUp(self):
+        enter_state_schema(self)
         cache.clear()
         _seed_nc_public_data()
         from apps.public_master.models import Designation

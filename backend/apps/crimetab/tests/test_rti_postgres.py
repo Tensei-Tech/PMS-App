@@ -56,9 +56,11 @@ class RTIApplicationPostgresTestCase(APITestCase):
         with TenantContext(self.scratch_schema):
             self.officer = OfficerProfile.objects.create(
                 uid="officer_scratch_100",
+                email="officer_scratch_100@test.example.com",  # emails are unique per state
                 name="Inspector Scratch",
                 designation="PI",
                 station_name="Scratch Station",
+                station_id="ST_SCRATCH_100",  # same station as the test user
                 account_status="active"
             )
 
@@ -99,7 +101,7 @@ class RTIApplicationPostgresTestCase(APITestCase):
             req.state_schema = schema
 
             res = post_view(req)
-            self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+            self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.data)
             self.assertEqual(res.data.get("status"), "Pending")
             rti_id = res.data.get("rti_id")
             self.assertIsNotNone(rti_id)
@@ -142,6 +144,7 @@ class RTIApplicationPostgresTestCase(APITestCase):
         with TenantContext(self.scratch_schema):
             OfficerProfile.objects.create(
                 uid="officer_ts_alpha",
+                email="officer_ts_alpha@test.example.com",  # emails are unique per state
                 name="TS Alpha Officer",
                 designation="PI",
                 station_name="Alpha Station",
@@ -153,6 +156,7 @@ class RTIApplicationPostgresTestCase(APITestCase):
         with TenantContext(self.other_scratch_schema):
             OfficerProfile.objects.create(
                 uid="officer_ka_alpha",
+                email="officer_ka_alpha@test.example.com",  # emails are unique per state
                 name="KA Alpha Officer",
                 designation="PI",
                 station_name="Alpha Station",

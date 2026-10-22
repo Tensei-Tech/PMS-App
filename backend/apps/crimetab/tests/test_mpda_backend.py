@@ -29,6 +29,7 @@ from apps.crimetab.views_mpda import (
     MpdaPDFView,
     MpdaOfficersView,
 )
+from apps.crimetab.tests.state_schema import enter_state_schema
 
 
 class DummyMpdaOfficerUser:
@@ -48,6 +49,7 @@ class DummyMpdaOfficerUser:
 
 class MpdaBackendTestCase(TestCase):
     def setUp(self):
+        enter_state_schema(self)
         cache.clear()
         self.factory = APIRequestFactory()
         self.user = DummyMpdaOfficerUser()
@@ -609,8 +611,10 @@ class MpdaBackendTestCase(TestCase):
         force_authenticate(req_det, user=self.user)
         res_det = MpdaDetailView.as_view()(req_det, pk=res.data['id'])
         display_labels = [r[0] for r in res_det.data.get('display_rows', [])]
-        self.assertIn('MPDA proposal no', display_labels)
-        self.assertIn('MPDA proposal year', display_labels)
+        # Labels come from the form template (a migrated database has its own wording)
+        for key in ('mpda_proposal_no', 'mpda_proposal_year'):
+            label = FieldTemplateField.objects.get(template__template_name='MPDA Proposal Template', field_key=key).field_label
+            self.assertIn(label, display_labels)
 
     def test_officer_scoping_hierarchy_station_division_district_state(self):
         # 1. Setup multi-unit officer profiles

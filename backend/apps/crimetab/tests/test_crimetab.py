@@ -1697,11 +1697,15 @@ class EnginePrerequisitesTests(TestCase):
         from django.db import connection
         mig29 = importlib.import_module('apps.crimetab.migrations.0029_add_rti_category_template_and_seed_data')
         editor = dummy_schema_editor(connection)
-        # Run seed migration twice to ensure idempotency (second run changes nothing)
-        mig29.seed_rti_data(django_apps, editor)
-        mig29.seed_rti_data(django_apps, editor)
-
         from apps.crimetab.models import CaseCategory, FieldTemplate, CategoryFieldTemplate, FieldTemplateField, ModuleSetting, OptionValue
+
+        # Run seed migration twice to ensure idempotency (second run changes nothing).
+        # Later migrations add / rename RTI fields, so compare the two runs, not a fixed count.
+        mig29.seed_rti_data(django_apps, editor)
+        rti_fields = FieldTemplateField.objects.filter(template__template_name='RTI Form')
+        after_first_run = rti_fields.count()
+        mig29.seed_rti_data(django_apps, editor)
+        self.assertEqual(rti_fields.count(), after_first_run)
         from apps.public_master.models import Permission
 
         # 1. 4 Permissions
@@ -1720,13 +1724,13 @@ class EnginePrerequisitesTests(TestCase):
         # 4. Link
         self.assertTrue(CategoryFieldTemplate.objects.filter(category=cat, template=tmpl).exists())
 
-        # 5. 20 Fields
-        self.assertEqual(FieldTemplateField.objects.filter(template=tmpl).count(), 20)
+        # 5. At least the 20 RTI fields
+        self.assertGreaterEqual(FieldTemplateField.objects.filter(template=tmpl).count(), 20)
 
         # Form definition integration check
         form_def = get_form_definition(cat.category_id)
         fields = form_def['fields']
-        self.assertEqual(len(fields), 20)
+        self.assertGreaterEqual(len(fields), 20)
         keys = [f['field_key'] for f in fields]
         self.assertIn('rti_received_date', keys)
         self.assertIn('rti_applicant_name', keys)

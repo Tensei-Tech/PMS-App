@@ -20,7 +20,7 @@ void main() {
     CaseService().clearCache();
   });
 
-  final formDefinitionMock = '''{
+  const formDefinitionMock = '''{
     "category_id": 268,
     "category_code": "ACC_RASH",
     "category_name": "Death Due to Rash Driving",
@@ -141,7 +141,8 @@ void main() {
     ]
   }''';
 
-  Widget buildTestWidget({ModuleRecord? record, Map<String, dynamic>? initialData}) {
+  Widget buildTestWidget(
+      {ModuleRecord? record, Map<String, dynamic>? initialData}) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
@@ -159,12 +160,16 @@ void main() {
     );
   }
 
-  testWidgets('DynamicFormScreen populates Road Accident fields and repeating groups on View/Edit', (tester) async {
+  testWidgets(
+      'DynamicFormScreen populates Road Accident fields and repeating groups on View/Edit',
+      (tester) async {
     final mockClient = MockClient((request) async {
       if (request.url.path.contains('/form-definition/')) {
-        return http.Response(formDefinitionMock, 200, headers: {'content-type': 'application/json'});
+        return http.Response(formDefinitionMock, 200,
+            headers: {'content-type': 'application/json'});
       }
-      return http.Response('{}', 200, headers: {'content-type': 'application/json'});
+      return http.Response('{}', 200,
+          headers: {'content-type': 'application/json'});
     });
     ApiService.clientForTesting = mockClient;
     tester.view.physicalSize = const Size(1200, 1200);
