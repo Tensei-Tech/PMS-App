@@ -43,6 +43,7 @@ import '../modules/nc/screens/nc_form_screen.dart';
 import '../modules/ndps/providers/ndps_provider.dart';
 import '../modules/passport/providers/passport_provider.dart';
 import '../widgets/summons_warrant_report_table.dart';
+import '../widgets/monthly_crime_comparative_table.dart';
 import '../modules/pending/providers/pending_provider.dart';
 import '../modules/pocso/providers/pocso_provider.dart';
 import '../modules/preventive/providers/preventive_provider.dart';
@@ -123,10 +124,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   final TextEditingController _searchCtrl = TextEditingController();
   late int _reportMonth;
   late int _reportYear;
-  bool _showMonthlySummaryTable = false;
-  bool _showMonthlyClassVTable = false;
-  bool _showMonthlyClassVITable = false;
-  bool _showMonthlyPreventiveTable = false;
   DateTimeRange? _selectedDateRange;
   FormIVDateField _dateField = FormIVDateField.incidentDate;
   FormIVDateSortOrder _dateSortOrder = FormIVDateSortOrder.newestFirst;
@@ -938,8 +935,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                         readOnly: true,
                       )));
                 })),
-          const SizedBox(height: 24),
-          _buildDemoReportSection(),
         ],
       ),
     );
@@ -1240,30 +1235,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                     ),
                   ],
                 ),
-                const Spacer(),
-                ElevatedButton.icon(
-                  onPressed: () => setState(() {
-                    _showMonthlySummaryTable = !_showMonthlySummaryTable;
-                    if (_showMonthlySummaryTable) {
-                      _showMonthlyClassVTable = false;
-                      _showMonthlyClassVITable = false;
-                      _showMonthlyPreventiveTable = false;
-                    }
-                  }),
-                  icon: const Icon(Icons.download_rounded,
-                      size: 16, color: Colors.white),
-                  label: Text(
-                    'Summary',
-                    style:
-                        GoogleFonts.poppins(fontSize: 11, color: Colors.white),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.navyMid,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                    ),
-                  ),
-                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -1334,78 +1305,13 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               ],
             ),
 
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
 
-            // Report buttons (report-only; no records list)
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: AppColors.navyMid.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.lightBorder),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _reportDownloadBtn(
-                      'Class V',
-                      () => setState(() {
-                        _showMonthlySummaryTable = false;
-                        _showMonthlyClassVTable = !_showMonthlyClassVTable;
-                        if (_showMonthlyClassVTable) {
-                          _showMonthlyClassVITable = false;
-                          _showMonthlyPreventiveTable = false;
-                        }
-                      }),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: _reportDownloadBtn(
-                      'Class VI',
-                      () => setState(() {
-                        _showMonthlySummaryTable = false;
-                        _showMonthlyClassVITable = !_showMonthlyClassVITable;
-                        if (_showMonthlyClassVITable) {
-                          _showMonthlyClassVTable = false;
-                          _showMonthlyPreventiveTable = false;
-                        }
-                      }),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: _reportDownloadBtn(
-                      'Preventives',
-                      () => setState(() {
-                        _showMonthlySummaryTable = false;
-                        _showMonthlyPreventiveTable =
-                            !_showMonthlyPreventiveTable;
-                        if (_showMonthlyPreventiveTable) {
-                          _showMonthlyClassVTable = false;
-                          _showMonthlyClassVITable = false;
-                        }
-                      }),
-                    ),
-                  ),
-                ],
-              ),
+            // Dynamic Monthly Crime Comparative Table from database API
+            MonthlyCrimeComparativeTable(
+              selectedYear: _reportYear,
+              selectedMonth: _reportMonth,
             ),
-
-            const SizedBox(height: 14),
-
-            if (_showMonthlySummaryTable)
-              _buildMonthlySummaryPhotoTable(
-                  context, allRecords, _reportMonth, _reportYear),
-            if (_showMonthlyClassVTable)
-              _buildMonthlyRegistrationTable(
-                  context, allRecords, _reportMonth, _reportYear),
-            if (_showMonthlyClassVITable)
-              _buildMonthlyRegistrationTableVI(
-                  context, allRecords, _reportMonth, _reportYear),
-            if (_showMonthlyPreventiveTable)
-              _buildMonthlyRegistrationTablePreventive(
-                  context, allRecords, _reportMonth, _reportYear),
           ],
         ),
       ),
@@ -3517,22 +3423,29 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     );
   }
 
-  Widget _reportDownloadBtn(String label, VoidCallback onTap) {
+  Widget _reportDownloadBtn(String label, VoidCallback onTap,
+      {bool active = false}) {
     return SizedBox(
       height: 38,
       child: ElevatedButton(
         onPressed: onTap,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.navyMid,
-          foregroundColor: Colors.white,
+          backgroundColor: active ? AppColors.navyMid : Colors.white,
+          foregroundColor: active ? Colors.white : AppColors.navyMid,
+          elevation: active ? 1 : 0,
+          side: BorderSide(
+            color: active ? AppColors.navyMid : AppColors.lightBorder,
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 10),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          elevation: 0,
         ),
         child: Text(
           TranslationHelper.translate(context, label),
-          style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700),
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: active ? FontWeight.w700 : FontWeight.w600,
+          ),
         ),
       ),
     );
@@ -3786,34 +3699,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildDemoReportSection() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.infoBlue.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: AppColors.infoBlue.withValues(alpha: 0.2)),
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          const Icon(Icons.info_outline_rounded,
-              size: 18, color: AppColors.infoBlue),
-          const SizedBox(width: 8),
-          Text('Demo Statistics',
-              style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.infoBlue)),
-        ]),
-        const SizedBox(height: 8),
-        Text(
-            'The counts above reflect all cases registered across all modules for the current month. You can add new cases from the dashboard to see them reflected here instantly.',
-            style: GoogleFonts.poppins(
-                fontSize: 11, color: AppColors.lightSubText)),
-      ]),
     );
   }
 

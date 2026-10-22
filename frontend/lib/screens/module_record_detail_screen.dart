@@ -13,6 +13,7 @@ import '../modules/mpda/screens/mpda_form_screen.dart';
 import '../modules/nc/screens/nc_form_screen.dart';
 import '../modules/preventive/screens/preventive_form_screen.dart';
 import '../providers/auth_provider.dart';
+import '../services/case_service.dart';
 import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/case_visibility.dart';
@@ -57,6 +58,7 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
   void _subscribeToRecord() {
     final id = _record.id;
     if (id.isEmpty) return;
+    _fetchFreshRecord();
     _subscription?.cancel();
     _subscription = _firestore.watchCaseById(id).listen(
       (next) {
@@ -73,6 +75,21 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
         // Keep showing local record if stream errors
       },
     );
+  }
+
+  Future<void> _fetchFreshRecord() async {
+    final id = _record.id;
+    if (id.isEmpty) return;
+    try {
+      final fresh = await CaseService().fetchCaseById(id);
+      if (fresh != null && mounted) {
+        setState(() {
+          _recordDeleted = false;
+          _accessDenied = false;
+          _record = fresh;
+        });
+      }
+    } catch (_) {}
   }
 
   @override
@@ -115,10 +132,15 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
       backgroundColor: AppColors.lightBg,
       body: _recordDeleted
           ? _buildDeletedBody(context, isDark, statusColor, moduleLabel)
-          : CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                _buildAppBar(context, isDark, statusColor, moduleLabel),
+          : RefreshIndicator(
+              onRefresh: _fetchFreshRecord,
+              color: AppColors.goldPrimary,
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                slivers: [
+                  _buildAppBar(context, isDark, statusColor, moduleLabel),
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.all(AppSpacing.lg),
@@ -175,6 +197,7 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
                 ),
               ],
             ),
+          ),
       bottomNavigationBar:
           _buildStickyBottomActions(context, moduleLabel, showContent),
     );
@@ -232,9 +255,9 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
     );
   }
 
-  void _openEdit(BuildContext context, String moduleLabel) {
+  Future<void> _openEdit(BuildContext context, String moduleLabel) async {
     if (_record.moduleKey == 'ad') {
-      Navigator.push(
+      await Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
           page: ADFormScreen(
@@ -243,10 +266,11 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
           ),
         ),
       );
+      _fetchFreshRecord();
       return;
     }
     if (_record.moduleKey == 'nc') {
-      Navigator.push(
+      await Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
           page: NcFormScreen(
@@ -256,10 +280,11 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
           ),
         ),
       );
+      _fetchFreshRecord();
       return;
     }
     if (_record.moduleKey == 'missing') {
-      Navigator.push(
+      await Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
           page: MissingFormScreen(
@@ -269,10 +294,11 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
           ),
         ),
       );
+      _fetchFreshRecord();
       return;
     }
     if (_record.moduleKey == 'preventive') {
-      Navigator.push(
+      await Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
           page: PreventiveFormScreen(
@@ -282,10 +308,11 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
           ),
         ),
       );
+      _fetchFreshRecord();
       return;
     }
     if (_record.moduleKey == 'mpda') {
-      Navigator.push(
+      await Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
           page: MpdaFormScreen(
@@ -295,10 +322,11 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
           ),
         ),
       );
+      _fetchFreshRecord();
       return;
     }
     if (moduleUsesCommonCrimeForm(_record.moduleKey)) {
-      Navigator.push(
+      await Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
           page: CommonFormScreen(
@@ -308,9 +336,10 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
           ),
         ),
       );
+      _fetchFreshRecord();
       return;
     }
-    Navigator.push(
+    await Navigator.push(
       context,
       AppTheme.fadeSlideRoute(
         page: ModuleFormScreen(
@@ -320,6 +349,7 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
         ),
       ),
     );
+    _fetchFreshRecord();
   }
 
   Widget _buildDeletedBody(

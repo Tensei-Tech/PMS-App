@@ -270,6 +270,31 @@ class CaseService {
     }
   }
 
+  /// Fetch a single case record by ID dynamically from Django PostgreSQL backend: GET /api/cases/{id}/
+  Future<ModuleRecord?> fetchCaseById(String caseId) async {
+    if (caseId.trim().isEmpty) return null;
+    final token = await _api.getAuthToken();
+    if (token == null || token.isEmpty || _api.isTokenExpired(token)) {
+      return null;
+    }
+
+    return _gate.run(() async {
+      try {
+        final url = '${ApiConfig.cases}$caseId/';
+        final response = await _api.get(url);
+        if (response.isSuccess && response.data is Map) {
+          final data = Map<String, dynamic>.from(response.data as Map);
+          return ModuleRecord.fromMap(data, data['id']?.toString() ?? caseId);
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('[CaseService] fetchCaseById exception: $e');
+        }
+      }
+      return null;
+    });
+  }
+
   /// Fetch Case PDF report payload from Django backend: GET /api/cases/{id}/pdf/
   Future<Map<String, dynamic>?> fetchCasePdfData(String caseId) async {
     if (caseId.trim().isEmpty) return null;

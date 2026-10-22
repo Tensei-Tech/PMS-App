@@ -2187,13 +2187,20 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     List<dynamic>? initialCharges;
     if (widget.existingRecord != null) {
       final extra = widget.existingRecord!.extraFields;
-      initialCharges = (extra['charges'] is List)
-          ? extra['charges'] as List
-          : ((extra['acts_sections'] is List)
-              ? extra['acts_sections'] as List
-              : ((extra['commonForm'] is Map)
-                  ? (extra['commonForm'] as Map)['charges'] as List?
-                  : null));
+      final cf =
+          (extra['commonForm'] is Map) ? (extra['commonForm'] as Map) : null;
+      final chRaw = extra['charges'] ??
+          extra['acts_sections'] ??
+          cf?['charges'] ??
+          cf?['acts_sections'];
+      if (chRaw is List) {
+        initialCharges = chRaw;
+      } else if (chRaw is Map) {
+        final list = chRaw.values.whereType<Map>().toList();
+        if (list.isNotEmpty) {
+          initialCharges = list;
+        }
+      }
     }
 
     return Container(

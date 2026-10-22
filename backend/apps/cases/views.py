@@ -2256,5 +2256,104 @@ class SummonsWarrantReportView(APIView):
             )
 
 
+class MonthlyCrimeComparativeView(APIView):
+    """
+    Police Monthly Crime Comparative Report API View.
+    Aggregates dynamic database records across 5 reporting windows:
+    - Current Month (REP / DET)
+    - Previous Month (REP / DET)
+    - Same Month Previous Year (REP / DET)
+    - Monthly INC/DEC
+    - Current Year YTD (REP / DET)
+    - Previous Year YTD (REP / DET)
+    - YTD INC/DEC
+    Following official Maharashtra & Indian Police crime comparative report format.
+    """
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def get(self, request):
+        try:
+            from django.utils import timezone
+            from apps.cases.comparative_service import MonthlyCrimeComparativeService
+            from apps.core.tenancy import get_active_tenant_schema, set_tenant_schema
+
+            # Ensure tenant schema
+            schema = get_active_tenant_schema()
+            if schema and schema != 'public':
+                set_tenant_schema(schema)
+
+            user = request.user
+            now = timezone.now()
+
+            # Parse year and month query parameters
+            year_param = request.query_params.get('year')
+            month_param = request.query_params.get('month')
+
+            try:
+                year = int(year_param) if year_param else now.year
+            except (ValueError, TypeError):
+                year = now.year
+
+            try:
+                month = int(month_param) if month_param else now.month
+                if not (1 <= month <= 12):
+                    month = now.month
+            except (ValueError, TypeError):
+                month = now.month
+
+            # Cutoff day or to_date
+            cutoff_day = None
+            to_date_param = request.query_params.get('to_date') or request.query_params.get('as_of_date')
+            cutoff_day_param = request.query_params.get('cutoff_day')
+            if cutoff_day_param:
+                try:
+                    cutoff_day = int(cutoff_day_param)
+                except (ValueError, TypeError):
+                    cutoff_day = None
+            elif to_date_param:
+                try:
+                    if '-' in to_date_param:
+                        parts = to_date_param.split('-')
+                        if len(parts) == 3:
+                            cutoff_day = int(parts[2])
+                    elif '/' in to_date_param:
+                        parts = to_date_param.split('/')
+                        if len(parts) == 3:
+                            cutoff_day = int(parts[0])
+                except (ValueError, TypeError):
+                    cutoff_day = None
+
+            # Station filtering with multi-tenancy access checks
+            can_view_all = check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')
+            target_station = request.query_params.get('station_name')
+            allowed_stations = None
+
+            if not can_view_all:
+                user_stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                user_stations = [s for s in user_stations if s]
+                if target_station:
+                    if target_station not in user_stations:
+                        raise exceptions.PermissionDenied("You do not have access to view data for this police station.")
+                else:
+                    allowed_stations = user_stations
+
+            service = MonthlyCrimeComparativeService(
+                station_name=target_station,
+                allowed_stations=allowed_stations
+            )
+            result = service.get_comparative_statement(year=year, month=month, cutoff_day=cutoff_day)
+            return Response(result, status=status.HTTP_200_OK)
+
+        except exceptions.PermissionDenied as pd:
+            raise pd
+        except Exception as e:
+            logger.exception(f"[MonthlyCrimeComparativeView] Database error: {e}")
+            return Response(
+                {'error': 'Failed to generate monthly crime comparative report.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+
 
 

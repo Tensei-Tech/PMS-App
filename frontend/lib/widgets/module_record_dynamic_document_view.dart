@@ -248,7 +248,11 @@ class ModuleRecordDynamicDocumentView extends StatelessWidget {
     Map<String, dynamic> scalarMap, {
     required bool desktop,
   }) {
-    final ordered = orderedModuleHubScalarKeys(scalarMap);
+    final orderedAll = orderedModuleHubScalarKeys(scalarMap);
+    final ordered = orderedAll.where((k) {
+      final v = disp(scalarMap[k]).trim();
+      return v.isNotEmpty && v != '—' && v != '-' && v != 'null' && v != 'None';
+    }).toList();
     final rows = <Widget>[];
     if (!desktop) {
       for (final k in ordered) {
@@ -284,7 +288,13 @@ class ModuleRecordDynamicDocumentView extends StatelessWidget {
     if (extra.isEmpty) {
       return const SizedBox.shrink();
     }
-    final keys = extra.keys.map((k) => k.toString()).toList();
+    final keys = extra.keys.map((k) => k.toString()).where((k) {
+      final val = extra[k];
+      if (val == null || val == false || val == '' || val == '—' || val == '-' || val == 'None') return false;
+      if (val is Map && val.isEmpty) return false;
+      if (val is List && val.isEmpty) return false;
+      return true;
+    }).toList();
     final blocks = <Widget>[];
     final scalarPending = <Widget>[];
 
@@ -475,10 +485,13 @@ class ModuleRecordDynamicDocumentView extends StatelessWidget {
 
     Map<String, dynamic>? commonFormMap;
     final extraSansCommon = Map<String, dynamic>.from(extra);
-    final nested = extra[kCommonFormExtraFieldsKey];
+    final nested = extra[kCommonFormExtraFieldsKey] ?? extra['common_form'];
     if (nested is Map) {
       commonFormMap = Map<String, dynamic>.from(nested);
       extraSansCommon.remove(kCommonFormExtraFieldsKey);
+      extraSansCommon.remove('common_form');
+    } else if (moduleUsesCommonCrimeForm(record.moduleKey)) {
+      commonFormMap = Map<String, dynamic>.from(extra);
     }
 
     Map<String, dynamic>? ncFormMap;

@@ -63,16 +63,24 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                     1: const FlexColumnWidth(1.2),
                     2: const FlexColumnWidth(1.4),
                     3: const FlexColumnWidth(1.4),
-                    4: const FlexColumnWidth(1.4),
-                    5: const FlexColumnWidth(1.8),
+                    4: const FlexColumnWidth(1.6),
+                    5: const FlexColumnWidth(1.6),
                   }
-                : <int, TableColumnWidth>{
-                    0: const IntrinsicColumnWidth(),
-                    1: const FlexColumnWidth(1.5),
-                    2: const FlexColumnWidth(1.5),
-                    3: const FlexColumnWidth(1.5),
-                    4: const FlexColumnWidth(2.0),
-                  };
+                : isUndetected
+                    ? <int, TableColumnWidth>{
+                        0: const IntrinsicColumnWidth(),
+                        1: const FlexColumnWidth(1.2),
+                        2: const FlexColumnWidth(1.5),
+                        3: const FlexColumnWidth(1.5),
+                        4: const FlexColumnWidth(1.8),
+                      }
+                    : <int, TableColumnWidth>{
+                        0: const IntrinsicColumnWidth(),
+                        1: const FlexColumnWidth(1.5),
+                        2: const FlexColumnWidth(1.5),
+                        3: const FlexColumnWidth(1.5),
+                        4: const FlexColumnWidth(2.0),
+                      };
 
         Widget headerCell(String s) => Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
@@ -158,12 +166,14 @@ class PendingCasesDemoDataTable extends StatelessWidget {
           headerCell('Sr. No'),
           headerCell('Cr. No.'),
           headerCell('SEC & ACT'),
+          if (isAbsconded || isUndetected) headerCell('Head'),
           if (isAbsconded) headerCell('Accused Name (फरार आरोपी)'),
           if (isVictim) headerCell('Head'),
           if (isVictim) headerCell('Name'),
           if (isVictim) headerCell('Injured/Deceased'),
           headerCell('IO Name'),
-          headerCell('Police station name'),
+          if (!isUndetected && !isAbsconded)
+            headerCell('Police station name'),
         ];
 
         TableRow rowFor(int idx, Map<String, String> r) {
@@ -173,7 +183,13 @@ class PendingCasesDemoDataTable extends StatelessWidget {
             children: [
               dataCell('${serialOffset + idx + 1}'),
               clickableCrCell(r),
-              dataCell(r['sections']!),
+              dataCell(
+                  r['sections']?.isNotEmpty == true ? r['sections']! : '—'),
+              if (isAbsconded || isUndetected)
+                dataCell(
+                  r['head']?.isNotEmpty == true ? r['head']! : '—',
+                  align: Alignment.centerLeft,
+                ),
               if (isAbsconded)
                 dataCell(
                   r['accused']?.isNotEmpty == true ? r['accused']! : '—',
@@ -198,7 +214,8 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                         : '—',
                     align: Alignment.centerLeft),
               dataCell(r['io']!, align: Alignment.centerLeft),
-              dataCell(r['station']!, align: Alignment.centerLeft),
+              if (!isUndetected && !isAbsconded)
+                dataCell(r['station']!, align: Alignment.centerLeft),
             ],
           );
         }

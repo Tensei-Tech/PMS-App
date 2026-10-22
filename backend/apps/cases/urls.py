@@ -36,6 +36,7 @@ from apps.cases.views import (
     IradSummaryStatsView,
     IradRemindIOView,
     SummonsWarrantReportView,
+    MonthlyCrimeComparativeView,
 )
 
 router = DefaultRouter()
@@ -73,6 +74,8 @@ urlpatterns = [
     path('victim/io-wise/', VictimIOWiseView.as_view(), name='victim-io-wise'),
     path('victim/stats/', VictimStatsView.as_view(), name='victim-stats'),
     path('summons-warrant/', SummonsWarrantReportView.as_view(), name='summons-warrant-report'),
+    path('monthly-comparative/', MonthlyCrimeComparativeView.as_view(), name='monthly-crime-comparative'),
+
     path('sam-warrant/', SummonsWarrantReportView.as_view(), name='sam-warrant-report'),
     path('dar/', DarCasesListView.as_view(), name='dar-cases-list'),
     path('dar/cases/', DarCasesListView.as_view(), name='dar-cases-list-alias'),
