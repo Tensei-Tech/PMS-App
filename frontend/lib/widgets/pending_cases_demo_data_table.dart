@@ -12,7 +12,6 @@ import '../modules/nc/screens/nc_form_screen.dart';
 import '../modules/preventive/screens/preventive_form_screen.dart';
 import '../screens/common_form_screen.dart';
 import '../screens/module_form_screen.dart';
-import '../screens/module_record_detail_screen.dart';
 import '../services/backend_case_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/common_form_module.dart';
@@ -399,7 +398,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
     );
   }
 
-  /// Displays the case filled information modal with View Details & Edit Case buttons.
+  /// Displays the case filled information modal with Edit Case button.
   void _showCaseFilledInfoDialog(BuildContext context, Map<String, String> row) {
     showDialog(
       context: context,
@@ -623,76 +622,36 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                       const Divider(height: 1, color: AppColors.lightBorder),
                       const SizedBox(height: 16),
 
-                      // Action Buttons: View Details & Edit Case
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () {
-                                Navigator.pop(dialogCtx);
-                                if (record != null) {
-                                  Navigator.push(
-                                    context,
-                                    AppTheme.fadeSlideRoute(
-                                      page: ModuleRecordDetailScreen(
-                                        record: record,
-                                      ),
-                                    ),
-                                  );
-                                }
-                              },
-                              icon: const Icon(Icons.visibility_rounded,
-                                  size: 17),
-                              label: Text(
-                                'View Details',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: AppColors.navyMid,
-                                side: const BorderSide(
-                                    color: AppColors.navyMid),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
+                      // Action Button: Edit Case
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.pop(dialogCtx);
+                            if (record != null) {
+                              _openCaseEditScreen(context, record);
+                            }
+                          },
+                          icon: const Icon(Icons.edit_note_rounded,
+                              size: 19),
+                          label: Text(
+                            'Edit Case',
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.pop(dialogCtx);
-                                if (record != null) {
-                                  _openCaseEditScreen(context, record);
-                                }
-                              },
-                              icon: const Icon(Icons.edit_note_rounded,
-                                  size: 19),
-                              label: Text(
-                                'Edit Case',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.navyMid,
-                                foregroundColor: Colors.white,
-                                elevation: 0,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.navyMid,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                        ],
+                        ),
                       ),
                     ],
                   ),
