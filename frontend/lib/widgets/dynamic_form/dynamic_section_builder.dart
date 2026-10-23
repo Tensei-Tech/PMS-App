@@ -416,7 +416,10 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                   )
                 else
                   Padding(
-                    padding: EdgeInsets.all(isCompact ? 10.0 : 12.0),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isCompact ? 12.0 : 16.0,
+                      vertical: isCompact ? 10.0 : 12.0,
+                    ),
                     child: LayoutBuilder(
                       builder: (context, constraints) {
                         final isWide = constraints.maxWidth > 600;
@@ -524,13 +527,13 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                           );
                         }
 
+                        final rowSpacing = isCompact ? 8.0 : 10.0;
                         if (!isWide) {
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: visibleFields.map((f) {
                               return Padding(
-                                padding: EdgeInsets.only(
-                                    bottom: isCompact ? 10 : 12),
+                                padding: EdgeInsets.only(bottom: rowSpacing),
                                 child: buildControl(f),
                               );
                             }).toList(),
@@ -541,7 +544,7 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                         if (widget.title.toLowerCase().contains('cctv') &&
                             visibleFields.length == 3) {
                           return Padding(
-                            padding: EdgeInsets.only(bottom: isCompact ? 8 : 9),
+                            padding: EdgeInsets.only(bottom: rowSpacing),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
@@ -581,8 +584,7 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                           pending.clear();
                           items.add(
                             Padding(
-                              padding:
-                                  EdgeInsets.only(bottom: isCompact ? 8 : 9),
+                              padding: EdgeInsets.only(bottom: rowSpacing),
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -606,8 +608,7 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                             flushPair();
                             items.add(
                               Padding(
-                                padding: EdgeInsets.only(
-                                    bottom: isCompact ? 10 : 12),
+                                padding: EdgeInsets.only(bottom: rowSpacing),
                                 child: buildControl(f),
                               ),
                             );

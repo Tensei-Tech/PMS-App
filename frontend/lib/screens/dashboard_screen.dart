@@ -402,6 +402,10 @@ Widget _buildServiceIcon(
   }
   final glyphSize = size * 1.42;
   if (fallback is IconData)
+    // ignore: curly_braces
+    //
+    // _in_flow_control_structures
+    // ignore: curly_braces_in_flow_control_structures
     return Icon(fallback, color: color, size: glyphSize);
   return FaIcon(fallback, color: color, size: glyphSize);
 }

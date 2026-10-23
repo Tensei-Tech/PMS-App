@@ -129,22 +129,16 @@ class DynamicControlFactory extends StatelessWidget {
       case 'year':
         return _buildFieldLayout(
           context,
-          Align(
-            alignment: Alignment.centerLeft,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 150),
-              child: YearPickerField(
-                controller: controller,
-                readOnly: readOnly,
-                isRequired: fieldDef.isRequired,
-                label: fieldDef.fieldLabel,
-                onChanged: onChanged,
-                decoration: _inputDecoration(
-                        hint: 'Select or type year (e.g. 03)')
-                    .copyWith(
-                        suffixIcon: const Icon(Icons.arrow_drop_down_rounded)),
-              ),
-            ),
+          YearPickerField(
+            controller: controller,
+            readOnly: readOnly,
+            isRequired: fieldDef.isRequired,
+            label: fieldDef.fieldLabel,
+            onChanged: onChanged,
+            decoration: _inputDecoration(
+                    hint: 'Select or type year (e.g. 03)')
+                .copyWith(
+                    suffixIcon: const Icon(Icons.arrow_drop_down_rounded)),
           ),
         );
       case 'date':
@@ -185,6 +179,7 @@ class DynamicControlFactory extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildLabel(context),
+          const SizedBox(height: 6),
           control,
         ],
       );
@@ -198,41 +193,43 @@ class DynamicControlFactory extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildLabel(context),
+              const SizedBox(height: 6),
               control,
             ],
           );
         }
+        final labelWidth = constraints.maxWidth >= 400 ? 165.0 : 145.0;
         return Row(
           crossAxisAlignment: isMultiline
               ? CrossAxisAlignment.start
               : CrossAxisAlignment.center,
           children: [
             SizedBox(
-              width: 130,
+              width: labelWidth,
               child: Padding(
-                padding: EdgeInsets.only(top: isMultiline ? 12 : 0),
-                child: Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        _displayLabel,
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.navyDark,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                padding: EdgeInsets.only(top: isMultiline ? 10 : 0),
+                child: Text.rich(
+                  TextSpan(
+                    text: _displayLabel,
+                    style: GoogleFonts.poppins(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.navyDark,
+                      height: 1.25,
                     ),
-                    if (fieldDef.isRequired)
-                      const Text(
-                        ' *',
-                        style: TextStyle(
-                          color: AppColors.dangerRed,
-                          fontWeight: FontWeight.bold,
+                    children: [
+                      if (fieldDef.isRequired)
+                        const TextSpan(
+                          text: ' *',
+                          style: TextStyle(
+                            color: AppColors.dangerRed,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ),
@@ -268,27 +265,25 @@ class DynamicControlFactory extends StatelessWidget {
   Widget _buildLabel(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              _displayLabel,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppColors.navyDark,
-              ),
-            ),
+      child: Text.rich(
+        TextSpan(
+          text: _displayLabel,
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.navyDark,
           ),
-          if (fieldDef.isRequired)
-            const Text(
-              ' *',
-              style: TextStyle(
-                color: AppColors.dangerRed,
-                fontWeight: FontWeight.bold,
+          children: [
+            if (fieldDef.isRequired)
+              const TextSpan(
+                text: ' *',
+                style: TextStyle(
+                  color: AppColors.dangerRed,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -464,9 +459,6 @@ class DynamicControlFactory extends StatelessWidget {
   Widget _buildNumberField(BuildContext context) {
     // A `sum:` total is calculated from other fields, never typed in
     final isTotal = fieldDef.sumOf.isNotEmpty;
-    final isAgeOrShort = fieldDef.fieldKey.toLowerCase().contains('age') ||
-        fieldDef.fieldLabel.toLowerCase().contains('age') ||
-        (fieldDef.maxDigits != null && fieldDef.maxDigits! <= 4);
     // A digit limit from the field definition (options source `digits:<n>`,
     // e.g. ages): extra digits are refused with a message under the field
     final maxDigits = fieldDef.maxDigits;
@@ -482,15 +474,7 @@ class DynamicControlFactory extends StatelessWidget {
       );
       return _buildFieldLayout(
         context,
-        isAgeOrShort
-            ? Align(
-                alignment: Alignment.centerLeft,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 140),
-                  child: maxField,
-                ),
-              )
-            : maxField,
+        maxField,
       );
     }
     final numField = TextFormField(
@@ -519,15 +503,7 @@ class DynamicControlFactory extends StatelessWidget {
     );
     return _buildFieldLayout(
       context,
-      isAgeOrShort
-          ? Align(
-              alignment: Alignment.centerLeft,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 140),
-                child: numField,
-              ),
-            )
-          : numField,
+      numField,
     );
   }
 
