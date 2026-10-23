@@ -135,8 +135,7 @@ class DynamicControlFactory extends StatelessWidget {
             isRequired: fieldDef.isRequired,
             label: fieldDef.fieldLabel,
             onChanged: onChanged,
-            decoration: _inputDecoration(
-                    hint: 'Select or type year (e.g. 03)')
+            decoration: _inputDecoration(hint: 'Select or type year (e.g. 03)')
                 .copyWith(
                     suffixIcon: const Icon(Icons.arrow_drop_down_rounded)),
           ),
