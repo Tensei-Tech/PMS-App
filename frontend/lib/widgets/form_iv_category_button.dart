@@ -34,6 +34,18 @@ const List<String> kFormIVCaseCategories = [
   'COIN',
 ];
 
+List<String>? _dynamicFormIVCaseCategories;
+
+/// Shared Form I-V IPC case-type labels (dynamic from backend or fallback)
+List<String> get formIVCaseCategories =>
+    _dynamicFormIVCaseCategories ?? kFormIVCaseCategories;
+
+void updateDynamicFormIVCategories(List<String> categories) {
+  if (categories.isNotEmpty) {
+    _dynamicFormIVCaseCategories = categories;
+  }
+}
+
 /// Teal gradient category button for Form I-V case-type grids.
 class FormIVCategoryButton extends StatelessWidget {
   static const double height = 54;

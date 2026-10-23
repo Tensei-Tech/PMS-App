@@ -6,6 +6,7 @@ import 'nafis_summary_screen.dart';
 import '../modules/core/models/base_record.dart';
 import '../utils/arrested_table_firestore_mapper.dart';
 import '../utils/excel_export_helper.dart';
+import '../widgets/nafis_cases_data_table.dart';
 
 class NAFISHubScreen extends StatefulWidget {
   final String stationName;
@@ -50,6 +51,7 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
   }
 
   void _handleTabChange() {
+    if (_tabController.indexIsChanging) return;
     if (_tabController.index == 0 && _caseWiseList == null && !_isLoadingCase) {
       _loadCaseWise();
     } else if (_tabController.index == 1 &&
@@ -96,14 +98,6 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
                 m.accused.isNotEmpty ? m.accused : (r['accused_name'] ?? '—');
           }
           enrichedRows.add(r);
-        }
-
-        final grouped = <String, List<Map<String, dynamic>>>{};
-        for (final r in enrichedRows) {
-          final head = r['head']?.toString().trim().isNotEmpty == true
-              ? r['head']!.toString().trim()
-              : 'All Categories';
-          grouped.putIfAbsent(head, () => []).add(r);
         }
 
         setState(() {
@@ -188,154 +182,13 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
       );
     }
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.vertical,
+    return RefreshIndicator(
+      onRefresh: _loadCaseWise,
+      color: AppColors.navyMid,
       child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: DataTable(
-          headingTextStyle: GoogleFonts.poppins(
-              fontWeight: FontWeight.w600, color: AppColors.navyDark),
-          dataTextStyle: GoogleFonts.poppins(color: Colors.black87),
-          columns: const [
-            DataColumn(label: Text('Sr. No.')),
-            DataColumn(label: Text('CR No.')),
-            DataColumn(label: Text('Section/Act')),
-            DataColumn(label: Text('Charge Sheet Date')),
-            DataColumn(label: Text('IO Name')),
-            DataColumn(label: Text('Status')),
-            DataColumn(label: Text('Action')),
-          ],
-          rows: _caseWiseList!.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final caseItem = entry.value;
-            final isGreen = (caseItem['nafis_status_color'] ?? '')
-                        .toString()
-                        .toLowerCase() ==
-                    'green' ||
-                (caseItem['nafis_status'] ?? '').toString().toLowerCase() ==
-                    'done' ||
-                (caseItem['nafis_status'] ?? '').toString().toLowerCase() ==
-                    'chargesheeted';
-            final statusText = isGreen ? 'Done' : 'Pending';
-            final actionRequired =
-                caseItem['action_required'] == true || !isGreen;
-            final caseId =
-                (caseItem['id'] ?? caseItem['case_id'] ?? '').toString();
-            final caseNumber = (caseItem['case_number'] ??
-                    caseItem['cr_no'] ??
-                    caseItem['cr'] ??
-                    '-')
-                .toString();
-            final srNo = caseItem['sr_no']?.toString() ?? '${idx + 1}';
-            final extra = caseItem['extra_fields'] is Map
-                ? caseItem['extra_fields'] as Map
-                : {};
-            final sectionActRaw = caseItem['section_act'] ??
-                caseItem['acts_sections'] ??
-                caseItem['sections'] ??
-                caseItem['section'] ??
-                caseItem['act_section'] ??
-                caseItem['sectionAct'] ??
-                extra['section_act'] ??
-                extra['acts_sections'] ??
-                extra['sections'] ??
-                extra['section'] ??
-                extra['act_section'] ??
-                extra['sectionAct'];
-            final formattedSec =
-                ExcelExportHelper.formatSectionAct(sectionActRaw);
-            final sectionAct = formattedSec.isEmpty ? '-' : formattedSec;
-            final csDate = (caseItem['charge_sheet_date'] ??
-                    caseItem['chargesheet_date'] ??
-                    '')
-                .toString()
-                .trim();
-            final ioName = (caseItem['assigned_officer'] ??
-                    caseItem['io_name'] ??
-                    caseItem['io'] ??
-                    'Unassigned')
-                .toString();
-
-            return DataRow(
-              cells: [
-                DataCell(Text(srNo)),
-                DataCell(Text(caseNumber)),
-                DataCell(Text(sectionAct)),
-                DataCell(Text(csDate.isEmpty ? 'Pending' : csDate)),
-                DataCell(Text(ioName.isEmpty ? 'Unassigned' : ioName)),
-                DataCell(
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: isGreen
-                          ? const Color(0xFF22C55E)
-                          : const Color(0xFFEF4444),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      statusText,
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ),
-                DataCell(
-                  actionRequired
-                      ? ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFEF4444),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 0),
-                            minimumSize: const Size(80, 30),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            elevation: 0,
-                          ),
-                          onPressed: () async {
-                            if (caseId.isNotEmpty) {
-                              final ok =
-                                  await _backend.sendNafisReminderToIO(caseId);
-                              if (!mounted) return;
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(ok
-                                        ? "Reminder sent to IO for case $caseNumber"
-                                        : "Reminder recorded for case $caseNumber"),
-                                    backgroundColor: const Color(0xFFEF4444),
-                                  ),
-                                );
-                              }
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                      "Reminder sent to IO for case $caseNumber"),
-                                  backgroundColor: const Color(0xFFEF4444),
-                                ),
-                              );
-                            }
-                          },
-                          child: Text(
-                            'Remind to IO',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        )
-                      : const Text('-'),
-                ),
-              ],
-            );
-          }).toList(),
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: NAFISCasesDataTable(realDataRows: _caseWiseList),
       ),
     );
   }
@@ -351,71 +204,149 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
               Text(_errorTime!, style: GoogleFonts.poppins(color: Colors.red)));
     }
     if (_timeWiseData == null || _timeWiseData!.isEmpty) {
-      return const Center(child: Text("No time-wise data found"));
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.schedule_rounded,
+              size: 48,
+              color: AppColors.navyMid.withValues(alpha: 0.3),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              "No time-wise data found",
+              style: GoogleFonts.poppins(color: AppColors.lightSubText),
+            ),
+          ],
+        ),
+      );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _timeWiseData!.length,
-      itemBuilder: (context, index) {
-        final item = _timeWiseData![index];
-        final period = item['period'] ?? '';
-        final count = item['count'] ?? 0;
+    return RefreshIndicator(
+      onRefresh: _loadTimeWise,
+      color: AppColors.navyMid,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        itemCount: _timeWiseData!.length,
+        itemBuilder: (context, index) {
+          final item = _timeWiseData![index];
+          final period = item['period']?.toString() ?? '';
+          final count = item['count'] ?? 0;
 
-        return Card(
-          elevation: 1,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            leading: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.navyMid.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.access_time_rounded,
-                color: AppColors.navyMid,
-                size: 22,
-              ),
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
-            title: Text(
-              period,
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-                color: AppColors.navyDark,
-              ),
-            ),
-            trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color:
-                    count > 0 ? const Color(0xFFFFEBEE) : Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: count > 0
-                      ? const Color(0xFFEF5350)
-                      : Colors.grey.shade300,
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(14),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () {
+                  final now = DateTime.now();
+                  DateTime? start, end;
+
+                  if (period == 'Under 1 month') {
+                    start = now.subtract(const Duration(days: 30));
+                  } else if (period == '1 to 3 months') {
+                    start = now.subtract(const Duration(days: 90));
+                    end = now.subtract(const Duration(days: 30));
+                  } else if (period == '3 to 6 months') {
+                    start = now.subtract(const Duration(days: 180));
+                    end = now.subtract(const Duration(days: 90));
+                  } else if (period == '6 to 12 months') {
+                    start = now.subtract(const Duration(days: 365));
+                    end = now.subtract(const Duration(days: 180));
+                  } else if (period == 'More than 1 year') {
+                    end = now.subtract(const Duration(days: 365));
+                  } else if (period == 'Under 3 months (Total)') {
+                    start = now.subtract(const Duration(days: 90));
+                  }
+
+                  Navigator.push(
+                    context,
+                    AppTheme.fadeSlideRoute(
+                      page: NAFISSummaryScreen(
+                        title: 'NAFIS - $period',
+                        startDate: start?.toIso8601String().split('T')[0],
+                        endDate: end?.toIso8601String().split('T')[0],
+                        stationName: widget.stationName,
+                      ),
+                    ),
+                  );
+                },
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0F2FA),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.schedule_rounded,
+                          color: AppColors.navyMid,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          period,
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14.5,
+                            color: AppColors.navyDark,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.navyMid.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: AppColors.navyMid.withValues(alpha: 0.15),
+                          ),
+                        ),
+                        child: Text(
+                          '$count ${count == 1 ? 'Case' : 'Cases'}',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                            color: AppColors.navyMid,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppColors.lightSubText,
+                        size: 22,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              child: Text(
-                '$count',
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13,
-                  color: count > 0
-                      ? const Color(0xFFC62828)
-                      : Colors.grey.shade700,
-                ),
-              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
@@ -430,78 +361,152 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
               Text(_errorIO!, style: GoogleFonts.poppins(color: Colors.red)));
     }
     if (_ioWiseData == null || _ioWiseData!.isEmpty) {
-      return const Center(child: Text("No IO data found"));
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.badge_outlined,
+              size: 48,
+              color: AppColors.navyMid.withValues(alpha: 0.3),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              "No IO data found",
+              style: GoogleFonts.poppins(color: AppColors.lightSubText),
+            ),
+          ],
+        ),
+      );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _ioWiseData!.length,
-      itemBuilder: (context, index) {
-        final item = _ioWiseData![index];
-        final ioName = item['io_name'] ?? 'Unassigned';
-        final station = item['station_name'] ?? '';
-        final count = item['pending_count'] ?? 0;
+    return RefreshIndicator(
+      onRefresh: _loadIOWise,
+      color: AppColors.navyMid,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        itemCount: _ioWiseData!.length,
+        itemBuilder: (context, index) {
+          final item = _ioWiseData![index];
+          final ioName = item['io_name'] ?? 'Unassigned';
+          final station = item['station_name'] ?? '';
+          final count = item['pending_count'] ?? item['nafis_count'] ?? 0;
+          final ioUid = (item['io_uid'] ?? ioName).toString();
 
-        return Card(
-          elevation: 1,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            leading: CircleAvatar(
-              backgroundColor: AppColors.navyMid.withValues(alpha: 0.1),
-              child: const Icon(Icons.person_rounded, color: AppColors.navyMid),
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
-            title: Text(
-              ioName,
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-                color: AppColors.navyDark,
-              ),
-            ),
-            subtitle: Text(
-              station,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                color: AppColors.lightSubText,
-              ),
-            ),
-            trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color:
-                    count > 0 ? const Color(0xFFFFEBEE) : Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: count > 0
-                      ? const Color(0xFFEF5350)
-                      : Colors.grey.shade300,
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(14),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    AppTheme.fadeSlideRoute(
+                      page: NAFISSummaryScreen(
+                        title: 'NAFIS - $ioName',
+                        ioUid: ioUid,
+                        stationName: widget.stationName,
+                      ),
+                    ),
+                  );
+                },
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0F2FA),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.person_rounded,
+                          color: AppColors.navyMid,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              ioName,
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14.5,
+                                color: AppColors.navyDark,
+                              ),
+                            ),
+                            if (station.toString().isNotEmpty) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                station,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: AppColors.lightSubText,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.navyMid.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: AppColors.navyMid.withValues(alpha: 0.15),
+                          ),
+                        ),
+                        child: Text(
+                          '$count ${count == 1 ? 'Case' : 'Cases'}',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                            color: AppColors.navyMid,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppColors.lightSubText,
+                        size: 22,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              child: Text(
-                '$count Pending',
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 12,
-                  color: count > 0
-                      ? const Color(0xFFC62828)
-                      : Colors.grey.shade700,
-                ),
-              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.lightBg,
+      backgroundColor: const Color(0xFFF6F8FF),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,

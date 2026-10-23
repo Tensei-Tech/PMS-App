@@ -24,52 +24,65 @@ class FilteredDisposalScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.lightBg,
+      backgroundColor: const Color(0xFFF6F8FF),
       body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-              child: Row(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
                 children: [
-                  GestureDetector(
+                  InkWell(
                     onTap: () => Navigator.pop(context),
+                    borderRadius: BorderRadius.circular(10),
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.lightBorder),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                      child: const Icon(Icons.arrow_back_rounded,
-                          color: AppColors.navyMid, size: 20),
+                      child: const Icon(
+                        Icons.arrow_back_rounded,
+                        color: AppColors.navyDark,
+                        size: 20,
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Text(
                       title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
-                        fontSize: 16,
+                        fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: AppColors.navyDark,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
-            ),
-            Expanded(
-              child: DisposalCaseListView(
-                ioUid: ioUid,
-                startDate: startDate,
-                endDate: endDate,
-                crimeType: crimeType,
+              const SizedBox(height: 16),
+              Expanded(
+                child: DisposalCaseListView(
+                  ioUid: ioUid,
+                  startDate: startDate,
+                  endDate: endDate,
+                  crimeType: crimeType,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

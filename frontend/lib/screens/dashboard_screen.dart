@@ -131,7 +131,7 @@ import 'report_case_list_screen.dart';
 import 'station_access_grants_screen.dart';
 
 dynamic _dashboardTileIcon(String label, dynamic fallback) {
-  final k = label.replaceAll('\n', ' ').trim();
+  final k = label.replaceAll(RegExp(r'\s+'), ' ').trim();
   switch (k) {
     case 'Monthly':
       return FontAwesomeIcons.calendarDay;
@@ -208,6 +208,7 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
       return FontAwesomeIcons.scaleBalanced;
     case 'Passport/PVR/Lic':
     case 'Passport/ PVR/Lic':
+    case 'Passport/PVR':
       return FontAwesomeIcons.idCard;
     case 'NDPS':
       return FontAwesomeIcons.pills;
@@ -248,389 +249,165 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
   }
 }
 
+String? _getDashboardSvgPath(String label) {
+  final clean = label.toLowerCase().replaceAll(RegExp(r'[\s/._\\]+'), '');
+  switch (clean) {
+    case 'itov':
+    case '1to5':
+      return 'assets/icons/1to5.svg';
+    case 'vi':
+    case '6':
+      return 'assets/icons/6.svg';
+    case 'pending':
+      return 'assets/icons/pending.svg';
+    case 'gambling':
+      return 'assets/icons/gambling.svg';
+    case 'juvenile':
+      return 'assets/icons/juvenile.svg';
+    case 'sandtheft':
+      return 'assets/icons/sandtheft.svg';
+    case 'undetected':
+      return 'assets/icons/undetected.svg';
+    case 'hurt':
+      return 'assets/icons/hurt.svg';
+    case 'kidnappingmissing':
+    case 'kidnapping':
+      return 'assets/icons/kidnapping.svg';
+    case 'missing':
+      return 'assets/icons/missing.svg';
+    case 'nc':
+      return 'assets/icons/nc.svg';
+    case 'arrested':
+      return 'assets/icons/arrested.svg';
+    case 'pocso':
+      return 'assets/icons/pocso.svg';
+    case 'crimeagainstwomen':
+      return 'assets/icons/crimewomen.svg';
+    case 'victim':
+      return 'assets/icons/victim.svg';
+    case 'ad':
+      return 'assets/icons/ad.svg';
+    case 'prohibition':
+      return 'assets/icons/prohibiton.svg';
+    case 'theft':
+      return 'assets/icons/theft.svg';
+    case 'twofourwheelertheft':
+    case 'twofourwheelerstolen':
+    case '24wheeler':
+      return 'assets/icons/2-4wheeler.svg';
+    case 'samwarrant':
+    case 'samwarrants':
+      return 'assets/icons/sam-warrants.svg';
+    case 'muddemal':
+    case 'propertyrecovery':
+      return 'assets/icons/muddemal.svg';
+    case 'rti':
+      return 'assets/icons/rti.svg';
+    case 'passportpvr':
+    case 'passportpvrlic':
+    case 'passport':
+      return 'assets/icons/passport.svg';
+    case 'ndps':
+      return 'assets/icons/ndps.svg';
+    case 'gowansh':
+    case 'gowans':
+      return 'assets/icons/gowans.svg';
+    case 'itact':
+      return 'assets/icons/itact.svg';
+    case 'mcoca':
+    case 'macoca':
+      return 'assets/icons/macoca.svg';
+    case 'uapa':
+      return 'assets/icons/uapa.svg';
+    case 'mpda':
+      return 'assets/icons/mpda.svg';
+    case 'coin':
+      return 'assets/icons/coin.svg';
+    case 'mvact':
+      return 'assets/icons/mvact.svg';
+    case 'accident':
+      return 'assets/icons/accident.svg';
+    case 'detected':
+      return 'assets/icons/detected.svg';
+    case 'disposal':
+      return 'assets/icons/disposal.svg';
+    case 'monthly':
+      return 'assets/icons/monthly.svg';
+    case 'absconded':
+      return 'assets/icons/absconded.svg';
+    case 'cctns':
+      return 'assets/icons/cctns.svg';
+    case 'licence':
+      return 'assets/icons/licence.svg';
+    case 'tadipar':
+      return 'assets/icons/tadipar.svg';
+    case 'repeatoffender':
+      return 'assets/icons/repeatoffender.svg';
+    case 'dar':
+      return 'assets/icons/dar.svg';
+    case 'irad':
+    case 'irda':
+      return 'assets/icons/IRAD.svg';
+    case 'itsso':
+      return 'assets/icons/itsso.svg';
+    default:
+      if (clean.contains('passport')) return 'assets/icons/passport.svg';
+      return null;
+  }
+}
+
 Widget _buildGridIcon(
     String label, dynamic fallback, Color color, double size) {
   final labelTrim = label.replaceAll('\n', ' ').trim();
-
-  if (labelTrim == 'I to V') {
+  final svgPath = _getDashboardSvgPath(labelTrim);
+  if (svgPath != null) {
+    // Optical calibration: tall icons get a slight factor to match square icon mass
+    final isTall = svgPath.contains('juvenile') ||
+        svgPath.contains('crimewomen') ||
+        svgPath.contains('victim') ||
+        svgPath.contains('passport');
+    final scale = isTall ? 1.58 : 1.5;
     return SvgPicture.asset(
-      'assets/icons/1to5.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'VI') {
-    return SvgPicture.asset(
-      'assets/icons/6.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Pending') {
-    return SvgPicture.asset(
-      'assets/icons/pending.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Gambling') {
-    return SvgPicture.asset(
-      'assets/icons/gambling.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Juvenile') {
-    return SvgPicture.asset(
-      'assets/icons/juvenile.svg',
-      width: size * 2.2,
-      height: size * 2.2,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim.toLowerCase().replaceAll(' ', '') == 'sandtheft') {
-    return SvgPicture.asset(
-      'assets/icons/sandtheft.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Undetected') {
-    return SvgPicture.asset(
-      'assets/icons/undetected.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Hurt') {
-    return SvgPicture.asset(
-      'assets/icons/hurt.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Kidnapping/Missing') {
-    return SvgPicture.asset(
-      'assets/icons/kidnapping.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Missing') {
-    return SvgPicture.asset(
-      'assets/icons/missing.svg',
-      width: size * 2.1,
-      height: size * 2.1,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'N.C') {
-    return SvgPicture.asset(
-      'assets/icons/nc.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Arrested') {
-    return SvgPicture.asset(
-      'assets/icons/arrested.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'POCSO') {
-    return SvgPicture.asset(
-      'assets/icons/pocso.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Crime against Women') {
-    return SvgPicture.asset(
-      'assets/icons/crimewomen.svg',
-      width: size * 2.2,
-      height: size * 2.2,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Victim') {
-    return SvgPicture.asset(
-      'assets/icons/victim.svg',
-      width: size * 2.2,
-      height: size * 2.2,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'A.D') {
-    return SvgPicture.asset(
-      'assets/icons/ad.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Prohibition') {
-    return SvgPicture.asset(
-      'assets/icons/prohibiton.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Theft') {
-    return SvgPicture.asset(
-      'assets/icons/theft.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Two/Four Wheeler Theft') {
-    return SvgPicture.asset(
-      'assets/icons/2-4wheeler.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Sam/Warrant') {
-    return SvgPicture.asset(
-      'assets/icons/sam-warrants.svg',
-      width: size * 2.2,
-      height: size * 2.2,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Muddemal') {
-    return SvgPicture.asset(
-      'assets/icons/muddemal.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'RTI') {
-    return SvgPicture.asset(
-      'assets/icons/rti.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Passport/PVR' ||
-      labelTrim == 'Passport/PVR/Lic' ||
-      labelTrim.contains('Passport')) {
-    return SvgPicture.asset(
-      'assets/icons/passport.svg',
-      width: size * 2.2,
-      height: size * 2.2,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'NDPS') {
-    return SvgPicture.asset(
-      'assets/icons/ndps.svg',
-      width: size * 2.5,
-      height: size * 2.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Gowansh') {
-    return SvgPicture.asset(
-      'assets/icons/gowans.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'IT Act' || labelTrim == 'ITact') {
-    return SvgPicture.asset(
-      'assets/icons/itact.svg',
-      width: size * 2.1,
-      height: size * 2.1,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'MCOCA' || labelTrim == 'MACOCA') {
-    return SvgPicture.asset(
-      'assets/icons/macoca.svg',
-      width: size * 2.1,
-      height: size * 2.1,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'UAPA') {
-    return SvgPicture.asset(
-      'assets/icons/uapa.svg',
-      width: size * 2.1,
-      height: size * 2.1,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'MPDA') {
-    return SvgPicture.asset(
-      'assets/icons/mpda.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'COIN') {
-    return SvgPicture.asset(
-      'assets/icons/coin.svg',
-      width: size * 2.1,
-      height: size * 2.1,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'MV Act' ||
-      labelTrim == 'M V Act' ||
-      labelTrim == 'MVact' ||
-      labelTrim == 'M.V Act') {
-    return SvgPicture.asset(
-      'assets/icons/mvact.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Accident') {
-    return SvgPicture.asset(
-      'assets/icons/accident.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Detected') {
-    return SvgPicture.asset(
-      'assets/icons/detected.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Disposal') {
-    return SvgPicture.asset(
-      'assets/icons/disposal.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Monthly') {
-    return SvgPicture.asset(
-      'assets/icons/monthly.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Absconded') {
-    return SvgPicture.asset(
-      'assets/icons/absconded.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Licence') {
-    return SvgPicture.asset(
-      'assets/icons/licence.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Tadipar') {
-    return SvgPicture.asset(
-      'assets/icons/tadipar.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Repeat Offender') {
-    return SvgPicture.asset(
-      'assets/icons/repeatoffender.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'DAR') {
-    return SvgPicture.asset(
-      'assets/icons/dar.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'IRAD' || labelTrim == 'IRDA') {
-    return SvgPicture.asset(
-      'assets/icons/IRAD.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'ITSSO') {
-    return SvgPicture.asset(
-      'assets/icons/itsso.svg',
-      width: size * 1.5,
-      height: size * 1.5,
+      svgPath,
+      width: size * scale,
+      height: size * scale,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
   }
+
   for (final tool in ServiceData.dashboardTools) {
     if (labelTrim == tool.label) {
       return _buildServiceIcon(labelTrim, tool.icon, color, size);
     }
   }
+
+  // Optical parity: glyph icons (FontAwesome/Material) scale to match ~36px SVG visual weight
   final dynamic icon = _dashboardTileIcon(label, fallback);
-  if (icon is IconData) return Icon(icon, color: color, size: size);
-  return FaIcon(icon, color: color, size: size);
+  final glyphSize = size * 1.42;
+  if (icon is IconData) return Icon(icon, color: color, size: glyphSize);
+  return FaIcon(icon, color: color, size: glyphSize);
 }
 
 Widget _buildServiceIcon(
     String label, dynamic fallback, Color color, double size) {
   final labelTrim = label.replaceAll('\n', ' ').trim();
-  if (labelTrim == 'Tadipar') {
+  final svgPath = _getDashboardSvgPath(labelTrim);
+  if (svgPath != null) {
     return SvgPicture.asset(
-      'assets/icons/tadipar.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Licence') {
-    return SvgPicture.asset(
-      'assets/icons/licence.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'MPDA') {
-    return SvgPicture.asset(
-      'assets/icons/mpda.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Repeat Offender') {
-    return SvgPicture.asset(
-      'assets/icons/repeatoffender.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Property Recovery') {
-    return SvgPicture.asset(
-      'assets/icons/muddemal.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Passport/PVR') {
-    return SvgPicture.asset(
-      'assets/icons/passport.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'DAR') {
-    return SvgPicture.asset(
-      'assets/icons/dar.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'IRAD' || labelTrim == 'IRDA') {
-    return SvgPicture.asset(
-      'assets/icons/IRAD.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'ITSSO') {
-    return SvgPicture.asset(
-      'assets/icons/itsso.svg',
+      svgPath,
       width: size * 1.5,
       height: size * 1.5,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
   }
-  if (fallback is IconData) return Icon(fallback, color: color, size: size);
-  return FaIcon(fallback, color: color, size: size);
+  final glyphSize = size * 1.42;
+  if (fallback is IconData)
+    // ignore: curly_braces
+    //
+    // _in_flow_control_structures
+    // ignore: curly_braces_in_flow_control_structures
+    return Icon(fallback, color: color, size: glyphSize);
+  return FaIcon(fallback, color: color, size: glyphSize);
 }
 
 class CardsIconPainter extends CustomPainter {
@@ -3384,7 +3161,7 @@ class _HomeTabState extends State<_HomeTab> {
   int _matchingModulesCount(String query) {
     if (query.trim().isEmpty) return 0;
     final q = query.trim().toLowerCase();
-    final matchingFormIV = kFormIVCaseCategories
+    final matchingFormIV = formIVCaseCategories
         .where((cat) => cat.toLowerCase().contains(q))
         .length;
     final allClasses = [...Classification.all, ..._extraSearchClassifications];
@@ -3399,7 +3176,7 @@ class _HomeTabState extends State<_HomeTab> {
     if (query.trim().isEmpty) return const SizedBox.shrink();
     final q = query.trim().toLowerCase();
 
-    final matchingFormIV = kFormIVCaseCategories.where((cat) {
+    final matchingFormIV = formIVCaseCategories.where((cat) {
       return cat.toLowerCase().contains(q);
     }).toList();
 
@@ -4576,7 +4353,7 @@ class _HomeTabState extends State<_HomeTab> {
             const Divider(height: 1),
             Expanded(
               child: FormIVCategoryButtonGrid(
-                labels: kFormIVCaseCategories,
+                labels: formIVCaseCategories,
                 scrollable: true,
                 padding: const EdgeInsets.all(24),
                 onLabelTap: (label) {
@@ -8393,9 +8170,9 @@ class _CalendarTabState extends State<_CalendarTab> {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: AppColors.navyMid.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.lightBorder),
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Row(
         children: [
@@ -8405,45 +8182,42 @@ class _CalendarTabState extends State<_CalendarTab> {
               () {
                 setState(() {
                   _showMonthlySummaryTable = false;
-                  _showMonthlyClassVTable = !_showMonthlyClassVTable;
-                  if (_showMonthlyClassVTable) {
-                    _showMonthlyClassVITable = false;
-                    _showMonthlyPreventiveTable = false;
-                  }
+                  _showMonthlyClassVTable = true;
+                  _showMonthlyClassVITable = false;
+                  _showMonthlyPreventiveTable = false;
                 });
               },
+              isSelected: _showMonthlyClassVTable,
             ),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 4),
           Expanded(
             child: _reportBtn(
               'Class VI',
               () {
                 setState(() {
                   _showMonthlySummaryTable = false;
-                  _showMonthlyClassVITable = !_showMonthlyClassVITable;
-                  if (_showMonthlyClassVITable) {
-                    _showMonthlyClassVTable = false;
-                    _showMonthlyPreventiveTable = false;
-                  }
+                  _showMonthlyClassVTable = false;
+                  _showMonthlyClassVITable = true;
+                  _showMonthlyPreventiveTable = false;
                 });
               },
+              isSelected: _showMonthlyClassVITable,
             ),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 4),
           Expanded(
             child: _reportBtn(
               'Preventives',
               () {
                 setState(() {
                   _showMonthlySummaryTable = false;
-                  _showMonthlyPreventiveTable = !_showMonthlyPreventiveTable;
-                  if (_showMonthlyPreventiveTable) {
-                    _showMonthlyClassVTable = false;
-                    _showMonthlyClassVITable = false;
-                  }
+                  _showMonthlyClassVTable = false;
+                  _showMonthlyClassVITable = false;
+                  _showMonthlyPreventiveTable = true;
                 });
               },
+              isSelected: _showMonthlyPreventiveTable,
             ),
           ),
         ],
@@ -8451,27 +8225,40 @@ class _CalendarTabState extends State<_CalendarTab> {
     );
   }
 
-  Widget _reportBtn(String label, VoidCallback? onTap) {
+  Widget _reportBtn(String label, VoidCallback? onTap,
+      {bool isSelected = false}) {
     return SizedBox(
       height: 38,
-      child: ElevatedButton(
-        onPressed: onTap,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.navyMid,
-          disabledBackgroundColor: AppColors.lightBorder,
-          foregroundColor: Colors.white,
-          disabledForegroundColor: AppColors.lightSubText,
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 0,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.navyMid : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.navyMid.withValues(alpha: 0.22),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1.5),
+                  ),
+                ]
+              : null,
         ),
-        child: Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(8),
+            child: Center(
+              child: Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                  color: isSelected ? Colors.white : AppColors.navyDark,
+                ),
+              ),
+            ),
           ),
         ),
       ),

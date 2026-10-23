@@ -21,7 +21,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../modules/core/models/base_record.dart';
-import '../../screens/ad_form_screen.dart' show ACT_DATA;
 import '../../services/case_service.dart';
 import '../../services/backend_case_service.dart';
 import '../../utils/app_constants.dart';
@@ -674,7 +673,7 @@ class CommonFormState extends State<CommonForm> {
   bool _isUsingFallback = false;
 
   Map<String, Map<String, dynamic>> get _activeActsData =>
-      _actsData.isNotEmpty ? _actsData : ACT_DATA;
+      _actsData.isNotEmpty ? _actsData : BackendCaseService.cachedActData;
   Map<String, String> get _activeProceduralKeys =>
       _proceduralKeys.isNotEmpty ? _proceduralKeys : _kProceduralKeys;
 
@@ -764,10 +763,20 @@ class CommonFormState extends State<CommonForm> {
   // ─── lifecycle ─────────────────────────────────────────────────────────────
   Future<void> _fetchGlobalActs() async {
     final acts = await BackendCaseService().fetchActDataMap();
-    if (acts != null && mounted) {
+    if (acts != null && acts.isNotEmpty && mounted) {
       setState(() {
         _actsData = acts;
       });
+    } else if (mounted &&
+        _actsData.isEmpty &&
+        BackendCaseService.cachedActData.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to load legal acts and sections from server.'),
+          backgroundColor: _kRed,
+          duration: Duration(seconds: 4),
+        ),
+      );
     }
   }
 
@@ -5725,7 +5734,25 @@ class _SectionSearchPickerState extends State<_SectionSearchPicker> {
 
   @override
   Widget build(BuildContext context) {
-    final acts = widget.actsData ?? ACT_DATA;
+    final acts = widget.actsData ?? BackendCaseService.cachedActData;
+    if (acts.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            const Icon(Icons.error_outline, size: 16, color: _kRed),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                TranslationHelper.translate(context,
+                    'Error: Failed to load acts and sections from server.'),
+                style: const TextStyle(fontSize: 12, color: _kRed),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     final sections = (acts[widget.actKey]?['sections'] as List<dynamic>? ?? [])
         .map((r) => r as Map<String, dynamic>)
         .toList();
