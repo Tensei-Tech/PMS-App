@@ -201,8 +201,8 @@ class _FilteredArrestedScreenState extends State<FilteredArrestedScreen> {
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(14),
                                     border: Border.all(
-                                        color: Colors.grey
-                                            .withValues(alpha: 0.2)),
+                                        color:
+                                            Colors.grey.withValues(alpha: 0.2)),
                                     boxShadow: [
                                       BoxShadow(
                                         color: Colors.black

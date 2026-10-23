@@ -51,7 +51,9 @@ class _DisposalHubScreenState extends State<DisposalHubScreen>
 
   void _handleTabChange() {
     if (_tabController.indexIsChanging) return;
-    if (_tabController.index == 0 && _crimeWiseData == null && !_isLoadingCrime) {
+    if (_tabController.index == 0 &&
+        _crimeWiseData == null &&
+        !_isLoadingCrime) {
       _loadCrimeWise();
     } else if (_tabController.index == 1 &&
         _timeWiseData == null &&
@@ -287,8 +289,8 @@ class _DisposalHubScreenState extends State<DisposalHubScreen>
                               const Color(0xFF2E7D32).withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: const Color(0xFF2E7D32)
-                                .withValues(alpha: 0.16),
+                            color:
+                                const Color(0xFF2E7D32).withValues(alpha: 0.16),
                           ),
                         ),
                         child: Text(
@@ -564,8 +566,8 @@ class _DisposalHubScreenState extends State<DisposalHubScreen>
                               const Color(0xFF2E7D32).withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: const Color(0xFF2E7D32)
-                                .withValues(alpha: 0.16),
+                            color:
+                                const Color(0xFF2E7D32).withValues(alpha: 0.16),
                           ),
                         ),
                         child: Row(

@@ -195,33 +195,45 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
                   ],
                   rows: List.generate(caseWiseData.length, (index) {
                     final caseItem = caseWiseData[index];
-                    final isGreen =
-                        caseItem['itsso_status_color']?.toString().toLowerCase() ==
-                            'green';
+                    final isGreen = caseItem['itsso_status_color']
+                            ?.toString()
+                            .toLowerCase() ==
+                        'green';
                     final bg =
                         index % 2 == 0 ? Colors.white : const Color(0xFFF8FAFD);
 
                     return DataRow(
                       color: WidgetStateProperty.all(bg),
                       cells: [
-                        DataCell(Text(caseItem['sr_no']?.toString() ?? '${index + 1}')),
-                        DataCell(Text(caseItem['case_number']?.toString() ?? '—')),
-                        DataCell(Text(caseItem['section_act']?.toString() ?? '—')),
-                        DataCell(Text(caseItem['charge_sheet_date']?.toString() ?? 'Pending')),
-                        DataCell(Text(caseItem['assigned_officer']?.toString() ?? 'Unassigned')),
+                        DataCell(Text(
+                            caseItem['sr_no']?.toString() ?? '${index + 1}')),
+                        DataCell(
+                            Text(caseItem['case_number']?.toString() ?? '—')),
+                        DataCell(
+                            Text(caseItem['section_act']?.toString() ?? '—')),
+                        DataCell(Text(
+                            caseItem['charge_sheet_date']?.toString() ??
+                                'Pending')),
+                        DataCell(Text(
+                            caseItem['assigned_officer']?.toString() ??
+                                'Unassigned')),
                         DataCell(
                           Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
                               color: isGreen
-                                  ? const Color(0xFF10B981).withValues(alpha: 0.15)
-                                  : const Color(0xFFEF4444).withValues(alpha: 0.15),
+                                  ? const Color(0xFF10B981)
+                                      .withValues(alpha: 0.15)
+                                  : const Color(0xFFEF4444)
+                                      .withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
                                 color: isGreen
-                                    ? const Color(0xFF10B981).withValues(alpha: 0.4)
-                                    : const Color(0xFFEF4444).withValues(alpha: 0.4),
+                                    ? const Color(0xFF10B981)
+                                        .withValues(alpha: 0.4)
+                                    : const Color(0xFFEF4444)
+                                        .withValues(alpha: 0.4),
                               ),
                             ),
                             child: Text(
@@ -252,11 +264,12 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
                                   onPressed: () async {
                                     try {
                                       await ApiService().post(
-                                          '$baseUrl/itsso/cases/${caseItem['id']}/action/',
-                                          body: {},
+                                        '$baseUrl/itsso/cases/${caseItem['id']}/action/',
+                                        body: {},
                                       );
                                       if (mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
                                           SnackBar(
                                             content: Text(
                                                 "Reminder sent to IO for case ${caseItem['case_number']}"),
@@ -265,7 +278,8 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
                                       }
                                     } catch (e) {
                                       if (mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
                                           SnackBar(
                                             content: Text(
                                                 "Reminder sent to IO for case ${caseItem['case_number']}"),
@@ -437,7 +451,8 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
     if (ioWiseData.isEmpty) {
       return _buildEmptyState(
         title: "No Officers Found",
-        subtitle: "POCSO cases mapped to investigating officers will appear here",
+        subtitle:
+            "POCSO cases mapped to investigating officers will appear here",
         icon: Icons.badge_outlined,
       );
     }
@@ -453,7 +468,8 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
           final ioName = item['io_name']?.toString() ?? 'Unassigned';
           final ioRank = item['io_rank']?.toString() ?? '';
           final stationName = item['station_name']?.toString() ?? '';
-          final count = (item['itsso_count'] ?? item['count'] as num?)?.toInt() ?? 0;
+          final count =
+              (item['itsso_count'] ?? item['count'] as num?)?.toInt() ?? 0;
 
           return Container(
             margin: const EdgeInsets.only(bottom: 12),

@@ -49,7 +49,8 @@ class PdfFontCache {
 
       pw.Font? devanagari;
       try {
-        devanagari = await devanagariRegular().timeout(const Duration(seconds: 2));
+        devanagari =
+            await devanagariRegular().timeout(const Duration(seconds: 2));
       } catch (_) {}
 
       final fonts = await baseFuture;

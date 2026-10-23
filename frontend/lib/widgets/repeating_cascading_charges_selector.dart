@@ -65,12 +65,17 @@ class RepeatingCascadingChargesSelector extends StatefulWidget {
   final ValueChanged<List<dynamic>>? onSectionIdsChanged;
   final bool readOnly;
 
+  /// Optional limit on the number of charges (e.g. 1 for one charge per row of
+  /// a repeating group). Null keeps the unlimited "Add Another Charge" button.
+  final int? maxCharges;
+
   const RepeatingCascadingChargesSelector({
     super.key,
     this.initialCharges,
     this.onChargesChanged,
     this.onSectionIdsChanged,
     this.readOnly = false,
+    this.maxCharges,
   });
 
   @override
@@ -271,13 +276,33 @@ class _RepeatingCascadingChargesSelectorState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ..._charges.asMap().entries.map((entry) {
-          final idx = entry.key;
-          final charge = entry.value;
-          return _buildSingleChargeCard(idx, charge);
-        }),
+        if (_loadingActs)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                SizedBox(width: 10),
+                Text(
+                  'Loading Acts reference data...',
+                  style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                ),
+              ],
+            ),
+          )
+        else
+          ..._charges.asMap().entries.map((entry) {
+            final idx = entry.key;
+            final charge = entry.value;
+            return _buildSingleChargeCard(idx, charge);
+          }),
         const SizedBox(height: 10),
-        if (!widget.readOnly)
+        if (!widget.readOnly &&
+            (widget.maxCharges == null || _charges.length < widget.maxCharges!))
           OutlinedButton.icon(
             onPressed: _addCharge,
             style: OutlinedButton.styleFrom(

@@ -99,6 +99,53 @@ class ApiConfig {
   static String get actSections => '$baseUrl/act-sections/';
   static String get actSubsections => '$baseUrl/act-subsections/';
 
+  // RTI Endpoints
+  static String get rti => '$baseUrl/rti/';
+  static String get rtiCounts => '$baseUrl/rti/counts/';
+  static String get rtiConfig => '$baseUrl/rti/config/';
+  static String get rtiChart => '$baseUrl/rti/chart/';
+  static String get rtiReminders => '$baseUrl/rti/reminders/';
+  static String get rtiRemindersSeen => '$baseUrl/rti/reminders/seen/';
+  static String rtiRemind(dynamic id) => '$baseUrl/rti/$id/remind/';
+  static String get rtiOfficers => '$baseUrl/rti/officers/';
+  static String rtiDetail(dynamic id) => '$baseUrl/rti/$id/';
+  static String rtiPdf(dynamic id) => '$baseUrl/rti/$id/pdf/';
+
+  // History Sheeter Endpoints
+  static String get historySheeter => '$baseUrl/history-sheeter/';
+  static String get historySheeterCounts => '$baseUrl/history-sheeter/counts/';
+  static String get historySheeterConfig => '$baseUrl/history-sheeter/config/';
+  static String get historySheeterChart => '$baseUrl/history-sheeter/chart/';
+  static String historySheeterDetail(dynamic id) =>
+      '$baseUrl/history-sheeter/$id/';
+  static String historySheeterPdf(dynamic id) =>
+      '$baseUrl/history-sheeter/$id/pdf/';
+
+  // N.C. (independent module, not cases)
+  static String get nc => '$baseUrl/nc/';
+  static String get ncCounts => '$baseUrl/nc/counts/';
+  static String get ncConfig => '$baseUrl/nc/config/';
+  static String ncDetail(dynamic id) => '$baseUrl/nc/$id/';
+  static String ncPdf(dynamic id) => '$baseUrl/nc/$id/pdf/';
+
+  // A.D. (Suicide / Other sub-tabs; ?category=<sub-tab code>)
+  static String get ad => '$baseUrl/ad/';
+  static String get adCounts => '$baseUrl/ad/counts/';
+  static String get adConfig => '$baseUrl/ad/config/';
+  static String adDetail(dynamic id) => '$baseUrl/ad/$id/';
+  static String adPdf(dynamic id) => '$baseUrl/ad/$id/pdf/';
+
+  // MPDA Endpoints
+  static String get mpda => '$baseUrl/mpda/';
+  static String get mpdaCounts => '$baseUrl/mpda/counts/';
+  static String get mpdaConfig => '$baseUrl/mpda/config/';
+  static String get mpdaSummary => '$baseUrl/mpda/summary/';
+  static String get mpdaReminders => '$baseUrl/mpda/reminders/';
+  static String get mpdaRemindersSeen => '$baseUrl/mpda/reminders/seen/';
+  static String mpdaRemind(dynamic id) => '$baseUrl/mpda/$id/remind/';
+  static String get mpdaOfficers => '$baseUrl/mpda/officers/';
+  static String mpdaDetail(dynamic id) => '$baseUrl/mpda/$id/';
+  static String mpdaPdf(dynamic id) => '$baseUrl/mpda/$id/pdf/';
   // E-Learning Endpoints
   static String get elearningCourses => '$baseUrl/elearning/courses/';
   static String get elearningSubmit => '$baseUrl/elearning/submit/';

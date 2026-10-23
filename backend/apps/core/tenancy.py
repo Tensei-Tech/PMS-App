@@ -203,7 +203,258 @@ def provision_state_schema(schema_name: str, state_code: str = None, state_name:
             updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
         );
         """)
-        logger.info(f"[Tenancy] Provisioned PostgreSQL schema & tables: {clean_schema} (State: {resolved_name}/{resolved_code})")
+        create_module_tables(cursor, clean_schema)
+    logger.info(f"[Tenancy] Provisioned PostgreSQL schema & tables: {clean_schema} (State: {resolved_name}/{resolved_code})")
+
+
+def create_module_tables(cursor, clean_schema: str):
+    """RTI, History Sheeter, MPDA and N.C. tables of one tenant schema. Idempotent."""
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS "{clean_schema}".rti_applications (
+            rti_id BIGSERIAL PRIMARY KEY,
+            station_name VARCHAR(255) NOT NULL,
+            serial_year SMALLINT NOT NULL,
+            serial_no INTEGER NOT NULL,
+            applicant_name VARCHAR(255),
+            applicant_age SMALLINT CHECK (applicant_age BETWEEN 1 AND 120),
+            mobile_no VARCHAR(10) CHECK (mobile_no ~ '^[0-9]{{10}}$'),
+            address TEXT,
+            email VARCHAR(254),
+            received_date DATE,
+            due_date DATE,
+            replied_date DATE,
+            rejected_date DATE,
+            rejection_reason TEXT,
+            transferred_to TEXT,
+            transferred_date DATE,
+            info_type VARCHAR(50),
+            info_type_other VARCHAR(50),
+            assigned_officer_uid VARCHAR(128),
+            assigned_officer_name VARCHAR(255),
+            assigned_officer_designation VARCHAR(128),
+            mode_of_receipt VARCHAR(50),
+            is_bpl BOOLEAN NOT NULL DEFAULT FALSE,
+            remark TEXT,
+            appealed BOOLEAN NOT NULL DEFAULT FALSE,
+            appeal_date DATE,
+            status VARCHAR(10) GENERATED ALWAYS AS (
+                CASE WHEN replied_date IS NOT NULL OR rejected_date IS NOT NULL
+                     OR length(trim(coalesce(transferred_to,''))) > 0
+                THEN 'Disposal' ELSE 'Pending' END) STORED,
+            created_by VARCHAR(128),
+            created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT rti_serial_unique UNIQUE (station_name, serial_year, serial_no),
+            CONSTRAINT rti_due_after_received CHECK (due_date IS NULL OR received_date IS NULL OR due_date >= received_date),
+            CONSTRAINT rti_one_outcome CHECK (
+                (CASE WHEN replied_date IS NOT NULL THEN 1 ELSE 0 END
+               + CASE WHEN rejected_date IS NOT NULL THEN 1 ELSE 0 END
+               + CASE WHEN length(trim(coalesce(transferred_to,''))) > 0 THEN 1 ELSE 0 END) <= 1),
+            CONSTRAINT rti_reject_reason CHECK (
+                (rejected_date IS NULL AND rejection_reason IS NULL)
+             OR (rejected_date IS NOT NULL AND length(trim(coalesce(rejection_reason,''))) > 0)),
+            CONSTRAINT rti_appeal_rule CHECK (
+                (appealed AND appeal_date IS NOT NULL) OR (NOT appealed AND appeal_date IS NULL))
+        );
+        CREATE INDEX IF NOT EXISTS rti_station_status_idx
+            ON "{clean_schema}".rti_applications (station_name, status);
+
+        CREATE TABLE IF NOT EXISTS "{clean_schema}".history_sheeters (
+            id BIGSERIAL PRIMARY KEY,
+            station_name VARCHAR(255) NOT NULL,
+            sr_no BIGINT NOT NULL,
+            name VARCHAR(255),
+            alias VARCHAR(255),
+            nickname VARCHAR(255),
+            age INT CHECK (age IS NULL OR (age >= 1 AND age <= 120)),
+            gender VARCHAR(50),
+            mobile_no VARCHAR(10) CHECK (mobile_no IS NULL OR mobile_no ~ '^[0-9]{{10}}$'),
+            address TEXT,
+            history_sheet_no VARCHAR(100),
+            opening_date DATE,
+            order_date DATE,
+            permanent_address TEXT,
+            present_address TEXT,
+            same_as_above BOOLEAN DEFAULT FALSE,
+            native_place VARCHAR(255),
+            occupation VARCHAR(255),
+            aadhaar_id_details VARCHAR(255),
+            categories TEXT[],
+            category_other VARCHAR(255),
+            modus_operandi TEXT,
+            total_cases INT,
+            convicted_cases INT,
+            pending_cases INT,
+            acquitted_discharged_cases INT,
+            whereabouts TEXT,
+            last_verification_date DATE,
+            verification_remarks TEXT,
+            closure_date DATE,
+            closure_reason VARCHAR(255),
+            closure_remarks TEXT,
+            currently_in_jail VARCHAR(10),
+            currently_on_bail VARCHAR(10),
+            created_by VARCHAR(100),
+            created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT uq_history_sheeter_station_sr_no UNIQUE (station_name, sr_no)
+        );
+        CREATE INDEX IF NOT EXISTS hs_station_sr_idx ON "{clean_schema}".history_sheeters (station_name, sr_no);
+
+        CREATE TABLE IF NOT EXISTS "{clean_schema}".history_sheeter_related_persons (
+            id BIGSERIAL PRIMARY KEY,
+            history_sheeter_id BIGINT NOT NULL REFERENCES "{clean_schema}".history_sheeters(id) ON DELETE CASCADE,
+            person_type VARCHAR(20) NOT NULL CHECK (person_type IN ('associate', 'rival', 'surety')),
+            name VARCHAR(255),
+            alias VARCHAR(255),
+            nickname VARCHAR(255),
+            age INT CHECK (age IS NULL OR (age >= 1 AND age <= 120)),
+            gender VARCHAR(50),
+            mobile_no VARCHAR(10) CHECK (mobile_no IS NULL OR mobile_no ~ '^[0-9]{{10}}$'),
+            address TEXT,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS hs_rel_person_hs_idx ON "{clean_schema}".history_sheeter_related_persons (history_sheeter_id, person_type);
+
+        CREATE TABLE IF NOT EXISTS "{clean_schema}".history_sheeter_preventive_actions (
+            id BIGSERIAL PRIMARY KEY,
+            history_sheeter_id BIGINT NOT NULL REFERENCES "{clean_schema}".history_sheeters(id) ON DELETE CASCADE,
+            action_type VARCHAR(100),
+            action_other VARCHAR(255),
+            created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS hs_prev_hs_idx ON "{clean_schema}".history_sheeter_preventive_actions (history_sheeter_id);
+
+        CREATE TABLE IF NOT EXISTS "{clean_schema}".history_sheeter_crimes (
+            id BIGSERIAL PRIMARY KEY,
+            history_sheeter_id BIGINT NOT NULL REFERENCES "{clean_schema}".history_sheeters(id) ON DELETE CASCADE,
+            cr_no VARCHAR(100),
+            crime_head TEXT,
+            act_section TEXT,
+            register_date DATE,
+            police_station VARCHAR(255),
+            created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS hs_crimes_hs_idx ON "{clean_schema}".history_sheeter_crimes (history_sheeter_id);
+        CREATE INDEX IF NOT EXISTS hs_crimes_reg_date_idx ON "{clean_schema}".history_sheeter_crimes (register_date);
+        ALTER TABLE "{clean_schema}".history_sheeter_crimes
+            ADD COLUMN IF NOT EXISTS act_id BIGINT,
+            ADD COLUMN IF NOT EXISTS section_id BIGINT,
+            ADD COLUMN IF NOT EXISTS subsection_id BIGINT,
+            ADD COLUMN IF NOT EXISTS act_name TEXT,
+            ADD COLUMN IF NOT EXISTS section_number TEXT,
+            ADD COLUMN IF NOT EXISTS section_title TEXT,
+            ADD COLUMN IF NOT EXISTS subsection_code TEXT;
+
+        CREATE TABLE IF NOT EXISTS "{clean_schema}".mpda_proposals (
+            id BIGSERIAL PRIMARY KEY,
+            station_name VARCHAR(255) NOT NULL,
+            proposal_no_and_year VARCHAR(100),
+            accused_name VARCHAR(255),
+            accused_aadhaar VARCHAR(50),
+            accused_mobile VARCHAR(10) CHECK (accused_mobile IS NULL OR accused_mobile ~ '^[0-9]{{10}}$'),
+            accused_address TEXT,
+            accused_age INT CHECK (accused_age IS NULL OR (accused_age >= 1 AND accused_age <= 120)),
+            accused_gender VARCHAR(50),
+            io_uid VARCHAR(100),
+            io_name VARCHAR(255),
+            io_post VARCHAR(100),
+            proposal_outcome VARCHAR(20),
+            granted_date DATE,
+            rejected_date DATE,
+            detaining_authority VARCHAR(50),
+            detaining_authority_other VARCHAR(255),
+            detained VARCHAR(10),
+            detention_date DATE,
+            detention_completion_date DATE,
+            jail_name VARCHAR(255),
+            transfer_jail_name VARCHAR(255),
+            government_confirmation VARCHAR(10),
+            govt_confirmation_date DATE,
+            detention_order_revoked VARCHAR(10),
+            order_revoked_date DATE,
+            mpda_category VARCHAR(100),
+            mpda_category_other VARCHAR(255),
+            total_crime INT,
+            serious_crimes INT,
+            total_misc_crime INT,
+            created_by VARCHAR(100),
+            created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT chk_mpda_outcome_dates CHECK (
+                (proposal_outcome = 'Granted' AND rejected_date IS NULL) OR
+                (proposal_outcome = 'Rejected' AND granted_date IS NULL) OR
+                ((proposal_outcome IS NULL OR proposal_outcome = '') AND granted_date IS NULL AND rejected_date IS NULL)
+            )
+        );
+        CREATE INDEX IF NOT EXISTS mpda_station_outcome_idx ON "{clean_schema}".mpda_proposals (station_name, proposal_outcome);
+        ALTER TABLE "{clean_schema}".mpda_proposals
+            ADD COLUMN IF NOT EXISTS proposal_no VARCHAR(50),
+            ADD COLUMN IF NOT EXISTS proposal_year VARCHAR(10),
+            ADD COLUMN IF NOT EXISTS proposal_revoked VARCHAR(10),
+            ADD COLUMN IF NOT EXISTS proposal_revoked_date DATE;
+
+        CREATE TABLE IF NOT EXISTS "{clean_schema}".mpda_accused_persons (
+            id BIGSERIAL PRIMARY KEY,
+            proposal_id BIGINT NOT NULL REFERENCES "{clean_schema}".mpda_proposals(id) ON DELETE CASCADE,
+            display_order SMALLINT DEFAULT 1,
+            name VARCHAR(255),
+            age INT CHECK (age IS NULL OR (age >= 1 AND age <= 120)),
+            gender VARCHAR(50),
+            occupation VARCHAR(255),
+            mobile VARCHAR(10) CHECK (mobile IS NULL OR mobile = '' OR mobile ~ '^[0-9]{{10}}$'),
+            aadhaar VARCHAR(50),
+            pan VARCHAR(50),
+            "cast" VARCHAR(100),
+            religion VARCHAR(100),
+            address TEXT,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS mpda_accused_prop_idx ON "{clean_schema}".mpda_accused_persons (proposal_id);
+
+        CREATE TABLE IF NOT EXISTS "{clean_schema}".mpda_gang_members (
+            id BIGSERIAL PRIMARY KEY,
+            proposal_id BIGINT NOT NULL REFERENCES "{clean_schema}".mpda_proposals(id) ON DELETE CASCADE,
+            name VARCHAR(255),
+            display_order SMALLINT DEFAULT 1,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS mpda_gang_prop_idx ON "{clean_schema}".mpda_gang_members (proposal_id);
+        ALTER TABLE "{clean_schema}".mpda_gang_members
+            ADD COLUMN IF NOT EXISTS age INT CHECK (age IS NULL OR (age >= 1 AND age <= 120)),
+            ADD COLUMN IF NOT EXISTS gender VARCHAR(50),
+            ADD COLUMN IF NOT EXISTS occupation VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS mobile VARCHAR(10) CHECK (mobile IS NULL OR mobile = '' OR mobile ~ '^[0-9]{{10}}$'),
+            ADD COLUMN IF NOT EXISTS aadhaar VARCHAR(50),
+            ADD COLUMN IF NOT EXISTS pan VARCHAR(50),
+            ADD COLUMN IF NOT EXISTS "cast" VARCHAR(100),
+            ADD COLUMN IF NOT EXISTS religion VARCHAR(100),
+            ADD COLUMN IF NOT EXISTS address TEXT;
+
+        CREATE TABLE IF NOT EXISTS "{clean_schema}".mpda_crime_chart_entries (
+            id BIGSERIAL PRIMARY KEY,
+            proposal_id BIGINT NOT NULL REFERENCES "{clean_schema}".mpda_proposals(id) ON DELETE CASCADE,
+            crime_type VARCHAR(100),
+            cr_no VARCHAR(100),
+            crime_date DATE,
+            police_station VARCHAR(255),
+            created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS mpda_crime_prop_idx ON "{clean_schema}".mpda_crime_chart_entries (proposal_id);
+        ALTER TABLE "{clean_schema}".mpda_crime_chart_entries
+            ADD COLUMN IF NOT EXISTS act_id BIGINT,
+            ADD COLUMN IF NOT EXISTS section_id BIGINT,
+            ADD COLUMN IF NOT EXISTS subsection_id BIGINT,
+            ADD COLUMN IF NOT EXISTS act_name TEXT,
+            ADD COLUMN IF NOT EXISTS section_number TEXT,
+            ADD COLUMN IF NOT EXISTS section_title TEXT,
+            ADD COLUMN IF NOT EXISTS subsection_code TEXT,
+            ADD COLUMN IF NOT EXISTS act_section TEXT;
+        """)
+
+    # N.C. tables (same DDL as migration 0054)
+    from apps.crimetab.nc_schema import create_nc_tables
+    create_nc_tables(cursor, clean_schema)
 
 
 def get_active_tenant_schema(request=None) -> str:

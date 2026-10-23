@@ -500,7 +500,8 @@ class _VictimHubScreenState extends State<VictimHubScreen>
     if (_ioWiseData == null || _ioWiseData!.isEmpty) {
       return _buildEmptyState(
         title: 'No Officers Found',
-        subtitle: 'Victim cases mapped to investigating officers will appear here',
+        subtitle:
+            'Victim cases mapped to investigating officers will appear here',
         icon: Icons.badge_outlined,
         onRefresh: _loadIOWise,
       );
@@ -518,9 +519,9 @@ class _VictimHubScreenState extends State<VictimHubScreen>
           final ioRank = item['io_rank']?.toString() ?? '';
           final stationName = item['station_name']?.toString() ?? '';
           final count = (item['victim_count'] ??
-                  item['pending_count'] ??
-                  item['count'] as num?)
-              ?.toInt() ??
+                      item['pending_count'] ??
+                      item['count'] as num?)
+                  ?.toInt() ??
               0;
 
           return Container(

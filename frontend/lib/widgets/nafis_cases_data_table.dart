@@ -185,7 +185,9 @@ class NAFISCasesDataTable extends StatelessWidget {
         final columnWidths = <int, TableColumnWidth>{
           0: isTiny
               ? const FixedColumnWidth(40)
-              : (isSmall ? const FixedColumnWidth(48) : const FixedColumnWidth(55)),
+              : (isSmall
+                  ? const FixedColumnWidth(48)
+                  : const FixedColumnWidth(55)),
           1: const FlexColumnWidth(1.15),
           2: const FlexColumnWidth(1.3),
           3: const FlexColumnWidth(1.05),
@@ -246,19 +248,16 @@ class NAFISCasesDataTable extends StatelessWidget {
               .toString()
               .trim();
 
-          final rawStatus = (r['nafis_status'] ??
-                  extra['nafis_status'] ??
-                  r['status'] ??
-                  '')
-              .toString()
-              .trim()
-              .toLowerCase();
-          final statusColor = (r['nafis_status_color'] ??
-                  extra['nafis_status_color'] ??
-                  '')
-              .toString()
-              .trim()
-              .toLowerCase();
+          final rawStatus =
+              (r['nafis_status'] ?? extra['nafis_status'] ?? r['status'] ?? '')
+                  .toString()
+                  .trim()
+                  .toLowerCase();
+          final statusColor =
+              (r['nafis_status_color'] ?? extra['nafis_status_color'] ?? '')
+                  .toString()
+                  .trim()
+                  .toLowerCase();
           final isGreen = statusColor == 'green' ||
               rawStatus == 'done' ||
               rawStatus == 'chargesheeted' ||
@@ -296,8 +295,7 @@ class NAFISCasesDataTable extends StatelessWidget {
               border: const TableBorder(
                 horizontalInside:
                     BorderSide(color: Color(0xFFEDF2F7), width: 1),
-                verticalInside:
-                    BorderSide(color: Color(0xFFEDF2F7), width: 1),
+                verticalInside: BorderSide(color: Color(0xFFEDF2F7), width: 1),
               ),
               children: [
                 TableRow(

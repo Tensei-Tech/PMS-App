@@ -67,48 +67,147 @@ class NotificationScreen extends StatelessWidget {
         ),
         body: TabBarView(
           children: [
-            // ── TAB 1: Live Case Reminders from Firestore ──────────────────
-            StreamBuilder<List<Map<String, dynamic>>>(
-              stream: SeniorOfficerRoles.isCpLevel(auth.designation) ||
-                      SeniorOfficerRoles.isSpLevel(auth.designation)
-                  ? firestore.getAllRemindersStream()
-                  : (auth.isSupervisor || auth.isAdmin)
-                      ? firestore.getSentRemindersStream(auth.uid)
-                      : (auth.stationName.isNotEmpty
-                          ? firestore
-                              .getStationRemindersStream(auth.stationName)
-                          : firestore.getIoRemindersStream(auth.uid)),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+            // ── TAB 1: MPDA detention reminders + live Case Reminders ─────
+            Column(
+              children: [
+                if (provider.rtiReminders.isNotEmpty)
+                  _buildReminderSection(
+                      provider.rtiReminders, provider.rtiReminderLabel),
+                if (provider.detentionReminders.isNotEmpty)
+                  _buildDetentionReminders(provider),
+                Expanded(
+                  child: StreamBuilder<List<Map<String, dynamic>>>(
+                    stream: SeniorOfficerRoles.isCpLevel(auth.designation) ||
+                            SeniorOfficerRoles.isSpLevel(auth.designation)
+                        ? firestore.getAllRemindersStream()
+                        : (auth.isSupervisor || auth.isAdmin)
+                            ? firestore.getSentRemindersStream(auth.uid)
+                            : (auth.stationName.isNotEmpty
+                                ? firestore
+                                    .getStationRemindersStream(auth.stationName)
+                                : firestore.getIoRemindersStream(auth.uid)),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
 
-                final reminders = snapshot.data ?? [];
-                final isSenior =
-                    SeniorOfficerRoles.isCpLevel(auth.designation) ||
-                        SeniorOfficerRoles.isSpLevel(auth.designation) ||
-                        auth.isSupervisor;
+                      final reminders = snapshot.data ?? [];
+                      final isSenior =
+                          SeniorOfficerRoles.isCpLevel(auth.designation) ||
+                              SeniorOfficerRoles.isSpLevel(auth.designation) ||
+                              auth.isSupervisor;
 
-                if (reminders.isEmpty) {
-                  return _buildEmptyRemindersState(isSenior: isSenior);
-                }
+                      if (reminders.isEmpty) {
+                        return _buildEmptyRemindersState(isSenior: isSenior);
+                      }
 
-                return ListView.separated(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  itemCount: reminders.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final r = reminders[index];
-                    return _buildReminderCard(r, isSenior: isSenior);
-                  },
-                );
-              },
+                      return ListView.separated(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        itemCount: reminders.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final r = reminders[index];
+                          return _buildReminderCard(r, isSenior: isSenior);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
 
             // ── TAB 2: System / FCM Alerts ────────────────────────────────
             items.isEmpty ? _buildEmptyState() : _buildList(items),
           ],
         ),
+      ),
+    );
+  }
+
+  /// MPDA detention end reminders of the officer's station (text from the
+  /// backend settings), shown from one month before the end date.
+  Widget _buildDetentionReminders(NotificationProvider provider) =>
+      _buildReminderSection(
+          provider.detentionReminders, provider.detentionReminderLabel);
+
+  /// Reminder cards with a section label (texts come from backend settings).
+  Widget _buildReminderSection(List<Map<String, dynamic>> items, String label) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxHeight: 340),
+      child: ListView(
+        shrinkWrap: true,
+        padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md, AppSpacing.md, AppSpacing.md, 0),
+        children: [
+          if (label.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(label,
+                  style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyDark)),
+            ),
+          for (final r in items)
+            Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                border: Border.all(
+                    color: AppColors.dangerRed.withValues(alpha: 0.35)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.dangerRed.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.event_busy_rounded,
+                        size: 18, color: AppColors.dangerRed),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if ('${r['title'] ?? ''}'.isNotEmpty)
+                          Text('${r['title']}',
+                              style: GoogleFonts.poppins(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.dangerRed)),
+                        Text('${r['message'] ?? ''}',
+                            style: GoogleFonts.poppins(
+                                fontSize: 12.5, color: AppColors.navyDark)),
+                      ],
+                    ),
+                  ),
+                  // Manual reminders carry no days-left count
+                  if (r['days_left'] != null) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.dangerRed.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(AppRadius.full),
+                      ),
+                      child: Text('${r['days_left']}',
+                          style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.dangerRed)),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }

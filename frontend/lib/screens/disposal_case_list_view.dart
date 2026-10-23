@@ -212,7 +212,8 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
           _buildDataCell((record['assigned_officer'] ?? '—').toString(),
               flex: 2),
           _buildDataCell((record['station_name'] ?? '—').toString(), flex: 2),
-          _buildDataCell((record['crime_type_name'] ?? '—').toString(), flex: 2),
+          _buildDataCell((record['crime_type_name'] ?? '—').toString(),
+              flex: 2),
         ],
       ),
     );

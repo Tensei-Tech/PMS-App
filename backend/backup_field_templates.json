@@ -114,14 +114,6 @@
     },
     {
       "model": "crimetab.fieldtemplate",
-      "pk": 41,
-      "fields": {
-        "template_name": "General Crime Baseline Template",
-        "created_at": "2026-09-17T08:42:03.507Z"
-      }
-    },
-    {
-      "model": "crimetab.fieldtemplate",
       "pk": 34,
       "fields": {
         "template_name": "Gowans Form Template",

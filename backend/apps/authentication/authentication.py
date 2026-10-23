@@ -92,17 +92,35 @@ class PrimaryJWTAuthentication(authentication.BaseAuthentication):
                 raise exceptions.AuthenticationFailed('Authentication failed.')
 
         # Standard State Officer / Admin User
-        from apps.core.tenancy import TenantContext
+        from apps.core.tenancy import TenantContext, set_tenant_schema
         from apps.core.middleware import _STATE_SCHEMA_CACHE
 
         state_code = payload.get('state_code')
-        if state_code:
-            state_code = state_code.upper()
-            active_schema = _STATE_SCHEMA_CACHE.get(state_code, state_code.lower())
-        else:
-            active_schema = getattr(request, 'state_schema', None) or 'maharashtra'
+        token_schema = payload.get('schema_name')
 
-        request.state_code = state_code or 'MH'
+        if token_schema:
+            active_schema = "".join(c for c in token_schema if c.isalnum() or c == '_').lower()
+        elif state_code and str(state_code).upper() != 'GLOBAL':
+            state_code = str(state_code).upper()
+            if state_code in _STATE_SCHEMA_CACHE:
+                active_schema = _STATE_SCHEMA_CACHE[state_code]
+            else:
+                try:
+                    state_record = StateRegistry.objects.filter(state_code=state_code, is_active=True).first()
+                    if state_record and state_record.schema_name:
+                        active_schema = state_record.schema_name
+                        _STATE_SCHEMA_CACHE[state_code] = active_schema
+                    else:
+                        active_schema = None
+                except Exception:
+                    active_schema = None
+        else:
+            active_schema = None
+
+        if not active_schema or active_schema == 'public':
+            raise exceptions.AuthenticationFailed('Invalid token payload: state claim has no resolvable tenant schema.')
+
+        request.state_code = state_code
         request.state_schema = active_schema
 
         cache_key = f"auth_officer_profile_{active_schema}_{uid}"
@@ -110,44 +128,12 @@ class PrimaryJWTAuthentication(authentication.BaseAuthentication):
         if cached_profile is not None:
             if cached_profile.account_status not in ['active', 'approved']:
                 raise exceptions.AuthenticationFailed(f'Account status is {cached_profile.account_status}. Contact Admin.')
+            set_tenant_schema(active_schema)
             return (cached_profile, payload)
 
         try:
             with TenantContext(active_schema):
                 profile = OfficerProfile.objects.filter(uid=str(uid)).first()
-
-            # 1. Search in public schema if not found in active schema
-            if not profile and active_schema != 'public':
-                try:
-                    with TenantContext('public'):
-                        profile = OfficerProfile.objects.filter(uid=str(uid)).first()
-                except (OperationalError, DatabaseError):
-                    raise
-                except Exception as ex:
-                    logger.warning(f"[PrimaryJWTAuth] Public schema fallback warning: {_redact_message(ex)}")
-
-            # 2. Search across registered state tenant schemas if still not found
-            if not profile:
-                try:
-                    set_tenant_schema('public')
-                    state_schemas = list(StateRegistry.objects.values_list('schema_name', flat=True))
-                    for sch in state_schemas:
-                        if sch != active_schema:
-                            try:
-                                set_tenant_schema(sch)
-                                profile = OfficerProfile.objects.filter(uid=str(uid)).first()
-                                if profile:
-                                    break
-                            except (OperationalError, DatabaseError):
-                                raise
-                            except Exception:
-                                pass
-                except (OperationalError, DatabaseError):
-                    raise
-                except Exception as ex:
-                    logger.warning(f"[PrimaryJWTAuth] Multi-tenant fallback warning: {_redact_message(ex)}")
-                finally:
-                    set_tenant_schema(active_schema)
 
             if not profile:
                 # Check user_role_mappings mapping if needed
@@ -155,28 +141,28 @@ class PrimaryJWTAuthentication(authentication.BaseAuthentication):
                     set_tenant_schema('public')
                     mapping = UserRoleMapping.objects.filter(uid=str(uid)).first()
                     if mapping:
-                        profile = OfficerProfile.objects.create(
-                            uid=str(uid),
-                            email=mapping.email,
-                            name=mapping.email.split('@')[0],
-                            role_id=mapping.role_id,
-                            district_id=mapping.district_id,
-                            station_id=mapping.station_id
-                        )
+                        with TenantContext(active_schema):
+                            profile = OfficerProfile.objects.create(
+                                uid=str(uid),
+                                email=mapping.email,
+                                name=mapping.email.split('@')[0],
+                                role_id=mapping.role_id,
+                                district_id=mapping.district_id,
+                                station_id=mapping.station_id
+                            )
                 except (OperationalError, DatabaseError):
                     raise
                 except Exception:
                     pass
-                finally:
-                    set_tenant_schema(active_schema)
 
             if not profile:
-                raise exceptions.AuthenticationFailed('Officer profile not found.')
+                raise exceptions.AuthenticationFailed('Officer profile not found in tenant schema.')
 
             if profile.account_status not in ['active', 'approved']:
                 raise exceptions.AuthenticationFailed(f'Account status is {profile.account_status}. Contact Admin.')
 
             cache.set(cache_key, profile, timeout=45)
+            set_tenant_schema(active_schema)
             return (profile, payload)
         except (OperationalError, DatabaseError) as e:
             logger.error(f"[PrimaryJWTAuth] Database connection error fetching officer profile: {_redact_message(e)}")

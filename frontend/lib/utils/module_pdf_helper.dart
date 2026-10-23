@@ -42,7 +42,8 @@ class ModulePdfHelper {
   static const String _kPreventiveFormExtraFieldsKey = 'preventiveForm';
 
   /// When [_kNcFormExtraFieldsKey] is present — generates NC PDF bytes.
-  static Future<PdfGeneratedResult?> buildNcFormPdfResult(ModuleRecord record) async {
+  static Future<PdfGeneratedResult?> buildNcFormPdfResult(
+      ModuleRecord record) async {
     if (record.moduleKey != 'nc') return null;
     final displayName = record.firestoreCategoryDisplayName;
     final nested = record.extraFields[_kNcFormExtraFieldsKey];
@@ -63,7 +64,8 @@ class ModulePdfHelper {
     );
     final fileName =
         '${displayName.replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf';
-    return PdfGeneratedResult(bytes: bytes, fileName: fileName, title: formTitle);
+    return PdfGeneratedResult(
+        bytes: bytes, fileName: fileName, title: formTitle);
   }
 
   /// When [_kNcFormExtraFieldsKey] is present — NC standalone form map + extraMap PDF.
@@ -75,7 +77,8 @@ class ModulePdfHelper {
   }
 
   /// When [_kMissingFormExtraFieldsKey] is present — generates Missing PDF bytes.
-  static Future<PdfGeneratedResult?> buildMissingFormPdfResult(ModuleRecord record) async {
+  static Future<PdfGeneratedResult?> buildMissingFormPdfResult(
+      ModuleRecord record) async {
     if (record.moduleKey != 'missing') return null;
     final displayName = record.firestoreCategoryDisplayName;
     final nested = record.extraFields[_kMissingFormExtraFieldsKey];
@@ -96,7 +99,8 @@ class ModulePdfHelper {
     );
     final fileName =
         '${displayName.replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf';
-    return PdfGeneratedResult(bytes: bytes, fileName: fileName, title: formTitle);
+    return PdfGeneratedResult(
+        bytes: bytes, fileName: fileName, title: formTitle);
   }
 
   /// When [_kMissingFormExtraFieldsKey] is present — Missing standalone form map + extraMap PDF.
@@ -108,7 +112,8 @@ class ModulePdfHelper {
   }
 
   /// When [kCommonFormExtraFieldsKey] or standard common crime form fields are present — builds PDF bytes.
-  static Future<PdfGeneratedResult?> buildCommonFormPdfResult(ModuleRecord record) async {
+  static Future<PdfGeneratedResult?> buildCommonFormPdfResult(
+      ModuleRecord record) async {
     try {
       final displayName = record.firestoreCategoryDisplayName;
       Map<String, dynamic>? commonMap;
@@ -129,9 +134,11 @@ class ModulePdfHelper {
           'spotAddress': record.location,
           'briefFact': record.description,
           'description': record.description,
-          'accused': record.accused.isNotEmpty ? {'name': record.accused} : null,
-          'complainant':
-              record.complainant.isNotEmpty ? {'name': record.complainant} : null,
+          'accused':
+              record.accused.isNotEmpty ? {'name': record.accused} : null,
+          'complainant': record.complainant.isNotEmpty
+              ? {'name': record.complainant}
+              : null,
           'ioName': record.assignedOfficer,
           'status': record.status,
           ...record.extraFields,
@@ -206,7 +213,8 @@ class ModulePdfHelper {
         title: formTitle,
       );
     } catch (e, st) {
-      debugPrint('[ModulePdfHelper] Error in buildCommonFormPdfResult: $e\n$st');
+      debugPrint(
+          '[ModulePdfHelper] Error in buildCommonFormPdfResult: $e\n$st');
       return null;
     }
   }
@@ -221,7 +229,8 @@ class ModulePdfHelper {
   }
 
   /// When [_kPreventiveFormExtraFieldsKey] is present — generates Preventive PDF bytes.
-  static Future<PdfGeneratedResult?> buildPreventiveFormPdfResult(ModuleRecord record) async {
+  static Future<PdfGeneratedResult?> buildPreventiveFormPdfResult(
+      ModuleRecord record) async {
     if (record.moduleKey != 'preventive') return null;
     final nested = record.extraFields[_kPreventiveFormExtraFieldsKey];
     if (nested is! Map && record.extraFields.isEmpty) return null;
@@ -245,7 +254,8 @@ class ModulePdfHelper {
   }
 
   /// When [_kMpdaFormExtraFieldsKey] is present — generates MPDA PDF bytes.
-  static Future<PdfGeneratedResult?> buildMpdaFormPdfResult(ModuleRecord record) async {
+  static Future<PdfGeneratedResult?> buildMpdaFormPdfResult(
+      ModuleRecord record) async {
     if (record.moduleKey != 'mpda') return null;
     final nested = record.extraFields[_kMpdaFormExtraFieldsKey];
     if (nested is! Map && record.extraFields.isEmpty) return null;
@@ -253,7 +263,8 @@ class ModulePdfHelper {
       data: record.extraFields,
       policeStation: record.stationName,
     );
-    final title = 'MPDA Proposal Report - ${record.caseNumber.isEmpty ? "Case" : record.caseNumber}';
+    final title =
+        'MPDA Proposal Report - ${record.caseNumber.isEmpty ? "Case" : record.caseNumber}';
     final fileName = '${title.replaceAll(' ', '_')}.pdf';
     return PdfGeneratedResult(bytes: bytes, fileName: fileName, title: title);
   }
@@ -273,12 +284,14 @@ class ModulePdfHelper {
         try {
           final pdfBackendData = await CaseService()
               .fetchCasePdfData(record.id.trim())
-              .timeout(const Duration(milliseconds: 1500), onTimeout: () => null);
+              .timeout(const Duration(milliseconds: 1500),
+                  onTimeout: () => null);
           if (pdfBackendData != null && pdfBackendData['case_summary'] is Map) {
-            final summary =
-                Map<String, dynamic>.from(pdfBackendData['case_summary'] as Map);
+            final summary = Map<String, dynamic>.from(
+                pdfBackendData['case_summary'] as Map);
             record = record.copyWith(
-              caseNumber: summary['case_number']?.toString() ?? record.caseNumber,
+              caseNumber:
+                  summary['case_number']?.toString() ?? record.caseNumber,
               title: summary['title']?.toString() ?? record.title,
               description:
                   summary['description']?.toString() ?? record.description,

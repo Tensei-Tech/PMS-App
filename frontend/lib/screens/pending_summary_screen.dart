@@ -149,8 +149,8 @@ class PendingSummaryScreen extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: AppColors.navyMid.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(20),
@@ -204,157 +204,156 @@ class PendingSummaryScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-                  Row(
-                    children: [
-                      InkWell(
-                        onTap: () => Navigator.pop(context),
+              Row(
+                children: [
+                  InkWell(
+                    onTap: () => Navigator.pop(context),
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(10),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppColors.lightBorder),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.03),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
+                        border: Border.all(color: AppColors.lightBorder),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
                           ),
-                          child: const Icon(Icons.arrow_back_rounded,
-                              color: AppColors.navyDark, size: 20),
-                        ),
+                        ],
                       ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.navyDark,
-                                ),
-                              ),
+                      child: const Icon(Icons.arrow_back_rounded,
+                          color: AppColors.navyDark, size: 20),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.poppins(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.navyDark,
                             ),
-                            const SizedBox(width: 10),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.navyMid.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '${dataset.length} Total',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.navyMid,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton.icon(
+                    onPressed:
+                        !anyRows ? null : () => _exportPdf(context, dataset),
+                    icon: const Icon(Icons.download_rounded,
+                        size: 18, color: Colors.white),
+                    label: Text(
+                      'Export PDF',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.navyDark,
+                      disabledBackgroundColor: Colors.grey.shade300,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      elevation: 1,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Expanded(
+                child: !anyRows
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 4),
+                              padding: const EdgeInsets.all(20),
                               decoration: BoxDecoration(
                                 color:
-                                    AppColors.navyMid.withValues(alpha: 0.08),
-                                borderRadius: BorderRadius.circular(20),
+                                    AppColors.navyMid.withValues(alpha: 0.06),
+                                shape: BoxShape.circle,
                               ),
-                              child: Text(
-                                '${dataset.length} Total',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.navyMid,
-                                ),
+                              child: const Icon(
+                                Icons.inventory_2_outlined,
+                                size: 48,
+                                color: AppColors.navyMid,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No Cases Found',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.navyDark,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'There are currently no cases matching this category.',
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                color: AppColors.lightSubText,
                               ),
                             ),
                           ],
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton.icon(
-                        onPressed:
-                            !anyRows ? null : () => _exportPdf(context, dataset),
-                        icon: const Icon(Icons.download_rounded,
-                            size: 18, color: Colors.white),
-                        label: Text(
-                          'Export PDF',
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.navyDark,
-                          disabledBackgroundColor: Colors.grey.shade300,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
-                          elevation: 1,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Expanded(
-                    child: !anyRows
-                        ? Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(20),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.navyMid
-                                        .withValues(alpha: 0.06),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.inventory_2_outlined,
-                                    size: 48,
-                                    color: AppColors.navyMid,
-                                  ),
+                      )
+                    : ListView(
+                        padding: const EdgeInsets.only(bottom: 24),
+                        children: [
+                          for (final label in _getUniqueCategories(dataset))
+                            sectionBlock(label),
+                          if (showDemoNote)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Text(
+                                '* Demo Data — Will be replaced with live data',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.lightSubText,
                                 ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'No Cases Found',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.navyDark,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  'There are currently no cases matching this category.',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 13,
-                                    color: AppColors.lightSubText,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
-                          )
-                        : ListView(
-                            padding: const EdgeInsets.only(bottom: 24),
-                            children: [
-                              for (final label in _getUniqueCategories(dataset))
-                                sectionBlock(label),
-                              if (showDemoNote)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 8),
-                                  child: Text(
-                                    '* Demo Data — Will be replaced with live data',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w500,
-                                      color: AppColors.lightSubText,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                  ),
-                ],
+                        ],
+                      ),
               ),
-            ),
+            ],
           ),
-        );
+        ),
+      ),
+    );
   }
 
   @override

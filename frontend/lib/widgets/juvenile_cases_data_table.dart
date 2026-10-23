@@ -102,8 +102,7 @@ class JuvenileCasesDataTable extends StatelessWidget {
               border: const TableBorder(
                 horizontalInside:
                     BorderSide(color: Color(0xFFEDF2F7), width: 1),
-                verticalInside:
-                    BorderSide(color: Color(0xFFEDF2F7), width: 1),
+                verticalInside: BorderSide(color: Color(0xFFEDF2F7), width: 1),
               ),
               children: [
                 TableRow(

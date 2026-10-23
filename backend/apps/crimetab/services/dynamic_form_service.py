@@ -9,14 +9,40 @@ from apps.crimetab.models.dynamic_engine import (
     CategoryFieldTemplate,
     SectionFieldTemplate,
 )
+from apps.crimetab.models.dynamic_engine import OptionValue
 from apps.crimetab.models.common_form import (
     CrimeCaseActsSections,
     Act,
     ActSection,
-    PreventiveActionItems,
 )
 
 logger = logging.getLogger(__name__)
+
+PREVENTIVE_ACTION_OPTION_GROUP = 'preventive_action_types'
+
+
+def get_preventive_action_types() -> List[str]:
+    """Active Common Form preventive provisions from public.option_values, in display order."""
+    return list(
+        OptionValue.objects.filter(option_group=PREVENTIVE_ACTION_OPTION_GROUP, is_active=True)
+        .order_by('display_order', 'id')
+        .values_list('option_value', flat=True)
+    )
+
+
+def _fetch_field_template_fields(qs):
+    try:
+        return list(qs)
+    except Exception:
+        # Schema backward compatibility if depends_on_field_key, depends_on_value, options_source columns are not yet applied to database
+        return list(qs.defer('depends_on_field_key', 'depends_on_value', 'options_source'))
+
+
+def _safe_get_attr(obj, attr_name):
+    try:
+        return getattr(obj, attr_name, None)
+    except Exception:
+        return None
 
 
 def get_form_definition(
@@ -44,9 +70,13 @@ def get_form_definition(
     if not template_ids and category.template_id:
         template_ids = [category.template_id]
 
+    templates = list(FieldTemplate.objects.filter(template_id__in=template_ids))
+    has_common_form_baseline = any(t.template_name == 'Common Form Baseline Template' for t in templates)
+    has_linked_bundle = len(template_ids) > 0
+
     if template_ids:
-        cat_fields = FieldTemplateField.objects.filter(template_id__in=template_ids)
-        fields.extend(list(cat_fields))
+        cat_fields = _fetch_field_template_fields(FieldTemplateField.objects.filter(template_id__in=template_ids))
+        fields.extend(cat_fields)
 
     # 2. Trigger A Override: Apply per-category visibility overrides
     overrides = {
@@ -69,19 +99,22 @@ def get_form_definition(
         section_ids_to_check.update(numeric_ids)
 
     if case_id:
-        case_charged_ids = CrimeCaseActsSections.objects.filter(
-            case_id=case_id
-        ).values_list('section_id', flat=True)
-        section_ids_to_check.update(list(case_charged_ids))
+        try:
+            case_charged_ids = CrimeCaseActsSections.objects.filter(
+                case_id=case_id
+            ).values_list('section_id', flat=True)
+            section_ids_to_check.update(list(case_charged_ids))
+        except Exception as e:
+            logger.warning(f"[dynamic_form_service] Failed to query CrimeCaseActsSections for case {case_id}: {e}")
 
-    if section_ids_to_check:
+    if template_ids and section_ids_to_check:
         extra_template_ids = SectionFieldTemplate.objects.filter(
             section_id__in=section_ids_to_check
         ).values_list('template_id', flat=True)
 
         for t_id in extra_template_ids:
-            extra_fields = FieldTemplateField.objects.filter(template_id=t_id)
-            fields.extend(list(extra_fields))
+            extra_fields = _fetch_field_template_fields(FieldTemplateField.objects.filter(template_id=t_id))
+            fields.extend(extra_fields)
 
     # 4. De-duplicate by field_key, preserving highest priority display_order
     seen = set()
@@ -98,6 +131,10 @@ def get_form_definition(
                 'is_required': f.is_required,
                 'section': getattr(f, 'section', None),
                 'display_order': f.display_order,
+                'depends_on_field_key': _safe_get_attr(f, 'depends_on_field_key'),
+                'depends_on_value': _safe_get_attr(f, 'depends_on_value'),
+                'options_source': _safe_get_attr(f, 'options_source'),
+                'parent_field_key': _safe_get_attr(f, 'parent_field_key'),
             })
 
     # 5. Master Acts & Sections
@@ -195,7 +232,7 @@ def get_form_definition(
         if k not in acts_dict:
             acts_dict[k] = v
 
-    preventive_choices = [c[0] for c in PreventiveActionItems.ACTION_TYPE_CHOICES]
+    preventive_choices = get_preventive_action_types() if has_linked_bundle else []
     gender_choices = ['Male', 'Female', 'Other']
     procedural_map = {
         'chkPanchSpot': 'Spot Panchanama',
@@ -212,11 +249,14 @@ def get_form_definition(
         'category_name': category.category_name,
         'category_code': category.category_code,
         'group_id': category.group_id,
+        'has_linked_bundle': has_linked_bundle,
+        'has_common_form_baseline': has_common_form_baseline,
+        'template_names': [t.template_name for t in templates],
         'fields_count': len(ordered_fields),
         'fields': ordered_fields,
-        'acts_sections': acts_dict,
-        'preventive_items': preventive_choices,
-        'genders': gender_choices,
-        'procedural_items': procedural_map,
+        'acts_sections': acts_dict if has_linked_bundle else {},
+        'preventive_items': preventive_choices if has_linked_bundle else [],
+        'genders': gender_choices if has_linked_bundle else [],
+        'procedural_items': procedural_map if has_linked_bundle else {},
     }
 

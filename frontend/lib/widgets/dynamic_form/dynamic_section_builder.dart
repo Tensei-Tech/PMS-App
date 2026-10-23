@@ -26,6 +26,12 @@ class DynamicSectionCard extends StatefulWidget {
   final bool hideEmptyFields;
   final List<String>? designationOptions;
   final List<String>? preventiveOptions;
+  final String? stationId;
+  final List<dynamic>? copyOnTickRules;
+  final List<DynamicFieldDef>? allFormFields;
+
+  /// Optional per-field character limits (field_key -> max length).
+  final Map<String, int>? fieldMaxLengths;
 
   const DynamicSectionCard({
     super.key,
@@ -37,7 +43,7 @@ class DynamicSectionCard extends StatefulWidget {
     required this.values,
     required this.onValueChanged,
     this.readOnly = false,
-    this.initiallyExpanded = false,
+    this.initiallyExpanded = true,
     this.isExpanded,
     this.onToggle,
     this.accusedOptions,
@@ -46,6 +52,10 @@ class DynamicSectionCard extends StatefulWidget {
     this.hideEmptyFields = false,
     this.designationOptions,
     this.preventiveOptions,
+    this.stationId,
+    this.copyOnTickRules,
+    this.allFormFields,
+    this.fieldMaxLengths,
   });
 
   @override
@@ -106,7 +116,117 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
     'discharge_date': 'is_discharged',
   };
 
-  bool _isFieldVisible(DynamicFieldDef f) {
+  /// Shown only when both rules allow it: the field's own dependency from the
+  /// database (depends_on_field_key / depends_on_value, cascading) and the
+  /// parent-field graph above.
+  bool _isFieldVisible(DynamicFieldDef f, [Set<String>? visiting]) {
+    return _isDependencyMet(f, visiting) && _isGraphVisible(f);
+  }
+
+  bool _isDependencyMet(DynamicFieldDef f, [Set<String>? visiting]) {
+    if (f.dependsOnFieldKey == null || f.dependsOnFieldKey!.trim().isEmpty) {
+      return true;
+    }
+
+    final parentKey = f.dependsOnFieldKey!.trim();
+    final visitSet = visiting ?? <String>{};
+    if (visitSet.contains(f.fieldKey)) {
+      return false; // Break cyclic dependencies safely
+    }
+    visitSet.add(f.fieldKey);
+
+    // If parent field exists in this field list, evaluate parent's visibility first (cascading)
+    final parentField =
+        widget.fields.where((item) => item.fieldKey == parentKey).firstOrNull;
+    if (parentField != null) {
+      final isParentVis = _isFieldVisible(parentField, visitSet);
+      if (!isParentVis) return false;
+    }
+
+    final rawVal =
+        widget.values[parentKey] ?? widget.controllers[parentKey]?.text;
+    if (rawVal == null) return false;
+
+    return dependsOnValueMatches(rawVal, f.dependsOnValue,
+        parentIsMultiSelect: parentField?.fieldType == 'multi_select');
+  }
+
+  void _pruneHiddenFields() {
+    bool changed = true;
+    int maxPasses = 10;
+    while (changed && maxPasses > 0) {
+      changed = false;
+      maxPasses--;
+      for (final f in widget.fields) {
+        if (!_isFieldVisible(f)) {
+          if (widget.values.containsKey(f.fieldKey)) {
+            widget.values.remove(f.fieldKey);
+            widget.onValueChanged(f.fieldKey, null);
+            changed = true;
+          }
+          if (widget.controllers.containsKey(f.fieldKey)) {
+            if (widget.controllers[f.fieldKey]!.text.isNotEmpty) {
+              widget.controllers[f.fieldKey]!.clear();
+              changed = true;
+            }
+          }
+          final dateKey = '${f.fieldKey}_date';
+          if (widget.values.containsKey(dateKey)) {
+            widget.values.remove(dateKey);
+            widget.onValueChanged(dateKey, null);
+            changed = true;
+          }
+          if (widget.controllers.containsKey(dateKey)) {
+            if (widget.controllers[dateKey]!.text.isNotEmpty) {
+              widget.controllers[dateKey]!.clear();
+              changed = true;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  bool _isCopyTrigger(String fieldKey) {
+    return (widget.copyOnTickRules ?? const []).any((rule) =>
+        rule is Map &&
+        (rule['trigger_field'] ?? rule['tick_field'])?.toString() == fieldKey);
+  }
+
+  void _handleCopyOnTick(String triggerKey) {
+    if (widget.copyOnTickRules == null || widget.copyOnTickRules!.isEmpty) {
+      return;
+    }
+
+    for (final rule in widget.copyOnTickRules!) {
+      if (rule is! Map) continue;
+      final tKey = (rule['trigger_field'] ?? rule['tick_field'])?.toString();
+      if (tKey == triggerKey) {
+        final sKey = (rule['source_field'] ?? rule['from_field'])?.toString();
+        final tgtKey = (rule['target_field'] ?? rule['to_field'])?.toString();
+        if (sKey != null &&
+            tgtKey != null &&
+            sKey.isNotEmpty &&
+            tgtKey.isNotEmpty) {
+          final sVal = widget.controllers[sKey]?.text ??
+              widget.values[sKey]?.toString() ??
+              '';
+          widget.values[tgtKey] = sVal;
+          if (widget.controllers.containsKey(tgtKey)) {
+            widget.controllers[tgtKey]?.text = sVal;
+          } else {
+            try {
+              widget.controllers
+                  .putIfAbsent(tgtKey, () => TextEditingController(text: sVal));
+            } catch (_) {}
+          }
+          widget.onValueChanged(tgtKey, sVal);
+        }
+      }
+    }
+  }
+
+  bool _isGraphVisible(DynamicFieldDef f) {
     var currentKey = f.fieldKey;
     while (_fieldParentDependency.containsKey(currentKey)) {
       final parentKey = _fieldParentDependency[currentKey]!;
@@ -143,7 +263,10 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
 
   @override
   Widget build(BuildContext context) {
-    final baseFields = widget.fields.where(_isFieldVisible).toList();
+    final baseFields = widget.fields
+        .where((f) => f.parentFieldKey == null || f.parentFieldKey!.isEmpty)
+        .where(_isFieldVisible)
+        .toList();
     if (baseFields.isEmpty) return const SizedBox.shrink();
 
     final visibleFields = (widget.readOnly && widget.hideEmptyFields)
@@ -154,18 +277,12 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
     final isCompact = screenWidth < 600;
 
     return Container(
-      margin: EdgeInsets.only(bottom: isCompact ? 10.0 : 14.0),
+      margin: EdgeInsets.only(bottom: isCompact ? 5.0 : 6.0),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius:
             BorderRadius.circular(isCompact ? AppRadius.md : AppRadius.lg),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.navyDark.withValues(alpha: 0.04),
-            blurRadius: isCompact ? 6 : 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: const [],
         border: Border.all(color: AppColors.lightBorder),
       ),
       child: Column(
@@ -182,13 +299,13 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
             child: Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: isCompact ? 12 : 16,
-                vertical: isCompact ? 11 : 14,
+                vertical: isCompact ? 8 : 10,
               ),
               child: Row(
                 children: [
                   Container(
-                    width: isCompact ? 34 : 38,
-                    height: isCompact ? 34 : 38,
+                    width: isCompact ? 28 : 32,
+                    height: isCompact ? 28 : 32,
                     decoration: BoxDecoration(
                       color: AppColors.navyMid.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(8),
@@ -198,13 +315,13 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                         ? Text(
                             '${widget.sectionIndex}',
                             style: GoogleFonts.poppins(
-                              fontSize: isCompact ? 13.5 : 15,
+                              fontSize: isCompact ? 12.0 : 13.5,
                               fontWeight: FontWeight.w700,
                               color: AppColors.navyDark,
                             ),
                           )
                         : Icon(widget.icon,
-                            size: isCompact ? 18 : 20,
+                            size: isCompact ? 16 : 18,
                             color: AppColors.navyMid),
                   ),
                   SizedBox(width: isCompact ? 10 : 12),
@@ -222,33 +339,28 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                     widget.headerAction!,
                     const SizedBox(width: 8),
                   ],
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: visibleFields.isEmpty
-                          ? const Color(0xFFF1F5F9)
-                          : AppColors.navyMid.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      visibleFields.isEmpty
-                          ? 'Empty'
-                          : '${visibleFields.length} field${visibleFields.length == 1 ? '' : 's'}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: visibleFields.isEmpty
-                            ? AppColors.lightSubText
-                            : AppColors.navyMid,
+                  if (visibleFields.length > 1)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 2.5),
+                      decoration: BoxDecoration(
+                        color: AppColors.navyMid.withValues(alpha: 0.07),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '${visibleFields.length} fields',
+                        style: GoogleFonts.poppins(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.navyMid,
+                        ),
                       ),
                     ),
-                  ),
                   const SizedBox(width: 4),
                   Tooltip(
                     message: _isExpanded ? 'Collapse' : 'Expand',
                     child: Padding(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: const EdgeInsets.all(4.0),
                       child: AnimatedRotation(
                         turns: _isExpanded ? 0.5 : 0.0,
                         duration: const Duration(milliseconds: 250),
@@ -275,7 +387,7 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                 const Divider(height: 1, color: AppColors.lightBorder),
                 if (visibleFields.isEmpty)
                   Padding(
-                    padding: EdgeInsets.all(isCompact ? 12.0 : 16.0),
+                    padding: EdgeInsets.all(isCompact ? 10.0 : 12.0),
                     child: Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(
@@ -304,29 +416,52 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                   )
                 else
                   Padding(
-                    padding: EdgeInsets.all(isCompact ? 12.0 : 16.0),
+                    padding: EdgeInsets.all(isCompact ? 10.0 : 12.0),
                     child: LayoutBuilder(
                       builder: (context, constraints) {
                         final isWide = constraints.maxWidth > 600;
                         Widget buildControl(DynamicFieldDef f) {
                           final dateKey = '${f.fieldKey}_date';
-                          final dateCtrl = widget.controllers.putIfAbsent(
-                            dateKey,
-                            () => TextEditingController(
-                              text: widget.values[dateKey]?.toString() ?? '',
-                            ),
-                          );
+                          TextEditingController? dateCtrl =
+                              widget.controllers[dateKey];
+                          if (dateCtrl == null) {
+                            try {
+                              dateCtrl = widget.controllers.putIfAbsent(
+                                dateKey,
+                                () => TextEditingController(
+                                  text:
+                                      widget.values[dateKey]?.toString() ?? '',
+                                ),
+                              );
+                            } catch (_) {
+                              dateCtrl = TextEditingController(
+                                text: widget.values[dateKey]?.toString() ?? '',
+                              );
+                            }
+                          }
                           if (widget.values[dateKey] != null &&
                               dateCtrl.text.isEmpty) {
                             dateCtrl.text = widget.values[dateKey].toString();
                           }
 
-                          final fieldCtrl = widget.controllers.putIfAbsent(
-                            f.fieldKey,
-                            () => TextEditingController(
-                              text: widget.values[f.fieldKey]?.toString() ?? '',
-                            ),
-                          );
+                          TextEditingController? fieldCtrl =
+                              widget.controllers[f.fieldKey];
+                          if (fieldCtrl == null) {
+                            try {
+                              fieldCtrl = widget.controllers.putIfAbsent(
+                                f.fieldKey,
+                                () => TextEditingController(
+                                  text: widget.values[f.fieldKey]?.toString() ??
+                                      '',
+                                ),
+                              );
+                            } catch (_) {
+                              fieldCtrl = TextEditingController(
+                                text:
+                                    widget.values[f.fieldKey]?.toString() ?? '',
+                              );
+                            }
+                          }
                           if (widget.values[f.fieldKey] != null &&
                               fieldCtrl.text.isEmpty) {
                             fieldCtrl.text =
@@ -338,7 +473,25 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                             controller: fieldCtrl,
                             value: widget.values[f.fieldKey],
                             onChanged: (val) {
+                              final oldVal = widget.values[f.fieldKey];
+                              widget.values[f.fieldKey] = val;
                               widget.onValueChanged(f.fieldKey, val);
+
+                              final wasTicked = (oldVal == true ||
+                                  oldVal == 'true' ||
+                                  oldVal == 1 ||
+                                  oldVal == '1' ||
+                                  oldVal == 'Yes');
+                              final isTicked = (val == true ||
+                                  val == 'true' ||
+                                  val == 1 ||
+                                  val == '1' ||
+                                  val == 'Yes');
+                              if (!wasTicked && isTicked) {
+                                _handleCopyOnTick(f.fieldKey);
+                              }
+
+                              _pruneHiddenFields();
                               if (mounted) setState(() {});
                             },
                             readOnly: widget.readOnly,
@@ -346,8 +499,26 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                             designationOptions: widget.designationOptions,
                             preventiveOptions: widget.preventiveOptions,
                             dateController: dateCtrl,
+                            stationId: widget.stationId,
+                            allFields: widget.allFormFields ?? widget.fields,
+                            formValues: widget.values,
+                            maxLength: widget.fieldMaxLengths?[f.fieldKey],
+                            compact: f.fieldType == 'checkbox' &&
+                                _isCopyTrigger(f.fieldKey),
+                            onMultiFieldChanged: (extraVals) {
+                              for (final e in extraVals.entries) {
+                                widget.values[e.key] = e.value;
+                                widget.controllers[e.key]?.text =
+                                    e.value?.toString() ?? '';
+                                widget.onValueChanged(e.key, e.value);
+                              }
+                              _pruneHiddenFields();
+                              if (mounted) setState(() {});
+                            },
                             onDateChanged: (val) {
+                              widget.values[dateKey] = val;
                               widget.onValueChanged(dateKey, val);
+                              _pruneHiddenFields();
                               if (mounted) setState(() {});
                             },
                           );
@@ -370,8 +541,7 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                         if (widget.title.toLowerCase().contains('cctv') &&
                             visibleFields.length == 3) {
                           return Padding(
-                            padding:
-                                EdgeInsets.only(bottom: isCompact ? 10 : 12),
+                            padding: EdgeInsets.only(bottom: isCompact ? 8 : 9),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
@@ -394,30 +564,25 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                           );
                         }
 
-                        // 2-Column Responsive Grid on wider screens:
-                        // Group single-line fields in 2-column pairs, and give textareas full-width rows!
+                        // 2-Column Responsive Grid on wider screens: single-line
+                        // fields in pairs, in display order; textareas, repeating
+                        // groups and Act / Section pickers take a full row
+                        bool isFullWidth(DynamicFieldDef f) =>
+                            f.fieldType == 'textarea' ||
+                            f.fieldType == 'repeating_group' ||
+                            f.fieldType == 'charges';
                         final items = <Widget>[];
-                        final singleLineFields = <DynamicFieldDef>[];
-                        final textareas = <DynamicFieldDef>[];
+                        final pending = <DynamicFieldDef>[];
 
-                        for (final f in visibleFields) {
-                          if (f.fieldType == 'textarea') {
-                            textareas.add(f);
-                          } else {
-                            singleLineFields.add(f);
-                          }
-                        }
-
-                        for (var i = 0; i < singleLineFields.length; i += 2) {
-                          final f1 = singleLineFields[i];
-                          final f2 = (i + 1 < singleLineFields.length)
-                              ? singleLineFields[i + 1]
-                              : null;
-
+                        void flushPair() {
+                          if (pending.isEmpty) return;
+                          final f1 = pending[0];
+                          final f2 = pending.length > 1 ? pending[1] : null;
+                          pending.clear();
                           items.add(
                             Padding(
                               padding:
-                                  EdgeInsets.only(bottom: isCompact ? 10 : 12),
+                                  EdgeInsets.only(bottom: isCompact ? 8 : 9),
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -436,15 +601,22 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                           );
                         }
 
-                        for (final ta in textareas) {
-                          items.add(
-                            Padding(
-                              padding:
-                                  EdgeInsets.only(bottom: isCompact ? 10 : 12),
-                              child: buildControl(ta),
-                            ),
-                          );
+                        for (final f in visibleFields) {
+                          if (isFullWidth(f)) {
+                            flushPair();
+                            items.add(
+                              Padding(
+                                padding: EdgeInsets.only(
+                                    bottom: isCompact ? 10 : 12),
+                                child: buildControl(f),
+                              ),
+                            );
+                          } else {
+                            pending.add(f);
+                            if (pending.length == 2) flushPair();
+                          }
                         }
+                        flushPair();
 
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,

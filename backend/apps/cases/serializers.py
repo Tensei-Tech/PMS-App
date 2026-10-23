@@ -2,6 +2,37 @@ from rest_framework import serializers
 from apps.cases.models import CaseRecord
 
 
+class CaseRecordListSerializer(serializers.ModelSerializer):
+    """
+    Lightweight serializer for case list screens to minimize egress.
+    Omits heavy extra_fields JSON payload and deep relations.
+    """
+    class Meta:
+        model = CaseRecord
+        fields = [
+            'id',
+            'module_key',
+            'title',
+            'case_number',
+            'description',
+            'complainant',
+            'accused',
+            'location',
+            'incident_date',
+            'priority',
+            'status',
+            'assigned_officer',
+            'assigned_officer_uid',
+            'sub_category',
+            'created_by',
+            'station_name',
+            'disposal_date',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['created_at', 'updated_at']
+
+
 class CaseRecordSerializer(serializers.ModelSerializer):
     arrest_date = serializers.SerializerMethodField()
 

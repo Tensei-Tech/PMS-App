@@ -143,20 +143,6 @@ const _kProceduralKeys = {
   'chkIdParade': 'Identification Parade Panchanama',
 };
 
-const _kPreventiveItems = [
-  '107 Crpc / 126 BNSS',
-  '109 Crpc / 128 BNSS',
-  '110 Crpc / 129 BNSS',
-  '151(3) Crpc / 170 BNSS',
-  '144 Crpc / 163 BNSS',
-  '149 Crpc / 168 BNSS',
-  '55 MPA',
-  '56 MPA',
-  '57 MPA',
-  '122 MPA',
-  '93 Prohibition Act',
-];
-
 // CommonForm widget
 // ─────────────────────────────────────────────────────────────────────────────
 class CommonForm extends StatefulWidget {
@@ -679,7 +665,8 @@ class CommonFormState extends State<CommonForm> {
   // ── Dynamic Field Engine Data (Backend API) ──────────────────────────────
   Map<String, Map<String, dynamic>> _actsData = {};
   Map<String, String> _proceduralKeys = Map.from(_kProceduralKeys);
-  List<String> _preventiveItems = List.from(_kPreventiveItems);
+  // Preventive provisions come from the backend (public.option_values)
+  List<String> _preventiveItems = [];
   List<Map<String, dynamic>> _extraFields = [];
   final Map<String, TextEditingController> _dynamicControllers = {};
   final Map<String, dynamic> _dynamicValues = {};
@@ -689,8 +676,6 @@ class CommonFormState extends State<CommonForm> {
       _actsData.isNotEmpty ? _actsData : BackendCaseService.cachedActData;
   Map<String, String> get _activeProceduralKeys =>
       _proceduralKeys.isNotEmpty ? _proceduralKeys : _kProceduralKeys;
-  List<String> get _activePreventiveItems =>
-      _preventiveItems.isNotEmpty ? _preventiveItems : _kPreventiveItems;
 
   Future<void> _loadFormDefinition({List<dynamic>? chargedSections}) async {
     final catId = widget.categoryId ??
@@ -5088,13 +5073,13 @@ class CommonFormState extends State<CommonForm> {
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
                         initialValue:
-                            _kPreventiveItems.contains(action) ? action : null,
+                            _preventiveItems.contains(action) ? action : null,
                         dropdownColor: Colors.white,
                         isExpanded: true,
                         decoration: _d('Preventive Action'),
                         style: _tsBody,
                         icon: const Icon(Icons.arrow_drop_down, color: _kTeal),
-                        items: _kPreventiveItems.map((item) {
+                        items: _preventiveItems.map((item) {
                           return DropdownMenuItem<String>(
                             value: item,
                             child: Text(

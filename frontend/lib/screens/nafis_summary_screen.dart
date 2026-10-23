@@ -14,7 +14,6 @@ import '../services/backend_case_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/dynamic_map_pdf.dart';
 import '../utils/pdf_unicode_fonts.dart';
-import '../utils/arrested_table_firestore_mapper.dart';
 import '../utils/case_visibility.dart';
 import '../utils/excel_export_helper.dart';
 import '../widgets/nafis_cases_data_table.dart';
@@ -382,8 +381,10 @@ class _LiveNAFISSummaryLoaderState extends State<_LiveNAFISSummaryLoader> {
       r['section_act'] = raw['section_act'] ?? m.extraFields['section_act'];
       r['charge_sheet_date'] =
           raw['charge_sheet_date'] ?? m.extraFields['charge_sheet_date'];
-      r['io_name'] =
-          raw['assigned_officer'] ?? (m.assignedOfficer.isNotEmpty ? m.assignedOfficer : (raw['io_name'] ?? '—'));
+      r['io_name'] = raw['assigned_officer'] ??
+          (m.assignedOfficer.isNotEmpty
+              ? m.assignedOfficer
+              : (raw['io_name'] ?? '—'));
       r['nafis_status'] = raw['extra_fields']?['nafis_status'] ??
           raw['nafis_status'] ??
           m.extraFields['nafis_status'] ??

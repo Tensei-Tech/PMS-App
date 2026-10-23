@@ -20,7 +20,8 @@ class NAFISHubScreen extends StatefulWidget {
   State<NAFISHubScreen> createState() => _NAFISHubScreenState();
 }
 
-class _NAFISHubScreenState extends State<NAFISHubScreen> with SingleTickerProviderStateMixin {
+class _NAFISHubScreenState extends State<NAFISHubScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final BackendCaseService _backend = BackendCaseService();
 
@@ -53,9 +54,13 @@ class _NAFISHubScreenState extends State<NAFISHubScreen> with SingleTickerProvid
     if (_tabController.indexIsChanging) return;
     if (_tabController.index == 0 && _caseWiseList == null && !_isLoadingCase) {
       _loadCaseWise();
-    } else if (_tabController.index == 1 && _timeWiseData == null && !_isLoadingTime) {
+    } else if (_tabController.index == 1 &&
+        _timeWiseData == null &&
+        !_isLoadingTime) {
       _loadTimeWise();
-    } else if (_tabController.index == 2 && _ioWiseData == null && !_isLoadingIO) {
+    } else if (_tabController.index == 2 &&
+        _ioWiseData == null &&
+        !_isLoadingIO) {
       _loadIOWise();
     }
   }
@@ -80,10 +85,17 @@ class _NAFISHubScreenState extends State<NAFISHubScreen> with SingleTickerProvid
           if (i < records.length) {
             final m = records[i];
             final rawM = i < dataList.length ? dataList[i] : null;
-            r['nafis_status'] = rawM?['nafis_status'] ?? m.extraFields['nafis_status'] ?? 'Pending';
-            r['nafis_status_color'] = rawM?['nafis_status_color'] ?? m.extraFields['nafis_status_color'] ?? 'red';
-            r['io_name'] = m.assignedOfficer.isNotEmpty ? m.assignedOfficer : (r['io'] ?? '—');
-            r['accused_name'] = m.accused.isNotEmpty ? m.accused : (r['accused_name'] ?? '—');
+            r['nafis_status'] = rawM?['nafis_status'] ??
+                m.extraFields['nafis_status'] ??
+                'Pending';
+            r['nafis_status_color'] = rawM?['nafis_status_color'] ??
+                m.extraFields['nafis_status_color'] ??
+                'red';
+            r['io_name'] = m.assignedOfficer.isNotEmpty
+                ? m.assignedOfficer
+                : (r['io'] ?? '—');
+            r['accused_name'] =
+                m.accused.isNotEmpty ? m.accused : (r['accused_name'] ?? '—');
           }
           enrichedRows.add(r);
         }
@@ -142,10 +154,13 @@ class _NAFISHubScreenState extends State<NAFISHubScreen> with SingleTickerProvid
 
   Widget _buildCaseWiseTab() {
     if (_isLoadingCase) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.navyMid));
+      return const Center(
+          child: CircularProgressIndicator(color: AppColors.navyMid));
     }
     if (_errorCase != null) {
-      return Center(child: Text(_errorCase!, style: GoogleFonts.poppins(color: Colors.red)));
+      return Center(
+          child:
+              Text(_errorCase!, style: GoogleFonts.poppins(color: Colors.red)));
     }
     if (_caseWiseList == null || _caseWiseList!.isEmpty) {
       return Center(
@@ -180,10 +195,13 @@ class _NAFISHubScreenState extends State<NAFISHubScreen> with SingleTickerProvid
 
   Widget _buildTimeWiseTab() {
     if (_isLoadingTime) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.navyMid));
+      return const Center(
+          child: CircularProgressIndicator(color: AppColors.navyMid));
     }
     if (_errorTime != null) {
-      return Center(child: Text(_errorTime!, style: GoogleFonts.poppins(color: Colors.red)));
+      return Center(
+          child:
+              Text(_errorTime!, style: GoogleFonts.poppins(color: Colors.red)));
     }
     if (_timeWiseData == null || _timeWiseData!.isEmpty) {
       return Center(
@@ -269,7 +287,8 @@ class _NAFISHubScreenState extends State<NAFISHubScreen> with SingleTickerProvid
                   );
                 },
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   child: Row(
                     children: [
                       Container(
@@ -296,7 +315,8 @@ class _NAFISHubScreenState extends State<NAFISHubScreen> with SingleTickerProvid
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 6),
                         decoration: BoxDecoration(
                           color: AppColors.navyMid.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(20),
@@ -332,10 +352,13 @@ class _NAFISHubScreenState extends State<NAFISHubScreen> with SingleTickerProvid
 
   Widget _buildIOWiseTab() {
     if (_isLoadingIO) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.navyMid));
+      return const Center(
+          child: CircularProgressIndicator(color: AppColors.navyMid));
     }
     if (_errorIO != null) {
-      return Center(child: Text(_errorIO!, style: GoogleFonts.poppins(color: Colors.red)));
+      return Center(
+          child:
+              Text(_errorIO!, style: GoogleFonts.poppins(color: Colors.red)));
     }
     if (_ioWiseData == null || _ioWiseData!.isEmpty) {
       return Center(
@@ -402,7 +425,8 @@ class _NAFISHubScreenState extends State<NAFISHubScreen> with SingleTickerProvid
                   );
                 },
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   child: Row(
                     children: [
                       Container(
@@ -444,7 +468,8 @@ class _NAFISHubScreenState extends State<NAFISHubScreen> with SingleTickerProvid
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 6),
                         decoration: BoxDecoration(
                           color: AppColors.navyMid.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(20),
@@ -529,14 +554,16 @@ class _NAFISHubScreenState extends State<NAFISHubScreen> with SingleTickerProvid
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.description_outlined, color: Color(0xFF107C41)),
+            icon: const Icon(Icons.description_outlined,
+                color: Color(0xFF107C41)),
             tooltip: 'Export to Excel',
             onPressed: () {
               if (_caseWiseList != null && _caseWiseList!.isNotEmpty) {
                 ExcelExportHelper.exportNafisToExcel(dataset: _caseWiseList!);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('NAFIS cases exported to Excel successfully.'),
+                    content:
+                        Text('NAFIS cases exported to Excel successfully.'),
                     backgroundColor: Color(0xFF107C41),
                   ),
                 );
@@ -548,7 +575,8 @@ class _NAFISHubScreenState extends State<NAFISHubScreen> with SingleTickerProvid
             },
           ),
           IconButton(
-            icon: const Icon(Icons.table_chart_rounded, color: AppColors.navyMid),
+            icon:
+                const Icon(Icons.table_chart_rounded, color: AppColors.navyMid),
             tooltip: 'All Cases Summary',
             onPressed: () {
               Navigator.push(
@@ -566,7 +594,8 @@ class _NAFISHubScreenState extends State<NAFISHubScreen> with SingleTickerProvid
           unselectedLabelColor: AppColors.lightSubText,
           indicatorColor: AppColors.navyMid,
           indicatorWeight: 3,
-          labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13),
+          labelStyle:
+              GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13),
           tabs: const [
             Tab(text: "Case Wise"),
             Tab(text: "Time Wise"),

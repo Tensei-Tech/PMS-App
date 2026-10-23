@@ -38,9 +38,8 @@ class ConnectivityProvider extends ChangeNotifier {
 
   void _startHeartbeat() {
     _heartbeatTimer?.cancel();
-    final interval = _isConnected
-        ? const Duration(seconds: 15)
-        : const Duration(seconds: 4);
+    final interval =
+        _isConnected ? const Duration(seconds: 15) : const Duration(seconds: 4);
     _heartbeatTimer = Timer(interval, () async {
       await checkConnection(background: true);
       _startHeartbeat();

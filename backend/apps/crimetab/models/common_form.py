@@ -33,7 +33,7 @@ class Act(models.Model):
     2a. acts — reference/master list of Acts
     """
     act_id = models.BigAutoField(primary_key=True)
-    act_name = models.CharField(max_length=100, default='')
+    act_name = models.CharField(max_length=255, default='')
     display_order = models.IntegerField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
 
@@ -59,7 +59,9 @@ class ActSection(models.Model):
         db_column='act_id'
     )
     section_number = models.CharField(max_length=10, default='')
-    section_title = models.CharField(max_length=255, default='')
+    section_title = models.TextField(default='')
+    # Corresponding old IPC section(s) (e.g. BNS 101 -> IPC 300); optional
+    ipc_section = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
@@ -85,6 +87,9 @@ class ActSubsection(models.Model):
         db_column='section_id'
     )
     subsection_code = models.CharField(max_length=20, default='')
+    subsection_title = models.TextField(blank=True, null=True)
+    # Corresponding old IPC section(s) of this subsection (e.g. BNS 125(a) -> IPC 337)
+    ipc_section = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
@@ -470,21 +475,9 @@ class SeizureRecords(models.Model):
 
 class PreventiveActionItems(models.Model):
     """
-    13. preventive_action_items — repeating, 11 fixed provisions
+    13. preventive_action_items — repeating. Allowed provisions live in
+    public.option_values (option_group 'preventive_action_types').
     """
-    ACTION_TYPE_CHOICES = (
-        ('107 CrPC/126 BNSS', '107 CrPC/126 BNSS'),
-        ('109 CrPC/128 BNSS', '109 CrPC/128 BNSS'),
-        ('110 CrPC/129 BNSS', '110 CrPC/129 BNSS'),
-        ('151(3) CrPC/170 BNSS', '151(3) CrPC/170 BNSS'),
-        ('144 CrPC/163 BNSS', '144 CrPC/163 BNSS'),
-        ('149 CrPC/168 BNSS', '149 CrPC/168 BNSS'),
-        ('55 MPA', '55 MPA'),
-        ('56 MPA', '56 MPA'),
-        ('57 MPA', '57 MPA'),
-        ('122 MPA', '122 MPA'),
-        ('93 Prohibition Act', '93 Prohibition Act'),
-    )
 
     item_id = models.BigAutoField(primary_key=True)
     case = models.ForeignKey(
@@ -502,11 +495,12 @@ class PreventiveActionItems(models.Model):
         related_name='preventive_actions'
     )
     name = models.CharField(max_length=150, null=True, blank=True)
-    action_type = models.CharField(max_length=30, choices=ACTION_TYPE_CHOICES, default='107 CrPC/126 BNSS')
+    action_type = models.CharField(max_length=100)
     action_date = models.DateField(default=timezone.now)
     outward_number = models.CharField(max_length=50, null=True, blank=True)
     bond_date = models.DateField(null=True, blank=True)
     bond_cancellation_date = models.DateField(null=True, blank=True)
+    preventive_number = models.CharField(max_length=100, null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:

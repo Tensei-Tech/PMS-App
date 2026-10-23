@@ -53,11 +53,14 @@ class _PendingHubScreenState extends State<PendingHubScreen> {
           value: 'all',
           child: Row(
             children: [
-              const Icon(Icons.list_alt_rounded, size: 18, color: AppColors.navyMid),
+              const Icon(Icons.list_alt_rounded,
+                  size: 18, color: AppColors.navyMid),
               const SizedBox(width: 10),
               Text('All Cases',
                   style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w600, color: AppColors.navyDark, fontSize: 13)),
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.navyDark,
+                      fontSize: 13)),
             ],
           ),
         ),
@@ -65,11 +68,14 @@ class _PendingHubScreenState extends State<PendingHubScreen> {
           value: 'io_wise',
           child: Row(
             children: [
-              const Icon(Icons.person_search_outlined, size: 18, color: AppColors.navyMid),
+              const Icon(Icons.person_search_outlined,
+                  size: 18, color: AppColors.navyMid),
               const SizedBox(width: 10),
               Text('IO Wise Breakdown',
                   style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w600, color: AppColors.navyDark, fontSize: 13)),
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.navyDark,
+                      fontSize: 13)),
             ],
           ),
         ),
@@ -219,7 +225,8 @@ class _PendingHubScreenState extends State<PendingHubScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1200),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -280,7 +287,8 @@ class _PendingHubScreenState extends State<PendingHubScreen> {
                   const SizedBox(height: 24),
                   Expanded(
                     child: GridView.builder(
-                      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                      gridDelegate:
+                          const SliverGridDelegateWithMaxCrossAxisExtent(
                         maxCrossAxisExtent: 280,
                         crossAxisSpacing: 14,
                         mainAxisSpacing: 14,
