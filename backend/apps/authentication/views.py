@@ -153,6 +153,37 @@ class RegisterView(views.APIView):
                     'error': 'State Admin accounts cannot be created via public self-registration. State Admins are onboarded directly by a Master Admin or existing State Admin.'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
+            # Require unit matching the role dynamically from module_settings
+            if role_id not in ['master_admin', 'state_super_admin']:
+                from apps.crimetab.models import ModuleSetting
+
+                def _get_setting_val(key, default):
+                    s = ModuleSetting.objects.filter(module_key='rti', setting_key=key).first()
+                    if s and s.setting_value is not None:
+                        return s.setting_value.strip()
+                    return default
+
+                station_roles = [r.strip() for r in _get_setting_val('scope_station_roles', 'officer,station_admin,station_head').split(',') if r.strip()]
+                division_roles = [r.strip() for r in _get_setting_val('scope_division_roles', 'division_admin,supervisor').split(',') if r.strip()]
+                district_roles = [r.strip() for r in _get_setting_val('scope_district_roles', 'district_admin').split(',') if r.strip()]
+
+                division_val = str(data.get('division_name') or data.get('division') or data.get('division_id') or '').strip()
+                district_val = str(data.get('district') or data.get('district_name') or data.get('district_id') or '').strip()
+                station_val = str(data.get('station_name') or data.get('station_id') or '').strip()
+
+                if role_id in station_roles:
+                    if not station_val:
+                        no_st_msg = _get_setting_val('no_station_message', 'No police station assigned to the logged-in user.')
+                        return Response({'error': no_st_msg}, status=status.HTTP_400_BAD_REQUEST)
+                elif role_id in division_roles:
+                    if not division_val:
+                        no_div_msg = _get_setting_val('no_division_message', 'No division assigned to the logged-in user.')
+                        return Response({'error': no_div_msg}, status=status.HTTP_400_BAD_REQUEST)
+                elif role_id in district_roles:
+                    if not district_val:
+                        no_dist_msg = _get_setting_val('no_district_message', 'No district assigned to the logged-in user.')
+                        return Response({'error': no_dist_msg}, status=status.HTTP_400_BAD_REQUEST)
+
             # Upstream Command Authority Validation: Block registration if jurisdiction lacks active approving admin
             if role_id not in ['master_admin', 'state_super_admin']:
                 try:

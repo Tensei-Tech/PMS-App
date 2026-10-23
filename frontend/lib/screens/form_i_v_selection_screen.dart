@@ -49,6 +49,7 @@ class FormIVSelectionScreen extends StatefulWidget {
   final String? initialCategory;
   final String? customTitle;
   final String? moduleKey;
+  final dynamic categoryId;
 
   const FormIVSelectionScreen({
     super.key,
@@ -56,7 +57,13 @@ class FormIVSelectionScreen extends StatefulWidget {
     this.initialCategory,
     this.customTitle,
     this.moduleKey,
+    this.categoryId,
+    this.openCategory,
   });
+
+  /// Open directly on this category's case list (e.g. from a dashboard tile);
+  /// Back then closes the screen instead of showing the 1-to-5 grid.
+  final String? openCategory;
 
   static bool recordMatchesCategory(
     ModuleRecord r,
@@ -170,6 +177,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
         _loadCategoryChildren(initCat);
       }
     } else {
+      _selectedCategory = widget.openCategory;
       _loadGroupCategories();
     }
   }
@@ -177,7 +185,10 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
   Future<void> _loadCategoryChildren(String category) async {
     setState(() => _isLoadingCategory = true);
     try {
-      final children = await CategoryNavigationHelper.getChildren(category);
+      final children = await CategoryNavigationHelper.getChildren(
+        category,
+        categoryId: widget.categoryId,
+      );
       if (!mounted) return;
       setState(() {
         _categoryChildrenCache[category] = children;
@@ -250,8 +261,13 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
       final options = List<String>.from(_filterOptions)
           .where((cat) => !_isExcludedFromFormIV(cat))
           .toList();
+      // Tiles for categories only seen on saved cases are a fallback for when
+      // the "1 to 5" list could not load; with the database list, a case under
+      // a non 1-to-5 name (e.g. "Victim", "Repeat Offender") adds no tile.
       final provider = context.read<FormIVProvider>();
-      for (final r in provider.records) {
+      for (final r in _isUsingFallbackCategories
+          ? provider.records
+          : const <ModuleRecord>[]) {
         final matchesAny = options.any(
           (opt) => FormIVSelectionScreen.recordMatchesCategory(r, opt),
         );
@@ -348,7 +364,10 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
 
   void _handleBackNavigation() {
     final rootDepth = widget.initialCategory != null ? 1 : 0;
-    if (_selectedCategory != null) {
+    if (widget.openCategory != null &&
+        _selectedCategory == widget.openCategory) {
+      Navigator.pop(context);
+    } else if (_selectedCategory != null) {
       setState(() => _selectedCategory = null);
     } else if (_categoryBreadcrumb.length > rootDepth) {
       setState(() => _categoryBreadcrumb.removeLast());
@@ -1528,8 +1547,10 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
     final rootDepth = widget.initialCategory != null ? 1 : 0;
 
     return PopScope(
-      canPop:
-          _selectedCategory == null && _categoryBreadcrumb.length <= rootDepth,
+      canPop: (widget.openCategory != null &&
+              _selectedCategory == widget.openCategory) ||
+          (_selectedCategory == null &&
+              _categoryBreadcrumb.length <= rootDepth),
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         _handleBackNavigation();
@@ -2180,7 +2201,26 @@ class _CategoryGridView extends StatelessWidget {
   }
 
   IconData _iconForCategory(String category) {
-    return CategoryIconHelper.getIcon(category);
+    switch (category.toLowerCase()) {
+      case 'murder':
+      case 'attempt to murder':
+        return Icons.warning_amber_rounded;
+      case 'cheating':
+      case 'cbt':
+      case 'extortion':
+        return Icons.receipt_long_outlined;
+      case 'riot':
+      case 'unlawful assembly':
+        return Icons.groups_rounded;
+      case 'rape':
+      case 'molestation':
+        return Icons.shield_outlined;
+      case 'assault on public servant':
+        return Icons.healing_outlined;
+      default:
+        // Shared icons for every other category
+        return CategoryIconHelper.getIcon(category);
+    }
   }
 
   @override
@@ -2215,7 +2255,7 @@ class _CategoryGridView extends StatelessWidget {
             final transCategory =
                 TranslationHelper.translate(context, category);
 
-            return _CategoryGridCard(
+            return CategoryGridCard(
               category: transCategory,
               rawCategory: category,
               icon: isAll ? Icons.ballot_outlined : _iconForCategory(category),
@@ -2230,8 +2270,11 @@ class _CategoryGridView extends StatelessWidget {
   }
 }
 
-class _CategoryGridCard extends StatefulWidget {
-  const _CategoryGridCard({
+/// Compact category card (icon, name, case count, chevron), also used by
+/// the dashboard sub-tab screens.
+class CategoryGridCard extends StatefulWidget {
+  const CategoryGridCard({
+    super.key,
     required this.category,
     this.rawCategory,
     required this.icon,
@@ -2248,10 +2291,10 @@ class _CategoryGridCard extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_CategoryGridCard> createState() => _CategoryGridCardState();
+  State<CategoryGridCard> createState() => CategoryGridCardState();
 }
 
-class _CategoryGridCardState extends State<_CategoryGridCard> {
+class CategoryGridCardState extends State<CategoryGridCard> {
   bool _hovered = false;
 
   @override

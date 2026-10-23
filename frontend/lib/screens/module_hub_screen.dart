@@ -50,7 +50,6 @@ import '../modules/preventive/screens/preventive_view_screen.dart';
 import '../modules/sam_warrant/providers/sam_warrant_provider.dart';
 import '../modules/sand_theft/providers/sand_theft_provider.dart';
 import '../modules/st_drugs/providers/st_drugs_provider.dart';
-import '../modules/suicide/providers/suicide_provider.dart';
 import '../modules/theft/providers/theft_provider.dart';
 import '../modules/traffic/providers/traffic_provider.dart';
 import '../modules/two_four_wheeler/providers/two_four_wheeler_provider.dart';
@@ -79,6 +78,7 @@ import 'form_vi_selection_screen.dart' hide FormIVEmptyCasesState;
 import 'hurt_cases_screen.dart';
 import 'module_form_screen.dart';
 import 'module_record_detail_screen.dart';
+import '../widgets/dynamic_form/dynamic_form_screen.dart';
 import 'filtered_pending_screen.dart';
 import 'pending_io_wise_screens.dart';
 import 'pending_summary_screen.dart';
@@ -262,8 +262,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         return context.watch<MpdaProvider>();
       case 'coin':
         return context.watch<CoinProvider>();
-      case 'suicide':
-        return context.watch<SuicideProvider>();
       case 'st_drugs':
         return context.watch<StDrugsProvider>();
       default:
@@ -346,8 +344,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         return context.read<MpdaProvider>();
       case 'coin':
         return context.read<CoinProvider>();
-      case 'suicide':
-        return context.read<SuicideProvider>();
       case 'st_drugs':
         return context.read<StDrugsProvider>();
       default:
@@ -469,7 +465,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         ),
       );
     } else {
-      final page = moduleUsesCommonCrimeForm(widget.moduleKey)
+      final page = moduleUsesCommonCrimeForm(
+              widget.moduleKey, widget.subCategory ?? widget.moduleLabel)
           ? CommonFormScreen(
               moduleLabel: widget.moduleLabel,
               moduleKey: widget.moduleKey,
@@ -1136,17 +1133,26 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           '(${subSection.pageRange}, subCategory: $subCategory)',
         );
       }
+      final isLinked = isTabLinkedToCommonFormBaseline(
+        moduleKey: 'form_1_5',
+        categoryName: subCategory,
+      );
+      final page = isLinked
+          ? CommonFormScreen(
+              moduleLabel: moduleLabel,
+              moduleKey: 'form_1_5',
+              subCategory: subCategory,
+              formSection: subSection?.sectionId,
+              pageRange: subSection?.pageRange,
+            )
+          : DynamicFormScreen(
+              moduleLabel: moduleLabel,
+              moduleKey: 'form_1_5',
+              subCategory: subCategory,
+            );
       Navigator.push(
         context,
-        AppTheme.fadeSlideRoute(
-          page: CommonFormScreen(
-            moduleLabel: moduleLabel,
-            moduleKey: 'form_1_5',
-            subCategory: subCategory,
-            formSection: subSection?.sectionId,
-            pageRange: subSection?.pageRange,
-          ),
-        ),
+        AppTheme.fadeSlideRoute(page: page),
       );
     }
 
@@ -3846,17 +3852,30 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       'View',
                       AppColors.goldPrimary,
                       () {
+                        final isLinked = isTabLinkedToCommonFormBaseline(
+                          moduleKey: widget.moduleKey,
+                          categoryName: record.subCategory,
+                        );
+                        final page = isLinked
+                            ? CommonFormScreen(
+                                moduleLabel:
+                                    record.firestoreCategoryDisplayName,
+                                moduleKey: widget.moduleKey,
+                                subCategory: record.subCategory,
+                                existingRecord: record,
+                                readOnly: true,
+                              )
+                            : DynamicFormScreen(
+                                moduleLabel:
+                                    record.firestoreCategoryDisplayName,
+                                moduleKey: widget.moduleKey,
+                                subCategory: record.subCategory,
+                                existingRecord: record,
+                                readOnly: true,
+                              );
                         Navigator.push(
                           ctx,
-                          AppTheme.fadeSlideRoute(
-                            page: CommonFormScreen(
-                              moduleLabel: record.firestoreCategoryDisplayName,
-                              moduleKey: widget.moduleKey,
-                              subCategory: record.subCategory,
-                              existingRecord: record,
-                              readOnly: true,
-                            ),
-                          ),
+                          AppTheme.fadeSlideRoute(page: page),
                         );
                       },
                     ),
@@ -4068,7 +4087,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 );
                 return;
               }
-              final page = moduleUsesCommonCrimeForm(widget.moduleKey)
+              final page = moduleUsesCommonCrimeForm(widget.moduleKey,
+                      record.subCategory ?? record.firestoreCategoryDisplayName)
                   ? CommonFormScreen(
                       moduleLabel: record.firestoreCategoryDisplayName,
                       moduleKey: widget.moduleKey,

@@ -60,7 +60,7 @@ class MpdaFormPdfHelper {
           },
         '4. Investigating Officer & Sanction': {
           'IO Name': inv['ioName'] ?? '—',
-          'IO Post': inv['ioPost'] ?? '—',
+          'Designation': inv['ioPost'] ?? '—',
           'Proposal Outcome': inv['proposalOutcome'] ?? '—',
           'Outcome Decision Date': inv['outcomeDate'] ?? '—',
           'Detaining Authority': inv['detainingAuthority'] ?? '—',
@@ -80,7 +80,8 @@ class MpdaFormPdfHelper {
         },
         '6. Crime Chart Summary': {
           'Total Crime Count': crime['totalCrime'] ?? '000',
-          'Serious Crimes Count': crime['seriousCrimes'] ?? '000',
+          'Total Serious Crime Count': crime['seriousCrimes'] ?? '000',
+          'Total Miscellaneous Crime Count': crime['miscCrimes'] ?? '000',
         },
         if (crime['categories'] is Map)
           '7. Crime Chart Category Details': {

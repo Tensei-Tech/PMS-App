@@ -3,6 +3,15 @@ from apps.cases.models import CaseRecord
 from apps.cases.utils import get_cases_by_status
 from django.urls import reverse
 
+
+def seed_ad_disposal_rule():
+    """The A.D. disposal settings migration 0130 adds (tests run without migrations)."""
+    import importlib
+    from django.apps import apps as django_apps
+    from django.core.cache import cache
+    importlib.import_module('apps.crimetab.migrations.0130_ad_disposal_rule_settings').forwards(django_apps, None)
+    cache.clear()
+
 class DisposalInverseLogicTests(APITestCase):
     def setUp(self):
         # Pending cases
@@ -53,6 +62,7 @@ class DisposalAPITests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='test_officer', password='pw')
         self.user.station_name = 'Central'
+        self.user.state_code = 'MH'  # case views need the officer's state (tenant)
         self.user.save()
         
         self.client.force_authenticate(user=self.user)
@@ -173,6 +183,27 @@ class DisposalAPITests(APITestCase):
         self.assertEqual(data['results'][0]['case_number'], 'CR_IO_1')
 
 class ADCaseDisposalTests(APITestCase):
+    def setUp(self):
+        seed_ad_disposal_rule()
+
+    def test_rule_follows_module_settings(self):
+        from apps.cases.models import is_ad_case_disposed
+        from apps.crimetab.models import ModuleSetting
+        from django.core.cache import cache
+        case = {'module_key': 'ad', 'extra_fields': {'TEST_done': 'Closed', 'TEST_done_on': '01/01/2026',
+                                                     'ad_sdm_granted': 'Yes', 'ad_sdm_granted_date': '01/01/2026'}}
+        self.assertTrue(is_ad_case_disposed(case))
+        for key, value in (('disposal_field_key', 'TEST_done'), ('disposal_value', 'Closed'),
+                           ('disposal_date_field_key', 'TEST_done_on')):
+            ModuleSetting.objects.filter(module_key='ad', setting_key=key).update(setting_value=value)
+        cache.clear()
+        self.assertTrue(is_ad_case_disposed(case))
+        case['extra_fields']['TEST_done'] = 'Open'
+        self.assertFalse(is_ad_case_disposed(case))
+        ModuleSetting.objects.filter(module_key='ad').delete()
+        cache.clear()
+        self.assertFalse(is_ad_case_disposed(case))  # no rule configured: never disposed
+
     def test_ad_rule(self):
         from apps.cases.utils import get_cases_by_status
         from django.utils import timezone
@@ -183,25 +214,29 @@ class ADCaseDisposalTests(APITestCase):
             c1 = CaseRecord.objects.create(module_key='ad', extra_fields={'ccStNumber': 'AD-CC'})
             self.assertTrue(get_cases_by_status('pending').filter(id=c1.id).exists())
             
-            # 2. AD case with AD Summary No AND Date is disposed
-            c2 = CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryNo': 'AD-123', 'adSummaryDate': '2023-01-01'})
+            # 2. AD case with SDM Granted = Yes AND its date is disposed
+            c2 = CaseRecord.objects.create(module_key='ad', extra_fields={'ad_sdm_granted': 'Yes', 'ad_sdm_granted_date': '2023-01-01'})
             self.assertTrue(get_cases_by_status('disposal').filter(id=c2.id).exists())
             
-            # 3. AD case with ONLY AD Summary No is pending
-            c3 = CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryNo': 'AD-456'})
+            # 3. AD case with SDM Granted = Yes but no date is pending
+            c3 = CaseRecord.objects.create(module_key='ad', extra_fields={'ad_sdm_granted': 'Yes'})
             self.assertTrue(get_cases_by_status('pending').filter(id=c3.id).exists())
             
-            # 4. AD case with ONLY AD Summary Date is pending
-            c4 = CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryDate': '2023-01-01'})
+            # 4. AD case with ONLY the SDM Granted date is pending
+            c4 = CaseRecord.objects.create(module_key='ad', extra_fields={'ad_sdm_granted_date': '2023-01-01'})
             self.assertTrue(get_cases_by_status('pending').filter(id=c4.id).exists())
             
-            # 5. Non-AD case with AD Summary No and Date is pending (if no 7 fields)
-            c5 = CaseRecord.objects.create(module_key='theft', extra_fields={'adSummaryNo': 'AD-123', 'adSummaryDate': '2023-01-01'})
+            # 5. Non-AD case with SDM Granted fields is pending (if no 7 fields)
+            c5 = CaseRecord.objects.create(module_key='theft', extra_fields={'ad_sdm_granted': 'Yes', 'ad_sdm_granted_date': '2023-01-01'})
             self.assertTrue(get_cases_by_status('pending').filter(id=c5.id).exists())
             
             # 6. AD case identified by sub_category
-            c6 = CaseRecord.objects.create(module_key='missing', sub_category='accidental death', extra_fields={'adSummaryNo': 'AD-99', 'adSummaryDate': '2023-01-01'})
+            c6 = CaseRecord.objects.create(module_key='missing', sub_category='accidental death', extra_fields={'ad_sdm_granted': 'Yes', 'ad_sdm_granted_date': '2023-01-01'})
             self.assertTrue(get_cases_by_status('disposal').filter(id=c6.id).exists())
+
+            # 7. SDM Granted = No (even with a date) is pending
+            c7 = CaseRecord.objects.create(module_key='ad', extra_fields={'ad_sdm_granted': 'No', 'ad_sdm_granted_date': '2023-01-01'})
+            self.assertTrue(get_cases_by_status('pending').filter(id=c7.id).exists())
 
         # Verify save() sets disposal_date for AD rule cases
         c2.refresh_from_db()
@@ -211,10 +246,10 @@ class ADCaseDisposalTests(APITestCase):
         from apps.cases.utils import get_cases_by_status
         # Compare Python is_ad_case_disposed vs SQL rule for random combinations
         cases = [
-            CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryNo': 'A', 'adSummaryDate': 'D'}),
-            CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryNo': 'A'}),
-            CaseRecord.objects.create(module_key='missing', sub_category='ad', extra_fields={'adSummaryNo': 'A', 'adSummaryDate': 'D'}),
-            CaseRecord.objects.create(module_key='theft', extra_fields={'adSummaryNo': 'A', 'adSummaryDate': 'D', 'ccStNumber': '1'}),
+            CaseRecord.objects.create(module_key='ad', extra_fields={'ad_sdm_granted': 'Yes', 'ad_sdm_granted_date': 'D'}),
+            CaseRecord.objects.create(module_key='ad', extra_fields={'ad_sdm_granted': 'Yes'}),
+            CaseRecord.objects.create(module_key='missing', sub_category='ad', extra_fields={'ad_sdm_granted': 'Yes', 'ad_sdm_granted_date': 'D'}),
+            CaseRecord.objects.create(module_key='theft', extra_fields={'ad_sdm_granted': 'Yes', 'ad_sdm_granted_date': 'D', 'ccStNumber': '1'}),
         ]
         
         from apps.cases.models import is_ad_case_disposed
@@ -229,8 +264,8 @@ class ADCaseDisposalTests(APITestCase):
     def test_inverse(self):
         from apps.cases.utils import get_cases_by_status
         # Ensure pending + disposal = total, and no intersection
-        CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryNo': 'A', 'adSummaryDate': 'D'})
-        CaseRecord.objects.create(module_key='ad', extra_fields={'adSummaryNo': 'A'})
+        CaseRecord.objects.create(module_key='ad', extra_fields={'ad_sdm_granted': 'Yes', 'ad_sdm_granted_date': 'D'})
+        CaseRecord.objects.create(module_key='ad', extra_fields={'ad_sdm_granted': 'Yes'})
         
         all_ids = set(CaseRecord.objects.values_list('id', flat=True))
         disp_ids = set(get_cases_by_status('disposal').values_list('id', flat=True))
@@ -246,6 +281,7 @@ class ADCaseDisposalTests(APITestCase):
         User = get_user_model()
         user = User.objects.create(username='testpagi', password='123')
         user.station_name = 'Central'
+        user.state_code = 'MH'  # case views need the officer's state (tenant)
         user.save()
         client = APIClient()
         client.force_authenticate(user=user)
