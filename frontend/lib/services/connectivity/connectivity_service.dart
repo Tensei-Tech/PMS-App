@@ -1,6 +1,5 @@
 // lib/services/connectivity/connectivity_service.dart
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 
 import 'connectivity_engine.dart';
 import 'connectivity_engine_stub.dart'

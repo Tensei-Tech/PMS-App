@@ -19,8 +19,7 @@ const Set<String> _kModulesWithoutCommonForm = {
 };
 
 /// Dashboard / hub modules that use [CommonForm] instead of [ModuleFormScreen].
-bool moduleUsesCommonCrimeForm(String moduleKey) =>
-    !_kModulesWithoutCommonForm.contains(moduleKey);
+bool moduleUsesCommonCrimeForm(String moduleKey) => !_kModulesWithoutCommonForm.contains(moduleKey);
 
 /// Checks if a Form I-V (or CommonForm) case is "unarrested":
 /// Checks the Arrest & Release Status section (§9) — if Arrest Date/Time is empty/null,

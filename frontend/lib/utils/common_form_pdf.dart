@@ -7,7 +7,6 @@ import 'dart:typed_data';
 // ignore_for_file: unused_shown_name
 // Imports match project spec (`show BuildContext, TimeOfDay`); TimeOfDay is unused in this utility.
 
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart' show BuildContext, TimeOfDay;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -59,8 +58,7 @@ Future<void> previewFormPdf(
         formTitle: formTitle,
         formSubtitle: formSubtitle,
       );
-      final fileName =
-          '${formTitle.replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final fileName = '${formTitle.replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf';
       await Printing.sharePdf(bytes: bytes, filename: fileName);
     },
   );
@@ -126,8 +124,7 @@ Future<Uint8List> generateFormPdf(
 // HEADER & FOOTER
 // ══════════════════════════════════════════════════════════════════════════════
 
-pw.Widget _header(pw.Context ctx, String title, String subtitle) =>
-    pw.Container(
+pw.Widget _header(pw.Context ctx, String title, String subtitle) => pw.Container(
       margin: const pw.EdgeInsets.only(bottom: PdfLayoutConstants.sectionGap),
       padding: const pw.EdgeInsets.only(bottom: 6),
       decoration: const pw.BoxDecoration(
@@ -167,8 +164,7 @@ pw.Widget _header(pw.Context ctx, String title, String subtitle) =>
             crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
               pw.Container(
-                padding:
-                    const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                 decoration: pw.BoxDecoration(
                   border: pw.Border.all(
                     color: _red,
@@ -232,42 +228,173 @@ pw.Widget _footer(pw.Context ctx) => pw.Container(
     );
 
 const _standardCommonFormKeys = {
-  'crNo', 'case_number', 'caseNumber', 'cr_number', 'regDate', 'incidentDate', 'incident_date',
-  'registered_datetime', 'registeredDateTime', 'occurrence_datetime', 'incident_datetime', 'occurrenceDate',
-  'isUnknownUntraced', 'is_unknown_accused', 'isUnknownAccused', 'firCopyPath',
-  'charges', 'sections', 'acts', 'act_name', 'section',
-  'spotVillage', 'village_town', 'spotArea', 'area_name', 'spotAddress', 'crime_spot_address', 'location', 'full_address',
-  'distance_from_ps', 'direction_from_ps',
-  'stolenProperties', 'stolenProperty', 'recoveredProperties', 'recoveredProperty',
-  'complainant', 'complainant_name', 'complainant_age', 'complainant_gender', 'complainant_occupation', 'complainant_occ',
-  'complainant_mobile', 'complainant_aadhaar', 'complainant_religion', 'complainant_caste', 'complainant_pan', 'complainant_address',
-  'isSexualOffence', 'victim', 'victim_name', 'victim_age', 'victim_gender', 'victim_occupation', 'victim_occ',
-  'victim_mobile', 'victim_aadhaar', 'victim_religion', 'victim_caste', 'victim_pan', 'victim_address',
-  'deceased', 'deceased_name', 'isMurderCase', 'isPocsoCase',
-  'injured', 'injured_name',
-  'accused', 'accused_name', 'accused_age', 'accused_gender', 'accused_mobile', 'accused_occupation', 'accused_occ',
-  'accused_address', 'accused_aadhaar', 'accused_pan', 'accused_religion', 'accused_caste',
-  'suspectedAccused', 'suspected_accused', 'suspected_accused_name',
-  'unidentifiedList', 'unidentified_accused', 'unknownList', 'unknown_accused',
-  'caseResponsibility', 'io_designation', 'ioDesig', 'io_name', 'ioName', 'investigating_officer', 'assigned_officer',
-  'registered_by_designation', 'regDesig', 'registered_by_name', 'regName', 'cctvValue', 'cctv_checked', 'cctv_datetime', 'cctvDateTime',
-  'arrestRelease', 'arrests', 'arrest_records', 'section8283Action',
-  'proceduralChecks', 'proceduralDates', 'vehicleUsage', 'spot_panchanama', 'spot_panchanama_date',
-  'seizure_panchanama', 'seizure_panchanama_date', 'inquest_panchanama', 'inquest_panchanama_date',
-  'eshakshValue', 'eshakshDt', 'eshakshReason', 'e_shakshya', 'fingerprint_taken',
-  'seizures', 'seizure_items', 'object_name', 'seizure_description', 'seizure_from', 'seizure_date', 'seizure_location',
-  'custodyInfo', 'custody_records', 'remand_custody', 'cdrSent', 'cdr_sent_date', 'cdrRecv', 'cdr_recv_date',
-  'preventive', 'preventive_actions', 'dischargeByAccused', 'dischargeDetails',
-  'court', 'charge_sheet_no', 'charge_sheet_date', 'scrutiny', 'verdict', 'cc_st_number', 'final_summary', 'quashed_by_high_court',
-  'commonForm', 'id', 'category', 'subCategory', 'sub_category', 'status', 'priority', 'title', 'description', 'stationName',
-  'assignedOfficer', 'briefFact', 'updatedAt', 'createdAt', 'ncForm', 'missingForm', 'mpdaForm', 'preventiveForm',
+  'crNo',
+  'case_number',
+  'caseNumber',
+  'cr_number',
+  'regDate',
+  'incidentDate',
+  'incident_date',
+  'registered_datetime',
+  'registeredDateTime',
+  'occurrence_datetime',
+  'incident_datetime',
+  'occurrenceDate',
+  'isUnknownUntraced',
+  'is_unknown_accused',
+  'isUnknownAccused',
+  'firCopyPath',
+  'charges',
+  'sections',
+  'acts',
+  'act_name',
+  'section',
+  'spotVillage',
+  'village_town',
+  'spotArea',
+  'area_name',
+  'spotAddress',
+  'crime_spot_address',
+  'location',
+  'full_address',
+  'distance_from_ps',
+  'direction_from_ps',
+  'stolenProperties',
+  'stolenProperty',
+  'recoveredProperties',
+  'recoveredProperty',
+  'complainant',
+  'complainant_name',
+  'complainant_age',
+  'complainant_gender',
+  'complainant_occupation',
+  'complainant_occ',
+  'complainant_mobile',
+  'complainant_aadhaar',
+  'complainant_religion',
+  'complainant_caste',
+  'complainant_pan',
+  'complainant_address',
+  'isSexualOffence',
+  'victim',
+  'victim_name',
+  'victim_age',
+  'victim_gender',
+  'victim_occupation',
+  'victim_occ',
+  'victim_mobile',
+  'victim_aadhaar',
+  'victim_religion',
+  'victim_caste',
+  'victim_pan',
+  'victim_address',
+  'deceased',
+  'deceased_name',
+  'isMurderCase',
+  'isPocsoCase',
+  'injured',
+  'injured_name',
+  'accused',
+  'accused_name',
+  'accused_age',
+  'accused_gender',
+  'accused_mobile',
+  'accused_occupation',
+  'accused_occ',
+  'accused_address',
+  'accused_aadhaar',
+  'accused_pan',
+  'accused_religion',
+  'accused_caste',
+  'suspectedAccused',
+  'suspected_accused',
+  'suspected_accused_name',
+  'unidentifiedList',
+  'unidentified_accused',
+  'unknownList',
+  'unknown_accused',
+  'caseResponsibility',
+  'io_designation',
+  'ioDesig',
+  'io_name',
+  'ioName',
+  'investigating_officer',
+  'assigned_officer',
+  'registered_by_designation',
+  'regDesig',
+  'registered_by_name',
+  'regName',
+  'cctvValue',
+  'cctv_checked',
+  'cctv_datetime',
+  'cctvDateTime',
+  'arrestRelease',
+  'arrests',
+  'arrest_records',
+  'section8283Action',
+  'proceduralChecks',
+  'proceduralDates',
+  'vehicleUsage',
+  'spot_panchanama',
+  'spot_panchanama_date',
+  'seizure_panchanama',
+  'seizure_panchanama_date',
+  'inquest_panchanama',
+  'inquest_panchanama_date',
+  'eshakshValue',
+  'eshakshDt',
+  'eshakshReason',
+  'e_shakshya',
+  'fingerprint_taken',
+  'seizures',
+  'seizure_items',
+  'object_name',
+  'seizure_description',
+  'seizure_from',
+  'seizure_date',
+  'seizure_location',
+  'custodyInfo',
+  'custody_records',
+  'remand_custody',
+  'cdrSent',
+  'cdr_sent_date',
+  'cdrRecv',
+  'cdr_recv_date',
+  'preventive',
+  'preventive_actions',
+  'dischargeByAccused',
+  'dischargeDetails',
+  'court',
+  'charge_sheet_no',
+  'charge_sheet_date',
+  'scrutiny',
+  'verdict',
+  'cc_st_number',
+  'final_summary',
+  'quashed_by_high_court',
+  'commonForm',
+  'id',
+  'category',
+  'subCategory',
+  'sub_category',
+  'status',
+  'priority',
+  'title',
+  'description',
+  'stationName',
+  'assignedOfficer',
+  'briefFact',
+  'updatedAt',
+  'createdAt',
+  'ncForm',
+  'missingForm',
+  'mpdaForm',
+  'preventiveForm',
 };
 
 List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   final sections = <pw.Widget>[];
-  final isUnknown = m['isUnknownUntraced'] == true ||
-      m['is_unknown_accused'] == true ||
-      m['isUnknownAccused'] == true;
+  final isUnknown = m['isUnknownUntraced'] == true || m['is_unknown_accused'] == true || m['isUnknownAccused'] == true;
   final extraMap = Map<String, dynamic>.from(extra);
   for (final key in _standardCommonFormKeys) {
     extraMap.remove(key);
@@ -309,8 +436,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
         if (cat.isNotEmpty && cat != crNo) _f('Category', cat),
         if (subCat.isNotEmpty && subCat != cat) _f('Sub-Category', subCat),
         _f('Unknown / Untraced', isUnknown ? 'Yes' : 'No'),
-        if (firCopy.isNotEmpty && firCopy != 'Not uploaded' && firCopy != '-')
-          _f('FIR Copy', firCopy, full: true),
+        if (firCopy.isNotEmpty && firCopy != 'Not uploaded' && firCopy != '-') _f('FIR Copy', firCopy, full: true),
       ]),
     ),
   );
@@ -327,7 +453,10 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
       if (c is Map) {
         chargesMap['charge-${i + 1}'] = c;
       } else {
-        chargesMap['charge-${i + 1}'] = {'act': 'Law', 'sections': [c.toString()]};
+        chargesMap['charge-${i + 1}'] = {
+          'act': 'Law',
+          'sections': [c.toString()]
+        };
       }
     }
   } else if (m['acts_sections'] is List && (m['acts_sections'] as List).isNotEmpty) {
@@ -338,7 +467,10 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
       if (c is Map) {
         chargesMap['charge-${i + 1}'] = c;
       } else {
-        chargesMap['charge-${i + 1}'] = {'act': 'Law', 'sections': [c.toString()]};
+        chargesMap['charge-${i + 1}'] = {
+          'act': 'Law',
+          'sections': [c.toString()]
+        };
       }
     }
   } else {
@@ -355,9 +487,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: chargesMap.entries.toList().asMap().entries.map((e) {
                 final chargeNum = e.key + 1;
-                final data = (e.value.value is Map)
-                    ? (e.value.value as Map)
-                    : {'act': e.value.value.toString()};
+                final data = (e.value.value is Map) ? (e.value.value as Map) : {'act': e.value.value.toString()};
                 final act = _v(data['act'] ?? data['act_name']);
                 final rawSecs = data['sections'] ?? data['section'];
                 final secs = (rawSecs is List)
@@ -397,8 +527,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
     for (int i = 0; i < spList.length; i++) {
       final rawItem = spList[i];
       final item = rawItem is Map ? rawItem : {'property': rawItem.toString()};
-      propWidgets.add(
-          _f('Stolen Property #${i + 1}', _v(item['property']), full: true));
+      propWidgets.add(_f('Stolen Property #${i + 1}', _v(item['property']), full: true));
       if (_v(item['quantity']).isNotEmpty) {
         propWidgets.add(_f('Quantity', _v(item['quantity'])));
       }
@@ -416,12 +545,9 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
       }
     }
   } else if (m['stolenProperty'] != null) {
-    final Map spMap = (m['stolenProperty'] is Map)
-        ? (m['stolenProperty'] as Map)
-        : {'property': m['stolenProperty'].toString()};
-    final prop = _v(spMap['property']).isNotEmpty
-        ? _v(spMap['property'])
-        : _v(spMap['description']);
+    final Map spMap =
+        (m['stolenProperty'] is Map) ? (m['stolenProperty'] as Map) : {'property': m['stolenProperty'].toString()};
+    final prop = _v(spMap['property']).isNotEmpty ? _v(spMap['property']) : _v(spMap['description']);
     if (prop.isNotEmpty) {
       propWidgets.add(_f('Description', prop, full: true));
     }
@@ -447,8 +573,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
     for (int i = 0; i < rpList.length; i++) {
       final rawItem = rpList[i];
       final item = rawItem is Map ? rawItem : {'property': rawItem.toString()};
-      propWidgets.add(
-          _f('Recovered Property #${i + 1}', _v(item['property']), full: true));
+      propWidgets.add(_f('Recovered Property #${i + 1}', _v(item['property']), full: true));
       if (_v(item['quantity']).isNotEmpty) {
         propWidgets.add(_f('Quantity', _v(item['quantity'])));
       }
@@ -552,8 +677,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
     comp['address'] = m['complainant_address'];
   }
 
-  final bool isSexualComp = m['isSexualOffence'] == true ||
-      (comp['name']?.toString().contains('Protected') ?? false);
+  final bool isSexualComp = m['isSexualOffence'] == true || (comp['name']?.toString().contains('Protected') ?? false);
   sections.add(
     _card(
       secNum++,
@@ -564,9 +688,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
           : _grid2([
               _f(
                 'Name',
-                isSexualComp
-                    ? '[Victim Identity Protected - Sec 228A IPC / Sec 72 BNS]'
-                    : _v(comp['name']),
+                isSexualComp ? '[Victim Identity Protected - Sec 228A IPC / Sec 72 BNS]' : _v(comp['name']),
               ),
               _f('Age', _v(comp['age'])),
               _f('Gender', _v(comp['gender'])),
@@ -576,20 +698,16 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
               _f('Religion', _v(comp['religion'])),
               _f('Caste', _v(comp['caste'])),
               _f('PAN Number', _v(comp['pan'])),
-              if (_v(comp['address']).isNotEmpty)
-                _f('Address', _v(comp['address']), full: true),
+              if (_v(comp['address']).isNotEmpty) _f('Address', _v(comp['address']), full: true),
             ]),
     ),
   );
 
   // ── §6 Victim KYC ──────────────────────────────────────────────────────────
-  final Map victim = (m['victim'] is Map)
-      ? (m['victim'] as Map)
-      : (m['victim'] != null ? {'name': m['victim'].toString()} : {});
+  final Map victim =
+      (m['victim'] is Map) ? (m['victim'] as Map) : (m['victim'] != null ? {'name': m['victim'].toString()} : {});
   final bool hasVictim = victim.isNotEmpty &&
-      (_v(victim['name']).isNotEmpty ||
-          _v(victim['mobile']).isNotEmpty ||
-          _v(victim['aadhaar']).isNotEmpty);
+      (_v(victim['name']).isNotEmpty || _v(victim['mobile']).isNotEmpty || _v(victim['aadhaar']).isNotEmpty);
   if (hasVictim || isPocso) {
     sections.add(
       _card(
@@ -608,8 +726,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
                 _f('Religion', _v(victim['religion'])),
                 _f('Caste', _v(victim['caste'])),
                 _f('PAN Number', _v(victim['pan'])),
-                if (_v(victim['address']).isNotEmpty)
-                  _f('Address', _v(victim['address']), full: true),
+                if (_v(victim['address']).isNotEmpty) _f('Address', _v(victim['address']), full: true),
               ]),
       ),
     );
@@ -620,9 +737,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
       ? (m['deceased'] as Map)
       : (m['deceased'] != null ? {'name': m['deceased'].toString()} : {});
   final bool hasDeceased = deceased.isNotEmpty &&
-      (_v(deceased['name']).isNotEmpty ||
-          _v(deceased['mobile']).isNotEmpty ||
-          _v(deceased['aadhaar']).isNotEmpty);
+      (_v(deceased['name']).isNotEmpty || _v(deceased['mobile']).isNotEmpty || _v(deceased['aadhaar']).isNotEmpty);
   if (isMurder || hasDeceased) {
     sections.add(
       _card(
@@ -641,17 +756,15 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
                 _f('Religion', _v(deceased['religion'])),
                 _f('Caste', _v(deceased['caste'])),
                 _f('PAN Number', _v(deceased['pan'])),
-                if (_v(deceased['address']).isNotEmpty)
-                  _f('Address', _v(deceased['address']), full: true),
+                if (_v(deceased['address']).isNotEmpty) _f('Address', _v(deceased['address']), full: true),
               ]),
       ),
     );
   }
 
   // ── §8 Injured Person KYC ─────────────────────────────────────────────
-  final Map inj = (m['injured'] is Map)
-      ? (m['injured'] as Map)
-      : (m['injured'] != null ? {'name': m['injured'].toString()} : {});
+  final Map inj =
+      (m['injured'] is Map) ? (m['injured'] as Map) : (m['injured'] != null ? {'name': m['injured'].toString()} : {});
   final hasInj = inj.isNotEmpty &&
       (inj['name']?.toString().trim().isNotEmpty == true ||
           inj['mobile']?.toString().trim().isNotEmpty == true ||
@@ -679,8 +792,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
             _f('Date of Death', _v(inj['deathDate'])),
             _f('Time of Death', _v(inj['deathTime'])),
           ],
-          if (_v(inj['address']).isNotEmpty)
-            _f('Address', _v(inj['address']), full: true),
+          if (_v(inj['address']).isNotEmpty) _f('Address', _v(inj['address']), full: true),
         ]),
       ),
     );
@@ -748,9 +860,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
     for (var i = 0; i < accusedList.length; i += accusedChunkSize) {
       final chunk = accusedList.sublist(
         i,
-        (i + accusedChunkSize) > accusedList.length
-            ? accusedList.length
-            : (i + accusedChunkSize),
+        (i + accusedChunkSize) > accusedList.length ? accusedList.length : (i + accusedChunkSize),
       );
       final isFirst = i == 0;
       sections.add(
@@ -761,9 +871,8 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
           pw.Column(
             children: chunk.asMap().entries.map((e) {
               final idx = i + e.key;
-              final Map<String, dynamic> itemMap = (e.value is Map)
-                  ? Map<String, dynamic>.from(e.value as Map)
-                  : {'name': e.value.toString()};
+              final Map<String, dynamic> itemMap =
+                  (e.value is Map) ? Map<String, dynamic>.from(e.value as Map) : {'name': e.value.toString()};
               return _personBlock(
                 'Accused #${idx + 1}',
                 itemMap,
@@ -784,7 +893,9 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   } else if (m['suspected_accused'] is List) {
     suspectedList = m['suspected_accused'] as List;
   } else if (m['suspected_accused_name'] != null && m['suspected_accused_name'].toString().trim().isNotEmpty) {
-    suspectedList = [{'name': m['suspected_accused_name'].toString()}];
+    suspectedList = [
+      {'name': m['suspected_accused_name'].toString()}
+    ];
   }
 
   if (suspectedList.isNotEmpty && !isUnknown) {
@@ -794,21 +905,16 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
         'SUSPECTED ACCUSED',
         _teal,
         pw.Column(
-          children: suspectedList
-              .asMap()
-              .entries
-              .map(
-                (e) {
-                  final Map<String, dynamic> itemMap = (e.value is Map)
-                      ? Map<String, dynamic>.from(e.value as Map)
-                      : {'name': e.value.toString()};
-                  return _personBlock(
-                    'Suspected #${e.key + 1}',
-                    itemMap,
-                  );
-                },
-              )
-              .toList(),
+          children: suspectedList.asMap().entries.map(
+            (e) {
+              final Map<String, dynamic> itemMap =
+                  (e.value is Map) ? Map<String, dynamic>.from(e.value as Map) : {'name': e.value.toString()};
+              return _personBlock(
+                'Suspected #${e.key + 1}',
+                itemMap,
+              );
+            },
+          ).toList(),
         ),
       ),
     );
@@ -835,9 +941,9 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
                 _f('Approx Height', _v(u['approxHeight'] ?? u['height'])),
                 _f('Mobile (if known)', _v(u['mobile'])),
                 _f('Occupation (possible)', _v(u['occupation'] ?? u['possible_occupation'])),
-                _f('Last Known Address', _v(u['lastKnownAddress'] ?? u['address']),
-                    full: true),
-                _f('Other Physical Markers', _v(u['otherPhysicalMarkers'] ?? u['identification_mark'] ?? u['description']),
+                _f('Last Known Address', _v(u['lastKnownAddress'] ?? u['address']), full: true),
+                _f('Other Physical Markers',
+                    _v(u['otherPhysicalMarkers'] ?? u['identification_mark'] ?? u['description']),
                     full: true),
               ]),
             );
@@ -868,9 +974,9 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
                 _f('Approx Height', _v(u['approxHeight'] ?? u['height'])),
                 _f('Mobile (if known)', _v(u['mobile'])),
                 _f('Occupation (possible)', _v(u['occupation'] ?? u['possible_occupation'])),
-                _f('Last Known Address', _v(u['lastKnownAddress'] ?? u['address']),
-                    full: true),
-                _f('Other Physical Markers', _v(u['otherPhysicalMarkers'] ?? u['identification_mark'] ?? u['description']),
+                _f('Last Known Address', _v(u['lastKnownAddress'] ?? u['address']), full: true),
+                _f('Other Physical Markers',
+                    _v(u['otherPhysicalMarkers'] ?? u['identification_mark'] ?? u['description']),
                     full: true),
               ]),
             );
@@ -890,7 +996,8 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
       'ioName': m['io_name'] ?? m['ioName'] ?? m['investigating_officer'] ?? m['assigned_officer'] ?? '',
       'regDesig': m['registered_by_designation'] ?? m['regDesig'] ?? '',
       'regName': m['registered_by_name'] ?? m['regName'] ?? '',
-      'cctvValue': (m['cctv_checked'] == true || m['cctv_checked']?.toString() == 'true') ? 'Yes' : (m['cctvValue'] ?? 'No'),
+      'cctvValue':
+          (m['cctv_checked'] == true || m['cctv_checked']?.toString() == 'true') ? 'Yes' : (m['cctvValue'] ?? 'No'),
       'cctvDateTime': m['cctv_datetime'] ?? m['cctvDateTime'] ?? '',
     };
   }
@@ -935,61 +1042,57 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
         ),
       );
     } else {
-    const arrestChunkSize = 2;
-    for (var i = 0; i < arrests.length; i += arrestChunkSize) {
-      final chunk = arrests.sublist(
-        i,
-        (i + arrestChunkSize) > arrests.length
-            ? arrests.length
-            : (i + arrestChunkSize),
-      );
-      final isFirst = i == 0;
-      sections.add(
-        _card(
-          isFirst ? arrestSec : 0,
-          isFirst ? 'ARREST & RELEASE STATUS' : 'ARREST & RELEASE STATUS (CONT.)',
-          _teal,
-          pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              if (isFirst) ...[
-                _grid2([
-                  _f(
-                    'Section 82/83 Action (if untraceable)',
-                    _v(sec8283, or: 'Not set').toUpperCase(),
-                    full: true,
-                  ),
-                ]),
-                pw.SizedBox(height: 6),
-              ],
-              ...chunk.map((r) {
-                final Map row = (r is Map) ? (r as Map) : {'accusedName': r.toString()};
-                return _subCard(
+      const arrestChunkSize = 2;
+      for (var i = 0; i < arrests.length; i += arrestChunkSize) {
+        final chunk = arrests.sublist(
+          i,
+          (i + arrestChunkSize) > arrests.length ? arrests.length : (i + arrestChunkSize),
+        );
+        final isFirst = i == 0;
+        sections.add(
+          _card(
+            isFirst ? arrestSec : 0,
+            isFirst ? 'ARREST & RELEASE STATUS' : 'ARREST & RELEASE STATUS (CONT.)',
+            _teal,
+            pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                if (isFirst) ...[
                   _grid2([
-                    _f('Accused Name', _v(row['accusedName'] ?? row['name'] ?? row['person_name'])),
-                    _f('Arrest Date & Time', _v(row['arrestDt'] ?? row['arrest_datetime'])),
-                    _f('Release Date', _v(row['releaseDt'] ?? row['release_date'])),
-                    _f('Arrest Location', _v(row['arrestLoc'] ?? row['arrest_location'])),
-                    _f('Arresting Officer', _v(row['arrestOfficer'] ?? row['arresting_officer'])),
-                    _f('Relative Name', _v(row['relName'] ?? row['relative_friend_name'])),
-                    _f('Relationship', _v(row['relationship'] ?? row['relative_friend_relation'])),
-                    _f('Notice Issued?', _v(row['noticeIssued'], or: 'No')),
-                    if (_v(row['noticeDt'] ?? row['release_on_notice_datetime']).isNotEmpty)
-                      _f('Notice Date', _v(row['noticeDt'] ?? row['release_on_notice_datetime'])),
-                    if (_v(row['relOnNotice']).isNotEmpty)
-                      _f('Released on Notice', _v(row['relOnNotice'])),
-                    _f('Wanted / Absconding Status',
-                        _v(row['wantedStatus'], or: 'Not Wanted')),
-                    _f('Release Type', _v(row['releaseType'])),
+                    _f(
+                      'Section 82/83 Action (if untraceable)',
+                      _v(sec8283, or: 'Not set').toUpperCase(),
+                      full: true,
+                    ),
                   ]),
-                );
-              }),
-            ],
+                  pw.SizedBox(height: 6),
+                ],
+                ...chunk.map((r) {
+                  final Map row = (r is Map) ? r : {'accusedName': r.toString()};
+                  return _subCard(
+                    _grid2([
+                      _f('Accused Name', _v(row['accusedName'] ?? row['name'] ?? row['person_name'])),
+                      _f('Arrest Date & Time', _v(row['arrestDt'] ?? row['arrest_datetime'])),
+                      _f('Release Date', _v(row['releaseDt'] ?? row['release_date'])),
+                      _f('Arrest Location', _v(row['arrestLoc'] ?? row['arrest_location'])),
+                      _f('Arresting Officer', _v(row['arrestOfficer'] ?? row['arresting_officer'])),
+                      _f('Relative Name', _v(row['relName'] ?? row['relative_friend_name'])),
+                      _f('Relationship', _v(row['relationship'] ?? row['relative_friend_relation'])),
+                      _f('Notice Issued?', _v(row['noticeIssued'], or: 'No')),
+                      if (_v(row['noticeDt'] ?? row['release_on_notice_datetime']).isNotEmpty)
+                        _f('Notice Date', _v(row['noticeDt'] ?? row['release_on_notice_datetime'])),
+                      if (_v(row['relOnNotice']).isNotEmpty) _f('Released on Notice', _v(row['relOnNotice'])),
+                      _f('Wanted / Absconding Status', _v(row['wantedStatus'], or: 'Not Wanted')),
+                      _f('Release Type', _v(row['releaseType'])),
+                    ]),
+                  );
+                }),
+              ],
+            ),
           ),
-        ),
-      );
+        );
+      }
     }
-  }
   }
 
   // ── §15 Procedural Details ──────────────────────────────────────────
@@ -1049,16 +1152,13 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
           ],
           _grid2([
             _f('E-Shakshya', _v(m['eshakshValue'], or: (m['e_shakshya'] == true ? 'Yes' : 'Not set'))),
-            if (m['eshakshValue'] == 'yes' &&
-                (m['eshakshDt']?.toString().isNotEmpty ?? false))
+            if (m['eshakshValue'] == 'yes' && (m['eshakshDt']?.toString().isNotEmpty ?? false))
               _f('E-Shakshya Date & Time', _v(m['eshakshDt']))
-            else if (m['eshakshValue'] == 'no' &&
-                (m['eshakshReason']?.toString().isNotEmpty ?? false))
+            else if (m['eshakshValue'] == 'no' && (m['eshakshReason']?.toString().isNotEmpty ?? false))
               _f('Reason for No E-Shakshya', _v(m['eshakshReason'])),
             if (m['fingerprint_taken'] == true || m['fingerprint_taken']?.toString() == 'true')
               _f('Fingerprints Taken', 'Yes'),
-            if (m['cctv_checked'] == true || m['cctv_checked']?.toString() == 'true')
-              _f('CCTV Footage Checked', 'Yes'),
+            if (m['cctv_checked'] == true || m['cctv_checked']?.toString() == 'true') _f('CCTV Footage Checked', 'Yes'),
           ]),
           pw.SizedBox(height: 8),
           pw.Text(
@@ -1112,9 +1212,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
     for (var i = 0; i < seizures.length; i += seizureChunkSize) {
       final chunk = seizures.sublist(
         i,
-        (i + seizureChunkSize) > seizures.length
-            ? seizures.length
-            : (i + seizureChunkSize),
+        (i + seizureChunkSize) > seizures.length ? seizures.length : (i + seizureChunkSize),
       );
       final isFirst = i == 0;
       sections.add(
@@ -1130,21 +1228,13 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
                   _f('Property Description', _v(s['desc'] ?? s['property']), full: true),
                   _f('Seized From', _v(s['fromWhom'], or: '-')),
                   _f('Other Name', _v(s['otherName'])),
-                  if (_v(s['quantity']).isNotEmpty)
-                    _f('Quantity', _v(s['quantity'])),
-                  if (_v(s['serialNo']).isNotEmpty)
-                    _f('Serial / ID No.', _v(s['serialNo'])),
-                  if (_v(s['estValue']).isNotEmpty)
-                    _f('Est. Value', _v(s['estValue'])),
-                  if (_v(s['status']).isNotEmpty)
-                    _f('Status', _v(s['status'])),
-                  if (_v(s['recoveryDate']).isNotEmpty)
-                    _f('Recovery Date', _v(s['recoveryDate'])),
-                  if (_v(s['custodyLoc']).isNotEmpty)
-                    _f('Custody Location', _v(s['custodyLoc'])),
-                  if (_v(s['seizureDetails']).isNotEmpty)
-                    _f('Seizure Details', _v(s['seizureDetails']),
-                        full: true),
+                  if (_v(s['quantity']).isNotEmpty) _f('Quantity', _v(s['quantity'])),
+                  if (_v(s['serialNo']).isNotEmpty) _f('Serial / ID No.', _v(s['serialNo'])),
+                  if (_v(s['estValue']).isNotEmpty) _f('Est. Value', _v(s['estValue'])),
+                  if (_v(s['status']).isNotEmpty) _f('Status', _v(s['status'])),
+                  if (_v(s['recoveryDate']).isNotEmpty) _f('Recovery Date', _v(s['recoveryDate'])),
+                  if (_v(s['custodyLoc']).isNotEmpty) _f('Custody Location', _v(s['custodyLoc'])),
+                  if (_v(s['seizureDetails']).isNotEmpty) _f('Seizure Details', _v(s['seizureDetails']), full: true),
                 ]),
               );
             }).toList(),
@@ -1164,8 +1254,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
     custodyList = m['remand_custody'] as List;
   }
 
-  final hasCdr = _v(m['cdrSent'] ?? m['cdr_sent_date']).isNotEmpty ||
-      _v(m['cdrRecv'] ?? m['cdr_recv_date']).isNotEmpty;
+  final hasCdr = _v(m['cdrSent'] ?? m['cdr_sent_date']).isNotEmpty || _v(m['cdrRecv'] ?? m['cdr_recv_date']).isNotEmpty;
 
   if (hasCdr || custodyList.isNotEmpty) {
     final int techSec = secNum++;
@@ -1185,9 +1274,8 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
       for (var i = 0; i < custodyList.length; i++) {
         final c = custodyList[i];
         final isFirst = i == 0;
-        final Map row = (c is Map) ? (c as Map) : {'accusedName': c.toString()};
-        final accName = _v(row['accusedName'],
-            or: _v(row['suretyAccusedName'], or: 'Accused'));
+        final Map row = (c is Map) ? c : {'accusedName': c.toString()};
+        final accName = _v(row['accusedName'], or: _v(row['suretyAccusedName'], or: 'Accused'));
 
         sections.add(
           _card(
@@ -1204,129 +1292,121 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
                   ]),
                   pw.SizedBox(height: 6),
                 ],
-              _subCard(
-                pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text(
-                      'ACCUSED: ${accName.toUpperCase()}',
-                      style: pw.TextStyle(
-                        fontSize: 9.5,
-                        fontWeight: pw.FontWeight.bold,
-                        color: _teal,
+                _subCard(
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        'ACCUSED: ${accName.toUpperCase()}',
+                        style: pw.TextStyle(
+                          fontSize: 9.5,
+                          fontWeight: pw.FontWeight.bold,
+                          color: _teal,
+                        ),
                       ),
-                    ),
-                    pw.SizedBox(height: 4),
-                    pw.Text(
-                      'POLICE CUSTODY REMAND (PCR)',
-                      style: pw.TextStyle(
-                        fontSize: 8.5,
-                        fontWeight: pw.FontWeight.bold,
-                        color: _dark,
+                      pw.SizedBox(height: 4),
+                      pw.Text(
+                        'POLICE CUSTODY REMAND (PCR)',
+                        style: pw.TextStyle(
+                          fontSize: 8.5,
+                          fontWeight: pw.FontWeight.bold,
+                          color: _dark,
+                        ),
                       ),
-                    ),
-                    pw.SizedBox(height: 2),
-                    _grid2([
-                      _f('PCR Start', _v(row['pcrStart'] ?? row['pcr_start_date'])),
-                      _f('PCR End', _v(row['pcrEnd'] ?? row['pcr_end_date'])),
-                      _f('PCR Days', _v(row['pcrDays'] ?? row['pcr_days'])),
-                      _f('Court / Order Details', _v(row['pcrDetails'] ?? row['pcr_details'])),
-                    ]),
-                    pw.SizedBox(height: 5),
-                    pw.Text(
-                      'MAGISTERIAL CUSTODY REMAND (MCR)',
-                      style: pw.TextStyle(
-                        fontSize: 8.5,
-                        fontWeight: pw.FontWeight.bold,
-                        color: _dark,
+                      pw.SizedBox(height: 2),
+                      _grid2([
+                        _f('PCR Start', _v(row['pcrStart'] ?? row['pcr_start_date'])),
+                        _f('PCR End', _v(row['pcrEnd'] ?? row['pcr_end_date'])),
+                        _f('PCR Days', _v(row['pcrDays'] ?? row['pcr_days'])),
+                        _f('Court / Order Details', _v(row['pcrDetails'] ?? row['pcr_details'])),
+                      ]),
+                      pw.SizedBox(height: 5),
+                      pw.Text(
+                        'MAGISTERIAL CUSTODY REMAND (MCR)',
+                        style: pw.TextStyle(
+                          fontSize: 8.5,
+                          fontWeight: pw.FontWeight.bold,
+                          color: _dark,
+                        ),
                       ),
-                    ),
-                    pw.SizedBox(height: 2),
-                    _grid2([
-                      _f('MCR Start', _v(row['mcrStart'] ?? row['mcr_start_date'])),
-                      _f('MCR End', _v(row['mcrEnd'] ?? row['mcr_end_date'])),
-                      _f('MCR Days', _v(row['mcrDays'] ?? row['mcr_days'])),
-                      _f('Jail Name / Details', _v(row['mcrJail'] ?? row['jail_date'])),
-                    ]),
-                    pw.SizedBox(height: 5),
-                    pw.Text(
-                      'BAIL DETAILS',
-                      style: pw.TextStyle(
-                        fontSize: 8.5,
-                        fontWeight: pw.FontWeight.bold,
-                        color: _dark,
+                      pw.SizedBox(height: 2),
+                      _grid2([
+                        _f('MCR Start', _v(row['mcrStart'] ?? row['mcr_start_date'])),
+                        _f('MCR End', _v(row['mcrEnd'] ?? row['mcr_end_date'])),
+                        _f('MCR Days', _v(row['mcrDays'] ?? row['mcr_days'])),
+                        _f('Jail Name / Details', _v(row['mcrJail'] ?? row['jail_date'])),
+                      ]),
+                      pw.SizedBox(height: 5),
+                      pw.Text(
+                        'BAIL DETAILS',
+                        style: pw.TextStyle(
+                          fontSize: 8.5,
+                          fontWeight: pw.FontWeight.bold,
+                          color: _dark,
+                        ),
                       ),
-                    ),
-                    pw.SizedBox(height: 2),
-                    _grid2([
-                      _f('Bail Type', _v(row['bailType'], or: 'None')),
-                      if (_v(row['bailDate']).isNotEmpty)
-                        _f('Bail Date', _v(row['bailDate'])),
-                      if (_v(row['bailDetails']).isNotEmpty)
-                        _f('Bail Details / Order', _v(row['bailDetails']),
-                            full: true),
-                    ]),
-                    pw.SizedBox(height: 5),
-                    pw.Text(
-                      'PR BOND',
-                      style: pw.TextStyle(
-                        fontSize: 8.5,
-                        fontWeight: pw.FontWeight.bold,
-                        color: _dark,
+                      pw.SizedBox(height: 2),
+                      _grid2([
+                        _f('Bail Type', _v(row['bailType'], or: 'None')),
+                        if (_v(row['bailDate']).isNotEmpty) _f('Bail Date', _v(row['bailDate'])),
+                        if (_v(row['bailDetails']).isNotEmpty)
+                          _f('Bail Details / Order', _v(row['bailDetails']), full: true),
+                      ]),
+                      pw.SizedBox(height: 5),
+                      pw.Text(
+                        'PR BOND',
+                        style: pw.TextStyle(
+                          fontSize: 8.5,
+                          fontWeight: pw.FontWeight.bold,
+                          color: _dark,
+                        ),
                       ),
-                    ),
-                    pw.SizedBox(height: 2),
-                    _grid2([
-                      _f('PR Bond Status',
-                          _v(row['prBondStatus'], or: 'Pending')),
-                      _f('PR Bond Date', _v(row['prBondDate'] ?? row['pr_bond_date'])),
-                      if (_v(row['prBondDetails']).isNotEmpty)
-                        _f('PR Bond Amount / Details', _v(row['prBondDetails']),
-                            full: true),
-                    ]),
-                    pw.SizedBox(height: 5),
-                    pw.Text(
-                      'SURETY DETAILS',
-                      style: pw.TextStyle(
-                        fontSize: 8.5,
-                        fontWeight: pw.FontWeight.bold,
-                        color: _dark,
+                      pw.SizedBox(height: 2),
+                      _grid2([
+                        _f('PR Bond Status', _v(row['prBondStatus'], or: 'Pending')),
+                        _f('PR Bond Date', _v(row['prBondDate'] ?? row['pr_bond_date'])),
+                        if (_v(row['prBondDetails']).isNotEmpty)
+                          _f('PR Bond Amount / Details', _v(row['prBondDetails']), full: true),
+                      ]),
+                      pw.SizedBox(height: 5),
+                      pw.Text(
+                        'SURETY DETAILS',
+                        style: pw.TextStyle(
+                          fontSize: 8.5,
+                          fontWeight: pw.FontWeight.bold,
+                          color: _dark,
+                        ),
                       ),
-                    ),
-                    pw.SizedBox(height: 2),
-                    _grid2([
-                      _f('Surety Name', _v(row['suretyName'] ?? row['surety_name'])),
-                      _f('Surety Age', _v(row['suretyAge'] ?? row['surety_age'])),
-                      _f('Surety Gender', _v(row['suretyGender'] ?? row['surety_gender'])),
-                      _f('Surety Relationship', _v(row['suretyRel'] ?? row['surety_relation'])),
-                      _f('Surety Occupation', _v(row['suretyOcc'] ?? row['surety_occupation'])),
-                      _f('Surety Mobile', _v(row['suretyMobile'] ?? row['surety_mobile'])),
-                      _f('Surety Aadhaar', _v(row['suretyAadhaar'] ?? row['surety_aadhaar'])),
-                      _f('Surety PAN', _v(row['suretyPan'] ?? row['surety_pan'])),
-                      _f('Surety Address', _v(row['suretyAddress'] ?? row['surety_address']),
-                          full: true),
-                      if (_v(row['suretyDetails']).isNotEmpty)
-                        _f('Surety Bond Details', _v(row['suretyDetails']),
-                            full: true),
-                    ]),
-                  ],
+                      pw.SizedBox(height: 2),
+                      _grid2([
+                        _f('Surety Name', _v(row['suretyName'] ?? row['surety_name'])),
+                        _f('Surety Age', _v(row['suretyAge'] ?? row['surety_age'])),
+                        _f('Surety Gender', _v(row['suretyGender'] ?? row['surety_gender'])),
+                        _f('Surety Relationship', _v(row['suretyRel'] ?? row['surety_relation'])),
+                        _f('Surety Occupation', _v(row['suretyOcc'] ?? row['surety_occupation'])),
+                        _f('Surety Mobile', _v(row['suretyMobile'] ?? row['surety_mobile'])),
+                        _f('Surety Aadhaar', _v(row['suretyAadhaar'] ?? row['surety_aadhaar'])),
+                        _f('Surety PAN', _v(row['suretyPan'] ?? row['surety_pan'])),
+                        _f('Surety Address', _v(row['suretyAddress'] ?? row['surety_address']), full: true),
+                        if (_v(row['suretyDetails']).isNotEmpty)
+                          _f('Surety Bond Details', _v(row['suretyDetails']), full: true),
+                      ]),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      );
+        );
+      }
     }
-  }
   }
 
   // ── §18 Preventive & Bonds ──────────────────────────────────────────
   final Map prev = (m['preventive'] is Map)
       ? (m['preventive'] as Map)
       : ((m['preventive_actions'] is List && (m['preventive_actions'] as List).isNotEmpty)
-          ? ((m['preventive_actions'] as List).first is Map
-              ? (m['preventive_actions'] as List).first as Map
-              : {})
+          ? ((m['preventive_actions'] as List).first is Map ? (m['preventive_actions'] as List).first as Map : {})
           : {});
   final isBondYes = (prev['preventiveBonds'] ?? prev['prBond']) == 'yes';
   final hasAction = _v(prev['action'] ?? prev['action_type']).isNotEmpty &&
@@ -1402,8 +1482,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
                     ],
                   ),
                   if (det.isNotEmpty) ...[
-                    if (det['date'] != null &&
-                        det['date'].toString().isNotEmpty)
+                    if (det['date'] != null && det['date'].toString().isNotEmpty)
                       pw.Padding(
                         padding: const pw.EdgeInsets.only(left: 18, top: 2),
                         child: pw.Text(
@@ -1414,8 +1493,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
                           ),
                         ),
                       ),
-                    if (det['reason'] != null &&
-                        det['reason'].toString().isNotEmpty)
+                    if (det['reason'] != null && det['reason'].toString().isNotEmpty)
                       pw.Padding(
                         padding: const pw.EdgeInsets.only(left: 18, top: 2),
                         child: pw.Text(
@@ -1502,12 +1580,10 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
 
   // ── §22 Final Verdict ───────────────────────────────────────────────
   final Map verdict = (m['verdict'] is Map) ? (m['verdict'] as Map) : {};
-  final acquitted = (verdict['acquitted'] is List)
-      ? (verdict['acquitted'] as List).map((x) => x.toString()).toList()
-      : <String>[];
-  final convicted = (verdict['convicted'] is List)
-      ? (verdict['convicted'] as List).map((x) => x.toString()).toList()
-      : <String>[];
+  final acquitted =
+      (verdict['acquitted'] is List) ? (verdict['acquitted'] as List).map((x) => x.toString()).toList() : <String>[];
+  final convicted =
+      (verdict['convicted'] is List) ? (verdict['convicted'] as List).map((x) => x.toString()).toList() : <String>[];
   final ccSt = _v(court['ccStNumber'] ?? m['cc_st_number']);
   final fSummary = _v(court['finalSummary'] ?? m['final_summary']);
   final quashed = _v(court['quashedHighCourt'] ?? m['quashed_by_high_court']);
@@ -1588,9 +1664,7 @@ pw.Widget _extraSection(Map<String, dynamic> extra) {
         'FORM SPECIFIC FIELDS',
         _amber,
         _grid2(
-          flatFields
-              .map((e) => _f(_labelify(e.key), _anyToString(e.value)))
-              .toList(),
+          flatFields.map((e) => _f(_labelify(e.key), _anyToString(e.value))).toList(),
         ),
       ),
     );
@@ -1613,8 +1687,7 @@ pw.Widget _extraSection(Map<String, dynamic> extra) {
     if (isFlat) {
       final fields = mapValue.entries
           .map(
-            (entry) =>
-                _f(_labelify(entry.key.toString()), _anyToString(entry.value)),
+            (entry) => _f(_labelify(entry.key.toString()), _anyToString(entry.value)),
           )
           .toList();
       const chunkSize = 14;
@@ -1733,9 +1806,7 @@ pw.Widget _buildAnyMap(Map<dynamic, dynamic> m) {
   if (flatFields.isNotEmpty) {
     widgets.add(
       _grid2(
-        flatFields
-            .map((e) => _f(_labelify(e.key.toString()), _anyToString(e.value)))
-            .toList(),
+        flatFields.map((e) => _f(_labelify(e.key.toString()), _anyToString(e.value))).toList(),
       ),
     );
   }
@@ -1881,12 +1952,10 @@ pw.Widget _card(
   pw.Widget body,
 ) =>
     pw.Container(
-      margin:
-          const pw.EdgeInsets.only(bottom: PdfLayoutConstants.sectionGap),
+      margin: const pw.EdgeInsets.only(bottom: PdfLayoutConstants.sectionGap),
       decoration: pw.BoxDecoration(
         color: _white,
-        borderRadius:
-            pw.BorderRadius.circular(PdfLayoutConstants.borderRadius),
+        borderRadius: pw.BorderRadius.circular(PdfLayoutConstants.borderRadius),
         border: pw.Border.all(
           color: _border,
           width: PdfLayoutConstants.borderWidth,
@@ -1957,8 +2026,7 @@ class _FD {
   final bool full;
 }
 
-_FD _f(String label, String value, {bool full = false}) =>
-    _FD(label, value, full: full);
+_FD _f(String label, String value, {bool full = false}) => _FD(label, value, full: full);
 
 pw.Widget _grid2(List<_FD> fields) {
   final rows = <pw.Widget>[];
@@ -1975,9 +2043,7 @@ pw.Widget _grid2(List<_FD> fields) {
       i++;
     } else {
       final left = f;
-      final right = (i + 1 < fields.length && !fields[i + 1].full)
-          ? fields[i + 1]
-          : null;
+      final right = (i + 1 < fields.length && !fields[i + 1].full) ? fields[i + 1] : null;
       rows.add(
         pw.Padding(
           padding: const pw.EdgeInsets.only(bottom: PdfLayoutConstants.rowGap),
@@ -1987,9 +2053,7 @@ pw.Widget _grid2(List<_FD> fields) {
               pw.Expanded(child: _fWidget(left.label, left.value)),
               pw.SizedBox(width: PdfLayoutConstants.fieldGap),
               pw.Expanded(
-                child: right != null
-                    ? _fWidget(right.label, right.value)
-                    : pw.SizedBox(),
+                child: right != null ? _fWidget(right.label, right.value) : pw.SizedBox(),
               ),
             ],
           ),
@@ -2032,9 +2096,7 @@ pw.Widget _fWidget(String label, String value) => pw.Column(
             _cleanText(value),
             style: pw.TextStyle(
               fontSize: PdfLayoutConstants.valueFontSize,
-              color: (value.isEmpty || value == '-' || value == '—')
-                  ? _muted
-                  : _dark,
+              color: (value.isEmpty || value == '-' || value == '—') ? _muted : _dark,
             ),
           ),
         ),
@@ -2055,8 +2117,7 @@ pw.Widget _subCard(pw.Widget child) => pw.Container(
       child: child,
     );
 
-pw.Widget _personBlock(String title, Map<String, dynamic> person) =>
-    pw.Container(
+pw.Widget _personBlock(String title, Map<String, dynamic> person) => pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 4),
       padding: const pw.EdgeInsets.all(5),
       decoration: pw.BoxDecoration(
@@ -2163,8 +2224,7 @@ pw.Widget _chargeBlock(int num, String act, List<String> secs) => pw.Container(
       ),
     );
 
-pw.Widget _verdictCol(String title, List<String> names, PdfColor color) =>
-    pw.Container(
+pw.Widget _verdictCol(String title, List<String> names, PdfColor color) => pw.Container(
       padding: const pw.EdgeInsets.all(5),
       decoration: pw.BoxDecoration(
         borderRadius: pw.BorderRadius.circular(3),
@@ -2426,15 +2486,11 @@ String _resolveSectionFullName(String? actKey, dynamic rawSections) {
 
   List<String> sectionList = [];
   if (rawSections is List) {
-    sectionList = rawSections
-        .map((e) => e.toString().trim())
-        .where((s) => s.isNotEmpty)
-        .toList();
+    sectionList = rawSections.map((e) => e.toString().trim()).where((s) => s.isNotEmpty).toList();
   } else {
     final s = rawSections.toString().trim();
     if (s.isEmpty || s == '-' || s == '—') return '-';
-    sectionList =
-        s.split(RegExp(r'[,;]\s*')).where((e) => e.trim().isNotEmpty).toList();
+    sectionList = s.split(RegExp(r'[,;]\s*')).where((e) => e.trim().isNotEmpty).toList();
   }
 
   if (sectionList.isEmpty) return '-';
@@ -2452,8 +2508,7 @@ String _resolveSectionFullName(String? actKey, dynamic rawSections) {
       return actSectionMap[keyWithAct]!;
     }
 
-    final rawKey =
-        cleanSec.replaceAll(RegExp(r'^[A-Za-z_]+\s*'), '').trim().toUpperCase();
+    final rawKey = cleanSec.replaceAll(RegExp(r'^[A-Za-z_]+\s*'), '').trim().toUpperCase();
     final keyWithActStripped = '$normalizedAct:$rawKey'.toUpperCase();
     if (actSectionMap.containsKey(keyWithActStripped)) {
       return actSectionMap[keyWithActStripped]!;

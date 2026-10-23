@@ -51,55 +51,75 @@ class _PendingHubScreenState extends State<PendingHubScreen> {
       items: <PopupMenuEntry<String>>[
         PopupMenuItem<String>(
           value: 'all',
-          child: Text('All Cases',
-              style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w600, color: AppColors.navyDark)),
+          child: Row(
+            children: [
+              const Icon(Icons.list_alt_rounded, size: 18, color: AppColors.navyMid),
+              const SizedBox(width: 10),
+              Text('All Cases',
+                  style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600, color: AppColors.navyDark, fontSize: 13)),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'io_wise',
+          child: Row(
+            children: [
+              const Icon(Icons.person_search_outlined, size: 18, color: AppColors.navyMid),
+              const SizedBox(width: 10),
+              Text('IO Wise Breakdown',
+                  style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600, color: AppColors.navyDark, fontSize: 13)),
+            ],
+          ),
         ),
         const PopupMenuDivider(),
         PopupMenuItem<String>(
           enabled: false,
-          child: Text('Select time range',
+          height: 28,
+          child: Text('PENDING DURATION',
               style: GoogleFonts.poppins(
                   fontWeight: FontWeight.bold,
                   color: AppColors.lightSubText,
-                  fontSize: 12)),
+                  fontSize: 11,
+                  letterSpacing: 0.5)),
         ),
         PopupMenuItem<String>(
             value: 'time_1',
+            height: 34,
             child: Text('Under 1 month',
                 style: GoogleFonts.poppins(
                     fontSize: 13, color: AppColors.navyDark))),
         PopupMenuItem<String>(
             value: 'time_2',
+            height: 34,
             child: Text('1 to 3 months',
                 style: GoogleFonts.poppins(
                     fontSize: 13, color: AppColors.navyDark))),
         PopupMenuItem<String>(
             value: 'time_3',
+            height: 34,
             child: Text('3 to 6 months',
                 style: GoogleFonts.poppins(
                     fontSize: 13, color: AppColors.navyDark))),
         PopupMenuItem<String>(
             value: 'time_4',
+            height: 34,
             child: Text('6 to 12 months',
                 style: GoogleFonts.poppins(
                     fontSize: 13, color: AppColors.navyDark))),
         PopupMenuItem<String>(
             value: 'time_5',
+            height: 34,
             child: Text('More than 1 year',
                 style: GoogleFonts.poppins(
                     fontSize: 13, color: AppColors.navyDark))),
         PopupMenuItem<String>(
             value: 'time_6',
+            height: 34,
             child: Text('Under 3 months (Total)',
                 style: GoogleFonts.poppins(
                     fontSize: 13, color: AppColors.navyDark))),
-        const PopupMenuDivider(),
-        PopupMenuItem<String>(
-            value: 'io_wise',
-            child: Text('IO wise',
-                style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w600, color: AppColors.navyDark))),
       ],
     ).then((value) {
       if (value != null) {
@@ -141,6 +161,7 @@ class _PendingHubScreenState extends State<PendingHubScreen> {
       if (value == 'time_1') {
         p = 'Under 1 month';
         start = now.subtract(const Duration(days: 30));
+        end = now;
       } else if (value == 'time_2') {
         p = '1 to 3 months';
         start = now.subtract(const Duration(days: 90));
@@ -193,128 +214,138 @@ class _PendingHubScreenState extends State<PendingHubScreen> {
         ),
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1200),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
-                        'Pending Reports',
-                        style: GoogleFonts.poppins(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.navyDark,
-                        ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Pending Reports',
+                            style: GoogleFonts.poppins(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.navyDark,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Select a category to view pending cases',
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.lightSubText,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Select a category',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.orange,
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            AppTheme.fadeSlideRoute(
+                              page: PendingSummaryScreen(
+                                  stationName: widget.stationName),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.assessment_outlined,
+                            color: Colors.white, size: 18),
+                        label: Text(
+                          'Summary',
+                          style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w600, color: Colors.white),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.navyMid,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
                         ),
                       ),
                     ],
                   ),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        AppTheme.fadeSlideRoute(
-                          page: PendingSummaryScreen(
-                              stationName: widget.stationName),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.download_rounded,
-                        color: Colors.white, size: 18),
-                    label: Text(
-                      'Summary',
-                      style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600, color: Colors.white),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1E2875),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  const SizedBox(height: 24),
+                  Expanded(
+                    child: GridView.builder(
+                      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 280,
+                        crossAxisSpacing: 14,
+                        mainAxisSpacing: 14,
+                        mainAxisExtent: 68,
                       ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
+                      itemCount: categories.length,
+                      itemBuilder: (context, index) {
+                        final cat = categories[index];
+                        return GestureDetector(
+                          onTapDown: (details) {
+                            _showCategoryMenu(context, cat, details);
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                  color: Colors.grey.withValues(alpha: 0.2)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.02),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 12),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(7),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF0F2FA),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(Icons.folder_open_rounded,
+                                      color: Color(0xFF334195), size: 18),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    cat,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13.5,
+                                      color: AppColors.navyDark,
+                                      height: 1.2,
+                                    ),
+                                  ),
+                                ),
+                                const Icon(Icons.keyboard_arrow_down_rounded,
+                                    color: AppColors.lightSubText, size: 20),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
-              Expanded(
-                child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 300,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    mainAxisExtent: 75,
-                  ),
-                  itemCount: categories.length,
-                  itemBuilder: (context, index) {
-                    final cat = categories[index];
-                    return GestureDetector(
-                      onTapDown: (details) {
-                        _showCategoryMenu(context, cat, details);
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                              color: Colors.grey.withValues(alpha: 0.2)),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.02),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF0F2FA),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(Icons.folder_open_rounded,
-                                  color: Color(0xFF334195), size: 18),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                cat,
-                                style: GoogleFonts.poppins(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14,
-                                  color: AppColors.navyDark,
-                                ),
-                              ),
-                            ),
-                            const Icon(Icons.keyboard_arrow_down_rounded,
-                                color: Colors.grey, size: 20),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

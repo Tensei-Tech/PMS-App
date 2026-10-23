@@ -74,7 +74,7 @@ class JuvenileCasesDataTable extends StatelessWidget {
         ];
 
         TableRow rowFor(int idx, Map<String, String> r) {
-          final bg = idx.isEven ? Colors.white : const Color(0xFFF6F8FF);
+          final bg = idx.isEven ? Colors.white : const Color(0xFFF8FAFD);
           return TableRow(
             decoration: BoxDecoration(color: bg),
             children: [
@@ -87,21 +87,24 @@ class JuvenileCasesDataTable extends StatelessWidget {
           );
         }
 
-        final maxH = constraints.maxHeight;
         final inner = ClipRRect(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           child: Container(
             width: double.infinity,
-            height: maxH.isFinite ? maxH : null,
             decoration: BoxDecoration(
               color: Colors.white,
-              border: Border.all(color: AppColors.lightBorder),
-              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Table(
               columnWidths: columnWidths,
               defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-              border: TableBorder.all(color: AppColors.lightBorder, width: 1),
+              border: const TableBorder(
+                horizontalInside:
+                    BorderSide(color: Color(0xFFEDF2F7), width: 1),
+                verticalInside:
+                    BorderSide(color: Color(0xFFEDF2F7), width: 1),
+              ),
               children: [
                 TableRow(
                   decoration: const BoxDecoration(color: AppColors.navyDark),
@@ -112,11 +115,7 @@ class JuvenileCasesDataTable extends StatelessWidget {
             ),
           ),
         );
-        if (maxH.isFinite) return inner;
-        const estimatedRowPx = 44.0;
-        final estHeight =
-            estimatedRowPx * (rows.isEmpty ? 2 : rows.length + 1) + 16;
-        return SizedBox(height: estHeight, child: inner);
+        return inner;
       },
     );
     return tableCore;

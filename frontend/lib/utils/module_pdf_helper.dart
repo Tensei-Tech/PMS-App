@@ -610,15 +610,6 @@ class ModulePdfHelper {
     );
   }
 
-  /// A.D: load `ad_forms` / `ad_drafts` + hub merge, then emit every field dynamically.
-  static Future<void> _generateAdFullFormPdf(
-    ModuleRecord record,
-    String moduleName,
-  ) async {
-    final res = await _generateAdFullFormPdfResult(record, moduleName);
-    await Printing.sharePdf(bytes: res.bytes, filename: res.fileName);
-  }
-
   static Future<void> generateSummaryReportPdf(
     Map<String, int> counts,
     String title,
