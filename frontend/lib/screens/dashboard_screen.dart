@@ -350,8 +350,29 @@ String? _getDashboardSvgPath(String label) {
       return 'assets/icons/IRAD.svg';
     case 'itsso':
       return 'assets/icons/itsso.svg';
+    case 'murderattempttomurder':
+    case 'murder':
+    case 'attempttomurder':
+    case 'atttomurder':
+      return 'assets/icons/newicons/murder.svg';
+    case 'dacoityrobbery':
+    case 'dacoity':
+    case 'decoity':
+    case 'proofdacoity':
+    case 'proofdecoity':
+      return 'assets/icons/newicons/decoity.svg';
+    case 'chainsnatching':
+    case 'snatching':
+      return 'assets/icons/newicons/chainsnaching.svg';
     default:
       if (clean.contains('passport')) return 'assets/icons/passport.svg';
+      if (clean.contains('murder')) return 'assets/icons/newicons/murder.svg';
+      if (clean.contains('dacoity') || clean.contains('decoity')) {
+        return 'assets/icons/newicons/decoity.svg';
+      }
+      if (clean.contains('snatch')) {
+        return 'assets/icons/newicons/chainsnaching.svg';
+      }
       return null;
   }
 }
