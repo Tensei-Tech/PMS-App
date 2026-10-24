@@ -642,6 +642,11 @@ def sync_single_case_properties(case: CaseRecord, user_uid: str = '') -> List[Mu
     - Guarantees zero duplicate properties.
     - Preserves existing chain-of-custody movements, FSL records, and disposal status.
     """
+    from apps.core.tenancy import get_active_tenant_schema, set_tenant_schema
+    active = get_active_tenant_schema()
+    if not active or active == 'public':
+        set_tenant_schema('maharashtra')
+
     candidates = discover_all_case_source_properties(case)
     if not candidates:
         return []

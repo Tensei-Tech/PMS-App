@@ -45,20 +45,37 @@ class MuddemalBackendTests(TestCase):
         from django.db import connection
         if connection.connection and hasattr(connection.connection, 'closed') and connection.connection.closed:
             connection.connect()
+        from apps.core.tenancy import set_tenant_schema
+        set_tenant_schema('maharashtra')
         super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        try:
+            from apps.core.tenancy import set_tenant_schema, _get_schema_stack
+            _get_schema_stack().clear()
+            set_tenant_schema('public')
+        except Exception:
+            pass
+        super().tearDownClass()
 
     def _pre_setup(self):
         from django.db import connection
         if connection.connection and hasattr(connection.connection, 'closed') and connection.connection.closed:
             connection.connect()
+        from apps.core.tenancy import set_tenant_schema
+        set_tenant_schema('maharashtra')
         super()._pre_setup()
 
     def setUp(self):
         from django.db import connection
         if connection.connection and hasattr(connection.connection, 'closed') and connection.connection.closed:
             connection.connect()
+        from apps.core.tenancy import set_tenant_schema
+        set_tenant_schema('maharashtra')
 
         self.client = APIClient()
+        self.client.credentials(HTTP_X_TENANT_SCHEMA='maharashtra', HTTP_X_STATE_CODE='MH')
 
         # Ensure seed data exists FIRST so category foreign keys are present
         self.ensure_seed_data()
@@ -90,10 +107,8 @@ class MuddemalBackendTests(TestCase):
 
     def tearDown(self):
         try:
-            from apps.core.tenancy import set_tenant_schema, _get_schema_stack
-            stack = _get_schema_stack()
-            stack.clear()
-            set_tenant_schema('public')
+            from apps.core.tenancy import _get_schema_stack
+            _get_schema_stack().clear()
         except Exception:
             pass
         super().tearDown()

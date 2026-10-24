@@ -56,7 +56,29 @@ from apps.muddemal.services.dashboard_service import (
 )
 
 
-class MuddemalConfigView(APIView):
+class MuddemalTenantMixin:
+    """
+    Ensures active tenant schema is safely resolved to the appropriate state schema
+    (defaulting to 'maharashtra') for all Muddemal operations, preventing UndefinedTable
+    errors when requests arrive without explicit state headers.
+    """
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        from apps.core.tenancy import set_tenant_schema
+        schema = getattr(request, 'state_schema', None)
+        if not schema or schema == 'public':
+            state_code = getattr(request, 'state_code', None) or (
+                request.headers.get('X-State-Code') if hasattr(request, 'headers') else None
+            )
+            if state_code and str(state_code).upper() != 'GLOBAL':
+                from apps.core.middleware import _STATE_SCHEMA_CACHE
+                schema = _STATE_SCHEMA_CACHE.get(str(state_code).upper(), 'maharashtra')
+            else:
+                schema = 'maharashtra'
+        set_tenant_schema(schema)
+
+
+class MuddemalConfigView(MuddemalTenantMixin, APIView):
     """
     Returns all backend-driven configuration tokens:
     alert thresholds, measurement units, property statuses, movement types, disposal types.
@@ -85,7 +107,7 @@ class MuddemalConfigView(APIView):
         })
 
 
-class MuddemalCategoryViewSet(viewsets.ReadOnlyModelViewSet):
+class MuddemalCategoryViewSet(MuddemalTenantMixin, viewsets.ReadOnlyModelViewSet):
     """
     Lists and provides details for 21 backend-driven property categories.
     """
@@ -118,7 +140,7 @@ class MuddemalCategoryViewSet(viewsets.ReadOnlyModelViewSet):
         })
 
 
-class MuddemalRegisterViewSet(viewsets.ModelViewSet):
+class MuddemalRegisterViewSet(MuddemalTenantMixin, viewsets.ModelViewSet):
     """
     Muddemal Register management endpoints.
     A single CR case is linked to one or more registers.
@@ -216,7 +238,7 @@ class MuddemalRegisterViewSet(viewsets.ModelViewSet):
         })
 
 
-class CasePropertiesView(APIView):
+class CasePropertiesView(MuddemalTenantMixin, APIView):
     """
     Endpoints for a specific CR Case:
     - Get all linked Muddemal properties
@@ -246,7 +268,7 @@ class CasePropertiesView(APIView):
         })
 
 
-class CaseDiscoverablePropertiesView(APIView):
+class CaseDiscoverablePropertiesView(MuddemalTenantMixin, APIView):
     """
     Discovers candidate properties from SeizureRecords table and Case JSON extra_fields.
     Flags already linked properties to prevent duplicate linking.
@@ -265,7 +287,7 @@ class CaseDiscoverablePropertiesView(APIView):
         })
 
 
-class CaseLinkPropertyView(APIView):
+class CaseLinkPropertyView(MuddemalTenantMixin, APIView):
     """
     Links a discovered source-module property into Muddemal idempotently.
     """
@@ -334,7 +356,7 @@ class CaseLinkPropertyView(APIView):
         }, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
 
-class MuddemalPropertyViewSet(viewsets.ModelViewSet):
+class MuddemalPropertyViewSet(MuddemalTenantMixin, viewsets.ModelViewSet):
     """
     Centralized Muddemal Property ViewSet:
     - Automatically discovers and returns qualifying seized properties from all PMS source modules.
@@ -810,7 +832,7 @@ class MuddemalPropertyViewSet(viewsets.ModelViewSet):
         })
 
 
-class FSLAlertsView(APIView):
+class FSLAlertsView(MuddemalTenantMixin, APIView):
     """
     Evaluates and returns pending FSL alerts against 7, 15, and 30 day thresholds.
     """
@@ -829,7 +851,7 @@ class FSLAlertsView(APIView):
         })
 
 
-class StolenPropertyDashboardView(APIView):
+class StolenPropertyDashboardView(MuddemalTenantMixin, APIView):
     """
     Stolen Property Dashboard metrics: Total Theft Cases, Total Stolen Value,
     Recovered Value, Not Recovered Value, Recovery %, 100% Recovery, Partial, Zero.
@@ -848,7 +870,7 @@ class StolenPropertyDashboardView(APIView):
         return Response({'success': True, 'dashboard': data})
 
 
-class SeizedPropertyDashboardView(APIView):
+class SeizedPropertyDashboardView(MuddemalTenantMixin, APIView):
     """
     Seized Property Dashboard metrics across all categories.
     """
@@ -866,7 +888,7 @@ class SeizedPropertyDashboardView(APIView):
         return Response({'success': True, 'dashboard': data})
 
 
-class PendingMuddemalDashboardView(APIView):
+class PendingMuddemalDashboardView(MuddemalTenantMixin, APIView):
     """
     Pending Muddemal Dashboard metrics: FSL Send Pending, FSL Report Pending,
     Disposal Pending, Court Pending, Long-pending (>30, >90, >180 days).
@@ -885,7 +907,7 @@ class PendingMuddemalDashboardView(APIView):
         return Response({'success': True, 'dashboard': data})
 
 
-class MonthYearReportsView(APIView):
+class MonthYearReportsView(MuddemalTenantMixin, APIView):
     """
     Month-wise and Year-wise comparative reports and trends.
     """
@@ -900,7 +922,7 @@ class MonthYearReportsView(APIView):
         return Response({'success': True, 'report': data})
 
 
-class MuddemalAutoFetchStatusView(APIView):
+class MuddemalAutoFetchStatusView(MuddemalTenantMixin, APIView):
     """
     Provides real-time inspection of connected source modules, auto-fetch status,
     and deduplicated property counts per source module.
