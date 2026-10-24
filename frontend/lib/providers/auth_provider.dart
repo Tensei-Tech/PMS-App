@@ -607,6 +607,11 @@ class AuthProvider extends ChangeNotifier {
       return 'Account locked. Try again in ${lockoutStatus.remainingLabel}.';
     }
 
+    if (ApiConfig.isMissingInRelease) {
+      return 'This app was built without a server address (API_BASE_URL). '
+          'Please install a correctly built release APK.';
+    }
+
     try {
       final sanitizedEmail = email.trim().toLowerCase();
       final sanitizedPin = pin.trim();
@@ -690,8 +695,37 @@ class AuthProvider extends ChangeNotifier {
       return 'Server is waking up from standby. Please tap Sign In again.';
     } catch (e) {
       _secureLog('loginByEmailAndPin error: $e');
-      return 'Could not connect to authentication server. Ensure backend is reachable.';
+      return loginErrorMessage(e, ApiConfig.serverHost);
     }
+  }
+
+  /// Turns a login exception into a message that says what actually failed,
+  /// so a release build does not hide the cause behind one generic line.
+  @visibleForTesting
+  static String loginErrorMessage(Object error, String host) {
+    final text = error.toString();
+    // dart:io blocks plain http:// when Android forbids cleartext traffic.
+    if (error is StateError && text.contains('Insecure HTTP')) {
+      return 'This app version uses an insecure server address ($host). '
+          'Please install the latest release build.';
+    }
+    if (text.contains('HandshakeException') ||
+        text.contains('CERTIFICATE_VERIFY_FAILED')) {
+      return 'Could not open a secure connection to $host. Check the '
+          "phone's date and time, or try another network.";
+    }
+    // package:http wraps socket errors (refused, DNS, no route) in this.
+    if (error is http.ClientException) {
+      return 'Could not reach the server at $host. Check your internet '
+          'connection and try again.';
+    }
+    // The server answered, but not with the JSON login reply.
+    if (error is FormatException || error is TypeError) {
+      return 'The server at $host sent a reply the app could not read. '
+          'Please try again later.';
+    }
+    return 'Login failed on this device (${error.runtimeType}). '
+        'Please try again.';
   }
 
   Future<String> getStoredGovtEmail() async {
