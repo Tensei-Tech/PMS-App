@@ -18,6 +18,7 @@ import '../services/history_sheeter_service.dart';
 import '../services/mpda_service.dart';
 import '../services/nc_service.dart';
 import '../services/rti_service.dart';
+import '../modules/muddemal/screens/muddemal_main_screen.dart';
 import '../theme/app_theme.dart';
 import 'common_form_module.dart';
 
@@ -325,6 +326,16 @@ class CategoryNavigationHelper {
         context,
         AppTheme.fadeSlideRoute(
           page: const ItssoHubScreen(stationName: 'All Stations'),
+        ),
+      );
+      return;
+    }
+    if (cleanName.toLowerCase() == 'muddemal' ||
+        moduleKey.toLowerCase() == 'muddemal') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const MuddemalMainScreen(),
         ),
       );
       return;

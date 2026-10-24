@@ -16,6 +16,7 @@ class DynamicFieldDef {
   final String? dependsOnValue;
   final String? optionsSource;
   final String? parentFieldKey;
+  final Map<String, dynamic>? fieldConfig;
 
   const DynamicFieldDef({
     required this.fieldDefId,
@@ -31,6 +32,7 @@ class DynamicFieldDef {
     this.dependsOnValue,
     this.optionsSource,
     this.parentFieldKey,
+    this.fieldConfig,
   });
 
   static const String sumSourcePrefix = 'sum:';
@@ -90,6 +92,7 @@ class DynamicFieldDef {
     String? dependsOnValue,
     String? optionsSource,
     String? parentFieldKey,
+    Map<String, dynamic>? fieldConfig,
   }) {
     return DynamicFieldDef(
       fieldDefId: fieldDefId ?? this.fieldDefId,
@@ -105,6 +108,7 @@ class DynamicFieldDef {
       dependsOnValue: dependsOnValue ?? this.dependsOnValue,
       optionsSource: optionsSource ?? this.optionsSource,
       parentFieldKey: parentFieldKey ?? this.parentFieldKey,
+      fieldConfig: fieldConfig ?? this.fieldConfig,
     );
   }
 
@@ -132,6 +136,8 @@ class DynamicFieldDef {
       dependsOnValue: json['depends_on_value']?.toString(),
       optionsSource: json['options_source']?.toString(),
       parentFieldKey: json['parent_field_key']?.toString(),
+      fieldConfig: (json['config'] as Map<String, dynamic>?) ??
+          (json['field_config'] as Map<String, dynamic>?),
     );
   }
 
@@ -149,6 +155,7 @@ class DynamicFieldDef {
         'depends_on_value': dependsOnValue,
         'options_source': optionsSource,
         'parent_field_key': parentFieldKey,
+        'field_config': fieldConfig,
       };
 }
 

@@ -213,6 +213,24 @@ class CaseService {
     return [];
   }
 
+  static final StreamController<ModuleRecord> _caseUpdatedStream =
+      StreamController<ModuleRecord>.broadcast();
+  static final StreamController<String> _caseDeletedStream =
+      StreamController<String>.broadcast();
+
+  Stream<ModuleRecord> get onCaseUpdated => _caseUpdatedStream.stream;
+  Stream<String> get onCaseDeleted => _caseDeletedStream.stream;
+
+  void notifyCaseUpdated(ModuleRecord record) {
+    invalidateCache();
+    _caseUpdatedStream.add(record);
+  }
+
+  void notifyCaseDeleted(String id) {
+    invalidateCache();
+    _caseDeletedStream.add(id);
+  }
+
   /// Invalidate cases cache
   void invalidateCache([String? moduleKey, String? stationId]) {
     if (moduleKey != null && stationId != null) {
@@ -243,6 +261,7 @@ class CaseService {
       }
       if (response.isSuccess) {
         invalidateCache();
+        notifyCaseUpdated(record);
       }
       return response.isSuccess;
     } catch (e) {
@@ -261,6 +280,7 @@ class CaseService {
       final response = await _api.delete(url);
       if (response.isSuccess) {
         invalidateCache();
+        notifyCaseDeleted(id);
       }
       return response.isSuccess;
     } catch (e) {
