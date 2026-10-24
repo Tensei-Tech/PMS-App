@@ -47,6 +47,7 @@ import '../modules/missing/screens/missing_form_screen.dart';
 import '../modules/monthly/providers/monthly_provider.dart';
 import '../modules/mpda/providers/mpda_provider.dart';
 import '../modules/muddemal/providers/muddemal_provider.dart';
+import '../modules/muddemal/screens/muddemal_main_screen.dart';
 import '../modules/nc/providers/nc_provider.dart';
 import '../modules/nc/screens/nc_form_screen.dart';
 import '../modules/ndps/providers/ndps_provider.dart';
@@ -4197,6 +4198,13 @@ class _HomeTabState extends State<_HomeTab> {
         context,
         AppTheme.fadeSlideRoute(
           page: JuvenileHubScreen(stationName: widget.auth.stationName),
+        ),
+      );
+    } else if (item.moduleKey == 'muddemal' || item.name == 'Muddemal') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const MuddemalMainScreen(),
         ),
       );
     } else {
@@ -9619,6 +9627,12 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
                 page: PreventiveFormScreen(
                   moduleLabel: item.name,
                 ),
+              ));
+        } else if (item.moduleKey == 'muddemal' || item.name == 'Muddemal') {
+          Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(
+                page: const MuddemalMainScreen(),
               ));
         } else if (moduleUsesCommonCrimeForm(item.moduleKey, item.name)) {
           Navigator.push(
