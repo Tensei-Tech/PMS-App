@@ -42,6 +42,7 @@ import 'screens/standalone_selection_screen.dart';
 import 'screens/pin_reauth_screen.dart';
 import 'services/api_config.dart';
 import 'services/backend_case_service.dart';
+import 'widgets/app_update_gate.dart';
 import 'services/ui_config_service.dart';
 import 'services/biometric_service.dart';
 import 'services/case_service.dart';
@@ -389,7 +390,11 @@ class _PoliceMgmtAppState extends State<PoliceMgmtApp>
                 context.read<AuthProvider>().onUserInteraction(),
             onPointerSignal: (_) =>
                 context.read<AuthProvider>().onUserInteraction(),
-            child: _AppLockNavigator(navigatorKey: _navKey, child: child),
+            // Update gate sits above the lock screen so a required update
+            // cannot be bypassed.
+            child: AppUpdateGate(
+              child: _AppLockNavigator(navigatorKey: _navKey, child: child),
+            ),
           ),
         );
       },

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../services/api_config.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import 'filtered_pending_screen.dart';
@@ -23,8 +24,7 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
   bool isLoading = true;
   String? error;
 
-  final String baseUrl = const String.fromEnvironment('API_BASE_URL',
-      defaultValue: 'http://127.0.0.1:8000/api');
+  String get baseUrl => ApiConfig.baseUrl;
 
   @override
   void initState() {
