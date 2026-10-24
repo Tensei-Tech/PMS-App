@@ -667,6 +667,16 @@ def sync_single_case_properties(case: CaseRecord, user_uid: str = '') -> List[Mu
     # Cache active property categories
     categories_cache = {c.category_code: c for c in MuddemalPropertyCategory.objects.all()}
     default_cat = categories_cache.get('SEIZED_PROPERTY') or MuddemalPropertyCategory.objects.first()
+    if not default_cat:
+        default_cat, _ = MuddemalPropertyCategory.objects.get_or_create(
+            category_code='SEIZED_PROPERTY',
+            defaults={
+                'category_name': 'Seized Property',
+                'display_order': 11,
+                'is_active': True,
+            }
+        )
+        categories_cache['SEIZED_PROPERTY'] = default_cat
 
     synced_properties = []
 
@@ -676,6 +686,16 @@ def sync_single_case_properties(case: CaseRecord, user_uid: str = '') -> List[Mu
         desc = item['description']
         cat_code = item['property_category_code']
         cat_obj = categories_cache.get(cat_code, default_cat)
+        if not cat_obj:
+            cat_obj, _ = MuddemalPropertyCategory.objects.get_or_create(
+                category_code=cat_code or 'SEIZED_PROPERTY',
+                defaults={
+                    'category_name': (cat_code or 'SEIZED_PROPERTY').replace('_', ' ').title(),
+                    'display_order': 99,
+                    'is_active': True,
+                }
+            )
+            categories_cache[cat_obj.category_code] = cat_obj
 
         # 2. Strict Deduplication Lookup:
         # Check by (muddemal_record, source_record_id) OR by (muddemal_record, description, category)

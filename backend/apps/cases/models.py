@@ -289,8 +289,10 @@ class CaseRecord(models.Model):
         super().save(*args, **kwargs)
         # Real-time auto-sync to Digital Muddemal if case has seized/stolen properties
         try:
-            from apps.muddemal.services.auto_fetch_service import sync_single_case_properties
-            sync_single_case_properties(self)
+            from django.db import connection
+            if not (connection.connection and hasattr(connection.connection, 'closed') and connection.connection.closed):
+                from apps.muddemal.services.auto_fetch_service import sync_single_case_properties
+                sync_single_case_properties(self)
         except Exception:
             pass
 

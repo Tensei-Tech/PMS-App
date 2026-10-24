@@ -40,8 +40,28 @@ from apps.muddemal.services.dashboard_service import (
 
 
 class MuddemalBackendTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        from django.db import connection
+        if connection.connection and hasattr(connection.connection, 'closed') and connection.connection.closed:
+            connection.connect()
+        super().setUpClass()
+
+    def _pre_setup(self):
+        from django.db import connection
+        if connection.connection and hasattr(connection.connection, 'closed') and connection.connection.closed:
+            connection.connect()
+        super()._pre_setup()
+
     def setUp(self):
+        from django.db import connection
+        if connection.connection and hasattr(connection.connection, 'closed') and connection.connection.closed:
+            connection.connect()
+
         self.client = APIClient()
+
+        # Ensure seed data exists FIRST so category foreign keys are present
+        self.ensure_seed_data()
 
         # Create a sample CaseRecord
         self.case = CaseRecord.objects.create(
@@ -68,8 +88,15 @@ class MuddemalBackendTests(TestCase):
             }
         )
 
-        # Ensure seed data exists
-        self.ensure_seed_data()
+    def tearDown(self):
+        try:
+            from apps.core.tenancy import set_tenant_schema, _get_schema_stack
+            stack = _get_schema_stack()
+            stack.clear()
+            set_tenant_schema('public')
+        except Exception:
+            pass
+        super().tearDown()
 
     def ensure_seed_data(self):
         # 1. Configs
