@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use, prefer_const_constructors
 // lib/modules/muddemal/widgets/muddemal_property_form_dialog.dart
 // Schema-driven dynamic property addition/editing dialog.
 // Categories, dropdown options, and custom fields are 100% backend-driven.
@@ -80,7 +81,8 @@ class _MuddemalPropertyFormDialogState
       final provider = context.read<MuddemalProvider>();
       if (_selectedRegisterId == null && provider.registers.isNotEmpty) {
         setState(() {
-          _selectedRegisterId = provider.activeRegister?.id ?? provider.registers.first.id;
+          _selectedRegisterId =
+              provider.activeRegister?.id ?? provider.registers.first.id;
         });
       }
       if (_selectedCategoryCode == null && provider.categories.isNotEmpty) {
@@ -165,9 +167,11 @@ class _MuddemalPropertyFormDialogState
     });
 
     final provider = context.read<MuddemalProvider>();
-    final matchedCategory = provider.categories.where(
-      (c) => c.categoryCode == _selectedCategoryCode,
-    ).firstOrNull;
+    final matchedCategory = provider.categories
+        .where(
+          (c) => c.categoryCode == _selectedCategoryCode,
+        )
+        .firstOrNull;
 
     final seizureDateVal = _seizureDateCtrl.text.trim();
 
@@ -280,12 +284,18 @@ class _MuddemalPropertyFormDialogState
                               widget.existingProperty != null
                                   ? 'Edit Muddemal Property (${() {
                                       try {
-                                        final d = widget.existingProperty!.displayCrNumber;
+                                        final d = widget
+                                            .existingProperty!.displayCrNumber;
                                         if (d.isNotEmpty) return d;
                                       } catch (_) {}
-                                      final u = widget.existingProperty!.propertyUid;
-                                      final match = RegExp(r'(CR-[0-9A-Za-z]+/\d{4})').firstMatch(u);
-                                      return match != null ? match.group(1)! : u;
+                                      final u =
+                                          widget.existingProperty!.propertyUid;
+                                      final match =
+                                          RegExp(r'(CR-[0-9A-Za-z]+/\d{4})')
+                                              .firstMatch(u);
+                                      return match != null
+                                          ? match.group(1)!
+                                          : u;
                                     }()})'
                                   : 'Add Property to Muddemal Register',
                               style: GoogleFonts.poppins(
@@ -297,18 +307,19 @@ class _MuddemalPropertyFormDialogState
                             Builder(
                               builder: (_) {
                                 final selectedReg = provider.registers
-                                        .where((r) => r.id == _selectedRegisterId)
+                                        .where(
+                                            (r) => r.id == _selectedRegisterId)
                                         .firstOrNull ??
                                     provider.activeRegister;
-                                  return Text(
-                                    selectedReg != null
-                                        ? 'CR: ${selectedReg.crNumberSnapshot} | ${selectedReg.stationName}'
-                                        : provider.fillDynamicInfoLabel,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      color: AppColors.lightSubText,
-                                    ),
-                                  );
+                                return Text(
+                                  selectedReg != null
+                                      ? 'CR: ${selectedReg.crNumberSnapshot} | ${selectedReg.stationName}'
+                                      : provider.fillDynamicInfoLabel,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    color: AppColors.lightSubText,
+                                  ),
+                                );
                               },
                             ),
                           ],
@@ -330,18 +341,22 @@ class _MuddemalPropertyFormDialogState
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // SECTION 0: Linked Case / Register (Backend Database)
-                        if (widget.existingProperty == null && provider.registers.isNotEmpty) ...[
-                          _buildSectionHeader('0. Linked Case / CR Register (Backend Database)'),
+                        if (widget.existingProperty == null &&
+                            provider.registers.isNotEmpty) ...[
+                          _buildSectionHeader(
+                              '0. Linked Case / CR Register (Backend Database)'),
                           const SizedBox(height: 8),
                           DropdownButtonFormField<int>(
-                            value: provider.registers.any((r) => r.id == _selectedRegisterId)
+                            value: provider.registers
+                                    .any((r) => r.id == _selectedRegisterId)
                                 ? _selectedRegisterId
                                 : provider.registers.first.id,
                             decoration: _inputDecoration(
                               label: 'Select Case / CR Register *',
                               icon: Icons.folder_shared_rounded,
                             ),
-                            style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
+                            style: GoogleFonts.poppins(
+                                fontSize: 13, color: AppColors.lightText),
                             items: provider.registers.map((r) {
                               return DropdownMenuItem<int>(
                                 value: r.id,
@@ -361,7 +376,8 @@ class _MuddemalPropertyFormDialogState
                         ],
 
                         // SECTION 1: Category Selection
-                        _buildSectionHeader('1. ${provider.propertyCategoryLabel} (Backend-Driven)'),
+                        _buildSectionHeader(
+                            '1. ${provider.propertyCategoryLabel} (Backend-Driven)'),
                         const SizedBox(height: 8),
                         if (categories.isEmpty)
                           const Center(child: CircularProgressIndicator())
@@ -390,7 +406,8 @@ class _MuddemalPropertyFormDialogState
                         const SizedBox(height: 20),
 
                         // SECTION 2: General & Valuation Info
-                        _buildSectionHeader('2. General & Automatic Valuation Details'),
+                        _buildSectionHeader(
+                            '2. General & Automatic Valuation Details'),
                         const SizedBox(height: 10),
                         TextFormField(
                           controller: _descriptionCtrl,
@@ -414,9 +431,10 @@ class _MuddemalPropertyFormDialogState
                                   label: 'Quantity *',
                                   icon: Icons.format_list_numbered_rounded,
                                 ),
-                                validator: (v) => (v == null || v.trim().isEmpty)
-                                    ? 'Enter quantity'
-                                    : null,
+                                validator: (v) =>
+                                    (v == null || v.trim().isEmpty)
+                                        ? 'Enter quantity'
+                                        : null,
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -425,7 +443,9 @@ class _MuddemalPropertyFormDialogState
                               child: DropdownButtonFormField<String>(
                                 value: units.contains(_selectedUnit)
                                     ? _selectedUnit
-                                    : (units.isNotEmpty ? units.first : 'Numbers'),
+                                    : (units.isNotEmpty
+                                        ? units.first
+                                        : 'Numbers'),
                                 decoration: _inputDecoration(
                                   label: 'Unit *',
                                   icon: Icons.straighten_rounded,
@@ -435,7 +455,9 @@ class _MuddemalPropertyFormDialogState
                                         value: u, child: Text(u)))
                                     .toList(),
                                 onChanged: (v) {
-                                  if (v != null) setState(() => _selectedUnit = v);
+                                  if (v != null) {
+                                    setState(() => _selectedUnit = v);
+                                  }
                                 },
                               ),
                             ),
@@ -462,9 +484,10 @@ class _MuddemalPropertyFormDialogState
                                   icon: Icons.account_balance_wallet_rounded,
                                   hint: 'Quantity x Unit Value or Valuation',
                                 ),
-                                validator: (v) => (v == null || v.trim().isEmpty)
-                                    ? 'Valuation is required'
-                                    : null,
+                                validator: (v) =>
+                                    (v == null || v.trim().isEmpty)
+                                        ? 'Valuation is required'
+                                        : null,
                               ),
                             ),
                           ],
@@ -625,7 +648,8 @@ class _MuddemalPropertyFormDialogState
                       onPressed: () => Navigator.pop(context),
                       child: Text(
                         'Cancel',
-                        style: GoogleFonts.poppins(color: AppColors.lightSubText),
+                        style:
+                            GoogleFonts.poppins(color: AppColors.lightSubText),
                       ),
                     ),
                     const SizedBox(width: 14),
@@ -716,7 +740,9 @@ class _MuddemalPropertyFormDialogState
             });
           },
           validator: fieldDef.isRequired
-              ? (v) => (v == null || v.isEmpty) ? '${fieldDef.fieldLabel} required' : null
+              ? (v) => (v == null || v.isEmpty)
+                  ? '${fieldDef.fieldLabel} required'
+                  : null
               : null,
         ),
       );
@@ -770,7 +796,9 @@ class _MuddemalPropertyFormDialogState
             }
           },
           validator: fieldDef.isRequired
-              ? (v) => (v == null || v.trim().isEmpty) ? '${fieldDef.fieldLabel} required' : null
+              ? (v) => (v == null || v.trim().isEmpty)
+                  ? '${fieldDef.fieldLabel} required'
+                  : null
               : null,
         ),
       );
@@ -781,18 +809,22 @@ class _MuddemalPropertyFormDialogState
       child: TextFormField(
         controller: ctrl,
         maxLines: fieldDef.fieldType == 'textarea' ? 3 : 1,
-        keyboardType: (fieldDef.fieldType == 'number' || fieldDef.fieldType == 'decimal')
-            ? TextInputType.number
-            : TextInputType.text,
+        keyboardType:
+            (fieldDef.fieldType == 'number' || fieldDef.fieldType == 'decimal')
+                ? TextInputType.number
+                : TextInputType.text,
         decoration: _inputDecoration(
           label: '${fieldDef.fieldLabel}${fieldDef.isRequired ? ' *' : ''}',
-          icon: (fieldDef.fieldType == 'number' || fieldDef.fieldType == 'decimal')
+          icon: (fieldDef.fieldType == 'number' ||
+                  fieldDef.fieldType == 'decimal')
               ? Icons.numbers_rounded
               : Icons.edit_note_rounded,
         ),
         onChanged: (val) => _dynamicValues[fieldDef.fieldKey] = val,
         validator: fieldDef.isRequired
-            ? (v) => (v == null || v.trim().isEmpty) ? '${fieldDef.fieldLabel} required' : null
+            ? (v) => (v == null || v.trim().isEmpty)
+                ? '${fieldDef.fieldLabel} required'
+                : null
             : null,
       ),
     );
@@ -807,7 +839,8 @@ class _MuddemalPropertyFormDialogState
       labelText: label,
       hintText: hint,
       prefixIcon: Icon(icon, size: 20, color: AppColors.navyMid),
-      labelStyle: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightSubText),
+      labelStyle:
+          GoogleFonts.poppins(fontSize: 13, color: AppColors.lightSubText),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),

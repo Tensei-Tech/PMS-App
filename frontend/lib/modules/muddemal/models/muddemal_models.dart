@@ -67,6 +67,7 @@ class MuddemalPropertyItem {
     }
     return '';
   }
+
   final int muddemalRecordId;
   final String registerNo;
   final String crNumber;
@@ -274,8 +275,7 @@ class MuddemalPropertyItem {
           'Muddemal Room (मालखाना)',
       fslStatus: json['fsl_status']?.toString() ??
           (json['fsl_required'] == true ? 'Pending' : 'Not Required'),
-      disposalStatus:
-          json['disposal_status']?.toString() ?? 'In Custody',
+      disposalStatus: json['disposal_status']?.toString() ?? 'In Custody',
       remarks: json['remarks']?.toString() ?? '',
       extraFields: (json['extra_fields'] is Map)
           ? Map<String, dynamic>.from(json['extra_fields'] as Map)
@@ -290,8 +290,8 @@ class MuddemalPropertyItem {
       fslReportReceived: json['fsl_report_received'] == true,
       fslReportReceivedDate: json['fsl_report_received_date']?.toString(),
       disposalDate: json['disposal_date']?.toString(),
-      destroyed: json['destroyed'] == true ||
-          json['property_status'] == 'Destroyed',
+      destroyed:
+          json['destroyed'] == true || json['property_status'] == 'Destroyed',
       releasedOnSupurdnama: json['released_on_supurdnama'] == true ||
           json['property_status'] == 'Released on Supurdnama',
       returnedToOwner: json['returned_to_owner'] == true ||
@@ -306,8 +306,8 @@ class MuddemalPropertyItem {
       fslRecords: (rawFsl is List)
           ? rawFsl
               .whereType<Map>()
-              .map((m) =>
-                  MuddemalFSLItem.fromJson(Map<String, dynamic>.from(m)))
+              .map(
+                  (m) => MuddemalFSLItem.fromJson(Map<String, dynamic>.from(m)))
               .toList()
           : const [],
       disposals: (rawDisposals is List)
@@ -450,7 +450,8 @@ class MuddemalFSLItem {
       fslReferenceNo: json['fsl_reference_no']?.toString() ?? '',
       dispatchDate: json['dispatch_date']?.toString() ?? '',
       dispatchDetails: json['dispatch_details']?.toString() ?? '',
-      reportReceivedStatus: json['report_received_status']?.toString() ?? 'Pending',
+      reportReceivedStatus:
+          json['report_received_status']?.toString() ?? 'Pending',
       reportReceivedDate: json['report_received_date']?.toString(),
       reportReference: json['report_reference']?.toString() ?? '',
       remarks: json['remarks']?.toString() ?? '',
@@ -540,8 +541,10 @@ class DiscoveredSourceProperty {
       seizedFrom: json['seized_from']?.toString() ?? '',
       quantity: double.tryParse(json['quantity']?.toString() ?? '1') ?? 1.0,
       unit: json['unit']?.toString() ?? 'Numbers',
-      totalItemValue: double.tryParse(json['total_item_value']?.toString() ?? '0') ?? 0.0,
-      inferredCategoryCode: json['inferred_category_code']?.toString() ?? 'SEIZED_PROPERTY',
+      totalItemValue:
+          double.tryParse(json['total_item_value']?.toString() ?? '0') ?? 0.0,
+      inferredCategoryCode:
+          json['inferred_category_code']?.toString() ?? 'SEIZED_PROPERTY',
       isAlreadyLinked: json['is_already_linked'] == true,
       linkedPropertyUid: json['linked_property_uid']?.toString(),
       linkedPropertyId: json['linked_property_id'] as int?,

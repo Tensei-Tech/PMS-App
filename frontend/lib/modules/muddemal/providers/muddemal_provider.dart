@@ -24,7 +24,10 @@ class MuddemalProvider extends BaseModuleProvider {
   List<Map<String, dynamic>> get sourceModules {
     final raw = _configs['source_modules'];
     if (raw is List) {
-      return raw.whereType<Map>().map((m) => Map<String, dynamic>.from(m)).toList();
+      return raw
+          .whereType<Map>()
+          .map((m) => Map<String, dynamic>.from(m))
+          .toList();
     }
     return [];
   }
@@ -40,13 +43,15 @@ class MuddemalProvider extends BaseModuleProvider {
       'all_statuses_label': 'All Statuses',
       'source_module_label': 'Source Module',
       'all_source_modules_label': 'All PMS Modules',
-      'search_hint_label': 'Search CR No., Accused, Description, Seized From...',
+      'search_hint_label':
+          'Search CR No., Accused, Description, Seized From...',
       'clear_filters_label': 'Clear Filters',
       'attributes_tab_label': 'Information',
       'attributes_section_label': 'Dynamic Information',
       'category_specific_info_label': 'Category-Specific Information',
       'select_property_category_label': 'Select Type of Property *',
-      'fill_dynamic_info_label': 'Select type of property and fill dynamic information',
+      'fill_dynamic_info_label':
+          'Select type of property and fill dynamic information',
     };
   }
 
@@ -82,13 +87,16 @@ class MuddemalProvider extends BaseModuleProvider {
       uiLabels['attributes_section_label']?.toString() ?? 'Dynamic Information';
 
   String get categorySpecificInfoLabel =>
-      uiLabels['category_specific_info_label']?.toString() ?? 'Category-Specific Information';
+      uiLabels['category_specific_info_label']?.toString() ??
+      'Category-Specific Information';
 
   String get selectPropertyCategoryLabel =>
-      uiLabels['select_property_category_label']?.toString() ?? 'Select Type of Property *';
+      uiLabels['select_property_category_label']?.toString() ??
+      'Select Type of Property *';
 
   String get fillDynamicInfoLabel =>
-      uiLabels['fill_dynamic_info_label']?.toString() ?? 'Select type of property and fill dynamic information';
+      uiLabels['fill_dynamic_info_label']?.toString() ??
+      'Select type of property and fill dynamic information';
 
   List<String> get measurementUnits {
     final raw = _configs['measurement_units'];
@@ -99,21 +107,36 @@ class MuddemalProvider extends BaseModuleProvider {
   List<String> get propertyStatuses {
     final raw = _configs['property_statuses'];
     if (raw is List) {
-      return raw.map((e) {
-        if (e is Map) return e['code']?.toString() ?? e['label']?.toString() ?? '';
-        return e.toString();
-      }).where((s) => s.isNotEmpty).toList();
+      return raw
+          .map((e) {
+            if (e is Map) {
+              return e['code']?.toString() ?? e['label']?.toString() ?? '';
+            }
+            return e.toString();
+          })
+          .where((s) => s.isNotEmpty)
+          .toList();
     }
-    return const ['Seized', 'Stolen – Not Recovered', 'Recovered', 'Sent to FSL', 'Disposed'];
+    return const [
+      'Seized',
+      'Stolen – Not Recovered',
+      'Recovered',
+      'Sent to FSL',
+      'Disposed'
+    ];
   }
 
   List<Map<String, String>> get propertyStatusOptions {
     final raw = _configs['property_statuses'];
     if (raw is List) {
-      return raw.whereType<Map>().map((e) => {
-        'code': e['code']?.toString() ?? '',
-        'label': e['label']?.toString() ?? '',
-      }).where((m) => m['code']!.isNotEmpty).toList();
+      return raw
+          .whereType<Map>()
+          .map((e) => {
+                'code': e['code']?.toString() ?? '',
+                'label': e['label']?.toString() ?? '',
+              })
+          .where((m) => m['code']!.isNotEmpty)
+          .toList();
     }
     return [];
   }
@@ -121,19 +144,38 @@ class MuddemalProvider extends BaseModuleProvider {
   List<String> get movementLocations {
     final raw = _configs['movement_locations'];
     if (raw is List) return raw.map((e) => e.toString()).toList();
-    return const ['Muddemal Room (मालखाना)', 'Court (न्यायालय)', 'FSL Laboratory', 'Owner Custody'];
+    return const [
+      'Muddemal Room (मालखाना)',
+      'Court (न्यायालय)',
+      'FSL Laboratory',
+      'Owner Custody'
+    ];
   }
 
   List<String> get movementTypes {
     final raw = _configs['movement_types'];
     if (raw is List) return raw.map((e) => e.toString()).toList();
-    return const ['Muddemal Room In', 'Sent to Court', 'Returned from Court', 'Sent to FSL', 'Received from FSL', 'Released on Supurdnama', 'Disposed'];
+    return const [
+      'Muddemal Room In',
+      'Sent to Court',
+      'Returned from Court',
+      'Sent to FSL',
+      'Received from FSL',
+      'Released on Supurdnama',
+      'Disposed'
+    ];
   }
 
   List<String> get disposalTypes {
     final raw = _configs['disposal_types'];
     if (raw is List) return raw.map((e) => e.toString()).toList();
-    return const ['Released on Supurdnama', 'Returned to Owner', 'Disposed by Public Auction', 'Destroyed as per Court Order', 'Forfeited to State Government'];
+    return const [
+      'Released on Supurdnama',
+      'Returned to Owner',
+      'Disposed by Public Auction',
+      'Destroyed as per Court Order',
+      'Forfeited to State Government'
+    ];
   }
 
   // Active Register and Properties State
@@ -164,9 +206,16 @@ class MuddemalProvider extends BaseModuleProvider {
 
   // Live KPI totals derived from loaded backend data
   int get totalPropertiesCount => _properties.length;
-  double get totalSeizedValuation => _properties.fold(0.0, (sum, p) => sum + p.totalItemValue);
-  int get fslPendingCount => _properties.where((p) => p.fslRequired && p.fslStatus != 'Received').length;
-  int get inMuddemalRoomCount => _properties.where((p) => p.currentCustodyLocation.contains('Muddemal Room') || p.currentCustodyLocation.contains('मालखाना')).length;
+  double get totalSeizedValuation =>
+      _properties.fold(0.0, (sum, p) => sum + p.totalItemValue);
+  int get fslPendingCount => _properties
+      .where((p) => p.fslRequired && p.fslStatus != 'Received')
+      .length;
+  int get inMuddemalRoomCount => _properties
+      .where((p) =>
+          p.currentCustodyLocation.contains('Muddemal Room') ||
+          p.currentCustodyLocation.contains('मालखाना'))
+      .length;
 
   Map<String, dynamic>? _propertySummary;
   Map<String, dynamic> get propertySummary => _propertySummary ?? const {};
@@ -177,7 +226,7 @@ class MuddemalProvider extends BaseModuleProvider {
     if (summary != null &&
         summary.isNotEmpty &&
         (summary['total_registered_value'] != null ||
-         summary['total_seized_property_value'] != null)) {
+            summary['total_seized_property_value'] != null)) {
       return summary;
     }
 
@@ -215,7 +264,8 @@ class MuddemalProvider extends BaseModuleProvider {
 
   // Cross-module discovered properties
   List<DiscoveredSourceProperty> _discoveredProperties = [];
-  List<DiscoveredSourceProperty> get discoveredProperties => _discoveredProperties;
+  List<DiscoveredSourceProperty> get discoveredProperties =>
+      _discoveredProperties;
 
   // Dashboards & Alerts
   Map<String, dynamic> _fslAlerts = {};
@@ -384,7 +434,8 @@ class MuddemalProvider extends BaseModuleProvider {
   }
 
   /// 3. Select a Register and optionally filter its properties
-  void selectRegister(MuddemalRegisterHeader register, {bool filterProperties = false}) {
+  void selectRegister(MuddemalRegisterHeader register,
+      {bool filterProperties = false}) {
     _activeRegister = register;
     if (filterProperties) {
       _properties = register.properties;
@@ -466,7 +517,8 @@ class MuddemalProvider extends BaseModuleProvider {
   /// 6. Load cross-module discoverable properties from SeizureRecords & Case JSON
   Future<void> loadDiscoverableProperties(String caseId) async {
     try {
-      _discoveredProperties = await _muddemalApi.fetchDiscoverableProperties(caseId);
+      _discoveredProperties =
+          await _muddemalApi.fetchDiscoverableProperties(caseId);
     } catch (e) {
       debugPrint('[MuddemalProvider] loadDiscoverableProperties error: $e');
     }
@@ -483,9 +535,11 @@ class MuddemalProvider extends BaseModuleProvider {
       // Ensure register exists
       if (_activeRegister == null || _activeRegister!.id == 0) {
         final regData = {
-          'station_name': _filterStation.isNotEmpty ? _filterStation : 'Station',
+          'station_name':
+              _filterStation.isNotEmpty ? _filterStation : 'Station',
           'cr_case_id': _activeRegister?.crCaseId,
-          'cr_number_snapshot': _activeRegister?.crNumberSnapshot ?? 'CR-00/2026',
+          'cr_number_snapshot':
+              _activeRegister?.crNumberSnapshot ?? 'CR-00/2026',
           'investigating_officer_name': _activeRegister?.ioName ?? '',
           'investigating_officer_id': _activeRegister?.ioId ?? '',
         };
@@ -506,7 +560,8 @@ class MuddemalProvider extends BaseModuleProvider {
         notifyListeners();
         return newProp;
       } else {
-        _errorMessage = _muddemalApi.lastError ?? 'Failed to register property.';
+        _errorMessage =
+            _muddemalApi.lastError ?? 'Failed to register property.';
       }
     } catch (e) {
       _errorMessage = 'Failed to create property: $e';
@@ -545,7 +600,8 @@ class MuddemalProvider extends BaseModuleProvider {
   }
 
   /// 9. Link discovered source property idempotently
-  Future<bool> linkDiscoveredProperty(String caseId, DiscoveredSourceProperty item) async {
+  Future<bool> linkDiscoveredProperty(
+      String caseId, DiscoveredSourceProperty item) async {
     try {
       final prop = await _muddemalApi.linkDiscoveredProperty(caseId, {
         'muddemal_record_id': _activeRegister?.id,
@@ -630,7 +686,8 @@ class MuddemalProvider extends BaseModuleProvider {
   /// 13. Load FSL Alerts
   Future<void> loadFSLAlerts() async {
     try {
-      _fslAlerts = await _muddemalApi.fetchFSLAlerts(stationName: _filterStation);
+      _fslAlerts =
+          await _muddemalApi.fetchFSLAlerts(stationName: _filterStation);
     } catch (e) {
       debugPrint('[MuddemalProvider] loadFSLAlerts error: $e');
     }
@@ -641,10 +698,14 @@ class MuddemalProvider extends BaseModuleProvider {
   Future<void> loadDashboards() async {
     try {
       final results = await Future.wait([
-        _muddemalApi.fetchStolenDashboard(stationName: _filterStation, year: _selectedYear),
-        _muddemalApi.fetchSeizedDashboard(stationName: _filterStation, year: _selectedYear),
-        _muddemalApi.fetchPendingDashboard(stationName: _filterStation, year: _selectedYear),
-        _muddemalApi.fetchMonthlyYearlyReport(stationName: _filterStation, year: _selectedYear),
+        _muddemalApi.fetchStolenDashboard(
+            stationName: _filterStation, year: _selectedYear),
+        _muddemalApi.fetchSeizedDashboard(
+            stationName: _filterStation, year: _selectedYear),
+        _muddemalApi.fetchPendingDashboard(
+            stationName: _filterStation, year: _selectedYear),
+        _muddemalApi.fetchMonthlyYearlyReport(
+            stationName: _filterStation, year: _selectedYear),
       ]);
 
       _stolenDashboard = results[0];
@@ -705,7 +766,8 @@ class MuddemalProvider extends BaseModuleProvider {
           'recovered_property_value': recoveredVal,
           'not_recovered_property_value': notRec,
           'total_seized_property_value': seizedVal,
-          'recovery_percentage': stolenVal > 0 ? '${recPct.toStringAsFixed(2)}%' : 'N/A',
+          'recovery_percentage':
+              stolenVal > 0 ? '${recPct.toStringAsFixed(2)}%' : 'N/A',
           'recovery_percentage_numeric': recPct,
           'total_stolen_items_count': stolenCount,
         },

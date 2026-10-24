@@ -4,7 +4,9 @@ import 'package:khakhi_diary/modules/muddemal/providers/muddemal_provider.dart';
 
 void main() {
   group('Muddemal Auto-Fetch Architecture Tests', () {
-    test('MuddemalPropertyItem correctly parses auto-fetched properties from Crime module', () {
+    test(
+        'MuddemalPropertyItem correctly parses auto-fetched properties from Crime module',
+        () {
       final json = {
         'id': 101,
         'property_uid': 'MP-SHIVAJINAGAR-2026-CR-101-P01',
@@ -21,7 +23,8 @@ void main() {
         'category_code': 'CASH',
         'category_name': 'Cash / Currency',
         'property_serial_no': 1,
-        'description': 'Currency notes of Rs 500 denomination total Rs 50,000 seized',
+        'description':
+            'Currency notes of Rs 500 denomination total Rs 50,000 seized',
         'quantity': 100.0,
         'unit': 'Numbers',
         'unit_value': 500.0,
@@ -52,7 +55,9 @@ void main() {
       expect(item.disposalStatus, 'In Custody');
     });
 
-    test('MuddemalPropertyItem correctly parses Prohibition & Gambling module seizures', () {
+    test(
+        'MuddemalPropertyItem correctly parses Prohibition & Gambling module seizures',
+        () {
       final prohibitionJson = {
         'id': 102,
         'property_uid': 'MP-DECCAN-2026-CR-202-P01',
@@ -86,7 +91,8 @@ void main() {
         'property_category': 3,
         'category_code': 'GAMBLING',
         'category_name': 'Gambling Equipment & Stakes',
-        'description': 'Playing cards and gambling stake cash seized during raid',
+        'description':
+            'Playing cards and gambling stake cash seized during raid',
         'quantity': 1.0,
         'unit': 'Numbers',
         'total_item_value': 28500.0,
@@ -108,7 +114,9 @@ void main() {
       expect(gItem.totalItemValue, 28500.0);
     });
 
-    test('MuddemalProvider metadata getters are 100% dynamic from backend configs', () {
+    test(
+        'MuddemalProvider metadata getters are 100% dynamic from backend configs',
+        () {
       final provider = MuddemalProvider();
 
       // Verify that sourceModules getter parses backend JSON

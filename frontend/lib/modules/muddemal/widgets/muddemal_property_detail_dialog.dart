@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use, prefer_const_constructors, use_build_context_synchronously
 // lib/modules/muddemal/widgets/muddemal_property_detail_dialog.dart
 // Detailed view for an individual Muddemal property:
 // Dynamic extra attributes, chain of custody timeline, FSL tracking, disposal actions, and audit trail.
@@ -113,7 +114,8 @@ class _MuddemalPropertyDetailDialogState
                                 if (d.isNotEmpty) return d;
                               } catch (_) {}
                               final u = _property.propertyUid;
-                              final match = RegExp(r'(CR-[0-9A-Za-z]+/\d{4})').firstMatch(u);
+                              final match = RegExp(r'(CR-[0-9A-Za-z]+/\d{4})')
+                                  .firstMatch(u);
                               if (match != null) return match.group(1)!;
                               return u.isNotEmpty ? u : 'CR-Property';
                             }(),
@@ -132,7 +134,8 @@ class _MuddemalPropertyDetailDialogState
                                   .withOpacity(0.15),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: _getStatusColor(_property.propertyStatus),
+                                color:
+                                    _getStatusColor(_property.propertyStatus),
                               ),
                             ),
                             child: Text(
@@ -140,7 +143,8 @@ class _MuddemalPropertyDetailDialogState
                               style: GoogleFonts.poppins(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: _getStatusColor(_property.propertyStatus),
+                                color:
+                                    _getStatusColor(_property.propertyStatus),
                               ),
                             ),
                           ),
@@ -159,7 +163,8 @@ class _MuddemalPropertyDetailDialogState
                     children: [
                       OutlinedButton.icon(
                         icon: const Icon(Icons.edit_rounded, size: 16),
-                        label: Text('Edit', style: GoogleFonts.poppins(fontSize: 12)),
+                        label: Text('Edit',
+                            style: GoogleFonts.poppins(fontSize: 12)),
                         onPressed: () async {
                           final ok = await showDialog<bool>(
                             context: context,
@@ -209,7 +214,9 @@ class _MuddemalPropertyDetailDialogState
                   const SizedBox(width: 12),
                   _buildMetricCard(
                     'Seized / Recovered From',
-                    _property.seizedFrom.isNotEmpty ? _property.seizedFrom : 'N/A',
+                    _property.seizedFrom.isNotEmpty
+                        ? _property.seizedFrom
+                        : 'N/A',
                     Icons.person_pin_circle_rounded,
                     AppColors.infoBlue,
                   ),
@@ -218,7 +225,9 @@ class _MuddemalPropertyDetailDialogState
                     'FSL Required',
                     _property.fslRequired ? 'Yes (Forensic)' : 'No',
                     Icons.biotech_rounded,
-                    _property.fslRequired ? const Color(0xFF7C3AED) : Colors.grey,
+                    _property.fslRequired
+                        ? const Color(0xFF7C3AED)
+                        : Colors.grey,
                   ),
                 ],
               ),
@@ -231,13 +240,25 @@ class _MuddemalPropertyDetailDialogState
                 unselectedLabelColor: AppColors.lightSubText,
                 indicatorColor: AppColors.navyMid,
                 indicatorWeight: 3,
-                labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13),
+                labelStyle: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w600, fontSize: 13),
                 tabs: [
-                  Tab(icon: const Icon(Icons.info_outline_rounded, size: 18), text: context.read<MuddemalProvider>().attributesTabLabel),
-                  const Tab(icon: Icon(Icons.timeline_rounded, size: 18), text: 'Custody Chain'),
-                  const Tab(icon: Icon(Icons.biotech_rounded, size: 18), text: 'FSL History'),
-                  const Tab(icon: Icon(Icons.gavel_rounded, size: 18), text: 'Disposal & Supurdnama'),
-                  const Tab(icon: Icon(Icons.history_edu_rounded, size: 18), text: 'Audit Trail'),
+                  Tab(
+                      icon: const Icon(Icons.info_outline_rounded, size: 18),
+                      text:
+                          context.read<MuddemalProvider>().attributesTabLabel),
+                  const Tab(
+                      icon: Icon(Icons.timeline_rounded, size: 18),
+                      text: 'Custody Chain'),
+                  const Tab(
+                      icon: Icon(Icons.biotech_rounded, size: 18),
+                      text: 'FSL History'),
+                  const Tab(
+                      icon: Icon(Icons.gavel_rounded, size: 18),
+                      text: 'Disposal & Supurdnama'),
+                  const Tab(
+                      icon: Icon(Icons.history_edu_rounded, size: 18),
+                      text: 'Audit Trail'),
                 ],
               ),
               const SizedBox(height: 12),
@@ -262,7 +283,8 @@ class _MuddemalPropertyDetailDialogState
     );
   }
 
-  Widget _buildMetricCard(String label, String value, IconData icon, Color color) {
+  Widget _buildMetricCard(
+      String label, String value, IconData icon, Color color) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -281,7 +303,8 @@ class _MuddemalPropertyDetailDialogState
                 children: [
                   Text(
                     label,
-                    style: GoogleFonts.poppins(fontSize: 11, color: AppColors.lightSubText),
+                    style: GoogleFonts.poppins(
+                        fontSize: 11, color: AppColors.lightSubText),
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
@@ -321,7 +344,8 @@ class _MuddemalPropertyDetailDialogState
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.description_rounded, size: 18, color: AppColors.navyMid),
+                  const Icon(Icons.description_rounded,
+                      size: 18, color: AppColors.navyMid),
                   const SizedBox(width: 8),
                   Text(
                     'Common Master Form Details',
@@ -335,27 +359,56 @@ class _MuddemalPropertyDetailDialogState
               ),
             ),
             const SizedBox(height: 10),
-            _buildDetailRow('CR No.', _property.displayCrNumber.isNotEmpty ? _property.displayCrNumber : _property.propertyUid),
-            _buildDetailRow('Section-Act', _property.actSection.isNotEmpty ? _property.actSection : 'IPC / BNS'),
-            _buildDetailRow('Nature / Type of Crime', _property.natureOfCrime.isNotEmpty ? _property.natureOfCrime : 'Case Property'),
-            _buildDetailRow('IO Name', _property.ioName.isNotEmpty ? _property.ioName : '—'),
-            _buildDetailRow('Date of Seizure/Stolen', _property.seizureDate ?? 'Not Recorded'),
-            _buildDetailRow('Property / Muddemal Description', _property.description),
-            _buildDetailRow('Quantity', '${_property.quantity} ${_property.unit}'),
-            _buildDetailRow('Value of Property', '₹${currencyFormat.format(_property.unitValue)}'),
-            _buildDetailRow('Total Property Value', '₹${currencyFormat.format(_property.totalItemValue)}'),
-            _buildDetailRow('Owner Name', _property.ownerName.isNotEmpty ? _property.ownerName : '—'),
-            _buildDetailRow('From Whom Seized / Recovered', _property.seizedFrom.isNotEmpty ? _property.seizedFrom : '—'),
-            _buildDetailRow('Not Recovered', _property.notRecovered ? 'Yes' : 'No'),
-            _buildDetailRow('FSL Required', _property.fslRequired ? 'Yes' : 'No'),
-            _buildDetailRow('FSL Sent Date', _property.fslSentDate ?? 'Not Sent'),
-            _buildDetailRow('FSL Report Received', _property.fslReportReceived ? 'Yes' : 'No'),
-            _buildDetailRow('FSL Report Received Date', _property.fslReportReceivedDate ?? 'Pending'),
-            _buildDetailRow('Disposal Date', _property.disposalDate ?? 'Pending'),
+            _buildDetailRow(
+                'CR No.',
+                _property.displayCrNumber.isNotEmpty
+                    ? _property.displayCrNumber
+                    : _property.propertyUid),
+            _buildDetailRow(
+                'Section-Act',
+                _property.actSection.isNotEmpty
+                    ? _property.actSection
+                    : 'IPC / BNS'),
+            _buildDetailRow(
+                'Nature / Type of Crime',
+                _property.natureOfCrime.isNotEmpty
+                    ? _property.natureOfCrime
+                    : 'Case Property'),
+            _buildDetailRow('IO Name',
+                _property.ioName.isNotEmpty ? _property.ioName : '—'),
+            _buildDetailRow('Date of Seizure/Stolen',
+                _property.seizureDate ?? 'Not Recorded'),
+            _buildDetailRow(
+                'Property / Muddemal Description', _property.description),
+            _buildDetailRow(
+                'Quantity', '${_property.quantity} ${_property.unit}'),
+            _buildDetailRow('Value of Property',
+                '₹${currencyFormat.format(_property.unitValue)}'),
+            _buildDetailRow('Total Property Value',
+                '₹${currencyFormat.format(_property.totalItemValue)}'),
+            _buildDetailRow('Owner Name',
+                _property.ownerName.isNotEmpty ? _property.ownerName : '—'),
+            _buildDetailRow('From Whom Seized / Recovered',
+                _property.seizedFrom.isNotEmpty ? _property.seizedFrom : '—'),
+            _buildDetailRow(
+                'Not Recovered', _property.notRecovered ? 'Yes' : 'No'),
+            _buildDetailRow(
+                'FSL Required', _property.fslRequired ? 'Yes' : 'No'),
+            _buildDetailRow(
+                'FSL Sent Date', _property.fslSentDate ?? 'Not Sent'),
+            _buildDetailRow('FSL Report Received',
+                _property.fslReportReceived ? 'Yes' : 'No'),
+            _buildDetailRow('FSL Report Received Date',
+                _property.fslReportReceivedDate ?? 'Pending'),
+            _buildDetailRow(
+                'Disposal Date', _property.disposalDate ?? 'Pending'),
             _buildDetailRow('Destroyed', _property.destroyed ? 'Yes' : 'No'),
-            _buildDetailRow('Remarks', _property.remarks.isNotEmpty ? _property.remarks : '—'),
-            _buildDetailRow('Released on Supurdnama', _property.releasedOnSupurdnama ? 'Yes' : 'No'),
-            _buildDetailRow('Returned to Owner', _property.returnedToOwner ? 'Yes' : 'No'),
+            _buildDetailRow('Remarks',
+                _property.remarks.isNotEmpty ? _property.remarks : '—'),
+            _buildDetailRow('Released on Supurdnama',
+                _property.releasedOnSupurdnama ? 'Yes' : 'No'),
+            _buildDetailRow(
+                'Returned to Owner', _property.returnedToOwner ? 'Yes' : 'No'),
 
             const Divider(height: 28),
 
@@ -369,7 +422,8 @@ class _MuddemalPropertyDetailDialogState
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.category_rounded, size: 18, color: AppColors.goldDark),
+                  const Icon(Icons.category_rounded,
+                      size: 18, color: AppColors.goldDark),
                   const SizedBox(width: 8),
                   Text(
                     '${context.read<MuddemalProvider>().categorySpecificInfoLabel} (${_property.categoryName})',
@@ -388,7 +442,8 @@ class _MuddemalPropertyDetailDialogState
                 padding: const EdgeInsets.symmetric(vertical: 6.0),
                 child: Text(
                   'No additional ${_property.categoryName.toLowerCase()} details or information recorded for this item.',
-                  style: GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText),
+                  style: GoogleFonts.poppins(
+                      fontSize: 12, color: AppColors.lightSubText),
                 ),
               )
             else
@@ -396,9 +451,12 @@ class _MuddemalPropertyDetailDialogState
                 final formattedKey = e.key
                     .replaceAll('_', ' ')
                     .split(' ')
-                    .map((w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : '')
+                    .map((w) => w.isNotEmpty
+                        ? '${w[0].toUpperCase()}${w.substring(1)}'
+                        : '')
                     .join(' ');
-                return _buildDetailRow(formattedKey, e.value?.toString() ?? '—');
+                return _buildDetailRow(
+                    formattedKey, e.value?.toString() ?? '—');
               }),
           ],
         ),
@@ -424,11 +482,13 @@ class _MuddemalPropertyDetailDialogState
             ),
             ElevatedButton.icon(
               icon: const Icon(Icons.add_location_alt_rounded, size: 16),
-              label: Text('Record Movement', style: GoogleFonts.poppins(fontSize: 12)),
+              label: Text('Record Movement',
+                  style: GoogleFonts.poppins(fontSize: 12)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.navyMid,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               ),
               onPressed: () => _showRecordMovementDialog(),
             ),
@@ -453,12 +513,15 @@ class _MuddemalPropertyDetailDialogState
                       margin: const EdgeInsets.only(bottom: 10),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
-                        side: BorderSide(color: AppColors.lightBorder.withValues(alpha: 0.5)),
+                        side: BorderSide(
+                            color:
+                                AppColors.lightBorder.withValues(alpha: 0.5)),
                       ),
                       child: ListTile(
                         leading: CircleAvatar(
                           backgroundColor: AppColors.navyMid.withOpacity(0.1),
-                          child: const Icon(Icons.swap_horiz_rounded, color: AppColors.navyMid),
+                          child: const Icon(Icons.swap_horiz_rounded,
+                              color: AppColors.navyMid),
                         ),
                         title: Text(
                           '${m.fromLocation} ➔ ${m.toLocation}',
@@ -470,7 +533,8 @@ class _MuddemalPropertyDetailDialogState
                         ),
                         subtitle: Text(
                           'Type: ${m.movementType} | Officer: ${m.responsibleOfficer} | Ref: ${m.referenceNo.isNotEmpty ? m.referenceNo : '—'}\nDate: ${m.movementDate.split('T').first}',
-                          style: GoogleFonts.poppins(fontSize: 11, color: AppColors.lightSubText),
+                          style: GoogleFonts.poppins(
+                              fontSize: 11, color: AppColors.lightSubText),
                         ),
                       ),
                     );
@@ -491,15 +555,18 @@ class _MuddemalPropertyDetailDialogState
           children: [
             Text(
               'Forensic Science Laboratory (FSL) History:',
-              style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600),
+              style: GoogleFonts.poppins(
+                  fontSize: 13, fontWeight: FontWeight.w600),
             ),
             ElevatedButton.icon(
               icon: const Icon(Icons.send_rounded, size: 16),
-              label: Text('Dispatch to FSL', style: GoogleFonts.poppins(fontSize: 12)),
+              label: Text('Dispatch to FSL',
+                  style: GoogleFonts.poppins(fontSize: 12)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF7C3AED),
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               ),
               onPressed: () => _showRecordFslDialog(),
             ),
@@ -555,7 +622,8 @@ class _MuddemalPropertyDetailDialogState
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
                                         'Ref: ${f.fslReferenceNo}',
@@ -572,7 +640,8 @@ class _MuddemalPropertyDetailDialogState
                                           color: isPending
                                               ? AppColors.warningOrange
                                               : AppColors.successGreen,
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
                                         child: Text(
                                           f.reportReceivedStatus,
@@ -589,7 +658,8 @@ class _MuddemalPropertyDetailDialogState
                                   Text(
                                     'Dispatched: ${f.dispatchDate} | Details: ${f.dispatchDetails}',
                                     style: GoogleFonts.poppins(
-                                        fontSize: 11, color: AppColors.lightSubText),
+                                        fontSize: 11,
+                                        color: AppColors.lightSubText),
                                   ),
                                   if (!isPending) ...[
                                     const SizedBox(height: 2),
@@ -607,7 +677,8 @@ class _MuddemalPropertyDetailDialogState
                             ),
                             if (isPending)
                               TextButton.icon(
-                                icon: const Icon(Icons.check_circle_outline, size: 16),
+                                icon: const Icon(Icons.check_circle_outline,
+                                    size: 16),
                                 label: Text('Receive Report',
                                     style: GoogleFonts.poppins(fontSize: 11)),
                                 onPressed: () => _showReceiveReportDialog(f.id),
@@ -633,7 +704,8 @@ class _MuddemalPropertyDetailDialogState
           children: [
             Text(
               'Final Disposal & Supurdnama Records:',
-              style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600),
+              style: GoogleFonts.poppins(
+                  fontSize: 13, fontWeight: FontWeight.w600),
             ),
             ElevatedButton.icon(
               icon: const Icon(Icons.handshake_rounded, size: 16),
@@ -642,7 +714,8 @@ class _MuddemalPropertyDetailDialogState
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.navyDark,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               ),
               onPressed: () => _showRecordDisposalDialog(),
             ),
@@ -668,7 +741,8 @@ class _MuddemalPropertyDetailDialogState
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                         side: BorderSide(
-                            color: AppColors.successGreen.withValues(alpha: 0.3)),
+                            color:
+                                AppColors.successGreen.withValues(alpha: 0.3)),
                       ),
                       child: ListTile(
                         leading: const Icon(Icons.verified_rounded,
@@ -704,9 +778,11 @@ class _MuddemalPropertyDetailDialogState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.history_rounded, size: 48, color: Colors.grey.withValues(alpha: 0.5)),
+            Icon(Icons.history_rounded,
+                size: 48, color: Colors.grey.withValues(alpha: 0.5)),
             const SizedBox(height: 12),
-            Text('No audit records yet.', style: GoogleFonts.poppins(color: AppColors.lightSubText)),
+            Text('No audit records yet.',
+                style: GoogleFonts.poppins(color: AppColors.lightSubText)),
           ],
         ),
       );
@@ -717,7 +793,9 @@ class _MuddemalPropertyDetailDialogState
       itemBuilder: (ctx, i) {
         final log = _auditTrail[i];
         final action = log['action']?.toString() ?? 'ACTION';
-        final by = log['performed_by_name']?.toString() ?? log['performed_by']?.toString() ?? 'System';
+        final by = log['performed_by_name']?.toString() ??
+            log['performed_by']?.toString() ??
+            'System';
         final createdAt = log['created_at']?.toString() ?? '';
         final details = log['details'] is Map ? log['details'] as Map : {};
 
@@ -727,24 +805,35 @@ class _MuddemalPropertyDetailDialogState
           margin: const EdgeInsets.only(bottom: 8),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
-            side: BorderSide(color: AppColors.lightBorder.withValues(alpha: 0.5)),
+            side:
+                BorderSide(color: AppColors.lightBorder.withValues(alpha: 0.5)),
           ),
           child: ListTile(
             leading: CircleAvatar(
               backgroundColor: AppColors.goldPrimary.withValues(alpha: 0.15),
-              child: const Icon(Icons.shield_outlined, color: AppColors.goldDark, size: 20),
+              child: const Icon(Icons.shield_outlined,
+                  color: AppColors.goldDark, size: 20),
             ),
-            title: Text(action, style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.navyDark)),
+            title: Text(action,
+                style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    color: AppColors.navyDark)),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('By: $by | $createdAt', style: GoogleFonts.poppins(fontSize: 11, color: AppColors.lightSubText)),
+                Text('By: $by | $createdAt',
+                    style: GoogleFonts.poppins(
+                        fontSize: 11, color: AppColors.lightSubText)),
                 if (details.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 4.0),
                     child: Text(
-                      details.entries.map((e) => '${e.key}: ${e.value}').join(', '),
-                      style: GoogleFonts.poppins(fontSize: 11, color: AppColors.navyMid),
+                      details.entries
+                          .map((e) => '${e.key}: ${e.value}')
+                          .join(', '),
+                      style: GoogleFonts.poppins(
+                          fontSize: 11, color: AppColors.navyMid),
                     ),
                   ),
               ],
@@ -805,42 +894,76 @@ class _MuddemalPropertyDetailDialogState
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setStateDialog) => AlertDialog(
-          title: Text('Record Custody Movement', style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
+          title: Text('Record Custody Movement',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButtonFormField<String>(
-                  value: types.contains(movementType) ? movementType : (types.isNotEmpty ? types.first : 'Sent to Court'),
-                  decoration: const InputDecoration(labelText: 'Movement Type *'),
-                  items: types.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
-                  onChanged: (v) => setStateDialog(() => movementType = v ?? movementType),
+                  value: types.contains(movementType)
+                      ? movementType
+                      : (types.isNotEmpty ? types.first : 'Sent to Court'),
+                  decoration:
+                      const InputDecoration(labelText: 'Movement Type *'),
+                  items: types
+                      .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                      .toList(),
+                  onChanged: (v) =>
+                      setStateDialog(() => movementType = v ?? movementType),
                 ),
                 const SizedBox(height: 10),
-                TextFormField(controller: fromCtrl, decoration: const InputDecoration(labelText: 'From Location *')),
+                TextFormField(
+                    controller: fromCtrl,
+                    decoration:
+                        const InputDecoration(labelText: 'From Location *')),
                 const SizedBox(height: 10),
-                TextFormField(controller: toCtrl, decoration: const InputDecoration(labelText: 'To Location *')),
+                TextFormField(
+                    controller: toCtrl,
+                    decoration:
+                        const InputDecoration(labelText: 'To Location *')),
                 const SizedBox(height: 10),
-                TextFormField(controller: officerCtrl, decoration: const InputDecoration(labelText: 'Responsible Officer *')),
+                TextFormField(
+                    controller: officerCtrl,
+                    decoration: const InputDecoration(
+                        labelText: 'Responsible Officer *')),
                 const SizedBox(height: 10),
-                TextFormField(controller: refCtrl, decoration: const InputDecoration(labelText: 'Receipt / Reference No')),
+                TextFormField(
+                    controller: refCtrl,
+                    decoration: const InputDecoration(
+                        labelText: 'Receipt / Reference No')),
                 const SizedBox(height: 10),
                 const SizedBox(height: 10),
-                TextFormField(controller: remarksCtrl, decoration: const InputDecoration(labelText: 'Remarks / Movement Notes')),
+                TextFormField(
+                    controller: remarksCtrl,
+                    decoration: const InputDecoration(
+                        labelText: 'Remarks / Movement Notes')),
                 const SizedBox(height: 10),
                 DropdownButtonFormField<String>(
-                  value: statuses.contains(newStatus) ? newStatus : (statuses.isNotEmpty ? statuses.first : 'Produced Before Court'),
-                  decoration: const InputDecoration(labelText: 'Update Property Status To:'),
-                  items: statuses.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
-                  onChanged: (v) => setStateDialog(() => newStatus = v ?? newStatus),
+                  value: statuses.contains(newStatus)
+                      ? newStatus
+                      : (statuses.isNotEmpty
+                          ? statuses.first
+                          : 'Produced Before Court'),
+                  decoration: const InputDecoration(
+                      labelText: 'Update Property Status To:'),
+                  items: statuses
+                      .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                      .toList(),
+                  onChanged: (v) =>
+                      setStateDialog(() => newStatus = v ?? newStatus),
                 ),
               ],
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.navyMid, foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.navyMid,
+                  foregroundColor: Colors.white),
               onPressed: () async {
                 Navigator.pop(ctx);
                 final ok = await provider.recordMovement(_property.id, {
@@ -866,26 +989,39 @@ class _MuddemalPropertyDetailDialogState
 
   // Dialog to record FSL dispatch
   void _showRecordFslDialog() {
-    final refCtrl = TextEditingController(text: 'FSL/PUNE/${_property.propertyUid}');
-    final detailsCtrl = TextEditingController(text: 'Sample sent for forensic chemical analysis');
+    final refCtrl =
+        TextEditingController(text: 'FSL/PUNE/${_property.propertyUid}');
+    final detailsCtrl = TextEditingController(
+        text: 'Sample sent for forensic chemical analysis');
     final provider = context.read<MuddemalProvider>();
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Dispatch Property to FSL', style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
+        title: Text('Dispatch Property to FSL',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextFormField(controller: refCtrl, decoration: const InputDecoration(labelText: 'FSL Reference / Dispatch No *')),
+            TextFormField(
+                controller: refCtrl,
+                decoration: const InputDecoration(
+                    labelText: 'FSL Reference / Dispatch No *')),
             const SizedBox(height: 10),
-            TextFormField(controller: detailsCtrl, maxLines: 2, decoration: const InputDecoration(labelText: 'Dispatch Details *')),
+            TextFormField(
+                controller: detailsCtrl,
+                maxLines: 2,
+                decoration:
+                    const InputDecoration(labelText: 'Dispatch Details *')),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7C3AED), foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF7C3AED),
+                foregroundColor: Colors.white),
             onPressed: () async {
               Navigator.pop(ctx);
               final ok = await provider.recordFSL(_property.id, {
@@ -913,7 +1049,8 @@ class _MuddemalPropertyDetailDialogState
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Receive FSL Report', style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
+        title: Text('Receive FSL Report',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -921,21 +1058,33 @@ class _MuddemalPropertyDetailDialogState
               value: reportStatus,
               decoration: const InputDecoration(labelText: 'Report Status *'),
               items: const [
-                DropdownMenuItem(value: 'Received', child: Text('Report Received (Positive/Valid)')),
-                DropdownMenuItem(value: 'Inconclusive', child: Text('Report Inconclusive')),
+                DropdownMenuItem(
+                    value: 'Received',
+                    child: Text('Report Received (Positive/Valid)')),
+                DropdownMenuItem(
+                    value: 'Inconclusive', child: Text('Report Inconclusive')),
               ],
               onChanged: (v) => reportStatus = v ?? 'Received',
             ),
             const SizedBox(height: 10),
-            TextFormField(controller: repRefCtrl, decoration: const InputDecoration(labelText: 'Lab Report Reference Number *')),
+            TextFormField(
+                controller: repRefCtrl,
+                decoration: const InputDecoration(
+                    labelText: 'Lab Report Reference Number *')),
             const SizedBox(height: 10),
-            TextFormField(controller: remarksCtrl, decoration: const InputDecoration(labelText: 'Findings / Remarks')),
+            TextFormField(
+                controller: remarksCtrl,
+                decoration:
+                    const InputDecoration(labelText: 'Findings / Remarks')),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.successGreen, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.successGreen,
+                foregroundColor: Colors.white),
             onPressed: () async {
               Navigator.pop(ctx);
               final ok = await provider.recordFSL(_property.id, {
@@ -961,8 +1110,10 @@ class _MuddemalPropertyDetailDialogState
     final courtOrderCtrl = TextEditingController();
     final ownerNameCtrl = TextEditingController(text: _property.ownerName);
     final contactCtrl = TextEditingController();
-    final bondCtrl = TextEditingController(text: _property.totalItemValue.toStringAsFixed(0));
-    final authCtrl = TextEditingController(text: 'Judicial Magistrate First Class (JMFC)');
+    final bondCtrl = TextEditingController(
+        text: _property.totalItemValue.toStringAsFixed(0));
+    final authCtrl =
+        TextEditingController(text: 'Judicial Magistrate First Class (JMFC)');
 
     final provider = context.read<MuddemalProvider>();
     final dTypes = provider.disposalTypes;
@@ -971,36 +1122,65 @@ class _MuddemalPropertyDetailDialogState
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setStateDialog) => AlertDialog(
-          title: Text('Record Disposal / Supurdnama', style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
+          title: Text('Record Disposal / Supurdnama',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButtonFormField<String>(
-                  value: dTypes.contains(disposalType) ? disposalType : (dTypes.isNotEmpty ? dTypes.first : 'Released on Supurdnama'),
-                  decoration: const InputDecoration(labelText: 'Disposal Type *'),
-                  items: dTypes.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
-                  onChanged: (v) => setStateDialog(() => disposalType = v ?? disposalType),
+                  value: dTypes.contains(disposalType)
+                      ? disposalType
+                      : (dTypes.isNotEmpty
+                          ? dTypes.first
+                          : 'Released on Supurdnama'),
+                  decoration:
+                      const InputDecoration(labelText: 'Disposal Type *'),
+                  items: dTypes
+                      .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                      .toList(),
+                  onChanged: (v) =>
+                      setStateDialog(() => disposalType = v ?? disposalType),
                 ),
                 const SizedBox(height: 10),
-                TextFormField(controller: courtOrderCtrl, decoration: const InputDecoration(labelText: 'Court Order Reference *')),
+                TextFormField(
+                    controller: courtOrderCtrl,
+                    decoration: const InputDecoration(
+                        labelText: 'Court Order Reference *')),
                 const SizedBox(height: 10),
-                TextFormField(controller: ownerNameCtrl, decoration: const InputDecoration(labelText: 'Recipient / Owner Name *')),
+                TextFormField(
+                    controller: ownerNameCtrl,
+                    decoration: const InputDecoration(
+                        labelText: 'Recipient / Owner Name *')),
                 const SizedBox(height: 10),
-                TextFormField(controller: contactCtrl, decoration: const InputDecoration(labelText: 'Recipient Mobile / Contact')),
+                TextFormField(
+                    controller: contactCtrl,
+                    decoration: const InputDecoration(
+                        labelText: 'Recipient Mobile / Contact')),
                 if (disposalType.contains('Supurdnama')) ...[
                   const SizedBox(height: 10),
-                  TextFormField(controller: bondCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Supurdnama Bond Amount (₹)')),
+                  TextFormField(
+                      controller: bondCtrl,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                          labelText: 'Supurdnama Bond Amount (₹)')),
                 ],
                 const SizedBox(height: 10),
-                TextFormField(controller: authCtrl, decoration: const InputDecoration(labelText: 'Authorizing Court / Officer')),
+                TextFormField(
+                    controller: authCtrl,
+                    decoration: const InputDecoration(
+                        labelText: 'Authorizing Court / Officer')),
               ],
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.navyDark, foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.navyDark,
+                  foregroundColor: Colors.white),
               onPressed: () async {
                 Navigator.pop(ctx);
                 final ok = await provider.recordDisposal(_property.id, {

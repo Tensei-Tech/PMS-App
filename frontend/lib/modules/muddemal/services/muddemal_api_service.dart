@@ -81,7 +81,9 @@ class MuddemalApiService {
     }
 
     final queryString = Uri(queryParameters: queryParams).query;
-    final url = queryString.isNotEmpty ? '$_base/registers/?$queryString' : '$_base/registers/';
+    final url = queryString.isNotEmpty
+        ? '$_base/registers/?$queryString'
+        : '$_base/registers/';
 
     final res = await _api.get(url);
     if (res.isSuccess) {
@@ -92,17 +94,20 @@ class MuddemalApiService {
               : [];
       return list
           .whereType<Map>()
-          .map((m) => MuddemalRegisterHeader.fromJson(Map<String, dynamic>.from(m)))
+          .map((m) =>
+              MuddemalRegisterHeader.fromJson(Map<String, dynamic>.from(m)))
           .toList();
     }
     return [];
   }
 
   /// 5. Create a new Muddemal Register header
-  Future<MuddemalRegisterHeader?> createRegister(Map<String, dynamic> data) async {
+  Future<MuddemalRegisterHeader?> createRegister(
+      Map<String, dynamic> data) async {
     final res = await _api.post('$_base/registers/', data: data);
     if (res.isSuccess && res.data is Map) {
-      return MuddemalRegisterHeader.fromJson(Map<String, dynamic>.from(res.data as Map));
+      return MuddemalRegisterHeader.fromJson(
+          Map<String, dynamic>.from(res.data as Map));
     }
     return null;
   }
@@ -114,20 +119,25 @@ class MuddemalApiService {
       final list = res.data['properties'] as List;
       return list
           .whereType<Map>()
-          .map((m) => MuddemalPropertyItem.fromJson(Map<String, dynamic>.from(m)))
+          .map((m) =>
+              MuddemalPropertyItem.fromJson(Map<String, dynamic>.from(m)))
           .toList();
     }
     return [];
   }
 
   /// 7. Discover candidate properties from SeizureRecords & Case JSON
-  Future<List<DiscoveredSourceProperty>> fetchDiscoverableProperties(String caseId) async {
+  Future<List<DiscoveredSourceProperty>> fetchDiscoverableProperties(
+      String caseId) async {
     final res = await _api.get('$_base/cases/$caseId/discoverable-properties/');
-    if (res.isSuccess && res.data is Map && res.data['discovered_properties'] is List) {
+    if (res.isSuccess &&
+        res.data is Map &&
+        res.data['discovered_properties'] is List) {
       final list = res.data['discovered_properties'] as List;
       return list
           .whereType<Map>()
-          .map((m) => DiscoveredSourceProperty.fromJson(Map<String, dynamic>.from(m)))
+          .map((m) =>
+              DiscoveredSourceProperty.fromJson(Map<String, dynamic>.from(m)))
           .toList();
     }
     return [];
@@ -138,9 +148,11 @@ class MuddemalApiService {
     String caseId,
     Map<String, dynamic> data,
   ) async {
-    final res = await _api.post('$_base/cases/$caseId/link-property/', data: data);
+    final res =
+        await _api.post('$_base/cases/$caseId/link-property/', data: data);
     if (res.isSuccess && res.data is Map && res.data['property'] is Map) {
-      return MuddemalPropertyItem.fromJson(Map<String, dynamic>.from(res.data['property'] as Map));
+      return MuddemalPropertyItem.fromJson(
+          Map<String, dynamic>.from(res.data['property'] as Map));
     }
     return null;
   }
@@ -159,13 +171,20 @@ class MuddemalApiService {
     if (!_isAllStations(stationName)) {
       queryParams['station_name'] = stationName!;
     }
-    if (categoryCode != null && categoryCode.isNotEmpty && categoryCode != 'ALL') {
+    if (categoryCode != null &&
+        categoryCode.isNotEmpty &&
+        categoryCode != 'ALL') {
       queryParams['category'] = categoryCode;
     }
-    if (propertyStatus != null && propertyStatus.isNotEmpty && propertyStatus != 'ALL') {
+    if (propertyStatus != null &&
+        propertyStatus.isNotEmpty &&
+        propertyStatus != 'ALL') {
       queryParams['property_status'] = propertyStatus;
     }
-    if (sourceModule != null && sourceModule.isNotEmpty && sourceModule != 'ALL' && sourceModule != 'all') {
+    if (sourceModule != null &&
+        sourceModule.isNotEmpty &&
+        sourceModule != 'ALL' &&
+        sourceModule != 'all') {
       queryParams['source_module'] = sourceModule;
     }
     if (fslStatus != null && fslStatus.isNotEmpty && fslStatus != 'ALL') {
@@ -179,7 +198,9 @@ class MuddemalApiService {
     }
 
     final queryString = Uri(queryParameters: queryParams).query;
-    final url = queryString.isNotEmpty ? '$_base/properties/?$queryString' : '$_base/properties/';
+    final url = queryString.isNotEmpty
+        ? '$_base/properties/?$queryString'
+        : '$_base/properties/';
 
     final res = await _api.get(url);
     if (res.isSuccess) {
@@ -190,7 +211,8 @@ class MuddemalApiService {
               : [];
       return list
           .whereType<Map>()
-          .map((m) => MuddemalPropertyItem.fromJson(Map<String, dynamic>.from(m)))
+          .map((m) =>
+              MuddemalPropertyItem.fromJson(Map<String, dynamic>.from(m)))
           .toList();
     }
     return [];
@@ -203,7 +225,9 @@ class MuddemalApiService {
       queryParams['station_name'] = stationName!;
     }
     final queryString = Uri(queryParameters: queryParams).query;
-    final url = queryString.isNotEmpty ? '$_base/properties/sync/?$queryString' : '$_base/properties/sync/';
+    final url = queryString.isNotEmpty
+        ? '$_base/properties/sync/?$queryString'
+        : '$_base/properties/sync/';
 
     final res = await _api.post(url);
     if (res.isSuccess && res.data is Map) {
@@ -233,13 +257,20 @@ class MuddemalApiService {
     if (!_isAllStations(stationName)) {
       queryParams['station_name'] = stationName!;
     }
-    if (categoryCode != null && categoryCode.isNotEmpty && categoryCode != 'ALL') {
+    if (categoryCode != null &&
+        categoryCode.isNotEmpty &&
+        categoryCode != 'ALL') {
       queryParams['category_code'] = categoryCode;
     }
-    if (sourceModule != null && sourceModule.isNotEmpty && sourceModule != 'ALL' && sourceModule != 'all') {
+    if (sourceModule != null &&
+        sourceModule.isNotEmpty &&
+        sourceModule != 'ALL' &&
+        sourceModule != 'all') {
       queryParams['source_module'] = sourceModule;
     }
-    if (propertyStatus != null && propertyStatus.isNotEmpty && propertyStatus != 'ALL') {
+    if (propertyStatus != null &&
+        propertyStatus.isNotEmpty &&
+        propertyStatus != 'ALL') {
       queryParams['property_status'] = propertyStatus;
     }
     if (year != null) {
@@ -247,7 +278,9 @@ class MuddemalApiService {
     }
 
     final queryString = Uri(queryParameters: queryParams).query;
-    final url = queryString.isNotEmpty ? '$_base/properties/summary/?$queryString' : '$_base/properties/summary/';
+    final url = queryString.isNotEmpty
+        ? '$_base/properties/summary/?$queryString'
+        : '$_base/properties/summary/';
 
     final res = await _api.get(url);
     if (res.isSuccess && res.data is Map && res.data['summary'] is Map) {
@@ -259,13 +292,18 @@ class MuddemalApiService {
   String? lastError;
 
   /// 9. Create a new property
-  Future<MuddemalPropertyItem?> createProperty(Map<String, dynamic> data) async {
+  Future<MuddemalPropertyItem?> createProperty(
+      Map<String, dynamic> data) async {
     lastError = null;
     final res = await _api.post('$_base/properties/', data: data);
     if (res.isSuccess && res.data is Map) {
-      return MuddemalPropertyItem.fromJson(Map<String, dynamic>.from(res.data as Map));
+      return MuddemalPropertyItem.fromJson(
+          Map<String, dynamic>.from(res.data as Map));
     }
-    lastError = res.errorMessage ?? (res.data != null ? res.data.toString() : 'Failed to register property.');
+    lastError = res.errorMessage ??
+        (res.data != null
+            ? res.data.toString()
+            : 'Failed to register property.');
     return null;
   }
 
@@ -277,27 +315,32 @@ class MuddemalApiService {
     lastError = null;
     final res = await _api.put('$_base/properties/$propertyId/', data: data);
     if (res.isSuccess && res.data is Map) {
-      return MuddemalPropertyItem.fromJson(Map<String, dynamic>.from(res.data as Map));
+      return MuddemalPropertyItem.fromJson(
+          Map<String, dynamic>.from(res.data as Map));
     }
-    lastError = res.errorMessage ?? (res.data != null ? res.data.toString() : 'Failed to save changes.');
+    lastError = res.errorMessage ??
+        (res.data != null ? res.data.toString() : 'Failed to save changes.');
     return null;
   }
 
   /// 11. Record chain of custody movement
   Future<bool> recordMovement(int propertyId, Map<String, dynamic> data) async {
-    final res = await _api.post('$_base/properties/$propertyId/movements/', data: data);
+    final res =
+        await _api.post('$_base/properties/$propertyId/movements/', data: data);
     return res.isSuccess;
   }
 
   /// 12. Record FSL dispatch or received report
   Future<bool> recordFSL(int propertyId, Map<String, dynamic> data) async {
-    final res = await _api.post('$_base/properties/$propertyId/fsl/', data: data);
+    final res =
+        await _api.post('$_base/properties/$propertyId/fsl/', data: data);
     return res.isSuccess;
   }
 
   /// 13. Record Supurdnama, owner release, or disposal
   Future<bool> recordDisposal(int propertyId, Map<String, dynamic> data) async {
-    final res = await _api.post('$_base/properties/$propertyId/disposal/', data: data);
+    final res =
+        await _api.post('$_base/properties/$propertyId/disposal/', data: data);
     return res.isSuccess;
   }
 
@@ -305,13 +348,17 @@ class MuddemalApiService {
   Future<List<Map<String, dynamic>>> fetchAuditTrail(int propertyId) async {
     final res = await _api.get('$_base/properties/$propertyId/audit-trail/');
     if (res.isSuccess && res.data is Map && res.data['audit_trail'] is List) {
-      return (res.data['audit_trail'] as List).whereType<Map>().map((m) => Map<String, dynamic>.from(m)).toList();
+      return (res.data['audit_trail'] as List)
+          .whereType<Map>()
+          .map((m) => Map<String, dynamic>.from(m))
+          .toList();
     }
     return [];
   }
 
   /// 15. Fetch FSL alerts
-  Future<Map<String, dynamic>> fetchFSLAlerts({String? stationName, String? ioName}) async {
+  Future<Map<String, dynamic>> fetchFSLAlerts(
+      {String? stationName, String? ioName}) async {
     final queryParams = <String, String>{};
     if (stationName != null && stationName != 'ALL') {
       queryParams['station_name'] = stationName;
@@ -320,7 +367,9 @@ class MuddemalApiService {
       queryParams['io_name'] = ioName;
     }
     final queryString = Uri(queryParameters: queryParams).query;
-    final url = queryString.isNotEmpty ? '$_base/alerts/fsl/?$queryString' : '$_base/alerts/fsl/';
+    final url = queryString.isNotEmpty
+        ? '$_base/alerts/fsl/?$queryString'
+        : '$_base/alerts/fsl/';
 
     final res = await _api.get(url);
     if (res.isSuccess && res.data is Map && res.data['alerts'] is Map) {
@@ -330,13 +379,18 @@ class MuddemalApiService {
   }
 
   /// 16. Fetch Dashboards
-  Future<Map<String, dynamic>> fetchStolenDashboard({String? stationName, int? year, int? month}) async {
+  Future<Map<String, dynamic>> fetchStolenDashboard(
+      {String? stationName, int? year, int? month}) async {
     final q = <String, String>{};
-    if (stationName != null && stationName != 'ALL') q['station_name'] = stationName;
+    if (stationName != null && stationName != 'ALL') {
+      q['station_name'] = stationName;
+    }
     if (year != null) q['year'] = year.toString();
     if (month != null) q['month'] = month.toString();
     final qs = Uri(queryParameters: q).query;
-    final url = qs.isNotEmpty ? '$_base/dashboards/stolen/?$qs' : '$_base/dashboards/stolen/';
+    final url = qs.isNotEmpty
+        ? '$_base/dashboards/stolen/?$qs'
+        : '$_base/dashboards/stolen/';
 
     final res = await _api.get(url);
     if (res.isSuccess && res.data is Map && res.data['dashboard'] is Map) {
@@ -345,13 +399,18 @@ class MuddemalApiService {
     return {};
   }
 
-  Future<Map<String, dynamic>> fetchSeizedDashboard({String? stationName, int? year, int? month}) async {
+  Future<Map<String, dynamic>> fetchSeizedDashboard(
+      {String? stationName, int? year, int? month}) async {
     final q = <String, String>{};
-    if (stationName != null && stationName != 'ALL') q['station_name'] = stationName;
+    if (stationName != null && stationName != 'ALL') {
+      q['station_name'] = stationName;
+    }
     if (year != null) q['year'] = year.toString();
     if (month != null) q['month'] = month.toString();
     final qs = Uri(queryParameters: q).query;
-    final url = qs.isNotEmpty ? '$_base/dashboards/seized/?$qs' : '$_base/dashboards/seized/';
+    final url = qs.isNotEmpty
+        ? '$_base/dashboards/seized/?$qs'
+        : '$_base/dashboards/seized/';
 
     final res = await _api.get(url);
     if (res.isSuccess && res.data is Map && res.data['dashboard'] is Map) {
@@ -360,13 +419,18 @@ class MuddemalApiService {
     return {};
   }
 
-  Future<Map<String, dynamic>> fetchPendingDashboard({String? stationName, int? year, int? month}) async {
+  Future<Map<String, dynamic>> fetchPendingDashboard(
+      {String? stationName, int? year, int? month}) async {
     final q = <String, String>{};
-    if (stationName != null && stationName != 'ALL') q['station_name'] = stationName;
+    if (stationName != null && stationName != 'ALL') {
+      q['station_name'] = stationName;
+    }
     if (year != null) q['year'] = year.toString();
     if (month != null) q['month'] = month.toString();
     final qs = Uri(queryParameters: q).query;
-    final url = qs.isNotEmpty ? '$_base/dashboards/pending/?$qs' : '$_base/dashboards/pending/';
+    final url = qs.isNotEmpty
+        ? '$_base/dashboards/pending/?$qs'
+        : '$_base/dashboards/pending/';
 
     final res = await _api.get(url);
     if (res.isSuccess && res.data is Map && res.data['dashboard'] is Map) {
@@ -375,12 +439,17 @@ class MuddemalApiService {
     return {};
   }
 
-  Future<Map<String, dynamic>> fetchMonthlyYearlyReport({String? stationName, int? year}) async {
+  Future<Map<String, dynamic>> fetchMonthlyYearlyReport(
+      {String? stationName, int? year}) async {
     final q = <String, String>{};
-    if (stationName != null && stationName != 'ALL') q['station_name'] = stationName;
+    if (stationName != null && stationName != 'ALL') {
+      q['station_name'] = stationName;
+    }
     if (year != null) q['year'] = year.toString();
     final qs = Uri(queryParameters: q).query;
-    final url = qs.isNotEmpty ? '$_base/dashboards/monthly-yearly/?$qs' : '$_base/dashboards/monthly-yearly/';
+    final url = qs.isNotEmpty
+        ? '$_base/dashboards/monthly-yearly/?$qs'
+        : '$_base/dashboards/monthly-yearly/';
 
     final res = await _api.get(url);
     if (res.isSuccess && res.data is Map && res.data['report'] is Map) {

@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use, prefer_const_constructors, use_build_context_synchronously
 // lib/modules/muddemal/widgets/muddemal_cross_module_import_dialog.dart
 // Discovers properties seized across other PMS modules and enables one-click idempotent linking.
 
@@ -88,7 +89,6 @@ class _MuddemalCrossModuleImportDialogState
                 ],
               ),
               const Divider(height: 28),
-
               Expanded(
                 child: discovered.isEmpty
                     ? Center(
@@ -112,7 +112,8 @@ class _MuddemalCrossModuleImportDialogState
                         itemCount: discovered.length,
                         itemBuilder: (context, i) {
                           final item = discovered[i];
-                          final isLinking = _linkingIds.contains(item.sourceRecordId);
+                          final isLinking =
+                              _linkingIds.contains(item.sourceRecordId);
 
                           return Card(
                             elevation: 0,
@@ -124,8 +125,10 @@ class _MuddemalCrossModuleImportDialogState
                               borderRadius: BorderRadius.circular(10),
                               side: BorderSide(
                                 color: item.isAlreadyLinked
-                                    ? AppColors.successGreen.withValues(alpha: 0.3)
-                                    : AppColors.lightBorder.withValues(alpha: 0.6),
+                                    ? AppColors.successGreen
+                                        .withValues(alpha: 0.3)
+                                    : AppColors.lightBorder
+                                        .withValues(alpha: 0.6),
                               ),
                             ),
                             child: Padding(
@@ -135,7 +138,8 @@ class _MuddemalCrossModuleImportDialogState
                                 children: [
                                   CircleAvatar(
                                     backgroundColor: item.isAlreadyLinked
-                                        ? AppColors.successGreen.withOpacity(0.12)
+                                        ? AppColors.successGreen
+                                            .withOpacity(0.12)
                                         : AppColors.navyMid.withOpacity(0.08),
                                     child: Icon(
                                       item.isAlreadyLinked
@@ -150,7 +154,8 @@ class _MuddemalCrossModuleImportDialogState
                                   const SizedBox(width: 14),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Row(
                                           children: [
@@ -164,11 +169,15 @@ class _MuddemalCrossModuleImportDialogState
                                             ),
                                             const SizedBox(width: 8),
                                             Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                  horizontal: 8, vertical: 2),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 2),
                                               decoration: BoxDecoration(
-                                                color: AppColors.navyMid.withOpacity(0.08),
-                                                borderRadius: BorderRadius.circular(4),
+                                                color: AppColors.navyMid
+                                                    .withOpacity(0.08),
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
                                               ),
                                               child: Text(
                                                 item.inferredCategoryCode,
@@ -208,13 +217,16 @@ class _MuddemalCrossModuleImportDialogState
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 10, vertical: 6),
                                       decoration: BoxDecoration(
-                                        color: AppColors.successGreen.withOpacity(0.1),
+                                        color: AppColors.successGreen
+                                            .withOpacity(0.1),
                                         borderRadius: BorderRadius.circular(6),
                                         border: Border.all(
-                                            color: AppColors.successGreen.withOpacity(0.3)),
+                                            color: AppColors.successGreen
+                                                .withOpacity(0.3)),
                                       ),
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
                                         children: [
                                           Text(
                                             'LINKED',
@@ -244,7 +256,8 @@ class _MuddemalCrossModuleImportDialogState
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 14, vertical: 10),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
                                         ),
                                       ),
                                       icon: isLinking
@@ -252,32 +265,40 @@ class _MuddemalCrossModuleImportDialogState
                                               width: 14,
                                               height: 14,
                                               child: CircularProgressIndicator(
-                                                  strokeWidth: 2, color: Colors.white),
+                                                  strokeWidth: 2,
+                                                  color: Colors.white),
                                             )
-                                          : const Icon(Icons.add_link_rounded, size: 16),
+                                          : const Icon(Icons.add_link_rounded,
+                                              size: 16),
                                       label: Text(
                                         'Link to Muddemal',
-                                        style: GoogleFonts.poppins(fontSize: 12),
+                                        style:
+                                            GoogleFonts.poppins(fontSize: 12),
                                       ),
                                       onPressed: isLinking
                                           ? null
                                           : () async {
-                                              final messenger = ScaffoldMessenger.of(context);
+                                              final messenger =
+                                                  ScaffoldMessenger.of(context);
                                               setState(() {
-                                                _linkingIds.add(item.sourceRecordId);
+                                                _linkingIds
+                                                    .add(item.sourceRecordId);
                                               });
-                                              final ok = await provider.linkDiscoveredProperty(
-                                                  widget.caseId, item);
+                                              final ok = await provider
+                                                  .linkDiscoveredProperty(
+                                                      widget.caseId, item);
                                               if (mounted) {
                                                 setState(() {
-                                                  _linkingIds.remove(item.sourceRecordId);
+                                                  _linkingIds.remove(
+                                                      item.sourceRecordId);
                                                 });
                                                 if (ok) {
                                                   messenger.showSnackBar(
                                                     const SnackBar(
                                                       content: Text(
                                                           'Source property linked to Muddemal Register.'),
-                                                      backgroundColor: AppColors.successGreen,
+                                                      backgroundColor: AppColors
+                                                          .successGreen,
                                                     ),
                                                   );
                                                 }

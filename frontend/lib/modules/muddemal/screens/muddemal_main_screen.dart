@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use, prefer_const_constructors, use_build_context_synchronously
 // lib/modules/muddemal/screens/muddemal_main_screen.dart
 // Production-ready Digital Muddemal / Property Management Module.
 // Features: CR selection, dynamic multiple properties, backend valuation,
@@ -165,7 +166,8 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
                   builder: (_) => const MuddemalPropertyFormDialog(),
                 );
               },
-              icon: const Icon(Icons.add_rounded, color: Colors.white, size: 16),
+              icon:
+                  const Icon(Icons.add_rounded, color: Colors.white, size: 16),
               label: Text(
                 TranslationHelper.translate(context, 'Add Property'),
                 style: GoogleFonts.poppins(
@@ -657,8 +659,7 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
 
     final card3 = _buildMetricCard(
       title: 'Stolen vs Recovered',
-      value:
-          '₹${nf.format(stolen.round())} / ₹${nf.format(recovered.round())}',
+      value: '₹${nf.format(stolen.round())} / ₹${nf.format(recovered.round())}',
       icon: Icons.mobile_friendly_rounded,
       iconColor: const Color(0xFFDC2626),
       iconContainerBg: const Color(0xFFFFE4E6),
@@ -680,7 +681,8 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
       width: double.infinity,
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0)),
+        border:
+            Border(bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: LayoutBuilder(
@@ -1120,8 +1122,7 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
                   size: 16, color: Color(0xFF0284C7)),
               const SizedBox(width: 8),
               Text(
-                TranslationHelper.translate(
-                    context, provider.allStatusesLabel),
+                TranslationHelper.translate(context, provider.allStatusesLabel),
                 style: GoogleFonts.poppins(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -1191,7 +1192,8 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
                   ),
                   const SizedBox(width: 5),
                   Text(
-                    TranslationHelper.translate(context, provider.clearFiltersLabel),
+                    TranslationHelper.translate(
+                        context, provider.clearFiltersLabel),
                     style: GoogleFonts.poppins(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w600,
@@ -1243,8 +1245,7 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
             alignment: WrapAlignment.start,
             children: [
               ConstrainedBox(
-                constraints:
-                    const BoxConstraints(minWidth: 240, maxWidth: 320),
+                constraints: const BoxConstraints(minWidth: 240, maxWidth: 320),
                 child: searchWidget,
               ),
               sourceModuleWidget,
@@ -1437,7 +1438,8 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
                     if (p.sourceModuleDisplayName.isNotEmpty) ...[
                       const SizedBox(width: 5),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 1),
                         decoration: BoxDecoration(
                           color: const Color(0xFFE0E7FF),
                           borderRadius: BorderRadius.circular(3),
@@ -1493,7 +1495,8 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.tab_rounded, size: 9, color: Color(0xFF4338CA)),
+                    const Icon(Icons.tab_rounded,
+                        size: 9, color: Color(0xFF4338CA)),
                     const SizedBox(width: 3),
                     Text(
                       'Source Tab',
@@ -2091,7 +2094,8 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
           if (sendAlerts.isEmpty)
             _buildEmptyAlertCard('No properties pending FSL dispatch.')
           else
-            ...sendAlerts.map((a) => _buildAlertItemCard(a, isSendPending: true)),
+            ...sendAlerts
+                .map((a) => _buildAlertItemCard(a, isSendPending: true)),
 
           const SizedBox(height: 24),
 
@@ -2264,8 +2268,8 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
       child: Center(
         child: Text(
           message,
-          style: GoogleFonts.poppins(
-              fontSize: 12, color: AppColors.lightSubText),
+          style:
+              GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText),
         ),
       ),
     );
@@ -2281,9 +2285,7 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
     final myReport = provider.monthlyYearlyReport;
 
     final categories = (seized['all_categories_breakdown'] is List)
-        ? (seized['all_categories_breakdown'] as List)
-            .whereType<Map>()
-            .toList()
+        ? (seized['all_categories_breakdown'] as List).whereType<Map>().toList()
         : [];
 
     return SingleChildScrollView(
@@ -2306,7 +2308,8 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
               DropdownButton<int>(
                 value: provider.selectedYear,
                 items: [2024, 2025, 2026]
-                    .map((y) => DropdownMenuItem(value: y, child: Text('Year $y')))
+                    .map((y) =>
+                        DropdownMenuItem(value: y, child: Text('Year $y')))
                     .toList(),
                 onChanged: (y) {
                   if (y != null) provider.setYear(y);
@@ -2317,33 +2320,57 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
           const SizedBox(height: 16),
 
           // DASHBOARD A: Stolen Property
-          _buildDashboardHeader('A. Stolen Property & Recovery Dashboard', Icons.security_rounded),
+          _buildDashboardHeader('A. Stolen Property & Recovery Dashboard',
+              Icons.security_rounded),
           const SizedBox(height: 10),
           Row(
             children: [
-              _buildDashCard('Total Theft Cases', stolen['total_theft_cases']?.toString() ?? '0', AppColors.navyMid),
+              _buildDashCard(
+                  'Total Theft Cases',
+                  stolen['total_theft_cases']?.toString() ?? '0',
+                  AppColors.navyMid),
               const SizedBox(width: 10),
-              _buildDashCard('Total Stolen Value', '₹${NumberFormat('#,##,###').format(stolen['total_stolen_property_value'] ?? 0)}', AppColors.dangerRed),
+              _buildDashCard(
+                  'Total Stolen Value',
+                  '₹${NumberFormat('#,##,###').format(stolen['total_stolen_property_value'] ?? 0)}',
+                  AppColors.dangerRed),
               const SizedBox(width: 10),
-              _buildDashCard('Recovered Value', '₹${NumberFormat('#,##,###').format(stolen['recovered_property_value'] ?? 0)}', AppColors.successGreen),
+              _buildDashCard(
+                  'Recovered Value',
+                  '₹${NumberFormat('#,##,###').format(stolen['recovered_property_value'] ?? 0)}',
+                  AppColors.successGreen),
               const SizedBox(width: 10),
-              _buildDashCard('Recovery Rate', stolen['recovery_percentage']?.toString() ?? 'N/A', const Color(0xFF0891B2)),
+              _buildDashCard(
+                  'Recovery Rate',
+                  stolen['recovery_percentage']?.toString() ?? 'N/A',
+                  const Color(0xFF0891B2)),
             ],
           ),
           const SizedBox(height: 10),
           Row(
             children: [
-              _buildDashCard('100% Recovery Cases', stolen['cases_with_100_recovery']?.toString() ?? '0', AppColors.successGreen),
+              _buildDashCard(
+                  '100% Recovery Cases',
+                  stolen['cases_with_100_recovery']?.toString() ?? '0',
+                  AppColors.successGreen),
               const SizedBox(width: 10),
-              _buildDashCard('Partial Recovery Cases', stolen['cases_with_partial_recovery']?.toString() ?? '0', AppColors.warningOrange),
+              _buildDashCard(
+                  'Partial Recovery Cases',
+                  stolen['cases_with_partial_recovery']?.toString() ?? '0',
+                  AppColors.warningOrange),
               const SizedBox(width: 10),
-              _buildDashCard('Zero Recovery Cases', stolen['cases_with_zero_recovery']?.toString() ?? '0', AppColors.dangerRed),
+              _buildDashCard(
+                  'Zero Recovery Cases',
+                  stolen['cases_with_zero_recovery']?.toString() ?? '0',
+                  AppColors.dangerRed),
             ],
           ),
           const SizedBox(height: 24),
 
           // DASHBOARD B: Seized Property Breakdown
-          _buildDashboardHeader('B. Seized Property Dashboard (Total Value: ₹${NumberFormat('#,##,###').format(seized['total_seized_property_value'] ?? 0)})', Icons.inventory_2_rounded),
+          _buildDashboardHeader(
+              'B. Seized Property Dashboard (Total Value: ₹${NumberFormat('#,##,###').format(seized['total_seized_property_value'] ?? 0)})',
+              Icons.inventory_2_rounded),
           const SizedBox(height: 10),
           if (categories.isEmpty)
             _buildEmptyAlertCard('No property categories data.')
@@ -2358,7 +2385,8 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.lightBorder.withOpacity(0.6)),
+                    border: Border.all(
+                        color: AppColors.lightBorder.withOpacity(0.6)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -2378,7 +2406,8 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text('Count: ${c['count']}',
-                              style: GoogleFonts.poppins(fontSize: 11, color: AppColors.lightSubText)),
+                              style: GoogleFonts.poppins(
+                                  fontSize: 11, color: AppColors.lightSubText)),
                           Text(
                             '₹${NumberFormat('#,##,###').format(c['total_value'] ?? 0)}',
                             style: GoogleFonts.poppins(
@@ -2398,25 +2427,43 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
           const SizedBox(height: 24),
 
           // DASHBOARD C: Pending Muddemal
-          _buildDashboardHeader('C. Pending Muddemal Dashboard', Icons.pending_actions_rounded),
+          _buildDashboardHeader(
+              'C. Pending Muddemal Dashboard', Icons.pending_actions_rounded),
           const SizedBox(height: 10),
           Row(
             children: [
-              _buildDashCard('FSL Send Pending', pending['fsl_send_pending_count']?.toString() ?? '0', AppColors.warningOrange),
+              _buildDashCard(
+                  'FSL Send Pending',
+                  pending['fsl_send_pending_count']?.toString() ?? '0',
+                  AppColors.warningOrange),
               const SizedBox(width: 10),
-              _buildDashCard('FSL Report Pending', pending['fsl_report_pending_count']?.toString() ?? '0', const Color(0xFF7C3AED)),
+              _buildDashCard(
+                  'FSL Report Pending',
+                  pending['fsl_report_pending_count']?.toString() ?? '0',
+                  const Color(0xFF7C3AED)),
               const SizedBox(width: 10),
-              _buildDashCard('Disposal Pending', pending['disposal_pending_count']?.toString() ?? '0', AppColors.dangerRed),
+              _buildDashCard(
+                  'Disposal Pending',
+                  pending['disposal_pending_count']?.toString() ?? '0',
+                  AppColors.dangerRed),
               const SizedBox(width: 10),
-              _buildDashCard('Vehicles Pending', pending['vehicles_pending_disposal_count']?.toString() ?? '0', AppColors.navyMid),
+              _buildDashCard(
+                  'Vehicles Pending',
+                  pending['vehicles_pending_disposal_count']?.toString() ?? '0',
+                  AppColors.navyMid),
               const SizedBox(width: 10),
-              _buildDashCard('Pending > 30 Days', pending['long_pending_over_30_days']?.toString() ?? '0', AppColors.dangerRed),
+              _buildDashCard(
+                  'Pending > 30 Days',
+                  pending['long_pending_over_30_days']?.toString() ?? '0',
+                  AppColors.dangerRed),
             ],
           ),
           const SizedBox(height: 24),
 
           // DASHBOARD D: Month-wise and Year-wise Trend Table
-          _buildDashboardHeader('D. Month-wise Report (${provider.selectedYear})', Icons.calendar_view_month_rounded),
+          _buildDashboardHeader(
+              'D. Month-wise Report (${provider.selectedYear})',
+              Icons.calendar_view_month_rounded),
           const SizedBox(height: 10),
           _buildMonthlyTable(myReport),
         ],
@@ -2453,7 +2500,9 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: GoogleFonts.poppins(fontSize: 11, color: AppColors.lightSubText)),
+            Text(label,
+                style: GoogleFonts.poppins(
+                    fontSize: 11, color: AppColors.lightSubText)),
             const SizedBox(height: 4),
             Text(
               value,
@@ -2489,7 +2538,8 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
             inside: BorderSide(color: AppColors.lightBorder.withOpacity(0.4))),
         children: [
           TableRow(
-            decoration: BoxDecoration(color: AppColors.navyMid.withOpacity(0.06)),
+            decoration:
+                BoxDecoration(color: AppColors.navyMid.withOpacity(0.06)),
             children: [
               _buildCell('Month', isHeader: true),
               _buildCell('Stolen Value', isHeader: true),
@@ -2504,11 +2554,15 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
             return TableRow(
               children: [
                 _buildCell(m['month_name']?.toString() ?? ''),
-                _buildCell('₹${NumberFormat('#,##,###').format(m['total_stolen_value'] ?? 0)}'),
-                _buildCell('₹${NumberFormat('#,##,###').format(m['recovered_value'] ?? 0)}'),
-                _buildCell('₹${NumberFormat('#,##,###').format(m['not_recovered_value'] ?? 0)}'),
+                _buildCell(
+                    '₹${NumberFormat('#,##,###').format(m['total_stolen_value'] ?? 0)}'),
+                _buildCell(
+                    '₹${NumberFormat('#,##,###').format(m['recovered_value'] ?? 0)}'),
+                _buildCell(
+                    '₹${NumberFormat('#,##,###').format(m['not_recovered_value'] ?? 0)}'),
                 _buildCell(m['recovery_percentage']?.toString() ?? 'N/A'),
-                _buildCell('₹${NumberFormat('#,##,###').format(m['seized_property_value'] ?? 0)}'),
+                _buildCell(
+                    '₹${NumberFormat('#,##,###').format(m['seized_property_value'] ?? 0)}'),
                 _buildCell(m['pending_property_count']?.toString() ?? '0'),
               ],
             );
