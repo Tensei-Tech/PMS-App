@@ -318,6 +318,22 @@ class CaseRecordViewSet(viewsets.ModelViewSet):
         """Action proxy for GET /api/cases/counts/"""
         return CaseCountsView.as_view()(request._request)
 
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        try:
+            from apps.muddemal.services.auto_fetch_service import sync_single_case_properties
+            sync_single_case_properties(instance)
+        except Exception:
+            pass
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        try:
+            from apps.muddemal.services.auto_fetch_service import sync_single_case_properties
+            sync_single_case_properties(instance)
+        except Exception:
+            pass
+
 
 # ------------------------------------------------------------------------------
 # Case Aggregation & Counts Views (SQL Aggregation for Supabase Egress Reduction)

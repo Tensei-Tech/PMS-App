@@ -13,6 +13,7 @@ import '../modules/mpda/screens/mpda_form_screen.dart';
 import '../modules/nc/screens/nc_form_screen.dart';
 import '../modules/preventive/screens/preventive_form_screen.dart';
 import '../providers/auth_provider.dart';
+import '../services/case_service.dart';
 import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/case_visibility.dart';
@@ -48,6 +49,7 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
   bool _recordDeleted = false;
   bool _accessDenied = false;
   StreamSubscription<ModuleRecord?>? _subscription;
+  StreamSubscription<ModuleRecord>? _caseServiceSub;
 
   @override
   void initState() {
@@ -91,11 +93,24 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
         // Keep showing local record if stream errors
       },
     );
+
+    _caseServiceSub?.cancel();
+    _caseServiceSub = CaseService().onCaseUpdated.listen((next) {
+      if (!mounted) return;
+      if (next.id == id) {
+        setState(() {
+          _recordDeleted = false;
+          _accessDenied = false;
+          _record = next;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
     _subscription?.cancel();
+    _caseServiceSub?.cancel();
     super.dispose();
   }
 
