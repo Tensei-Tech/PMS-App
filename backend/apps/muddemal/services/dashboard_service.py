@@ -13,6 +13,13 @@ from apps.muddemal.services.valuation_service import calculate_property_set_valu
 from apps.muddemal.services.fsl_alert_service import get_fsl_alerts
 
 
+def _ensure_tenant_schema():
+    from apps.core.tenancy import get_active_tenant_schema, set_tenant_schema
+    active = get_active_tenant_schema()
+    if not active or active == 'public':
+        set_tenant_schema('maharashtra')
+
+
 def _apply_filters(
     qs: QuerySet,
     station_name: Optional[str] = None,
@@ -24,6 +31,7 @@ def _apply_filters(
     month: Optional[int] = None,
     is_property_qs: bool = True
 ) -> QuerySet:
+    _ensure_tenant_schema()
     prefix = 'muddemal_record__' if is_property_qs else ''
 
     if station_name and station_name.strip().upper() not in ['ALL', 'ALL STATIONS', 'ALL_STATIONS', 'ALL POLICE STATIONS']:

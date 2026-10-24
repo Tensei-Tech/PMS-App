@@ -8,8 +8,16 @@ from apps.muddemal.models import (
 )
 
 
+def _ensure_tenant_schema():
+    from apps.core.tenancy import get_active_tenant_schema, set_tenant_schema
+    active = get_active_tenant_schema()
+    if not active or active == 'public':
+        set_tenant_schema('maharashtra')
+
+
 def get_fsl_thresholds() -> Dict[str, int]:
     """Fetch configurable FSL alert thresholds from database."""
+    _ensure_tenant_schema()
     cfg = MuddemalConfig.objects.filter(config_key='fsl_alert_thresholds').first()
     if cfg and isinstance(cfg.config_value, dict):
         return {
@@ -33,6 +41,7 @@ def get_fsl_alerts(
     - report_pending: List of properties dispatched to FSL but report is pending.
     - summary counts for 7, 15, and 30+ days.
     """
+    _ensure_tenant_schema()
     thresholds = get_fsl_thresholds()
     today = date.today()
 

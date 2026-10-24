@@ -45,7 +45,10 @@ class MuddemalBackendTests(TestCase):
         from django.db import connection
         if connection.connection and hasattr(connection.connection, 'closed') and connection.connection.closed:
             connection.connect()
-        from apps.core.tenancy import set_tenant_schema
+        from apps.core.tenancy import _get_schema_stack, set_tenant_schema
+        stack = _get_schema_stack()
+        if not stack or stack[-1] != 'maharashtra':
+            stack.append('maharashtra')
         set_tenant_schema('maharashtra')
         super().setUpClass()
 
@@ -63,7 +66,10 @@ class MuddemalBackendTests(TestCase):
         from django.db import connection
         if connection.connection and hasattr(connection.connection, 'closed') and connection.connection.closed:
             connection.connect()
-        from apps.core.tenancy import set_tenant_schema
+        from apps.core.tenancy import _get_schema_stack, set_tenant_schema
+        stack = _get_schema_stack()
+        if not stack or stack[-1] != 'maharashtra':
+            stack.append('maharashtra')
         set_tenant_schema('maharashtra')
         super()._pre_setup()
 
@@ -71,7 +77,10 @@ class MuddemalBackendTests(TestCase):
         from django.db import connection
         if connection.connection and hasattr(connection.connection, 'closed') and connection.connection.closed:
             connection.connect()
-        from apps.core.tenancy import set_tenant_schema
+        from apps.core.tenancy import _get_schema_stack, set_tenant_schema
+        stack = _get_schema_stack()
+        if not stack or stack[-1] != 'maharashtra':
+            stack.append('maharashtra')
         set_tenant_schema('maharashtra')
 
         self.client = APIClient()
@@ -107,8 +116,11 @@ class MuddemalBackendTests(TestCase):
 
     def tearDown(self):
         try:
-            from apps.core.tenancy import _get_schema_stack
-            _get_schema_stack().clear()
+            from apps.core.tenancy import _get_schema_stack, set_tenant_schema
+            stack = _get_schema_stack()
+            if not stack or stack[-1] != 'maharashtra':
+                stack.append('maharashtra')
+            set_tenant_schema('maharashtra')
         except Exception:
             pass
         super().tearDown()
@@ -446,6 +458,8 @@ class MuddemalBackendTests(TestCase):
             'new_property_status': 'Produced Before Court',
         }, format='json')
         self.assertEqual(m_res.status_code, status.HTTP_201_CREATED)
+        from apps.core.tenancy import set_tenant_schema
+        set_tenant_schema('maharashtra')
         prop.refresh_from_db()
         self.assertEqual(prop.property_status, 'Produced Before Court')
 
@@ -457,6 +471,7 @@ class MuddemalBackendTests(TestCase):
             'supurdnama_details': {'bond_amount': 400000, 'condition': 'Produce when called'},
         }, format='json')
         self.assertEqual(disp_res.status_code, status.HTTP_201_CREATED)
+        set_tenant_schema('maharashtra')
         prop.refresh_from_db()
         self.assertEqual(prop.property_status, 'Released on Supurdnama')
 
