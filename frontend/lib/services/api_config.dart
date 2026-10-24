@@ -89,6 +89,9 @@ class ApiConfig {
   static String get authCheckExists => '$baseUrl/auth/check-exists/';
   static String get authTokenRefresh => '$baseUrl/auth/token/refresh/';
   static String get authPermissions => '$baseUrl/auth/me/permissions/';
+
+  // In-app update check (public, called before login)
+  static String get appVersion => '$baseUrl/app-version/';
   static String get authPendingApprovals =>
       '$baseUrl/auth/notifications/pending-approvals/';
   static String authApproveRegistration(String uid) =>

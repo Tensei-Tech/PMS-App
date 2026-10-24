@@ -33,20 +33,24 @@ android {
     }
 
     signingConfigs {
-        // TODO (Production): Replace with a real keystore before Play Store release.
-        // Generate with: keytool -genkey -v -keystore khakhidiary.jks -keyalg RSA -keysize 4096 -validity 10000 -alias khakhidiary
-        // Then set KHAKHI_STORE_FILE, KHAKHI_STORE_PASSWORD, KHAKHI_KEY_ALIAS, KHAKHI_KEY_PASSWORD
-        // as environment variables or in ~/.gradle/gradle.properties (never commit secrets to git).
         getByName("debug") {
             // Debug key is fine for development only.
         }
-        // Uncomment when you have a real keystore:
-        // create("release") {
-        //     storeFile = file(System.getenv("KHAKHI_STORE_FILE") ?: "khakhidiary.jks")
-        //     storePassword = System.getenv("KHAKHI_STORE_PASSWORD")
-        //     keyAlias = System.getenv("KHAKHI_KEY_ALIAS")
-        //     keyPassword = System.getenv("KHAKHI_KEY_PASSWORD")
-        // }
+        // Release key: CI decodes it from the ANDROID_KEYSTORE_BASE64 secret and
+        // sets these variables (see .github/workflows/build-apk.yml). Every build
+        // must use the same key, or Android refuses to install it as an update.
+        // Generate once with:
+        //   keytool -genkey -v -keystore khakhidiary.jks -keyalg RSA -keysize 4096 -validity 10000 -alias khakhidiary
+        // Never commit the keystore or its passwords to git.
+        val releaseStoreFile = System.getenv("KHAKHI_STORE_FILE")
+        if (!releaseStoreFile.isNullOrBlank()) {
+            create("release") {
+                storeFile = file(releaseStoreFile)
+                storePassword = System.getenv("KHAKHI_STORE_PASSWORD")
+                keyAlias = System.getenv("KHAKHI_KEY_ALIAS")
+                keyPassword = System.getenv("KHAKHI_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
@@ -59,9 +63,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // TODO: Switch to release signing config when keystore is set up:
-            // signingConfig = signingConfigs.getByName("release")
-            signingConfig = signingConfigs.getByName("debug")
+            // Local builds without KHAKHI_STORE_FILE fall back to the debug key.
+            signingConfig = signingConfigs.findByName("release")
+                ?: signingConfigs.getByName("debug")
         }
         debug {
             isMinifyEnabled = false
