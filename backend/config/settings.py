@@ -311,6 +311,20 @@ SIMPLE_JWT = {
 }
 
 # ------------------------------------------------------------------------------
+# IN-APP UPDATE CHECK (apps/core/app_version.py)
+# ------------------------------------------------------------------------------
+# Build numbers are GitHub Actions run numbers; each published APK is the
+# GitHub Release tagged build-<number>. Set these on Render after a build.
+APP_LATEST_BUILD = os.getenv('APP_LATEST_BUILD', '0')  # older builds see "update available"
+APP_MIN_BUILD = os.getenv('APP_MIN_BUILD', '0')  # older builds must update before use
+# Optional: send users here instead of the GitHub release (e.g. the Play Store page).
+APP_DOWNLOAD_URL = os.getenv('APP_DOWNLOAD_URL', '')
+APP_RELEASE_REPO = os.getenv('APP_RELEASE_REPO', 'Tensei-Tech/PMS-App')
+# Fine-grained GitHub token with read-only "Contents" access to APP_RELEASE_REPO.
+# It stays on the server; users download through /api/app-version/download/.
+APP_RELEASE_GITHUB_TOKEN = os.getenv('APP_RELEASE_GITHUB_TOKEN', '')
+
+# ------------------------------------------------------------------------------
 # SECURITY & TLS IN TRANSIT CONFIGURATION
 # ------------------------------------------------------------------------------
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
