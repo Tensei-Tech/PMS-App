@@ -18,6 +18,8 @@ from apps.core.tenancy import TenantContext, get_active_tenant_schema
 from apps.core.models import AuditLog
 from apps.users.models import OfficerProfile
 from apps.crimetab.models import RTIApplication, OptionValue, ModuleSetting, FieldTemplateField
+from apps.crimetab import settings_cache
+from apps.crimetab.standalone_helpers import module_permissions_enforced, role_has_permission
 from apps.crimetab.serializers_rti import RTIApplicationSerializer, RTIApplicationListSerializer, format_rti_serial
 
 logger = logging.getLogger(__name__)
@@ -74,17 +76,8 @@ def _resolve_tenant_and_auth(request, perm_key):
             return None, Response({'error': 'State tenant schema is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
     # Permission check via module_settings
-    enforce_setting = ModuleSetting.objects.filter(module_key='rti', setting_key='enforce_permissions').first()
-    enforce = (enforce_setting.setting_value.strip().lower() == 'true') if enforce_setting else False
-
-    if enforce and perm_key:
-        from apps.public_master.models import RolePermission
-        has_perm = RolePermission.objects.filter(
-            role_id=getattr(user, 'role_id', ''),
-            permission_id=perm_key,
-            is_granted=True
-        ).exists()
-        if not has_perm:
+    if module_permissions_enforced('rti', target_schema) and perm_key:
+        if not role_has_permission(getattr(user, 'role_id', ''), perm_key):
             return None, Response({'error': f'Permission {perm_key} is required.'}, status=status.HTTP_403_FORBIDDEN)
 
     return target_schema, None
@@ -1001,8 +994,10 @@ class RTIRemindersView(APIView):
             return err
 
         uid = str(getattr(request.user, 'uid', '') or '').strip()
-        smap = {s_.setting_key: s_.setting_value for s_ in
-                ModuleSetting.objects.filter(module_key='rti', setting_key__in=_RTI_REMINDER_SETTING_KEYS)}
+        # Polled on every dashboard open; settings change rarely (see settings_cache)
+        smap = settings_cache.cached(('rti_reminder_settings', schema), lambda: {
+            s_.setting_key: s_.setting_value for s_ in
+            ModuleSetting.objects.filter(module_key='rti', setting_key__in=_RTI_REMINDER_SETTING_KEYS)})
         first = _rti_int(smap, 'reminder_first_days_before', 30)
         second = _rti_int(smap, 'reminder_second_days_before', 25)
         daily_from = _rti_int(smap, 'reminder_daily_from_days_before', 24)

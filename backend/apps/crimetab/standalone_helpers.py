@@ -13,6 +13,7 @@ from apps.core.tenancy import TenantContext, get_active_tenant_schema
 from apps.core.models import AuditLog
 from apps.users.models import OfficerProfile
 from apps.crimetab.models import ModuleSetting, FieldTemplateField, OptionValue
+from apps.crimetab import settings_cache
 
 logger = logging.getLogger(__name__)
 
@@ -58,20 +59,26 @@ def resolve_tenant_and_auth(request, module_key, perm_key=None):
             return None, Response({'error': 'State tenant schema is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
     # Permission check via module_settings
-    enforce_setting = ModuleSetting.objects.filter(module_key=module_key, setting_key='enforce_permissions').first()
-    enforce = (enforce_setting.setting_value.strip().lower() == 'true') if enforce_setting else False
-
-    if enforce and perm_key:
-        from apps.public_master.models import RolePermission
-        has_perm = RolePermission.objects.filter(
-            role_id=getattr(user, 'role_id', ''),
-            permission_id=perm_key,
-            is_granted=True
-        ).exists()
-        if not has_perm:
+    if module_permissions_enforced(module_key, target_schema) and perm_key:
+        if not role_has_permission(getattr(user, 'role_id', ''), perm_key):
             return None, Response({'error': f'Permission {perm_key} is required.'}, status=status.HTTP_403_FORBIDDEN)
 
     return target_schema, None
+
+
+def module_permissions_enforced(module_key, schema):
+    """module_settings.enforce_permissions == 'true' for the module (cached briefly, see settings_cache)."""
+    def compute():
+        s = ModuleSetting.objects.filter(module_key=module_key, setting_key='enforce_permissions').first()
+        return bool(s and str(s.setting_value or '').strip().lower() == 'true')
+    return settings_cache.cached(('enforce', schema, module_key), compute)
+
+
+def role_has_permission(role_id, perm_key):
+    """Whether the role is granted perm_key (role_permissions is global; cached briefly)."""
+    from apps.public_master.models import RolePermission
+    return settings_cache.cached(('role_perm', role_id, perm_key), lambda: RolePermission.objects.filter(
+        role_id=role_id, permission_id=perm_key, is_granted=True).exists())
 
 
 def get_scoped_officers_queryset(user, module_key='mpda'):
