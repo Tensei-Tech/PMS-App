@@ -367,10 +367,20 @@ class CaseService {
 
   List<Map<String, dynamic>>? _allCategoriesCache;
 
-  /// Clear in-memory categories cache
+  /// Clear in-memory categories cache, including cached category children
+  /// (otherwise a different account on the same device could see them).
   void clearCategoryCache() {
     _allCategoriesCache = null;
+    _childrenCache.clear();
   }
+
+  @visibleForTesting
+  void primeChildrenCacheForTest(
+          String key, List<Map<String, dynamic>> children) =>
+      _childrenCache[key] = children;
+
+  @visibleForTesting
+  bool hasChildrenCacheForTest(String key) => _childrenCache.containsKey(key);
 
   /// Prime or mock categories cache
   void setCategoriesCache(List<Map<String, dynamic>> categories) {

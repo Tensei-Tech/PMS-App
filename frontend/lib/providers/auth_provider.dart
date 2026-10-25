@@ -15,11 +15,7 @@ import '../models/user_model.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/permission_service.dart';
 import '../services/dynamic_options_service.dart';
-import '../services/case_service.dart';
-import '../services/history_sheeter_service.dart';
-import '../services/mpda_service.dart';
-import '../services/rti_service.dart';
-import '../utils/category_navigation_helper.dart';
+import '../utils/app_data_cache.dart';
 
 void _secureLog(String message) {
   if (kDebugMode) debugPrint('[AuthProvider] $message');
@@ -667,6 +663,8 @@ class AuthProvider extends ChangeNotifier {
 
         await Future.wait(writes);
 
+        // A fresh login may be a different account: never reuse its settings.
+        AppDataCache.clearAll();
         _uid = user.uid;
         _isRegistered = true;
         _isSessionActive = true;
@@ -848,6 +846,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> signOutToLogin() async {
     await ApiService().clearAuthToken();
     DynamicOptionsService().clearCache();
+    AppDataCache.clearAll();
     _isSessionActive = false;
     _isRegistered = true;
     notifyListeners();
@@ -867,11 +866,7 @@ class AuthProvider extends ChangeNotifier {
     await ApiService().clearAuthToken();
     await _secure.deleteAll();
     DynamicOptionsService().clearCache();
-    CaseService().clearCategoryCache();
-    CategoryNavigationHelper.clearCache();
-    RtiService().clearConfigCache();
-    HistorySheeterService().clearConfigCache();
-    MpdaService().clearConfigCache();
+    AppDataCache.clearAll();
 
     if (savedEmail != null) {
       await _secure.write(key: StorageKeys.email, value: savedEmail);
@@ -961,6 +956,7 @@ class AuthProvider extends ChangeNotifier {
     await ApiService().clearAuthToken();
     await _secure.delete(key: ApiConstants.jwtAccessTokenKey);
     await _secure.delete(key: ApiConstants.jwtRefreshTokenKey);
+    AppDataCache.clearAll();
     _clearProfileState();
     notifyListeners();
   }
