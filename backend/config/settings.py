@@ -54,6 +54,7 @@ except ImportError:
     dj_database_url = None
 
 MIDDLEWARE = [
+    'apps.core.timing_middleware.RequestTimingMiddleware',  # First, so it times everything below
     'corsheaders.middleware.CorsMiddleware',  # Top of middleware for CORS
     'apps.core.middleware.TenantMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -230,6 +231,22 @@ elif os.getenv('DB_REPLICA_2_HOST'):
             'sslmode': os.getenv('DB_SSLMODE', 'disable' if is_rep2_local else 'require'),
         },
     }
+
+# Reuse connections between requests instead of reconnecting to Supabase each time
+# (off automatically on the transaction pooler, see config/db_connections.py).
+from config.db_connections import apply_conn_max_age
+apply_conn_max_age(DATABASES)
+
+# Request timing lines go to the server log (Render → Logs); other loggers keep
+# Django's defaults.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {'console': {'class': 'logging.StreamHandler'}},
+    'loggers': {
+        'apps.core.timing': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+    },
+}
 
 # High-Availability Database Router (Primary Writes, Replica Reads)
 DATABASE_ROUTERS = ['apps.core.db_router.PrimaryReplicaRouter']
