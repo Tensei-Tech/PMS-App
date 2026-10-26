@@ -2176,7 +2176,7 @@ class OptionValuesView(APIView):
     """
     permission_classes = [AllowAny]
 
-    @cache_response(ttl=60, key_prefix="options")
+    @cache_response(ttl=60, key_prefix="options", per_user=False)
     def get(self, request, group):
         try:
             group_clean = str(group or '').strip()

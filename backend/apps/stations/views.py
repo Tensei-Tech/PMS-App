@@ -20,7 +20,7 @@ class PoliceStationViewSet(viewsets.ModelViewSet):
     serializer_class = PoliceStationSerializer
     permission_classes = [permissions.AllowAny]
 
-    @cache_response(ttl=14400, key_prefix="stations:list")
+    @cache_response(ttl=14400, key_prefix="stations:list", per_user=False)
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
@@ -58,7 +58,7 @@ class PoliceStationViewSet(viewsets.ModelViewSet):
             )
         return qs
 
-    @cache_response(ttl=14400, key_prefix="stations:districts")
+    @cache_response(ttl=14400, key_prefix="stations:districts", per_user=False)
     @action(detail=False, methods=['get'], url_path='districts')
     def list_districts(self, request):
         """Dynamic DB query for all Districts in current state schema."""
