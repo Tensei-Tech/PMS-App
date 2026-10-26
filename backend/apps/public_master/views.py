@@ -325,38 +325,46 @@ class AppAnnouncementViewSet(viewsets.ModelViewSet):
             return AppAnnouncement.objects.all().order_by('order', '-created_at')
         return AppAnnouncement.objects.filter(is_active=True).order_by('order', '-created_at')
 
+DEFAULT_UI_CONFIG = {
+    "repeat_offender_summary": {
+        "unknown_offender_label": "Unknown Offender",
+        "other_bucket_label": "Other",
+        "empty_placeholder": "—",
+        "error_message": "Could not load repeat offender cases",
+        "add_button_label": "Add Repeat Offender",
+        "form_module_key": "form_1_5",
+        "form_sub_category": "Repeat Offender",
+        "form_module_label": "Repeat Offender",
+        "no_cases_label": "No cases",
+        "title": "Repeat Offender — Summary"
+    },
+    "juvenile_summary": {
+        "unknown_offender_label": "Unknown Offender",
+        "other_bucket_label": "Other",
+        "empty_placeholder": "—",
+        "error_message": "Could not load juvenile cases",
+        "add_button_label": "Add Juvenile",
+        "form_module_key": "pocso",
+        "form_sub_category": "Juvenile",
+        "form_module_label": "Juvenile",
+        "no_cases_label": "No cases",
+        "title": "Juvenile — Summary"
+    }
+}
+
+
 class UIConfigView(views.APIView):
     permission_classes = [permissions.AllowAny]
-    
+
     def get(self, request):
+        from django.db import DatabaseError
         from .models import DynamicUIConfig
-        configs = DynamicUIConfig.objects.all()
-        data = {c.key: c.value for c in configs}
-        if not data:
-            data = {
-                "repeat_offender_summary": {
-                    "unknown_offender_label": "Unknown Offender",
-                    "other_bucket_label": "Other",
-                    "empty_placeholder": "—",
-                    "error_message": "Could not load repeat offender cases",
-                    "add_button_label": "Add Repeat Offender",
-                    "form_module_key": "form_1_5",
-                    "form_sub_category": "Repeat Offender",
-                    "form_module_label": "Repeat Offender",
-                    "no_cases_label": "No cases",
-                    "title": "Repeat Offender — Summary"
-                },
-                "juvenile_summary": {
-                    "unknown_offender_label": "Unknown Offender",
-                    "other_bucket_label": "Other",
-                    "empty_placeholder": "—",
-                    "error_message": "Could not load juvenile cases",
-                    "add_button_label": "Add Juvenile",
-                    "form_module_key": "pocso",
-                    "form_sub_category": "Juvenile",
-                    "form_module_label": "Juvenile",
-                    "no_cases_label": "No cases",
-                    "title": "Juvenile — Summary"
-                }
-            }
-        return Response(data)
+        try:
+            data = {c.key: c.value for c in DynamicUIConfig.objects.all()}
+        except DatabaseError as e:
+            # The app calls this before login (search_path=public). On some
+            # databases dynamic_ui_configs was migrated into a state schema
+            # instead of public; serve the defaults rather than a 500.
+            logger.warning(f"[UIConfigView] Could not read dynamic_ui_configs, serving defaults: {type(e).__name__}")
+            data = {}
+        return Response(data or DEFAULT_UI_CONFIG)

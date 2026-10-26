@@ -18,6 +18,7 @@ from apps.core.tenancy import TenantContext, get_active_tenant_schema
 from apps.core.models import AuditLog
 from apps.users.models import OfficerProfile
 from apps.crimetab.models import RTIApplication, OptionValue, ModuleSetting, FieldTemplateField
+from apps.crimetab import settings_cache
 from apps.crimetab.serializers_rti import RTIApplicationSerializer, RTIApplicationListSerializer, format_rti_serial
 
 logger = logging.getLogger(__name__)
@@ -1001,8 +1002,10 @@ class RTIRemindersView(APIView):
             return err
 
         uid = str(getattr(request.user, 'uid', '') or '').strip()
-        smap = {s_.setting_key: s_.setting_value for s_ in
-                ModuleSetting.objects.filter(module_key='rti', setting_key__in=_RTI_REMINDER_SETTING_KEYS)}
+        # Polled on every dashboard open; settings change rarely (see settings_cache)
+        smap = settings_cache.cached(('rti_reminder_settings', schema), lambda: {
+            s_.setting_key: s_.setting_value for s_ in
+            ModuleSetting.objects.filter(module_key='rti', setting_key__in=_RTI_REMINDER_SETTING_KEYS)})
         first = _rti_int(smap, 'reminder_first_days_before', 30)
         second = _rti_int(smap, 'reminder_second_days_before', 25)
         daily_from = _rti_int(smap, 'reminder_daily_from_days_before', 24)

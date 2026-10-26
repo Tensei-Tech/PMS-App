@@ -28,6 +28,7 @@ from apps.crimetab.models.mpda import (
     MpdaCrimeChartEntry,
 )
 from apps.crimetab.models import ModuleSetting, OptionValue
+from apps.crimetab import settings_cache
 from apps.crimetab.serializers_mpda import (
     MpdaProposalListSerializer,
     MpdaProposalDetailSerializer,
@@ -684,7 +685,8 @@ class MpdaDetentionRemindersView(APIView):
 
         station_name = str(getattr(request.user, 'station_name', '') or '').strip()
         uid = str(getattr(request.user, 'uid', '') or '').strip()
-        smap = _mpda_reminder_settings()
+        # Polled on every dashboard open; settings change rarely (see settings_cache)
+        smap = settings_cache.cached(('mpda_reminder_settings', schema), _mpda_reminder_settings)
         first, second, daily_from = _reminder_schedule(smap)
         title = smap.get('detention_reminder_title') or ''
         message_tmpl = smap.get('detention_reminder_message') or ''
@@ -695,7 +697,7 @@ class MpdaDetentionRemindersView(APIView):
             return Response({'count': 0, 'days': first, 'labels': labels, 'results': []})
 
         today = datetime.date.today()
-        yes_val = _get_yes_value()
+        yes_val = settings_cache.cached(('yes_value', schema), _get_yes_value)
         rows, manual = [], []
         with TenantContext(schema):
             if station_name:
