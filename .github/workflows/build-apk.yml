@@ -79,10 +79,14 @@ jobs:
           KHAKHI_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           cd frontend
+          # Version name (e.g. 1.0.1) comes from pubspec.yaml; the app shows it in About/Settings.
+          VERSION_NAME=$(sed -nE 's/^version:[[:space:]]*([^+[:space:]]+).*/\1/p' pubspec.yaml)
+          echo "VERSION_NAME=$VERSION_NAME" >> "$GITHUB_ENV"
           flutter build apk --release --android-skip-build-dependency-validation \
             --dart-define-from-file=config/prod.json \
             --build-number="$BUILD_NUMBER" \
-            --dart-define=APP_BUILD_NUMBER="$BUILD_NUMBER"
+            --dart-define=APP_BUILD_NUMBER="$BUILD_NUMBER" \
+            --dart-define=APP_VERSION_NAME="$VERSION_NAME"
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
@@ -102,11 +106,11 @@ jobs:
           cp frontend/build/app/outputs/flutter-apk/app-release.apk "$apk"
           gh release create "build-$BUILD_NUMBER" "$apk" \
             --target "$GITHUB_SHA" \
-            --title "Build $BUILD_NUMBER" \
+            --title "v$VERSION_NAME build $BUILD_NUMBER" \
             --notes "$(git log -1 --pretty=format:'%s')" \
             --prerelease
           {
-            echo "### Build $BUILD_NUMBER published"
+            echo "### Version $VERSION_NAME, build $BUILD_NUMBER published"
             echo "To roll it out, set on Render: APP_LATEST_BUILD=$BUILD_NUMBER"
             echo "To force everyone onto it, also set: APP_MIN_BUILD=$BUILD_NUMBER"
           } >> "$GITHUB_STEP_SUMMARY"

@@ -35,9 +35,10 @@ jobs:
       DB_SSLMODE: "disable"
       DJANGO_SECRET_KEY: test-secret-key
       DEBUG: "False"
-      # Tests must not read or write the shared Upstash cache (settings has a default token)
+      # Tests must not read or write the shared Upstash cache (tests also force local memory)
       UPSTASH_REDIS_REST_URL: ""
       UPSTASH_REDIS_REST_TOKEN: ""
+      REDIS_URL: ""
     defaults:
       run:
         working-directory: ./backend

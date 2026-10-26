@@ -294,11 +294,17 @@ class CaseListSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         try:
-            from apps.crimetab.models.accident import RoadAccidentRecord
-            from apps.crimetab.serializers_accident import RoadAccidentRecordSerializer
-            acc_rec = RoadAccidentRecord.objects.filter(case_id=str(instance.id)).first()
-            if acc_rec:
-                acc_data = RoadAccidentRecordSerializer(acc_rec).data
+            # serialize_case_list() looks up every row's accident data in one
+            # go; without it each row costs a query (one round trip per case).
+            accidents = self.context.get('road_accidents')
+            if accidents is not None:
+                acc_data = accidents.get(str(instance.id))
+            else:
+                from apps.crimetab.models.accident import RoadAccidentRecord
+                from apps.crimetab.serializers_accident import RoadAccidentRecordSerializer
+                acc_rec = RoadAccidentRecord.objects.filter(case_id=str(instance.id)).first()
+                acc_data = RoadAccidentRecordSerializer(acc_rec).data if acc_rec else None
+            if acc_data:
                 data['road_accident'] = acc_data
                 extra = data.get('extra_fields')
                 if not isinstance(extra, dict):
@@ -316,6 +322,28 @@ class CaseListSerializer(serializers.ModelSerializer):
         except Exception:
             pass
         return data
+
+
+def road_accidents_by_case(case_ids):
+    """Serialized accident record per case id (the first one, as .first() picked), in 4 queries."""
+    from apps.crimetab.models.accident import RoadAccidentRecord
+    from apps.crimetab.serializers_accident import RoadAccidentRecordSerializer
+    ids = [str(i) for i in case_ids]
+    if not ids:
+        return {}
+    first_by_case = {}
+    for rec in (RoadAccidentRecord.objects.filter(case_id__in=ids)
+                .prefetch_related('vehicles', 'injured_persons', 'deceased_persons')
+                .order_by('pk')):
+        first_by_case.setdefault(rec.case_id, rec)
+    return {case_id: RoadAccidentRecordSerializer(rec).data for case_id, rec in first_by_case.items()}
+
+
+def serialize_case_list(records):
+    """CaseListSerializer data for many cases without one accident query per row."""
+    records = list(records)
+    context = {'road_accidents': road_accidents_by_case([r.id for r in records])}
+    return CaseListSerializer(records, many=True, context=context).data
 
 
 # ==========================================

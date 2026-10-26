@@ -21,6 +21,7 @@ from apps.crimetab.models.dynamic_engine import (
 )
 from apps.core.tenancy import TenantContext, get_active_tenant_schema
 from apps.core.cache_decorators import cache_response
+from apps.crimetab.case_access import can_access_station, scope_by_station
 from apps.crimetab.models.common_form import (
     CrimeRegistrationInfo,
     Act,
@@ -45,10 +46,10 @@ from apps.crimetab.models.common_form import (
 from apps.crimetab.serializers import (
     CaseCategoryGroupSerializer,
     CaseCategorySerializer,
-    CaseListSerializer,
     FullCaseDetailSerializer,
     ActSerializer,
     ActSectionSerializer,
+    serialize_case_list,
 )
 from apps.crimetab.services.dynamic_form_service import get_form_definition, get_preventive_action_types
 from apps.crimetab.services.counter_service import (
@@ -128,10 +129,23 @@ class FormSchemaView(APIView):
 # ==========================================
 # 1. Group & Category ViewSets
 # ==========================================
+def _login_required_for(view, protected_actions):
+    """Group/category structure stays public; case counts and lists need login.
+
+    Decided by action name so it also holds for routes registered by hand with
+    as_view({'get': 'cases'}), where @action(permission_classes=...) is ignored.
+    """
+    if getattr(view, 'action', None) in protected_actions:
+        return [IsAuthenticated()]
+    return [AllowAny()]
+
+
 class CaseCategoryGroupViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CaseCategoryGroup.objects.all().order_by('display_order', 'group_id')
     serializer_class = CaseCategoryGroupSerializer
-    permission_classes = [AllowAny]
+
+    def get_permissions(self):
+        return _login_required_for(self, {'counters'})
 
     @action(detail=True, methods=['get'])
     def counters(self, request, pk=None):
@@ -154,9 +168,11 @@ class CaseCategoryGroupViewSet(viewsets.ReadOnlyModelViewSet):
 
 class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CaseCategorySerializer
-    permission_classes = [AllowAny]
     pagination_class = None
     lookup_value_regex = r'[^/]+'
+
+    def get_permissions(self):
+        return _login_required_for(self, {'counters', 'cases'})
 
     def get_queryset(self):
         qs = CaseCategory.objects.filter(is_active=True).order_by('display_order', 'category_id')
@@ -476,7 +492,7 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
             for name in cat_names:
                 q_filter |= Q(sub_category__iexact=name)
 
-            qs = CaseRecord.objects.filter(q_filter).distinct()
+            qs = scope_by_station(CaseRecord.objects.filter(q_filter).distinct(), request.user)
 
             if station_name:
                 qs = qs.filter(station_name__iexact=station_name)
@@ -490,12 +506,11 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
                     Q(accused__icontains=search)
                 )
 
-            serializer = CaseListSerializer(qs.order_by('-created_at')[:50], many=True)
             return Response({
                 'category_id': category_id,
                 'category_name': category.category_name,
                 'total_cases': qs.count(),
-                'cases': serializer.data,
+                'cases': serialize_case_list(qs.order_by('-created_at')[:50]),
             })
 
 
@@ -1584,7 +1599,9 @@ def _save_road_accident_child_entities(case: CaseRecord, data: dict):
 # 3. Case CRUD Endpoints (Rebuilt)
 # ==========================================
 class CrimeCaseManageView(APIView):
-    permission_classes = [AllowAny]
+    # Case records are police data: login required, and users see only the
+    # stations they may access (see apps/crimetab/case_access.py).
+    permission_classes = [IsAuthenticated]
 
     @staticmethod
     def _resolve_schema_and_validate(request):
@@ -1606,8 +1623,6 @@ class CrimeCaseManageView(APIView):
                 schema_name = _STATE_SCHEMA_CACHE.get(str(state_code).upper(), str(state_code).lower())
 
         if not schema_name or schema_name == 'public':
-            if not getattr(request.user, 'is_authenticated', False) and not auth_header and not request.headers.get('X-State-Code') and not request.GET.get('state_code'):
-                return None, Response({'error': 'Authentication credentials were not provided.'}, status=status.HTTP_401_UNAUTHORIZED)
             return None, Response({'error': 'Valid tenant state is required to manage cases.'}, status=status.HTTP_400_BAD_REQUEST)
 
         return schema_name, None
@@ -1647,7 +1662,8 @@ class CrimeCaseManageView(APIView):
             with TenantContext(schema_name):
                 if pk:
                     case = self._optimize_queryset(CaseRecord.objects.filter(pk=pk)).first()
-                    if not case:
+                    # A case of a station the user may not see is reported as missing
+                    if not case or not can_access_station(request.user, case.station_name):
                         return Response({'error': f'Case {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
                     serializer = FullCaseDetailSerializer(case)
                     return Response(serializer.data)
@@ -1657,7 +1673,7 @@ class CrimeCaseManageView(APIView):
                     status_filter = request.query_params.get('status')
                     search = request.query_params.get('search')
 
-                    qs = CaseRecord.objects.all()
+                    qs = scope_by_station(CaseRecord.objects.all(), request.user)
                     if module_key and module_key.lower() not in ['all', '']:
                         mod_lower = module_key.lower().strip()
                         if mod_lower == 'undetected':
@@ -1725,19 +1741,18 @@ class CrimeCaseManageView(APIView):
 
                     try:
                         total_count = qs.count()
-                        records = qs.order_by('-created_at')[:50]
-                        serializer = CaseListSerializer(records, many=True)
+                        rows = serialize_case_list(qs.order_by('-created_at')[:50])
                     except OperationalError:
                         from django.db import connection
                         connection.close()
                         total_count = qs.count()
-                        records = qs.order_by('-created_at')[:50]
-                        serializer = CaseListSerializer(records, many=True)
+                        rows = serialize_case_list(qs.order_by('-created_at')[:50])
 
+                    # The app reads 'results' (falling back to 'cases'); sending
+                    # the same rows under both keys doubled the download.
                     return Response({
                         'count': total_count,
-                        'results': serializer.data,
-                        'cases': serializer.data
+                        'results': rows,
                     })
         except Exception as e:
             logger.error(f"Error in CrimeCaseManageView.get: {str(e)}")
@@ -1815,7 +1830,7 @@ class CrimeCaseManageView(APIView):
         try:
             with TenantContext(schema_name):
                 case = CaseRecord.objects.filter(pk=pk).first()
-                if not case:
+                if not case or not can_access_station(request.user, case.station_name):
                     return Response({'error': f'Case {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
 
                 with transaction.atomic():
@@ -1883,7 +1898,7 @@ class CaseCountsView(APIView):
     Avoids fetching entire case record lists on login / dashboard load.
     Enforces strict state tenant resolution to prevent cross-tenant data exposure.
     """
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
         from apps.cases.views import CaseCountsView as NewCaseCountsView
@@ -1891,11 +1906,11 @@ class CaseCountsView(APIView):
 
 
 class CasePdfView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None):
         case = CaseRecord.objects.filter(pk=pk).first()
-        if not case:
+        if not case or not can_access_station(request.user, case.station_name):
             return Response({'error': f'Case {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = FullCaseDetailSerializer(case)
@@ -1912,7 +1927,7 @@ class CasePdfView(APIView):
 # 4. Transfer Workflow Endpoints (Phase 2 Stub)
 # ==========================================
 class CaseTransferView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, pk=None):
         return Response(
@@ -1922,7 +1937,7 @@ class CaseTransferView(APIView):
 
 
 class TransferredInInboxView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         return Response(
@@ -1932,7 +1947,7 @@ class TransferredInInboxView(APIView):
 
 
 class AssignTransferredCaseView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, pk=None):
         return Response(
@@ -2176,7 +2191,7 @@ class OptionValuesView(APIView):
     """
     permission_classes = [AllowAny]
 
-    @cache_response(ttl=60, key_prefix="options")
+    @cache_response(ttl=60, key_prefix="options", per_user=False)
     def get(self, request, group):
         try:
             group_clean = str(group or '').strip()
