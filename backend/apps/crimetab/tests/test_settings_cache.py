@@ -1,13 +1,15 @@
 """
-Reminder endpoints are polled on every dashboard open. Slow-changing lookups
-(enforce flag, role permission, reminder settings, yes value) are cached, but
-admin changes must apply on the next request.
+Reminder endpoints are polled on every dashboard open. Their display settings
+(reminder labels/days, yes value) are cached; permission checks are never
+cached, so permission changes, even made directly in the database, apply at once.
 """
 import jwt
 
 from django.conf import settings
 from django.core.cache import cache
+from django.db import connection
 from django.test import TestCase
+from django.test.utils import CaptureQueriesContext
 from rest_framework.test import APIClient
 
 from apps.crimetab import settings_cache
@@ -40,16 +42,34 @@ class ReminderSettingsCacheTests(TestCase):
     def tearDown(self):
         cache.clear()
 
-    def test_warm_rti_reminders_only_query_the_reminders(self):
-        self.assertEqual(self.client.get(RTI_URL).status_code, 200)
-        # Applications + manual notifications; settings, enforce flag and role check come from cache.
-        with self.assertNumQueries(2):
-            self.assertEqual(self.client.get(RTI_URL).status_code, 200)
+    def _data_queries(self, url):
+        """SQL of one request, without SET search_path (PostgreSQL counts those, SQLite runs none)."""
+        with CaptureQueriesContext(connection) as ctx:
+            self.assertEqual(self.client.get(url).status_code, 200)
+        return [q['sql'] for q in ctx.captured_queries if not q['sql'].lstrip().upper().startswith('SET ')]
 
-    def test_warm_mpda_reminders_only_query_the_reminders(self):
-        self.assertEqual(self.client.get(MPDA_URL).status_code, 200)
-        with self.assertNumQueries(2):
-            self.assertEqual(self.client.get(MPDA_URL).status_code, 200)
+    def test_warm_rti_reminders_read_settings_from_cache(self):
+        self.client.get(RTI_URL)
+        sql = self._data_queries(RTI_URL)
+        # Live permission check (enforce flag + role grant), then applications + manual notifications.
+        self.assertEqual(len(sql), 4, sql)
+        self.assertEqual(sum('module_settings' in q for q in sql), 1, 'only the live enforce flag')
+
+    def test_warm_mpda_reminders_read_settings_from_cache(self):
+        self.client.get(MPDA_URL)
+        sql = self._data_queries(MPDA_URL)
+        self.assertEqual(len(sql), 4, sql)
+        self.assertEqual(sum('module_settings' in q for q in sql), 1, 'only the live enforce flag')
+        self.assertFalse(any('option_values' in q for q in sql), 'yes value comes from cache')
+
+    def test_permission_change_made_without_signals_applies_immediately(self):
+        # A bulk update (or an edit straight in the database) fires no signal;
+        # permission checks must still see it on the next request.
+        ModuleSetting.objects.filter(module_key='rti', setting_key='enforce_permissions').update(setting_value='false')
+        RolePermission.objects.filter(role=self.role, permission_id='rti:view').update(is_granted=False)
+        self.assertEqual(self.client.get(RTI_URL).status_code, 200)
+        ModuleSetting.objects.filter(module_key='rti', setting_key='enforce_permissions').update(setting_value='true')
+        self.assertEqual(self.client.get(RTI_URL).status_code, 403)
 
     def test_revoked_permission_applies_on_the_next_request(self):
         self.assertEqual(self.client.get(RTI_URL).status_code, 200)

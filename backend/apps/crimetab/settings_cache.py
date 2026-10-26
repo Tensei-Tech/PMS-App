@@ -1,14 +1,17 @@
 """
-Short-lived cache for lookups that every crimetab request repeats but that
-almost never change: the enforce_permissions flag, role permission checks,
-reminder settings and option values.
+Short-lived cache for display settings that the reminder endpoints read on
+every dashboard open but that almost never change: reminder labels, days and
+templates, and the yes/no option value.
 
-Each lookup costs a round trip to Supabase (about 65 ms), and a reminder
-request made 3-4 of them before doing any real work. Entries live for TTL
-seconds; any save or delete of ModuleSetting, OptionValue or RolePermission
-bumps a version number, so every cached entry is dropped at once and admin
-changes apply immediately (bulk queryset.update() skips signals and waits
-for the TTL).
+Each lookup costs a round trip to Supabase (about 65 ms). Entries live for TTL
+seconds; any save or delete of ModuleSetting or OptionValue bumps a version
+number, so every cached entry is dropped at once. Changes made with a bulk
+queryset.update() or directly in the database skip signals and show up
+within TTL seconds.
+
+Never use this for permission checks (enforce_permissions, role permissions):
+those must be read live, because a change made directly in the database would
+otherwise be ignored for up to TTL seconds.
 
 Keys include the tenant schema wherever the data is per state.
 """
@@ -48,8 +51,7 @@ def cached(parts, compute):
 
 def _connect():
     from apps.crimetab.models import ModuleSetting, OptionValue
-    from apps.public_master.models import RolePermission
-    for model in (ModuleSetting, OptionValue, RolePermission):
+    for model in (ModuleSetting, OptionValue):
         post_save.connect(invalidate, sender=model, dispatch_uid=f'settings_cache_save_{model.__name__}')
         post_delete.connect(invalidate, sender=model, dispatch_uid=f'settings_cache_delete_{model.__name__}')
 
