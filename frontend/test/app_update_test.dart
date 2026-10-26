@@ -1,11 +1,15 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:khakhi_diary/services/app_update_installer.dart';
 import 'package:khakhi_diary/services/app_update_service.dart';
+import 'package:khakhi_diary/services/app_version.dart';
 import 'package:khakhi_diary/widgets/app_update_gate.dart';
+import 'package:ota_update/ota_update.dart';
 
 const _url = 'https://example.test/api/app-version/download/';
 
@@ -99,7 +103,7 @@ void main() {
       )));
       await tester.pump();
       expect(find.text('Update required'), findsOneWidget);
-      expect(find.text('Download update'), findsOneWidget);
+      expect(find.widgetWithText(FilledButton, 'Update'), findsOneWidget);
       expect(find.text('Later'), findsNothing);
     });
 
@@ -123,5 +127,121 @@ void main() {
       expect(find.text('app content'), findsOneWidget);
       expect(find.byType(FilledButton), findsNothing);
     });
+  });
+
+  group('In-app update download', () {
+    late StreamController<UpdateDownloadEvent> events;
+    late List<String> requested;
+    late List<Uri> opened;
+
+    setUp(() {
+      events = StreamController<UpdateDownloadEvent>();
+      requested = [];
+      opened = [];
+    });
+
+    // Not awaited: close() only completes once someone listened, and the
+    // Play Store test never starts a download.
+    tearDown(() {
+      events.close();
+    });
+
+    Widget app(String url) => MaterialApp(
+          home: AppUpdateGate(
+            checker: () async => AppUpdateInfo(
+              status: AppUpdateStatus.optional,
+              latestBuild: 12,
+              downloadUrl: url,
+            ),
+            downloader: (u) {
+              requested.add(u);
+              return events.stream;
+            },
+            browserOpener: (u) async {
+              opened.add(u);
+              return true;
+            },
+            child: const Scaffold(body: Text('app content')),
+          ),
+        );
+
+    Future<void> tapUpdate(WidgetTester tester) async {
+      await tester.tap(find.widgetWithText(FilledButton, 'Update'));
+      await tester.pump();
+    }
+
+    testWidgets('downloads inside the app once, with progress', (tester) async {
+      await tester.pumpWidget(app(_url));
+      await tester.pump();
+      await tapUpdate(tester);
+      expect(requested, [_url]); // one download, no browser
+
+      events.add(const UpdateDownloadEvent(UpdateDownloadStatus.downloading,
+          percent: 42));
+      await tester.pump();
+      expect(find.text('Downloading update... 42%'), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      // Update and Later are disabled while downloading
+      final update = tester.widget<FilledButton>(find.byType(FilledButton));
+      expect(update.onPressed, isNull);
+
+      events.add(const UpdateDownloadEvent(UpdateDownloadStatus.installing));
+      await tester.pump();
+      expect(find.textContaining('Opening the installer'), findsOneWidget);
+    });
+
+    testWidgets('failure offers try again and the browser fallback',
+        (tester) async {
+      await tester.pumpWidget(app(_url));
+      await tester.pump();
+      await tapUpdate(tester);
+      events.add(const UpdateDownloadEvent(UpdateDownloadStatus.failed,
+          message: 'Download failed.'));
+      await tester.pump();
+      expect(find.text('Download failed.'), findsOneWidget);
+      expect(find.widgetWithText(FilledButton, 'Try again'), findsOneWidget);
+      expect(find.text('Open in browser'), findsOneWidget);
+    });
+
+    testWidgets('a non-APK link (e.g. Play Store) is not downloaded in-app',
+        (tester) async {
+      await tester
+          .pumpWidget(app('https://play.google.com/store/apps/details?id=x'));
+      await tester.pump();
+      await tapUpdate(tester);
+      expect(requested, isEmpty); // not downloaded in-app
+      expect(opened.single.host, 'play.google.com'); // opened in the store
+    });
+  });
+
+  group('AppUpdateInstaller', () {
+    test('only our backend APK link is installed in-app', () {
+      expect(AppUpdateInstaller.canInstallInApp(_url), isTrue);
+      expect(
+          AppUpdateInstaller.canInstallInApp(
+              'https://play.google.com/store/apps/details?id=x'),
+          isFalse);
+      expect(AppUpdateInstaller.canInstallInApp(''), isFalse);
+    });
+
+    test('plugin events become progress, installing or a clear error', () {
+      final downloading =
+          AppUpdateInstaller.fromOta(OtaStatus.DOWNLOADING, '37');
+      expect(downloading.status, UpdateDownloadStatus.downloading);
+      expect(downloading.percent, 37);
+      expect(AppUpdateInstaller.fromOta(OtaStatus.INSTALLING, null).status,
+          UpdateDownloadStatus.installing);
+      final denied = AppUpdateInstaller.fromOta(
+          OtaStatus.PERMISSION_NOT_GRANTED_ERROR, null);
+      expect(denied.status, UpdateDownloadStatus.failed);
+      expect(denied.message, contains('install apps'));
+      expect(AppUpdateInstaller.fromOta(OtaStatus.DOWNLOAD_ERROR, 'x').status,
+          UpdateDownloadStatus.failed);
+    });
+  });
+
+  test('version label without a CI build number', () {
+    // Tests run without APP_BUILD_NUMBER / APP_VERSION_NAME, like a local build.
+    expect(AppVersion.label, 'Version dev (local build)');
   });
 }
