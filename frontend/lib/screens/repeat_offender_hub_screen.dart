@@ -651,11 +651,50 @@ class _RepeatOffenderHubScreenState extends State<RepeatOffenderHubScreen>
             fontSize: 16,
           ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  AppTheme.fadeSlideRoute(
+                    page: RepeatOffenderSummaryScreen(
+                      stationName: widget.stationName,
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(
+                Icons.assessment_outlined,
+                color: Colors.white,
+                size: 16,
+              ),
+              label: Text(
+                'Summary',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  color: Colors.white,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.navyMid,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              ),
+            ),
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Container(
             color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             child: TabBar(
               controller: _tabController,
               labelColor: AppColors.navyMid,

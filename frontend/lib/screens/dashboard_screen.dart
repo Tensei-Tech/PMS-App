@@ -397,9 +397,8 @@ Widget _buildGridIcon(
         svgPath.contains('accident') ||
         svgPath.contains('chain_snatching');
 
-    final double scale = isSolidBadge
-        ? 1.20
-        : (isTall ? 1.50 : (isWide ? 1.34 : 1.42));
+    final double scale =
+        isSolidBadge ? 1.20 : (isTall ? 1.50 : (isWide ? 1.34 : 1.42));
 
     return SvgPicture.asset(
       svgPath,
@@ -1712,21 +1711,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _showLanguageSheet() {
     final activeLang = context.read<SettingsProvider>().locale.languageCode;
     final langs = [
-      ('🇬🇧', 'English', 'Nagaland, Arunachal Pradesh, Meghalaya', 'en'),
+      ('English', 'Nagaland, Arunachal Pradesh, Meghalaya', 'en'),
       (
-        '🇮🇳',
         'Hindi (हिंदी)',
         'Uttar Pradesh, Bihar, Madhya Pradesh, Rajasthan, Haryana, Himachal, Jharkhand, Chhattisgarh, Uttarakhand',
         'hi'
       ),
-      ('🇮🇳', 'Marathi (मराठी)', 'Maharashtra', 'mr'),
-      ('🇮🇳', 'Gujarati (ગુજરાતી)', 'Gujarat', 'gu'),
-      ('🇮🇳', 'Bengali (বাংলা)', 'West Bengal, Tripura', 'bn'),
-      ('🇮🇳', 'Telugu (తెలుగు)', 'Andhra Pradesh, Telangana', 'te'),
-      ('🇮🇳', 'Tamil (தமிழ்)', 'Tamil Nadu, Puducherry', 'ta'),
-      ('🇮🇳', 'Kannada (ಕನ್ನಡ)', 'Karnataka', 'kn'),
-      ('🇮🇳', 'Malayalam (മലയാളം)', 'Kerala, Lakshadweep', 'ml'),
-      ('🇮🇳', 'Punjabi (ਪੰਜਾਬੀ)', 'Punjab', 'pa'),
+      ('Marathi (मराठी)', 'Maharashtra', 'mr'),
+      ('Gujarati (ગુજરાતી)', 'Gujarat', 'gu'),
+      ('Bengali (বাংলা)', 'West Bengal, Tripura', 'bn'),
+      ('Telugu (తెలుగు)', 'Andhra Pradesh, Telangana', 'te'),
+      ('Tamil (தமிழ்)', 'Tamil Nadu, Puducherry', 'ta'),
+      ('Kannada (ಕನ್ನಡ)', 'Karnataka', 'kn'),
+      ('Malayalam (മലയാളം)', 'Kerala, Lakshadweep', 'ml'),
+      ('Punjabi (ਪੰਜਾਬੀ)', 'Punjab', 'pa'),
     ];
 
     showModalBottomSheet(
@@ -1779,13 +1777,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 itemCount: langs.length,
                 itemBuilder: (ctx, i) {
                   final l = langs[i];
-                  final isSelected = activeLang == l.$4;
+                  final isSelected = activeLang == l.$3;
                   return Material(
                     color: Colors.transparent,
                     child: ListTile(
-                      leading: Text(l.$1, style: const TextStyle(fontSize: 20)),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 2),
                       title: Text(
-                        l.$2,
+                        l.$1,
                         style: GoogleFonts.poppins(
                           fontSize: 15,
                           fontWeight:
@@ -1796,7 +1795,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
                       subtitle: Text(
-                        l.$3,
+                        l.$2,
                         style: GoogleFonts.poppins(
                           fontSize: 11,
                           color: AppColors.lightSubText,
@@ -1808,11 +1807,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           : const Icon(Icons.chevron_right_rounded,
                               color: AppColors.goldPrimary, size: 22),
                       onTap: () {
-                        context.read<SettingsProvider>().setLanguage(l.$4);
+                        context.read<SettingsProvider>().setLanguage(l.$3);
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                           content: Text(
-                            'Language set to ${l.$2}',
+                            'Language set to ${l.$1}',
                             style: GoogleFonts.poppins(color: Colors.white),
                           ),
                           backgroundColor: AppColors.infoBlue,
@@ -2963,7 +2962,17 @@ class _HomeTabState extends State<_HomeTab> {
                 onPressed: () async {
                   final spoken = await VoiceSearchDialog.show(context);
                   if (spoken != null && spoken.trim().isNotEmpty) {
-                    final cleanSpoken = spoken.trim();
+                    var cleanSpoken = spoken.trim();
+                    while (cleanSpoken.endsWith('.') ||
+                        cleanSpoken.endsWith(',') ||
+                        cleanSpoken.endsWith('?') ||
+                        cleanSpoken.endsWith('!')) {
+                      cleanSpoken = cleanSpoken
+                          .substring(0, cleanSpoken.length - 1)
+                          .trim();
+                    }
+                    if (cleanSpoken.isEmpty) return;
+
                     final parsedDate =
                         UniversalSearch.tryParseNaturalDate(cleanSpoken);
                     if (parsedDate != null) {
@@ -3201,7 +3210,15 @@ class _HomeTabState extends State<_HomeTab> {
 
   int _matchingModulesCount(String query) {
     if (query.trim().isEmpty) return 0;
-    final q = query.trim().toLowerCase();
+    var q = query.trim().toLowerCase();
+    while (q.endsWith('.') ||
+        q.endsWith(',') ||
+        q.endsWith('?') ||
+        q.endsWith('!')) {
+      q = q.substring(0, q.length - 1).trim();
+    }
+    if (q.isEmpty) return 0;
+
     final matchingFormIV = formIVCaseCategories
         .where((cat) => cat.toLowerCase().contains(q))
         .length;
@@ -3215,7 +3232,14 @@ class _HomeTabState extends State<_HomeTab> {
 
   Widget _buildMatchingModuleTabs(String query) {
     if (query.trim().isEmpty) return const SizedBox.shrink();
-    final q = query.trim().toLowerCase();
+    var q = query.trim().toLowerCase();
+    while (q.endsWith('.') ||
+        q.endsWith(',') ||
+        q.endsWith('?') ||
+        q.endsWith('!')) {
+      q = q.substring(0, q.length - 1).trim();
+    }
+    if (q.isEmpty) return const SizedBox.shrink();
 
     final matchingFormIV = formIVCaseCategories.where((cat) {
       return cat.toLowerCase().contains(q);
@@ -6002,7 +6026,7 @@ class _CalendarTabState extends State<_CalendarTab> {
                         }
                       });
                     },
-                    icon: const Icon(Icons.download_rounded,
+                    icon: const Icon(Icons.assessment_outlined,
                         size: 16, color: Colors.white),
                     label: Text('Summary',
                         style: GoogleFonts.poppins(
@@ -6037,7 +6061,7 @@ class _CalendarTabState extends State<_CalendarTab> {
                   ElevatedButton.icon(
                     onPressed: () => ModulePdfHelper.generateSummaryReportPdf(
                         countsForPdf, reportTitle, rangeLabel),
-                    icon: const Icon(Icons.download_rounded,
+                    icon: const Icon(Icons.assessment_outlined,
                         size: 16, color: Colors.white),
                     label: Text('Summary',
                         style: GoogleFonts.poppins(

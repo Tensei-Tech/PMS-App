@@ -173,7 +173,8 @@ class PoliceMgmtApp extends StatefulWidget {
 }
 
 /// ISSUE 3: WidgetsBindingObserver detects app lifecycle changes for auto-lock.
-class _PoliceMgmtAppState extends State<PoliceMgmtApp> with WidgetsBindingObserver {
+class _PoliceMgmtAppState extends State<PoliceMgmtApp>
+    with WidgetsBindingObserver {
   final GlobalKey<NavigatorState> _navKey = GlobalKey<NavigatorState>();
 
   late final AppLifecycleListener _lifecycleListener;
@@ -350,7 +351,8 @@ class _PoliceMgmtAppState extends State<PoliceMgmtApp> with WidgetsBindingObserv
         AppRoutes.stationAccessGrants: (_) => const StationAccessGrantsScreen(),
         AppRoutes.loginSecurity: (_) => const LoginSecurityScreen(),
         AppRoutes.appSettings: (_) => const AppSettingsScreen(),
-        AppRoutes.standaloneCategories: (_) => const StandaloneSelectionScreen(),
+        AppRoutes.standaloneCategories: (_) =>
+            const StandaloneSelectionScreen(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == AppRoutes.registerPinSetup) {
@@ -382,9 +384,12 @@ class _PoliceMgmtAppState extends State<PoliceMgmtApp> with WidgetsBindingObserv
           ).copyWith(textScaler: TextScaler.linear(settings.fontScale)),
           child: Listener(
             behavior: HitTestBehavior.translucent,
-            onPointerDown: (_) => context.read<AuthProvider>().onUserInteraction(),
-            onPointerMove: (_) => context.read<AuthProvider>().onUserInteraction(),
-            onPointerSignal: (_) => context.read<AuthProvider>().onUserInteraction(),
+            onPointerDown: (_) =>
+                context.read<AuthProvider>().onUserInteraction(),
+            onPointerMove: (_) =>
+                context.read<AuthProvider>().onUserInteraction(),
+            onPointerSignal: (_) =>
+                context.read<AuthProvider>().onUserInteraction(),
             // Update gate sits above the lock screen so a required update
             // cannot be bypassed.
             child: AppUpdateGate(
@@ -442,7 +447,10 @@ class _AppLockNavigatorState extends State<_AppLockNavigator> {
         // Use navigatorKey instead of Navigator.of(context) to avoid context issues
         // Schedule navigation after build completes
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && auth.isInitialized && !auth.isSessionActive && auth.isRegistered) {
+          if (mounted &&
+              auth.isInitialized &&
+              !auth.isSessionActive &&
+              auth.isRegistered) {
             final nav = widget.navigatorKey.currentState;
             if (nav != null) {
               nav.pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);

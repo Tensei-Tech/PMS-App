@@ -11,6 +11,7 @@ class FilteredPendingScreen extends StatefulWidget {
   final String title;
   final String? ioUid;
   final String? category;
+  final String? crimeType;
   final String? startDate;
   final String? endDate;
   final bool isUndetected;
@@ -22,6 +23,7 @@ class FilteredPendingScreen extends StatefulWidget {
     required this.title,
     this.ioUid,
     this.category,
+    this.crimeType,
     this.startDate,
     this.endDate,
     this.isUndetected = false,
@@ -72,7 +74,7 @@ class _FilteredPendingScreenState extends State<FilteredPendingScreen> {
       } else {
         dataList = await _backend.fetchPendingCases(
           ioUid: widget.ioUid,
-          category: widget.category,
+          category: widget.category ?? widget.crimeType,
           startDate: widget.startDate,
           endDate: widget.endDate,
         );
@@ -82,9 +84,7 @@ class _FilteredPendingScreenState extends State<FilteredPendingScreen> {
 
       if (dataList != null) {
         var records = dataList.map((m) => ModuleRecord.fromMap(m)).toList();
-        if (widget.isVictim &&
-            widget.ioUid != null &&
-            widget.ioUid!.isNotEmpty) {
+        if (widget.ioUid != null && widget.ioUid!.isNotEmpty) {
           final target = widget.ioUid!.trim().toLowerCase();
           records = records.where((r) {
             final assigned = (r.assignedOfficer.isNotEmpty
@@ -98,26 +98,31 @@ class _FilteredPendingScreenState extends State<FilteredPendingScreen> {
             return assigned == target || ioUid == target || ioDisplay == target;
           }).toList();
         }
-        if (widget.category != null && widget.category!.isNotEmpty) {
+        final targetCat = (widget.crimeType ?? widget.category)?.trim();
+        if (targetCat != null && targetCat.isNotEmpty) {
           records = records
               .where((r) => pendingRecordMatchesDashboardCategory(
                     r: r,
-                    dashboardCategory: widget.category!,
+                    dashboardCategory: targetCat,
                   ))
               .toList();
         }
         if (widget.startDate != null) {
           final sDate = DateTime.tryParse(widget.startDate!);
           if (sDate != null) {
-            records =
-                records.where((r) => !r.incidentDate.isBefore(sDate)).toList();
+            records = records.where((r) {
+              final d = r.createdAt.year > 2000 ? r.createdAt : r.incidentDate;
+              return !d.isBefore(sDate);
+            }).toList();
           }
         }
         if (widget.endDate != null) {
           final eDate = DateTime.tryParse(widget.endDate!);
           if (eDate != null) {
-            records =
-                records.where((r) => !r.incidentDate.isAfter(eDate)).toList();
+            records = records.where((r) {
+              final d = r.createdAt.year > 2000 ? r.createdAt : r.incidentDate;
+              return !d.isAfter(eDate);
+            }).toList();
           }
         }
         final mappedRows =

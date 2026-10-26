@@ -28,6 +28,7 @@ class _VoiceSearchDialogState extends State<VoiceSearchDialog>
   final TextEditingController _voiceInputCtrl = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   bool _isListening = true;
+  bool _hasError = false;
   String _statusMessage = 'Listening… Speak into your microphone now!';
 
   Timer? _autoSubmitTimer;
@@ -72,9 +73,21 @@ class _VoiceSearchDialogState extends State<VoiceSearchDialog>
     super.dispose();
   }
 
+  static String _cleanVoiceText(String input) {
+    var text = input.trim();
+    while (text.endsWith('.') ||
+        text.endsWith(',') ||
+        text.endsWith('?') ||
+        text.endsWith('!')) {
+      text = text.substring(0, text.length - 1).trim();
+    }
+    return text;
+  }
+
   void _startListening() {
     _autoSubmitTimer?.cancel();
     _userIsEditing = false;
+    _hasError = false;
     setState(() {
       _isListening = true;
       _statusMessage = 'Listening… Speak into your microphone now!';
@@ -84,26 +97,29 @@ class _VoiceSearchDialogState extends State<VoiceSearchDialog>
     startWebVoiceRecognition(
       (text, isFinal) {
         if (!mounted) return;
+        final clean = _cleanVoiceText(text);
         setState(() {
-          _voiceInputCtrl.text = text;
+          _voiceInputCtrl.text = clean;
           _voiceInputCtrl.selection = TextSelection.fromPosition(
-            TextPosition(offset: text.length),
+            TextPosition(offset: clean.length),
           );
-          _statusMessage = 'Recognized: "$text"';
+          _statusMessage = 'Recognized: "$clean"';
         });
 
         // If speech recognition marks this phrase as final, directly search!
-        if (isFinal && text.trim().isNotEmpty && !_userIsEditing) {
-          _scheduleDirectSearch(text);
+        if (isFinal && clean.isNotEmpty && !_userIsEditing) {
+          _scheduleDirectSearch(clean);
         }
       },
       (status, message) {
         if (!mounted) return;
         setState(() {
           if (status == 'listening') {
+            _hasError = false;
             _isListening = true;
             _statusMessage = 'Listening… Speak into your mic now!';
           } else if (status == 'error' || status == 'unsupported') {
+            _hasError = true;
             _isListening = false;
             _statusMessage = message;
             if (_pulseCtrl.isAnimating) _pulseCtrl.stop();
@@ -111,12 +127,14 @@ class _VoiceSearchDialogState extends State<VoiceSearchDialog>
             _isListening = false;
             if (_pulseCtrl.isAnimating) _pulseCtrl.stop();
 
-            final currentText = _voiceInputCtrl.text.trim();
-            if (currentText.isNotEmpty && !_userIsEditing) {
-              _statusMessage = 'Searching for "$currentText"…';
-              _scheduleDirectSearch(currentText);
-            } else if (currentText.isEmpty) {
-              _statusMessage = 'Tap mic to speak or type with keyboard below';
+            if (!_hasError) {
+              final currentText = _cleanVoiceText(_voiceInputCtrl.text);
+              if (currentText.isNotEmpty && !_userIsEditing) {
+                _statusMessage = 'Searching for "$currentText"…';
+                _scheduleDirectSearch(currentText);
+              } else if (currentText.isEmpty) {
+                _statusMessage = 'Tap mic to speak or type with keyboard below';
+              }
             }
           }
         });
@@ -148,7 +166,7 @@ class _VoiceSearchDialogState extends State<VoiceSearchDialog>
 
   void _submitSpeech(String text) {
     _autoSubmitTimer?.cancel();
-    final cleaned = text.trim();
+    final cleaned = _cleanVoiceText(text);
     if (cleaned.isNotEmpty) {
       _stopListening();
       if (mounted) Navigator.of(context).pop(cleaned);
@@ -299,7 +317,9 @@ class _VoiceSearchDialogState extends State<VoiceSearchDialog>
                       fontWeight: FontWeight.w600,
                       color: _isListening
                           ? AppColors.navyMid
-                          : AppColors.lightSubText,
+                          : _hasError
+                              ? const Color(0xFFD32F2F)
+                              : AppColors.lightSubText,
                     ),
                   ),
                 ),

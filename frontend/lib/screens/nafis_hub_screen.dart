@@ -574,18 +574,40 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
               }
             },
           ),
-          IconButton(
-            icon:
-                const Icon(Icons.table_chart_rounded, color: AppColors.navyMid),
-            tooltip: 'All Cases Summary',
-            onPressed: () {
-              Navigator.push(
-                context,
-                AppTheme.fadeSlideRoute(
-                  page: NAFISSummaryScreen(stationName: widget.stationName),
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  AppTheme.fadeSlideRoute(
+                    page: NAFISSummaryScreen(stationName: widget.stationName),
+                  ),
+                );
+              },
+              icon: const Icon(
+                Icons.assessment_outlined,
+                color: Colors.white,
+                size: 16,
+              ),
+              label: Text(
+                'Summary',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  color: Colors.white,
                 ),
-              );
-            },
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.navyMid,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              ),
+            ),
           ),
         ],
         bottom: TabBar(

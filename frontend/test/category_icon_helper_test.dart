@@ -34,7 +34,9 @@ void main() {
       }
     });
 
-    test('chain snatching and chain robbery variants resolve to assets/icons/chain_snatching.svg', () {
+    test(
+        'chain snatching and chain robbery variants resolve to assets/icons/chain_snatching.svg',
+        () {
       const variants = [
         'chain snatching',
         'chainsnatching',
@@ -45,7 +47,8 @@ void main() {
         'Chain Robbery',
       ];
       for (final v in variants) {
-        expect(CategoryIconHelper.getSvgPath(v), 'assets/icons/chain_snatching.svg',
+        expect(CategoryIconHelper.getSvgPath(v),
+            'assets/icons/chain_snatching.svg',
             reason: 'Failed for variant: $v');
       }
     });

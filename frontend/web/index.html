@@ -54,21 +54,44 @@
         var SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRec) {
           window.dispatchEvent(new CustomEvent('voice_status', { 
-            detail: { status: 'unsupported', message: 'Speech Recognition is not supported in this browser. Please use Chrome or Edge.' } 
+            detail: { status: 'unsupported', message: 'Speech Recognition is not supported in this browser. Please use Google Chrome or Edge.' } 
           }));
           return;
         }
 
         var targetLang = langCode || 'en-IN';
 
-        // Request browser microphone permission directly to trigger Chrome's Allow prompt
+        // Check if running inside Brave browser (Brave blocks Google cloud speech recognition)
+        if (navigator.brave && typeof navigator.brave.isBrave === 'function') {
+          navigator.brave.isBrave().then(function(isBrave) {
+            if (isBrave) {
+              window.dispatchEvent(new CustomEvent('voice_status', { 
+                detail: { 
+                  status: 'error', 
+                  message: 'Brave Browser disables Google Voice Recognition by default. Please open PMS in Google Chrome or Microsoft Edge to use voice search.' 
+                } 
+              }));
+            } else {
+              self._proceedStart(SpeechRec, targetLang);
+            }
+          }).catch(function() {
+            self._proceedStart(SpeechRec, targetLang);
+          });
+          return;
+        }
+
+        self._proceedStart(SpeechRec, targetLang);
+      },
+      _proceedStart: function(SpeechRec, targetLang) {
+        var self = this;
+        // Check microphone permission without keeping the audio device locked
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
           navigator.mediaDevices.getUserMedia({ audio: true }).then(function(s) {
-            self.stream = s;
+            // Immediately stop tracks so the device is free for SpeechRecognition
+            s.getTracks().forEach(function(t) { t.stop(); });
             self._startSpeech(SpeechRec, targetLang);
           }).catch(function(err) {
             console.warn("getUserMedia error:", err);
-            // Still try starting speech directly
             self._startSpeech(SpeechRec, targetLang);
           });
         } else {
@@ -82,7 +105,7 @@
           }
           var rec = new SpeechRec();
           this.recognition = rec;
-          rec.continuous = false;
+          rec.continuous = true;
           rec.interimResults = true;
           rec.maxAlternatives = 3;
           rec.lang = targetLang || 'en-IN';
@@ -99,6 +122,8 @@
               text += event.results[i][0].transcript;
             }
             var isFinal = event.results[event.results.length - 1].isFinal;
+            // Strip trailing full stop or punctuation automatically added by speech recognition
+            text = text.replace(/[\.\,\?\!]+$/g, '').trim();
             window.dispatchEvent(new CustomEvent('voice_result', { 
               detail: { text: text, isFinal: isFinal } 
             }));
@@ -108,6 +133,8 @@
             var msg = "Voice error: " + event.error;
             if (event.error === 'not-allowed') {
               msg = "Microphone access blocked. Click the lock icon 🔒 near the address bar to Allow microphone.";
+            } else if (event.error === 'network') {
+              msg = "Voice service unreachable. Brave Browser blocks Google Speech API — please open in Google Chrome or Edge.";
             } else if (event.error === 'no-speech') {
               msg = "No speech detected. Tap the mic to try speaking again.";
             } else if (event.error === 'audio-capture') {
@@ -134,7 +161,9 @@
       },
       stop: function() {
         if (this.recognition) {
-          try { this.recognition.abort(); } catch(e){}
+          try { this.recognition.stop(); } catch(e){
+            try { this.recognition.abort(); } catch(e2){}
+          }
           this.recognition = null;
         }
         if (this.stream) {

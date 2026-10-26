@@ -45,6 +45,8 @@ class CategoryIconHelper {
       case 'crime against women':
       case 'crime against woman':
       case 'crimes against women':
+      case 'rape':
+      case 'molestation':
       case '498 (a) ipc':
       case '498a':
       case '498 (a)':
@@ -139,6 +141,25 @@ class CategoryIconHelper {
         return 'assets/icons/IRDA.svg';
       case 'itsso':
         return 'assets/icons/itsso.svg';
+      case '1 to 5':
+      case 'i to v':
+      case 'form 1 to 5':
+      case 'form_1_5':
+        return 'assets/icons/1to5.svg';
+      case '6':
+      case 'part 6':
+      case 'class vi':
+      case 'form 6':
+      case 'form_6':
+        return 'assets/icons/6.svg';
+      case 'warrant':
+      case 'warrants':
+      case 'sam warrants':
+        return 'assets/icons/sam-warrants.svg';
+    }
+
+    if (k.contains('rape') || k.contains('molest')) {
+      return 'assets/icons/crimewomen.svg';
     }
 
     if (k.contains('accident')) {

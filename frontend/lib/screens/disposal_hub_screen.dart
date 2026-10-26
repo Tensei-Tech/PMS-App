@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/backend_case_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/category_icon_helper.dart';
 import 'filtered_disposal_screen.dart';
 
 class DisposalHubScreen extends StatefulWidget {
@@ -258,15 +259,16 @@ class _DisposalHubScreenState extends State<DisposalHubScreen>
                   child: Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(10),
+                        width: 40,
+                        height: 40,
                         decoration: BoxDecoration(
                           color:
                               const Color(0xFF2E7D32).withValues(alpha: 0.07),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Icon(
-                          Icons.task_alt_rounded,
-                          color: Color(0xFF2E7D32),
+                        child: CategoryIconHelper.buildWidget(
+                          typeName,
+                          color: const Color(0xFF2E7D32),
                           size: 20,
                         ),
                       ),
@@ -627,7 +629,7 @@ class _DisposalHubScreenState extends State<DisposalHubScreen>
           preferredSize: const Size.fromHeight(48),
           child: Container(
             color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             child: TabBar(
               controller: _tabController,
               labelColor: AppColors.navyMid,

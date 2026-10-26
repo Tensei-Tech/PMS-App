@@ -897,8 +897,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                           : 'Monthly Registration Report',
                   DateFormat('MMMM yyyy').format(now),
                 ),
-                icon: const Icon(Icons.download_rounded,
-                    size: 18, color: Colors.white),
+                icon: const Icon(Icons.assessment_outlined,
+                    size: 16, color: Colors.white),
                 label: Text('Summary',
                     style:
                         GoogleFonts.poppins(fontSize: 12, color: Colors.white)),
