@@ -12,6 +12,7 @@ from django.test.utils import CaptureQueriesContext
 from rest_framework.test import APIClient
 
 from apps.cases.models import CaseRecord
+from apps.core.tenancy import TenantContext
 from apps.crimetab.models.accident import RoadAccidentRecord
 from apps.public_master.models import Role, StateRegistry
 from apps.users.models import OfficerProfile
@@ -36,13 +37,17 @@ class CaseListSpeedTests(TestCase):
         cache.clear()
 
     def _add_cases(self, n, with_accident=True):
-        for _ in range(n):
-            self.created += 1
-            case = CaseRecord.objects.create(id=f'speed-{self.created}', module_key='murder',
-                                             title=f'Case {self.created}', case_number=f'CR/{self.created}',
-                                             station_name=STATION, extra_fields={'k': 'v'})
-            if with_accident:
-                RoadAccidentRecord.objects.create(case_id=case.id, station_name=STATION)
+        # Each request resets search_path to public afterwards, so tenant tables
+        # (cases, road_accident_records) must be written inside the state schema
+        # every time, not only at the start of the test (matters on PostgreSQL).
+        with TenantContext('maharashtra'):
+            for _ in range(n):
+                self.created += 1
+                case = CaseRecord.objects.create(id=f'speed-{self.created}', module_key='murder',
+                                                 title=f'Case {self.created}', case_number=f'CR/{self.created}',
+                                                 station_name=STATION, extra_fields={'k': 'v'})
+                if with_accident:
+                    RoadAccidentRecord.objects.create(case_id=case.id, station_name=STATION)
 
     def _data_queries(self, url):
         cache.clear()  # measure the database work, not the response cache
@@ -80,7 +85,8 @@ class CaseListSpeedTests(TestCase):
 
     def test_first_accident_record_wins_as_before(self):
         self._add_cases(1, with_accident=False)
-        RoadAccidentRecord.objects.create(case_id='speed-1', station_name=STATION, accident_spot='FIRST')
-        RoadAccidentRecord.objects.create(case_id='speed-1', station_name=STATION, accident_spot='SECOND')
+        with TenantContext('maharashtra'):
+            RoadAccidentRecord.objects.create(case_id='speed-1', station_name=STATION, accident_spot='FIRST')
+            RoadAccidentRecord.objects.create(case_id='speed-1', station_name=STATION, accident_spot='SECOND')
         row = self.client.get('/api/cases/').json()['results'][0]
         self.assertEqual(row['road_accident']['accident_spot'], 'FIRST')
