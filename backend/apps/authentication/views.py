@@ -3,6 +3,7 @@ import logging
 import jwt
 from datetime import datetime, timedelta, timezone
 from django.conf import settings
+from django.core.cache import cache
 from django.db import transaction
 from rest_framework import status, views, permissions
 from rest_framework.response import Response
@@ -595,6 +596,13 @@ class ApproveRejectOfficerRegistrationView(views.APIView):
             return Response({'message': f'Officer {officer.name} registration REJECTED.'}, status=status.HTTP_200_OK)
 
 
+LOGIN_SCHEMA_CACHE_SECONDS = 12 * 60 * 60
+
+
+def _login_schema_cache_key(email):
+    return f"login_schema:{email}"
+
+
 class LoginView(views.APIView):
     """
     Primary Login API endpoint: POST /api/v1/auth/login/
@@ -667,12 +675,30 @@ class LoginView(views.APIView):
         officer = None
         matched_state_code = state_registry.state_code if state_registry else None
 
+        # Each password check runs PBKDF2 (1.5M rounds in Django 6.1, several
+        # seconds on a small server), so verify each stored hash at most once per
+        # login. The same officer mirrored in public and a state schema shares
+        # the hash.
+        verified_hashes = {}
+
+        def password_ok(user):
+            encoded = user.password or ''
+            if encoded not in verified_hashes:
+                verified_hashes[encoded] = user.check_password(password)
+            return verified_hashes[encoded]
+
+        # Schema this email last logged in from; only tried first, never trusted.
+        preferred_schema = cache.get(_login_schema_cache_key(email))
+
+        def preferred_first(states):
+            return sorted(states, key=lambda st: st.schema_name != preferred_schema)
+
         # Step 2A: Search ONLY in the declared tenant schema (strict isolation)
         if schema_name:
             try:
                 set_tenant_schema(schema_name)
                 cand = OfficerProfile.objects.filter(email=email).first()
-                if cand and cand.password and cand.check_password(password):
+                if cand and cand.password and password_ok(cand):
                     officer = cand
             except Exception as e:
                 logger.warning(f"[LoginView] Targeted schema {schema_name} query failed: {e}")
@@ -687,7 +713,7 @@ class LoginView(views.APIView):
                 set_tenant_schema('public')
                 cand = OfficerProfile.objects.filter(email=email).first()
                 if cand:
-                    if cand.password and cand.check_password(password):
+                    if cand.password and password_ok(cand):
                         officer = cand
                         # If tenant was declared, keep matched_state_code from state_registry.
                         # If not declared, matched_state_code remains None (resolved in Step 2D).
@@ -700,20 +726,20 @@ class LoginView(views.APIView):
         # Step 2C: Cross-schema search — ONLY when no explicit state was declared.
         # If the client said state_code=BR and we found nothing, return 401 immediately
         # rather than searching other states and potentially leaking cross-tenant data.
-        if not officer or not officer.check_password(password):
+        if not officer or not password_ok(officer):
             if tenant_explicitly_declared:
                 # Explicit state declared but officer not found/authenticated in that state
                 logger.info(f"[LoginView] Tenant isolation: refusing cross-schema search for declared tenant '{requested_tenant}'")
                 return Response({'error': 'Invalid email or password.'}, status=status.HTTP_401_UNAUTHORIZED)
             # No state declared: legacy cross-schema fallback (only for accounts without state_code)
-            active_states = list(StateRegistry.objects.filter(is_active=True))
+            active_states = preferred_first(StateRegistry.objects.filter(is_active=True))
             for st in active_states:
                 if schema_name and st.schema_name == schema_name:
                     continue
                 try:
                     set_tenant_schema(st.schema_name)
                     cand = OfficerProfile.objects.filter(email=email).first()
-                    if cand and cand.password and cand.check_password(password):
+                    if cand and cand.password and password_ok(cand):
                         officer = cand
                         schema_name = st.schema_name
                         matched_state_code = st.state_code
@@ -734,7 +760,7 @@ class LoginView(views.APIView):
                     break
 
             if not matched_state_code:
-                for st in StateRegistry.objects.filter(is_active=True):
+                for st in preferred_first(StateRegistry.objects.filter(is_active=True)):
                     try:
                         set_tenant_schema(st.schema_name)
                         if OfficerProfile.objects.filter(uid=officer.uid).exists():
@@ -755,11 +781,14 @@ class LoginView(views.APIView):
 
         set_tenant_schema(schema_name)
 
-        if officer and officer.check_password(password):
+        if officer and password_ok(officer):
             if officer.account_status != 'active':
                 return Response({
                     'error': 'Account Authorization Pending: Your registration request is currently awaiting approval from your Station Head or Superior Officer.'
                 }, status=status.HTTP_403_FORBIDDEN)
+
+            if schema_name and schema_name != 'public':
+                cache.set(_login_schema_cache_key(email), schema_name, timeout=LOGIN_SCHEMA_CACHE_SECONDS)
 
             tokens = generate_tokens_for_user(
                 uid=officer.uid,

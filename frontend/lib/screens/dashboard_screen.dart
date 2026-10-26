@@ -95,11 +95,9 @@ import '../widgets/bell_icon_widget.dart';
 import '../widgets/form_iv_category_button.dart';
 import '../widgets/searchable_picker_field.dart';
 import '../widgets/send_broadcast_alert_dialog.dart';
+import '../utils/app_data_cache.dart';
 import '../utils/category_navigation_helper.dart';
 import '../services/case_service.dart';
-import '../services/history_sheeter_service.dart';
-import '../services/mpda_service.dart';
-import '../services/rti_service.dart';
 import '../widgets/send_reminder_dialog.dart';
 import '../widgets/state_police_banner_dialog.dart';
 import '../widgets/voice_search_dialog.dart';
@@ -1278,6 +1276,16 @@ class ADIconPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
+/// Clears settings caches only when the user, state or active station changed
+/// or they are stale, instead of on every dashboard visit.
+void _ensureFreshCaches(AuthProvider auth) {
+  AppDataCache.ensureFresh(AppDataCache.scopeFor(
+    uid: auth.uid,
+    stateCode: auth.stateCode,
+    station: auth.activeStation,
+  ));
+}
+
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -1291,11 +1299,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    CaseService().clearCategoryCache();
-    CategoryNavigationHelper.clearCache();
-    RtiService().clearConfigCache();
-    HistorySheeterService().clearConfigCache();
-    MpdaService().clearConfigCache();
+    // Settings caches survive dashboard visits; they are cleared only for a
+    // different user/state/station or when stale (see AppDataCache).
+    _ensureFreshCaches(context.read<AuthProvider>());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<AuthProvider>().refreshProfileFromFirestore();
@@ -2537,11 +2543,7 @@ class _HomeTabState extends State<_HomeTab> {
   @override
   void initState() {
     super.initState();
-    CaseService().clearCategoryCache();
-    CategoryNavigationHelper.clearCache();
-    RtiService().clearConfigCache();
-    HistorySheeterService().clearConfigCache();
-    MpdaService().clearConfigCache();
+    // DashboardScreen already refreshed stale caches for this user/station.
     _loadBackendCategories();
     // MPDA detention end reminders of this station (bell badge + list)
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -2598,6 +2600,7 @@ class _HomeTabState extends State<_HomeTab> {
     if (_subscribedStationName == activeStation) return;
     _clearSearchStateOnStationSwitch();
     _subscribedStationName = activeStation;
+    _ensureFreshCaches(widget.auth);
     _initRecentStream();
   }
 

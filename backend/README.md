@@ -38,3 +38,18 @@ python manage.py test apps.crimetab.tests.test_migration_0036
 ```
 This validates `DatabaseSchemaEditor` mogrify parameter interpolation, confirms that `%` characters are properly escaped as `%%`, and exercises the migration through Django's `MigrationLoader` and `schema_editor`.
 
+
+## Performance settings (Render → Environment)
+
+All optional; the defaults are below.
+
+| Variable | Default | What it does |
+|---|---|---|
+| `WEB_CONCURRENCY` | `2` | Gunicorn worker processes (`gunicorn.conf.py`). Use `1` if the instance runs out of memory. |
+| `GUNICORN_THREADS` | `4` | Threads per worker; requests served at once = workers × threads (also the max database connections). |
+| `GUNICORN_TIMEOUT` | `60` | Seconds before a stuck request is killed. |
+| `DB_CONN_MAX_AGE` | `60` | Seconds a database connection is kept for reuse. Forced to `0` on Supabase's transaction pooler (port 6543) to keep tenant `search_path` isolated; use the session pooler (port 5432). |
+| `SLOW_REQUEST_MS` | `1000` | Requests slower than this are logged as warnings. |
+
+Every request logs one line such as `[Timing] GET /api/cases/ 200 412ms db=9q/180ms`
+(Render → Logs) and returns a `Server-Timing` header.
