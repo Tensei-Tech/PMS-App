@@ -63,7 +63,9 @@ class CommonFormE2ETests(TestCase):
         self.tenant_ctx = TenantContext('maharashtra')
         self.tenant_ctx.__enter__()
 
-        self.client = Client(HTTP_X_STATE_CODE='MH')
+        # Case endpoints need a login, as in the app
+        from apps.crimetab.tests.auth_helpers import district_officer_headers
+        self.client = Client(**district_officer_headers())
 
         # Clean existing test artifacts if any
         SectionFieldTemplate.objects.all().delete()

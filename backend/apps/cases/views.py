@@ -328,9 +328,9 @@ class CaseCountsView(APIView):
     Returns aggregated case counts computed directly in SQL (COUNT(DISTINCT id)),
     grouped overall, by groups (1 to 5, Part 6), and by tab (module_key),
     split by status (total, pending, disposal, detected).
-    Cached for 60 seconds, keyed by tenant schema.
+    Cached for 60 seconds per user.
     """
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     @cache_response(ttl=60, key_prefix="cases:counts")
     def get(self, request):

@@ -30,7 +30,9 @@ class Migration0037ScratchDatabaseTest(TestCase):
         )
         self.tenant_ctx = TenantContext('maharashtra')
         self.tenant_ctx.__enter__()
-        self.client = self.client_class(HTTP_X_STATE_CODE='MH')
+        # Case endpoints need a login, as in the app
+        from apps.crimetab.tests.auth_helpers import district_officer_headers
+        self.client = self.client_class(**district_officer_headers())
 
         # 1. Simulate the exact user STATE:
         # A FieldTemplate with a non-1 ID to prove matching is by template_name, never by id.
