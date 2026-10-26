@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/models/base_record.dart';
+import '../constants/licence_noc_types.dart';
 import '../providers/licence_provider.dart';
 import '../../../theme/app_theme.dart';
 import '../../../utils/translation_helper.dart';
@@ -36,10 +37,15 @@ class _LicenceAddEditDialogState extends State<LicenceAddEditDialog> {
   final _applicantNameCtrl = TextEditingController();
   final _businessNameCtrl = TextEditingController();
   final _licenceTypeCtrl = TextEditingController();
+  final _otherDetailsCtrl = TextEditingController();
 
+  String? _selectedLicenceType;
   late DateTime _receivedDate;
   String? _status;
   bool _isSaving = false;
+
+  LicenceNocOption? get _selectedLicenceOption =>
+      findLicenceNocOption(_selectedLicenceType);
 
   @override
   void initState() {
@@ -54,9 +60,25 @@ class _LicenceAddEditDialogState extends State<LicenceAddEditDialog> {
       _businessNameCtrl.text = (r.extraFields['business_name'] ??
               (r.accused != 'Licence Applicant' ? r.accused : ''))
           .toString();
-      _licenceTypeCtrl.text = (r.extraFields['licence_type'] ??
+
+      final rawType = (r.extraFields['licence_type'] ??
               (r.title != 'Licence Verification' ? r.title : ''))
-          .toString();
+          .toString()
+          .trim();
+
+      final matched = findLicenceNocOption(rawType);
+      if (matched != null) {
+        _selectedLicenceType = matched.displayName;
+        _licenceTypeCtrl.text = matched.displayName;
+        if ((matched.number == 25 || matched.number == 38) &&
+            rawType.contains(' - ')) {
+          _otherDetailsCtrl.text =
+              rawType.split(' - ').skip(1).join(' - ').trim();
+        }
+      } else if (rawType.isNotEmpty) {
+        _selectedLicenceType = rawType;
+        _licenceTypeCtrl.text = rawType;
+      }
 
       if (LicenceProvider.isApprovedRecord(r)) {
         _status = LicenceProvider.statusApproved;
@@ -77,6 +99,7 @@ class _LicenceAddEditDialogState extends State<LicenceAddEditDialog> {
     _applicantNameCtrl.dispose();
     _businessNameCtrl.dispose();
     _licenceTypeCtrl.dispose();
+    _otherDetailsCtrl.dispose();
     super.dispose();
   }
 
@@ -110,7 +133,14 @@ class _LicenceAddEditDialogState extends State<LicenceAddEditDialog> {
 
       final applicantName = _applicantNameCtrl.text.trim();
       final businessName = _businessNameCtrl.text.trim();
-      final licenceType = _licenceTypeCtrl.text.trim();
+
+      String licenceType =
+          (_selectedLicenceType ?? _licenceTypeCtrl.text).trim();
+      final matchedOpt = findLicenceNocOption(licenceType);
+      if ((matchedOpt?.number == 25 || matchedOpt?.number == 38) &&
+          _otherDetailsCtrl.text.trim().isNotEmpty) {
+        licenceType = '$licenceType - ${_otherDetailsCtrl.text.trim()}';
+      }
 
       final statusToSave = (_status == LicenceProvider.statusApproved ||
               _status == LicenceProvider.statusRejected ||
@@ -292,15 +322,172 @@ class _LicenceAddEditDialogState extends State<LicenceAddEditDialog> {
                 // 3. Licence / NOC Type
                 _buildFieldLabel(context, 'Licence / NOC Type'),
                 const SizedBox(height: 6),
-                TextFormField(
-                  controller: _licenceTypeCtrl,
-                  style: GoogleFonts.poppins(fontSize: 13),
-                  decoration: _inputDecoration(
-                    hint: TranslationHelper.translate(
-                        context, 'Enter licence / NOC type'),
-                    prefixIcon: Icons.category_outlined,
-                  ),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Autocomplete<LicenceNocOption>(
+                      initialValue: TextEditingValue(
+                        text: _selectedLicenceType ?? _licenceTypeCtrl.text,
+                      ),
+                      displayStringForOption: (opt) => opt.displayName,
+                      optionsBuilder: (TextEditingValue textEditingValue) {
+                        final query =
+                            textEditingValue.text.trim().toLowerCase();
+                        if (query.isEmpty) {
+                          return kLicenceNocOptions;
+                        }
+                        return kLicenceNocOptions.where((opt) {
+                          return opt.name.toLowerCase().contains(query);
+                        });
+                      },
+                      onSelected: (LicenceNocOption selection) {
+                        setState(() {
+                          _selectedLicenceType = selection.displayName;
+                          _licenceTypeCtrl.text = selection.displayName;
+                        });
+                      },
+                      fieldViewBuilder: (
+                        context,
+                        fieldTextController,
+                        focusNode,
+                        onFieldSubmitted,
+                      ) {
+                        return TextFormField(
+                          controller: fieldTextController,
+                          focusNode: focusNode,
+                          style: GoogleFonts.poppins(
+                              fontSize: 13, color: AppColors.navyDark),
+                          decoration: _inputDecoration(
+                            hint: TranslationHelper.translate(
+                              context,
+                              'Type directly or select Licence / NOC type',
+                            ),
+                            prefixIcon: Icons.category_outlined,
+                            suffixIcon: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (fieldTextController.text.isNotEmpty)
+                                  IconButton(
+                                    icon: const Icon(Icons.clear_rounded,
+                                        size: 16),
+                                    tooltip: TranslationHelper.translate(
+                                        context, 'Clear'),
+                                    onPressed: () {
+                                      fieldTextController.clear();
+                                      setState(() {
+                                        _selectedLicenceType = null;
+                                        _licenceTypeCtrl.clear();
+                                        _otherDetailsCtrl.clear();
+                                      });
+                                    },
+                                  ),
+                                IconButton(
+                                  icon: const Icon(Icons.arrow_drop_down,
+                                      color: AppColors.lightSubText),
+                                  onPressed: () {
+                                    if (!focusNode.hasFocus) {
+                                      focusNode.requestFocus();
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                          onChanged: (text) {
+                            setState(() {
+                              _selectedLicenceType = text.trim();
+                              _licenceTypeCtrl.text = text.trim();
+                            });
+                          },
+                        );
+                      },
+                      optionsViewBuilder: (context, onSelected, options) {
+                        return Align(
+                          alignment: Alignment.topLeft,
+                          child: Material(
+                            elevation: 8,
+                            borderRadius: BorderRadius.circular(10),
+                            color: Colors.white,
+                            clipBehavior: Clip.antiAlias,
+                            child: Container(
+                              width: constraints.maxWidth,
+                              constraints: const BoxConstraints(maxHeight: 280),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                border:
+                                    Border.all(color: const Color(0xFFCBD5E1)),
+                              ),
+                              child: ListView.separated(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 4),
+                                shrinkWrap: true,
+                                itemCount: options.length,
+                                separatorBuilder: (_, __) => const Divider(
+                                    height: 1, color: Color(0xFFF1F5F9)),
+                                itemBuilder: (ctx, index) {
+                                  final opt = options.elementAt(index);
+                                  final isSelected =
+                                      _selectedLicenceType == opt.displayName;
+
+                                  return InkWell(
+                                    onTap: () => onSelected(opt),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 10),
+                                      color: isSelected
+                                          ? const Color(0xFFEFF6FF)
+                                          : Colors.transparent,
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              opt.name,
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 13,
+                                                fontWeight: isSelected
+                                                    ? FontWeight.w600
+                                                    : FontWeight.w400,
+                                                color: isSelected
+                                                    ? const Color(0xFF1E40AF)
+                                                    : AppColors.navyDark,
+                                              ),
+                                            ),
+                                          ),
+                                          if (isSelected)
+                                            const Icon(
+                                              Icons.check_rounded,
+                                              size: 16,
+                                              color: Color(0xFF3B82F6),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
                 ),
+                if (_selectedLicenceOption?.number == 25 ||
+                    _selectedLicenceOption?.number == 38) ...[
+                  const SizedBox(height: 10),
+                  _buildFieldLabel(
+                      context, 'Specify Other Licence / NOC Details'),
+                  const SizedBox(height: 6),
+                  TextFormField(
+                    controller: _otherDetailsCtrl,
+                    style: GoogleFonts.poppins(fontSize: 13),
+                    decoration: _inputDecoration(
+                      hint: TranslationHelper.translate(
+                          context, 'Enter specific details of Licence / NOC'),
+                      prefixIcon: Icons.edit_note_rounded,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 14),
 
                 // 4. Received Date
@@ -343,7 +530,6 @@ class _LicenceAddEditDialogState extends State<LicenceAddEditDialog> {
                 _buildFieldLabel(context, 'Verification completed'),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<String>(
-                  key: ValueKey(_status),
                   initialValue: (_status == LicenceProvider.statusApproved ||
                           _status == LicenceProvider.statusRejected ||
                           _status == LicenceProvider.statusReturned)

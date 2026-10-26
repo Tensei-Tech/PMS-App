@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:printing/printing.dart';
 
 import '../../core/models/base_record.dart';
+import '../constants/licence_noc_types.dart';
 import '../providers/licence_provider.dart';
 import '../widgets/licence_status_cards.dart';
 import '../widgets/licence_add_edit_dialog.dart';
@@ -38,6 +39,7 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
 
   DateTimeRange? _selectedDateRange;
   String? _datePresetLabel;
+  LicenceNocOption? _selectedNocFilter;
 
   @override
   void initState() {
@@ -140,6 +142,19 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
                 r.incidentDate.isAtSameMomentAs(start)) &&
             (r.incidentDate.isBefore(end) ||
                 r.incidentDate.isAtSameMomentAs(end));
+      }).toList();
+    }
+
+    if (_selectedNocFilter != null) {
+      list = list.where((r) {
+        final rawType = (r.extraFields['licence_type'] ?? r.title).toString();
+        final matched = findLicenceNocOption(rawType);
+        if (matched != null) {
+          return matched.number == _selectedNocFilter!.number;
+        }
+        return rawType
+            .toLowerCase()
+            .contains(_selectedNocFilter!.name.toLowerCase());
       }).toList();
     }
 
@@ -298,7 +313,7 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
     };
 
     final subtitle =
-        '${visibleRecords.length} ${TranslationHelper.translate(context, 'records')} · $transFilterLabel';
+        '${visibleRecords.length} ${TranslationHelper.translate(context, 'records')} · $transFilterLabel${_selectedNocFilter != null ? ' · ${_selectedNocFilter!.displayName}' : ''}';
 
     return Scaffold(
       backgroundColor: AppColors.lightBg,
@@ -410,6 +425,10 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
                   ),
                 ),
                 const SizedBox(width: 10),
+
+                // NOC Type Filter Menu
+                _buildNocTypeFilterMenu(context),
+                const SizedBox(width: 8),
 
                 // Date Presets Menu
                 _buildDateFilterMenu(context),
@@ -663,6 +682,141 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // ── NOC Type Filter Menu Widget ───────────────────────────────────────────
+
+  Widget _buildNocTypeFilterMenu(BuildContext context) {
+    final hasFilter = _selectedNocFilter != null;
+
+    return PopupMenuButton<String>(
+      tooltip:
+          TranslationHelper.translate(context, 'Filter by Licence / NOC Type'),
+      constraints: const BoxConstraints(maxHeight: 450, maxWidth: 360),
+      onSelected: (val) {
+        if (val == 'all') {
+          setState(() => _selectedNocFilter = null);
+        } else {
+          final num = int.tryParse(val);
+          final opt = kLicenceNocOptions.cast<LicenceNocOption?>().firstWhere(
+                (o) => o?.number == num,
+                orElse: () => null,
+              );
+          setState(() => _selectedNocFilter = opt);
+        }
+      },
+      itemBuilder: (ctx) => [
+        PopupMenuItem<String>(
+          value: 'all',
+          child: Row(
+            children: [
+              Icon(
+                _selectedNocFilter == null
+                    ? Icons.check_circle_rounded
+                    : Icons.circle_outlined,
+                size: 16,
+                color: _selectedNocFilter == null
+                    ? AppColors.navyMid
+                    : AppColors.lightSubText,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                TranslationHelper.translate(ctx, 'All NOC / Licence Types'),
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: _selectedNocFilter == null
+                      ? FontWeight.w600
+                      : FontWeight.w500,
+                  color: AppColors.navyDark,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+        ...kLicenceNocOptions.map((opt) {
+          final isSelected = _selectedNocFilter?.number == opt.number;
+          return PopupMenuItem<String>(
+            value: '${opt.number}',
+            child: Row(
+              children: [
+                Icon(
+                  isSelected
+                      ? Icons.check_circle_rounded
+                      : Icons.circle_outlined,
+                  size: 16,
+                  color:
+                      isSelected ? AppColors.navyMid : AppColors.lightSubText,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    opt.displayName,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12.5,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.w400,
+                      color: AppColors.navyDark,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
+      child: Container(
+        height: 38,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          color: hasFilter ? const Color(0xFFEFF6FF) : Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color:
+                hasFilter ? const Color(0xFF3B82F6) : const Color(0xFFCBD5E1),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.category_outlined,
+              size: 16,
+              color:
+                  hasFilter ? const Color(0xFF1E40AF) : AppColors.lightSubText,
+            ),
+            const SizedBox(width: 6),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 160),
+              child: Text(
+                _selectedNocFilter?.displayName ??
+                    TranslationHelper.translate(context, 'NOC Type'),
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: hasFilter ? FontWeight.w600 : FontWeight.w500,
+                  color:
+                      hasFilter ? const Color(0xFF1E40AF) : AppColors.navyDark,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (hasFilter) ...[
+              const SizedBox(width: 4),
+              InkWell(
+                onTap: () => setState(() => _selectedNocFilter = null),
+                child: const Icon(Icons.close_rounded,
+                    size: 14, color: Color(0xFFDC2626)),
+              ),
+            ] else ...[
+              const SizedBox(width: 4),
+              const Icon(Icons.arrow_drop_down,
+                  size: 16, color: AppColors.lightSubText),
+            ],
+          ],
+        ),
       ),
     );
   }

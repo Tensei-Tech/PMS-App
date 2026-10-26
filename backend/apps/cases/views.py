@@ -437,6 +437,9 @@ class UndetectedCasesView(EnrichDataMixin, APIView):
             )
             queryset = CaseRecord.objects.filter(undetected_q).exclude(
                 status__in=['Disposal', 'Disposed', 'Closed', 'Resolved']
+            ).exclude(
+                Q(module_key__in=['passport', 'licence', 'application', 'missing']) |
+                Q(sub_category__iexact='missing')
             )
 
             # Enforce station-level visibility
@@ -503,6 +506,9 @@ class UndetectedIOWiseView(APIView):
             )
             queryset = CaseRecord.objects.filter(undetected_q).exclude(
                 status__in=['Disposal', 'Disposed', 'Closed', 'Resolved']
+            ).exclude(
+                Q(module_key__in=['passport', 'licence', 'application', 'missing']) |
+                Q(sub_category__iexact='missing')
             )
 
             user = request.user
@@ -554,6 +560,9 @@ class UndetectedTimeWiseView(APIView):
             )
             queryset = CaseRecord.objects.filter(undetected_q).exclude(
                 status__in=['Disposal', 'Disposed', 'Closed', 'Resolved']
+            ).exclude(
+                Q(module_key__in=['passport', 'licence', 'application', 'missing']) |
+                Q(sub_category__iexact='missing')
             )
 
             user = request.user
@@ -1371,32 +1380,24 @@ class TimeWiseArrestedView(TimeWisePendingView):
 
 class RepeatOffenderCaseWiseView(PendingCasesView):
 
-    def _enrich_data(self, data_list):
-        from apps.crimetab.models.common_form import CasesPerson
-        from django.db.models import Count
-        repeat_names_qs = CasesPerson.objects.filter(role__in=['accused', 'suspected_accused']).exclude(name__isnull=True).exclude(name__exact='').values('name').annotate(case_count=Count('case_id', distinct=True)).filter(case_count__gt=1)
-        repeat_names = set(repeat_names_qs.values_list('name', flat=True))
-        repeat_persons = CasesPerson.objects.filter(name__in=repeat_names, role__in=['accused', 'suspected_accused']).select_related('case')
-        name_to_crs = {}
-        for p in repeat_persons:
-            name_to_crs.setdefault(p.name, set())
-            if p.case and p.case.case_number:
-                name_to_crs[p.name].add(p.case.case_number)
+    def _enrich_data(self, data_list, station_names=None):
+        from apps.cases.utils import get_repeat_offender_map
+        _, case_to_info = get_repeat_offender_map(station_names=station_names)
         for item in data_list:
             case_id = item.get('id')
-            if not case_id: continue
+            if not case_id:
+                continue
             if not isinstance(item.get('extra_fields'), dict):
                 item['extra_fields'] = {}
-            case_persons = CasesPerson.objects.filter(case_id=case_id, role__in=['accused', 'suspected_accused'])
-            accused_names_in_this_case = [p.name for p in case_persons if p.name in repeat_names]
-            if accused_names_in_this_case:
-                primary = accused_names_in_this_case[0]
-                item['extra_fields']['accused_name'] = primary
-                all_crs = name_to_crs.get(primary, set())
-                other_crs = [cr for cr in all_crs if cr != item.get('case_number')]
-                item['extra_fields']['multiple_cr'] = ', '.join(sorted(other_crs)) if other_crs else '-'
+            info = case_to_info.get(case_id)
+            if info:
+                item['accused'] = info['accused_name']
+                item['accused_name'] = info['accused_name']
+                item['extra_fields']['accused_name'] = info['accused_name']
+                item['extra_fields']['accused'] = info['accused_name']
+                item['extra_fields']['multiple_cr'] = info['multiple_cr']
             else:
-                item['extra_fields']['accused_name'] = 'Unknown'
+                item['extra_fields']['accused_name'] = item.get('accused') or 'Unknown'
                 item['extra_fields']['multiple_cr'] = '-'
 
 
@@ -1406,6 +1407,7 @@ class RepeatOffenderCaseWiseView(PendingCasesView):
             queryset = get_cases_by_status('repeat_offender')
             
             user = request.user
+            stations = None
             if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
                 stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                 queryset = queryset.filter(station_name__in=stations)
@@ -1428,12 +1430,12 @@ class RepeatOffenderCaseWiseView(PendingCasesView):
             if page is not None:
                 serializer = CaseRecordSerializer(page, many=True)
                 data = serializer.data
-                self._enrich_data(data)
+                self._enrich_data(data, station_names=stations)
                 return paginator.get_paginated_response(data)
                 
             serializer = CaseRecordSerializer(queryset.order_by('-created_at'), many=True)
             data = serializer.data
-            self._enrich_data(data)
+            self._enrich_data(data, station_names=stations)
             return Response(data)
         except Exception as e:
             logger.exception(f'[RepeatOffenderCaseWiseView] Database error: {e}')

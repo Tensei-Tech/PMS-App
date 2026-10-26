@@ -3,6 +3,10 @@ from django.db import models
 
 
 AD_SUMMARY_NO_KEYS = [
+    'ad_summary_sent',
+    'adSummarySent',
+    'ad_summary_sent_no',
+    'adSummarySentNo',
     'adSummaryNo',
     'ad_summary_no',
     'adSummaryNum',
@@ -39,6 +43,14 @@ AD_SUMMARY_NO_KEYS = [
     'मर्ग समरी क्र.',
     'मर्ग समरी क्र',
     'मर्ग समरी',
+    'मर्ग समरी पाठविली क्र.',
+    'मर्ग समरी पाठविली क्र',
+    'मर्ग समरी पाठविली नं.',
+    'मर्ग समरी पाठविली नं',
+    'मर्ग समरी पाठविली',
+    'मर्ग समरी पाठविल्याचा क्र.',
+    'मर्ग समरी पाठविल्याचा क्र',
+    'मर्ग समरी पाठविल्याचा क्रमांक',
     'AD Summary No.',
     'AD Summary No',
     'AD Summary Number',
@@ -46,6 +58,10 @@ AD_SUMMARY_NO_KEYS = [
 ]
 
 AD_SUMMARY_DATE_KEYS = [
+    'ad_summary_sent_date',
+    'adSummarySentDate',
+    'ad_summary_sent_dt',
+    'adSummarySentDt',
     'adSummaryDate',
     'ad_summary_date',
     'adSummaryDt',
@@ -66,6 +82,10 @@ AD_SUMMARY_DATE_KEYS = [
     'मर्ग समरी तारीख',
     'मर्ग समरी Date',
     'मर्ग समरी Dt',
+    'मर्ग समरी पाठविली दिनांक',
+    'मर्ग समरी पाठविली तारीख',
+    'मर्ग समरी पाठविल्याचा दिनांक',
+    'मर्ग समरी पाठविल्याची तारीख',
     'AD Summary Date',
     'AD Summary Dt',
 ]
@@ -124,6 +144,150 @@ def is_ad_case_disposed(case) -> bool:
     num = _extract_first_non_empty(extra, AD_SUMMARY_NO_KEYS)
     dt = _extract_first_non_empty(extra, AD_SUMMARY_DATE_KEYS)
     return bool(num and dt)
+
+
+PREVENTIVE_NO_KEYS = [
+    'preventiveNumber', 'preventive_number', 'preventiveNo', 'preventive_no',
+    'istegasha_no', 'istegashaNo', 'istegasha_number', 'istegashaNumber',
+    'istegasha',
+    'इस्तेगाशा नंबर', 'इस्तेगाशा नं.', 'इस्तेगाशा नं', 'इस्तेगाशा क्र.', 'इस्तेगाशा क्र',
+    'इस्तेगाशा क्रमांक', 'प्रतिबंधक कारवाई क्र.', 'प्रतिबंधक कारवाई क्र',
+    'प्रतिबंधक क्र.', 'प्रतिबंधक क्र', 'प्रतिबंधक क्रमांक', 'chapter_case_no', 'chapterCaseNo',
+    'preventiveActionNo', 'preventive_action_no',
+]
+
+PREVENTIVE_DATE_KEYS = [
+    'preventiveDate', 'preventive_date', 'istegashaDate', 'istegasha_date',
+    'actionDate', 'action_date', 'date', 'दिनांक', 'तारीख',
+    'कारवाई दिनांक', 'इस्तेगाशा दिनांक', 'प्रतिबंधक कारवाई दिनांक',
+]
+
+
+def is_preventive_case_disposed(case) -> bool:
+    """
+    Checks if a Preventive case is disposed:
+    Returns True if module is 'preventive' (or sub_category is 'preventive')
+    and BOTH Preventive Number (इस्तेगाशा नंबर) and Date are non-empty.
+    """
+    if not case:
+        return False
+    if isinstance(case, dict):
+        mod = str(case.get('module_key') or case.get('moduleKey') or case.get('module') or '').strip().lower()
+        sub = str(case.get('sub_category') or case.get('subCategory') or '').strip().lower()
+        is_prev = (mod in ['preventive', 'preventive_action', 'preventive_actions', 'chapter_case'] or
+                   sub in ['preventive', 'preventive_action', 'chapter case', 'chapter_case', 'प्रतिबंधक कारवाई', 'प्रतिबंधक'])
+        if not is_prev:
+            return False
+        extra = case.get('extra_fields') or case.get('extraFields') or {}
+        num = _extract_first_non_empty(extra, PREVENTIVE_NO_KEYS) or _extract_first_non_empty(case, PREVENTIVE_NO_KEYS)
+        dt = _extract_first_non_empty(extra, PREVENTIVE_DATE_KEYS) or _extract_first_non_empty(case, PREVENTIVE_DATE_KEYS)
+        return bool(num and dt)
+
+    mod = str(getattr(case, 'module_key', '')).strip().lower()
+    sub = str(getattr(case, 'sub_category', '')).strip().lower()
+    is_prev = (mod in ['preventive', 'preventive_action', 'preventive_actions', 'chapter_case'] or
+               sub in ['preventive', 'preventive_action', 'chapter case', 'chapter_case', 'प्रतिबंधक कारवाई', 'प्रतिबंधक'])
+    if not is_prev:
+        return False
+
+    extra = getattr(case, 'extra_fields', {}) or {}
+    num = _extract_first_non_empty(extra, PREVENTIVE_NO_KEYS)
+    dt = _extract_first_non_empty(extra, PREVENTIVE_DATE_KEYS)
+    return bool(num and dt)
+
+
+NC_PREVENTIVE_NO_KEYS = [
+    'preventiveNumber', 'preventive_number', 'preventiveNo', 'preventive_no',
+    'istegasha_no', 'istegashaNo', 'istegasha_number', 'इस्तेगाशा नंबर', 'इस्तेगाशा क्र'
+]
+NC_OUTWARD_NO_KEYS = [
+    'outwardNumber', 'outward_number', 'preventiveOutwardNumber', 'preventive_outward_no',
+    'preventiveOutwardNo', 'outward_no', 'जावक क्र', 'जावक नंबर'
+]
+NC_PREVENTIVE_DATE_KEYS = [
+    'preventiveDate', 'preventive_date', 'outwardDate', 'outward_date',
+    'date', 'दिनांक', 'तारीख'
+]
+NC_NO_PREVENTIVE_REASON_KEYS = [
+    'noPreventiveReason', 'no_preventive_reason', 'preventiveNotDoneReason',
+    'preventive_not_done_reason', 'reason_for_no_preventive', 'preventive_reason',
+    'no_action_reason'
+]
+
+
+def is_nc_case_disposed(case) -> bool:
+    """
+    Checks if an NC (Non-Cognizable) case is disposed:
+    Returns True if:
+    1. Preventive Action is taken with Section & Act, Preventive/Istegasha No, Outward No, and Date filled.
+       OR
+    2. Preventive Action is NOT done, but a valid reason is provided:
+       1 - Family matter
+       2 - Other
+    """
+    if not case:
+        return False
+
+    if isinstance(case, dict):
+        mod = str(case.get('module_key') or case.get('moduleKey') or case.get('module') or '').strip().lower()
+        sub = str(case.get('sub_category') or case.get('subCategory') or '').strip().lower()
+        extra = case.get('extra_fields') or case.get('extraFields') or {}
+    else:
+        mod = str(getattr(case, 'module_key', '')).strip().lower()
+        sub = str(getattr(case, 'sub_category', '')).strip().lower()
+        extra = getattr(case, 'extra_fields', {}) or {}
+
+    if not isinstance(extra, dict):
+        extra = {}
+
+    is_nc = (mod in ['nc', 'nc_register', 'nc_form'] or sub in ['nc', 'non-cognizable', 'non cognizable', 'nc register'])
+    if not is_nc:
+        return False
+
+    all_dicts = [extra]
+    if isinstance(extra.get('preventiveDetails'), dict):
+        all_dicts.append(extra['preventiveDetails'])
+    if isinstance(extra.get('preventive_details'), dict):
+        all_dicts.append(extra['preventive_details'])
+    if isinstance(case, dict) and isinstance(case.get('preventiveDetails'), dict):
+        all_dicts.append(case['preventiveDetails'])
+
+    # 1. Condition: Preventive action done
+    has_prev_no = any(_extract_first_non_empty(d, NC_PREVENTIVE_NO_KEYS) for d in all_dicts)
+    has_outward_no = any(_extract_first_non_empty(d, NC_OUTWARD_NO_KEYS) for d in all_dicts)
+    has_date = any(_extract_first_non_empty(d, NC_PREVENTIVE_DATE_KEYS) for d in all_dicts)
+
+    has_charges = False
+    for d in all_dicts:
+        pch = d.get('preventiveCharges') or d.get('preventive_charges') or d.get('charges')
+        if isinstance(pch, dict) and pch:
+            has_charges = any(isinstance(v, dict) and (v.get('act') or v.get('sections')) for v in pch.values())
+            if has_charges:
+                break
+        elif isinstance(pch, list) and pch:
+            has_charges = True
+            break
+        elif d.get('preventive_action') or d.get('action_type') or d.get('preventive_section'):
+            has_charges = True
+            break
+
+    if has_prev_no and has_outward_no and has_date and has_charges:
+        return True
+
+    # 2. Condition: If preventive action not done, reason must be provided (family matter / other)
+    for d in all_dicts:
+        reason = _extract_first_non_empty(d, NC_NO_PREVENTIVE_REASON_KEYS)
+        if reason:
+            return True
+
+    prev_done = str(extra.get('preventiveActionDone') or extra.get('preventive_action_done') or '').strip().lower()
+    if prev_done in ['no', 'false', 'nahi']:
+        for d in all_dicts:
+            reason = _extract_first_non_empty(d, NC_NO_PREVENTIVE_REASON_KEYS) or d.get('reason')
+            if reason and str(reason).strip():
+                return True
+
+    return False
 
 
 COURT_FILING_DISPOSAL_KEYS = [
@@ -267,9 +431,33 @@ class CaseRecord(models.Model):
             has_disposal_key = True
             if self.status not in ['Disposal', 'Closed', 'Resolved']:
                 self.status = 'Disposal'
+            if isinstance(self.extra_fields, dict):
+                ad_dt = _extract_first_non_empty(self.extra_fields, AD_SUMMARY_DATE_KEYS)
+                if ad_dt and not self.extra_fields.get('disposal_date'):
+                    self.extra_fields['disposal_date'] = ad_dt
+
+        # Preventive Disposal Logic
+        elif is_preventive_case_disposed(self):
+            has_disposal_key = True
+            if self.status not in ['Disposal', 'Closed', 'Resolved']:
+                self.status = 'Disposal'
+            if isinstance(self.extra_fields, dict):
+                p_dt = _extract_first_non_empty(self.extra_fields, PREVENTIVE_DATE_KEYS)
+                if p_dt and not self.extra_fields.get('disposal_date'):
+                    self.extra_fields['disposal_date'] = p_dt
+
+        # NC Disposal Logic
+        elif is_nc_case_disposed(self):
+            has_disposal_key = True
+            if self.status not in ['Disposal', 'Closed', 'Resolved']:
+                self.status = 'Disposal'
+            if isinstance(self.extra_fields, dict):
+                nc_dt = _extract_first_non_empty(self.extra_fields, NC_PREVENTIVE_DATE_KEYS)
+                if nc_dt and not self.extra_fields.get('disposal_date'):
+                    self.extra_fields['disposal_date'] = nc_dt
             
-        # CC/ST / Court Filing Logic (Skip AD cases)
-        elif self.module_key != 'ad':
+        # CC/ST / Court Filing Logic (Skip AD, Preventive, and NC cases)
+        elif self.module_key not in ['ad', 'preventive', 'nc']:
             # Check if CC/ST or Court Filing fields are present in extra_fields
             has_cc = False
             if isinstance(self.extra_fields, dict):
@@ -301,20 +489,43 @@ class CaseRecord(models.Model):
                     
         # Update the status based on disposal key presence
         from apps.cases.constants import CASE_STATUS_DISPOSAL, CASE_STATUS_PENDING, CASE_STATUS_DETECTED
+        # Service modules (e.g. passport, licence, application) manage their own verification statuses
+        # and do not use criminal detection / disposal status logic.
+        if getattr(self, 'module_key', '') in ['passport', 'licence', 'application']:
+            super().save(*args, **kwargs)
+            return
+
+        sub_cat = str(getattr(self, 'sub_category', '') or '').lower().strip()
+        mod_key = str(getattr(self, 'module_key', '') or '').lower().strip()
+        is_ad = mod_key == 'ad' or sub_cat in ['ad', 'accidental death']
+        is_preventive = (mod_key in ['preventive', 'preventive_action', 'preventive_actions', 'chapter_case'] or
+                         sub_cat in ['preventive', 'preventive_action', 'chapter case', 'chapter_case', 'प्रतिबंधक कारवाई', 'प्रतिबंधक'])
+        is_nc = mod_key in ['nc', 'nc_register', 'nc_form'] or sub_cat in ['nc', 'non-cognizable', 'non cognizable', 'nc register']
+        is_missing = mod_key == 'missing' or sub_cat == 'missing'
         
-        is_ad = getattr(self, 'module_key', '') == 'ad'
-        
-        # Helper to determine if case is detected
+        # Helper to determine if case has a valid identified accused
+        def _has_valid_accused_name(val):
+            if not val:
+                return False
+            if isinstance(val, str):
+                s = val.strip().lower()
+                return bool(s and s not in ['unknown', 'अज्ञात', 'unidentified', 'none', 'null', 'na', 'n/a', 'default accused', 'passport verification'])
+            if isinstance(val, dict):
+                return _has_valid_accused_name(val.get('name') or val.get('accused_name'))
+            if isinstance(val, list):
+                return any(_has_valid_accused_name(x) for x in val)
+            return False
+
         is_detected = False
-        if not is_ad:
+        if not is_ad and not is_preventive and not is_nc and not is_missing:
             # Check standard accused field
-            if self.accused and str(self.accused).strip():
+            if _has_valid_accused_name(self.accused):
                 is_detected = True
             # Check extra_fields for accused
             elif isinstance(self.extra_fields, dict):
-                for accused_key in ['accused', 'AccusedName', 'accused_name', 'accusedName']:
+                for accused_key in ['accused', 'AccusedName', 'accused_name', 'accusedName', 'accused_list']:
                     val = self.extra_fields.get(accused_key)
-                    if val and str(val).strip():
+                    if _has_valid_accused_name(val):
                         is_detected = True
                         break
 
@@ -323,14 +534,30 @@ class CaseRecord(models.Model):
                 self.status = CASE_STATUS_DISPOSAL
             elif self.status == CASE_STATUS_DISPOSAL:
                 self.status = CASE_STATUS_PENDING
+        elif is_preventive:
+            if is_preventive_case_disposed(self):
+                self.status = CASE_STATUS_DISPOSAL
+                if isinstance(self.extra_fields, dict):
+                    p_dt = _extract_first_non_empty(self.extra_fields, PREVENTIVE_DATE_KEYS)
+                    if p_dt and not self.extra_fields.get('disposal_date'):
+                        self.extra_fields['disposal_date'] = p_dt
+            elif self.status == CASE_STATUS_DISPOSAL:
+                self.status = CASE_STATUS_PENDING
+        elif is_nc:
+            if is_nc_case_disposed(self):
+                self.status = CASE_STATUS_DISPOSAL
+            elif self.status == CASE_STATUS_DISPOSAL:
+                self.status = CASE_STATUS_PENDING
+        elif is_missing:
+            if has_disposal_key:
+                self.status = CASE_STATUS_DISPOSAL
+            elif self.status in [CASE_STATUS_DETECTED, '']:
+                self.status = CASE_STATUS_PENDING
         else:
             if has_disposal_key:
                 self.status = CASE_STATUS_DISPOSAL
-            elif self.status == CASE_STATUS_DISPOSAL or self.status == CASE_STATUS_PENDING:
+            else:
                 self.status = CASE_STATUS_DETECTED if is_detected else CASE_STATUS_PENDING
-            elif self.status == CASE_STATUS_DETECTED:
-                # If it's already Detected, only downgrade if it was a Disposal losing its disposal status
-                pass
 
         super().save(*args, **kwargs)
 

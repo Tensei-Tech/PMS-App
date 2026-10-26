@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../services/backend_case_service.dart';
 import '../theme/app_theme.dart';
 import 'juvenile_summary_screen.dart';
-import 'filtered_arrested_screen.dart'; // We can reuse this or create a filtered screen
+import 'filtered_juvenile_screen.dart';
 import '../modules/core/models/base_record.dart';
 import '../utils/arrested_table_firestore_mapper.dart'; // For converting cases to rows
 
@@ -75,16 +75,6 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
       if (dataList != null) {
         final records = dataList.map((m) => ModuleRecord.fromMap(m)).toList();
         final mappedRows = arrestedTableRowsAll(records, DateTime.now());
-
-        // Add fake accused/multiple cr if missing for demo
-        for (var r in mappedRows) {
-          if (r['accused_name'] == null) {
-            r['accused_name'] = 'Unknown Offender';
-          }
-          if (r['multiple_cr'] == null) {
-            r['multiple_cr'] = 'Pending';
-          }
-        }
 
         final grouped = <String, List<Map<String, String>>>{};
         for (final r in mappedRows) {
@@ -255,7 +245,7 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
               Navigator.push(
                 context,
                 AppTheme.fadeSlideRoute(
-                  page: FilteredArrestedScreen(
+                  page: FilteredJuvenileScreen(
                     title: 'Time Wise - $p',
                     startDate: start?.toIso8601String().split('T')[0],
                     endDate: end?.toIso8601String().split('T')[0],
@@ -313,7 +303,7 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
               Navigator.push(
                 context,
                 AppTheme.fadeSlideRoute(
-                  page: FilteredArrestedScreen(
+                  page: FilteredJuvenileScreen(
                     title: 'IO Wise - ${item['io_name'] ?? 'Unknown'}',
                     ioUid: item['io_uid']?.toString(),
                   ),

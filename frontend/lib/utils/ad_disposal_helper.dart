@@ -6,6 +6,10 @@ import '../constants/case_status_constants.dart';
 
 /// Candidate keys for "AD Summary No." / "मर्ग समरी No." across various form formats.
 const List<String> kAdSummaryNoKeys = [
+  'ad_summary_sent',
+  'adSummarySent',
+  'ad_summary_sent_no',
+  'adSummarySentNo',
   'adSummaryNo',
   'ad_summary_no',
   'adSummaryNum',
@@ -42,6 +46,14 @@ const List<String> kAdSummaryNoKeys = [
   'मर्ग समरी क्र.',
   'मर्ग समरी क्र',
   'मर्ग समरी',
+  'मर्ग समरी पाठविली क्र.',
+  'मर्ग समरी पाठविली क्र',
+  'मर्ग समरी पाठविली नं.',
+  'मर्ग समरी पाठविली नं',
+  'मर्ग समरी पाठविली',
+  'मर्ग समरी पाठविल्याचा क्र.',
+  'मर्ग समरी पाठविल्याचा क्र',
+  'मर्ग समरी पाठविल्याचा क्रमांक',
   'AD Summary No.',
   'AD Summary No',
   'AD Summary Number',
@@ -50,6 +62,10 @@ const List<String> kAdSummaryNoKeys = [
 
 /// Candidate keys for "AD Summary Date" / "मर्ग समरी दिनांक" across various form formats.
 const List<String> kAdSummaryDateKeys = [
+  'ad_summary_sent_date',
+  'adSummarySentDate',
+  'ad_summary_sent_dt',
+  'adSummarySentDt',
   'adSummaryDate',
   'ad_summary_date',
   'adSummaryDt',
@@ -70,6 +86,10 @@ const List<String> kAdSummaryDateKeys = [
   'मर्ग समरी तारीख',
   'मर्ग समरी Date',
   'मर्ग समरी Dt',
+  'मर्ग समरी पाठविली दिनांक',
+  'मर्ग समरी पाठविली तारीख',
+  'मर्ग समरी पाठविल्याचा दिनांक',
+  'मर्ग समरी पाठविल्याची तारीख',
   'AD Summary Date',
   'AD Summary Dt',
 ];
@@ -187,11 +207,130 @@ bool isAdDisposalCase(dynamic recordOrMap) {
   return summaryNo.isNotEmpty && summaryDate.isNotEmpty;
 }
 
+/// Candidate keys for "Preventive Number" / "इस्तेगाशा नंबर" across various form formats.
+const List<String> kPreventiveNoKeys = [
+  'preventiveNo',
+  'preventive_no',
+  'preventiveNumber',
+  'preventive_number',
+  'istegashaNo',
+  'istegasha_no',
+  'istegashaNumber',
+  'istegasha_number',
+  'istegasha',
+  'इस्तेगाशा नंबर',
+  'इस्तेगाशा नं.',
+  'इस्तेगाशा नं',
+  'इस्तेगाशा क्र.',
+  'इस्तेगाशा क्र',
+  'इस्तेगाशा क्रमांक',
+  'प्रतिबंधक कारवाई क्र.',
+  'प्रतिबंधक कारवाई क्र',
+  'प्रतिबंधक क्र.',
+  'प्रतिबंधक क्र',
+  'प्रतिबंधक क्रमांक',
+  'chapter_case_no',
+  'chapterCaseNo',
+  'preventiveActionNo',
+  'preventive_action_no',
+];
+
+/// Candidate keys for "Preventive Date" across various form formats.
+const List<String> kPreventiveDateKeys = [
+  'preventiveDate',
+  'preventive_date',
+  'istegashaDate',
+  'istegasha_date',
+  'actionDate',
+  'action_date',
+  'date',
+  'दिनांक',
+  'तारीख',
+  'कारवाई दिनांक',
+  'इस्तेगाशा दिनांक',
+  'प्रतिबंधक कारवाई दिनांक',
+];
+
+/// Checks if a record or map represents a Preventive case.
+bool isPreventiveCase(dynamic recordOrMap) {
+  if (recordOrMap == null) return false;
+  if (recordOrMap is Map) {
+    final mod = (recordOrMap['moduleKey'] ??
+            recordOrMap['module_key'] ??
+            recordOrMap['module'] ??
+            recordOrMap['caseType'] ??
+            recordOrMap['case_type'] ??
+            '')
+        .toString()
+        .trim()
+        .toLowerCase();
+    if (mod == 'preventive' || mod == 'preventive_action' || mod == 'chapter_case') return true;
+    final sub = (recordOrMap['subCategory'] ?? recordOrMap['sub_category'] ?? '')
+        .toString()
+        .trim()
+        .toLowerCase();
+    return sub == 'preventive' || sub == 'preventive_action' || sub == 'chapter case' || sub == 'प्रतिबंधक कारवाई' || sub == 'प्रतिबंधक';
+  }
+  try {
+    final mod = (recordOrMap.moduleKey ?? '').toString().trim().toLowerCase();
+    if (mod == 'preventive' || mod == 'preventive_action' || mod == 'chapter_case') return true;
+  } catch (_) {}
+  try {
+    final sub = (recordOrMap.subCategory ?? '').toString().trim().toLowerCase();
+    if (sub == 'preventive' || sub == 'preventive_action' || sub == 'chapter case' || sub == 'प्रतिबंधक कारवाई' || sub == 'प्रतिबंधक') return true;
+  } catch (_) {}
+  return false;
+}
+
+/// Extracts Preventive Number / इस्तेगाशा नंबर from a record or map.
+String extractPreventiveNo(dynamic recordOrMap) {
+  if (recordOrMap == null) return '';
+  if (recordOrMap is Map) {
+    final extra = recordOrMap['extraFields'] ?? recordOrMap['extra_fields'];
+    final fromExtra = _extractFirstNonEmptyString(extra, kPreventiveNoKeys);
+    if (fromExtra.isNotEmpty) return fromExtra;
+    return _extractFirstNonEmptyString(recordOrMap, kPreventiveNoKeys);
+  }
+  try {
+    final extra = recordOrMap.extraFields;
+    final fromExtra = _extractFirstNonEmptyString(extra, kPreventiveNoKeys);
+    if (fromExtra.isNotEmpty) return fromExtra;
+  } catch (_) {}
+  return '';
+}
+
+/// Extracts Preventive Date from a record or map.
+String extractPreventiveDate(dynamic recordOrMap) {
+  if (recordOrMap == null) return '';
+  if (recordOrMap is Map) {
+    final extra = recordOrMap['extraFields'] ?? recordOrMap['extra_fields'];
+    final fromExtra = _extractFirstNonEmptyString(extra, kPreventiveDateKeys);
+    if (fromExtra.isNotEmpty) return fromExtra;
+    return _extractFirstNonEmptyString(recordOrMap, kPreventiveDateKeys);
+  }
+  try {
+    final extra = recordOrMap.extraFields;
+    final fromExtra = _extractFirstNonEmptyString(extra, kPreventiveDateKeys);
+    if (fromExtra.isNotEmpty) return fromExtra;
+  } catch (_) {}
+  return '';
+}
+
+/// Returns true if a Preventive case qualifies as Disposal:
+/// Both Preventive Number / इस्तेगाशा नंबर and Date are present and non-empty.
+bool isPreventiveDisposalCase(dynamic recordOrMap) {
+  if (!isPreventiveCase(recordOrMap)) return false;
+  final num = extractPreventiveNo(recordOrMap);
+  final dt = extractPreventiveDate(recordOrMap);
+  return num.isNotEmpty && dt.isNotEmpty;
+}
+
 /// Unified helper to determine if ANY case record is Disposed.
 /// Covers:
 /// 1. Status == CaseStatus.disposal / 'Disposed' / 'Closed' / 'Resolved'
 /// 2. Absconded disposal rules via [isAbscondedDisposal]
 /// 3. AD (Accidental Death) disposal rule: both AD Summary No. & AD Summary Date present
+/// 4. Preventive disposal rule: both Preventive No. & Preventive Date present
 bool isRecordDisposal(dynamic record) {
   if (record == null) return false;
   String s = '';
@@ -215,6 +354,9 @@ bool isRecordDisposal(dynamic record) {
     return true;
   }
   if (isAdDisposalCase(record)) {
+    return true;
+  }
+  if (isPreventiveDisposalCase(record)) {
     return true;
   }
   return false;

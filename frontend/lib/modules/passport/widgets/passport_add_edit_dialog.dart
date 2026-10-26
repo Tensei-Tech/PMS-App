@@ -67,16 +67,6 @@ class _PassportAddEditDialogState extends State<PassportAddEditDialog> {
       final p = widget.initialPending ?? 0;
       _verifiedCtrl.text = v > 0 ? v.toString() : '';
       _pendingCtrl.text = p > 0 ? p.toString() : '';
-    } else if (widget.groupedRecords != null &&
-        widget.groupedRecords!.isNotEmpty) {
-      int v = 0;
-      int p = 0;
-      for (final rec in widget.groupedRecords!) {
-        v += PassportProvider.getRecordVerifiedCount(rec);
-        p += PassportProvider.getRecordPendingCount(rec);
-      }
-      _verifiedCtrl.text = v > 0 ? v.toString() : '';
-      _pendingCtrl.text = p > 0 ? p.toString() : '';
     } else if (r != null) {
       final v = PassportProvider.getRecordVerifiedCount(r);
       final p = PassportProvider.getRecordPendingCount(r);
@@ -85,29 +75,6 @@ class _PassportAddEditDialogState extends State<PassportAddEditDialog> {
     } else {
       _verifiedCtrl.text = '';
       _pendingCtrl.text = '';
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _checkExistingDateCounts(_selectedDate);
-      });
-    }
-  }
-
-  void _checkExistingDateCounts(DateTime date) {
-    if (widget.existingRecord != null || widget.groupedRecords != null) return;
-    final provider = context.read<PassportProvider>();
-    final matches = provider.records.where((r) {
-      final d = r.incidentDate;
-      return d.year == date.year && d.month == date.month && d.day == date.day;
-    }).toList();
-
-    if (matches.isNotEmpty) {
-      int v = 0;
-      int p = 0;
-      for (final rec in matches) {
-        v += PassportProvider.getRecordVerifiedCount(rec);
-        p += PassportProvider.getRecordPendingCount(rec);
-      }
-      _verifiedCtrl.text = v > 0 ? v.toString() : '';
-      _pendingCtrl.text = p > 0 ? p.toString() : '';
     }
   }
 
@@ -130,7 +97,6 @@ class _PassportAddEditDialogState extends State<PassportAddEditDialog> {
     );
     if (picked != null) {
       setState(() => _selectedDate = picked);
-      _checkExistingDateCounts(picked);
     }
   }
 
@@ -143,65 +109,60 @@ class _PassportAddEditDialogState extends State<PassportAddEditDialog> {
       final pending = _pendingCount;
       final total = verified + pending;
 
-      final status = pending == 0 && verified > 0
-          ? PassportProvider.statusVerified
-          : PassportProvider.statusPending;
-
-      // Find all records that currently match this date
-      final sameDayRecords = provider.records.where((r) {
-        final d = r.incidentDate;
-        return d.year == _selectedDate.year &&
-            d.month == _selectedDate.month &&
-            d.day == _selectedDate.day;
-      }).toList();
-
-      final existingList =
-          (widget.groupedRecords != null && widget.groupedRecords!.isNotEmpty)
-              ? widget.groupedRecords!
-              : (widget.existingRecord != null
-                  ? [widget.existingRecord!]
-                  : sameDayRecords);
+      // Handle full, partial (mixed), and pending states accurately
+      final String status;
+      if (pending == 0 && verified > 0) {
+        status = PassportProvider.statusVerified;
+      } else if (verified > 0 && pending > 0) {
+        status = PassportProvider.statusPartial;
+      } else {
+        status = PassportProvider.statusPending;
+      }
 
       final dateCode = DateFormat('yyMMdd').format(_selectedDate);
       final randSuffix = (DateTime.now().millisecondsSinceEpoch % 1000)
           .toString()
           .padLeft(3, '0');
-      final fileNo =
-          existingList.isNotEmpty && existingList.first.caseNumber.isNotEmpty
-              ? existingList.first.caseNumber
-              : 'PV-$dateCode-$randSuffix';
 
-      final extraFields = <String, dynamic>{
-        if (existingList.isNotEmpty) ...existingList.first.extraFields,
-        'file_number': fileNo,
-        'applicant_name': 'Passport Verification ($total)',
-        'verified_count': verified,
-        'pending_count': pending,
-        'total_count': total,
-        'verification_status': status,
-        'verification_date': _selectedDate.toIso8601String(),
-      };
+      if (widget.existingRecord != null) {
+        // Edit existing record only - never delete other same-day entries
+        final existing = widget.existingRecord!;
+        final fileNo = existing.caseNumber.isNotEmpty
+            ? existing.caseNumber
+            : 'PV-$dateCode-$randSuffix';
 
-      if (existingList.isNotEmpty) {
-        // Update the primary record
-        final primary = existingList.first;
-        final updatedRecord = primary.copyWith(
+        final extraFields = <String, dynamic>{
+          ...existing.extraFields,
+          'file_number': fileNo,
+          'applicant_name': 'Passport Verification ($total)',
+          'verified_count': verified,
+          'pending_count': pending,
+          'total_count': total,
+          'verification_status': status,
+          'verification_date': _selectedDate.toIso8601String(),
+        };
+
+        final updatedRecord = existing.copyWith(
           incidentDate: _selectedDate,
           description: '$verified Verified, $pending Pending',
-          accused: 'Passport Verification ($total)',
+          accused: '',
           status: status,
           extraFields: extraFields,
         );
         await provider.updateRecord(updatedRecord);
-
-        // Delete any redundant duplicate records for this date
-        for (int i = 1; i < existingList.length; i++) {
-          try {
-            await provider.deleteRecord(existingList[i].id);
-          } catch (_) {}
-        }
       } else {
-        // Create brand new record
+        // Add new record independently - never overwrite or delete same-day records
+        final fileNo = 'PV-$dateCode-$randSuffix';
+        final extraFields = <String, dynamic>{
+          'file_number': fileNo,
+          'applicant_name': 'Passport Verification ($total)',
+          'verified_count': verified,
+          'pending_count': pending,
+          'total_count': total,
+          'verification_status': status,
+          'verification_date': _selectedDate.toIso8601String(),
+        };
+
         final record = ModuleRecord(
           id: const Uuid().v4(),
           moduleKey: 'passport',
@@ -209,7 +170,7 @@ class _PassportAddEditDialogState extends State<PassportAddEditDialog> {
           caseNumber: fileNo,
           description: '$verified Verified, $pending Pending',
           complainant: 'Passport Office',
-          accused: 'Passport Verification ($total)',
+          accused: '',
           location: '',
           incidentDate: _selectedDate,
           priority: 'Normal',
@@ -228,7 +189,7 @@ class _PassportAddEditDialogState extends State<PassportAddEditDialog> {
           SnackBar(
             backgroundColor: AppColors.navyDark,
             content: Text(
-              existingList.isNotEmpty
+              widget.existingRecord != null
                   ? TranslationHelper.translate(
                       context, 'Passport record updated successfully')
                   : TranslationHelper.translate(
@@ -449,13 +410,10 @@ class _PassportAddEditDialogState extends State<PassportAddEditDialog> {
                                   ),
                                 );
                                 if (confirm == true && mounted) {
-                                  final toDelete = widget.groupedRecords ??
-                                      (widget.existingRecord != null
-                                          ? [widget.existingRecord!]
-                                          : <ModuleRecord>[]);
-                                  for (final r in toDelete) {
+                                  if (widget.existingRecord != null) {
                                     try {
-                                      await provider.deleteRecord(r.id);
+                                      await provider.deleteRecord(
+                                          widget.existingRecord!.id);
                                     } catch (_) {}
                                   }
                                   nav.pop();

@@ -5,6 +5,7 @@ import '../../core/providers/base_module_provider.dart';
 class PassportProvider extends BaseModuleProvider {
   static const String statusPending = 'Pending';
   static const String statusVerified = 'Verified / Report Submitted';
+  static const String statusPartial = 'Partially Verified';
 
   PassportProvider() : super('passport');
 
@@ -19,7 +20,9 @@ class PassportProvider extends BaseModuleProvider {
         .trim()
         .toLowerCase();
     return s == statusVerified.toLowerCase() ||
+        s == statusPartial.toLowerCase() ||
         vs == statusVerified.toLowerCase() ||
+        vs == statusPartial.toLowerCase() ||
         s.contains('verified') ||
         s.contains('submitted') ||
         vs.contains('verified') ||
@@ -31,7 +34,17 @@ class PassportProvider extends BaseModuleProvider {
       final p = int.tryParse(r.extraFields['pending_count'].toString()) ?? 0;
       return p > 0;
     }
-    return !isVerifiedRecord(r);
+    final s = r.status.trim().toLowerCase();
+    final vs = (r.extraFields['verification_status'] ?? '')
+        .toString()
+        .trim()
+        .toLowerCase();
+    return s == statusPending.toLowerCase() ||
+        s == statusPartial.toLowerCase() ||
+        vs == statusPending.toLowerCase() ||
+        vs == statusPartial.toLowerCase() ||
+        s.contains('pending') ||
+        vs.contains('pending');
   }
 
   static int getRecordVerifiedCount(ModuleRecord r) {

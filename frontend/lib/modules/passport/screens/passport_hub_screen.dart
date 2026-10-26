@@ -18,14 +18,16 @@ import '../../../utils/pdf_unicode_fonts.dart';
 import '../../../utils/translation_helper.dart';
 import '../../../widgets/module_hub_screen_app_bar.dart';
 
-class PassportDateGroup {
+class PassportGroup {
   final DateTime date;
+  final String label;
   final int verifiedCount;
   final int pendingCount;
   final List<ModuleRecord> records;
 
-  PassportDateGroup({
+  PassportGroup({
     required this.date,
+    required this.label,
     required this.verifiedCount,
     required this.pendingCount,
     required this.records,
@@ -116,10 +118,10 @@ class _PassportHubScreenState extends State<PassportHubScreen> {
 
   // ── Record Grouping & Filtering ──────────────────────────────────────────
 
-  List<PassportDateGroup> _groupRecordsByDate(List<ModuleRecord> records) {
+  List<PassportGroup> _groupRecordsByMonth(List<ModuleRecord> records) {
     final Map<String, List<ModuleRecord>> map = {};
     for (final r in records) {
-      final key = DateFormat('yyyy-MM-dd').format(r.incidentDate);
+      final key = DateFormat('yyyy-MM').format(r.incidentDate);
       map.putIfAbsent(key, () => []).add(r);
     }
 
@@ -131,8 +133,12 @@ class _PassportHubScreenState extends State<PassportHubScreen> {
         v += PassportProvider.getRecordVerifiedCount(r);
         p += PassportProvider.getRecordPendingCount(r);
       }
-      return PassportDateGroup(
-        date: recs.first.incidentDate,
+      final firstDate = recs.first.incidentDate;
+      final monthDate = DateTime(firstDate.year, firstDate.month, 1);
+      final label = DateFormat('MMMM yyyy').format(monthDate);
+      return PassportGroup(
+        date: monthDate,
+        label: label,
         verifiedCount: v,
         pendingCount: p,
         records: recs,
@@ -143,8 +149,8 @@ class _PassportHubScreenState extends State<PassportHubScreen> {
     return groups;
   }
 
-  List<PassportDateGroup> _filterGroups(List<ModuleRecord> all) {
-    List<PassportDateGroup> groups = _groupRecordsByDate(all);
+  List<PassportGroup> _filterGroups(List<ModuleRecord> all) {
+    List<PassportGroup> groups = _groupRecordsByMonth(all);
 
     // 1. Status Filter
     switch (_selectedFilter) {
@@ -161,6 +167,9 @@ class _PassportHubScreenState extends State<PassportHubScreen> {
     // 2. Search Query
     if (_searchQuery.isNotEmpty) {
       groups = groups.where((g) {
+        if (g.label.toLowerCase().contains(_searchQuery)) return true;
+        final monthNameOnly = DateFormat('MMMM').format(g.date).toLowerCase();
+        if (monthNameOnly.contains(_searchQuery)) return true;
         final dateStr = DateFormat('dd/MM/yyyy').format(g.date);
         if (dateStr.contains(_searchQuery)) return true;
         return g.records.any((r) {
@@ -204,9 +213,10 @@ class _PassportHubScreenState extends State<PassportHubScreen> {
         59,
       );
       groups = groups.where((g) {
-        final d = g.date;
-        return d.isAfter(start.subtract(const Duration(seconds: 1))) &&
-            d.isBefore(end.add(const Duration(seconds: 1)));
+        final monthStart = DateTime(g.date.year, g.date.month, 1);
+        final monthEnd =
+            DateTime(g.date.year, g.date.month + 1, 0, 23, 59, 59);
+        return !monthStart.isAfter(end) && !monthEnd.isBefore(start);
       }).toList();
     }
 
@@ -215,34 +225,53 @@ class _PassportHubScreenState extends State<PassportHubScreen> {
 
   // ── Exports ───────────────────────────────────────────────────────────────
 
-  Future<void> _exportPdf(List<PassportDateGroup> dataset) async {
+  Future<void> _exportPdf(List<PassportGroup> dataset) async {
     if (dataset.isEmpty) return;
     final theme = await PdfUnicodeFonts.openSansTheme();
+
+    final showTotal = _selectedFilter == PassportStatusFilter.totalReceived;
+    final showVerified = _selectedFilter != PassportStatusFilter.pending;
+    final showPending = _selectedFilter != PassportStatusFilter.verified;
 
     final rows = dataset.asMap().entries.map((entry) {
       final i = entry.key + 1;
       final g = entry.value;
 
-      return {
+      final row = <String, String>{
         'Sr. No.': '$i',
-        'Date': DateFormat('dd/MM/yyyy').format(g.date),
-        'Total': '${g.totalCount}',
-        'Verified': '${g.verifiedCount}',
-        'Pending': '${g.pendingCount}',
+        'Month': g.label,
       };
+      if (showTotal) {
+        row['Total'] = '${g.totalCount}';
+      }
+      if (showVerified) {
+        row['Verified'] = '${g.verifiedCount}';
+      }
+      if (showPending) {
+        row['Pending'] = '${g.pendingCount}';
+      }
+      return row;
     }).toList();
+
+    final columnOrder = [
+      'Sr. No.',
+      'Month',
+      if (showTotal) 'Total',
+      if (showVerified) 'Verified',
+      if (showPending) 'Pending',
+    ];
 
     final doc = DynamicMapPdf.buildLandscapeDataTableDocument(
       theme: theme,
-      title: 'Passport Verification Report — ${widget.stationName}',
+      title: 'Passport Verification Report (Month Wise) — ${widget.stationName}',
       rows: rows,
       prependSerial: false,
-      columnOrder: ['Sr. No.', 'Date', 'Total', 'Verified', 'Pending'],
+      columnOrder: columnOrder,
     );
 
     await Printing.sharePdf(
       bytes: await doc.save(),
-      filename: 'Passport_Verification_Report.pdf',
+      filename: 'Passport_Verification_MonthWise.pdf',
     );
   }
 
@@ -268,8 +297,11 @@ class _PassportHubScreenState extends State<PassportHubScreen> {
         TranslationHelper.translate(context, 'Pending'),
     };
 
-    final subtitle =
-        '${visibleGroups.length} ${TranslationHelper.translate(context, 'entries')} · $transFilterLabel';
+    final countLabel = visibleGroups.length == 1
+        ? '1 month'
+        : '${visibleGroups.length} months';
+
+    final subtitle = '$countLabel · $transFilterLabel';
 
     return Scaffold(
       backgroundColor: AppColors.lightBg,
@@ -763,10 +795,14 @@ class _PassportHubScreenState extends State<PassportHubScreen> {
 
   // ── Data Table View ───────────────────────────────────────────────────────
 
-  Widget _buildTable(BuildContext context, List<PassportDateGroup> groups) {
+  Widget _buildTable(BuildContext context, List<PassportGroup> groups) {
+    final showTotal = _selectedFilter == PassportStatusFilter.totalReceived;
+    final showVerified = _selectedFilter != PassportStatusFilter.pending;
+    final showPending = _selectedFilter != PassportStatusFilter.verified;
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        final tableMinWidth = math.max(620.0, constraints.maxWidth - 32);
+        final tableMinWidth = math.max(450.0, constraints.maxWidth - 32);
 
         return Scrollbar(
           thumbVisibility: true,
@@ -817,26 +853,28 @@ class _PassportHubScreenState extends State<PassportHubScreen> {
                         ),
                         DataColumn(
                           label: Text(
-                              TranslationHelper.translate(context, 'Date')),
+                            TranslationHelper.translate(context, 'Month'),
+                          ),
                         ),
-                        DataColumn(
-                          label: Text(
-                              TranslationHelper.translate(context, 'Total')),
-                        ),
-                        DataColumn(
-                          label: Text(TranslationHelper.translate(
-                              context, 'Verified / Report Submitted')),
-                        ),
-                        DataColumn(
-                          label: Text(
-                              TranslationHelper.translate(context, 'Pending')),
-                        ),
+                        if (showTotal)
+                          DataColumn(
+                            label: Text(
+                                TranslationHelper.translate(context, 'Total')),
+                          ),
+                        if (showVerified)
+                          DataColumn(
+                            label: Text(TranslationHelper.translate(
+                                context, 'Verified / Report Submitted')),
+                          ),
+                        if (showPending)
+                          DataColumn(
+                            label: Text(
+                                TranslationHelper.translate(context, 'Pending')),
+                          ),
                       ],
                       rows: groups.asMap().entries.map((entry) {
                         final idx = entry.key + 1;
                         final g = entry.value;
-                        final receivedDateStr =
-                            DateFormat('dd/MM/yyyy').format(g.date);
 
                         return DataRow(
                           onSelectChanged: (_) {
@@ -862,103 +900,126 @@ class _PassportHubScreenState extends State<PassportHubScreen> {
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(Icons.calendar_today_rounded,
-                                      size: 14, color: AppColors.navyMid),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    receivedDateStr,
-                                    style: GoogleFonts.poppins(
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.navyDark,
-                                    ),
+                                  const Icon(
+                                    Icons.calendar_month_rounded,
+                                    size: 15,
+                                    color: AppColors.navyMid,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        DateFormat('MMMM').format(g.date),
+                                        style: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 13,
+                                          color: AppColors.navyDark,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${g.date.year}',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w500,
+                                          color: AppColors.lightSubText,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
                             ),
-                            DataCell(
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 5),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFEFF6FF),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                      color: const Color(0xFFBFDBFE)),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.inventory_2_outlined,
-                                        size: 14, color: Color(0xFF1D4ED8)),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      '${g.totalCount}',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w700,
-                                        color: const Color(0xFF1D4ED8),
+                            if (showTotal)
+                              DataCell(
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEFF6FF),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                        color: const Color(0xFFBFDBFE)),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.inventory_2_outlined,
+                                          size: 14, color: Color(0xFF1D4ED8)),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        '${g.totalCount}',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: const Color(0xFF1D4ED8),
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                            DataCell(
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 5),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFECFDF5),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                      color: const Color(0xFFA7F3D0)),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.check_circle_rounded,
-                                        size: 14, color: Color(0xFF047857)),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      '${g.verifiedCount}',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w700,
-                                        color: const Color(0xFF047857),
+                            if (showVerified)
+                              DataCell(
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFECFDF5),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                        color: const Color(0xFFA7F3D0)),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.check_circle_rounded,
+                                          size: 14, color: Color(0xFF047857)),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        '${g.verifiedCount}',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: const Color(0xFF047857),
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                            DataCell(
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 5),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFFFBEB),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                      color: const Color(0xFFFDE68A)),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.hourglass_top_rounded,
-                                        size: 14, color: Color(0xFFD97706)),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      '${g.pendingCount}',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w700,
-                                        color: const Color(0xFFD97706),
+                            if (showPending)
+                              DataCell(
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFFFBEB),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                        color: const Color(0xFFFDE68A)),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.hourglass_top_rounded,
+                                          size: 14, color: Color(0xFFD97706)),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        '${g.pendingCount}',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: const Color(0xFFD97706),
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
                           ],
                         );
                       }).toList(),

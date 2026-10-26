@@ -6,6 +6,7 @@ import 'nafis_summary_screen.dart';
 import '../modules/core/models/base_record.dart';
 import '../utils/arrested_table_firestore_mapper.dart';
 import '../utils/excel_export_helper.dart';
+import '../widgets/nafis_cases_data_table.dart';
 
 class NAFISHubScreen extends StatefulWidget {
   final String stationName;
@@ -27,6 +28,7 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
   List<Map<String, dynamic>>? _timeWiseData;
   List<Map<String, dynamic>>? _ioWiseData;
   List<Map<String, dynamic>>? _caseWiseList;
+  List<ModuleRecord>? _caseRecords;
 
   bool _isLoadingTime = false;
   bool _isLoadingIO = false;
@@ -75,6 +77,7 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
       if (dataList != null) {
         _caseWiseList = dataList;
         final records = dataList.map((m) => ModuleRecord.fromMap(m)).toList();
+        _caseRecords = records;
         final mappedRows = arrestedTableRowsAll(records, DateTime.now());
 
         final enrichedRows = <Map<String, dynamic>>[];
@@ -188,154 +191,11 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
       );
     }
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.vertical,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: DataTable(
-          headingTextStyle: GoogleFonts.poppins(
-              fontWeight: FontWeight.w600, color: AppColors.navyDark),
-          dataTextStyle: GoogleFonts.poppins(color: Colors.black87),
-          columns: const [
-            DataColumn(label: Text('Sr. No.')),
-            DataColumn(label: Text('CR No.')),
-            DataColumn(label: Text('Section/Act')),
-            DataColumn(label: Text('Charge Sheet Date')),
-            DataColumn(label: Text('IO Name')),
-            DataColumn(label: Text('Status')),
-            DataColumn(label: Text('Action')),
-          ],
-          rows: _caseWiseList!.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final caseItem = entry.value;
-            final isGreen = (caseItem['nafis_status_color'] ?? '')
-                        .toString()
-                        .toLowerCase() ==
-                    'green' ||
-                (caseItem['nafis_status'] ?? '').toString().toLowerCase() ==
-                    'done' ||
-                (caseItem['nafis_status'] ?? '').toString().toLowerCase() ==
-                    'chargesheeted';
-            final statusText = isGreen ? 'Done' : 'Pending';
-            final actionRequired =
-                caseItem['action_required'] == true || !isGreen;
-            final caseId =
-                (caseItem['id'] ?? caseItem['case_id'] ?? '').toString();
-            final caseNumber = (caseItem['case_number'] ??
-                    caseItem['cr_no'] ??
-                    caseItem['cr'] ??
-                    '-')
-                .toString();
-            final srNo = caseItem['sr_no']?.toString() ?? '${idx + 1}';
-            final extra = caseItem['extra_fields'] is Map
-                ? caseItem['extra_fields'] as Map
-                : {};
-            final sectionActRaw = caseItem['section_act'] ??
-                caseItem['acts_sections'] ??
-                caseItem['sections'] ??
-                caseItem['section'] ??
-                caseItem['act_section'] ??
-                caseItem['sectionAct'] ??
-                extra['section_act'] ??
-                extra['acts_sections'] ??
-                extra['sections'] ??
-                extra['section'] ??
-                extra['act_section'] ??
-                extra['sectionAct'];
-            final formattedSec =
-                ExcelExportHelper.formatSectionAct(sectionActRaw);
-            final sectionAct = formattedSec.isEmpty ? '-' : formattedSec;
-            final csDate = (caseItem['charge_sheet_date'] ??
-                    caseItem['chargesheet_date'] ??
-                    '')
-                .toString()
-                .trim();
-            final ioName = (caseItem['assigned_officer'] ??
-                    caseItem['io_name'] ??
-                    caseItem['io'] ??
-                    'Unassigned')
-                .toString();
-
-            return DataRow(
-              cells: [
-                DataCell(Text(srNo)),
-                DataCell(Text(caseNumber)),
-                DataCell(Text(sectionAct)),
-                DataCell(Text(csDate.isEmpty ? 'Pending' : csDate)),
-                DataCell(Text(ioName.isEmpty ? 'Unassigned' : ioName)),
-                DataCell(
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: isGreen
-                          ? const Color(0xFF22C55E)
-                          : const Color(0xFFEF4444),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      statusText,
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ),
-                DataCell(
-                  actionRequired
-                      ? ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFEF4444),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 0),
-                            minimumSize: const Size(80, 30),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            elevation: 0,
-                          ),
-                          onPressed: () async {
-                            if (caseId.isNotEmpty) {
-                              final ok =
-                                  await _backend.sendNafisReminderToIO(caseId);
-                              if (!mounted) return;
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(ok
-                                        ? "Reminder sent to IO for case $caseNumber"
-                                        : "Reminder recorded for case $caseNumber"),
-                                    backgroundColor: const Color(0xFFEF4444),
-                                  ),
-                                );
-                              }
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                      "Reminder sent to IO for case $caseNumber"),
-                                  backgroundColor: const Color(0xFFEF4444),
-                                ),
-                              );
-                            }
-                          },
-                          child: Text(
-                            'Remind to IO',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        )
-                      : const Text('-'),
-                ),
-              ],
-            );
-          }).toList(),
-        ),
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: NAFISCasesDataTable(
+        realDataRows: _caseWiseList,
+        rawRecords: _caseRecords,
       ),
     );
   }
@@ -528,7 +388,7 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'NAFIS Hub',
+                  'NAFIS',
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,

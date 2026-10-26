@@ -55,12 +55,15 @@ class NAFISCasesDataTable extends StatelessWidget {
           Alignment align = Alignment.centerLeft,
           Color? textColor,
           FontWeight? fontWeight,
+          int? maxLines,
         }) =>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               alignment: align,
               child: Text(
                 s,
+                maxLines: maxLines ?? 3,
+                overflow: TextOverflow.ellipsis,
                 textAlign: align == Alignment.center
                     ? TextAlign.center
                     : TextAlign.left,
@@ -167,19 +170,21 @@ class NAFISCasesDataTable extends StatelessWidget {
 
         final columnWidths = <int, TableColumnWidth>{
           0: const FixedColumnWidth(70), // Sr. No.
-          1: const FlexColumnWidth(1.2), // CR No.
-          2: const FlexColumnWidth(1.4), // Section/Act
-          3: const FlexColumnWidth(1.4), // Charge Sheet Date
-          4: const FlexColumnWidth(1.5), // IO Name
-          5: const FixedColumnWidth(140), // Status
-          6: const FixedColumnWidth(140), // Action
+          1: const FlexColumnWidth(1.4), // Accused Name
+          2: const FlexColumnWidth(1.2), // CR No.
+          3: const FlexColumnWidth(1.4), // Section/Act
+          4: const FlexColumnWidth(1.4), // Head
+          5: const FlexColumnWidth(1.5), // IO Name
+          6: const FixedColumnWidth(130), // Status
+          7: const FixedColumnWidth(130), // Action
         };
 
         final headers = <Widget>[
           headerCell('Sr. No.', align: Alignment.centerLeft),
+          headerCell('Accused Name'),
           headerCell('CR No.'),
           headerCell('Section/Act'),
-          headerCell('Charge Sheet Date'),
+          headerCell('Head'),
           headerCell('IO Name'),
           headerCell('Status', align: Alignment.center),
           headerCell('Action', align: Alignment.center),
@@ -208,14 +213,25 @@ class NAFISCasesDataTable extends StatelessWidget {
               ExcelExportHelper.formatSectionAct(sectionActRaw);
           final sectionAct = formattedSection.isEmpty ? '-' : formattedSection;
 
-          final chargeSheetDate = (r['charge_sheet_date'] ??
-                  r['chargesheet_date'] ??
-                  extra['charge_sheet_date'] ??
-                  extra['chargeSheetDate'] ??
-                  extra['cs_date'] ??
-                  '')
-              .toString()
-              .trim();
+          final rawAccused = r['accused_name'] ??
+              r['accused'] ??
+              extra['accused_name'] ??
+              extra['accused'];
+          final formattedAccused =
+              ExcelExportHelper.formatAccused(rawAccused);
+          final accusedName =
+              formattedAccused.isEmpty ? '-' : formattedAccused;
+
+          final headRaw = r['head'] ??
+              r['sub_category'] ??
+              r['subCategory'] ??
+              r['title'] ??
+              extra['head'] ??
+              extra['crime_head'] ??
+              '-';
+          final head = headRaw.toString().trim().isEmpty
+              ? '-'
+              : headRaw.toString().trim();
 
           final ioName = (r['io_name'] ??
                   r['assigned_officer'] ??
@@ -226,11 +242,14 @@ class NAFISCasesDataTable extends StatelessWidget {
               .toString()
               .trim();
 
+          final color =
+              (r['nafis_status_color'] ?? '').toString().toLowerCase();
           final rawStatus =
               (r['nafis_status'] ?? r['status'] ?? '').toString().trim();
-          final isPending = rawStatus.toLowerCase() == 'pending' ||
-              rawStatus.toLowerCase() == 'no' ||
-              rawStatus.isEmpty;
+          final isGreen = color == 'green' ||
+              rawStatus.toLowerCase() == 'done' ||
+              rawStatus.toLowerCase() == 'chargesheeted';
+          final isPending = !isGreen;
 
           return TableRow(
             decoration: const BoxDecoration(
@@ -239,11 +258,14 @@ class NAFISCasesDataTable extends StatelessWidget {
               ),
             ),
             children: [
-              dataCell('${serialOffset + idx + 1}',
-                  align: Alignment.centerLeft),
+              dataCell(
+                r['sr_no']?.toString() ?? '${serialOffset + idx + 1}',
+                align: Alignment.centerLeft,
+              ),
+              dataCell(accusedName),
               dataCell(cr),
               dataCell(sectionAct),
-              dataCell(chargeSheetDate.isEmpty ? 'Pending' : chargeSheetDate),
+              dataCell(head),
               dataCell(ioName.isEmpty ? 'Unassigned' : ioName),
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
@@ -276,7 +298,7 @@ class NAFISCasesDataTable extends StatelessWidget {
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(minWidth: w > 750 ? w : 750),
+                  constraints: BoxConstraints(minWidth: w > 900 ? w : 900),
                   child: Table(
                     columnWidths: columnWidths,
                     defaultVerticalAlignment: TableCellVerticalAlignment.middle,
