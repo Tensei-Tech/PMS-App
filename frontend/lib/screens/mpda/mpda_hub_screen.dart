@@ -717,7 +717,7 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
               children: [
                 if (k == _summaryTab)
                   Icon(
-                    Icons.assessment_outlined,
+                    Icons.table_chart_rounded,
                     size: 22,
                     color:
                         isSelected ? AppColors.navyDark : AppColors.lightText,
