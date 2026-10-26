@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <!-- Notification permissions for flutter_local_notifications -->
@@ -9,6 +10,13 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
     <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
     <uses-permission android:name="android.permission.USE_FINGERPRINT"/>
+    <!-- In-app updates (ota_update): download the APK and open the installer.
+         REQUEST_INSTALL_PACKAGES comes from the plugin. The APK is saved in the
+         app's private storage, so the plugin's storage and system-install
+         permissions are not needed. Remove in-app updates before a Play Store
+         release (Play installs updates itself). -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove"/>
+    <uses-permission android:name="android.permission.INSTALL_PACKAGES" tools:node="remove"/>
     <application
         android:label="Khakhi Diary"
         android:name="${applicationName}"
@@ -39,6 +47,16 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <!-- Hands the downloaded update APK to Android's installer -->
+        <provider
+            android:name="sk.fourq.otaupdate.OtaUpdateFileProvider"
+            android:authorities="${applicationId}.ota_update_provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/ota_update_paths" />
+        </provider>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
