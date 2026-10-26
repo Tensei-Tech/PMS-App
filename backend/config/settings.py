@@ -355,14 +355,35 @@ SECURE_HSTS_PRELOAD = True
 # ------------------------------------------------------------------------------
 # UPSTASH REDIS CACHE LAYER CONFIGURATION
 # ------------------------------------------------------------------------------
-UPSTASH_REDIS_REST_URL = os.getenv('UPSTASH_REDIS_REST_URL', 'https://mature-eel-202638.upstash.io')
-UPSTASH_REDIS_REST_TOKEN = os.getenv('UPSTASH_REDIS_REST_TOKEN', 'ggAAAAAAAxeOAAIgcDHNa0zn2Xyy2gpsLIRRDdqRI68u7SlPuCjzaUUXePSvkA')
-REDIS_URL = os.getenv('REDIS_URL', 'rediss://default:ggAAAAAAAxeOAAIgcDHNa0zn2Xyy2gpsLIRRDdqRI68u7SlPuCjzaUUXePSvkA@mature-eel-202638.upstash.io:6379')
+# Shared cache: Upstash Redis when REDIS_URL is set (Render), else per-process
+# memory (local dev, tests, CI). Secrets come only from the environment.
+UPSTASH_REDIS_REST_URL = os.getenv('UPSTASH_REDIS_REST_URL', '')
+UPSTASH_REDIS_REST_TOKEN = os.getenv('UPSTASH_REDIS_REST_TOKEN', '')
+REDIS_URL = os.getenv('REDIS_URL', '')
+CACHE_KEY_PREFIX = os.getenv('CACHE_KEY_PREFIX', 'pms')
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'pms-app-cache-layer',
-        'TIMEOUT': 300,  # Default 5 min TTL
+if REDIS_URL and 'test' not in sys.argv:
+    CACHES = {
+        'default': {
+            # Never raises: a slow or unreachable Redis behaves like an empty cache
+            # (see apps/core/cache_backends.py).
+            'BACKEND': 'apps.core.cache_backends.SafeRedisCache',
+            'LOCATION': REDIS_URL,
+            'KEY_PREFIX': CACHE_KEY_PREFIX,
+            'TIMEOUT': 300,
+            'OPTIONS': {
+                'socket_connect_timeout': float(os.getenv('REDIS_CONNECT_TIMEOUT', '2')),
+                'socket_timeout': float(os.getenv('REDIS_TIMEOUT', '2')),
+                'health_check_interval': 30,
+                'max_connections': int(os.getenv('REDIS_MAX_CONNECTIONS', '20')),
+            },
+        }
     }
-}
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'pms-app-cache-layer',
+            'TIMEOUT': 300,  # Default 5 min TTL
+        }
+    }

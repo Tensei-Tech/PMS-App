@@ -28,7 +28,7 @@ class StateRegistryViewSet(viewsets.ModelViewSet):
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
 
-    @cache_response(ttl=43200, key_prefix="public_master:states")
+    @cache_response(ttl=43200, key_prefix="public_master:states", per_user=False)
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
@@ -68,7 +68,7 @@ class RoleViewSet(viewsets.ModelViewSet):
     serializer_class = RoleSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    @cache_response(ttl=43200, key_prefix="public_master:roles")
+    @cache_response(ttl=43200, key_prefix="public_master:roles", per_user=False)
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
@@ -86,7 +86,7 @@ class PermissionViewSet(viewsets.ModelViewSet):
     serializer_class = PermissionSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    @cache_response(ttl=43200, key_prefix="public_master:permissions")
+    @cache_response(ttl=43200, key_prefix="public_master:permissions", per_user=False)
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
@@ -129,7 +129,7 @@ class DesignationViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny]
     pagination_class = None
 
-    @cache_response(ttl=43200, key_prefix="public_master:designations")
+    @cache_response(ttl=43200, key_prefix="public_master:designations", per_user=False)
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
@@ -168,7 +168,7 @@ class MasterDivisionsView(views.APIView):
     """
     permission_classes = [permissions.AllowAny]
 
-    @cache_response(ttl=43200, key_prefix="hierarchy:divisions")
+    @cache_response(ttl=43200, key_prefix="hierarchy:divisions", per_user=False)
     def get(self, request):
         from .models import MasterDivision, StateRegistry
         from apps.core.tenancy import TenantContext, get_active_tenant_schema
@@ -217,7 +217,7 @@ class MasterDistrictsView(views.APIView):
     """
     permission_classes = [permissions.AllowAny]
 
-    @cache_response(ttl=43200, key_prefix="hierarchy:districts")
+    @cache_response(ttl=43200, key_prefix="hierarchy:districts", per_user=False)
     def get(self, request):
         from apps.stations.models import District
         from apps.core.tenancy import TenantContext, get_active_tenant_schema
@@ -255,7 +255,7 @@ class MasterStationsView(views.APIView):
     """
     permission_classes = [permissions.AllowAny]
 
-    @cache_response(ttl=43200, key_prefix="hierarchy:stations")
+    @cache_response(ttl=43200, key_prefix="hierarchy:stations", per_user=False)
     def get(self, request):
         from apps.stations.models import PoliceStation
         from apps.core.tenancy import TenantContext, get_active_tenant_schema
@@ -300,7 +300,7 @@ class AvailableUnitsView(views.APIView):
     """
     permission_classes = [permissions.AllowAny]
 
-    @cache_response(ttl=3600, key_prefix="hierarchy:units")
+    @cache_response(ttl=3600, key_prefix="hierarchy:units", per_user=False)
     def get(self, request):
         from .hierarchy_availability import HierarchyAvailabilityEngine
         state_code = request.query_params.get('state_code', 'MH').upper()
