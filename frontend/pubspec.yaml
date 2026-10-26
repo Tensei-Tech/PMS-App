@@ -1,5 +1,5 @@
 name: khakhi_diary
-description: "Khakhi Diary - Police Management System for Maharashtra Police."
+description: 'Khakhi Diary - Police Management System for Maharashtra Police.'
 publish_to: 'none'
 
 version: 1.0.0+1
@@ -44,7 +44,7 @@ dependencies:
   timezone: ^0.11.0
   csv: ^6.0.0
   http: ^1.6.0
-  uuid: ^4.5.1        # ✅ Added
+  uuid: ^4.5.1 # ✅ Added
   collection: ^1.19.1 # ✅ Added
   flutter_svg: ^2.0.10
   web: ^1.1.0
@@ -64,4 +64,3 @@ flutter:
     - assets/data/maharashtra_police_stations.csv
     - assets/reports/form_v.png
     - assets/icons/
-    - assets/icons/newicons/

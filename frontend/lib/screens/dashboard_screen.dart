@@ -354,24 +354,24 @@ String? _getDashboardSvgPath(String label) {
     case 'murder':
     case 'attempttomurder':
     case 'atttomurder':
-      return 'assets/icons/newicons/murder.svg';
+      return 'assets/icons/murder.svg';
     case 'dacoityrobbery':
     case 'dacoity':
     case 'decoity':
     case 'proofdacoity':
     case 'proofdecoity':
-      return 'assets/icons/newicons/decoity.svg';
+      return 'assets/icons/dacoity.svg';
     case 'chainsnatching':
     case 'snatching':
-      return 'assets/icons/newicons/chainsnaching.svg';
+      return 'assets/icons/chain_snatching.svg';
     default:
       if (clean.contains('passport')) return 'assets/icons/passport.svg';
-      if (clean.contains('murder')) return 'assets/icons/newicons/murder.svg';
+      if (clean.contains('murder')) return 'assets/icons/murder.svg';
       if (clean.contains('dacoity') || clean.contains('decoity')) {
-        return 'assets/icons/newicons/decoity.svg';
+        return 'assets/icons/dacoity.svg';
       }
       if (clean.contains('snatch')) {
-        return 'assets/icons/newicons/chainsnaching.svg';
+        return 'assets/icons/chain_snatching.svg';
       }
       return null;
   }
@@ -382,16 +382,32 @@ Widget _buildGridIcon(
   final labelTrim = label.replaceAll('\n', ' ').trim();
   final svgPath = _getDashboardSvgPath(labelTrim);
   if (svgPath != null) {
-    // Optical calibration: tall icons get a slight factor to match square icon mass
+    // Optical balancing:
+    // Solid filled badges (1-5, 6, NC, RTI) have heavy ink mass; scale to balance with line art
+    final isSolidBadge = svgPath.contains('1to5') ||
+        svgPath.contains('6.svg') ||
+        svgPath.contains('nc.svg') ||
+        svgPath.contains('rti.svg');
+    // Tall icons need a slight height factor to match square icon visual mass
     final isTall = svgPath.contains('juvenile') ||
         svgPath.contains('crimewomen') ||
         svgPath.contains('victim') ||
-        svgPath.contains('passport');
-    final scale = isTall ? 1.58 : 1.5;
+        svgPath.contains('passport') ||
+        svgPath.contains('mvact');
+    // Wide icons need a slight constraint so they don't crowd card borders
+    final isWide = svgPath.contains('2-4wheeler') ||
+        svgPath.contains('accident') ||
+        svgPath.contains('chain_snatching');
+
+    final double scale = isSolidBadge
+        ? 1.20
+        : (isTall ? 1.50 : (isWide ? 1.34 : 1.42));
+
     return SvgPicture.asset(
       svgPath,
       width: size * scale,
       height: size * scale,
+      fit: BoxFit.contain,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
   }
@@ -402,9 +418,10 @@ Widget _buildGridIcon(
     }
   }
 
-  // Optical parity: glyph icons (FontAwesome/Material) scale to match ~36px SVG visual weight
+  // Optical parity: glyph icons (FontAwesome/Material) scale to match SVG visual weight
   final dynamic icon = _dashboardTileIcon(label, fallback);
-  final glyphSize = size * 1.42;
+  final glyphScale = (icon == FontAwesomeIcons.maskFace) ? 1.42 : 1.35;
+  final glyphSize = size * glyphScale;
   if (icon is IconData) return Icon(icon, color: color, size: glyphSize);
   return FaIcon(icon, color: color, size: glyphSize);
 }
@@ -4046,12 +4063,20 @@ class _HomeTabState extends State<_HomeTab> {
                 borderRadius: BorderRadius.circular(AppRadius.md),
                 border: Border.all(color: AppColors.lightBorder),
               ),
-              child: Center(
-                child: _buildGridIcon(
-                    item.name,
-                    matchedTool?.icon ?? _classIcon(item.iconName),
-                    AppColors.navyMid,
-                    24),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final side = constraints.maxWidth < constraints.maxHeight
+                      ? constraints.maxWidth
+                      : constraints.maxHeight;
+                  final baseSize = (side * 0.44).clamp(18.0, 30.0);
+                  return Center(
+                    child: _buildGridIcon(
+                        item.name,
+                        matchedTool?.icon ?? _classIcon(item.iconName),
+                        AppColors.navyMid,
+                        baseSize),
+                  );
+                },
               ),
             ),
           ),
