@@ -46,10 +46,10 @@ from apps.crimetab.models.common_form import (
 from apps.crimetab.serializers import (
     CaseCategoryGroupSerializer,
     CaseCategorySerializer,
-    CaseListSerializer,
     FullCaseDetailSerializer,
     ActSerializer,
     ActSectionSerializer,
+    serialize_case_list,
 )
 from apps.crimetab.services.dynamic_form_service import get_form_definition, get_preventive_action_types
 from apps.crimetab.services.counter_service import (
@@ -506,12 +506,11 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
                     Q(accused__icontains=search)
                 )
 
-            serializer = CaseListSerializer(qs.order_by('-created_at')[:50], many=True)
             return Response({
                 'category_id': category_id,
                 'category_name': category.category_name,
                 'total_cases': qs.count(),
-                'cases': serializer.data,
+                'cases': serialize_case_list(qs.order_by('-created_at')[:50]),
             })
 
 
@@ -1742,19 +1741,18 @@ class CrimeCaseManageView(APIView):
 
                     try:
                         total_count = qs.count()
-                        records = qs.order_by('-created_at')[:50]
-                        serializer = CaseListSerializer(records, many=True)
+                        rows = serialize_case_list(qs.order_by('-created_at')[:50])
                     except OperationalError:
                         from django.db import connection
                         connection.close()
                         total_count = qs.count()
-                        records = qs.order_by('-created_at')[:50]
-                        serializer = CaseListSerializer(records, many=True)
+                        rows = serialize_case_list(qs.order_by('-created_at')[:50])
 
+                    # The app reads 'results' (falling back to 'cases'); sending
+                    # the same rows under both keys doubled the download.
                     return Response({
                         'count': total_count,
-                        'results': serializer.data,
-                        'cases': serializer.data
+                        'results': rows,
                     })
         except Exception as e:
             logger.error(f"Error in CrimeCaseManageView.get: {str(e)}")
