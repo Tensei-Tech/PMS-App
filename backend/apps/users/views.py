@@ -1,5 +1,6 @@
 import logging
 from django.utils import timezone
+from django.db import transaction
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -124,17 +125,19 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
         # 1. Fetch all officers across active tenant schema and public schema
         officers_by_uid = {}
         try:
-            for off in OfficerProfile.objects.all():
-                if off.uid:
-                    officers_by_uid[off.uid] = off
+            with transaction.atomic():  # savepoint: a missing table spoils nothing else
+                for off in OfficerProfile.objects.all():
+                    if off.uid:
+                        officers_by_uid[off.uid] = off
         except Exception:
             pass
 
         try:
-            set_tenant_schema('public')
-            for pub_off in OfficerProfile.objects.all():
-                if pub_off.uid and pub_off.uid not in officers_by_uid:
-                    officers_by_uid[pub_off.uid] = pub_off
+            with transaction.atomic():  # savepoint: a missing table spoils nothing else
+                set_tenant_schema('public')
+                for pub_off in OfficerProfile.objects.all():
+                    if pub_off.uid and pub_off.uid not in officers_by_uid:
+                        officers_by_uid[pub_off.uid] = pub_off
         except Exception:
             pass
         finally:
@@ -154,7 +157,9 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
             }
 
         try:
-            with TenantContext(active_schema):
+            # Schema switch outside the savepoint: it must never run inside a
+            # failed transaction (set_tenant_schema then drops the connection).
+            with TenantContext(active_schema), transaction.atomic():
                 master_divs = list(MasterDivision.objects.all())
                 for mdiv in master_divs:
                     div_name = getattr(mdiv, 'name', getattr(mdiv, 'division_name', ''))
@@ -205,17 +210,18 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
         # 3. Gather Districts & District Admins
         districts_map = {}
         try:
-            set_tenant_schema('public')
-            master_districts = list(District.objects.all())
-            for mdist in master_districts:
-                dist_name = getattr(mdist, 'name', None) or getattr(mdist, 'district_name', 'District')
-                dist_id = getattr(mdist, 'district_id', None) or getattr(mdist, 'id', '0')
-                districts_map[dist_name] = {
-                    'id': f"dist-{dist_id}",
-                    'name': dist_name,
-                    'division_name': getattr(mdist, 'division_name', ''),
-                    'admins': [],
-                }
+            with transaction.atomic():  # savepoint: a missing table spoils nothing else
+                set_tenant_schema('public')
+                master_districts = list(District.objects.all())
+                for mdist in master_districts:
+                    dist_name = getattr(mdist, 'name', None) or getattr(mdist, 'district_name', 'District')
+                    dist_id = getattr(mdist, 'district_id', None) or getattr(mdist, 'id', '0')
+                    districts_map[dist_name] = {
+                        'id': f"dist-{dist_id}",
+                        'name': dist_name,
+                        'division_name': getattr(mdist, 'division_name', ''),
+                        'admins': [],
+                    }
         except Exception:
             pass
         finally:
@@ -272,18 +278,19 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
         # 4. Gather Police Stations & Station Heads
         stations_map = {}
         try:
-            set_tenant_schema('public')
-            master_stations = list(PoliceStation.objects.all())
-            for ps in master_stations:
-                st_name = getattr(ps, 'station_name', None) or getattr(ps, 'name', 'Police Station')
-                st_id = getattr(ps, 'station_id', None) or getattr(ps, 'id', '0')
-                st_dist = ps.district.name if hasattr(ps, 'district') and ps.district else getattr(ps, 'district_name', '')
-                stations_map[st_name] = {
-                    'id': f"st-{st_id}",
-                    'name': st_name,
-                    'district': st_dist,
-                    'head': None,
-                }
+            with transaction.atomic():  # savepoint: a missing table spoils nothing else
+                set_tenant_schema('public')
+                master_stations = list(PoliceStation.objects.all())
+                for ps in master_stations:
+                    st_name = getattr(ps, 'station_name', None) or getattr(ps, 'name', 'Police Station')
+                    st_id = getattr(ps, 'station_id', None) or getattr(ps, 'id', '0')
+                    st_dist = ps.district.name if hasattr(ps, 'district') and ps.district else getattr(ps, 'district_name', '')
+                    stations_map[st_name] = {
+                        'id': f"st-{st_id}",
+                        'name': st_name,
+                        'district': st_dist,
+                        'head': None,
+                    }
         except Exception:
             pass
         finally:

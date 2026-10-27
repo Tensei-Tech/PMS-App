@@ -330,22 +330,25 @@ class RegisterView(views.APIView):
 
             # If district admin, register in District & DistrictAdmin models
             if role_id == 'district_admin' and district_name:
+                # Savepoint: where the optional district tables are missing, the
+                # failed query must not spoil the rest of the request.
                 try:
-                    dist_obj, _ = District.objects.get_or_create(
-                        name=district_name,
-                        defaults={'district_id': f"DST-{district_name[:4].upper()}", 'status': 'approved'}
-                    )
-                    DistrictAdmin.objects.update_or_create(
-                        uid=uid,
-                        defaults={
-                            'district': dist_obj,
-                            'name': full_name,
-                            'email': email,
-                            'phone': phone,
-                            'badge_number': badge_number,
-                            'status': 'active'
-                        }
-                    )
+                    with transaction.atomic():
+                        dist_obj, _ = District.objects.get_or_create(
+                            name=district_name,
+                            defaults={'district_id': f"DST-{district_name[:4].upper()}", 'status': 'approved'}
+                        )
+                        DistrictAdmin.objects.update_or_create(
+                            uid=uid,
+                            defaults={
+                                'district': dist_obj,
+                                'name': full_name,
+                                'email': email,
+                                'phone': phone,
+                                'badge_number': badge_number,
+                                'status': 'active'
+                            }
+                        )
                 except Exception as e:
                     logger.warning(f"Failed to sync DistrictAdmin record: {e}")
 
@@ -493,30 +496,32 @@ class PendingApprovalsNotificationListView(views.APIView):
         # A request is shown to every admin who may approve the account it is
         # for: the admin above it in its area and everyone above them.
         try:
-            pending_by_uid = {o.uid: o for o in OfficerProfile.objects.filter(
-                account_status__in=['pending_approval', 'pending'])}
+            with transaction.atomic():  # savepoint: a failed query spoils nothing else
+                pending_by_uid = {o.uid: o for o in OfficerProfile.objects.filter(
+                    account_status__in=['pending_approval', 'pending'])}
         except Exception as e:
             logger.warning(f"[PendingApprovals] Pending profile query error: {e}")
             pending_by_uid = {}
 
         # 1. Gather pending NotificationRecord entries in active tenant schema
         try:
-            for n in NotificationRecord.objects.filter(status='pending', category='approval_request'):
-                uid = n.registration_uid
-                target = pending_by_uid.get(uid) or SimpleNamespace(
-                    uid=uid, role_id='officer', station_name=n.target_station_name, district=n.target_district)
-                if uid and uid not in seen_uids and can_manage_account(request.user, target):
-                    seen_uids.add(uid)
-                    data.append({
-                        'id': n.id,
-                        'title': n.title,
-                        'body': n.body,
-                        'category': n.category,
-                        'registration_uid': uid,
-                        'target_station': n.target_station_name or '',
-                        'target_district': n.target_district or '',
-                        'created_at': n.created_at.isoformat() if hasattr(n, 'created_at') and n.created_at else datetime.now(timezone.utc).isoformat(),
-                    })
+            with transaction.atomic():  # savepoint: a failed query spoils nothing else
+                for n in NotificationRecord.objects.filter(status='pending', category='approval_request'):
+                    uid = n.registration_uid
+                    target = pending_by_uid.get(uid) or SimpleNamespace(
+                        uid=uid, role_id='officer', station_name=n.target_station_name, district=n.target_district)
+                    if uid and uid not in seen_uids and can_manage_account(request.user, target):
+                        seen_uids.add(uid)
+                        data.append({
+                            'id': n.id,
+                            'title': n.title,
+                            'body': n.body,
+                            'category': n.category,
+                            'registration_uid': uid,
+                            'target_station': n.target_station_name or '',
+                            'target_district': n.target_district or '',
+                            'created_at': n.created_at.isoformat() if hasattr(n, 'created_at') and n.created_at else datetime.now(timezone.utc).isoformat(),
+                        })
         except Exception as e:
             logger.warning(f"[PendingApprovals] Notif query error: {e}")
 
@@ -524,58 +529,60 @@ class PendingApprovalsNotificationListView(views.APIView):
 
         # 2. Gather pending OfficerProfile entries in active tenant schema
         try:
-            for off in list(OfficerProfile.objects.filter(account_status__in=['pending_approval', 'pending'])):
-                if off.uid and off.uid not in seen_uids and can_manage_account(request.user, off):
-                    seen_uids.add(off.uid)
-                    data.append({
-                        'id': f"off-{off.uid}",
-                        'title': f"{off.name} ({off.designation or 'Officer'})",
-                        'body': f"Pending officer registration request for {off.station_name or off.district or 'Police Station'}.",
-                        'category': 'approval_request',
-                        'registration_uid': off.uid,
-                        'name': off.name or '',
-                        'email': off.email or '',
-                        'phone': off.phone or '',
-                        'designation': off.designation or '',
-                        'badge_number': off.badge_number or '',
-                        'target_station': off.station_name or '',
-                        'target_district': off.district or '',
-                        'govt_id': off.govt_id or '',
-                        'photo_url': off.photo_url or '',
-                        'id_card_url': off.id_card_url or '',
-                        'role_id': off.role_id or 'officer',
-                        'account_status': off.account_status or 'pending_approval',
-                        'created_at': datetime.now(timezone.utc).isoformat(),
-                    })
+            with transaction.atomic():  # savepoint: a failed query spoils nothing else
+                for off in list(OfficerProfile.objects.filter(account_status__in=['pending_approval', 'pending'])):
+                    if off.uid and off.uid not in seen_uids and can_manage_account(request.user, off):
+                        seen_uids.add(off.uid)
+                        data.append({
+                            'id': f"off-{off.uid}",
+                            'title': f"{off.name} ({off.designation or 'Officer'})",
+                            'body': f"Pending officer registration request for {off.station_name or off.district or 'Police Station'}.",
+                            'category': 'approval_request',
+                            'registration_uid': off.uid,
+                            'name': off.name or '',
+                            'email': off.email or '',
+                            'phone': off.phone or '',
+                            'designation': off.designation or '',
+                            'badge_number': off.badge_number or '',
+                            'target_station': off.station_name or '',
+                            'target_district': off.district or '',
+                            'govt_id': off.govt_id or '',
+                            'photo_url': off.photo_url or '',
+                            'id_card_url': off.id_card_url or '',
+                            'role_id': off.role_id or 'officer',
+                            'account_status': off.account_status or 'pending_approval',
+                            'created_at': datetime.now(timezone.utc).isoformat(),
+                        })
         except Exception as e:
             logger.warning(f"[PendingApprovals] Tenant officer query error: {e}")
 
         # 3. Gather pending OfficerProfile entries in public schema
         try:
-            set_tenant_schema('public')
-            for pub_off in list(OfficerProfile.objects.filter(account_status__in=['pending_approval', 'pending'])):
-                if pub_off.uid and pub_off.uid not in seen_uids and can_manage_account(request.user, pub_off):
-                    seen_uids.add(pub_off.uid)
-                    data.append({
-                        'id': f"pub-{pub_off.uid}",
-                        'title': f"{pub_off.name} ({pub_off.designation or 'Officer'})",
-                        'body': f"Pending officer registration request for {pub_off.station_name or pub_off.district or 'Police Station'}.",
-                        'category': 'approval_request',
-                        'registration_uid': pub_off.uid,
-                        'name': pub_off.name or '',
-                        'email': pub_off.email or '',
-                        'phone': pub_off.phone or '',
-                        'designation': pub_off.designation or '',
-                        'badge_number': pub_off.badge_number or '',
-                        'target_station': pub_off.station_name or '',
-                        'target_district': pub_off.district or '',
-                        'govt_id': pub_off.govt_id or '',
-                        'photo_url': pub_off.photo_url or '',
-                        'id_card_url': pub_off.id_card_url or '',
-                        'role_id': pub_off.role_id or 'officer',
-                        'account_status': pub_off.account_status or 'pending_approval',
-                        'created_at': datetime.now(timezone.utc).isoformat(),
-                    })
+            with transaction.atomic():  # savepoint: a failed query spoils nothing else
+                set_tenant_schema('public')
+                for pub_off in list(OfficerProfile.objects.filter(account_status__in=['pending_approval', 'pending'])):
+                    if pub_off.uid and pub_off.uid not in seen_uids and can_manage_account(request.user, pub_off):
+                        seen_uids.add(pub_off.uid)
+                        data.append({
+                            'id': f"pub-{pub_off.uid}",
+                            'title': f"{pub_off.name} ({pub_off.designation or 'Officer'})",
+                            'body': f"Pending officer registration request for {pub_off.station_name or pub_off.district or 'Police Station'}.",
+                            'category': 'approval_request',
+                            'registration_uid': pub_off.uid,
+                            'name': pub_off.name or '',
+                            'email': pub_off.email or '',
+                            'phone': pub_off.phone or '',
+                            'designation': pub_off.designation or '',
+                            'badge_number': pub_off.badge_number or '',
+                            'target_station': pub_off.station_name or '',
+                            'target_district': pub_off.district or '',
+                            'govt_id': pub_off.govt_id or '',
+                            'photo_url': pub_off.photo_url or '',
+                            'id_card_url': pub_off.id_card_url or '',
+                            'role_id': pub_off.role_id or 'officer',
+                            'account_status': pub_off.account_status or 'pending_approval',
+                            'created_at': datetime.now(timezone.utc).isoformat(),
+                        })
         except Exception as e:
             logger.warning(f"[PendingApprovals] Public officer query error: {e}")
         finally:
@@ -625,36 +632,38 @@ class ApproveRejectOfficerRegistrationView(views.APIView):
         new_status = 'active' if action == 'approve' else 'rejected'
         notif_status = 'approved' if action == 'approve' else 'rejected'
 
+        def update_copies(schema_label):
+            # One savepoint per table: a schema without a notifications table
+            # must not undo the account update, nor spoil the rest of the request.
+            for model, field, values in ((OfficerProfile, 'uid', {'account_status': new_status}),
+                                         (NotificationRecord, 'registration_uid',
+                                          {'status': notif_status, 'is_read': True})):
+                try:
+                    with transaction.atomic():
+                        model.objects.filter(**{field: str(uid)}).update(**values)
+                except Exception as ex:
+                    logger.warning(f"[ApproveRegistration] {schema_label} {model.__name__} update error: {ex}")
+
         # 1. Update in active schema
-        try:
-            OfficerProfile.objects.filter(uid=str(uid)).update(account_status=new_status)
-            NotificationRecord.objects.filter(registration_uid=str(uid)).update(status=notif_status, is_read=True)
-        except Exception as ex:
-            logger.warning(f"[ApproveRegistration] Active schema update error: {ex}")
+        update_copies('Active schema')
 
         # 2. Update in public schema
         if active_schema != 'public':
             try:
                 set_tenant_schema('public')
-                OfficerProfile.objects.filter(uid=str(uid)).update(account_status=new_status)
-                NotificationRecord.objects.filter(registration_uid=str(uid)).update(status=notif_status, is_read=True)
-            except Exception as ex:
-                logger.warning(f"[ApproveRegistration] Public schema update error: {ex}")
+                update_copies('Public schema')
             finally:
                 set_tenant_schema(active_schema)
 
         # 3. Update across all registered state tenant schemas
         try:
-            set_tenant_schema('public')
-            state_schemas = list(StateRegistry.objects.values_list('schema_name', flat=True))
+            with transaction.atomic():
+                set_tenant_schema('public')
+                state_schemas = list(StateRegistry.objects.values_list('schema_name', flat=True))
             for sch in state_schemas:
                 if sch != active_schema:
-                    try:
-                        set_tenant_schema(sch)
-                        OfficerProfile.objects.filter(uid=str(uid)).update(account_status=new_status)
-                        NotificationRecord.objects.filter(registration_uid=str(uid)).update(status=notif_status, is_read=True)
-                    except Exception:
-                        pass
+                    set_tenant_schema(sch)
+                    update_copies(f"Schema {sch}")
         except Exception as ex:
             logger.warning(f"[ApproveRegistration] Multi-tenant update error: {ex}")
         finally:
