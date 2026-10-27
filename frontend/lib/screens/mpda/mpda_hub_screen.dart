@@ -640,8 +640,8 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
                         ),
                         child: SizedBox(
                           height: 72,
-                          child: _buildCardItem(idx, cardLabels,
-                              isCompact: false),
+                          child:
+                              _buildCardItem(idx, cardLabels, isCompact: false),
                         ),
                       ),
                     );
@@ -781,9 +781,8 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: isSelected
-                                ? Colors.white
-                                : AppColors.navyDark,
+                            color:
+                                isSelected ? Colors.white : AppColors.navyDark,
                           ),
                         ),
                       ),
