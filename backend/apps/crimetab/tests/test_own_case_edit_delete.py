@@ -11,6 +11,7 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 
 from apps.cases.models import CaseRecord
+from apps.core.tenancy import TenantContext
 from apps.crimetab.models.accident import RoadAccidentRecord
 from apps.public_master.models import Role, StateRegistry
 from apps.users.models import OfficerProfile
@@ -29,10 +30,13 @@ class OwnCaseEditDeleteTests(TestCase):
         self.head = self._officer('head', 'Station A', role='station_head')
         self.outsider = self._officer('outsider', 'Station B')
 
-        self.case = CaseRecord.objects.create(id='case-own', module_key='murder', title='OWNER CASE',
-                                              case_number='CR/1', station_name='Station A',
-                                              created_by='owner', assigned_officer_uid='io')
-        RoadAccidentRecord.objects.create(case_id='case-own', station_name='Station A')
+        # Case and accident tables live in the state's schema (requests read
+        # them there), so test data is written and checked inside it too.
+        with TenantContext('maharashtra'):
+            self.case = CaseRecord.objects.create(id='case-own', module_key='murder', title='OWNER CASE',
+                                                  case_number='CR/1', station_name='Station A',
+                                                  created_by='owner', assigned_officer_uid='io')
+            RoadAccidentRecord.objects.create(case_id='case-own', station_name='Station A')
 
     def tearDown(self):
         cache.clear()
@@ -52,7 +56,12 @@ class OwnCaseEditDeleteTests(TestCase):
         return self._client(officer).put('/api/cases/case-own/', {'title': title}, format='json')
 
     def _title(self):
-        return CaseRecord.objects.get(pk='case-own').title
+        with TenantContext('maharashtra'):
+            return CaseRecord.objects.get(pk='case-own').title
+
+    def _exists(self, model, **lookup):
+        with TenantContext('maharashtra'):
+            return model.objects.filter(**lookup).exists()
 
     def test_creator_and_io_edit(self):
         self.assertEqual(self._edit(self.owner, 'BY OWNER').status_code, 200)
@@ -72,7 +81,8 @@ class OwnCaseEditDeleteTests(TestCase):
         self.assertEqual(self._client(self.outsider).delete('/api/cases/case-own/').status_code, 404)
 
     def test_colleague_cannot_edit_accident_details(self):
-        acc = RoadAccidentRecord.objects.get(case_id='case-own')
+        with TenantContext('maharashtra'):
+            acc = RoadAccidentRecord.objects.get(case_id='case-own')
         response = self._client(self.colleague).patch(f'/api/road-accident/{acc.id}/', {'station_name': 'Station A'},
                                                       format='json')
         self.assertEqual(response.status_code, 403)
@@ -82,11 +92,11 @@ class OwnCaseEditDeleteTests(TestCase):
     def test_only_creator_deletes(self):
         for officer in (self.colleague, self.io, self.head):
             self.assertEqual(self._client(officer).delete('/api/cases/case-own/').status_code, 403, officer.uid)
-        self.assertTrue(CaseRecord.objects.filter(pk='case-own').exists())
+        self.assertTrue(self._exists(CaseRecord, pk='case-own'))
 
         self.assertEqual(self._client(self.owner).delete('/api/cases/case-own/').status_code, 204)
-        self.assertFalse(CaseRecord.objects.filter(pk='case-own').exists())
-        self.assertFalse(RoadAccidentRecord.objects.filter(case_id='case-own').exists())
+        self.assertFalse(self._exists(CaseRecord, pk='case-own'))
+        self.assertFalse(self._exists(RoadAccidentRecord, case_id='case-own'))
 
     def test_creator_comes_from_login(self):
         response = self._client(self.colleague).post('/api/cases/', {
@@ -94,4 +104,5 @@ class OwnCaseEditDeleteTests(TestCase):
             'created_by': 'owner',
         }, format='json')
         self.assertEqual(response.status_code, 201, response.content)
-        self.assertEqual(CaseRecord.objects.get(pk='case-new').created_by, 'colleague')
+        with TenantContext('maharashtra'):
+            self.assertEqual(CaseRecord.objects.get(pk='case-new').created_by, 'colleague')
