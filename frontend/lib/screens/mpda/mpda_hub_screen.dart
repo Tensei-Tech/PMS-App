@@ -576,26 +576,72 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
       body: Column(
         children: [
           _buildReminderBanner(),
-          // CARDS (single row across all screens, including mobile)
+          // CARDS (2 rows on mobile without scrolling, single row on wide screens)
           Container(
             color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final isCompact = constraints.maxWidth < 600;
-                final spacing = isCompact ? 3.0 : 8.0;
+
+                if (isCompact) {
+                  // Mobile: 2 rows without scrolling (Row 1: 4 cards, Row 2: 3 cards)
+                  const row1Indices = [0, 1, 2, 3];
+                  const row2Indices = [4, 5, 6];
+                  const spacing = 4.0;
+                  const cardHeight = 42.0;
+
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: row1Indices.map((idx) {
+                          return Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                right: idx != row1Indices.last ? spacing : 0,
+                              ),
+                              child: SizedBox(
+                                height: cardHeight,
+                                child: _buildCardItem(idx, cardLabels,
+                                    isCompact: true),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: spacing),
+                      Row(
+                        children: row2Indices.map((idx) {
+                          return Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                right: idx != row2Indices.last ? spacing : 0,
+                              ),
+                              child: SizedBox(
+                                height: cardHeight,
+                                child: _buildCardItem(idx, cardLabels,
+                                    isCompact: true),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  );
+                }
 
                 return Row(
                   children: List.generate(_tabKeys.length, (idx) {
                     return Expanded(
                       child: Padding(
                         padding: EdgeInsets.only(
-                          right: idx < _tabKeys.length - 1 ? spacing : 0,
+                          right: idx < _tabKeys.length - 1 ? 8.0 : 0,
                         ),
                         child: SizedBox(
-                          height: 68,
+                          height: 72,
                           child: _buildCardItem(idx, cardLabels,
-                              isCompact: isCompact),
+                              isCompact: false),
                         ),
                       ),
                     );
@@ -695,8 +741,8 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
       borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: EdgeInsets.symmetric(
-          horizontal: isCompact ? 2 : 6,
-          vertical: 4,
+          horizontal: isCompact ? 5 : 6,
+          vertical: isCompact ? 3 : 4,
         ),
         decoration: BoxDecoration(
           color: isSelected
@@ -708,50 +754,105 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
             width: isSelected ? 1.5 : 1,
           ),
         ),
-        child: Center(
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (k == _summaryTab)
-                  Icon(
-                    Icons.table_chart_rounded,
-                    size: isCompact ? 18 : 22,
-                    color:
-                        isSelected ? AppColors.navyDark : AppColors.lightText,
-                  )
-                else
-                  Text(
-                    '$count',
-                    style: GoogleFonts.poppins(
-                      fontSize: isCompact ? 14 : 16,
-                      fontWeight: FontWeight.bold,
-                      color:
-                          isSelected ? AppColors.navyDark : AppColors.lightText,
+        child: isCompact
+            ? Center(
+                child: Row(
+                  children: [
+                    if (k == _summaryTab)
+                      Icon(
+                        Icons.table_chart_rounded,
+                        size: 16,
+                        color: isSelected
+                            ? AppColors.navyDark
+                            : AppColors.lightText,
+                      )
+                    else
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppColors.navyMid
+                              : const Color(0xFFE2E8F0),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          '$count',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: isSelected
+                                ? Colors.white
+                                : AppColors.navyDark,
+                          ),
+                        ),
+                      ),
+                    const SizedBox(width: 5),
+                    Expanded(
+                      child: Text(
+                        TranslationHelper.translate(context, label),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          fontSize: 9.0,
+                          height: 1.15,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.w500,
+                          color: isSelected
+                              ? AppColors.navyDark
+                              : AppColors.lightSubText,
+                        ),
+                      ),
                     ),
-                  ),
-                const SizedBox(height: 2),
-                Text(
-                  TranslationHelper.translate(context, label),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.poppins(
-                    fontSize: isCompact ? 8.5 : 10,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                    color: isSelected
-                        ? AppColors.navyDark
-                        : AppColors.lightSubText,
+                  ],
+                ),
+              )
+            : Center(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (k == _summaryTab)
+                        Icon(
+                          Icons.table_chart_rounded,
+                          size: 22,
+                          color: isSelected
+                              ? AppColors.navyDark
+                              : AppColors.lightText,
+                        )
+                      else
+                        Text(
+                          '$count',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isSelected
+                                ? AppColors.navyDark
+                                : AppColors.lightText,
+                          ),
+                        ),
+                      const SizedBox(height: 2),
+                      Text(
+                        TranslationHelper.translate(context, label),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          fontSize: 10,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.w500,
+                          color: isSelected
+                              ? AppColors.navyDark
+                              : AppColors.lightSubText,
+                        ),
+                      ),
+                      if (k == _releasedTab) _buildReleasedDayChips(idx),
+                    ],
                   ),
                 ),
-                if (k == _releasedTab && !isCompact)
-                  _buildReleasedDayChips(idx),
-              ],
-            ),
-          ),
-        ),
+              ),
       ),
     );
   }
