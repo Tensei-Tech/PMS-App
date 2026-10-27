@@ -47,6 +47,7 @@ class NAFISSummaryScreen extends StatelessWidget {
       theme: theme,
       title: 'NAFIS — Fingerprint Pending Summary',
       rows: dataset,
+      columnOrder: ['accused_name', 'cr', 'sections', 'head', 'io', 'nafis_status'],
     );
     await Printing.sharePdf(
       bytes: await doc.save(),

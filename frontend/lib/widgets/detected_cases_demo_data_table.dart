@@ -30,9 +30,11 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
 
         final columnWidths = <int, TableColumnWidth>{
           0: const IntrinsicColumnWidth(),
-          1: const FlexColumnWidth(1.5),
-          2: const FlexColumnWidth(1.5),
-          3: const FlexColumnWidth(1.5),
+          1: const FlexColumnWidth(1.1),
+          2: const FlexColumnWidth(1.3),
+          3: const FlexColumnWidth(1.3),
+          4: const FlexColumnWidth(1.6),
+          5: const FlexColumnWidth(1.4),
         };
 
         Widget headerCell(String s) => Container(
@@ -72,8 +74,10 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
         final headers = <Widget>[
           headerCell('Sr. No'),
           headerCell('Cr. No.'),
-          headerCell('SEC & ACT'),
-          headerCell('Accused name'),
+          headerCell('SEC/ACT'),
+          headerCell('Head'),
+          headerCell('Accused Name'),
+          headerCell('IO Name'),
         ];
 
         TableRow rowFor(int idx, Map<String, String> r) {
@@ -82,9 +86,13 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
             decoration: BoxDecoration(color: bg),
             children: [
               dataCell('${serialOffset + idx + 1}'),
-              dataCell(r['cr']!),
-              dataCell(r['sections']!),
-              dataCell(r['accused'] ?? '', align: Alignment.centerLeft),
+              dataCell(r['cr']?.isNotEmpty == true ? r['cr']! : '-'),
+              dataCell(r['sections']?.isNotEmpty == true ? r['sections']! : '-'),
+              dataCell(r['head']?.isNotEmpty == true ? r['head']! : '-'),
+              dataCell(r['accused']?.isNotEmpty == true ? r['accused']! : '-',
+                  align: Alignment.centerLeft),
+              dataCell(r['io']?.isNotEmpty == true ? r['io']! : '-',
+                  align: Alignment.centerLeft),
             ],
           );
         }
