@@ -187,5 +187,9 @@ class Command(BaseCommand):
                 }
             )
 
+        # Admin-role eligibility comes from the Admin Role / Designation Matrix.
+        from apps.public_master.designation_matrix import apply_matrix
+        apply_matrix(Designation)
+
         self.stdout.write(self.style.SUCCESS("  Police Designations: Seeded dynamic DB matrix flags for all rank levels."))
         self.stdout.write(self.style.SUCCESS("\n[SUCCESS] 100% Dynamic Permissions & Hierarchy Seeding Completed!"))
