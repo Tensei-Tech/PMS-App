@@ -98,6 +98,7 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
 
   void _onTabChanged() {
     if (_tabController.indexIsChanging) return;
+    setState(() {});
     _fetchItemsForTab(_tabController.index);
   }
 
@@ -344,40 +345,96 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
       ),
       body: Column(
         children: [
-          // 3 Tabs Bar (NO number cards)
+          // Form I-V style Tabs Bar
           Container(
-            color: Colors.white,
-            child: TabBar(
-              controller: _tabController,
-              isScrollable: true,
-              tabAlignment: TabAlignment.start,
-              indicatorColor: AppColors.navyMid,
-              indicatorWeight: 3,
-              labelColor: AppColors.navyDark,
-              unselectedLabelColor: AppColors.lightSubText,
-              labelStyle: GoogleFonts.poppins(
-                fontWeight: FontWeight.w700,
-                fontSize: 13,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              border: Border(
+                bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
               ),
-              unselectedLabelStyle: GoogleFonts.poppins(
-                fontWeight: FontWeight.w500,
-                fontSize: 13,
-              ),
-              tabs: _tabKeys.map((k) {
-                final tabLabel = _getConfigString(subTabLabels, k);
-                // The summary tab lists every sheet, so it shows the total
-                final count = _counts[k == _chartTab ? 'total' : k] ?? 0;
-                return Tab(
+            ),
+            child: AnimatedBuilder(
+              animation: _tabController,
+              builder: (context, _) {
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.only(left: 16, right: 8),
                   child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(TranslationHelper.translate(context, tabLabel)),
-                      const SizedBox(width: 6),
-                      _buildCountBadge(count, AppColors.navyDark),
-                    ],
+                    children: _tabKeys.asMap().entries.map((entry) {
+                      final idx = entry.key;
+                      final k = entry.value;
+                      final isSelected = _tabController.index == idx;
+                      final tabLabel = _getConfigString(subTabLabels, k);
+                      final count = _counts[k == _chartTab ? 'total' : k] ?? 0;
+                      final (badgeBg, badgeFg) = _getTabBadgeColors(k);
+
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 24),
+                        child: InkWell(
+                          onTap: () {
+                            _tabController.animateTo(idx);
+                            setState(() {});
+                          },
+                          hoverColor: Colors.transparent,
+                          splashColor:
+                              AppColors.navyMid.withValues(alpha: 0.08),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: isSelected
+                                      ? const Color(0xFF1976D2)
+                                      : Colors.transparent,
+                                  width: 2.5,
+                                ),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  TranslationHelper.translate(
+                                      context, tabLabel),
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 13.5,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                    color: isSelected
+                                        ? AppColors.navyDark
+                                        : AppColors.lightSubText,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: badgeBg,
+                                    borderRadius:
+                                        BorderRadius.circular(AppRadius.full),
+                                  ),
+                                  child: Text(
+                                    '$count',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: badgeFg,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
                   ),
                 );
-              }).toList(),
+              },
             ),
           ),
 
@@ -437,22 +494,22 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
     );
   }
 
-  Widget _buildCountBadge(int count, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        '$count',
-        style: GoogleFonts.poppins(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: color,
-        ),
-      ),
-    );
+  (Color, Color) _getTabBadgeColors(String key) {
+    switch (key) {
+      case 'active':
+        return (const Color(0xFFE8F5E9), const Color(0xFF2E7D32));
+      case 'open':
+        return (const Color(0xFFFFF3E0), const Color(0xFFE65100));
+      case 'closed':
+        return (const Color(0xFFF1F5F9), const Color(0xFF475569));
+      case 'jail':
+        return (const Color(0xFFFFEBEE), const Color(0xFFC62828));
+      case 'bail':
+        return (const Color(0xFFEDE7F6), const Color(0xFF6A1B9A));
+      case 'chart':
+      default:
+        return (const Color(0xFFE8F1FC), const Color(0xFF1976D2));
+    }
   }
 
   Widget _buildTabListContent(int tabIndex) {
