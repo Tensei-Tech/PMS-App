@@ -240,8 +240,6 @@ class NAFISCasesDataTable extends StatelessWidget {
               .toString()
               .trim();
 
-          final extra =
-              r['extra_fields'] is Map ? r['extra_fields'] as Map : {};
           final color = (r['nafis_status_color'] ??
                   extra['nafis_status_color'] ??
                   '')
