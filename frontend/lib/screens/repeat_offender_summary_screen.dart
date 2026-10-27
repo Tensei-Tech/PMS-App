@@ -324,9 +324,12 @@ class _LiveRepeatOffenderSummaryLoaderState
       final multipleCr = (row['multiple_cr'] ?? '').trim();
 
       // Exclude invalid/empty CR or cases without other repeat CRs
-      if (cr.isEmpty || cr == '—' || cr == '-') continue;
-      if (multipleCr.isEmpty || multipleCr == '—' || multipleCr == '-')
+      if (cr.isEmpty || cr == '—' || cr == '-') {
         continue;
+      }
+      if (multipleCr.isEmpty || multipleCr == '—' || multipleCr == '-') {
+        continue;
+      }
 
       final lowerName = name.toLowerCase();
       if (lowerName == 'default accused' ||

@@ -266,7 +266,9 @@ bool isPreventiveCase(dynamic recordOrMap) {
         .toLowerCase();
     if (mod == 'preventive' ||
         mod == 'preventive_action' ||
-        mod == 'chapter_case') return true;
+        mod == 'chapter_case') {
+      return true;
+    }
     final sub =
         (recordOrMap['subCategory'] ?? recordOrMap['sub_category'] ?? '')
             .toString()
@@ -282,7 +284,9 @@ bool isPreventiveCase(dynamic recordOrMap) {
     final mod = (recordOrMap.moduleKey ?? '').toString().trim().toLowerCase();
     if (mod == 'preventive' ||
         mod == 'preventive_action' ||
-        mod == 'chapter_case') return true;
+        mod == 'chapter_case') {
+      return true;
+    }
   } catch (_) {}
   try {
     final sub = (recordOrMap.subCategory ?? '').toString().trim().toLowerCase();
@@ -290,7 +294,9 @@ bool isPreventiveCase(dynamic recordOrMap) {
         sub == 'preventive_action' ||
         sub == 'chapter case' ||
         sub == 'प्रतिबंधक कारवाई' ||
-        sub == 'प्रतिबंधक') return true;
+        sub == 'प्रतिबंधक') {
+      return true;
+    }
   } catch (_) {}
   return false;
 }
