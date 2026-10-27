@@ -3,6 +3,8 @@ from rest_framework import viewsets, views, permissions, status
 from rest_framework.response import Response
 from apps.core.tenancy import provision_state_schema
 from apps.core.permissions import HasPermission
+from apps.authentication.approval_scope import MASTER, STATE, caller_level
+from apps.public_master.permissions import ReadAnyWriteStateAdmin, ReadAuthenticatedWriteMaster
 from apps.public_master.models import MasterUser, StateRegistry, Role, Permission, RolePermission, UserRoleMapping
 from apps.public_master.serializers import (
     MasterUserSerializer, StateRegistrySerializer, RoleSerializer,
@@ -23,10 +25,15 @@ class StateRegistryViewSet(viewsets.ModelViewSet):
     queryset = StateRegistry.objects.all()
     serializer_class = StateRegistrySerializer
 
+    # A State Admin may only change the branding of their own state.
+    STATE_ADMIN_EDITABLE_FIELDS = {'department_logo_url'}
+
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
             return [permissions.AllowAny()]
-        return [permissions.IsAuthenticated()]
+        if self.action in ['update', 'partial_update']:
+            return [permissions.IsAuthenticated()]
+        return [ReadAuthenticatedWriteMaster()]
 
     @cache_response(ttl=43200, key_prefix="public_master:states", per_user=False)
     def list(self, request, *args, **kwargs):
@@ -50,6 +57,15 @@ class StateRegistryViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
+        level = caller_level(request.user)
+        if level < MASTER:
+            state = self.get_object()
+            own_state = (str(getattr(request, 'state_code', '') or '').upper() == state.state_code.upper()
+                         or (getattr(request, 'state_schema', None) or '') == state.schema_name)
+            extra = set(request.data.keys()) - self.STATE_ADMIN_EDITABLE_FIELDS
+            if level < STATE or not own_state or extra:
+                return Response({'error': 'Only a Master Admin can change state settings. A State Admin can change the logo of their own state only.'},
+                                status=status.HTTP_403_FORBIDDEN)
         res = super().update(request, *args, **kwargs)
         upstash_cache.delete_pattern("pms:cache:*:public_master:states:*")
         return res
@@ -66,7 +82,7 @@ class RoleViewSet(viewsets.ModelViewSet):
     """
     queryset = Role.objects.all()
     serializer_class = RoleSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [ReadAuthenticatedWriteMaster]
 
     @cache_response(ttl=43200, key_prefix="public_master:roles", per_user=False)
     def list(self, request, *args, **kwargs):
@@ -84,7 +100,7 @@ class PermissionViewSet(viewsets.ModelViewSet):
     """
     queryset = Permission.objects.all()
     serializer_class = PermissionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [ReadAuthenticatedWriteMaster]
 
     @cache_response(ttl=43200, key_prefix="public_master:permissions", per_user=False)
     def list(self, request, *args, **kwargs):
@@ -103,7 +119,7 @@ class RolePermissionViewSet(viewsets.ModelViewSet):
     """
     queryset = RolePermission.objects.all()
     serializer_class = RolePermissionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [ReadAuthenticatedWriteMaster]
 
     def create(self, request, *args, **kwargs):
         res = super().create(request, *args, **kwargs)
@@ -317,11 +333,11 @@ class AppAnnouncementViewSet(viewsets.ModelViewSet):
 
     queryset = AppAnnouncement.objects.filter(is_active=True).order_by('order', '-created_at')
     serializer_class = AppAnnouncementSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [ReadAnyWriteStateAdmin]
 
     def get_queryset(self):
         from apps.public_master.models import AppAnnouncement
-        if self.request.user and getattr(self.request.user, 'role', '') in ['admin', 'master_admin', 'state_super_admin']:
+        if caller_level(self.request.user) >= STATE:
             return AppAnnouncement.objects.all().order_by('order', '-created_at')
         return AppAnnouncement.objects.filter(is_active=True).order_by('order', '-created_at')
 

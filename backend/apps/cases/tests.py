@@ -5,6 +5,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from apps.public_master.models import StateRegistry, Role, Permission, RolePermission
 from apps.users.models import OfficerProfile
+from apps.authentication.testing_utils import activate_account
 
 
 class CaseManagementAPITests(TestCase):
@@ -254,8 +255,10 @@ class CaseManagementAPITests(TestCase):
             'state_code': state_code,
             'badge_number': f'BDG-{uuid.uuid4().hex[:6]}',
             'station_name': 'Shivajinagar Police Station',
-            'account_status': 'active',
         }, format='json')
+
+        # Public sign-up waits for approval; activate directly for the test.
+        activate_account(email)
 
         login_resp = self.client.post('/api/auth/login/', {
             'email': email,
