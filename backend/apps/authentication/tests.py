@@ -4,6 +4,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from apps.public_master.models import MasterUser, StateRegistry, Role, Permission, RolePermission
 from apps.users.models import OfficerProfile
+from apps.authentication.testing_utils import activate_account
 
 
 class PrimaryAuthAndRBACBackendTests(TestCase):
@@ -70,7 +71,7 @@ class PrimaryAuthAndRBACBackendTests(TestCase):
         self.assertIn(reg_resp.status_code, (status.HTTP_201_CREATED, status.HTTP_202_ACCEPTED))
         # A client-sent account_status is ignored: the account waits for approval.
         self.assertEqual(OfficerProfile.objects.get(email=email).account_status, 'pending_approval')
-        OfficerProfile.objects.filter(email=email).update(account_status='active')
+        activate_account(email)
 
         # Login as Officer
         login_resp = self.client.post('/api/auth/login/', {
@@ -110,7 +111,7 @@ class PrimaryAuthAndRBACBackendTests(TestCase):
             'station_name': 'Shivajinagar Police Station',
         }, format='json')
         self.assertIn(reg_resp.status_code, (status.HTTP_201_CREATED, status.HTTP_202_ACCEPTED))
-        OfficerProfile.objects.filter(email=email).update(account_status='active')
+        activate_account(email)
 
         login_resp = self.client.post('/api/auth/login/', {
             'email': email,

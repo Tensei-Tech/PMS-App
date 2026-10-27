@@ -6,6 +6,7 @@ from apps.public_master.models import Role, Permission, RolePermission, StateReg
 from apps.users.models import OfficerProfile
 from apps.cases.models import CaseRecord
 from apps.cases.utils import get_absconded_cases, get_cases_by_status
+from apps.authentication.testing_utils import activate_account
 
 
 class AbscondedLogicTests(TestCase):
@@ -34,7 +35,7 @@ class AbscondedLogicTests(TestCase):
         }, format='json')
 
         # Public sign-up waits for approval; activate directly for the test.
-        OfficerProfile.objects.filter(email='io_absconded@mhpolice.gov.in').update(account_status='active')
+        activate_account('io_absconded@mhpolice.gov.in')
 
         login_resp = self.client.post('/api/auth/login/', {
             'email': 'io_absconded@mhpolice.gov.in',

@@ -5,6 +5,7 @@ from rest_framework import status
 from apps.public_master.models import Role, Permission, RolePermission, StateRegistry
 from apps.users.models import OfficerProfile
 from apps.cases.models import CaseRecord
+from apps.authentication.testing_utils import activate_account
 
 
 class UndetectedAPITests(TestCase):
@@ -94,7 +95,7 @@ class UndetectedAPITests(TestCase):
         }, format='json')
 
         # Public sign-up waits for approval; activate directly for the test.
-        OfficerProfile.objects.filter(email=email).update(account_status='active')
+        activate_account(email)
 
         login_resp = self.client.post('/api/auth/login/', {
             'email': email,
