@@ -12,7 +12,7 @@ import uuid
 
 from rest_framework import status
 
-from apps.authentication.test_security_holes import SecurityTestBase, _officer, _officer_headers
+from apps.authentication.test_security_holes import SecurityTestBase, _officer, _officer_headers, _save_everywhere
 from apps.users.models import OfficerProfile
 
 
@@ -167,7 +167,7 @@ class OnboardingChainTests(SecurityTestBase):
 
     def test_hierarchy_directory_lists_city_admins_under_cities(self):
         self.city_admin.designation = 'ACP'  # a division-like rank must not move them under Divisions
-        self.city_admin.save()
+        _save_everywhere(self.city_admin)
         response = self.client.get('/api/users/hierarchy-directory/', **_officer_headers(self.state_admin))
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
         cities = {c['name']: [a['uid'] for a in c['admins']] for c in response.data['cities']}
