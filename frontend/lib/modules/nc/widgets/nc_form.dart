@@ -169,6 +169,9 @@ class NcFormState extends State<NcForm> {
   int _ficCharCount = 0;
 
   // 6. Preventive Details
+  String? _preventiveActionDone = 'yes'; // 'yes' or 'no'
+  String? _noPreventiveReason; // 'Family matter' or 'Other'
+  final _noPreventiveOtherDetails = TextEditingController();
   int _prevChargeSeq = 0;
   final Map<String, Map<String, dynamic>> _preventiveChargeData = {};
   final _preventiveNumber = TextEditingController();
@@ -245,6 +248,7 @@ class NcFormState extends State<NcForm> {
     _preventiveDate.dispose();
     _bondDate.dispose();
     _bondCancelDate.dispose();
+    _noPreventiveOtherDetails.dispose();
 
     _postNcCrNo.dispose();
 
@@ -302,6 +306,9 @@ class NcFormState extends State<NcForm> {
     _fic.clear();
     _ficCharCount = 0;
 
+    _preventiveActionDone = 'yes';
+    _noPreventiveReason = null;
+    _noPreventiveOtherDetails.clear();
     _preventiveChargeData.clear();
     _prevChargeSeq = 0;
     _preventiveNumber.clear();
@@ -598,7 +605,19 @@ class NcFormState extends State<NcForm> {
     _fic.text = rawFic.length > 50 ? rawFic.substring(0, 50) : rawFic;
     _ficCharCount = _fic.text.length;
 
-    // Preventive Details
+    // Preventive Choice & Details
+    final pad = m['preventiveActionDone']?.toString().toLowerCase();
+    if (pad == 'yes' || pad == 'no') {
+      _preventiveActionDone = pad;
+    } else {
+      _preventiveActionDone = (m['noPreventiveReason'] != null &&
+              m['noPreventiveReason'].toString().isNotEmpty)
+          ? 'no'
+          : 'yes';
+    }
+    _noPreventiveReason = m['noPreventiveReason']?.toString();
+    _noPreventiveOtherDetails.text = _s(m['noPreventiveOtherDetails']);
+
     final prevCh = m['preventiveCharges'];
     if (prevCh is Map) {
       for (final e in prevCh.entries) {
@@ -722,11 +741,17 @@ class NcFormState extends State<NcForm> {
         'mobile': _regMobile.text.trim(),
       },
       'firstInformationContent': _fic.text.trim(),
+      'preventiveActionDone': _preventiveActionDone ?? 'yes',
+      'noPreventiveReason': _noPreventiveReason,
+      'noPreventiveOtherDetails': _noPreventiveOtherDetails.text.trim(),
       'preventiveCharges': _preventiveChargeData.map((k, v) => MapEntry(k, {
             'act': v['act'],
             'sections': (v['sections'] as Set<String>).toList(),
           })),
       'preventiveDetails': {
+        'preventiveActionDone': _preventiveActionDone ?? 'yes',
+        'noPreventiveReason': _noPreventiveReason,
+        'noPreventiveOtherDetails': _noPreventiveOtherDetails.text.trim(),
         'preventiveNumber': _preventiveNumber.text.trim(),
         'outwardNumber': _preventiveOutwardNumber.text.trim(),
         'preventiveDate': _preventiveDate.text.trim(),
@@ -1431,43 +1456,95 @@ class NcFormState extends State<NcForm> {
   Widget _sPreventiveDetails() => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Acts & Sections Filed', style: _tsLabel),
-              _addBtn('+ Add Charge', addPreventiveChargeRow),
-            ],
+          _yesNo(
+            'Preventive Action Taken? (प्रतिबंधक कारवाई केली आहे का?)',
+            _preventiveActionDone ?? 'yes',
+            (v) {
+              setState(() {
+                _preventiveActionDone = v;
+                if (v == 'yes' && _preventiveChargeData.isEmpty) {
+                  addPreventiveChargeRow();
+                }
+              });
+            },
           ),
-          if (_preventiveChargeData.isEmpty)
-            _emptyBox('No charges. Tap + Add Charge to begin.')
-          else ...[
-            ..._preventiveChargeData.entries.toList().asMap().entries.map((e) {
-              final id = e.value.key;
-              final data = e.value.value;
-              final num = e.key + 1;
-              return _chargeCard(
-                id: id,
-                num: num,
-                data: data,
-                onRemove: () => _removePreventiveCharge(id),
-                onActChange: (act) => _onPreventiveActChange(id, act),
-                onAddSection: (sec) => _addPreventiveSection(id, sec),
-                onRemoveSection: (sec) => _removePreventiveSection(id, sec),
-              );
-            }),
+          const SizedBox(height: 12),
+          if (_preventiveActionDone == 'no') ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: _kInputBg,
+                border: Border.all(color: _kAmber.withValues(alpha: 0.4)),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Reason for Not Taking Preventive Action (प्रतिबंधक कारवाई न करण्याचे कारण) *',
+                    style: _tsLabel,
+                  ),
+                  const SizedBox(height: 8),
+                  _chipSelector(
+                    label: 'Select Reason',
+                    items: const ['Family matter', 'Other'],
+                    selected: _noPreventiveReason,
+                    onSelect: (val) =>
+                        setState(() => _noPreventiveReason = val),
+                    activeColor: _kAmber,
+                  ),
+                  if (_noPreventiveReason == 'Other') ...[
+                    const SizedBox(height: 10),
+                    _tf('Specify Other Reason *', _noPreventiveOtherDetails),
+                  ],
+                ],
+              ),
+            ),
+          ] else ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Acts & Sections Filed (section and act)',
+                    style: _tsLabel),
+                _addBtn('+ Add Charge', addPreventiveChargeRow),
+              ],
+            ),
+            if (_preventiveChargeData.isEmpty)
+              _emptyBox('No charges. Tap + Add Charge to begin.')
+            else ...[
+              ..._preventiveChargeData.entries
+                  .toList()
+                  .asMap()
+                  .entries
+                  .map((e) {
+                final id = e.value.key;
+                final data = e.value.value;
+                final num = e.key + 1;
+                return _chargeCard(
+                  id: id,
+                  num: num,
+                  data: data,
+                  onRemove: () => _removePreventiveCharge(id),
+                  onActChange: (act) => _onPreventiveActChange(id, act),
+                  onAddSection: (sec) => _addPreventiveSection(id, sec),
+                  onRemoveSection: (sec) => _removePreventiveSection(id, sec),
+                );
+              }),
+            ],
+            const SizedBox(height: 10),
+            _row([
+              _tf('Preventive number / इस्तेगाशा नंबर', _preventiveNumber),
+              _tf('Outward number of preventive', _preventiveOutwardNumber),
+            ]),
+            _row([
+              _dateField('Preventive Date (dd/mm/yyyy)', _preventiveDate),
+              _dateField('Bond Date (dd/mm/yyyy)', _bondDate),
+            ]),
+            _row([
+              _dateField(
+                  'Bond Cancellation Date (dd/mm/yyyy)', _bondCancelDate),
+            ]),
           ],
-          const SizedBox(height: 10),
-          _row([
-            _tf('Preventive number / इस्तेगाशा नंबर', _preventiveNumber),
-            _tf('Outward number', _preventiveOutwardNumber),
-          ]),
-          _row([
-            _dateField('Preventive Date (dd/mm/yyyy)', _preventiveDate),
-            _dateField('Bond Date (dd/mm/yyyy)', _bondDate),
-          ]),
-          _row([
-            _dateField('Bond Cancellation Date (dd/mm/yyyy)', _bondCancelDate),
-          ]),
         ],
       );
 

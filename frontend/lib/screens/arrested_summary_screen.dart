@@ -14,6 +14,7 @@ import '../theme/app_theme.dart';
 import '../utils/dynamic_map_pdf.dart';
 import '../utils/pdf_unicode_fonts.dart';
 import '../utils/arrested_table_firestore_mapper.dart';
+import '../utils/excel_export_helper.dart';
 import '../utils/case_visibility.dart';
 import '../widgets/arrested_cases_demo_data_table.dart';
 
@@ -70,6 +71,14 @@ class ArrestedSummaryScreen extends StatelessWidget {
       theme: theme,
       title: 'Arrested Cases — Summary (all periods)',
       rows: flat.map((e) => Map<String, dynamic>.from(e)).toList(),
+      columnOrder: [
+        'cr',
+        'sections',
+        'head',
+        'accused_name',
+        'arrest_date',
+        'io',
+      ],
     );
     await Printing.sharePdf(
       bytes: await doc.save(),
@@ -165,6 +174,50 @@ class ArrestedSummaryScreen extends StatelessWidget {
                   ),
                   const SizedBox(width: 10),
                   GestureDetector(
+                    onTap: !anyRows
+                        ? null
+                        : () {
+                            ExcelExportHelper.exportArrestedToExcel(
+                              dataset: dataset,
+                              filename: 'Arrested_Summary_All_Periods.csv',
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'Arrested Summary exported to Excel successfully.'),
+                                backgroundColor: Color(0xFF107C41),
+                              ),
+                            );
+                          },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: !anyRows
+                            ? Colors.grey.shade400
+                            : const Color(0xFF107C41),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.table_chart_rounded,
+                              color: Colors.white, size: 18),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Excel',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              height: 1.15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
                     onTap: !anyRows ? null : () => _exportPdf(context, dataset),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
@@ -179,7 +232,7 @@ class ArrestedSummaryScreen extends StatelessWidget {
                               color: Colors.white, size: 18),
                           const SizedBox(width: 6),
                           Text(
-                            'Export',
+                            'PDF',
                             style: GoogleFonts.poppins(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,

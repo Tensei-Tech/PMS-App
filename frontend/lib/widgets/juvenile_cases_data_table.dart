@@ -26,9 +26,11 @@ class JuvenileCasesDataTable extends StatelessWidget {
         final columnWidths = <int, TableColumnWidth>{
           0: const IntrinsicColumnWidth(),
           1: const FlexColumnWidth(1.2),
-          2: const FlexColumnWidth(2.0),
-          3: const FlexColumnWidth(1.0),
-          4: const FlexColumnWidth(2.0),
+          2: const FlexColumnWidth(1.4),
+          3: const FlexColumnWidth(1.4),
+          4: const FlexColumnWidth(1.8),
+          5: const FlexColumnWidth(0.8),
+          6: const FlexColumnWidth(1.6),
         };
 
         Widget headerCell(String s) => Container(
@@ -54,6 +56,9 @@ class JuvenileCasesDataTable extends StatelessWidget {
               alignment: align,
               child: Text(
                 s,
+                textAlign: align == Alignment.center
+                    ? TextAlign.center
+                    : TextAlign.left,
                 softWrap: true,
                 overflow: TextOverflow.visible,
                 style: GoogleFonts.poppins(
@@ -66,11 +71,13 @@ class JuvenileCasesDataTable extends StatelessWidget {
             );
 
         final headers = <Widget>[
-          headerCell('Sr. No'),
+          headerCell('Sr. No.'),
           headerCell('Cr. No.'),
+          headerCell('Sec/Act'),
+          headerCell('Head'),
           headerCell('Name of juvenile'),
           headerCell('Age'),
-          headerCell('Police station name'),
+          headerCell('IO name'),
         ];
 
         TableRow rowFor(int idx, Map<String, String> r) {
@@ -80,9 +87,11 @@ class JuvenileCasesDataTable extends StatelessWidget {
             children: [
               dataCell('${serialOffset + idx + 1}'),
               dataCell(r['cr'] ?? '—'),
+              dataCell(r['sections'] ?? '—'),
+              dataCell(r['head'] ?? '—'),
               dataCell(r['accused_name'] ?? '—'),
               dataCell(r['age'] ?? '—'),
-              dataCell(r['station'] ?? '—', align: Alignment.centerLeft),
+              dataCell(r['io'] ?? '—'),
             ],
           );
         }

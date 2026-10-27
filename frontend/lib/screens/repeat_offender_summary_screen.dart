@@ -34,43 +34,19 @@ class RepeatOffenderSummaryScreen extends StatelessWidget {
   static bool _usingExplicitLive(List<Map<String, String>>? live) =>
       live != null && live.isNotEmpty;
 
-  static String _bucketForRow(Map<String, String> row) {
-    return row['head']?.trim().isNotEmpty == true
-        ? row['head']!.trim()
-        : UiConfigService.repeatOffenderSummary['other_bucket_label'];
-  }
-
-  List<Map<String, String>> _rowsForBucket(
-    List<Map<String, String>> data,
-    String bucketLabel,
-  ) {
-    return data.where((r) => _bucketForRow(r) == bucketLabel).toList();
-  }
-
-  List<String> _getUniqueCategories(List<Map<String, String>> data) {
-    final Set<String> categories = {};
-    for (final r in data) {
-      categories.add(_bucketForRow(r));
-    }
-    final list = categories.toList()..sort();
-    return list;
-  }
-
   Future<void> _exportPdf(
     BuildContext context,
     List<Map<String, String>> dataset,
   ) async {
-    final flat = <Map<String, String>>[];
-    final categories = _getUniqueCategories(dataset);
-    for (final section in categories) {
-      flat.addAll(_rowsForBucket(dataset, section));
-    }
-    if (flat.isEmpty) return;
+    if (dataset.isEmpty) return;
+    final dittoRows =
+        RepeatOffenderCasesDataTable.applyDittoFormatting(dataset);
     final theme = await PdfUnicodeFonts.openSansTheme();
     final doc = DynamicMapPdf.buildLandscapeDataTableDocument(
       theme: theme,
       title: 'Repeat Offender — Summary (all periods)',
-      rows: flat.map((e) => Map<String, dynamic>.from(e)).toList(),
+      rows: dittoRows.map((e) => Map<String, dynamic>.from(e)).toList(),
+      columnOrder: ['accused_name', 'cr', 'sections', 'head', 'station'],
     );
     await Printing.sharePdf(
       bytes: await doc.save(),
@@ -181,9 +157,17 @@ class RepeatOffenderSummaryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (_usingExplicitLive(liveRows)) {
+      final sortedLive = List<Map<String, String>>.from(liveRows!)
+        ..sort((a, b) {
+          final comp = (a['accused_name'] ?? '')
+              .toLowerCase()
+              .compareTo((b['accused_name'] ?? '').toLowerCase());
+          if (comp != 0) return comp;
+          return (a['cr'] ?? '').compareTo(b['cr'] ?? '');
+        });
       return _builtContent(
         context,
-        dataset: liveRows!,
+        dataset: sortedLive,
         firedFromFirestoreExclusive: true,
         showDemoNote: false,
       );
@@ -332,19 +316,39 @@ class _LiveRepeatOffenderSummaryLoaderState
         ? arrestedTableRowsAll(modules, now)
         : <Map<String, String>>[];
 
-    // Deduplicate by accused_name so each offender only appears once
+    // Fetch all repeat offender cases
     final dataset = <Map<String, String>>[];
-    final seenAccused = <String>{};
     for (var row in rawDataset) {
-      final name = row['accused_name'] ?? '';
-      if (name.isNotEmpty &&
-          name !=
-              UiConfigService.repeatOffenderSummary['unknown_offender_label']) {
-        if (seenAccused.contains(name)) continue;
-        seenAccused.add(name);
+      final name = (row['accused_name'] ?? '').trim();
+      final cr = (row['cr'] ?? '').trim();
+      final multipleCr = (row['multiple_cr'] ?? '').trim();
+
+      // Exclude invalid/empty CR or cases without other repeat CRs
+      if (cr.isEmpty || cr == '—' || cr == '-') {
+        continue;
       }
+      if (multipleCr.isEmpty || multipleCr == '—' || multipleCr == '-') {
+        continue;
+      }
+
+      final lowerName = name.toLowerCase();
+      if (lowerName == 'default accused' ||
+          name.isEmpty ||
+          name ==
+              UiConfigService.repeatOffenderSummary['unknown_offender_label']) {
+        continue;
+      }
+
       dataset.add(row);
     }
+
+    dataset.sort((a, b) {
+      final comp = (a['accused_name'] ?? '')
+          .toLowerCase()
+          .compareTo((b['accused_name'] ?? '').toLowerCase());
+      if (comp != 0) return comp;
+      return (a['cr'] ?? '').compareTo(b['cr'] ?? '');
+    });
 
     const showDemoNote = false;
 

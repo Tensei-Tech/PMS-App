@@ -18,6 +18,7 @@ import '../modules/sand_theft/providers/sand_theft_provider.dart';
 import '../modules/hurt/providers/hurt_provider.dart';
 import '../modules/pocso/providers/pocso_provider.dart';
 import '../modules/passport/providers/passport_provider.dart';
+import '../modules/licence/providers/licence_provider.dart';
 import '../modules/monthly/providers/monthly_provider.dart';
 import '../modules/pending/providers/pending_provider.dart';
 import '../modules/detected/providers/detected_provider.dart';
@@ -81,6 +82,7 @@ List<SingleChildWidget> moduleProviders = [
   _wired<HurtProvider>(() => HurtProvider()),
   _wired<PocsoProvider>(() => PocsoProvider()),
   _wired<PassportProvider>(() => PassportProvider()),
+  _wired<LicenceProvider>(() => LicenceProvider()),
   _wired<MonthlyProvider>(() => MonthlyProvider()),
   _wired<PendingProvider>(() => PendingProvider()),
   _wired<DetectedProvider>(() => DetectedProvider()),
@@ -151,6 +153,8 @@ const Map<String, String> labelToModuleKey = {
   'CRPC 1563 /\nBNSS 1753': 'bnss',
   'CRPC 156(3) / BNSS 175(3)': 'bnss',
   'Passport /PVR / License': 'passport',
+  'Licence': 'licence',
+  'License': 'licence',
   'NDPS': 'ndps',
   'Gowansh': 'gowans',
   'IT Act': 'it_act',
@@ -174,6 +178,7 @@ final List<Type> allDataProviders = [
   HurtProvider,
   PocsoProvider,
   PassportProvider,
+  LicenceProvider,
   TwoFourWheelerProvider,
   ArrestedProvider,
   AbscondedProvider,
@@ -224,6 +229,8 @@ BaseModuleProvider getProvider(BuildContext context, String label) {
       return context.read<PocsoProvider>();
     case 'passport':
       return context.read<PassportProvider>();
+    case 'licence':
+      return context.read<LicenceProvider>();
     case 'monthly':
       return context.read<MonthlyProvider>();
     case 'pending':
@@ -293,6 +300,7 @@ List<BaseModuleProvider> getModuleProviders(BuildContext context) {
     context.read<HurtProvider>(),
     context.read<PocsoProvider>(),
     context.read<PassportProvider>(),
+    context.read<LicenceProvider>(),
     context.read<MonthlyProvider>(),
     context.read<PendingProvider>(),
     context.read<DetectedProvider>(),

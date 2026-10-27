@@ -35,6 +35,13 @@ const Map<String, String> kModuleHubFieldLabels = {
   'createdAt': 'Registered on',
   'createdBy': 'Created by (user id)',
   'stationName': 'Station',
+  'accused_name': 'Accused Name',
+  'cr': 'Cr. No.',
+  'sections': 'Sec/Act',
+  'head': 'Head',
+  'station': 'Police station',
+  'io': 'IO Name',
+  'nafis_status': 'Status',
 };
 
 /// Preferred display order: matches [ModuleFormScreen] (General → Incident → Parties →
