@@ -105,8 +105,10 @@ class Command(BaseCommand):
                 'case:view', 'case:create', 'case:edit', 'case:approve', 'case:assign',
                 'user:view', 'user:approve'
             ],
+            # Officers edit only their own cases (apps/crimetab/case_access.py),
+            # so no broad 'case:edit'.
             'officer': [
-                'station:view', 'case:view', 'case:create', 'case:edit'
+                'station:view', 'case:view', 'case:create'
             ],
         }
 

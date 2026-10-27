@@ -21,7 +21,7 @@ from apps.crimetab.models.dynamic_engine import (
 )
 from apps.core.tenancy import TenantContext, get_active_tenant_schema
 from apps.core.cache_decorators import cache_response
-from apps.crimetab.case_access import can_access_station, scope_by_station
+from apps.crimetab.case_access import can_access_station, can_delete_case, can_edit_case, scope_by_station
 from apps.crimetab.models.common_form import (
     CrimeRegistrationInfo,
     Act,
@@ -1814,7 +1814,8 @@ class CrimeCaseManageView(APIView):
                         assigned_officer=data.get('assigned_officer', ''),
                         assigned_officer_uid=data.get('assigned_officer_uid'),
                         sub_category=data.get('sub_category'),
-                        created_by=data.get('created_by', ''),
+                        # The creator is whoever is logged in, never a client-sent value.
+                        created_by=str(getattr(request.user, 'uid', '') or getattr(request.user, 'id', '') or ''),
                         station_name=station_name,
                         extra_fields=extra_fields_val,
                     )
@@ -1845,6 +1846,8 @@ class CrimeCaseManageView(APIView):
                 case = CaseRecord.objects.filter(pk=pk).first()
                 if not case or not can_access_station(request.user, case.station_name):
                     return Response({'error': f'Case {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
+                if not can_edit_case(request.user, case):
+                    return Response({'error': 'You can edit only your own cases.'}, status=status.HTTP_403_FORBIDDEN)
 
                 with transaction.atomic():
                     # 1. Update CaseRecord fields if provided
@@ -1903,6 +1906,29 @@ class CrimeCaseManageView(APIView):
         except Exception as e:
             logger.exception(f"Unexpected error updating case {pk}: {str(e)}")
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def delete(self, request, pk=None):
+        schema_name, err_resp = self._resolve_schema_and_validate(request)
+        if err_resp:
+            return err_resp
+
+        from apps.core.tenancy import TenantContext
+        from apps.core.cache import upstash_cache
+        from apps.crimetab.models.accident import RoadAccidentRecord
+        with TenantContext(schema_name):
+            case = CaseRecord.objects.filter(pk=pk).first()
+            if not case or not can_access_station(request.user, case.station_name):
+                return Response({'error': f'Case {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
+            if not can_delete_case(request.user, case):
+                return Response({'error': 'You can delete only cases you created.'}, status=status.HTTP_403_FORBIDDEN)
+
+            with transaction.atomic():
+                # Accident rows point at the case by id text, not a foreign key.
+                RoadAccidentRecord.objects.filter(case_id=str(case.pk)).delete()
+                case.delete()  # persons, charges, seizures, ... cascade
+        upstash_cache.delete_pattern("pms:cache:*:cases:*")
+        logger.info(f"[CaseDelete] case {pk} deleted by {getattr(request.user, 'uid', '')}")
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class CaseCountsView(APIView):

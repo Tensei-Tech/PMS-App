@@ -1358,6 +1358,7 @@ class CreateCaseView(APIView):
                     status=validated.get('status', 'Draft'),
                     description=validated.get('description', ''),
                     station_name=validated.get('station_name', ''),
+                    created_by=str(getattr(request.user, 'uid', '') or getattr(request.user, 'id', '') or ''),
                     extra_fields={
                         'case_type': validated.get('case_type', '1-5'),
                         'crime_type_master_id': validated.get('crime_type_master_id'),
