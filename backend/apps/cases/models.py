@@ -579,8 +579,11 @@ class CaseRecord(models.Model):
         else:
             if has_disposal_key:
                 self.status = CASE_STATUS_DISPOSAL
-            else:
+            elif self.status == CASE_STATUS_DISPOSAL or self.status == CASE_STATUS_PENDING or not self.status:
                 self.status = CASE_STATUS_DETECTED if is_detected else CASE_STATUS_PENDING
+            elif self.status == CASE_STATUS_DETECTED:
+                # If it's already Detected, only downgrade if it was a Disposal losing its disposal status
+                pass
 
         super().save(*args, **kwargs)
         try:
