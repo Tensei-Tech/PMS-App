@@ -38,3 +38,7 @@
     public static *** v(...);
     public static *** i(...);
 }
+
+# ── ota_update (in-app updates) ────────────────────────────────────────────────
+-keep class sk.fourq.otaupdate.** { *; }
+-dontwarn sk.fourq.otaupdate.**
