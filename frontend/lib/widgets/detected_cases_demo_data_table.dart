@@ -25,30 +25,25 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
     final tableCore = LayoutBuilder(
       builder: (context, constraints) {
         final w = constraints.maxWidth;
-        final isSmall = w < 480;
-        final double cellFontSize = isSmall ? 10.5 : 12.0;
-        final double headerFontSize = isSmall ? 10.5 : 12.0;
+        final double cellFontSize = w < 360 ? 9.5 : (w < 420 ? 10.5 : 11.5);
+        final double headerFontSize = w < 360 ? 9.5 : (w < 420 ? 10.5 : 11.5);
 
         final columnWidths = <int, TableColumnWidth>{
-          0: isSmall ? const FixedColumnWidth(48) : const FixedColumnWidth(65),
-          1: const FlexColumnWidth(1.2),
-          2: const FlexColumnWidth(1.5),
-          3: const FlexColumnWidth(2.0),
+          0: const IntrinsicColumnWidth(),
+          1: const FlexColumnWidth(1.1),
+          2: const FlexColumnWidth(1.3),
+          3: const FlexColumnWidth(1.3),
+          4: const FlexColumnWidth(1.6),
+          5: const FlexColumnWidth(1.4),
         };
 
-        Widget headerCell(String s, {Alignment align = Alignment.center}) =>
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: isSmall ? 6 : 12,
-                vertical: isSmall ? 8 : 11,
-              ),
+        Widget headerCell(String s) => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
               color: AppColors.navyDark,
-              alignment: align,
+              alignment: Alignment.center,
               child: Text(
                 s,
-                textAlign: align == Alignment.centerLeft
-                    ? TextAlign.left
-                    : TextAlign.center,
+                textAlign: TextAlign.center,
                 softWrap: true,
                 style: GoogleFonts.poppins(
                   fontSize: headerFontSize,
@@ -61,23 +56,17 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
 
         Widget dataCell(String s, {Alignment align = Alignment.center}) =>
             Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: isSmall ? 6 : 12,
-                vertical: isSmall ? 8 : 10,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
               alignment: align,
               child: Text(
-                s.isEmpty ? '—' : s,
+                s,
                 softWrap: true,
-                textAlign: align == Alignment.centerLeft
-                    ? TextAlign.left
-                    : TextAlign.center,
                 overflow: TextOverflow.visible,
                 style: GoogleFonts.poppins(
                   fontSize: cellFontSize,
                   fontWeight: FontWeight.w500,
                   color: AppColors.lightText,
-                  height: 1.25,
+                  height: 1.15,
                 ),
               ),
             );
@@ -85,40 +74,45 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
         final headers = <Widget>[
           headerCell('Sr. No'),
           headerCell('Cr. No.'),
-          headerCell('SEC & ACT', align: Alignment.centerLeft),
-          headerCell('Accused name', align: Alignment.centerLeft),
+          headerCell('SEC/ACT'),
+          headerCell('Head'),
+          headerCell('Accused Name'),
+          headerCell('IO Name'),
         ];
 
         TableRow rowFor(int idx, Map<String, String> r) {
-          final bg = idx.isEven ? Colors.white : const Color(0xFFF8FAFD);
+          final bg = idx.isEven ? Colors.white : const Color(0xFFF6F8FF);
           return TableRow(
             decoration: BoxDecoration(color: bg),
             children: [
               dataCell('${serialOffset + idx + 1}'),
-              dataCell(r['cr'] ?? '—'),
-              dataCell(r['sections'] ?? '—', align: Alignment.centerLeft),
-              dataCell(r['accused'] ?? '—', align: Alignment.centerLeft),
+              dataCell(r['cr']?.isNotEmpty == true ? r['cr']! : '-'),
+              dataCell(
+                  r['sections']?.isNotEmpty == true ? r['sections']! : '-'),
+              dataCell(r['head']?.isNotEmpty == true ? r['head']! : '-'),
+              dataCell(r['accused']?.isNotEmpty == true ? r['accused']! : '-',
+                  align: Alignment.centerLeft),
+              dataCell(r['io']?.isNotEmpty == true ? r['io']! : '-',
+                  align: Alignment.centerLeft),
             ],
           );
         }
 
+        final maxH = constraints.maxHeight;
         final inner = ClipRRect(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
           child: Container(
             width: double.infinity,
+            height: maxH.isFinite ? maxH : null,
             decoration: BoxDecoration(
               color: Colors.white,
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.lightBorder),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Table(
               columnWidths: columnWidths,
               defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-              border: const TableBorder(
-                horizontalInside:
-                    BorderSide(color: Color(0xFFEDF2F7), width: 1),
-                verticalInside: BorderSide(color: Color(0xFFEDF2F7), width: 1),
-              ),
+              border: TableBorder.all(color: AppColors.lightBorder, width: 1),
               children: [
                 TableRow(
                   decoration: const BoxDecoration(color: AppColors.navyDark),
@@ -129,7 +123,11 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
             ),
           ),
         );
-        return inner;
+        if (maxH.isFinite) return inner;
+        const estimatedRowPx = 44.0;
+        final estHeight =
+            estimatedRowPx * (rows.isEmpty ? 2 : rows.length + 1) + 16;
+        return SizedBox(height: estHeight, child: inner);
       },
     );
     return tableCore;

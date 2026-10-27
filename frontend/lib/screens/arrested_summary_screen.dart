@@ -14,6 +14,7 @@ import '../theme/app_theme.dart';
 import '../utils/dynamic_map_pdf.dart';
 import '../utils/pdf_unicode_fonts.dart';
 import '../utils/arrested_table_firestore_mapper.dart';
+import '../utils/excel_export_helper.dart';
 import '../utils/case_visibility.dart';
 import '../widgets/arrested_cases_demo_data_table.dart';
 
@@ -70,6 +71,14 @@ class ArrestedSummaryScreen extends StatelessWidget {
       theme: theme,
       title: 'Arrested Cases — Summary (all periods)',
       rows: flat.map((e) => Map<String, dynamic>.from(e)).toList(),
+      columnOrder: [
+        'cr',
+        'sections',
+        'head',
+        'accused_name',
+        'arrest_date',
+        'io',
+      ],
     );
     await Printing.sharePdf(
       bytes: await doc.save(),
@@ -88,98 +97,38 @@ class ArrestedSummaryScreen extends StatelessWidget {
 
     Widget sectionBlock(String bucketLabel) {
       final rows = _rowsForBucket(dataset, bucketLabel);
-      return Container(
-        margin: const EdgeInsets.only(bottom: 24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              decoration: const BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: Color(0xFFEEEEEE),
-                    width: 1,
-                  ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                bucketLabel,
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.navyDark,
                 ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.navyMid.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.category_outlined,
-                      size: 18,
-                      color: AppColors.navyMid,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      bucketLabel,
-                      style: GoogleFonts.poppins(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE8F5E9),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      '${rows.length} ${rows.length == 1 ? 'Case' : 'Cases'}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF2E7D32),
-                      ),
-                    ),
-                  ),
-                ],
               ),
             ),
             if (rows.isEmpty)
               Padding(
-                padding: const EdgeInsets.all(20),
-                child: Center(
-                  child: Text(
-                    'No cases in this category',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.lightSubText,
-                    ),
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  'No cases',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.lightSubText,
                   ),
                 ),
               )
             else
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: ArrestedCasesDemoDataTable(
-                  isAd: false,
-                  realDataRows: rows,
-                ),
+              ArrestedCasesDemoDataTable(
+                isAd: false,
+                realDataRows: rows,
               ),
           ],
         ),
@@ -187,18 +136,17 @@ class ArrestedSummaryScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F8FF),
+      backgroundColor: AppColors.lightBg,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+              child: Row(
                 children: [
-                  InkWell(
+                  GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    borderRadius: BorderRadius.circular(10),
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -217,7 +165,7 @@ class ArrestedSummaryScreen extends StatelessWidget {
                           color: AppColors.navyDark, size: 20),
                     ),
                   ),
-                  const SizedBox(width: 14),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Row(
                       children: [
@@ -227,16 +175,17 @@ class ArrestedSummaryScreen extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.poppins(
-                              fontSize: 18,
+                              fontSize: 16,
                               fontWeight: FontWeight.w700,
                               color: AppColors.navyDark,
+                              height: 1.15,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
+                              horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
                             color: AppColors.navyMid.withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(20),
@@ -254,57 +203,103 @@ class ArrestedSummaryScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  ElevatedButton.icon(
-                    onPressed:
-                        !anyRows ? null : () => _exportPdf(context, dataset),
-                    icon: const Icon(Icons.download_rounded, size: 16),
-                    label: Text(
-                      'Export',
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                        color: Colors.white,
+                  GestureDetector(
+                    onTap: !anyRows
+                        ? null
+                        : () {
+                            ExcelExportHelper.exportArrestedToExcel(
+                              dataset: dataset,
+                              filename: 'Arrested_Summary_All_Periods.csv',
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'Arrested Summary exported to Excel successfully.'),
+                                backgroundColor: Color(0xFF107C41),
+                              ),
+                            );
+                          },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: !anyRows
+                            ? Colors.grey.shade400
+                            : const Color(0xFF107C41),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.table_chart_rounded,
+                              color: Colors.white, size: 18),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Excel',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              height: 1.15,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.navyMid,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: !anyRows ? null : () => _exportPdf(context, dataset),
+                    child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 8,
+                          horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: AppColors.navyMid,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.download_rounded,
+                              color: Colors.white, size: 18),
+                          const SizedBox(width: 6),
+                          Text(
+                            'PDF',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              height: 1.15,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
-              Expanded(
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: [
-                    for (final label in _getUniqueCategories(dataset))
-                      sectionBlock(label),
-                    if (showDemoNote)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: Text(
-                          '* Demo Data — Will be replaced with live data',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.lightSubText,
-                            height: 1.15,
-                          ),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                children: [
+                  for (final label in _getUniqueCategories(dataset))
+                    sectionBlock(label),
+                  if (showDemoNote)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: Text(
+                        '* Demo Data — Will be replaced with live data',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.lightSubText,
+                          height: 1.15,
                         ),
                       ),
-                  ],
-                ),
+                    ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

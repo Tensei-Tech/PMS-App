@@ -69,13 +69,15 @@ class JuvenileSummaryScreen extends StatelessWidget {
     final theme = await PdfUnicodeFonts.openSansTheme();
     final doc = DynamicMapPdf.buildLandscapeDataTableDocument(
       theme: theme,
-      title: 'Juvenile â€” Summary (all periods)',
+      title: 'Juvenile — Summary (all periods)',
       rows: flat
           .map((e) => {
                 'Cr. No.': e['cr'] ?? '—',
+                'Sec/Act': e['sections'] ?? '—',
+                'Head': e['head'] ?? '—',
                 'Name of juvenile': e['accused_name'] ?? '—',
                 'Age': e['age'] ?? '—',
-                'Police station name': e['station'] ?? '—',
+                'IO name': e['io'] ?? '—',
               })
           .toList(),
     );

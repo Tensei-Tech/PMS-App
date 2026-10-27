@@ -239,6 +239,8 @@ class DisposalCaseRecordSerializer(CaseRecordSerializer):
         from apps.crimetab.models.groupings import CaseCategory
         
         extra = instance.extra_fields or {}
+        mk = (instance.module_key or "").strip().lower()
+        sub = (instance.sub_category or "").strip()
         
         types = []
         nums = []
@@ -254,10 +256,54 @@ class DisposalCaseRecordSerializer(CaseRecordSerializer):
             val = extra.get(key)
             if val is not None and str(val).strip():
                 cc_st.append(str(val).strip())
+
+        is_ad = (mk == 'ad' or sub.lower() in ['ad', 'accidental death'])
+        if is_ad and not types:
+            from apps.cases.models import _extract_first_non_empty, AD_SUMMARY_NO_KEYS, AD_SUMMARY_DATE_KEYS
+            ad_num = _extract_first_non_empty(extra, AD_SUMMARY_NO_KEYS)
+            ad_date = _extract_first_non_empty(extra, AD_SUMMARY_DATE_KEYS)
+            if ad_num:
+                types.append("AD Summary No")
+                nums.append(ad_num)
+            if ad_date and not extra.get('disposal_date'):
+                data['disposal_date'] = ad_date
+
+        is_preventive = (mk in ['preventive', 'preventive_action', 'preventive_actions', 'chapter_case'] or
+                         sub.lower() in ['preventive', 'preventive_action', 'chapter case', 'chapter_case', 'प्रतिबंधक कारवाई', 'प्रतिबंधक'])
+        if is_preventive and not types:
+            from apps.cases.models import _extract_first_non_empty, PREVENTIVE_NO_KEYS, PREVENTIVE_DATE_KEYS
+            p_num = _extract_first_non_empty(extra, PREVENTIVE_NO_KEYS)
+            p_date = _extract_first_non_empty(extra, PREVENTIVE_DATE_KEYS)
+            istegasha_dict = extra.get('istegasha') if isinstance(extra.get('istegasha'), dict) else {}
+            outward = extra.get('outwardNo') or extra.get('outwardNumber') or istegasha_dict.get('outwardNo') or istegasha_dict.get('outwardNumber')
+            if p_num:
+                types.append("Preventive No")
+                nums.append(f"{p_num} (Outward: {outward})" if outward else p_num)
+            if p_date and not extra.get('disposal_date'):
+                data['disposal_date'] = p_date
                 
+        is_nc = (mk in ['nc', 'nc_register', 'nc_form'] or sub.lower() in ['nc', 'non-cognizable', 'non cognizable', 'nc register'])
+        if is_nc and not types:
+            p_details = extra.get('preventiveDetails') if isinstance(extra.get('preventiveDetails'), dict) else {}
+            reason = extra.get('noPreventiveReason') or p_details.get('noPreventiveReason') or extra.get('preventive_not_done_reason') or extra.get('reason')
+            p_num = p_details.get('preventiveNumber') or extra.get('preventiveNumber') or extra.get('preventiveNo') or extra.get('preventive_no')
+            p_outward = p_details.get('outwardNumber') or extra.get('outwardNumber') or extra.get('preventiveOutwardNumber') or extra.get('preventive_outward_no')
+            
+            if reason:
+                other = extra.get('noPreventiveOtherDetails')
+                reason_str = f"{reason} ({other})" if (str(reason).lower() == 'other' and other) else str(reason)
+                types.append("No Preventive")
+                nums.append(reason_str)
+            elif p_num or p_outward:
+                types.append("Preventive Action")
+                parts = []
+                if p_num: parts.append(f"No: {p_num}")
+                if p_outward: parts.append(f"Outward: {p_outward}")
+                nums.append(", ".join(parts))
+
         data['disposal_type'] = ", ".join(types) if types else "N/A"
         data['disposal_no'] = ", ".join(nums) if nums else "N/A"
-        data['disposal_date'] = extra.get('disposal_date', 'N/A')
+        data['disposal_date'] = extra.get('disposal_date') or data.get('disposal_date') or 'N/A'
         
         # Dedupe cc_st_no and return "" if empty
         unique_cc_st = []
@@ -268,13 +314,15 @@ class DisposalCaseRecordSerializer(CaseRecordSerializer):
         
         # Get crime_type_name from CaseCategory via context map
         cat_map = self.context.get('cat_map', {})
-        mk = (instance.module_key or "").strip().lower()
-        sub = (instance.sub_category or "").strip()
         
         # Priority: 
         # If it's a generic form (like form_1_5), the actual crime name (e.g., Murder, Sand Theft) is in sub_category
         if mk == 'form_1_5':
             data['crime_type_name'] = sub if sub else 'Other Crimes'
+        elif is_ad:
+            data['crime_type_name'] = 'Accidental Death (A.D.)'
+        elif is_preventive:
+            data['crime_type_name'] = 'Preventive Action (प्रतिबंधक कारवाई)'
         elif sub and not cat_map.get(mk):
             data['crime_type_name'] = sub
         else:
@@ -285,11 +333,11 @@ class DisposalCaseRecordSerializer(CaseRecordSerializer):
         if isinstance(acts_sections, list) and acts_sections:
             first_as = acts_sections[0]
             if isinstance(first_as, dict):
-                data['act'] = first_as.get('act') or extra.get('act') or ''
-                data['section'] = first_as.get('section') or extra.get('section') or ''
+                data['act'] = first_as.get('act') or extra.get('act') or extra.get('preventiveAct') or ''
+                data['section'] = first_as.get('section') or extra.get('section') or extra.get('sections') or extra.get('preventiveSecAct') or extra.get('preventiveSectionAct') or ''
         else:
-            data['act'] = extra.get('act') or ''
-            data['section'] = extra.get('section') or ''
+            data['act'] = extra.get('act') or extra.get('preventiveAct') or ''
+            data['section'] = extra.get('section') or extra.get('sections') or extra.get('preventiveSecAct') or extra.get('preventiveSectionAct') or ''
         
         return data
 
@@ -635,14 +683,15 @@ class NafisCaseRecordSerializer(serializers.ModelSerializer):
     nafis_status = serializers.SerializerMethodField()
     section_act = serializers.SerializerMethodField()
     accused_name = serializers.SerializerMethodField()
+    head = serializers.SerializerMethodField()
     days_passed = serializers.SerializerMethodField()
     action_required = serializers.SerializerMethodField()
 
     class Meta:
         model = CaseRecord
         fields = [
-            'id', 'sr_no', 'case_number', 'section_act', 'charge_sheet_date',
-            'assigned_officer', 'accused_name', 'nafis_status', 'nafis_status_color',
+            'id', 'sr_no', 'case_number', 'section_act', 'head', 'sub_category', 'title', 'charge_sheet_date',
+            'assigned_officer', 'accused_name', 'accused', 'nafis_status', 'nafis_status_color',
             'created_at', 'station_name', 'days_passed', 'action_required', 'extra_fields'
         ]
 
@@ -705,6 +754,9 @@ class NafisCaseRecordSerializer(serializers.ModelSerializer):
 
         return ''
 
+    def get_head(self, obj):
+        return obj.sub_category or obj.title or ''
+
     def get_accused_name(self, obj):
         extra = obj.extra_fields if isinstance(obj.extra_fields, dict) else {}
         name = (
@@ -712,15 +764,31 @@ class NafisCaseRecordSerializer(serializers.ModelSerializer):
             extra.get('accused_name') or
             extra.get('accused') or
             extra.get('commonForm', {}).get('accused') or
+            extra.get('commonForm', {}).get('accused_name') or
+            extra.get('commonForm', {}).get('accused_list') or
+            extra.get('accused_list') or
+            extra.get('commonForm', {}).get('suspected_accused_name') or
             ''
         )
         if isinstance(name, list):
             items = [str(x.get('name') if isinstance(x, dict) else x).strip() for x in name if x]
-            return ', '.join([x for x in items if x and x not in ('None', 'null')])
+            res = ', '.join([x for x in items if x and x not in ('None', 'null')])
+            if res:
+                return res
         if isinstance(name, dict):
-            return str(name.get('name') or name.get('accused_name') or '').strip()
+            res = str(name.get('name') or name.get('accused_name') or '').strip()
+            if res and res not in ('None', 'null'):
+                return res
         s = str(name).strip()
-        return '' if s in ('None', 'null') else s
+        if s and s not in ('None', 'null', '[]', '{}'):
+            return s
+        try:
+            persons = obj.persons.filter(role__in=['accused', 'suspected_accused', 'suspect'])
+            if persons.exists():
+                return ', '.join([p.name.strip() for p in persons if p.name and p.name.strip()])
+        except Exception:
+            pass
+        return ''
 
     def _has_charge_sheet(self, obj):
         extra = obj.extra_fields if isinstance(obj.extra_fields, dict) else {}

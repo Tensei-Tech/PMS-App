@@ -993,11 +993,24 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
         is_jail = is_mcr and bool(m.get('jail'))
         jail_dt = _parse_d(m.get('jail_date')) if is_jail else None
 
+        accused_name = case.accused or ''
+        if not accused_name and isinstance(case.extra_fields, dict):
+            acc_list = case.extra_fields.get('accused_list') or []
+            if isinstance(acc_list, list) and acc_list and isinstance(acc_list[0], dict):
+                accused_name = acc_list[0].get('name') or ''
+            if not accused_name:
+                acc_raw = case.extra_fields.get('accused') or case.extra_fields.get('accused_name') or ''
+                if isinstance(acc_raw, str):
+                    accused_name = acc_raw
+
+        cleaned_acc = accused_name.strip() if isinstance(accused_name, str) else ''
+        invalid_names = {'default accused', 'unknown', 'unknown accused', 'अज्ञात', 'none', 'null', 'unidentified', 'test accused', ''}
+
         p_obj = CasesPerson.objects.filter(case=case, role__in=['accused', 'suspect', 'suspected_accused']).first()
-        if not p_obj and (case.accused or 'Default Accused'):
+        if not p_obj and cleaned_acc and cleaned_acc.lower() not in invalid_names:
             p_id = get_or_create_person_for_case(
                 case_id=case.id,
-                typed_name=case.accused or 'Default Accused',
+                typed_name=cleaned_acc,
                 role='accused'
             )
         elif p_obj:

@@ -344,9 +344,11 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
         onBackPressed: () => Navigator.pop(context),
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Form I-V style Tabs Bar
           Container(
+            width: double.infinity,
             decoration: const BoxDecoration(
               color: Colors.white,
               border: Border(
@@ -358,7 +360,7 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
               builder: (context, _) {
                 return SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.only(left: 16, right: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Row(
                     children: _tabKeys.asMap().entries.map((entry) {
                       final idx = entry.key;
@@ -369,7 +371,9 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
                       final (badgeBg, badgeFg) = _getTabBadgeColors(k);
 
                       return Padding(
-                        padding: const EdgeInsets.only(right: 24),
+                        padding: EdgeInsets.only(
+                          right: idx == _tabKeys.length - 1 ? 0 : 20,
+                        ),
                         child: InkWell(
                           onTap: () {
                             _tabController.animateTo(idx);
@@ -379,7 +383,7 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
                           splashColor:
                               AppColors.navyMid.withValues(alpha: 0.08),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            padding: const EdgeInsets.symmetric(vertical: 11),
                             decoration: BoxDecoration(
                               border: Border(
                                 bottom: BorderSide(
@@ -397,7 +401,7 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
                                   TranslationHelper.translate(
                                       context, tabLabel),
                                   style: GoogleFonts.poppins(
-                                    fontSize: 13.5,
+                                    fontSize: 13,
                                     fontWeight: isSelected
                                         ? FontWeight.w700
                                         : FontWeight.w500,
@@ -406,10 +410,10 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
                                         : AppColors.lightSubText,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 6),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
+                                    horizontal: 7,
                                     vertical: 2,
                                   ),
                                   decoration: BoxDecoration(

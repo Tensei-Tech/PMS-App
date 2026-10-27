@@ -1,13 +1,16 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/backend_case_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/excel_export_helper.dart';
 
 class DisposalCaseListView extends StatefulWidget {
   final String? ioUid;
   final String? startDate;
   final String? endDate;
   final String? crimeType;
+  final void Function(List<Map<String, dynamic>> records)? onRecordsLoaded;
 
   const DisposalCaseListView({
     super.key,
@@ -15,7 +18,35 @@ class DisposalCaseListView extends StatefulWidget {
     this.startDate,
     this.endDate,
     this.crimeType,
+    this.onRecordsLoaded,
   });
+
+  static String getSectionAct(Map<String, dynamic> record) {
+    final extra =
+        record['extra_fields'] is Map ? record['extra_fields'] as Map : {};
+    final secActRaw = record['section_act'] ??
+        record['acts_sections'] ??
+        record['sections'] ??
+        record['section'] ??
+        record['act_section'] ??
+        record['sectionAct'] ??
+        extra['section_act'] ??
+        extra['acts_sections'] ??
+        extra['sections'] ??
+        extra['section'] ??
+        extra['act_section'] ??
+        extra['sectionAct'];
+    final act = (record['act'] ?? extra['act'] ?? '').toString().trim();
+    final sec = (record['section'] ?? extra['section'] ?? '').toString().trim();
+
+    if (secActRaw != null && secActRaw.toString().trim().isNotEmpty) {
+      return secActRaw.toString().trim();
+    }
+    if (sec.isNotEmpty || act.isNotEmpty) {
+      return '$sec $act'.trim();
+    }
+    return '—';
+  }
 
   @override
   State<DisposalCaseListView> createState() => _DisposalCaseListViewState();
@@ -30,7 +61,7 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
   bool _isLoadingMore = false;
   String? _error;
   int _currentPage = 1;
-  final int _pageSize = 20;
+  final int _pageSize = 100;
   bool _hasMore = true;
   int _totalCount = 0;
 
@@ -88,6 +119,7 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
           _hasMore = dataMap['next'] != null || _records.length < _totalCount;
           _isLoading = false;
         });
+        widget.onRecordsLoaded?.call(_records);
       } else {
         setState(() {
           _error = "Failed to load disposal cases.";
@@ -130,9 +162,10 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
           _hasMore = dataMap['next'] != null || _records.length < _totalCount;
           _isLoadingMore = false;
         });
+        widget.onRecordsLoaded?.call(_records);
       } else {
         setState(() {
-          _hasMore = false; // Stop trying if error on pagination
+          _hasMore = false;
           _isLoadingMore = false;
         });
       }
@@ -145,92 +178,131 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
     }
   }
 
-  Widget _buildHeaderRow() {
-    return Container(
-      color: AppColors.navyDark,
-      padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 10),
-      child: Row(
-        children: [
-          _buildHeaderCell("SR. No", flex: 1),
-          _buildHeaderCell("CR. No", flex: 2),
-          _buildHeaderCell("Section and Act", flex: 3),
-          _buildHeaderCell("CC & ST. No", flex: 2),
-          _buildHeaderCell("IO Name", flex: 2),
-          _buildHeaderCell("Police Station Name", flex: 2),
-          _buildHeaderCell("Crime Sub-tab Name", flex: 2),
-        ],
-      ),
-    );
-  }
+  Widget _buildTable(BuildContext context, List<Map<String, dynamic>> records) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const double cellFontSize = 11.5;
+        const double headerFontSize = 11.5;
 
-  Widget _buildHeaderCell(String text, {int flex = 1}) {
-    return Expanded(
-      flex: flex,
-      child: Text(
-        text,
-        style: GoogleFonts.poppins(
-          color: Colors.white,
-          fontWeight: FontWeight.w700,
-          fontSize: 12,
-        ),
-        textAlign: TextAlign.center,
-      ),
-    );
-  }
+        final columnWidths = <int, TableColumnWidth>{
+          0: const IntrinsicColumnWidth(),
+          1: const FlexColumnWidth(1.2),
+          2: const FlexColumnWidth(1.2),
+          3: const FlexColumnWidth(1.4),
+          4: const FlexColumnWidth(1.6),
+          5: const FlexColumnWidth(1.4),
+        };
 
-  Widget _buildDataRow(Map<String, dynamic> record, int index) {
-    final bgColor = index % 2 == 0 ? Colors.white : const Color(0xFFF8FAFD);
+        Widget headerCell(String s) => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+              color: AppColors.navyDark,
+              alignment: Alignment.center,
+              child: Text(
+                s,
+                textAlign: TextAlign.center,
+                softWrap: true,
+                style: GoogleFonts.poppins(
+                  fontSize: headerFontSize,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  height: 1.15,
+                ),
+              ),
+            );
 
-    final extra = record['extra_fields'] ?? {};
-    final act = extra['act'] ?? record['act'] ?? '';
-    final section = extra['section'] ?? record['section'] ?? '';
-    final sectionAct =
-        (section.toString().isNotEmpty || act.toString().isNotEmpty)
-            ? '$section $act'.trim()
-            : '—';
+        Widget dataCell(String s, {Alignment align = Alignment.center}) =>
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+              alignment: align,
+              child: Text(
+                s.isEmpty ? '—' : s,
+                textAlign: align == Alignment.center
+                    ? TextAlign.center
+                    : TextAlign.left,
+                softWrap: true,
+                overflow: TextOverflow.visible,
+                style: GoogleFonts.poppins(
+                  fontSize: cellFontSize,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.lightText,
+                  height: 1.15,
+                ),
+              ),
+            );
 
-    final ccStNo = record['cc_st_no']?.toString() ?? '';
+        final headers = <Widget>[
+          headerCell('Sr. No.'),
+          headerCell('Cr. No.'),
+          headerCell('Sec & Act'),
+          headerCell('Head'),
+          headerCell('Case Summary'),
+          headerCell('IO Name'),
+        ];
 
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-      decoration: BoxDecoration(
-        color: bgColor,
-        border: Border(
-          bottom: BorderSide(
-            color: Colors.grey.withValues(alpha: 0.12),
-            width: 1,
+        TableRow rowFor(int idx, Map<String, dynamic> r) {
+          final bg = idx.isEven ? Colors.white : const Color(0xFFF6F8FF);
+          final srNo = r['sr_no']?.toString() ?? '${idx + 1}';
+          final crNo =
+              (r['case_number'] ?? r['cr_no'] ?? r['cr'] ?? '—').toString();
+          final secAct = DisposalCaseListView.getSectionAct(r);
+          final head = (r['crime_type_name'] ??
+                  r['head'] ??
+                  r['crime_type'] ??
+                  r['sub_category'] ??
+                  '—')
+              .toString();
+          final courtNo =
+              ExcelExportHelper.extractDisposalNumbers(r, multiLine: true);
+          final io = (r['assigned_officer'] ?? r['io_name'] ?? r['io'] ?? '—')
+              .toString();
+
+          return TableRow(
+            decoration: BoxDecoration(color: bg),
+            children: [
+              dataCell(srNo),
+              dataCell(crNo),
+              dataCell(secAct),
+              dataCell(head),
+              dataCell(courtNo),
+              dataCell(io),
+            ],
+          );
+        }
+
+        final tableWidth = math.max(constraints.maxWidth, 900.0);
+
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SizedBox(
+            width: tableWidth,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: AppColors.lightBorder),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Table(
+                  columnWidths: columnWidths,
+                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                  border:
+                      TableBorder.all(color: AppColors.lightBorder, width: 1),
+                  children: [
+                    TableRow(
+                      decoration:
+                          const BoxDecoration(color: AppColors.navyDark),
+                      children: headers,
+                    ),
+                    for (var i = 0; i < records.length; i++)
+                      rowFor(i, records[i]),
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
-      ),
-      child: Row(
-        children: [
-          _buildDataCell((record['sr_no'] ?? '${index + 1}').toString(),
-              flex: 1),
-          _buildDataCell((record['case_number'] ?? '—').toString(), flex: 2),
-          _buildDataCell(sectionAct, flex: 3),
-          _buildDataCell(ccStNo.isNotEmpty ? ccStNo : '—', flex: 2),
-          _buildDataCell((record['assigned_officer'] ?? '—').toString(),
-              flex: 2),
-          _buildDataCell((record['station_name'] ?? '—').toString(), flex: 2),
-          _buildDataCell((record['crime_type_name'] ?? '—').toString(),
-              flex: 2),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDataCell(String text, {int flex = 1}) {
-    return Expanded(
-      flex: flex,
-      child: Text(
-        text,
-        style: GoogleFonts.poppins(
-          color: AppColors.navyDark,
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-        ),
-        textAlign: TextAlign.center,
-      ),
+        );
+      },
     );
   }
 
@@ -238,181 +310,34 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
   Widget build(BuildContext context) {
     if (_isLoading && _records.isEmpty) {
       return const Center(
-        child: CircularProgressIndicator(color: AppColors.navyMid),
-      );
+          child: CircularProgressIndicator(color: AppColors.navyMid));
     }
     if (_error != null && _records.isEmpty) {
       return Center(
-        child: Text(
-          _error!,
-          style: GoogleFonts.poppins(color: AppColors.dangerRed),
-        ),
-      );
+          child: Text(_error!, style: GoogleFonts.poppins(color: Colors.red)));
     }
     if (_records.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.navyMid.withValues(alpha: 0.06),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.task_alt_rounded,
-                size: 48,
-                color: AppColors.navyMid,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No Disposal Cases Found',
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: AppColors.navyDark,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'There are no disposal records matching this filter.',
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                color: AppColors.lightSubText,
-              ),
-            ),
-          ],
-        ),
-      );
+      return const Center(child: Text("No disposal cases found"));
     }
-
-    // Group records cleanly by crime type into a Map
-    final Map<String, List<Map<String, dynamic>>> groupMap = {};
-    for (var record in _records) {
-      final crime = record['crime_type_name']?.toString() ?? 'Other';
-      groupMap.putIfAbsent(crime, () => []).add(record);
-    }
-    final groups = groupMap.entries.toList();
 
     return RefreshIndicator(
       onRefresh: _loadFirstPage,
       color: AppColors.navyMid,
-      child: ListView.builder(
+      child: SingleChildScrollView(
         controller: _scrollController,
-        padding: const EdgeInsets.only(bottom: 24),
-        itemCount: groups.length + (_hasMore ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index == groups.length) {
-            return const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Center(
-                child: CircularProgressIndicator(color: AppColors.navyMid),
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildTable(context, _records),
+            if (_isLoadingMore)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Center(
+                    child: CircularProgressIndicator(color: AppColors.navyMid)),
               ),
-            );
-          }
-
-          final groupName = groups[index].key;
-          final items = groups[index].value;
-
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (widget.crimeType == null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF2E7D32).withValues(alpha: 0.06),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color:
-                              const Color(0xFF2E7D32).withValues(alpha: 0.18),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.category_outlined,
-                            size: 13,
-                            color: Color(0xFF2E7D32),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            groupName,
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.navyDark,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Container(
-                            width: 3,
-                            height: 3,
-                            decoration: const BoxDecoration(
-                              color: AppColors.lightSubText,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            '${items.length} ${items.length == 1 ? 'Case' : 'Cases'}',
-                            style: GoogleFonts.poppins(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF2E7D32),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    border:
-                        Border.all(color: Colors.grey.withValues(alpha: 0.2)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.03),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: LayoutBuilder(builder: (context, constraints) {
-                    return SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: SizedBox(
-                        width: constraints.maxWidth > 1000
-                            ? constraints.maxWidth
-                            : 1000,
-                        child: Column(
-                          children: [
-                            _buildHeaderRow(),
-                            ...items
-                                .asMap()
-                                .entries
-                                .map((e) => _buildDataRow(e.value, e.key)),
-                          ],
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-              ],
-            ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }

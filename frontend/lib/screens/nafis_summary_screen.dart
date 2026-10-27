@@ -55,6 +55,14 @@ class NAFISSummaryScreen extends StatelessWidget {
       theme: theme,
       title: title,
       rows: dataset,
+      columnOrder: [
+        'accused_name',
+        'cr',
+        'sections',
+        'head',
+        'io',
+        'nafis_status'
+      ],
     );
     await Printing.sharePdf(
       bytes: await doc.save(),

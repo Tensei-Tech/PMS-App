@@ -6,6 +6,7 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        gradlePluginPortal()
     }
 }
 rootProject.layout.buildDirectory.value(rootProject.layout.projectDirectory.dir("../build"))

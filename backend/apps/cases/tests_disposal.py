@@ -54,6 +54,57 @@ class DisposalInverseLogicTests(APITestCase):
         self.assertEqual(len(pending_ids), 5)
         self.assertEqual(len(disposal_ids), 9)
 
+    def test_nc_disposal_with_preventive_action(self):
+        nc_disp = CaseRecord.objects.create(
+            case_number='NC001',
+            module_key='nc',
+            station_name='Central',
+            extra_fields={
+                'preventiveNumber': 'IST/101/2026',
+                'outwardNumber': 'OUT/55',
+                'preventiveDate': '2026-05-10',
+                'preventiveCharges': {'c1': {'act': 'BNS', 'sections': ['107']}},
+            }
+        )
+        self.assertEqual(nc_disp.status, 'Disposal')
+
+    def test_nc_disposal_with_family_matter_reason(self):
+        nc_family = CaseRecord.objects.create(
+            case_number='NC002',
+            module_key='nc',
+            station_name='Central',
+            extra_fields={
+                'preventiveActionDone': 'no',
+                'noPreventiveReason': 'Family matter',
+            }
+        )
+        self.assertEqual(nc_family.status, 'Disposal')
+
+    def test_nc_disposal_with_other_reason(self):
+        nc_other = CaseRecord.objects.create(
+            case_number='NC003',
+            module_key='nc',
+            station_name='Central',
+            extra_fields={
+                'preventiveActionDone': 'no',
+                'noPreventiveReason': 'Other',
+                'noPreventiveOtherDetails': 'Compromise between neighbours',
+            }
+        )
+        self.assertEqual(nc_other.status, 'Disposal')
+
+    def test_nc_pending_without_action_or_reason(self):
+        nc_pending = CaseRecord.objects.create(
+            case_number='NC004',
+            module_key='nc',
+            station_name='Central',
+            extra_fields={
+                'preventiveActionDone': 'yes',
+                # Incomplete: missing preventive number, outward, charges
+            }
+        )
+        self.assertEqual(nc_pending.status, 'Pending')
+
 from django.contrib.auth import get_user_model
 from unittest.mock import patch
 User = get_user_model()

@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../services/backend_case_service.dart';
 import '../theme/app_theme.dart';
 import 'juvenile_summary_screen.dart';
-import 'filtered_arrested_screen.dart';
+import 'filtered_juvenile_screen.dart';
 import '../modules/core/models/base_record.dart';
 import '../utils/arrested_table_firestore_mapper.dart';
 
@@ -418,7 +418,7 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
                   Navigator.push(
                     context,
                     AppTheme.fadeSlideRoute(
-                      page: FilteredArrestedScreen(
+                      page: FilteredJuvenileScreen(
                         title: 'Juvenile - $p',
                         startDate: start?.toIso8601String().split('T')[0],
                         endDate: end?.toIso8601String().split('T')[0],
@@ -550,7 +550,7 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
                   Navigator.push(
                     context,
                     AppTheme.fadeSlideRoute(
-                      page: FilteredArrestedScreen(
+                      page: FilteredJuvenileScreen(
                         title: 'IO Wise - $ioName',
                         ioUid: item['io_uid']?.toString(),
                       ),

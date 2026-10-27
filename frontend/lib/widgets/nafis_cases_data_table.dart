@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../modules/core/models/base_record.dart';
 import '../services/backend_case_service.dart';
-import '../theme/app_theme.dart';
 import '../utils/excel_export_helper.dart';
 import 'send_reminder_dialog.dart';
 
@@ -30,56 +29,48 @@ class NAFISCasesDataTable extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final w = constraints.maxWidth;
-        final isTiny = w < 450;
-        final isSmall = w < 720;
-        final double cellFontSize = isTiny ? 9.5 : (isSmall ? 10.5 : 11.5);
-        final double headerFontSize = isTiny ? 9.5 : (isSmall ? 10.5 : 11.5);
+        final double cellFontSize = w < 400 ? 11.5 : 13.0;
+        final double headerFontSize = w < 400 ? 12.0 : 13.5;
 
-        Widget headerCell(String s, {Alignment align = Alignment.center}) =>
+        Widget headerCell(String s, {Alignment align = Alignment.centerLeft}) =>
             Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: isTiny ? 4 : (isSmall ? 6 : 8),
-                vertical: isTiny ? 6 : 9,
-              ),
-              color: AppColors.navyDark,
-              alignment: align,
-              child: Text(
-                s,
-                textAlign: TextAlign.center,
-                softWrap: true,
-                style: GoogleFonts.poppins(
-                  fontSize: headerFontSize,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                  height: 1.15,
-                ),
-              ),
-            );
-
-        Widget dataCell(
-          String s, {
-          Alignment align = Alignment.center,
-          Color? textColor,
-          FontWeight? fontWeight,
-        }) =>
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: isTiny ? 4 : (isSmall ? 6 : 8),
-                vertical: isTiny ? 6 : 8,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               alignment: align,
               child: Text(
                 s,
                 textAlign: align == Alignment.center
                     ? TextAlign.center
                     : TextAlign.left,
-                softWrap: true,
-                overflow: TextOverflow.visible,
+                style: GoogleFonts.poppins(
+                  fontSize: headerFontSize,
+                  fontWeight: FontWeight.w600,
+                  color:
+                      const Color(0xFF1E293B), // Navy/Slate matching screenshot
+                ),
+              ),
+            );
+
+        Widget dataCell(
+          String s, {
+          Alignment align = Alignment.centerLeft,
+          Color? textColor,
+          FontWeight? fontWeight,
+          int? maxLines,
+        }) =>
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              alignment: align,
+              child: Text(
+                s,
+                maxLines: maxLines ?? 3,
+                overflow: TextOverflow.ellipsis,
+                textAlign: align == Alignment.center
+                    ? TextAlign.center
+                    : TextAlign.left,
                 style: GoogleFonts.poppins(
                   fontSize: cellFontSize,
-                  fontWeight: fontWeight ?? FontWeight.w500,
-                  color: textColor ?? AppColors.lightText,
-                  height: 1.15,
+                  fontWeight: fontWeight ?? FontWeight.w400,
+                  color: textColor ?? const Color(0xFF334155),
                 ),
               ),
             );
@@ -87,21 +78,18 @@ class NAFISCasesDataTable extends StatelessWidget {
         Widget statusBadge(bool isPending) {
           return Center(
             child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: isTiny ? 6 : 8,
-                vertical: 3,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
                 color: isPending
                     ? const Color(0xFFEF4444)
                     : const Color(0xFF22C55E),
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 isPending ? 'Pending' : 'Done',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
-                  fontSize: (cellFontSize - 1.0).clamp(8.5, 11.0),
+                  fontSize: cellFontSize - 1.0,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
                 ),
@@ -114,11 +102,11 @@ class NAFISCasesDataTable extends StatelessWidget {
           if (!isPending) {
             return Center(
               child: Text(
-                '—',
+                '-',
                 style: GoogleFonts.poppins(
-                  fontSize: cellFontSize + 1,
+                  fontSize: cellFontSize + 2,
                   fontWeight: FontWeight.w500,
-                  color: const Color(0xFF94A3B8),
+                  color: const Color(0xFF64748B),
                 ),
               ),
             );
@@ -133,13 +121,11 @@ class NAFISCasesDataTable extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFEF4444),
                 foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(
-                  horizontal: isTiny ? 4 : 6,
-                  vertical: 0,
-                ),
-                minimumSize: Size(isTiny ? 52 : 62, 26),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                minimumSize: const Size(80, 30),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 elevation: 0,
               ),
@@ -172,9 +158,9 @@ class NAFISCasesDataTable extends StatelessWidget {
                 }
               },
               child: Text(
-                isTiny ? 'Remind' : 'Remind to IO',
+                'Remind to IO',
                 style: GoogleFonts.poppins(
-                  fontSize: (cellFontSize - 1.5).clamp(8.5, 10.5),
+                  fontSize: cellFontSize - 1.0,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -183,31 +169,28 @@ class NAFISCasesDataTable extends StatelessWidget {
         }
 
         final columnWidths = <int, TableColumnWidth>{
-          0: isTiny
-              ? const FixedColumnWidth(40)
-              : (isSmall
-                  ? const FixedColumnWidth(48)
-                  : const FixedColumnWidth(55)),
-          1: const FlexColumnWidth(1.15),
-          2: const FlexColumnWidth(1.3),
-          3: const FlexColumnWidth(1.05),
-          4: const FlexColumnWidth(1.15),
-          5: const FlexColumnWidth(0.85),
-          6: const FlexColumnWidth(1.05),
+          0: const FixedColumnWidth(70), // Sr. No.
+          1: const FlexColumnWidth(1.4), // Accused Name
+          2: const FlexColumnWidth(1.2), // CR No.
+          3: const FlexColumnWidth(1.4), // Section/Act
+          4: const FlexColumnWidth(1.4), // Head
+          5: const FlexColumnWidth(1.5), // IO Name
+          6: const FixedColumnWidth(130), // Status
+          7: const FixedColumnWidth(130), // Action
         };
 
         final headers = <Widget>[
-          headerCell('Sr. No.'),
+          headerCell('Sr. No.', align: Alignment.centerLeft),
+          headerCell('Accused Name'),
           headerCell('CR No.'),
           headerCell('Section/Act'),
-          headerCell('Charge Sheet Date'),
+          headerCell('Head'),
           headerCell('IO Name'),
-          headerCell('Status'),
-          headerCell('Action'),
+          headerCell('Status', align: Alignment.center),
+          headerCell('Action', align: Alignment.center),
         ];
 
         TableRow rowFor(int idx, Map<String, dynamic> r) {
-          final bg = idx.isEven ? Colors.white : const Color(0xFFF8FAFD);
           final cr =
               (r['cr'] ?? r['cr_no'] ?? r['case_number'] ?? r['crNo'] ?? '')
                   .toString();
@@ -228,16 +211,25 @@ class NAFISCasesDataTable extends StatelessWidget {
               extra['sectionAct'];
           final formattedSection =
               ExcelExportHelper.formatSectionAct(sectionActRaw);
-          final sectionAct = formattedSection.isEmpty ? '—' : formattedSection;
+          final sectionAct = formattedSection.isEmpty ? '-' : formattedSection;
 
-          final chargeSheetDate = (r['charge_sheet_date'] ??
-                  r['chargesheet_date'] ??
-                  extra['charge_sheet_date'] ??
-                  extra['chargeSheetDate'] ??
-                  extra['cs_date'] ??
-                  '')
-              .toString()
-              .trim();
+          final rawAccused = r['accused_name'] ??
+              r['accused'] ??
+              extra['accused_name'] ??
+              extra['accused'];
+          final formattedAccused = ExcelExportHelper.formatAccused(rawAccused);
+          final accusedName = formattedAccused.isEmpty ? '-' : formattedAccused;
+
+          final headRaw = r['head'] ??
+              r['sub_category'] ??
+              r['subCategory'] ??
+              r['title'] ??
+              extra['head'] ??
+              extra['crime_head'] ??
+              '-';
+          final head = headRaw.toString().trim().isEmpty
+              ? '-'
+              : headRaw.toString().trim();
 
           final ioName = (r['io_name'] ??
                   r['assigned_officer'] ??
@@ -248,17 +240,21 @@ class NAFISCasesDataTable extends StatelessWidget {
               .toString()
               .trim();
 
-          final rawStatus =
-              (r['nafis_status'] ?? extra['nafis_status'] ?? r['status'] ?? '')
-                  .toString()
-                  .trim()
-                  .toLowerCase();
-          final statusColor =
-              (r['nafis_status_color'] ?? extra['nafis_status_color'] ?? '')
-                  .toString()
-                  .trim()
-                  .toLowerCase();
-          final isGreen = statusColor == 'green' ||
+          final extra =
+              r['extra_fields'] is Map ? r['extra_fields'] as Map : {};
+          final color = (r['nafis_status_color'] ??
+                  extra['nafis_status_color'] ??
+                  '')
+              .toString()
+              .toLowerCase();
+          final rawStatus = (r['nafis_status'] ??
+                  extra['nafis_status'] ??
+                  r['status'] ??
+                  '')
+              .toString()
+              .trim()
+              .toLowerCase();
+          final isGreen = color == 'green' ||
               rawStatus == 'done' ||
               rawStatus == 'chargesheeted' ||
               rawStatus == 'yes' ||
@@ -266,44 +262,73 @@ class NAFISCasesDataTable extends StatelessWidget {
           final isPending = !isGreen;
 
           return TableRow(
-            decoration: BoxDecoration(color: bg),
+            decoration: const BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
+              ),
+            ),
             children: [
-              dataCell('${serialOffset + idx + 1}'),
-              dataCell(cr.isEmpty ? '—' : cr),
+              dataCell(
+                r['sr_no']?.toString() ?? '${serialOffset + idx + 1}',
+                align: Alignment.centerLeft,
+              ),
+              dataCell(accusedName),
+              dataCell(cr),
               dataCell(sectionAct),
-              dataCell(chargeSheetDate.isEmpty ? 'Pending' : chargeSheetDate),
-              dataCell(ioName.isEmpty ? 'Unassigned' : ioName,
-                  align: Alignment.centerLeft),
-              statusBadge(isPending),
-              actionCell(idx, r, isPending),
+              dataCell(head),
+              dataCell(ioName.isEmpty ? 'Unassigned' : ioName),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                alignment: Alignment.center,
+                child: statusBadge(isPending),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                alignment: Alignment.center,
+                child: actionCell(idx, r, isPending),
+              ),
             ],
           );
         }
 
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Table(
-              columnWidths: columnWidths,
-              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-              border: const TableBorder(
-                horizontalInside:
-                    BorderSide(color: Color(0xFFEDF2F7), width: 1),
-                verticalInside: BorderSide(color: Color(0xFFEDF2F7), width: 1),
-              ),
-              children: [
-                TableRow(
-                  decoration: const BoxDecoration(color: AppColors.navyDark),
-                  children: headers,
+        final maxH = constraints.maxHeight;
+
+        return Container(
+          width: double.infinity,
+          height: maxH.isFinite ? maxH : null,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minWidth: w > 900 ? w : 900),
+                  child: Table(
+                    columnWidths: columnWidths,
+                    defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                    children: [
+                      TableRow(
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: Color(0xFFE2E8F0),
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                        children: headers,
+                      ),
+                      for (var i = 0; i < rows.length; i++) rowFor(i, rows[i]),
+                    ],
+                  ),
                 ),
-                for (var i = 0; i < rows.length; i++) rowFor(i, rows[i]),
-              ],
+              ),
             ),
           ),
         );

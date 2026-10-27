@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_config.dart';
+import '../services/api_service.dart';
 import '../services/case_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/police_hierarchy_helper.dart';
@@ -201,9 +202,16 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
         "station_name": _selectedRole == 'Station Head' ? _selectedStation : "",
       };
 
+      // Send the admin's own token: the backend activates the account at once
+      // only when the logged-in admin is allowed to approve it.
+      final token = await ApiService().getAuthToken();
       final response = await http.post(
         Uri.parse(ApiConfig.authRegister),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null && token.isNotEmpty)
+            'Authorization': 'Bearer $token',
+        },
         body: json.encode(payload),
       );
 
