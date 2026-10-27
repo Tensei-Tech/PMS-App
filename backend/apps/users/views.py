@@ -171,6 +171,8 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
         for off in all_officers:
             role = (off.role_id or off.role or '').lower()
             desig = (off.designation or '').lower()
+            if role == 'city_admin':
+                continue  # listed under Cities, whatever their designation
             is_div_admin = role in ['division_admin', 'supervisor'] or any(k in desig for k in ['dysp', 'acp', 'sdpo', 'dig', 'ig', 'division admin'])
             if is_div_admin:
                 raw_dist = (off.district or off.station_name or '').lower().strip()
@@ -223,6 +225,8 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
         for off in all_officers:
             role = (off.role_id or off.role or '').lower()
             desig = (off.designation or '').lower()
+            if role == 'city_admin':
+                continue  # listed under Cities, whatever their designation
             is_div_admin = role in ['division_admin', 'supervisor'] or any(k in desig for k in ['dysp', 'acp', 'sdpo', 'dig', 'spl. ig', 'special ig', 'division admin']) or (desig.endswith('ig') and 'dgp' not in desig)
             is_dist_admin = not is_div_admin and (role in ['district_admin'] or any(k in desig for k in ['superintendent', 'commissioner', 'district admin']) or (desig == 'sp' or desig.startswith('sp ') or desig.endswith(' sp') or ' dcp' in desig or 'dcp ' in desig))
             if is_dist_admin:
@@ -243,6 +247,27 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
                     'badge_number': off.badge_number or '',
                     'account_status': off.account_status,
                 })
+
+        # 3b. Cities (police commissionerates) & City Admins. Cities have no
+        # master list yet, so a city admin's city is the 'district' they hold.
+        cities_map = {}
+        for off in all_officers:
+            if (off.role_id or '').lower() != 'city_admin':
+                continue
+            city_name = off.district or 'City'
+            cities_map.setdefault(city_name, {
+                'id': f"city-{city_name.lower().replace(' ', '-')}",
+                'name': city_name,
+                'admins': [],
+            })['admins'].append({
+                'uid': off.uid,
+                'name': off.name,
+                'email': off.email,
+                'phone': off.phone or '',
+                'designation': off.designation or 'City Admin',
+                'badge_number': off.badge_number or '',
+                'account_status': off.account_status,
+            })
 
         # 4. Gather Police Stations & Station Heads
         stations_map = {}
@@ -348,6 +373,8 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
         return Response({
             'divisions': list(divisions_map.values()),
             'districts': list(districts_map.values()),
+            # A division admin's scope holds no city.
+            'cities': [] if is_div_admin else sorted(cities_map.values(), key=lambda c: c['name']),
             'stations': list(stations_map.values()),
             'scope': 'division' if is_div_admin else 'state',
             'assigned_division': user_division if is_div_admin else 'All State Divisions',

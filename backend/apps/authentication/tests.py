@@ -165,6 +165,7 @@ class PrimaryAuthAndRBACBackendTests(TestCase):
             'full_name': 'Valid District Admin',
             'role_id': 'district_admin',
             'district': 'Pune District',
+            'designation': 'SP',
             'state_code': 'MH',
         }, format='json')
         self.assertIn(res_dist_ok.status_code, (status.HTTP_201_CREATED, status.HTTP_202_ACCEPTED))

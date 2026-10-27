@@ -55,7 +55,7 @@ class PublicRegistrationTests(SecurityTestBase):
         body = {
             'email': f'r-{uuid.uuid4().hex[:6]}@mh.gov.in', 'password': 'Password123!',
             'full_name': 'New Officer', 'role_id': 'officer', 'state_code': 'MH',
-            'station_name': 'Shivajinagar Police Station', 'district': 'Pune',
+            'station_name': 'Shivajinagar Police Station', 'district': 'Pune', 'designation': 'PI',
         }
         body.update(extra)
         return body['email'], self.client.post('/api/auth/register/', body, format='json', **(headers or {}))
@@ -80,15 +80,14 @@ class PublicRegistrationTests(SecurityTestBase):
         self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.data)
         self.assertEqual(OfficerProfile.objects.get(email=email).account_status, 'active')
 
-    def test_district_admin_onboards_inside_own_district_only(self):
+    def test_admin_created_accounts_wait_for_approval(self):
+        # Only a Master Admin's accounts start active; everyone else's wait in
+        # Pending Approvals for an admin above them in that area.
         admin = _officer('district_admin', station='', district='Pune')
-        email, res = self._register(headers=_officer_headers(admin), district='Pune')
-        self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.data)
-        self.assertEqual(OfficerProfile.objects.get(email=email).account_status, 'active')
-
-        email, res = self._register(headers=_officer_headers(admin), district='Nagpur')
-        self.assertEqual(res.status_code, status.HTTP_202_ACCEPTED, res.data)
-        self.assertEqual(OfficerProfile.objects.get(email=email).account_status, 'pending_approval')
+        for district in ('Pune', 'Nagpur'):
+            email, res = self._register(headers=_officer_headers(admin), district=district)
+            self.assertEqual(res.status_code, status.HTTP_202_ACCEPTED, res.data)
+            self.assertEqual(OfficerProfile.objects.get(email=email).account_status, 'pending_approval')
 
 
 class ApprovalJurisdictionTests(SecurityTestBase):

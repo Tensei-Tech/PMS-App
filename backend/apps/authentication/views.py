@@ -199,7 +199,8 @@ class RegisterView(views.APIView):
                 division_roles = [r.strip() for r in _get_setting_val('scope_division_roles', 'division_admin,supervisor').split(',') if r.strip()]
                 district_roles = [r.strip() for r in _get_setting_val('scope_district_roles', 'district_admin').split(',') if r.strip()]
 
-                division_val = str(data.get('division_name') or data.get('division') or data.get('division_id') or '').strip()
+                division_val = str(data.get('division_name') or data.get('division') or data.get('division_id')
+                                   or data.get('zone') or '').strip()
                 district_val = str(data.get('district') or data.get('district_name') or data.get('district_id') or '').strip()
                 station_val = str(data.get('station_name') or data.get('station_id') or '').strip()
 
@@ -215,6 +216,33 @@ class RegisterView(views.APIView):
                     if not district_val:
                         no_dist_msg = _get_setting_val('no_district_message', 'No district assigned to the logged-in user.')
                         return Response({'error': no_dist_msg}, status=status.HTTP_400_BAD_REQUEST)
+                # A city admin's city is kept in 'district' until cities get their own list.
+                if role_id == 'city_admin' and not district_val:
+                    return Response({'error': 'Enter the city for the City Admin.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # A city admin, and everyone a city admin onboards, holds a city designation.
+            if role_id == 'city_admin' or getattr(caller, 'role_id', '') == 'city_admin':
+                from apps.public_master.designation_matrix import CITY_DESIGNATIONS, is_city_designation
+                if not is_city_designation(designation):
+                    return Response({
+                        'error': f'Under a City Admin the designation must be one of: {", ".join(CITY_DESIGNATIONS)}.'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Likewise a district admin, and everyone a district admin onboards.
+            elif role_id == 'district_admin' or getattr(caller, 'role_id', '') == 'district_admin':
+                from apps.public_master.designation_matrix import DISTRICT_DESIGNATIONS, is_district_designation
+                if not is_district_designation(designation):
+                    return Response({
+                        'error': f'Under a District Admin the designation must be one of: {", ".join(DISTRICT_DESIGNATIONS)}.'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+            # A division admin made by anyone else holds a city or a district designation.
+            elif role_id == 'division_admin':
+                from apps.public_master.designation_matrix import DIVISION_DESIGNATIONS, is_division_designation
+                if not is_division_designation(designation):
+                    return Response({
+                        'error': f'A Division Admin\'s designation must be one of: {", ".join(DIVISION_DESIGNATIONS)}.'
+                    }, status=status.HTTP_400_BAD_REQUEST)
 
             # Upstream Command Authority Validation: Block registration if jurisdiction lacks active approving admin
             if role_id not in ['master_admin', 'state_super_admin']:
@@ -266,19 +294,17 @@ class RegisterView(views.APIView):
             import uuid
             uid = str(uuid.uuid4())
 
-            division_name = data.get('division_name') or data.get('division') or ''
+            # The app's admin dialog has sent a division admin's division as 'zone'.
+            zone = data.get('zone') or ''
+            division_name = data.get('division_name') or data.get('division') or zone
             division_id = data.get('division_id') or ''
 
-            # Self-registered accounts always wait for hierarchical approval. The
-            # account starts active only when a logged-in admin who could approve
-            # it (higher level, same unit) is onboarding it; a client-sent
+            # Every new account waits in Pending Approvals, where any admin above
+            # it in its area (the admin who created it, and those above them up
+            # to the state admin) approves it. Only an account a Master Admin
+            # creates (e.g. a state admin) starts active. A client-sent
             # account_status is ignored.
-            onboarded = SimpleNamespace(
-                uid=uid, role_id=role_id, station_name=station_name, station_id=station_id,
-                division_name=division_name, division_id=division_id, zone=data.get('zone') or '',
-                district=district_name, district_id=district_id,
-            )
-            initial_status = 'active' if can_manage_account(caller, onboarded) else 'pending_approval'
+            initial_status = 'active' if caller_level(caller) >= MASTER else 'pending_approval'
             now_utc = datetime.now(timezone.utc)
 
             officer = OfficerProfile(
@@ -292,6 +318,7 @@ class RegisterView(views.APIView):
                 station_id=station_id,
                 division_name=division_name,
                 division_id=division_id,
+                zone=zone or None,
                 district=district_name,
                 district_id=district_id,
                 role_id=role_id,
@@ -337,6 +364,7 @@ class RegisterView(views.APIView):
                         station_id=station_id,
                         division_name=division_name,
                         division_id=division_id,
+                        zone=zone or None,
                         district=district_name,
                         district_id=district_id,
                         role_id=role_id,
@@ -462,12 +490,21 @@ class PendingApprovalsNotificationListView(views.APIView):
         seen_uids = set()
         data = []
 
+        # A request is shown to every admin who may approve the account it is
+        # for: the admin above it in its area and everyone above them.
+        try:
+            pending_by_uid = {o.uid: o for o in OfficerProfile.objects.filter(
+                account_status__in=['pending_approval', 'pending'])}
+        except Exception as e:
+            logger.warning(f"[PendingApprovals] Pending profile query error: {e}")
+            pending_by_uid = {}
+
         # 1. Gather pending NotificationRecord entries in active tenant schema
         try:
             for n in NotificationRecord.objects.filter(status='pending', category='approval_request'):
                 uid = n.registration_uid
-                target = SimpleNamespace(uid=uid, role_id='officer', station_name=n.target_station_name,
-                                         district=n.target_district)
+                target = pending_by_uid.get(uid) or SimpleNamespace(
+                    uid=uid, role_id='officer', station_name=n.target_station_name, district=n.target_district)
                 if uid and uid not in seen_uids and can_manage_account(request.user, target):
                     seen_uids.add(uid)
                     data.append({
