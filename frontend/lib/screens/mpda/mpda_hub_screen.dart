@@ -588,8 +588,9 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
                   // Mobile: 2 rows without scrolling (Row 1: 4 cards, Row 2: 3 cards)
                   const row1Indices = [0, 1, 2, 3];
                   const row2Indices = [4, 5, 6];
-                  const spacing = 4.0;
-                  const cardHeight = 42.0;
+                  const colSpacing = 5.0;
+                  const rowSpacing = 6.0;
+                  const cardHeight = 50.0;
 
                   return Column(
                     mainAxisSize: MainAxisSize.min,
@@ -599,7 +600,7 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
                           return Expanded(
                             child: Padding(
                               padding: EdgeInsets.only(
-                                right: idx != row1Indices.last ? spacing : 0,
+                                right: idx != row1Indices.last ? colSpacing : 0,
                               ),
                               child: SizedBox(
                                 height: cardHeight,
@@ -610,13 +611,13 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
                           );
                         }).toList(),
                       ),
-                      const SizedBox(height: spacing),
+                      const SizedBox(height: rowSpacing),
                       Row(
                         children: row2Indices.map((idx) {
                           return Expanded(
                             child: Padding(
                               padding: EdgeInsets.only(
-                                right: idx != row2Indices.last ? spacing : 0,
+                                right: idx != row2Indices.last ? colSpacing : 0,
                               ),
                               child: SizedBox(
                                 height: cardHeight,
@@ -741,51 +742,55 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
       borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: EdgeInsets.symmetric(
-          horizontal: isCompact ? 5 : 6,
-          vertical: isCompact ? 3 : 4,
+          horizontal: isCompact ? 6 : 6,
+          vertical: isCompact ? 4 : 4,
         ),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.navyMid.withValues(alpha: 0.1)
-              : const Color(0xFFF8FAFC),
+              ? AppColors.navyMid.withValues(alpha: 0.08)
+              : Colors.white,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSelected ? AppColors.navyMid : const Color(0xFFE2E8F0),
-            width: isSelected ? 1.5 : 1,
+            width: isSelected ? 1.6 : 1,
           ),
         ),
         child: isCompact
             ? Center(
                 child: Row(
                   children: [
-                    if (k == _summaryTab)
-                      Icon(
-                        Icons.table_chart_rounded,
-                        size: 16,
+                    Container(
+                      constraints:
+                          const BoxConstraints(minWidth: 22, minHeight: 22),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 2),
+                      decoration: BoxDecoration(
                         color: isSelected
-                            ? AppColors.navyDark
-                            : AppColors.lightText,
-                      )
-                    else
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 5, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? AppColors.navyMid
-                              : const Color(0xFFE2E8F0),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          '$count',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color:
-                                isSelected ? Colors.white : AppColors.navyDark,
-                          ),
-                        ),
+                            ? AppColors.navyMid
+                            : AppColors.navyMid.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(6),
                       ),
+                      child: Center(
+                        child: k == _summaryTab
+                            ? Icon(
+                                Icons.table_chart_rounded,
+                                size: 14,
+                                color: isSelected
+                                    ? Colors.white
+                                    : AppColors.navyDark,
+                              )
+                            : Text(
+                                '$count',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : AppColors.navyDark,
+                                ),
+                              ),
+                      ),
+                    ),
                     const SizedBox(width: 5),
                     Expanded(
                       child: Text(
@@ -793,8 +798,8 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
-                          fontSize: 9.0,
-                          height: 1.15,
+                          fontSize: 9.2,
+                          height: 1.18,
                           fontWeight:
                               isSelected ? FontWeight.w600 : FontWeight.w500,
                           color: isSelected
