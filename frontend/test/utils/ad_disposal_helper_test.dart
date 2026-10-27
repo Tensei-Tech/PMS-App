@@ -64,7 +64,8 @@ void main() {
           isTrue);
     });
 
-    test('Preventive Case with preventiveNo and date is classified as Disposal', () {
+    test('Preventive Case with preventiveNo and date is classified as Disposal',
+        () {
       final prevRecord = ModuleRecord(
         id: 'prev-1',
         moduleKey: 'preventive',
@@ -91,7 +92,9 @@ void main() {
       expect(isRecordPending(prevRecord), isFalse);
     });
 
-    test('Preventive Case with Marathi keys (इस्तेगाशा नंबर + दिनांक) is classified as Disposal', () {
+    test(
+        'Preventive Case with Marathi keys (इस्तेगाशा नंबर + दिनांक) is classified as Disposal',
+        () {
       final prevMarathi = ModuleRecord(
         id: 'prev-marathi',
         moduleKey: 'preventive',

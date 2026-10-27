@@ -34,7 +34,8 @@ String _sectionsLine(ModuleRecord r) {
           final secs = v['sections'];
           if (secs is List && secs.isNotEmpty) {
             final secsStr = secs.join(', ').trim();
-            parts.add(act != null && act.isNotEmpty ? '$act $secsStr' : secsStr);
+            parts
+                .add(act != null && act.isNotEmpty ? '$act $secsStr' : secsStr);
           } else if (act != null && act.isNotEmpty) {
             parts.add(act);
           }

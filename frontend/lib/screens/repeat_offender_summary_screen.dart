@@ -34,8 +34,6 @@ class RepeatOffenderSummaryScreen extends StatelessWidget {
   static bool _usingExplicitLive(List<Map<String, String>>? live) =>
       live != null && live.isNotEmpty;
 
-
-
   Future<void> _exportPdf(
     BuildContext context,
     List<Map<String, String>> dataset,
@@ -327,7 +325,8 @@ class _LiveRepeatOffenderSummaryLoaderState
 
       // Exclude invalid/empty CR or cases without other repeat CRs
       if (cr.isEmpty || cr == '—' || cr == '-') continue;
-      if (multipleCr.isEmpty || multipleCr == '—' || multipleCr == '-') continue;
+      if (multipleCr.isEmpty || multipleCr == '—' || multipleCr == '-')
+        continue;
 
       final lowerName = name.toLowerCase();
       if (lowerName == 'default accused' ||

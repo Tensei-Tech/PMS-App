@@ -217,10 +217,8 @@ class NAFISCasesDataTable extends StatelessWidget {
               r['accused'] ??
               extra['accused_name'] ??
               extra['accused'];
-          final formattedAccused =
-              ExcelExportHelper.formatAccused(rawAccused);
-          final accusedName =
-              formattedAccused.isEmpty ? '-' : formattedAccused;
+          final formattedAccused = ExcelExportHelper.formatAccused(rawAccused);
+          final accusedName = formattedAccused.isEmpty ? '-' : formattedAccused;
 
           final headRaw = r['head'] ??
               r['sub_category'] ??

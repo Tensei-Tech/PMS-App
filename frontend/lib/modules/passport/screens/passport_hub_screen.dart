@@ -214,8 +214,7 @@ class _PassportHubScreenState extends State<PassportHubScreen> {
       );
       groups = groups.where((g) {
         final monthStart = DateTime(g.date.year, g.date.month, 1);
-        final monthEnd =
-            DateTime(g.date.year, g.date.month + 1, 0, 23, 59, 59);
+        final monthEnd = DateTime(g.date.year, g.date.month + 1, 0, 23, 59, 59);
         return !monthStart.isAfter(end) && !monthEnd.isBefore(start);
       }).toList();
     }
@@ -263,7 +262,8 @@ class _PassportHubScreenState extends State<PassportHubScreen> {
 
     final doc = DynamicMapPdf.buildLandscapeDataTableDocument(
       theme: theme,
-      title: 'Passport Verification Report (Month Wise) — ${widget.stationName}',
+      title:
+          'Passport Verification Report (Month Wise) — ${widget.stationName}',
       rows: rows,
       prependSerial: false,
       columnOrder: columnOrder,
@@ -868,8 +868,8 @@ class _PassportHubScreenState extends State<PassportHubScreen> {
                           ),
                         if (showPending)
                           DataColumn(
-                            label: Text(
-                                TranslationHelper.translate(context, 'Pending')),
+                            label: Text(TranslationHelper.translate(
+                                context, 'Pending')),
                           ),
                       ],
                       rows: groups.asMap().entries.map((entry) {
@@ -909,8 +909,7 @@ class _PassportHubScreenState extends State<PassportHubScreen> {
                                   Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
                                         DateFormat('MMMM').format(g.date),

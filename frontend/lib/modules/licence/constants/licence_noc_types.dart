@@ -47,7 +47,8 @@ const List<LicenceNocOption> kLicenceNocOptions = [
   LicenceNocOption(number: 10, name: 'Eating House / Restaurant NOC'),
   LicenceNocOption(number: 11, name: 'Cinema Theatre NOC'),
   LicenceNocOption(number: 12, name: 'Amusement / Entertainment Premises NOC'),
-  LicenceNocOption(number: 13, name: 'Public Performance / Loudspeaker Permission'),
+  LicenceNocOption(
+      number: 13, name: 'Public Performance / Loudspeaker Permission'),
   LicenceNocOption(number: 14, name: 'Procession / Rally Permission'),
   LicenceNocOption(number: 15, name: 'Public Meeting / Event Permission'),
   LicenceNocOption(number: 16, name: 'Temporary Festival / Mandap Permission'),
@@ -55,17 +56,28 @@ const List<LicenceNocOption> kLicenceNocOptions = [
   LicenceNocOption(number: 18, name: 'Explosives Storage / Handling NOC'),
   LicenceNocOption(number: 19, name: 'Gas Agency / LPG Storage NOC'),
   LicenceNocOption(number: 20, name: 'Money-Lending Business Verification'),
-  LicenceNocOption(number: 21, name: 'Private Security Agency Police Verification'),
-  LicenceNocOption(number: 22, name: 'Character and Antecedent Verification for Licence'),
-  LicenceNocOption(number: 23, name: 'Pawn Broker / Gold Loan Business Police Verification, where applicable'),
-  LicenceNocOption(number: 24, name: 'Cyber Café / Internet Café Police Verification, where locally required'),
+  LicenceNocOption(
+      number: 21, name: 'Private Security Agency Police Verification'),
+  LicenceNocOption(
+      number: 22, name: 'Character and Antecedent Verification for Licence'),
+  LicenceNocOption(
+      number: 23,
+      name:
+          'Pawn Broker / Gold Loan Business Police Verification, where applicable'),
+  LicenceNocOption(
+      number: 24,
+      name:
+          'Cyber Café / Internet Café Police Verification, where locally required'),
   LicenceNocOption(number: 25, name: 'Other Licence / NOC'),
   LicenceNocOption(number: 26, name: 'Cinema / Theatre Licence Verification'),
-  LicenceNocOption(number: 27, name: 'Video Parlour / Amusement Parlour Licence'),
-  LicenceNocOption(number: 28, name: 'Loudspeaker Permission / Contractor Licence'),
+  LicenceNocOption(
+      number: 27, name: 'Video Parlour / Amusement Parlour Licence'),
+  LicenceNocOption(
+      number: 28, name: 'Loudspeaker Permission / Contractor Licence'),
   LicenceNocOption(number: 29, name: 'Fireworks Display Permission'),
   LicenceNocOption(number: 30, name: 'Temporary Liquor Licence for Events'),
-  LicenceNocOption(number: 31, name: 'Public Entertainment / Performance Licence'),
+  LicenceNocOption(
+      number: 31, name: 'Public Entertainment / Performance Licence'),
   LicenceNocOption(number: 32, name: 'Stage / Event Structure NOC'),
   LicenceNocOption(number: 33, name: 'Ticket-Selling Permission for Events'),
   LicenceNocOption(number: 34, name: 'Private Security Agency Verification'),

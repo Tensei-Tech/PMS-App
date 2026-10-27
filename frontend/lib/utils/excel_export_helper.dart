@@ -273,8 +273,9 @@ class ExcelExportHelper {
       final r = dataset[i];
       final sr = r['sr']?.isNotEmpty == true ? r['sr']! : '${i + 1}';
       final cr = r['cr']?.trim().isNotEmpty == true ? r['cr']!.trim() : '-';
-      final secAct =
-          r['sections']?.trim().isNotEmpty == true ? r['sections']!.trim() : '-';
+      final secAct = r['sections']?.trim().isNotEmpty == true
+          ? r['sections']!.trim()
+          : '-';
       final head =
           r['head']?.trim().isNotEmpty == true ? r['head']!.trim() : '-';
       final accused =
@@ -320,18 +321,18 @@ class ExcelExportHelper {
       final r = dataset[i];
       final sr = r['sr']?.isNotEmpty == true ? r['sr']! : '${i + 1}';
       final cr = r['cr']?.trim().isNotEmpty == true ? r['cr']!.trim() : '-';
-      final secAct =
-          r['sections']?.trim().isNotEmpty == true ? r['sections']!.trim() : '-';
+      final secAct = r['sections']?.trim().isNotEmpty == true
+          ? r['sections']!.trim()
+          : '-';
       final head =
           r['head']?.trim().isNotEmpty == true ? r['head']!.trim() : '-';
       final accused =
           (r['accused_name'] ?? r['accused'])?.trim().isNotEmpty == true
               ? (r['accused_name'] ?? r['accused'])!.trim()
               : '-';
-      final arrDate =
-          (r['arrest_date'] ?? r['date'])?.trim().isNotEmpty == true
-              ? (r['arrest_date'] ?? r['date'])!.trim()
-              : '-';
+      final arrDate = (r['arrest_date'] ?? r['date'])?.trim().isNotEmpty == true
+          ? (r['arrest_date'] ?? r['date'])!.trim()
+          : '-';
       final io = r['io']?.trim().isNotEmpty == true ? r['io']!.trim() : '-';
 
       rows.add([
@@ -646,9 +647,8 @@ class ExcelExportHelper {
     for (var i = 0; i < dataset.length; i++) {
       final r = dataset[i];
       final sr = (r['sr_no'] ?? '${i + 1}').toString();
-      final cr = (r['case_number'] ?? r['cr_no'] ?? r['cr'] ?? '-')
-          .toString()
-          .trim();
+      final cr =
+          (r['case_number'] ?? r['cr_no'] ?? r['cr'] ?? '-').toString().trim();
 
       final extra = r['extra_fields'] is Map
           ? Map<String, dynamic>.from(r['extra_fields'] as Map)

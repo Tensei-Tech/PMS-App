@@ -22,7 +22,8 @@ class DisposalCaseListView extends StatefulWidget {
   });
 
   static String getSectionAct(Map<String, dynamic> record) {
-    final extra = record['extra_fields'] is Map ? record['extra_fields'] as Map : {};
+    final extra =
+        record['extra_fields'] is Map ? record['extra_fields'] as Map : {};
     final secActRaw = record['section_act'] ??
         record['acts_sections'] ??
         record['sections'] ??
@@ -289,7 +290,8 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
                       TableBorder.all(color: AppColors.lightBorder, width: 1),
                   children: [
                     TableRow(
-                      decoration: const BoxDecoration(color: AppColors.navyDark),
+                      decoration:
+                          const BoxDecoration(color: AppColors.navyDark),
                       children: headers,
                     ),
                     for (var i = 0; i < records.length; i++)

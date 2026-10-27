@@ -87,7 +87,8 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
             children: [
               dataCell('${serialOffset + idx + 1}'),
               dataCell(r['cr']?.isNotEmpty == true ? r['cr']! : '-'),
-              dataCell(r['sections']?.isNotEmpty == true ? r['sections']! : '-'),
+              dataCell(
+                  r['sections']?.isNotEmpty == true ? r['sections']! : '-'),
               dataCell(r['head']?.isNotEmpty == true ? r['head']! : '-'),
               dataCell(r['accused']?.isNotEmpty == true ? r['accused']! : '-',
                   align: Alignment.centerLeft),

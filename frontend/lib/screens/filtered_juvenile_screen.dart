@@ -91,7 +91,8 @@ class _FilteredJuvenileScreenState extends State<FilteredJuvenileScreen> {
     );
     await Printing.sharePdf(
       bytes: await doc.save(),
-      filename: 'Juvenile_${widget.title.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}.pdf',
+      filename:
+          'Juvenile_${widget.title.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}.pdf',
     );
   }
 

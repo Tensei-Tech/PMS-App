@@ -51,7 +51,8 @@ String _sectionsLine(ModuleRecord r) {
           final secs = v['sections'];
           if (secs is List && secs.isNotEmpty) {
             final secsStr = secs.join(', ').trim();
-            parts.add(act != null && act.isNotEmpty ? '$act $secsStr' : secsStr);
+            parts
+                .add(act != null && act.isNotEmpty ? '$act $secsStr' : secsStr);
           } else if (act != null && act.isNotEmpty) {
             parts.add(act);
           }
@@ -144,9 +145,8 @@ String _accusedNameLine(ModuleRecord r) {
   if (arrList is List && arrList.isNotEmpty) {
     for (final item in arrList) {
       if (item is Map) {
-        final n = item['arrested_person_name'] ??
-            item['person_name'] ??
-            item['name'];
+        final n =
+            item['arrested_person_name'] ?? item['person_name'] ?? item['name'];
         if (n != null &&
             n.toString().trim().isNotEmpty &&
             n.toString().toLowerCase() != 'default accused') {
@@ -290,9 +290,8 @@ Map<String, String> arrestedModuleRecordToTableRow(
     if (list is List && list.isNotEmpty) {
       for (final item in list) {
         if (item is Map) {
-          final candidate = item['arrest_date'] ??
-              item['arrest_datetime'] ??
-              item['date'];
+          final candidate =
+              item['arrest_date'] ?? item['arrest_datetime'] ?? item['date'];
           if (candidate != null && candidate.toString().trim().isNotEmpty) {
             rawArr = candidate;
             break;
