@@ -31,8 +31,10 @@ class AbscondedLogicTests(TestCase):
             'state_code': 'MH',
             'badge_number': f'BDG-{uuid.uuid4().hex[:6]}',
             'station_name': 'Crime Branch',
-            'account_status': 'active',
         }, format='json')
+
+        # Public sign-up waits for approval; activate directly for the test.
+        OfficerProfile.objects.filter(email='io_absconded@mhpolice.gov.in').update(account_status='active')
 
         login_resp = self.client.post('/api/auth/login/', {
             'email': 'io_absconded@mhpolice.gov.in',

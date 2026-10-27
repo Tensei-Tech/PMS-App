@@ -1,4 +1,4 @@
-import sys
+from types import SimpleNamespace
 import logging
 import jwt
 from datetime import datetime, timedelta, timezone
@@ -10,6 +10,7 @@ from rest_framework.response import Response
 
 from apps.core.tenancy import set_tenant_schema, provision_state_schema, get_active_tenant_schema
 from apps.core.permissions import check_dynamic_permission
+from apps.authentication.approval_scope import MASTER, STATE, caller_level, can_manage_account
 from apps.public_master.models import MasterUser, StateRegistry, Role, RolePermission, UserRoleMapping
 from apps.users.models import OfficerProfile
 from apps.stations.models import SuperAdmin, District, DistrictAdmin, PoliceStation
@@ -115,6 +116,26 @@ class CheckContactExistsView(views.APIView):
         }, status=status.HTTP_200_OK)
 
 
+def _state_logo_url(state_code):
+    """The state's branding logo (URL or base64), or None."""
+    try:
+        return StateRegistry.objects.filter(state_code=state_code).values_list(
+            'department_logo_url', flat=True).first() or None
+    except Exception as e:
+        logger.warning(f"[LoginView] State logo lookup failed: {e}")
+        return None
+
+
+def _optional_caller(request):
+    """The logged-in user behind an optional Bearer token, or None."""
+    from apps.authentication.authentication import PrimaryJWTAuthentication
+    try:
+        result = PrimaryJWTAuthentication().authenticate(request)
+    except Exception:
+        return None
+    return result[0] if result else None
+
+
 class RegisterView(views.APIView):
     """
     Primary Registration API endpoint: POST /api/v1/auth/register/
@@ -148,8 +169,18 @@ class RegisterView(views.APIView):
             if phone and (MasterUser.objects.filter(phone=phone).exists() or OfficerProfile.objects.filter(phone=phone).exists()):
                 return Response({'error': f'An account with phone number "{phone}" already exists.'}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Block State Admin self-registration via public API
-            if role_id in ['state_admin', 'state_super_admin']:
+            # An admin onboarding someone sends their own token; everyone else is anonymous.
+            caller = _optional_caller(request)
+            caller_lvl = caller_level(caller)
+
+            # Master Admins are created only by an existing Master Admin.
+            if role_id == 'master_admin' and caller_lvl < MASTER:
+                return Response({
+                    'error': 'Master Admin accounts cannot be created via public self-registration.'
+                }, status=status.HTTP_403_FORBIDDEN)
+
+            # State Admins are onboarded only by a Master Admin or an existing State Admin.
+            if role_id in ['state_admin', 'state_super_admin'] and caller_lvl < STATE:
                 return Response({
                     'error': 'State Admin accounts cannot be created via public self-registration. State Admins are onboarded directly by a Master Admin or existing State Admin.'
                 }, status=status.HTTP_400_BAD_REQUEST)
@@ -235,12 +266,19 @@ class RegisterView(views.APIView):
             import uuid
             uid = str(uuid.uuid4())
 
-            # Determine account status: Self-registered officers require hierarchical approval except in test runs or explicit active status
-            is_testing = 'test' in sys.argv
-            initial_status = 'active' if (data.get('account_status') == 'active' or role_id == 'master_admin' or is_testing) else 'pending_approval'
-
             division_name = data.get('division_name') or data.get('division') or ''
             division_id = data.get('division_id') or ''
+
+            # Self-registered accounts always wait for hierarchical approval. The
+            # account starts active only when a logged-in admin who could approve
+            # it (higher level, same unit) is onboarding it; a client-sent
+            # account_status is ignored.
+            onboarded = SimpleNamespace(
+                uid=uid, role_id=role_id, station_name=station_name, station_id=station_id,
+                division_name=division_name, division_id=division_id, zone=data.get('zone') or '',
+                district=district_name, district_id=district_id,
+            )
+            initial_status = 'active' if can_manage_account(caller, onboarded) else 'pending_approval'
             now_utc = datetime.now(timezone.utc)
 
             officer = OfficerProfile(
@@ -428,7 +466,9 @@ class PendingApprovalsNotificationListView(views.APIView):
         try:
             for n in NotificationRecord.objects.filter(status='pending', category='approval_request'):
                 uid = n.registration_uid
-                if uid and uid not in seen_uids:
+                target = SimpleNamespace(uid=uid, role_id='officer', station_name=n.target_station_name,
+                                         district=n.target_district)
+                if uid and uid not in seen_uids and can_manage_account(request.user, target):
                     seen_uids.add(uid)
                     data.append({
                         'id': n.id,
@@ -448,7 +488,7 @@ class PendingApprovalsNotificationListView(views.APIView):
         # 2. Gather pending OfficerProfile entries in active tenant schema
         try:
             for off in list(OfficerProfile.objects.filter(account_status__in=['pending_approval', 'pending'])):
-                if off.uid and off.uid not in seen_uids:
+                if off.uid and off.uid not in seen_uids and can_manage_account(request.user, off):
                     seen_uids.add(off.uid)
                     data.append({
                         'id': f"off-{off.uid}",
@@ -477,7 +517,7 @@ class PendingApprovalsNotificationListView(views.APIView):
         try:
             set_tenant_schema('public')
             for pub_off in list(OfficerProfile.objects.filter(account_status__in=['pending_approval', 'pending'])):
-                if pub_off.uid and pub_off.uid not in seen_uids:
+                if pub_off.uid and pub_off.uid not in seen_uids and can_manage_account(request.user, pub_off):
                     seen_uids.add(pub_off.uid)
                     data.append({
                         'id': f"pub-{pub_off.uid}",
@@ -536,18 +576,11 @@ class ApproveRejectOfficerRegistrationView(views.APIView):
         if not officer:
             return Response({'error': 'Target officer profile not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Dynamic DB Permission + ABAC + RBAC Scope Verification
-        role_id = getattr(caller, 'role_id', '')
-        desig = (getattr(caller, 'designation', '') or '').upper()
-
-        has_user_approve_perm = check_dynamic_permission(caller, 'user:approve')
-        is_master = role_id == 'master_admin' or getattr(caller, 'user_type', '') == 'master'
-        is_state_super = check_dynamic_permission(caller, 'state:manage') or role_id in ['state_super_admin', 'super_admin', 'state_admin', 'admin'] or desig in ['DG', 'DGP', 'ADG', 'ADGP']
-        is_division_admin = check_dynamic_permission(caller, 'division:manage') or role_id in ['division_admin'] or desig in ['DIG', 'IG', 'SPL.IG']
-        is_district_admin = check_dynamic_permission(caller, 'district:manage') or role_id in ['district_admin', 'sp', 'cp', 'dcp'] or desig in ['SP', 'CP', 'SSP', 'DCP', 'ADDL. SP', 'ADDL. CP']
-        is_station_head = role_id in ['station_head', 'station_admin', 'pi', 'sho'] or (getattr(caller, 'station_name', '') == officer.station_name if officer.station_name else False)
-
-        if not (has_user_approve_perm or is_master or is_state_super or is_division_admin or is_district_admin or is_station_head):
+        # RBAC (role / DB permission level) + ABAC (same unit, lower level, not self).
+        # An account outside the caller's state schema is only for a Master Admin.
+        in_caller_state = OfficerProfile.objects.filter(uid=uid).exists()
+        if not can_manage_account(caller, officer) or (
+                not in_caller_state and caller_level(caller) < MASTER):
             return Response({
                 'error': f'Access Denied: You do not have permissions to approve registration requests in jurisdiction scope ({getattr(caller, "station_name", getattr(caller, "district", "N/A"))}).'
             }, status=status.HTTP_403_FORBIDDEN)
@@ -811,7 +844,8 @@ class LoginView(views.APIView):
                     'state_code': matched_state_code,
                     'district': officer.district,
                     'station_name': officer.station_name,
-                    'account_status': officer.account_status
+                    'account_status': officer.account_status,
+                    'department_logo_url': _state_logo_url(matched_state_code),
                 },
                 'tokens': tokens
             }, status=status.HTTP_200_OK)

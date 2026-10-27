@@ -28,7 +28,7 @@ class PrimaryAuthAndRBACBackendTests(TestCase):
         )
 
     def test_01_master_admin_registration_and_login(self):
-        """Test Master Admin registration & login via primary backend endpoint."""
+        """Public sign-up can't create a Master Admin; an existing one logs in."""
         email = f'master_{self.run_id}@pms.gov.in'
         reg_resp = self.client.post('/api/auth/register/', {
             'email': email,
@@ -36,10 +36,12 @@ class PrimaryAuthAndRBACBackendTests(TestCase):
             'full_name': 'Test Master Admin',
             'role_id': 'master_admin'
         }, format='json')
+        self.assertEqual(reg_resp.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertFalse(MasterUser.objects.filter(email=email).exists())
 
-        self.assertEqual(reg_resp.status_code, status.HTTP_201_CREATED)
-        self.assertIn('tokens', reg_resp.data)
-        self.assertIn('access_token', reg_resp.data['tokens'])
+        master = MasterUser(email=email, full_name='Test Master Admin')
+        master.set_password('MasterPassword123!')
+        master.save()
 
         # Perform Login
         login_resp = self.client.post('/api/auth/login/', {
@@ -65,7 +67,10 @@ class PrimaryAuthAndRBACBackendTests(TestCase):
             'account_status': 'active'
         }, format='json')
 
-        self.assertEqual(reg_resp.status_code, status.HTTP_201_CREATED)
+        self.assertIn(reg_resp.status_code, (status.HTTP_201_CREATED, status.HTTP_202_ACCEPTED))
+        # A client-sent account_status is ignored: the account waits for approval.
+        self.assertEqual(OfficerProfile.objects.get(email=email).account_status, 'pending_approval')
+        OfficerProfile.objects.filter(email=email).update(account_status='active')
 
         # Login as Officer
         login_resp = self.client.post('/api/auth/login/', {
@@ -103,9 +108,9 @@ class PrimaryAuthAndRBACBackendTests(TestCase):
             'role_id': 'officer',
             'state_code': 'MH',
             'station_name': 'Shivajinagar Police Station',
-            'account_status': 'active'
         }, format='json')
-        self.assertEqual(reg_resp.status_code, status.HTTP_201_CREATED)
+        self.assertIn(reg_resp.status_code, (status.HTTP_201_CREATED, status.HTTP_202_ACCEPTED))
+        OfficerProfile.objects.filter(email=email).update(account_status='active')
 
         login_resp = self.client.post('/api/auth/login/', {
             'email': email,
@@ -160,8 +165,7 @@ class PrimaryAuthAndRBACBackendTests(TestCase):
             'role_id': 'district_admin',
             'district': 'Pune District',
             'state_code': 'MH',
-            'account_status': 'active'
         }, format='json')
-        self.assertEqual(res_dist_ok.status_code, status.HTTP_201_CREATED)
+        self.assertIn(res_dist_ok.status_code, (status.HTTP_201_CREATED, status.HTTP_202_ACCEPTED))
 
 
