@@ -415,8 +415,8 @@ class CategoryNavigationHelper {
 
     // If tab has no DB row OR is unlinked with no form bundle and no dedicated screen -> NoFormConfiguredScreen
     final hasNoDbRow = matchedDbCategory == null || matchedDbCategory.isEmpty;
-    if ((hasNoDbRow && resolvedCode == null) ||
-        (!isLinkedToBaseline && !isDedicated)) {
+    if (!isDedicated &&
+        ((hasNoDbRow && resolvedCode == null) || !isLinkedToBaseline)) {
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
