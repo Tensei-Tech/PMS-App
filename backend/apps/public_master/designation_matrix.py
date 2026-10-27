@@ -89,3 +89,41 @@ def apply_matrix(designation_model):
         designation.save(update_fields=list(fields))
         updated += 1
     return updated
+
+
+# A city (police commissionerate) admin, and everyone a city admin onboards,
+# holds one of these designations.
+CITY_DESIGNATIONS = ('DG', 'ADG', 'CP', 'Jt.CP', 'Addl. CP', 'DCP', 'ACP', 'PI', 'API', 'PSI')
+
+
+def _designation_key(value):
+    return ''.join(ch for ch in str(value or '').upper() if ch.isalnum())
+
+
+_CITY_KEYS = {_designation_key(d) for d in CITY_DESIGNATIONS} | {'ADDCP', 'JOINTCP'}
+
+
+def is_city_designation(value):
+    """True for a city designation, whatever its spacing or dots ('Addl.CP', 'JT. CP')."""
+    return _designation_key(value) in _CITY_KEYS
+
+
+# A district admin, and everyone a district admin onboards, holds one of these.
+DISTRICT_DESIGNATIONS = ('DG', 'ADG', 'IG', 'DIG', 'SP', 'Addl. SP', 'SDPO', 'PI', 'API', 'PSI')
+
+_DISTRICT_KEYS = {_designation_key(d) for d in DISTRICT_DESIGNATIONS} | {'ADDSP'}
+
+
+def is_district_designation(value):
+    """True for a district designation, whatever its spacing or dots ('Add.SP', 'ADDL SP')."""
+    return _designation_key(value) in _DISTRICT_KEYS
+
+
+# A division admin sits under a city or under a district, so holds a
+# designation from either list (just one list when a city or district admin
+# onboards them).
+DIVISION_DESIGNATIONS = tuple(dict.fromkeys(CITY_DESIGNATIONS + DISTRICT_DESIGNATIONS))
+
+
+def is_division_designation(value):
+    return is_city_designation(value) or is_district_designation(value)

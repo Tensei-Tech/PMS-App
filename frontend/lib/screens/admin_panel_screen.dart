@@ -62,18 +62,20 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     final auth = context.watch<AuthProvider>();
     final role = (auth.roleId).toLowerCase();
 
-    final isStateAdmin = PoliceHierarchyHelper.isStateSuperAdmin(
+    // The role decides, as on the server: a city or district admin with
+    // designation DG gets their own panel, not the state one.
+    final isStateAdmin = PoliceHierarchyHelper.adminLevelOf(
           auth.designation,
           auth.roleId,
-        ) ||
-        role == 'state_admin' ||
-        role == 'state_super_admin' ||
-        role == 'master_admin';
+        ) ==
+        AdminLevel.stateAdmin;
 
     final isDivAdmin =
         !isStateAdmin && (role == 'division_admin' || role == 'supervisor');
-    final isDistrictAdmin =
-        !isStateAdmin && !isDivAdmin && (role == 'district_admin');
+    // A city (commissionerate) admin uses the district admin's panel.
+    final isDistrictAdmin = !isStateAdmin &&
+        !isDivAdmin &&
+        (role == 'district_admin' || role == 'city_admin');
     final isStationAdmin = !isStateAdmin &&
         !isDivAdmin &&
         !isDistrictAdmin &&

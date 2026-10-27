@@ -1,5 +1,6 @@
 import logging
 from django.utils import timezone
+from django.db import transaction
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -124,17 +125,19 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
         # 1. Fetch all officers across active tenant schema and public schema
         officers_by_uid = {}
         try:
-            for off in OfficerProfile.objects.all():
-                if off.uid:
-                    officers_by_uid[off.uid] = off
+            with transaction.atomic():  # savepoint: a missing table spoils nothing else
+                for off in OfficerProfile.objects.all():
+                    if off.uid:
+                        officers_by_uid[off.uid] = off
         except Exception:
             pass
 
         try:
-            set_tenant_schema('public')
-            for pub_off in OfficerProfile.objects.all():
-                if pub_off.uid and pub_off.uid not in officers_by_uid:
-                    officers_by_uid[pub_off.uid] = pub_off
+            with transaction.atomic():  # savepoint: a missing table spoils nothing else
+                set_tenant_schema('public')
+                for pub_off in OfficerProfile.objects.all():
+                    if pub_off.uid and pub_off.uid not in officers_by_uid:
+                        officers_by_uid[pub_off.uid] = pub_off
         except Exception:
             pass
         finally:
@@ -154,7 +157,9 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
             }
 
         try:
-            with TenantContext(active_schema):
+            # Schema switch outside the savepoint: it must never run inside a
+            # failed transaction (set_tenant_schema then drops the connection).
+            with TenantContext(active_schema), transaction.atomic():
                 master_divs = list(MasterDivision.objects.all())
                 for mdiv in master_divs:
                     div_name = getattr(mdiv, 'name', getattr(mdiv, 'division_name', ''))
@@ -171,6 +176,8 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
         for off in all_officers:
             role = (off.role_id or off.role or '').lower()
             desig = (off.designation or '').lower()
+            if role == 'city_admin':
+                continue  # listed under Cities, whatever their designation
             is_div_admin = role in ['division_admin', 'supervisor'] or any(k in desig for k in ['dysp', 'acp', 'sdpo', 'dig', 'ig', 'division admin'])
             if is_div_admin:
                 raw_dist = (off.district or off.station_name or '').lower().strip()
@@ -203,17 +210,18 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
         # 3. Gather Districts & District Admins
         districts_map = {}
         try:
-            set_tenant_schema('public')
-            master_districts = list(District.objects.all())
-            for mdist in master_districts:
-                dist_name = getattr(mdist, 'name', None) or getattr(mdist, 'district_name', 'District')
-                dist_id = getattr(mdist, 'district_id', None) or getattr(mdist, 'id', '0')
-                districts_map[dist_name] = {
-                    'id': f"dist-{dist_id}",
-                    'name': dist_name,
-                    'division_name': getattr(mdist, 'division_name', ''),
-                    'admins': [],
-                }
+            with transaction.atomic():  # savepoint: a missing table spoils nothing else
+                set_tenant_schema('public')
+                master_districts = list(District.objects.all())
+                for mdist in master_districts:
+                    dist_name = getattr(mdist, 'name', None) or getattr(mdist, 'district_name', 'District')
+                    dist_id = getattr(mdist, 'district_id', None) or getattr(mdist, 'id', '0')
+                    districts_map[dist_name] = {
+                        'id': f"dist-{dist_id}",
+                        'name': dist_name,
+                        'division_name': getattr(mdist, 'division_name', ''),
+                        'admins': [],
+                    }
         except Exception:
             pass
         finally:
@@ -223,6 +231,8 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
         for off in all_officers:
             role = (off.role_id or off.role or '').lower()
             desig = (off.designation or '').lower()
+            if role == 'city_admin':
+                continue  # listed under Cities, whatever their designation
             is_div_admin = role in ['division_admin', 'supervisor'] or any(k in desig for k in ['dysp', 'acp', 'sdpo', 'dig', 'spl. ig', 'special ig', 'division admin']) or (desig.endswith('ig') and 'dgp' not in desig)
             is_dist_admin = not is_div_admin and (role in ['district_admin'] or any(k in desig for k in ['superintendent', 'commissioner', 'district admin']) or (desig == 'sp' or desig.startswith('sp ') or desig.endswith(' sp') or ' dcp' in desig or 'dcp ' in desig))
             if is_dist_admin:
@@ -244,21 +254,43 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
                     'account_status': off.account_status,
                 })
 
+        # 3b. Cities (police commissionerates) & City Admins. Cities have no
+        # master list yet, so a city admin's city is the 'district' they hold.
+        cities_map = {}
+        for off in all_officers:
+            if (off.role_id or '').lower() != 'city_admin':
+                continue
+            city_name = off.district or 'City'
+            cities_map.setdefault(city_name, {
+                'id': f"city-{city_name.lower().replace(' ', '-')}",
+                'name': city_name,
+                'admins': [],
+            })['admins'].append({
+                'uid': off.uid,
+                'name': off.name,
+                'email': off.email,
+                'phone': off.phone or '',
+                'designation': off.designation or 'City Admin',
+                'badge_number': off.badge_number or '',
+                'account_status': off.account_status,
+            })
+
         # 4. Gather Police Stations & Station Heads
         stations_map = {}
         try:
-            set_tenant_schema('public')
-            master_stations = list(PoliceStation.objects.all())
-            for ps in master_stations:
-                st_name = getattr(ps, 'station_name', None) or getattr(ps, 'name', 'Police Station')
-                st_id = getattr(ps, 'station_id', None) or getattr(ps, 'id', '0')
-                st_dist = ps.district.name if hasattr(ps, 'district') and ps.district else getattr(ps, 'district_name', '')
-                stations_map[st_name] = {
-                    'id': f"st-{st_id}",
-                    'name': st_name,
-                    'district': st_dist,
-                    'head': None,
-                }
+            with transaction.atomic():  # savepoint: a missing table spoils nothing else
+                set_tenant_schema('public')
+                master_stations = list(PoliceStation.objects.all())
+                for ps in master_stations:
+                    st_name = getattr(ps, 'station_name', None) or getattr(ps, 'name', 'Police Station')
+                    st_id = getattr(ps, 'station_id', None) or getattr(ps, 'id', '0')
+                    st_dist = ps.district.name if hasattr(ps, 'district') and ps.district else getattr(ps, 'district_name', '')
+                    stations_map[st_name] = {
+                        'id': f"st-{st_id}",
+                        'name': st_name,
+                        'district': st_dist,
+                        'head': None,
+                    }
         except Exception:
             pass
         finally:
@@ -348,6 +380,8 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
         return Response({
             'divisions': list(divisions_map.values()),
             'districts': list(districts_map.values()),
+            # A division admin's scope holds no city.
+            'cities': [] if is_div_admin else sorted(cities_map.values(), key=lambda c: c['name']),
             'stations': list(stations_map.values()),
             'scope': 'division' if is_div_admin else 'state',
             'assigned_division': user_division if is_div_admin else 'All State Divisions',
