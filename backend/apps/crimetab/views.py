@@ -1006,6 +1006,7 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
         cleaned_acc = accused_name.strip() if isinstance(accused_name, str) else ''
         invalid_names = {'default accused', 'unknown', 'unknown accused', 'अज्ञात', 'none', 'null', 'unidentified', 'test accused', ''}
 
+        p_obj = CasesPerson.objects.filter(case=case, role__in=['accused', 'suspect', 'suspected_accused']).first()
         if not p_obj and cleaned_acc and cleaned_acc.lower() not in invalid_names:
             p_id = get_or_create_person_for_case(
                 case_id=case.id,
