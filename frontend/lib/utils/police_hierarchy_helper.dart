@@ -151,6 +151,18 @@ class PoliceHierarchyHelper {
       AdminLevel.divisionAdmin: AdminLevelRule.optional,
       AdminLevel.stationAdmin: AdminLevelRule.must,
     },
+    'SI': {
+      AdminLevel.stateAdmin: AdminLevelRule.never,
+      AdminLevel.districtAdmin: AdminLevelRule.never,
+      AdminLevel.divisionAdmin: AdminLevelRule.optional,
+      AdminLevel.stationAdmin: AdminLevelRule.must,
+    },
+    'SHO': {
+      AdminLevel.stateAdmin: AdminLevelRule.never,
+      AdminLevel.districtAdmin: AdminLevelRule.never,
+      AdminLevel.divisionAdmin: AdminLevelRule.never,
+      AdminLevel.stationAdmin: AdminLevelRule.must,
+    },
   };
 
   /// Normalizes designation string to canonical code
@@ -158,6 +170,12 @@ class PoliceHierarchyHelper {
     if (raw == null || raw.trim().isEmpty) return 'PI';
     final d = raw.trim().toUpperCase();
 
+    if (d == 'SHO' ||
+        d == 'STATION HEAD' ||
+        d == 'STATION HEAD / SHO' ||
+        d.contains('STATION HOUSE OFFICER')) {
+      return 'SHO';
+    }
     if (d == 'DG' || d == 'DGP' || d.contains('DIRECTOR GENERAL')) return 'DG';
     if (d == 'ADG' ||
         d == 'ADGP' ||
@@ -199,14 +217,14 @@ class PoliceHierarchyHelper {
     }
 
     if (d == 'API' || d.contains('ASSISTANT POLICE INSPECTOR')) return 'API';
+    if (d == 'SI') return 'SI';
     if (d == 'PSI' ||
-        d == 'SI' ||
         d.contains('SUB INSPECTOR') ||
         d.contains('SUB-INSPECTOR')) {
       return 'PSI';
     }
 
-    return 'PI'; // Default fallback for PI / SHO / TI
+    return 'PI'; // Default fallback for PI / TI
   }
 
   /// Convert string admin level to enum
