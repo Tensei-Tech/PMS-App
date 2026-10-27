@@ -576,53 +576,50 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
       body: Column(
         children: [
           _buildReminderBanner(),
-          // CARDS (single row: expands on wide screens, scrolls horizontally on small screens)
+          // CARDS (single row across all screens, including mobile)
           Container(
             color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final isWide = constraints.maxWidth >= 960;
-                if (isWide) {
-                  return Row(
-                    children: List.generate(_tabKeys.length, (idx) {
-                      return Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            right: idx < _tabKeys.length - 1 ? 8 : 0,
-                          ),
-                          child: SizedBox(
-                            height: 72,
-                            child: _buildCardItem(idx, cardLabels),
-                          ),
+                final isCompact = constraints.maxWidth < 600;
+                final spacing = isCompact ? 3.0 : 8.0;
+
+                return Row(
+                  children: List.generate(_tabKeys.length, (idx) {
+                    return Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          right: idx < _tabKeys.length - 1 ? spacing : 0,
                         ),
-                      );
-                    }),
-                  );
-                }
-
-                final cardWidth = constraints.maxWidth < 420
-                    ? 108.0
-                    : (constraints.maxWidth < 600 ? 116.0 : 130.0);
-
-                return SizedBox(
-                  height: 72,
-                  child: ListView.separated(
-                    controller: _cardsScrollController,
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _tabKeys.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 8),
-                    itemBuilder: (context, idx) {
-                      return SizedBox(
-                        width: cardWidth,
-                        child: _buildCardItem(idx, cardLabels),
-                      );
-                    },
-                  ),
+                        child: SizedBox(
+                          height: 68,
+                          child: _buildCardItem(idx, cardLabels,
+                              isCompact: isCompact),
+                        ),
+                      ),
+                    );
+                  }),
                 );
               },
             ),
           ),
+          // Day filter chips for Released tab when compact on mobile
+          Builder(builder: (context) {
+            final isCompact = MediaQuery.of(context).size.width < 600;
+            final releasedIdx = _tabKeys.indexOf(_releasedTab);
+            if (isCompact && _tabController.index == releasedIdx) {
+              final chips = _buildReleasedDayChips(releasedIdx);
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(14, 2, 14, 4),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: chips,
+                ),
+              );
+            }
+            return const SizedBox.shrink();
+          }),
 
           // Search Bar
           Padding(
@@ -684,7 +681,7 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
     );
   }
 
-  Widget _buildCardItem(int idx, Map cardLabels) {
+  Widget _buildCardItem(int idx, Map cardLabels, {bool isCompact = false}) {
     final k = _tabKeys[idx];
     final label = _getConfigString(cardLabels, k);
     final count = k == _releasedTab ? _releasedCount() : (_counts[k] ?? 0);
@@ -697,7 +694,10 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
       },
       borderRadius: BorderRadius.circular(8),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        padding: EdgeInsets.symmetric(
+          horizontal: isCompact ? 2 : 6,
+          vertical: 4,
+        ),
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.navyMid.withValues(alpha: 0.1)
@@ -718,7 +718,7 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
                 if (k == _summaryTab)
                   Icon(
                     Icons.table_chart_rounded,
-                    size: 22,
+                    size: isCompact ? 18 : 22,
                     color:
                         isSelected ? AppColors.navyDark : AppColors.lightText,
                   )
@@ -726,7 +726,7 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
                   Text(
                     '$count',
                     style: GoogleFonts.poppins(
-                      fontSize: 16,
+                      fontSize: isCompact ? 14 : 16,
                       fontWeight: FontWeight.bold,
                       color:
                           isSelected ? AppColors.navyDark : AppColors.lightText,
@@ -739,14 +739,15 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.poppins(
-                    fontSize: 10,
+                    fontSize: isCompact ? 8.5 : 10,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                     color: isSelected
                         ? AppColors.navyDark
                         : AppColors.lightSubText,
                   ),
                 ),
-                if (k == _releasedTab) _buildReleasedDayChips(idx),
+                if (k == _releasedTab && !isCompact)
+                  _buildReleasedDayChips(idx),
               ],
             ),
           ),

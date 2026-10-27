@@ -9,6 +9,7 @@ class MainActivity : FlutterFragmentActivity() {
         super.onCreate(savedInstanceState)
         // Domain 5: FLAG_SECURE — prevents screenshots and blurs the app
         // in the Android recents/task switcher. Critical for a law enforcement app.
-        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        // ponytail: disabled for testing/QA screenshots; re-enable before production release.
+        // window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
     }
 }
