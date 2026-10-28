@@ -111,3 +111,64 @@ def can_manage_account(caller, target):
     if level <= OFFICER or role_level(getattr(target, 'role_id', '')) >= level:
         return False
     return in_jurisdiction(caller, target, level)
+
+
+# ── Which officers a user may see ──────────────────────────────────────────
+# State admin: the whole state. District or city admin: their district or
+# city (and the divisions in it). Division admin: their sub-division's
+# officers. Station head and officers: their own police station(s).
+
+def _own_stations(caller):
+    names = [getattr(caller, 'station_name', '')] + list(getattr(caller, 'additional_stations', None) or [])
+    return [n.strip() for n in names if isinstance(n, str) and n.strip()]
+
+
+def sees_officer(caller, officer, level=None):
+    """
+    May `caller` see `officer` in officer lists and directories? Pass the
+    caller's `level` when checking many officers, to look it up only once.
+    """
+    level = caller_level(caller) if level is None else level
+    if level >= STATE:
+        return True
+    if level == DISTRICT:
+        return _same_unit(caller, officer, 'district_id', ('district',))
+    if level == DIVISION:
+        return in_jurisdiction(caller, officer, DIVISION)
+    station = (getattr(officer, 'station_name', '') or '').strip().casefold()
+    return bool(station) and station in {s.casefold() for s in _own_stations(caller)}
+
+
+def officer_scope_q(caller):
+    """
+    The same rule as a queryset filter on OfficerProfile, or None when the
+    caller sees every officer. A caller missing the unit their level needs
+    sees nobody rather than everybody.
+    """
+    from django.db.models import Q
+
+    def any_of(field, values):
+        q = Q()
+        for value in values:
+            q |= Q(**{f'{field}__iexact': value})
+        return q
+
+    level = caller_level(caller)
+    if level >= STATE:
+        return None
+    district = (getattr(caller, 'district', '') or '').strip()
+    district_id = (getattr(caller, 'district_id', '') or '').strip()
+    if level == DISTRICT:
+        if not (district or district_id):
+            return Q(pk__in=[])
+        q = Q(district__iexact=district) if district else Q()
+        return q | Q(district_id=district_id) if district_id else q
+    if level == DIVISION:
+        division = (getattr(caller, 'division_name', '') or getattr(caller, 'zone', '') or '').strip()
+        if not division:
+            return Q(pk__in=[])
+        q = Q(division_name__iexact=division) | Q(zone__iexact=division)
+        # A sub-division name can repeat in another district.
+        return q & (Q(district__iexact=district) | Q(district='') | Q(district__isnull=True)) if district else q
+    stations = _own_stations(caller)
+    return any_of('station_name', stations) if stations else Q(pk__in=[])

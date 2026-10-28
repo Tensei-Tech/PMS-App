@@ -12,6 +12,10 @@ from apps.users.serializers import (
 )
 from apps.authentication.permissions import IsSupervisorOrAdmin
 
+from apps.authentication.approval_scope import (
+    DISTRICT, DIVISION, STATE, caller_level, officer_scope_q, sees_officer,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -59,12 +63,10 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
         if not user or not user.is_authenticated:
             return OfficerProfile.objects.none()
 
-        if user.role == 'admin' or user.is_staff:
-            return OfficerProfile.objects.all()
-
-        # Officers see profiles from their station
-        stations = [user.station_name] + (user.additional_stations or [])
-        return OfficerProfile.objects.filter(station_name__in=stations)
+        # State admin: whole state; district/city admin: their district or
+        # city; division admin: their sub-division; others: their station(s).
+        scope = officer_scope_q(user)
+        return OfficerProfile.objects.all() if scope is None else OfficerProfile.objects.filter(scope)
 
     @action(detail=False, methods=['get'])
     def me(self, request):
@@ -76,7 +78,8 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
     def station_officers(self, request):
         """Get list of officers belonging to caller's station."""
         station_name = request.query_params.get('station_name', request.user.station_name)
-        officers = OfficerProfile.objects.filter(station_name=station_name)
+        # Only a station the caller may see (see get_queryset).
+        officers = self.get_queryset().filter(station_name=station_name)
         serializer = self.get_serializer(officers, many=True)
         return Response(serializer.data)
 
@@ -287,35 +290,50 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
                     'account_status': off.account_status,
                 }
 
-        # 5. Division Admin Scope Filtering (if caller is a Division Admin):
-        # their own sub-division, and the districts and stations of their district.
+        # 5. What the caller sees: a state admin everything; a district or
+        # city admin their district/city with its divisions and stations; a
+        # division admin their sub-division and its stations; a station head
+        # their own station.
         caller = request.user
-        role_id = (getattr(caller, 'role_id', '') or '').lower()
-        is_div_admin = role_id in ('division_admin', 'supervisor')
+        level = caller_level(caller)
+        caller_district = (getattr(caller, 'district', '') or '').strip().casefold()
+        user_division = (getattr(caller, 'division_name', '') or getattr(caller, 'zone', '') or '').strip()
 
-        user_division = None
-        if is_div_admin:
-            user_division = (getattr(caller, 'division_name', '') or getattr(caller, 'zone', '') or '').strip()
-            caller_district = (getattr(caller, 'district', '') or '').strip().casefold()
-            divisions_map = {
-                k: v for k, v in divisions_map.items()
-                if k[0] == user_division.casefold() and (not caller_district or k[1] in ('', caller_district))
-            }
-            if caller_district:
-                districts_map = {k: v for k, v in districts_map.items() if k.strip().casefold() == caller_district}
-                stations_map = {
-                    k: v for k, v in stations_map.items()
-                    if (v.get('district') or '').strip().casefold() == caller_district
+        def same(value, other):
+            return (value or '').strip().casefold() == other
+
+        if level < STATE:
+            if level == DISTRICT:
+                divisions_map = {k: v for k, v in divisions_map.items() if k[1] == caller_district}
+                station_names = None
+            elif level == DIVISION:
+                divisions_map = {
+                    k: v for k, v in divisions_map.items()
+                    if k[0] == user_division.casefold() and (not caller_district or k[1] in ('', caller_district))
                 }
+                # Its police stations: the ones its officers serve at.
+                station_names = {o.station_name.strip().casefold() for o in all_officers
+                                 if o.station_name and sees_officer(caller, o, level)}
+            else:
+                divisions_map = {}
+                station_names = {s.casefold() for s in [getattr(caller, 'station_name', '')]
+                                 + list(getattr(caller, 'additional_stations', None) or []) if s}
+            districts_map = {k: v for k, v in districts_map.items() if same(k, caller_district)}
+            cities_map = {k: v for k, v in cities_map.items() if same(k, caller_district)}
+            stations_map = {
+                k: v for k, v in stations_map.items()
+                if (same(v.get('district'), caller_district) if station_names is None
+                    else k.strip().casefold() in station_names)
+            }
 
         return Response({
             'divisions': list(divisions_map.values()),
             'districts': list(districts_map.values()),
-            # A division admin's scope holds no city.
-            'cities': [] if is_div_admin else sorted(cities_map.values(), key=lambda c: c['name']),
+            'cities': sorted(cities_map.values(), key=lambda c: c['name']),
             'stations': list(stations_map.values()),
-            'scope': 'division' if is_div_admin else 'state',
-            'assigned_division': user_division if is_div_admin else 'All Divisions',
+            'scope': {DISTRICT: 'district', DIVISION: 'division'}.get(level, 'state' if level >= STATE else 'station'),
+            'assigned_district': (getattr(caller, 'district', '') or '') if level < STATE else 'All Districts',
+            'assigned_division': user_division if level == DIVISION else 'All Divisions',
         }, status=status.HTTP_200_OK)
 
 

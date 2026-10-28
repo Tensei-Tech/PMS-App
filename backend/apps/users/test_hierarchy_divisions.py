@@ -61,3 +61,62 @@ class PlaceholderDivisionsRemovedTests(SecurityTestBase):
                 cursor.execute(f'SELECT name FROM "{schema}".master_divisions')
                 names = {row[0] for row in cursor.fetchall()}
                 self.assertFalse(names & OLD_REGIONAL_DIVISIONS, schema)
+
+
+class OfficerVisibilityTests(SecurityTestBase):
+    """
+    State admin: whole state. District / city admin: their district or city.
+    Division admin: their sub-division. Station head: their station.
+    """
+    def setUp(self):
+        super().setUp()
+        self.state_admin = _officer('state_admin', station='', district='', division='', uid='state')
+        self.district_admin = _officer('district_admin', station='', district='Ahilyanagar', division='',
+                                       uid='dist')
+        self.city_admin = _officer('city_admin', station='', district='Pune City', division='', uid='city')
+        self.division_admin = _officer('division_admin', station='', district='Ahilyanagar',
+                                       division='Shirdi Sub-Division', uid='div')
+        self.station_head = _officer('station_head', station='Shirdi Police Station', district='Ahilyanagar',
+                                     division='Shirdi Sub-Division', uid='sho')
+        _officer(station='Shirdi Police Station', district='Ahilyanagar', division='Shirdi Sub-Division', uid='o-shirdi')
+        _officer(station='Rahata Police Station', district='Ahilyanagar', division='Rahata Sub-Division', uid='o-rahata')
+        _officer(station='Karad Police Station', district='Satara', division='Karad Sub-Division', uid='o-karad')
+        _officer(station='Shivajinagar Police Station', district='Pune City', division='Zone 1', uid='o-pune')
+
+    def _seen(self, caller):
+        response = self.client.get('/api/users/', **_officer_headers(caller))
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        rows = response.data.get('results', response.data) if isinstance(response.data, dict) else response.data
+        return {row['uid'] for row in rows}
+
+    def test_state_admin_sees_the_whole_state(self):
+        self.assertTrue({'o-shirdi', 'o-rahata', 'o-karad', 'o-pune'} <= self._seen(self.state_admin))
+
+    def test_district_admin_sees_only_their_district(self):
+        self.assertEqual(self._seen(self.district_admin), {'dist', 'div', 'sho', 'o-shirdi', 'o-rahata'})
+
+    def test_city_admin_sees_only_their_city(self):
+        self.assertEqual(self._seen(self.city_admin), {'city', 'o-pune'})
+
+    def test_division_admin_sees_only_their_sub_division(self):
+        self.assertEqual(self._seen(self.division_admin), {'div', 'sho', 'o-shirdi'})
+
+    def test_station_head_sees_only_their_station(self):
+        self.assertEqual(self._seen(self.station_head), {'sho', 'o-shirdi'})
+
+    def test_station_officers_cannot_reach_another_station(self):
+        response = self.client.get('/api/users/station-officers/', {'station_name': 'Karad Police Station'},
+                                   **_officer_headers(self.station_head))
+        self.assertEqual(response.data, [])
+
+    def test_district_hierarchy_holds_only_its_divisions_and_stations(self):
+        data = self.client.get('/api/users/hierarchy-directory/', **_officer_headers(self.district_admin)).data
+        self.assertEqual(data['assigned_district'], 'Ahilyanagar')
+        self.assertEqual({d['name'] for d in data['divisions']}, {'Shirdi Sub-Division'})
+        self.assertTrue(data['stations'])
+        self.assertTrue(all((s['district'] or '').casefold() == 'ahilyanagar' for s in data['stations']))
+        self.assertEqual(data['cities'], [])
+
+    def test_division_hierarchy_holds_only_its_stations(self):
+        data = self.client.get('/api/users/hierarchy-directory/', **_officer_headers(self.division_admin)).data
+        self.assertEqual({s['name'] for s in data['stations']}, {'Shirdi Police Station'})
