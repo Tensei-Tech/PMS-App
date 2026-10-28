@@ -31,7 +31,7 @@ class ModuleHubScreenAppBar extends StatelessWidget
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 500;
+    final isMobile = MediaQuery.of(context).size.width < 600;
     final bg = backgroundColor ?? Colors.white;
     final isDarkHeader = bg != Colors.white;
     final textColor = isDarkHeader ? Colors.white : AppColors.navyDark;
@@ -41,6 +41,29 @@ class ModuleHubScreenAppBar extends StatelessWidget
     final iconColor = isDarkHeader ? Colors.white : AppColors.navyDark;
     final btnBg = isDarkHeader ? AppColors.goldPrimary : AppColors.navyDark;
     final btnFg = isDarkHeader ? AppColors.navyDark : Colors.white;
+
+    final titleColumn = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: textColor,
+          ),
+        ),
+        Text(
+          subtitle,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.poppins(fontSize: 11, color: subTextColor),
+        ),
+      ],
+    );
 
     return AppBar(
       backgroundColor: bg,
@@ -53,38 +76,17 @@ class ModuleHubScreenAppBar extends StatelessWidget
           size: 20,
         ),
       ),
-      // The add button sits right next to the module name
+      // On mobile, expand the title area so the add action shifts to the corner
       title: Row(
         children: [
-          Flexible(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: textColor,
-                  ),
-                ),
-                Text(
-                  subtitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.poppins(fontSize: 11, color: subTextColor),
-                ),
-              ],
-            ),
-          ),
+          isMobile
+              ? Expanded(child: titleColumn)
+              : Flexible(child: titleColumn),
           if (actionWidget != null) ...[
-            const SizedBox(width: 16),
+            SizedBox(width: isMobile ? 8 : 16),
             actionWidget!,
           ] else if (onAddPressed != null) ...[
-            const SizedBox(width: 16),
+            SizedBox(width: isMobile ? 8 : 16),
             ElevatedButton.icon(
               onPressed: onAddPressed,
               icon: Icon(Icons.add_rounded, color: btnFg, size: 16),

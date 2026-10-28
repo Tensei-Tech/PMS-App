@@ -385,11 +385,15 @@ Widget _buildGridIcon(
   final svgPath = _getDashboardSvgPath(labelTrim);
   if (svgPath != null) {
     // Optical balancing:
-    // Solid filled badges (1-5, 6, NC, RTI) have heavy ink mass; scale to balance with line art
+    // Solid filled badges (1-5, 6, NC, RTI, DAR, MPDA, ITSSO, IRAD) have heavy ink mass; scale to balance with line art
     final isSolidBadge = svgPath.contains('1to5') ||
         svgPath.contains('6.svg') ||
         svgPath.contains('nc.svg') ||
-        svgPath.contains('rti.svg');
+        svgPath.contains('rti.svg') ||
+        svgPath.contains('dar.svg') ||
+        svgPath.contains('mpda.svg') ||
+        svgPath.contains('itsso.svg') ||
+        svgPath.contains('IRAD.svg');
     // Tall icons need a slight height factor to match square icon visual mass
     final isTall = svgPath.contains('juvenile') ||
         svgPath.contains('crimewomen') ||

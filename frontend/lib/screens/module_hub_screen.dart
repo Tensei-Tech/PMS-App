@@ -1211,23 +1211,13 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           '(${subSection.pageRange}, subCategory: $subCategory)',
         );
       }
-      final isLinked = isTabLinkedToCommonFormBaseline(
+      final page = CommonFormScreen(
+        moduleLabel: moduleLabel,
         moduleKey: 'form_1_5',
-        categoryName: subCategory,
+        subCategory: subCategory,
+        formSection: subSection?.sectionId,
+        pageRange: subSection?.pageRange,
       );
-      final page = isLinked
-          ? CommonFormScreen(
-              moduleLabel: moduleLabel,
-              moduleKey: 'form_1_5',
-              subCategory: subCategory,
-              formSection: subSection?.sectionId,
-              pageRange: subSection?.pageRange,
-            )
-          : DynamicFormScreen(
-              moduleLabel: moduleLabel,
-              moduleKey: 'form_1_5',
-              subCategory: subCategory,
-            );
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(page: page),

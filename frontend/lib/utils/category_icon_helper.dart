@@ -137,6 +137,8 @@ class CategoryIconHelper {
         return 'assets/icons/repeatoffender.svg';
       case 'dar':
         return 'assets/icons/dar.svg';
+      case 'irad':
+        return 'assets/icons/IRAD.svg';
       case 'irda':
         return 'assets/icons/IRDA.svg';
       case 'itsso':
