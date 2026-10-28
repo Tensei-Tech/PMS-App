@@ -34,6 +34,12 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
   final _mobileCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _badgeCtrl = TextEditingController();
+  final _divisionCtrl = TextEditingController();
+  // A division is a group of two or more police stations of the district.
+  final Set<String> _divisionStations = {};
+  final _divisionStationsCtrl = TextEditingController();
+  final _cityCtrl = TextEditingController();
+  final _stationCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController(text: 'Admin@123');
 
   bool _obscurePassword = true;
@@ -41,11 +47,9 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
   String? _selectedRole = 'District Admin';
   String? _selectedDesignation = 'CP';
   String? _selectedDistrict = 'Pune';
-  String? _selectedDivision;
   String? _selectedStation;
 
   List<String> _dbDistricts = [];
-  List<String> _dbDivisions = [];
   List<String> _dbStations = [];
   bool _isLoadingLocations = true;
 
@@ -57,14 +61,8 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = context.read<AuthProvider>();
-      final isSuper = PoliceHierarchyHelper.isStateSuperAdmin(
-          auth.designation, auth.roleId);
       setState(() {
-        if (isSuper) {
-          _selectedRole = 'District Admin';
-        } else {
-          _selectedRole = 'Division Admin';
-        }
+        _selectedRole = _getAllowedRoleOptions(auth).first;
         _selectedDesignation =
             _getDesignationOptionsForRole(_selectedRole).first;
       });
@@ -78,6 +76,10 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
     _mobileCtrl.dispose();
     _emailCtrl.dispose();
     _badgeCtrl.dispose();
+    _divisionCtrl.dispose();
+    _divisionStationsCtrl.dispose();
+    _cityCtrl.dispose();
+    _stationCtrl.dispose();
     _passwordCtrl.dispose();
     super.dispose();
   }
@@ -87,7 +89,7 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
     setState(() => _isLoadingLocations = true);
     try {
       final data = await CaseService().fetchDistricts();
-      final list = data
+      var list = data
           .map((e) => (e['name'] ?? '').toString().trim())
           .where((s) => s.isNotEmpty)
           .toSet()
@@ -95,13 +97,18 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
         ..sort();
 
       if (!mounted) return;
+      // District and division admins onboard only inside their own district.
+      final auth = context.read<AuthProvider>();
+      if (_districtIsFixed(auth)) {
+        list = [auth.district];
+      }
       if (list.isNotEmpty) {
         setState(() {
           _dbDistricts = list;
           _selectedDistrict = _dbDistricts.first;
           _isLoadingLocations = false;
         });
-        _fetchDivisionsAndStations(_selectedDistrict!);
+        _fetchStations(_selectedDistrict!);
         return;
       }
     } catch (e) {
@@ -113,20 +120,9 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
     setState(() => _isLoadingLocations = false);
   }
 
-  /// Fetch dynamic Divisions and Stations for a given District from DB:
-  /// GET /api/divisions/ and GET /api/stations/?district_id=...
-  Future<void> _fetchDivisionsAndStations(String district) async {
+  /// Fetch the Stations of a District from DB: GET /api/stations/?district_id=...
+  Future<void> _fetchStations(String district) async {
     try {
-      // 1. Fetch real Divisions from /api/divisions/
-      final divsData = await CaseService().fetchDivisions();
-      List<String> divs = divsData
-          .map((d) => (d['name'] ?? '').toString().trim())
-          .where((n) => n.isNotEmpty)
-          .toSet()
-          .toList()
-        ..sort();
-
-      // 2. Fetch real Stations for this district from /api/stations/?district_id=...
       final stnsData = await CaseService().fetchStations(districtId: district);
       List<String> stns = stnsData
           .map((s) => (s['name'] ?? '').toString().trim())
@@ -137,11 +133,6 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
 
       if (!mounted) return;
       setState(() {
-        _dbDivisions = divs;
-        if (_dbDivisions.isNotEmpty) {
-          _selectedDivision = _dbDivisions.first;
-        }
-
         _dbStations = stns;
         if (_dbStations.isNotEmpty) {
           _selectedStation = _dbStations.first;
@@ -149,21 +140,108 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
       });
     } catch (e) {
       if (kDebugMode) {
-        debugPrint(
-            '[CreateSubAdminDialog] Error fetching divisions/stations: $e');
+        debugPrint('[CreateSubAdminDialog] Error fetching stations: $e');
       }
     }
   }
 
-  List<String> _getAllowedRoleOptions(bool isSuperAdmin) {
-    if (isSuperAdmin) {
-      return ['District Admin', 'Division Admin', 'Station Head'];
-    } else {
+  // The role decides, as on the server: a city or district admin with
+  // designation DG is not a state admin.
+  bool _isStateCaller(AuthProvider auth) =>
+      PoliceHierarchyHelper.adminLevelOf(auth.designation, auth.roleId) ==
+      AdminLevel.stateAdmin;
+
+  /// A city (police commissionerate) admin works like a district admin; the
+  /// city is kept as their district until cities get their own list.
+  bool _isCityCaller(AuthProvider auth) =>
+      !_isStateCaller(auth) && auth.roleId.toLowerCase() == 'city_admin';
+
+  bool _isDistrictCaller(AuthProvider auth) =>
+      !_isStateCaller(auth) &&
+      ['district_admin', 'city_admin'].contains(auth.roleId.toLowerCase());
+
+  bool _isDivisionCaller(AuthProvider auth) =>
+      !_isStateCaller(auth) &&
+      !_isDistrictCaller(auth) &&
+      ['division_admin', 'supervisor'].contains(auth.roleId.toLowerCase());
+
+  /// Each admin onboards only the levels below them, in the order
+  /// state > district or city > division (a sub-division) > station:
+  /// state -> district, city, division, station head; district or city ->
+  /// division, station head; division -> station head.
+  List<String> _getAllowedRoleOptions(AuthProvider auth) {
+    if (_isStateCaller(auth)) {
+      return ['District Admin', 'City Admin', 'Division Admin', 'Station Head'];
+    }
+    if (_isDistrictCaller(auth)) {
       return ['Division Admin', 'Station Head'];
     }
+    return ['Station Head'];
   }
 
+  /// City designations: for a City Admin and everyone a city admin onboards.
+  static const _cityDesignations = [
+    'DG',
+    'ADG',
+    'CP',
+    'Jt.CP',
+    'Addl. CP',
+    'DCP',
+    'ACP',
+    'PI',
+    'API',
+    'PSI',
+  ];
+
+  /// District designations: for a District Admin and everyone a district
+  /// admin onboards.
+  static const _districtDesignations = [
+    'DG',
+    'ADG',
+    'IG',
+    'DIG',
+    'SP',
+    'Addl. SP',
+    'SDPO',
+    'PI',
+    'API',
+    'PSI',
+  ];
+
+  /// The station of a new station head: picked from the DB list, or typed
+  /// when the district or city has no stations in the DB yet.
+  String _stationFor() =>
+      _dbStations.isEmpty ? _stationCtrl.text.trim() : (_selectedStation ?? '');
+
+  /// District and division admins onboard only inside their own district.
+  bool _districtIsFixed(AuthProvider auth) =>
+      (_isDistrictCaller(auth) || _isDivisionCaller(auth)) &&
+      auth.district.isNotEmpty;
+
+  /// The sub-division the new account belongs to: the one typed for a new
+  /// division admin, or a division admin's own for their station heads.
+  String _divisionFor(AuthProvider auth) {
+    if (_selectedRole == 'Division Admin') return _divisionCtrl.text.trim();
+    if (_isDivisionCaller(auth)) return auth.divisionName;
+    return '';
+  }
+
+  bool _showsDivisionPicker(AuthProvider auth) =>
+      _selectedRole == 'Division Admin';
+
   List<String> _getDesignationOptionsForRole(String? role) {
+    final auth = context.read<AuthProvider>();
+    if (role == 'City Admin' || _isCityCaller(auth)) {
+      return _cityDesignations;
+    }
+    if (role == 'District Admin' ||
+        auth.roleId.toLowerCase() == 'district_admin') {
+      return _districtDesignations;
+    }
+    // A division admin sits under a city or a district: either list.
+    if (role == 'Division Admin') {
+      return {..._cityDesignations, ..._districtDesignations}.toList();
+    }
     AdminLevel level = AdminLevel.stationAdmin;
     if (role == 'State Admin' || role == 'State Super Admin') {
       level = AdminLevel.stateAdmin;
@@ -177,8 +255,125 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
     return PoliceHierarchyHelper.getAllowedDesignations(level);
   }
 
+  /// The police stations the new division is made of: ticked from the
+  /// district's list, or typed (comma-separated) when it has none on record.
+  List<String> _divisionStationList() {
+    if (_dbStations.isNotEmpty) return _divisionStations.toList();
+    return _divisionStationsCtrl.text
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toSet()
+        .toList();
+  }
+
+  Widget _buildDivisionStationsPicker() {
+    if (_dbStations.isEmpty) {
+      return TextFormField(
+        controller: _divisionStationsCtrl,
+        style: GoogleFonts.poppins(fontSize: 12.5),
+        decoration: _buildInputDecoration(
+            hintText: 'Station names, separated by commas',
+            prefixIcon: Icons.local_police_outlined),
+      );
+    }
+    // A dropdown-style field: shows the picked stations and opens a
+    // searchable check-box list.
+    final picked = _dbStations.where(_divisionStations.contains).toList();
+    return InkWell(
+      onTap: _openDivisionStationsDropdown,
+      borderRadius: BorderRadius.circular(8),
+      child: InputDecorator(
+        decoration: _buildInputDecoration(
+          prefixIcon: Icons.local_police_outlined,
+          suffixIcon: const Icon(Icons.arrow_drop_down_rounded),
+        ),
+        child: Text(
+          picked.isEmpty ? 'Select police stations' : picked.join(', '),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.poppins(
+            fontSize: 12.5,
+            color: picked.isEmpty ? Colors.grey.shade500 : AppColors.navyDark,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openDivisionStationsDropdown() async {
+    final selection = Set<String>.from(_divisionStations);
+    String query = '';
+    final result = await showDialog<Set<String>>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) {
+          final shown = _dbStations
+              .where((st) => st.toLowerCase().contains(query.toLowerCase()))
+              .toList();
+          return AlertDialog(
+            title: Text('Police stations in this division',
+                style: GoogleFonts.poppins(
+                    fontSize: 14, fontWeight: FontWeight.w700)),
+            content: SizedBox(
+              width: 420,
+              height: 420,
+              child: Column(
+                children: [
+                  TextField(
+                    onChanged: (v) => setLocal(() => query = v),
+                    style: GoogleFonts.poppins(fontSize: 12.5),
+                    decoration: _buildInputDecoration(
+                        hintText: 'Search stations',
+                        prefixIcon: Icons.search_rounded),
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: ListView(
+                      children: shown
+                          .map((st) => CheckboxListTile(
+                                dense: true,
+                                value: selection.contains(st),
+                                title: Text(st,
+                                    style: GoogleFonts.poppins(fontSize: 12.5)),
+                                onChanged: (on) => setLocal(() => on == true
+                                    ? selection.add(st)
+                                    : selection.remove(st)),
+                              ))
+                          .toList(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel')),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(ctx, selection),
+                child: Text('Done (${selection.length} selected)'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    if (result != null && mounted) {
+      setState(() => _divisionStations
+        ..clear()
+        ..addAll(result));
+    }
+  }
+
   Future<void> _submitOnboarding() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_selectedRole == 'Division Admin' &&
+        _divisionStationList().length < 2) {
+      setState(() => _errorMessage =
+          'Select at least two police stations for the division.');
+      return;
+    }
 
     setState(() {
       _isSubmitting = true;
@@ -197,9 +392,15 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
         "role_id":
             _selectedRole?.toLowerCase().replaceAll(" ", "_") ?? "officer",
         "state_code": auth.stateCode.isNotEmpty ? auth.stateCode : "MH",
-        "district": _selectedDistrict ?? "Pune",
-        "zone": _selectedRole == 'Division Admin' ? _selectedDivision : null,
-        "station_name": _selectedRole == 'Station Head' ? _selectedStation : "",
+        // A city admin's city goes in 'district' until cities get a list.
+        "district": _selectedRole == 'City Admin'
+            ? _cityCtrl.text.trim()
+            : (_selectedDistrict ?? "Pune"),
+        "division_name": _divisionFor(auth),
+        "zone": _selectedRole == 'Division Admin' ? _divisionFor(auth) : null,
+        "station_name": _selectedRole == 'Station Head' ? _stationFor() : "",
+        if (_selectedRole == 'Division Admin')
+          "division_stations": _divisionStationList(),
       };
 
       // Send the admin's own token: the backend activates the account at once
@@ -224,6 +425,17 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
             content: Text(
                 'Successfully onboarded ${_nameCtrl.text.trim()} as $_selectedRole!'),
             backgroundColor: AppColors.successGreen,
+          ),
+        );
+      } else if (response.statusCode == 202) {
+        // Saved and waiting in Pending Approvals, for this admin or anyone
+        // above them in the area to approve.
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                '${_nameCtrl.text.trim()} was created. Approve it in Officer Approvals (Pending).'),
+            backgroundColor: Colors.orange.shade800,
           ),
         );
       } else {
@@ -253,9 +465,7 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final isSuper =
-        PoliceHierarchyHelper.isStateSuperAdmin(auth.designation, auth.roleId);
-    final allowedRoles = _getAllowedRoleOptions(isSuper);
+    final allowedRoles = _getAllowedRoleOptions(auth);
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -304,9 +514,7 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                isSuper
-                                    ? 'Onboard District / Sub-Admin'
-                                    : 'Onboard Division / Station Head',
+                                'Onboard ${allowedRoles.join(' / ')}',
                                 style: GoogleFonts.poppins(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
@@ -314,9 +522,11 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                                 ),
                               ),
                               Text(
-                                isSuper
+                                _isStateCaller(auth)
                                     ? 'State Super Admin Provisioning Portal'
-                                    : 'District Command Provisioning Portal',
+                                    : _isDivisionCaller(auth)
+                                        ? 'Division Command Provisioning Portal'
+                                        : 'District Command Provisioning Portal',
                                 style: GoogleFonts.poppins(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w500,
@@ -436,9 +646,23 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                             const SizedBox(height: 10),
 
                             // District Jurisdiction
-                            _buildInputLabel(
-                                'Assigned District Jurisdiction (DB)'),
-                            if (_isLoadingLocations)
+                            _buildInputLabel(_selectedRole == 'City Admin'
+                                ? 'City (Police Commissionerate)'
+                                : 'Assigned District Jurisdiction (DB)'),
+                            if (_selectedRole == 'City Admin')
+                              // Cities have no list in the DB yet: type it.
+                              TextFormField(
+                                controller: _cityCtrl,
+                                style: GoogleFonts.poppins(fontSize: 12.5),
+                                validator: (v) =>
+                                    (v == null || v.trim().isEmpty)
+                                        ? 'Enter the city'
+                                        : null,
+                                decoration: _buildInputDecoration(
+                                    hintText: 'City name, e.g. Pune City',
+                                    prefixIcon: Icons.location_city_outlined),
+                              )
+                            else if (_isLoadingLocations)
                               const SizedBox(
                                 height: 42,
                                 child: Center(
@@ -463,8 +687,12 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                                     .toList(),
                                 onChanged: (val) {
                                   if (val != null) {
-                                    setState(() => _selectedDistrict = val);
-                                    _fetchDivisionsAndStations(val);
+                                    setState(() {
+                                      _selectedDistrict = val;
+                                      // Stations belong to one district.
+                                      _divisionStations.clear();
+                                    });
+                                    _fetchStations(val);
                                   }
                                 },
                                 decoration: _buildInputDecoration(
@@ -473,23 +701,42 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                             const SizedBox(height: 10),
 
                             // Dynamic sub-jurisdiction or district command badge to maintain perfect height symmetry
-                            if (_selectedRole == 'Division Admin') ...[
-                              _buildInputLabel('Assigned Division / Zone (DB)'),
-                              DropdownButtonFormField<String>(
-                                initialValue: _getValidValue(
-                                    _dbDivisions, _selectedDivision),
-                                isExpanded: true,
-                                items: _dbDivisions
-                                    .map((div) => DropdownMenuItem(
-                                        value: div,
-                                        child: Text(div,
-                                            style: GoogleFonts.poppins(
-                                                fontSize: 12.5))))
-                                    .toList(),
-                                onChanged: (val) =>
-                                    setState(() => _selectedDivision = val),
+                            if (_showsDivisionPicker(auth)) ...[
+                              // A division is a sub-division of the district
+                              // above; the list of them is not in the DB yet.
+                              _buildInputLabel(
+                                  'Sub-Division Name (within the district)'),
+                              TextFormField(
+                                controller: _divisionCtrl,
+                                style: GoogleFonts.poppins(fontSize: 12.5),
+                                validator: (v) =>
+                                    (v == null || v.trim().isEmpty)
+                                        ? 'Enter the sub-division name'
+                                        : null,
                                 decoration: _buildInputDecoration(
+                                    hintText: 'e.g. Shirdi Sub-Division',
                                     prefixIcon: Icons.hub_outlined),
+                              ),
+                              const SizedBox(height: 10),
+                              _buildInputLabel(
+                                  'Police Stations in this Division (select 2 or more) — ${_divisionStationList().length} selected'),
+                              _buildDivisionStationsPicker(),
+                            ] else if (_selectedRole == 'Station Head' &&
+                                _dbStations.isEmpty) ...[
+                              // No stations in the DB for this district or
+                              // city yet (e.g. a new city): type the name.
+                              _buildInputLabel('Police Station Name'),
+                              TextFormField(
+                                controller: _stationCtrl,
+                                style: GoogleFonts.poppins(fontSize: 12.5),
+                                validator: (v) =>
+                                    (v == null || v.trim().isEmpty)
+                                        ? 'Enter the police station'
+                                        : null,
+                                decoration: _buildInputDecoration(
+                                    hintText:
+                                        'e.g. Shivajinagar Police Station',
+                                    prefixIcon: Icons.local_police_outlined),
                               ),
                             ] else if (_selectedRole == 'Station Head') ...[
                               _buildInputLabel('Assigned Police Station (DB)'),

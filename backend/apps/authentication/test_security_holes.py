@@ -11,18 +11,37 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from django.db import connection
+
+from apps.core.tenancy import TenantContext, provision_state_schema
 from apps.public_master.models import AppAnnouncement, MasterUser, Permission, Role, RolePermission, StateRegistry
 from apps.users.models import OfficerProfile
 
 
 def _officer(role_id='officer', station='Shivajinagar Police Station', district='Pune',
              division='Pune Division', status_='active', uid=None):
+    """
+    An account stored like a real sign-up: in the state's schema, which the
+    login check reads, plus (on Postgres) a copy in the shared schema.
+    """
     uid = uid or f'u-{uuid.uuid4().hex[:8]}'
-    return OfficerProfile.objects.create(
-        uid=uid, email=f'{uid}@mh.gov.in', name=uid, role_id=role_id,
-        station_name=station, district=district, division_name=division,
-        account_status=status_,
-    )
+    fields = dict(uid=uid, email=f'{uid}@mh.gov.in', name=uid, role_id=role_id,
+                  station_name=station, district=district, division_name=division,
+                  account_status=status_)
+    with TenantContext('maharashtra'):
+        officer = OfficerProfile.objects.create(**fields)
+    if connection.vendor == 'postgresql':
+        with TenantContext('public'):
+            OfficerProfile.objects.create(**fields)
+    return officer
+
+
+def _save_everywhere(officer):
+    """Save a changed test account to both of its copies (see _officer)."""
+    schemas = ['maharashtra', 'public'] if connection.vendor == 'postgresql' else ['maharashtra']
+    for schema in schemas:
+        with TenantContext(schema):
+            officer.save()
 
 
 def _officer_headers(officer, state_code='MH'):
@@ -46,6 +65,9 @@ class SecurityTestBase(TestCase):
         self.client = APIClient()
         self.state, _ = StateRegistry.objects.get_or_create(
             state_code='MH', defaults={'state_name': 'Maharashtra', 'schema_name': 'maharashtra', 'is_active': True})
+        # On a fresh Postgres DB the first sign-up would create the state's
+        # schema and tables; create them now so the test accounts live there.
+        provision_state_schema('maharashtra')
         for rid in ['officer', 'station_head', 'district_admin', 'state_admin', 'master_admin']:
             Role.objects.get_or_create(id=rid, defaults={'name': rid, 'level': 'station'})
 
@@ -55,7 +77,7 @@ class PublicRegistrationTests(SecurityTestBase):
         body = {
             'email': f'r-{uuid.uuid4().hex[:6]}@mh.gov.in', 'password': 'Password123!',
             'full_name': 'New Officer', 'role_id': 'officer', 'state_code': 'MH',
-            'station_name': 'Shivajinagar Police Station', 'district': 'Pune',
+            'station_name': 'Shivajinagar Police Station', 'district': 'Pune', 'designation': 'PI',
         }
         body.update(extra)
         return body['email'], self.client.post('/api/auth/register/', body, format='json', **(headers or {}))
@@ -80,15 +102,16 @@ class PublicRegistrationTests(SecurityTestBase):
         self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.data)
         self.assertEqual(OfficerProfile.objects.get(email=email).account_status, 'active')
 
-    def test_district_admin_onboards_inside_own_district_only(self):
+    def test_admin_created_accounts_wait_for_approval(self):
+        # Only a Master Admin's accounts start active; everyone else's wait in
+        # Pending Approvals for an admin above them in that area.
         admin = _officer('district_admin', station='', district='Pune')
         email, res = self._register(headers=_officer_headers(admin), district='Pune')
-        self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.data)
-        self.assertEqual(OfficerProfile.objects.get(email=email).account_status, 'active')
-
-        email, res = self._register(headers=_officer_headers(admin), district='Nagpur')
         self.assertEqual(res.status_code, status.HTTP_202_ACCEPTED, res.data)
         self.assertEqual(OfficerProfile.objects.get(email=email).account_status, 'pending_approval')
+        # Outside their own district they may not create at all.
+        email, res = self._register(headers=_officer_headers(admin), district='Nagpur')
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN, res.data)
 
 
 class ApprovalJurisdictionTests(SecurityTestBase):
@@ -122,7 +145,7 @@ class ApprovalJurisdictionTests(SecurityTestBase):
     def test_designation_text_grants_nothing(self):
         caller = _officer()
         caller.designation = 'DGP'
-        caller.save()
+        _save_everywhere(caller)
         target = _officer(district='Nagpur', status_='pending_approval')
         self.assertEqual(self._approve(caller, target).status_code, status.HTTP_403_FORBIDDEN)
 
@@ -230,7 +253,7 @@ class StateLogoTests(SecurityTestBase):
 
         officer = _officer()
         officer.set_password('Password123!')
-        officer.save()
+        _save_everywhere(officer)
         res = self.client.post('/api/auth/login/', {'email': officer.email, 'password': 'Password123!',
                                                     'state_code': 'MH'}, format='json')
         self.assertEqual(res.status_code, status.HTTP_200_OK, res.data)

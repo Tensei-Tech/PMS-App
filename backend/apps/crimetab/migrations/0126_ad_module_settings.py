@@ -95,7 +95,10 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('crimetab', '0125_ad_form_fields'),
-        ('public_master', '__latest__'),
+        # Pinned: '__latest__' moved with every new public_master migration and
+        # made this already-applied migration depend on an unapplied one
+        # (InconsistentMigrationHistory on deploy).
+        ('public_master', '0016_dynamicuiconfig'),
     ]
 
     operations = [

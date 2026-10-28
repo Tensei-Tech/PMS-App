@@ -4,7 +4,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
-from .case_access import can_access_station, scope_by_station
+from apps.cases.models import CaseRecord
+from .case_access import can_access_station, can_edit_case, scope_by_station
 
 from .models.accident import (
     RoadAccidentRecord,
@@ -76,6 +77,9 @@ class RoadAccidentDetailView(APIView):
 
         if not acc_rec or not can_access_station(request.user, acc_rec.station_name):
             return Response({'error': 'Road accident record not found'}, status=status.HTTP_404_NOT_FOUND)
+        case = CaseRecord.objects.filter(pk=acc_rec.case_id).first() if acc_rec.case_id else None
+        if case and not can_edit_case(request.user, case):
+            return Response({'error': 'You can edit only your own cases.'}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = RoadAccidentRecordSerializer(acc_rec, data=request.data, partial=True)
         if serializer.is_valid():

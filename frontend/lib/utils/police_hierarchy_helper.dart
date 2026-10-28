@@ -232,7 +232,10 @@ class PoliceHierarchyHelper {
     if (levelStr == null) return null;
     final l = levelStr.trim().toLowerCase();
     if (l.contains('state')) return AdminLevel.stateAdmin;
-    if (l.contains('district')) return AdminLevel.districtAdmin;
+    // A city (commissionerate) admin works at district level.
+    if (l.contains('district') || l.contains('city')) {
+      return AdminLevel.districtAdmin;
+    }
     if (l.contains('division') ||
         l.contains('subdivision') ||
         l.contains('zone')) {
@@ -320,6 +323,29 @@ class PoliceHierarchyHelper {
     final level = parseAdminLevel(roleId);
     if (level == AdminLevel.stationAdmin) return true;
     return isRoleAllowed(designation ?? '', AdminLevel.stationAdmin);
+  }
+
+  /// The admin level the backend gives this user: their role decides, as on
+  /// the server (a city admin with designation DG is still a city admin).
+  /// The designation counts only when there is no role at all.
+  static AdminLevel? adminLevelOf(String? designation, String? roleId) {
+    final r = (roleId ?? '').trim().toLowerCase();
+    const stateRoles = {
+      'master_admin',
+      'state_admin',
+      'state_super_admin',
+      'super_admin',
+      'admin',
+    };
+    if (stateRoles.contains(r)) return AdminLevel.stateAdmin;
+    if (r == 'supervisor') return AdminLevel.divisionAdmin;
+    if (r.isNotEmpty) return parseAdminLevel(r);
+    for (final level in AdminLevel.values) {
+      if (getRule(designation ?? '', level) == AdminLevelRule.must) {
+        return level;
+      }
+    }
+    return null;
   }
 
   /// Role badge title

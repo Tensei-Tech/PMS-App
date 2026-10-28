@@ -3,9 +3,12 @@ Who may approve, onboard or activate which officer account.
 
 Authority comes from the caller's role_id and DB permissions, never from the
 self-declared designation text. Every non-master approver must also share the
-target's unit (state / division / district / station) and sit above the
+target's unit (state / district / division / station) and sit above the
 target's level, so an officer can't approve a colleague and a station head
 can't activate a district admin.
+
+Order: state > district > division (a sub-division inside one district) >
+station.
 """
 import logging
 
@@ -13,11 +16,13 @@ from apps.core.permissions import check_dynamic_permission
 
 logger = logging.getLogger(__name__)
 
-MASTER, STATE, DIVISION, DISTRICT, STATION, OFFICER = 5, 4, 3, 2, 1, 0
+MASTER, STATE, DISTRICT, DIVISION, STATION, OFFICER = 5, 4, 3, 2, 1, 0
 
 STATE_ROLES = {'state_admin', 'state_super_admin', 'super_admin', 'admin'}
 DIVISION_ROLES = {'division_admin'}
-DISTRICT_ROLES = {'district_admin', 'sp', 'cp', 'dcp'}
+# A city admin (police commissionerate) sits at district level; their city
+# is kept in the 'district' field until cities get their own list.
+DISTRICT_ROLES = {'district_admin', 'city_admin', 'sp', 'cp', 'dcp'}
 STATION_ROLES = {'station_head', 'station_admin', 'pi', 'sho'}
 
 
@@ -43,8 +48,8 @@ def caller_level(caller):
     level = role_level(getattr(caller, 'role_id', ''))
     if level == MASTER:
         return MASTER
-    for perm, perm_level in (('state:manage', STATE), ('division:manage', DIVISION),
-                             ('district:manage', DISTRICT), ('user:approve', STATION)):
+    for perm, perm_level in (('state:manage', STATE), ('district:manage', DISTRICT),
+                             ('division:manage', DIVISION), ('user:approve', STATION)):
         if level >= perm_level:
             break
         if check_dynamic_permission(caller, perm):
@@ -71,18 +76,38 @@ def in_jurisdiction(caller, target, level):
     if level == STATE:
         # Tenancy already scopes the lookup to the caller's state schema.
         return True
-    if level == DIVISION:
-        return _same_unit(caller, target, 'division_id', ('division_name', 'zone'))
     if level == DISTRICT:
         return _same_unit(caller, target, 'district_id', ('district',))
+    if level == DIVISION:
+        # A division is a group of police stations: when the division admin's
+        # stations are known, an account with a station belongs to the
+        # division only if its station is one of them.
+        stations = division_stations(caller)
+        target_station = (getattr(target, 'station_name', '') or '').strip().casefold()
+        if stations and target_station:
+            return target_station in stations and _same_district_if_known(caller, target)
+        # Otherwise by name; a sub-division name can repeat in another district.
+        return (_same_unit(caller, target, 'division_id', ('division_name', 'zone'))
+                and _same_district_if_known(caller, target))
     if level == STATION:
-        if not _same_unit(caller, target, 'station_id', ('station_name',)):
-            return False
         # Same station name in another district is a different station.
-        caller_district = getattr(caller, 'district', '') or ''
-        target_district = getattr(target, 'district', '') or ''
-        return not (caller_district and target_district) or _same(caller_district, target_district)
+        return (_same_unit(caller, target, 'station_id', ('station_name',))
+                and _same_district_if_known(caller, target))
     return False
+
+
+def division_stations(user):
+    """The police stations (case-folded) a division admin's division is made of."""
+    if role_level(getattr(user, 'role_id', '')) != DIVISION:
+        return set()
+    return {s.strip().casefold() for s in (getattr(user, 'additional_stations', None) or [])
+            if isinstance(s, str) and s.strip()}
+
+
+def _same_district_if_known(caller, target):
+    caller_district = getattr(caller, 'district', '') or ''
+    target_district = getattr(target, 'district', '') or ''
+    return not (caller_district and target_district) or _same(caller_district, target_district)
 
 
 def can_manage_account(caller, target):
@@ -101,3 +126,70 @@ def can_manage_account(caller, target):
     if level <= OFFICER or role_level(getattr(target, 'role_id', '')) >= level:
         return False
     return in_jurisdiction(caller, target, level)
+
+
+# ── Which officers a user may see ──────────────────────────────────────────
+# State admin: the whole state. District or city admin: their district or
+# city (and the divisions in it). Division admin: their sub-division's
+# officers. Station head and officers: their own police station(s).
+
+def _own_stations(caller):
+    names = [getattr(caller, 'station_name', '')] + list(getattr(caller, 'additional_stations', None) or [])
+    return [n.strip() for n in names if isinstance(n, str) and n.strip()]
+
+
+def sees_officer(caller, officer, level=None):
+    """
+    May `caller` see `officer` in officer lists and directories? Pass the
+    caller's `level` when checking many officers, to look it up only once.
+    """
+    level = caller_level(caller) if level is None else level
+    if level >= STATE:
+        return True
+    if level == DISTRICT:
+        return _same_unit(caller, officer, 'district_id', ('district',))
+    if level == DIVISION:
+        return in_jurisdiction(caller, officer, DIVISION)
+    station = (getattr(officer, 'station_name', '') or '').strip().casefold()
+    return bool(station) and station in {s.casefold() for s in _own_stations(caller)}
+
+
+def officer_scope_q(caller):
+    """
+    The same rule as a queryset filter on OfficerProfile, or None when the
+    caller sees every officer. A caller missing the unit their level needs
+    sees nobody rather than everybody.
+    """
+    from django.db.models import Q
+
+    def any_of(field, values):
+        q = Q()
+        for value in values:
+            q |= Q(**{f'{field}__iexact': value})
+        return q
+
+    level = caller_level(caller)
+    if level >= STATE:
+        return None
+    district = (getattr(caller, 'district', '') or '').strip()
+    district_id = (getattr(caller, 'district_id', '') or '').strip()
+    if level == DISTRICT:
+        if not (district or district_id):
+            return Q(pk__in=[])
+        q = Q(district__iexact=district) if district else Q()
+        return q | Q(district_id=district_id) if district_id else q
+    if level == DIVISION:
+        division = (getattr(caller, 'division_name', '') or getattr(caller, 'zone', '') or '').strip()
+        if not division and not division_stations(caller):
+            return Q(pk__in=[])
+        q = Q(pk__in=[])
+        if division:
+            q = Q(division_name__iexact=division) | Q(zone__iexact=division)
+            # A sub-division name can repeat in another district.
+            if district:
+                q &= Q(district__iexact=district) | Q(district='') | Q(district__isnull=True)
+        # Plus everyone serving at the division's police stations.
+        stations = [s for s in (getattr(caller, 'additional_stations', None) or []) if isinstance(s, str) and s.strip()]
+        return q | any_of('station_name', stations) if stations else q
+    stations = _own_stations(caller)
+    return any_of('station_name', stations) if stations else Q(pk__in=[])
