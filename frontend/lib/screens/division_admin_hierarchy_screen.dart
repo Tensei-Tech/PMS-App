@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../constants/app_constants.dart';
 import '../services/api_config.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
@@ -49,7 +50,10 @@ class _DivisionAdminHierarchyScreenState
     });
 
     try {
-      final response = await _apiService.get(ApiConfig.hierarchyDirectory);
+      final response = await _apiService.get(
+        ApiConfig.hierarchyDirectory,
+        timeout: ApiConstants.longReceiveTimeout,
+      );
       if (!mounted) return;
 
       if (response.isSuccess && response.data is Map) {

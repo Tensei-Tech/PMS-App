@@ -189,14 +189,12 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
                 # In the state's schema (where they live; its search path
                 # falls back to public where a database keeps them there).
                 set_tenant_schema(active_schema)
-                master_districts = list(District.objects.all())
-                for mdist in master_districts:
-                    dist_name = getattr(mdist, 'name', None) or getattr(mdist, 'district_name', 'District')
-                    dist_id = getattr(mdist, 'district_id', None) or getattr(mdist, 'id', '0')
+                for dist_id, dist_name in District.objects.values_list('district_id', 'name'):
+                    dist_name = dist_name or 'District'
                     districts_map[dist_name] = {
                         'id': f"dist-{dist_id}",
                         'name': dist_name,
-                        'division_name': getattr(mdist, 'division_name', ''),
+                        'division_name': '',
                         'admins': [],
                     }
         except Exception:
@@ -254,11 +252,13 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
                 # In the state's schema (where they live; its search path
                 # falls back to public where a database keeps them there).
                 set_tenant_schema(active_schema)
-                master_stations = list(PoliceStation.objects.all())
-                for ps in master_stations:
-                    st_name = getattr(ps, 'station_name', None) or getattr(ps, 'name', 'Police Station')
-                    st_id = getattr(ps, 'station_id', None) or getattr(ps, 'id', '0')
-                    st_dist = ps.district.name if hasattr(ps, 'district') and ps.district else getattr(ps, 'district_name', '')
+                # District names in the same query: one lookup per station
+                # took longer than the app waits once a state has hundreds.
+                master_stations = PoliceStation.objects.values_list(
+                    'station_id', 'station_name', 'district__name', 'district_name')
+                for st_id, st_name, fk_dist, text_dist in master_stations:
+                    st_name = st_name or 'Police Station'
+                    st_dist = fk_dist or text_dist or ''
                     stations_map[st_name] = {
                         'id': f"st-{st_id}",
                         'name': st_name,
