@@ -106,10 +106,12 @@ class PublicRegistrationTests(SecurityTestBase):
         # Only a Master Admin's accounts start active; everyone else's wait in
         # Pending Approvals for an admin above them in that area.
         admin = _officer('district_admin', station='', district='Pune')
-        for district in ('Pune', 'Nagpur'):
-            email, res = self._register(headers=_officer_headers(admin), district=district)
-            self.assertEqual(res.status_code, status.HTTP_202_ACCEPTED, res.data)
-            self.assertEqual(OfficerProfile.objects.get(email=email).account_status, 'pending_approval')
+        email, res = self._register(headers=_officer_headers(admin), district='Pune')
+        self.assertEqual(res.status_code, status.HTTP_202_ACCEPTED, res.data)
+        self.assertEqual(OfficerProfile.objects.get(email=email).account_status, 'pending_approval')
+        # Outside their own district they may not create at all.
+        email, res = self._register(headers=_officer_headers(admin), district='Nagpur')
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN, res.data)
 
 
 class ApprovalJurisdictionTests(SecurityTestBase):

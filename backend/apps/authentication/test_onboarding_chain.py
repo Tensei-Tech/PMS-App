@@ -91,7 +91,8 @@ class OnboardingChainTests(SecurityTestBase):
         self.assertEqual(self._status(head), 'active')
 
     def test_same_sub_division_name_in_another_district_is_outside(self):
-        head = self._onboard(self.division_admin, role_id='station_head', district='Satara',
+        # Made by the state admin: the Shirdi division admin of Ahilyanagar may not approve it.
+        head = self._onboard(self.state_admin, role_id='station_head', district='Satara',
                              division_name='Shirdi Sub-Division', station_name='Satara City Police Station')
         self.assertFalse(self._sees(self.division_admin, head))
         self.assertTrue(self._sees(self.other_district_admin, head))
@@ -109,12 +110,62 @@ class OnboardingChainTests(SecurityTestBase):
         self.assertEqual(self._approve(self.state_admin, head).status_code, status.HTTP_200_OK)
 
     def test_no_one_approves_their_own_level_or_above(self):
-        district = self._onboard(self.division_admin, role_id='district_admin')
-        peer = self._onboard(self.district_admin, role_id='district_admin', district='Ahilyanagar')
-        self.assertFalse(self._sees(self.division_admin, district))
+        # A peer district admin made by the state admin waits for the state admin.
+        peer = self._onboard(self.state_admin, role_id='district_admin', district='Ahilyanagar')
         self.assertFalse(self._sees(self.district_admin, peer))
         self.assertEqual(self._approve(self.district_admin, peer).status_code, status.HTTP_403_FORBIDDEN)
         self.assertTrue(self._sees(self.state_admin, peer))
+
+    def _refused(self, caller, **body):
+        payload = {'email': f'x-{uuid.uuid4().hex[:6]}@mh.gov.in', 'password': 'Admin@123',
+                   'full_name': 'X', 'state_code': 'MH', 'district': 'Ahilyanagar', 'designation': 'PI'}
+        payload.update(body)
+        response = self.client.post('/api/auth/register/', payload, format='json', **_officer_headers(caller))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.data)
+        self.assertFalse(OfficerProfile.objects.filter(email=payload['email']).exists())
+        return response.data['error']
+
+    def test_admins_create_only_below_their_own_level(self):
+        self._refused(self.division_admin, role_id='district_admin')
+        self._refused(self.district_admin, role_id='district_admin')
+        self._refused(self.district_admin, role_id='city_admin', district='Pune City', designation='CP')
+
+    def test_district_admin_creates_only_inside_their_district(self):
+        # The Wardha example: a Wardha district admin creates only inside Wardha.
+        wardha = _officer('district_admin', station='', district='Wardha', division='')
+        self._onboard(wardha, role_id='division_admin', district='Wardha', division_name='Hinganghat Sub-Division',
+                      designation='SDPO')
+        self._onboard(wardha, role_id='station_head', district='Wardha', station_name='Arvi Police Station')
+        error = self._refused(wardha, role_id='station_head', district='Nagpur', station_name='Sitabuldi Police Station')
+        self.assertIn('Wardha', error)
+        self._refused(wardha, role_id='division_admin', district='Nagpur', division_name='Kamptee Sub-Division',
+                      designation='SDPO')
+
+    def test_city_admin_creates_only_inside_their_city(self):
+        self._onboard(self.city_admin, role_id='station_head', district='Pune City',
+                      station_name='Shivajinagar Police Station', designation='PI')
+        self.assertIn('Pune City', self._refused(self.city_admin, role_id='station_head', district='Pune',
+                                                 station_name='Baramati Police Station'))
+
+    def test_division_admin_creates_only_inside_their_sub_division(self):
+        self._onboard(self.division_admin, role_id='station_head', division_name='Shirdi Sub-Division',
+                      station_name='Shirdi Police Station')
+        self.assertIn('Shirdi Sub-Division', self._refused(
+            self.division_admin, role_id='station_head', division_name='Sangamner Sub-Division',
+            station_name='Sangamner Police Station'))
+        # The same sub-division name in another district is another area.
+        self._refused(self.division_admin, role_id='station_head', district='Satara',
+                      division_name='Shirdi Sub-Division', station_name='Satara City Police Station')
+
+    def test_station_head_creates_only_inside_their_station(self):
+        head = _officer('station_head', station='Shirdi Police Station', district='Ahilyanagar',
+                        division='Shirdi Sub-Division')
+        self._onboard(head, role_id='officer', station_name='Shirdi Police Station')
+        self._refused(head, role_id='officer', station_name='Rahata Police Station')
+
+    def test_state_admin_creates_only_in_their_state(self):
+        self.assertIn('state', self._refused(self.state_admin, role_id='district_admin', state_code='GJ',
+                                             district='Surat'))
 
     def test_city_admin_needs_a_city_and_a_city_designation(self):
         response = self.client.post('/api/auth/register/', {
