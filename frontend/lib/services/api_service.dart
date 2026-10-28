@@ -217,6 +217,7 @@ class ApiService {
     Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
     bool isRetry = false,
+    Duration? timeout,
   }) async {
     Uri uri = Uri.parse(url);
     if (queryParameters != null && queryParameters.isNotEmpty) {
@@ -235,7 +236,7 @@ class ApiService {
         final response = await (client != null
                 ? client.get(uri, headers: requestHeaders)
                 : http.get(uri, headers: requestHeaders))
-            .timeout(ApiConstants.receiveTimeout);
+            .timeout(timeout ?? ApiConstants.receiveTimeout);
 
         final apiRes = _processResponse(response);
         if (apiRes.statusCode == 401 && !isRetry) {
@@ -246,6 +247,7 @@ class ApiService {
               headers: headers,
               queryParameters: queryParameters,
               isRetry: true,
+              timeout: timeout,
             );
           }
         }
@@ -269,6 +271,11 @@ class ApiService {
           );
         }
         await Future.delayed(Duration(milliseconds: 300 * attempt));
+      } on TimeoutException {
+        return ApiResponse.error(
+          'The server is taking too long to respond. Please tap Retry.',
+          statusCode: 504,
+        );
       } catch (e) {
         return ApiResponse.error('Unexpected error: $e', statusCode: 500);
       }

@@ -50,6 +50,30 @@ class HierarchyDivisionsTests(SecurityTestBase):
         self.assertEqual(data['assigned_division'], 'Shirdi Sub-Division')
         self.assertTrue(all(d['name'].casefold() == 'ahilyanagar' for d in data['districts']))
 
+    def test_query_count_does_not_grow_with_stations(self):
+        # One lookup per station made the app time out once a state had
+        # hundreds of them.
+        from django.test.utils import CaptureQueriesContext
+        from apps.stations.models import District, PoliceStation
+
+        wardha = District.objects.create(district_id='wardha-qc', name='Wardha QC')
+
+        def queries():
+            with CaptureQueriesContext(connection) as ctx:
+                data = self._directory(self.state_admin)
+            return len(ctx), data
+
+        PoliceStation.objects.create(station_id='qc-0', station_name='QC Station 0', district=wardha)
+        queries()  # warm per-request caches (permissions)
+        few, _ = queries()
+        PoliceStation.objects.bulk_create(
+            PoliceStation(station_id=f'qc-{i}', station_name=f'QC Station {i}', district=wardha)
+            for i in range(1, 40))
+        many, data = queries()
+        self.assertEqual(many, few)
+        districts = {s['name']: s['district'] for s in data['stations']}
+        self.assertEqual(districts['QC Station 39'], 'Wardha QC')
+
 
 class PlaceholderDivisionsRemovedTests(SecurityTestBase):
     def test_no_old_regional_division_rows_after_migrations(self):

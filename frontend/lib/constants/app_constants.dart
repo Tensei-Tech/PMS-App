@@ -12,6 +12,8 @@ class ApiConstants {
   // Request timeouts
   static const Duration connectTimeout = Duration(seconds: 15);
   static const Duration receiveTimeout = Duration(seconds: 30);
+  // Whole-state directories; also covers the server waking from sleep.
+  static const Duration longReceiveTimeout = Duration(seconds: 90);
 
   // Storage Keys for Tokens
   static const String jwtAccessTokenKey = 'jwt_access_token';
