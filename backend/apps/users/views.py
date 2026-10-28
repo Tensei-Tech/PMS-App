@@ -186,7 +186,9 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
         districts_map = {}
         try:
             with transaction.atomic():  # savepoint: a missing table spoils nothing else
-                set_tenant_schema('public')
+                # In the state's schema (where they live; its search path
+                # falls back to public where a database keeps them there).
+                set_tenant_schema(active_schema)
                 master_districts = list(District.objects.all())
                 for mdist in master_districts:
                     dist_name = getattr(mdist, 'name', None) or getattr(mdist, 'district_name', 'District')
@@ -249,7 +251,9 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
         stations_map = {}
         try:
             with transaction.atomic():  # savepoint: a missing table spoils nothing else
-                set_tenant_schema('public')
+                # In the state's schema (where they live; its search path
+                # falls back to public where a database keeps them there).
+                set_tenant_schema(active_schema)
                 master_stations = list(PoliceStation.objects.all())
                 for ps in master_stations:
                     st_name = getattr(ps, 'station_name', None) or getattr(ps, 'name', 'Police Station')
