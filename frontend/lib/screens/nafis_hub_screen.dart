@@ -191,11 +191,16 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
       );
     }
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: NAFISCasesDataTable(
-        realDataRows: _caseWiseList,
-        rawRecords: _caseRecords,
+    return RefreshIndicator(
+      onRefresh: _loadCaseWise,
+      color: AppColors.navyMid,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: NAFISCasesDataTable(
+          realDataRows: _caseWiseList,
+          rawRecords: _caseRecords,
+        ),
       ),
     );
   }

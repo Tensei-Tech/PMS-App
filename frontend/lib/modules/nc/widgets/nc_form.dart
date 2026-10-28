@@ -4,8 +4,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../screens/ad_form_screen.dart' show ACT_DATA;
+import '../../../services/backend_case_service.dart';
 import '../../../services/case_service.dart';
+import '../../../theme/app_theme.dart';
 import '../../../widgets/base_form/base_form.dart';
 import '../../../widgets/common_form/pocso_voice_banner.dart';
 import '../../../widgets/voice_dictation_button.dart';
@@ -125,8 +126,27 @@ class NcFormState extends State<NcForm> {
   List<String> _genders = List.from(_kGenders);
 
   Map<String, Map<String, dynamic>> get _activeActsData =>
-      _actsData.isNotEmpty ? _actsData : ACT_DATA;
+      _actsData.isNotEmpty ? _actsData : BackendCaseService.cachedActData;
   List<String> get _activeGenders => _genders.isNotEmpty ? _genders : _kGenders;
+
+  Future<void> _fetchGlobalActs() async {
+    final acts = await BackendCaseService().fetchActDataMap();
+    if (acts != null && acts.isNotEmpty && mounted) {
+      setState(() {
+        _actsData = acts;
+      });
+    } else if (mounted &&
+        _actsData.isEmpty &&
+        BackendCaseService.cachedActData.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to load legal acts and sections from server.'),
+          backgroundColor: AppColors.dangerRed,
+          duration: Duration(seconds: 4),
+        ),
+      );
+    }
+  }
 
   Future<void> _loadFormDefinition() async {
     final catId = widget.categoryId ?? 41;
@@ -206,6 +226,7 @@ class NcFormState extends State<NcForm> {
   void initState() {
     super.initState();
     _loadFormDefinition();
+    _fetchGlobalActs();
     _activeVoiceController = _ncNumber;
     _fic.addListener(() {
       if (mounted) {
@@ -1749,7 +1770,25 @@ class _NcSectionSearchPickerState extends State<_NcSectionSearchPicker> {
 
   @override
   Widget build(BuildContext context) {
-    final acts = widget.actsData ?? ACT_DATA;
+    final acts = widget.actsData ?? BackendCaseService.cachedActData;
+    if (acts.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Icon(Icons.error_outline, size: 16, color: _kRed),
+            SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                'Error: Failed to load acts and sections from server.',
+                style: TextStyle(
+                    fontSize: 12, color: _kRed, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     final sections = (acts[widget.actKey]?['sections'] as List<dynamic>? ?? [])
         .map((r) => r as Map<String, dynamic>)
         .toList();

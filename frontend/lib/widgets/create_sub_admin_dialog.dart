@@ -937,59 +937,88 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                     const Divider(height: 1, color: Color(0xFFE2E8F0)),
                     const SizedBox(height: 14),
 
-                    // Actions Footer Row
-                    Wrap(
-                      alignment: WrapAlignment.end,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 12,
-                      runSpacing: 10,
-                      children: [
-                        OutlinedButton(
-                          onPressed: _isSubmitting
-                              ? null
-                              : () => Navigator.pop(context),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.lightSubText,
-                            side: BorderSide(color: Colors.grey.shade300),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 18, vertical: 11),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8)),
-                          ),
-                          child: Text('Cancel',
+                    // Actions Footer
+                    SizedBox(
+                      width: double.infinity,
+                      child: LayoutBuilder(
+                        builder: (context, footerConstraints) {
+                          final isNarrow = footerConstraints.maxWidth < 440;
+
+                          final cancelButton = OutlinedButton(
+                            onPressed: _isSubmitting
+                                ? null
+                                : () => Navigator.pop(context),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.navyDark,
+                              side: const BorderSide(color: Color(0xFFCBD5E1)),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 12),
+                              minimumSize: const Size(0, 44),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
+                            ),
+                            child: Text(
+                              'Cancel',
                               style: GoogleFonts.poppins(
-                                  fontSize: 13, fontWeight: FontWeight.w600)),
-                        ),
-                        ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.navyDark,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 22, vertical: 11),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8)),
-                            elevation: 2,
-                          ),
-                          onPressed: _isSubmitting ? null : _submitOnboarding,
-                          icon: _isSubmitting
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                      strokeWidth: 2, color: Colors.white))
-                              : const Icon(Icons.check_circle_rounded,
-                                  color: Colors.white, size: 18),
-                          label: Text(
-                            _isSubmitting
-                                ? 'Provisioning...'
-                                : 'Create & Provision Account',
-                            style: GoogleFonts.poppins(
-                                fontWeight: FontWeight.w600,
                                 fontSize: 13,
-                                color: Colors.white),
-                          ),
-                        ),
-                      ],
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.lightSubText,
+                              ),
+                            ),
+                          );
+
+                          final createButton = ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.navyDark,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 22, vertical: 12),
+                              minimumSize: const Size(0, 44),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
+                              elevation: 0,
+                            ),
+                            onPressed: _isSubmitting ? null : _submitOnboarding,
+                            icon: _isSubmitting
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2, color: Colors.white))
+                                : const Icon(Icons.check_circle_rounded,
+                                    color: Colors.white, size: 18),
+                            label: Text(
+                              _isSubmitting
+                                  ? 'Provisioning...'
+                                  : 'Create & Provision Account',
+                              style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                  color: Colors.white),
+                            ),
+                          );
+
+                          if (isNarrow) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                createButton,
+                                const SizedBox(height: 10),
+                                cancelButton,
+                              ],
+                            );
+                          }
+
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              cancelButton,
+                              const SizedBox(width: 14),
+                              createButton,
+                            ],
+                          );
+                        },
+                      ),
                     ),
                   ],
                 ),

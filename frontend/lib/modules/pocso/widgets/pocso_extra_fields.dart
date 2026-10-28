@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import '../../../screens/ad_form_screen.dart' show ACT_DATA;
+import '../../../services/backend_case_service.dart';
 import '../../../services/case_service.dart';
+import '../../../theme/app_theme.dart';
 import '../providers/pocso_provider.dart';
 
 /// One POCSO victim entry (supports multiple victims)
@@ -115,10 +116,30 @@ class PocsoExtraFieldsState extends State<PocsoExtraFields> {
     'Other',
   ];
 
+  Future<void> _fetchGlobalActs() async {
+    final acts = await BackendCaseService().fetchActDataMap();
+    if (acts != null && acts.isNotEmpty && mounted) {
+      setState(() {
+        _actsData = acts;
+      });
+    } else if (mounted &&
+        _actsData.isEmpty &&
+        BackendCaseService.cachedActData.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to load legal acts and sections from server.'),
+          backgroundColor: AppColors.dangerRed,
+          duration: Duration(seconds: 4),
+        ),
+      );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _loadFormDefinition();
+    _fetchGlobalActs();
     if (_effectiveVictims.isEmpty) {
       _effectiveVictims.add(PocsoVictimData());
     }
@@ -465,7 +486,32 @@ class PocsoExtraFieldsState extends State<PocsoExtraFields> {
 
   // ── 1. Legal Sections: BNS & POCSO ─────────────────────────────────────────
   Widget _buildLegalSections() {
-    final activeActs = _actsData.isNotEmpty ? _actsData : ACT_DATA;
+    final activeActs =
+        _actsData.isNotEmpty ? _actsData : BackendCaseService.cachedActData;
+    if (activeActs.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: _kRed.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: _kRed.withValues(alpha: 0.3)),
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.error_outline, size: 18, color: _kRed),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Error: Failed to load legal acts and sections from server.',
+                style: TextStyle(
+                    fontSize: 12, color: _kRed, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     final bnsItems = (activeActs['BNS']?['sections'] as List<dynamic>? ?? [])
         .map((s) => s as Map<String, dynamic>)
         .toList();

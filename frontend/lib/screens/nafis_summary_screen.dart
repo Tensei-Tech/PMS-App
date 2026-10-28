@@ -14,7 +14,6 @@ import '../services/backend_case_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/dynamic_map_pdf.dart';
 import '../utils/pdf_unicode_fonts.dart';
-import '../utils/arrested_table_firestore_mapper.dart';
 import '../utils/case_visibility.dart';
 import '../utils/excel_export_helper.dart';
 import '../widgets/nafis_cases_data_table.dart';
@@ -22,10 +21,19 @@ import '../widgets/nafis_cases_data_table.dart';
 class NAFISSummaryScreen extends StatelessWidget {
   const NAFISSummaryScreen({
     super.key,
+    this.title = 'NAFIS — Fingerprint Pending Summary',
+    this.startDate,
+    this.endDate,
+    this.ioUid,
     this.liveRows,
     this.rawRecords,
     this.stationName = '',
   });
+
+  final String title;
+  final String? startDate;
+  final String? endDate;
+  final String? ioUid;
 
   /// When non-null and non-empty, summary uses only this data.
   final List<Map<String, dynamic>>? liveRows;
@@ -45,7 +53,7 @@ class NAFISSummaryScreen extends StatelessWidget {
     final theme = await PdfUnicodeFonts.openSansTheme();
     final doc = DynamicMapPdf.buildLandscapeDataTableDocument(
       theme: theme,
-      title: 'NAFIS — Fingerprint Pending Summary',
+      title: title,
       rows: dataset,
       columnOrder: [
         'accused_name',
@@ -58,7 +66,7 @@ class NAFISSummaryScreen extends StatelessWidget {
     );
     await Printing.sharePdf(
       bytes: await doc.save(),
-      filename: 'NAFIS_Pending_Summary.pdf',
+      filename: 'NAFIS_Summary.pdf',
     );
   }
 
@@ -70,77 +78,92 @@ class NAFISSummaryScreen extends StatelessWidget {
     required bool showDemoNote,
   }) {
     final anyRows = dataset.isNotEmpty;
-    const title = 'NAFIS — Fingerprint Pending Summary';
 
     return Scaffold(
-      backgroundColor: AppColors.lightBg,
+      backgroundColor: const Color(0xFFF6F8FF),
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-              child: Row(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
                 children: [
-                  GestureDetector(
+                  InkWell(
                     onTap: () => Navigator.pop(context),
+                    borderRadius: BorderRadius.circular(10),
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.lightBorder),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: const Icon(Icons.arrow_back_rounded,
-                          color: AppColors.navyMid, size: 20),
+                          color: AppColors.navyDark, size: 20),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 14),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
                       children: [
-                        Text(
-                          title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.navyDark,
-                            height: 1.15,
+                        Flexible(
+                          child: Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.poppins(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.navyDark,
+                            ),
                           ),
                         ),
-                        Text(
-                          'National Automated Fingerprint Identification System',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.lightSubText,
+                        const SizedBox(width: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.navyMid.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '${dataset.length} Total',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.navyMid,
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  GestureDetector(
+                  InkWell(
                     onTap: !anyRows
                         ? null
                         : () => ExcelExportHelper.exportNafisToExcel(
                               dataset: dataset,
                             ),
+                    borderRadius: BorderRadius.circular(10),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
+                          horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         color: const Color(0xFF107C41),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: Row(
                         children: [
                           const Icon(Icons.table_chart_rounded,
-                              color: Colors.white, size: 18),
+                              color: Colors.white, size: 16),
                           const SizedBox(width: 6),
                           Text(
                             'Excel',
@@ -156,19 +179,20 @@ class NAFISSummaryScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  GestureDetector(
+                  InkWell(
                     onTap: !anyRows ? null : () => _exportPdf(context, dataset),
+                    borderRadius: BorderRadius.circular(10),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
+                          horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         color: AppColors.navyMid,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: Row(
                         children: [
                           const Icon(Icons.picture_as_pdf_rounded,
-                              color: Colors.white, size: 18),
+                              color: Colors.white, size: 16),
                           const SizedBox(width: 6),
                           Text(
                             'PDF',
@@ -185,10 +209,8 @@ class NAFISSummaryScreen extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              const SizedBox(height: 16),
+              Expanded(
                 child: dataset.isEmpty
                     ? Center(
                         child: Column(
@@ -201,7 +223,7 @@ class NAFISSummaryScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              'No pending NAFIS cases found',
+                              'No NAFIS cases found',
                               style: GoogleFonts.poppins(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
@@ -211,13 +233,15 @@ class NAFISSummaryScreen extends StatelessWidget {
                           ],
                         ),
                       )
-                    : NAFISCasesDataTable(
-                        realDataRows: dataset,
-                        rawRecords: records,
+                    : SingleChildScrollView(
+                        child: NAFISCasesDataTable(
+                          realDataRows: dataset,
+                          rawRecords: records,
+                        ),
                       ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -237,6 +261,9 @@ class NAFISSummaryScreen extends StatelessWidget {
 
     return _LiveNAFISSummaryLoader(
       fallbackStation: stationName,
+      startDate: startDate,
+      endDate: endDate,
+      ioUid: ioUid,
       buildContent: _builtContent,
     );
   }
@@ -246,9 +273,15 @@ class _LiveNAFISSummaryLoader extends StatefulWidget {
   const _LiveNAFISSummaryLoader({
     required this.fallbackStation,
     required this.buildContent,
+    this.startDate,
+    this.endDate,
+    this.ioUid,
   });
 
   final String fallbackStation;
+  final String? startDate;
+  final String? endDate;
+  final String? ioUid;
   final Widget Function(
     BuildContext context, {
     required List<Map<String, dynamic>> dataset,
@@ -265,6 +298,7 @@ class _LiveNAFISSummaryLoader extends StatefulWidget {
 class _LiveNAFISSummaryLoaderState extends State<_LiveNAFISSummaryLoader> {
   final _backend = BackendCaseService();
   List<ModuleRecord> _modules = [];
+  List<Map<String, dynamic>> _rawList = [];
   bool _initialLoad = true;
   Object? _error;
 
@@ -276,12 +310,17 @@ class _LiveNAFISSummaryLoaderState extends State<_LiveNAFISSummaryLoader> {
 
   Future<void> _fetchData() async {
     try {
-      final dataList = await _backend.fetchNAFISCases();
+      final dataList = await _backend.fetchNAFISCases(
+        startDate: widget.startDate,
+        endDate: widget.endDate,
+        ioUid: widget.ioUid,
+      );
       if (mounted) {
         if (dataList != null) {
           final mapped = dataList.map((m) => ModuleRecord.fromMap(m)).toList();
           setState(() {
             _modules = mapped;
+            _rawList = dataList;
             _initialLoad = false;
           });
         } else {
@@ -308,7 +347,7 @@ class _LiveNAFISSummaryLoaderState extends State<_LiveNAFISSummaryLoader> {
 
     if (_error != null) {
       return Scaffold(
-        backgroundColor: AppColors.lightBg,
+        backgroundColor: const Color(0xFFF6F8FF),
         body: SafeArea(
           child: Center(
             child: Padding(
@@ -330,7 +369,7 @@ class _LiveNAFISSummaryLoaderState extends State<_LiveNAFISSummaryLoader> {
 
     if (_initialLoad && modules.isEmpty) {
       return const Scaffold(
-        backgroundColor: AppColors.lightBg,
+        backgroundColor: Color(0xFFF6F8FF),
         body: SafeArea(
           child: Center(
             child: CircularProgressIndicator(color: AppColors.navyMid),
@@ -339,25 +378,29 @@ class _LiveNAFISSummaryLoaderState extends State<_LiveNAFISSummaryLoader> {
       );
     }
 
-    final exclusive = modules.isNotEmpty;
-    final now = DateTime.now();
-    final rawDataset = exclusive
-        ? arrestedTableRowsAll(modules, now)
-        : <Map<String, String>>[];
-
-    // Ensure status is Pending and enrich rows
     final dataset = <Map<String, dynamic>>[];
-    for (var i = 0; i < rawDataset.length; i++) {
-      final r = Map<String, dynamic>.from(rawDataset[i]);
-      if (i < modules.length) {
-        final m = modules[i];
-        r['nafis_status'] = m.extraFields['nafis_status'] ?? 'Pending';
-        r['nafis_status_color'] = m.extraFields['nafis_status_color'] ?? 'red';
-        r['io_name'] =
-            m.assignedOfficer.isNotEmpty ? m.assignedOfficer : (r['io'] ?? '—');
-        r['accused_name'] =
-            m.accused.isNotEmpty ? m.accused : (r['accused_name'] ?? '—');
-      }
+    for (var i = 0; i < modules.length; i++) {
+      final m = modules[i];
+      final raw = (i < _rawList.length) ? _rawList[i] : <String, dynamic>{};
+      final r = Map<String, dynamic>.from(raw);
+      r['id'] = raw['id'] ?? m.id;
+      r['cr'] = raw['case_number'] ?? raw['cr_no'] ?? m.caseNumber;
+      r['cr_no'] = r['cr'];
+      r['section_act'] = raw['section_act'] ?? m.extraFields['section_act'];
+      r['charge_sheet_date'] =
+          raw['charge_sheet_date'] ?? m.extraFields['charge_sheet_date'];
+      r['io_name'] = raw['assigned_officer'] ??
+          (m.assignedOfficer.isNotEmpty
+              ? m.assignedOfficer
+              : (raw['io_name'] ?? '—'));
+      r['nafis_status'] = raw['extra_fields']?['nafis_status'] ??
+          raw['nafis_status'] ??
+          m.extraFields['nafis_status'] ??
+          'Pending';
+      r['nafis_status_color'] = raw['extra_fields']?['nafis_status_color'] ??
+          raw['nafis_status_color'] ??
+          m.extraFields['nafis_status_color'] ??
+          'red';
       dataset.add(r);
     }
 
@@ -365,7 +408,7 @@ class _LiveNAFISSummaryLoaderState extends State<_LiveNAFISSummaryLoader> {
       context,
       dataset: dataset,
       records: modules,
-      firedFromFirestoreExclusive: exclusive,
+      firedFromFirestoreExclusive: modules.isNotEmpty,
       showDemoNote: false,
     );
   }

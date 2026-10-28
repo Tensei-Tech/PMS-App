@@ -277,18 +277,12 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
     final isCompact = screenWidth < 600;
 
     return Container(
-      margin: EdgeInsets.only(bottom: isCompact ? 10.0 : 14.0),
+      margin: EdgeInsets.only(bottom: isCompact ? 5.0 : 6.0),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius:
             BorderRadius.circular(isCompact ? AppRadius.md : AppRadius.lg),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.navyDark.withValues(alpha: 0.04),
-            blurRadius: isCompact ? 6 : 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: const [],
         border: Border.all(color: AppColors.lightBorder),
       ),
       child: Column(
@@ -305,13 +299,13 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
             child: Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: isCompact ? 12 : 16,
-                vertical: isCompact ? 11 : 14,
+                vertical: isCompact ? 8 : 10,
               ),
               child: Row(
                 children: [
                   Container(
-                    width: isCompact ? 34 : 38,
-                    height: isCompact ? 34 : 38,
+                    width: isCompact ? 28 : 32,
+                    height: isCompact ? 28 : 32,
                     decoration: BoxDecoration(
                       color: AppColors.navyMid.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(8),
@@ -321,13 +315,13 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                         ? Text(
                             '${widget.sectionIndex}',
                             style: GoogleFonts.poppins(
-                              fontSize: isCompact ? 13.5 : 15,
+                              fontSize: isCompact ? 12.0 : 13.5,
                               fontWeight: FontWeight.w700,
                               color: AppColors.navyDark,
                             ),
                           )
                         : Icon(widget.icon,
-                            size: isCompact ? 18 : 20,
+                            size: isCompact ? 16 : 18,
                             color: AppColors.navyMid),
                   ),
                   SizedBox(width: isCompact ? 10 : 12),
@@ -345,33 +339,28 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                     widget.headerAction!,
                     const SizedBox(width: 8),
                   ],
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: visibleFields.isEmpty
-                          ? const Color(0xFFF1F5F9)
-                          : AppColors.navyMid.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      visibleFields.isEmpty
-                          ? 'Empty'
-                          : '${visibleFields.length} field${visibleFields.length == 1 ? '' : 's'}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: visibleFields.isEmpty
-                            ? AppColors.lightSubText
-                            : AppColors.navyMid,
+                  if (visibleFields.length > 1)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 2.5),
+                      decoration: BoxDecoration(
+                        color: AppColors.navyMid.withValues(alpha: 0.07),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '${visibleFields.length} fields',
+                        style: GoogleFonts.poppins(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.navyMid,
+                        ),
                       ),
                     ),
-                  ),
                   const SizedBox(width: 4),
                   Tooltip(
                     message: _isExpanded ? 'Collapse' : 'Expand',
                     child: Padding(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: const EdgeInsets.all(4.0),
                       child: AnimatedRotation(
                         turns: _isExpanded ? 0.5 : 0.0,
                         duration: const Duration(milliseconds: 250),
@@ -398,7 +387,7 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                 const Divider(height: 1, color: AppColors.lightBorder),
                 if (visibleFields.isEmpty)
                   Padding(
-                    padding: EdgeInsets.all(isCompact ? 12.0 : 16.0),
+                    padding: EdgeInsets.all(isCompact ? 10.0 : 12.0),
                     child: Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(
@@ -427,7 +416,10 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                   )
                 else
                   Padding(
-                    padding: EdgeInsets.all(isCompact ? 12.0 : 16.0),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isCompact ? 12.0 : 16.0,
+                      vertical: isCompact ? 10.0 : 12.0,
+                    ),
                     child: LayoutBuilder(
                       builder: (context, constraints) {
                         final isWide = constraints.maxWidth > 600;
@@ -535,13 +527,13 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                           );
                         }
 
+                        final rowSpacing = isCompact ? 8.0 : 10.0;
                         if (!isWide) {
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: visibleFields.map((f) {
                               return Padding(
-                                padding: EdgeInsets.only(
-                                    bottom: isCompact ? 10 : 12),
+                                padding: EdgeInsets.only(bottom: rowSpacing),
                                 child: buildControl(f),
                               );
                             }).toList(),
@@ -552,8 +544,7 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                         if (widget.title.toLowerCase().contains('cctv') &&
                             visibleFields.length == 3) {
                           return Padding(
-                            padding:
-                                EdgeInsets.only(bottom: isCompact ? 10 : 12),
+                            padding: EdgeInsets.only(bottom: rowSpacing),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
@@ -593,8 +584,7 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                           pending.clear();
                           items.add(
                             Padding(
-                              padding:
-                                  EdgeInsets.only(bottom: isCompact ? 10 : 12),
+                              padding: EdgeInsets.only(bottom: rowSpacing),
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -618,8 +608,7 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                             flushPair();
                             items.add(
                               Padding(
-                                padding: EdgeInsets.only(
-                                    bottom: isCompact ? 10 : 12),
+                                padding: EdgeInsets.only(bottom: rowSpacing),
                                 child: buildControl(f),
                               ),
                             );

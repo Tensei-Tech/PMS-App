@@ -241,12 +241,19 @@ class NAFISCasesDataTable extends StatelessWidget {
               .trim();
 
           final color =
-              (r['nafis_status_color'] ?? '').toString().toLowerCase();
+              (r['nafis_status_color'] ?? extra['nafis_status_color'] ?? '')
+                  .toString()
+                  .toLowerCase();
           final rawStatus =
-              (r['nafis_status'] ?? r['status'] ?? '').toString().trim();
+              (r['nafis_status'] ?? extra['nafis_status'] ?? r['status'] ?? '')
+                  .toString()
+                  .trim()
+                  .toLowerCase();
           final isGreen = color == 'green' ||
-              rawStatus.toLowerCase() == 'done' ||
-              rawStatus.toLowerCase() == 'chargesheeted';
+              rawStatus == 'done' ||
+              rawStatus == 'chargesheeted' ||
+              rawStatus == 'yes' ||
+              rawStatus == 'true';
           final isPending = !isGreen;
 
           return TableRow(
