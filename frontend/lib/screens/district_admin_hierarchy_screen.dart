@@ -298,6 +298,7 @@ class _DistrictAdminHierarchyScreenState
 
   Widget _buildDivisionCard(Map<String, dynamic> div) {
     final admins = (div['admins'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final stations = (div['stations'] as List?)?.cast<String>() ?? [];
     final adminNames = admins
         .map((a) => '${a['name']} (${a['designation'] ?? 'Division Admin'})')
         .join(', ');
@@ -325,9 +326,13 @@ class _DistrictAdminHierarchyScreenState
           ),
         ),
         subtitle: Text(
-          admins.isEmpty
-              ? 'Division Admin: Unassigned'
-              : 'Division Admin: $adminNames',
+          [
+            admins.isEmpty
+                ? 'Division Admin: Unassigned'
+                : 'Division Admin: $adminNames',
+            // A division is a group of police stations.
+            if (stations.isNotEmpty) 'Stations: ${stations.join(', ')}',
+          ].join('\n'),
           style: GoogleFonts.poppins(
             fontSize: 11,
             fontWeight: FontWeight.w600,

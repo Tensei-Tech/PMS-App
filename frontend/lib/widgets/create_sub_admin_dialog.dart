@@ -35,6 +35,9 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
   final _emailCtrl = TextEditingController();
   final _badgeCtrl = TextEditingController();
   final _divisionCtrl = TextEditingController();
+  // A division is a group of two or more police stations of the district.
+  final Set<String> _divisionStations = {};
+  final _divisionStationsCtrl = TextEditingController();
   final _cityCtrl = TextEditingController();
   final _stationCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController(text: 'Admin@123');
@@ -74,6 +77,7 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
     _emailCtrl.dispose();
     _badgeCtrl.dispose();
     _divisionCtrl.dispose();
+    _divisionStationsCtrl.dispose();
     _cityCtrl.dispose();
     _stationCtrl.dispose();
     _passwordCtrl.dispose();
@@ -251,8 +255,61 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
     return PoliceHierarchyHelper.getAllowedDesignations(level);
   }
 
+  /// The police stations the new division is made of: ticked from the
+  /// district's list, or typed (comma-separated) when it has none on record.
+  List<String> _divisionStationList() {
+    if (_dbStations.isNotEmpty) return _divisionStations.toList();
+    return _divisionStationsCtrl.text
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toSet()
+        .toList();
+  }
+
+  Widget _buildDivisionStationsPicker() {
+    if (_dbStations.isEmpty) {
+      return TextFormField(
+        controller: _divisionStationsCtrl,
+        style: GoogleFonts.poppins(fontSize: 12.5),
+        decoration: _buildInputDecoration(
+            hintText: 'Station names, separated by commas',
+            prefixIcon: Icons.local_police_outlined),
+      );
+    }
+    return Container(
+      constraints: const BoxConstraints(maxHeight: 180),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.blueGrey.shade100),
+      ),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(8),
+        child: Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: _dbStations
+              .map((st) => FilterChip(
+                    label: Text(st, style: GoogleFonts.poppins(fontSize: 11.5)),
+                    selected: _divisionStations.contains(st),
+                    onSelected: (on) => setState(() => on
+                        ? _divisionStations.add(st)
+                        : _divisionStations.remove(st)),
+                  ))
+              .toList(),
+        ),
+      ),
+    );
+  }
+
   Future<void> _submitOnboarding() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_selectedRole == 'Division Admin' &&
+        _divisionStationList().length < 2) {
+      setState(() => _errorMessage =
+          'Select at least two police stations for the division.');
+      return;
+    }
 
     setState(() {
       _isSubmitting = true;
@@ -278,6 +335,8 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
         "division_name": _divisionFor(auth),
         "zone": _selectedRole == 'Division Admin' ? _divisionFor(auth) : null,
         "station_name": _selectedRole == 'Station Head' ? _stationFor() : "",
+        if (_selectedRole == 'Division Admin')
+          "division_stations": _divisionStationList(),
       };
 
       // Send the admin's own token: the backend activates the account at once
@@ -564,7 +623,11 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                                     .toList(),
                                 onChanged: (val) {
                                   if (val != null) {
-                                    setState(() => _selectedDistrict = val);
+                                    setState(() {
+                                      _selectedDistrict = val;
+                                      // Stations belong to one district.
+                                      _divisionStations.clear();
+                                    });
                                     _fetchStations(val);
                                   }
                                 },
@@ -590,6 +653,10 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                                     hintText: 'e.g. Shirdi Sub-Division',
                                     prefixIcon: Icons.hub_outlined),
                               ),
+                              const SizedBox(height: 10),
+                              _buildInputLabel(
+                                  'Police Stations in this Division (select 2 or more) — ${_divisionStationList().length} selected'),
+                              _buildDivisionStationsPicker(),
                             ] else if (_selectedRole == 'Station Head' &&
                                 _dbStations.isEmpty) ...[
                               // No stations in the DB for this district or

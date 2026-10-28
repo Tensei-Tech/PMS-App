@@ -128,6 +128,47 @@ def _state_logo_url(state_code):
         return None
 
 
+def _check_division_stations(stations, district_name, division_name):
+    """
+    Why a division's police stations can't be used, or None. Each must be a
+    station of the division's district or city (when that district has
+    stations on record) and must not already belong to another division there.
+    """
+    from django.db.models import Q
+    if not stations:
+        return None
+    district = (district_name or '').strip()
+    try:
+        with transaction.atomic():
+            known = {s.casefold(): s for s in PoliceStation.objects.filter(
+                Q(district__name__iexact=district) | Q(district_name__iexact=district)
+            ).values_list('station_name', flat=True)}
+    except Exception:
+        known = {}
+    if known:
+        for name in stations:
+            if name.casefold() not in known:
+                return f'"{name}" is not a police station of {district}.'
+    wanted = {s.casefold() for s in stations}
+    division = (division_name or '').strip().casefold()
+    try:
+        with transaction.atomic():
+            others = OfficerProfile.objects.filter(
+                role_id='division_admin', district__iexact=district,
+                account_status__in=['active', 'approved', 'pending_approval', 'pending'],
+            ).only('division_name', 'zone', 'additional_stations')
+            for other in others:
+                other_division = (other.division_name or other.zone or '').strip()
+                if other_division.casefold() == division:
+                    continue  # the same division may have several admins
+                taken = wanted & {s.casefold() for s in (other.additional_stations or []) if isinstance(s, str)}
+                if taken:
+                    return f'"{sorted(taken)[0]}" already belongs to the division {other_division}.'
+    except Exception as e:
+        logger.warning(f"[Register] Division station check skipped: {e}")
+    return None
+
+
 def _optional_caller(request):
     """The logged-in user behind an optional Bearer token, or None."""
     from apps.authentication.authentication import PrimaryJWTAuthentication
@@ -272,6 +313,27 @@ class RegisterView(views.APIView):
                     return Response({'error': f'You can only create accounts inside your own area ({area}).'},
                                     status=status.HTTP_403_FORBIDDEN)
 
+            # A division is a group of two or more police stations of one
+            # district or city: an admin creating a Division Admin picks them.
+            division_station_list = []
+            if role_id == 'division_admin':
+                raw = data.get('division_stations') or data.get('stations') or []
+                if isinstance(raw, str):
+                    raw = raw.split(',')
+                seen = set()
+                for name in raw:
+                    name = str(name or '').strip()
+                    if name and name.casefold() not in seen:
+                        seen.add(name.casefold())
+                        division_station_list.append(name)
+                if OFFICER < caller_lvl and len(division_station_list) < 2:
+                    return Response({'error': 'Select at least two police stations for the division.'},
+                                    status=status.HTTP_400_BAD_REQUEST)
+                error = _check_division_stations(division_station_list, district_name,
+                                                 data.get('division_name') or data.get('division') or data.get('zone') or '')
+                if error:
+                    return Response({'error': error}, status=status.HTTP_400_BAD_REQUEST)
+
             # Upstream Command Authority Validation: Block registration if jurisdiction lacks active approving admin
             if role_id not in ['master_admin', 'state_super_admin']:
                 try:
@@ -347,6 +409,7 @@ class RegisterView(views.APIView):
                 division_name=division_name,
                 division_id=division_id,
                 zone=zone or None,
+                additional_stations=division_station_list,
                 district=district_name,
                 district_id=district_id,
                 role_id=role_id,
@@ -396,6 +459,7 @@ class RegisterView(views.APIView):
                         division_name=division_name,
                         division_id=division_id,
                         zone=zone or None,
+                        additional_stations=division_station_list,
                         district=district_name,
                         district_id=district_id,
                         role_id=role_id,

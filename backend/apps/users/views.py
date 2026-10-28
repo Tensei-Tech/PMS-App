@@ -13,7 +13,7 @@ from apps.users.serializers import (
 from apps.authentication.permissions import IsSupervisorOrAdmin
 
 from apps.authentication.approval_scope import (
-    DISTRICT, DIVISION, STATE, caller_level, officer_scope_q, sees_officer,
+    DISTRICT, DIVISION, STATE, caller_level, division_stations, officer_scope_q, sees_officer,
 )
 
 logger = logging.getLogger(__name__)
@@ -151,7 +151,7 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
             if key not in divisions_map:
                 slug = '-'.join(p for p in (name, district) if p).lower().replace(' ', '-')
                 divisions_map[key] = {'id': f"div-{slug}", 'name': name.strip(), 'district': district.strip(),
-                                      'admins': []}
+                                      'stations': [], 'admins': []}
             return divisions_map[key]
 
         try:
@@ -167,8 +167,12 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
         for off in all_officers:
             if (off.role_id or '').lower() not in ('division_admin', 'supervisor'):
                 continue
-            division_entry(off.division_name or off.zone or 'Sub-division not set',
-                           off.district or '')['admins'].append({
+            entry = division_entry(off.division_name or off.zone or 'Sub-division not set', off.district or '')
+            # A division is a group of police stations, kept on its admins.
+            for st in off.additional_stations or []:
+                if isinstance(st, str) and st.strip() and st.strip() not in entry['stations']:
+                    entry['stations'].append(st.strip())
+            entry['admins'].append({
                 'uid': off.uid,
                 'name': off.name,
                 'email': off.email,
@@ -311,9 +315,11 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
                     k: v for k, v in divisions_map.items()
                     if k[0] == user_division.casefold() and (not caller_district or k[1] in ('', caller_district))
                 }
-                # Its police stations: the ones its officers serve at.
-                station_names = {o.station_name.strip().casefold() for o in all_officers
-                                 if o.station_name and sees_officer(caller, o, level)}
+                # Its police stations: the ones the division is made of, else
+                # the ones its officers serve at.
+                station_names = division_stations(caller) or {
+                    o.station_name.strip().casefold() for o in all_officers
+                    if o.station_name and sees_officer(caller, o, level)}
             else:
                 divisions_map = {}
                 station_names = {s.casefold() for s in [getattr(caller, 'station_name', '')]
