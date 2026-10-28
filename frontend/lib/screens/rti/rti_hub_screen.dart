@@ -448,17 +448,18 @@ class _RTIHubScreenState extends State<RTIHubScreen>
     return Column(
       children: [
         Expanded(
-          child: _statuses[tabIndex] == _chartTab
-              ? _buildChartTable(items)
-              : ListView.separated(
-                  padding: const EdgeInsets.all(14),
-                  itemCount: items.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
-                  itemBuilder: (context, i) {
-                    final item = items[i] as Map<String, dynamic>;
-                    return _buildRTIApplicationCard(item);
-                  },
-                ),
+          child: ListView.separated(
+            padding: const EdgeInsets.all(14),
+            itemCount: items.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            itemBuilder: (context, i) {
+              final item = items[i] as Map<String, dynamic>;
+              final displayIndex = (currentPage - 1) * pageSize + i + 1;
+              return _statuses[tabIndex] == _chartTab
+                  ? _buildRTISummaryCard(item, displayIndex)
+                  : _buildRTIApplicationCard(item, displayIndex);
+            },
+          ),
         ),
 
         // Pagination Bar
@@ -493,18 +494,6 @@ class _RTIHubScreenState extends State<RTIHubScreen>
       ],
     );
   }
-
-  // Chart tab columns, in display order (headers from config chart_headers)
-  static const List<String> _chartColumns = [
-    'sr_no',
-    'person',
-    'received_date',
-    'due_date',
-    'info_type',
-    'assigned_officer',
-    'info_given',
-    'action',
-  ];
 
   /// Summary "Send Reminder": notify the assigned officer now.
   Future<void> _sendReminder(dynamic rtiId) async {
@@ -551,324 +540,926 @@ class _RTIHubScreenState extends State<RTIHubScreen>
     );
   }
 
-  /// Chart tab: one row per application. The serial number opens the full
-  /// application (read-only View); any other cell shows only its own value.
-  Widget _buildChartTable(List<dynamic> items) {
-    final headers = (_config['chart_headers'] as Map?) ?? {};
-    final headStyle = GoogleFonts.poppins(
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        color: Colors.white,
-        height: 1.25);
-    final textStyle = GoogleFonts.poppins(
-        fontSize: 12.5, color: AppColors.navyDark, height: 1.35);
-    const border = Color(0xFFE2E8F0);
+  Widget _buildDivider() {
+    return Container(
+      width: 1,
+      height: 26,
+      margin: const EdgeInsets.symmetric(horizontal: 6),
+      color: const Color(0xFFE2E8F0),
+    );
+  }
 
-    String text(Map<String, dynamic> row, String key) {
-      final v = row[key];
-      final s = v == null ? '' : v.toString().trim();
-      return s.isEmpty ? '-' : s;
-    }
-
-    final rowActionLabels = (_config['row_action_labels'] as Map?) ?? {};
-    final remindLabel = rowActionLabels['remind']?.toString() ?? '';
-
-    Widget cell(Map<String, dynamic> row, String key) {
-      if (key == 'action') {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          child: remindLabel.isEmpty
-              ? const SizedBox.shrink()
-              : ElevatedButton.icon(
-                  onPressed: () => _sendReminder(row['rti_id']),
-                  icon:
-                      const Icon(Icons.notifications_active_rounded, size: 15),
-                  label: Text(
-                    TranslationHelper.translate(context, remindLabel),
-                    style: GoogleFonts.poppins(
-                        fontSize: 11.5, fontWeight: FontWeight.w600),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.navyMid,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
-                  ),
+  Widget _buildFieldColumn({
+    required BuildContext context,
+    required String label,
+    required String value,
+    IconData? icon,
+    Color? iconColor,
+    Color? valueColor,
+    VoidCallback? onTap,
+    double? width,
+  }) {
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon,
+                  size: 11.5, color: iconColor ?? const Color(0xFF64748B)),
+              const SizedBox(width: 3.5),
+            ],
+            Flexible(
+              child: Text(
+                TranslationHelper.translate(context, label),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF64748B),
+                  height: 1.1,
                 ),
-        );
-      }
-      final isSr = key == 'sr_no';
-      final value = text(row, key);
-      final isInfoGiven = key == 'info_given' && value != '-';
-      final highlight = isSr || isInfoGiven;
-      Widget content = Text(
-        value,
-        softWrap: true,
-        textAlign: isSr ? TextAlign.center : TextAlign.left,
-        style: highlight
-            ? textStyle.copyWith(
-                fontWeight: FontWeight.w700,
-                color: AppColors.navyMid,
-                decoration: TextDecoration.underline)
-            : textStyle,
-      );
-      if (highlight) {
-        content = Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(
-            color: AppColors.navyMid.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: content,
-        );
-      }
-      final VoidCallback? onTap = isSr
-          ? () => _openViewModal(row['rti_id'])
-          : (value == '-'
-              ? null
-              : () =>
-                  _showChartCellInfo(headers[key]?.toString() ?? '', value));
-      return TableRowInkWell(
-        onTap: onTap,
-        child: MouseRegion(
-          cursor: onTap == null ? MouseCursor.defer : SystemMouseCursors.click,
-          child: Tooltip(
-            // Every clickable cell (Sr. No., officer, dates, ...) explains itself
-            message: onTap == null
-                ? ''
-                : TranslationHelper.translate(context, 'Click to see info'),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-              child: Align(
-                alignment: isSr ? Alignment.center : Alignment.centerLeft,
-                child: content,
               ),
             ),
-          ),
+          ],
         ),
-      );
-    }
-
-    TableRow dataRow(int i) {
-      final row = Map<String, dynamic>.from(items[i] as Map);
-      return TableRow(
-        decoration: BoxDecoration(
-          color: i.isOdd ? const Color(0xFFF8FAFC) : Colors.white,
-          border: const Border(top: BorderSide(color: border)),
-        ),
-        children: [for (final k in _chartColumns) cell(row, k)],
-      );
-    }
-
-    final headerRow = TableRow(
-      decoration: const BoxDecoration(color: AppColors.navyMid),
-      children: [
-        for (final k in _chartColumns)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-            child: Text(
-              TranslationHelper.translate(
-                  context, headers[k]?.toString() ?? ''),
-              style: headStyle,
-              textAlign: k == 'sr_no' ? TextAlign.center : TextAlign.left,
+        const SizedBox(height: 2),
+        Tooltip(
+          message: value,
+          child: Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: valueColor ?? const Color(0xFF0F172A),
+              height: 1.1,
             ),
           ),
+        ),
       ],
     );
 
-    return LayoutBuilder(builder: (context, constraints) {
-      // Fill the available width; scroll sideways only on narrow screens
-      final available = constraints.maxWidth - 28;
-      final tableWidth = available < 1250 ? 1250.0 : available;
-      return SingleChildScrollView(
-        padding: const EdgeInsets.all(14),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Container(
-            width: tableWidth,
+    final wrapped = width != null
+        ? SizedBox(width: width, child: content)
+        : content;
+
+    if (onTap != null) {
+      return InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(4),
+        child: wrapped,
+      );
+    }
+    return wrapped;
+  }
+
+  Widget _buildSendReminderButton({
+    required BuildContext context,
+    required VoidCallback onTap,
+    String? label,
+  }) {
+    final text = TranslationHelper.translate(
+      context,
+      (label != null && label.isNotEmpty) ? label : 'Send Reminder',
+    );
+    return Tooltip(
+      message: text,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          height: 38,
+          width: 135,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          decoration: BoxDecoration(
+            color: AppColors.navyMid,
+            borderRadius: BorderRadius.circular(6),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.navyMid.withValues(alpha: 0.25),
+                blurRadius: 4,
+                offset: const Offset(0, 1.5),
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.notifications_active_rounded,
+                size: 14,
+                color: Colors.white,
+              ),
+              const SizedBox(width: 5),
+              Flexible(
+                child: Text(
+                  text,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                    letterSpacing: 0.2,
+                    height: 1.0,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLabeledActionButton({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    Color? color,
+  }) {
+    final fgColor = color ?? const Color(0xFF1E293B);
+    return Tooltip(
+      message: TranslationHelper.translate(context, label),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          height: 38,
+          width: 38,
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: const Color(0xFFCBD5E1), width: 1.1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 2,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 14, color: fgColor),
+              const SizedBox(height: 1.5),
+              Text(
+                TranslationHelper.translate(context, label),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 8.5,
+                  fontWeight: FontWeight.w600,
+                  color: fgColor,
+                  height: 1.0,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Dedicated horizontal single-row case card for RTI Summary (matching Preventive module UI)
+  Widget _buildRTISummaryCard(Map<String, dynamic> item, int index) {
+    final rtiId = item['rti_id'];
+    final srNo = (item['sr_no'] ?? '-').toString().trim();
+    final person = (item['person'] ?? '-').toString().trim();
+    final receivedDate = (item['received_date'] ?? '-').toString().trim();
+    final dueDate = (item['due_date'] ?? '-').toString().trim();
+    final infoType = (item['info_type'] ?? '-').toString().trim();
+    final assignedOfficer = (item['assigned_officer'] ?? '-').toString().trim();
+    final infoGiven = (item['info_given'] ?? '-').toString().trim();
+
+    final isReplied = infoGiven.toLowerCase().contains('replied');
+    final isTransferred = infoGiven.toLowerCase().contains('transferred');
+    final isRejected = infoGiven.toLowerCase().contains('rejected');
+
+    final Color statusColor;
+    final Color statusBg;
+    final Color statusBorder;
+    final String statusText;
+
+    if (isReplied) {
+      statusColor = const Color(0xFF2E7D32);
+      statusBg = const Color(0xFFE8F5E9);
+      statusBorder = const Color(0xFFA5D6A7);
+      statusText = infoGiven.isNotEmpty ? infoGiven : 'Replied';
+    } else if (isTransferred) {
+      statusColor = const Color(0xFF0284C7);
+      statusBg = const Color(0xFFE0F2FE);
+      statusBorder = const Color(0xFFBAE6FD);
+      statusText = 'Transferred';
+    } else if (isRejected) {
+      statusColor = const Color(0xFFD32F2F);
+      statusBg = const Color(0xFFFFEBEE);
+      statusBorder = const Color(0xFFFFCDD2);
+      statusText = 'Rejected';
+    } else {
+      statusColor = const Color(0xFFD32F2F);
+      statusBg = const Color(0xFFFFEBEE);
+      statusBorder = const Color(0xFFFFCDD2);
+      statusText = 'Pending';
+    }
+
+    final headers = (_config['chart_headers'] as Map?) ?? {};
+    final rowActionLabels = (_config['row_action_labels'] as Map?) ?? {};
+    final editLabel = rowActionLabels['edit']?.toString() ?? 'Edit';
+    final viewLabel = rowActionLabels['view']?.toString() ?? 'View';
+    final pdfLabel = rowActionLabels['pdf']?.toString() ?? 'PDF';
+    final remindLabel = rowActionLabels['remind']?.toString() ?? 'Send Reminder';
+
+    Widget buildRowContent(bool isExpandedMode) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 0. Sr. No. Badge (Fixed width 50)
+          Container(
+            height: 38,
+            width: 50,
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: border),
+              color: statusBg,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: statusBorder),
             ),
-            clipBehavior: Clip.antiAlias,
-            child: Table(
-              columnWidths: const {
-                0: FixedColumnWidth(110),
-                1: FlexColumnWidth(3.0),
-                2: FlexColumnWidth(1.1),
-                3: FlexColumnWidth(1.1),
-                4: FlexColumnWidth(1.5),
-                5: FlexColumnWidth(1.7),
-                6: FlexColumnWidth(1.5),
-                7: FixedColumnWidth(150),
-              },
-              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                headerRow,
-                for (int i = 0; i < items.length; i++) dataRow(i),
+                Text(
+                  'Sr.No',
+                  style: GoogleFonts.poppins(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: statusColor.withValues(alpha: 0.85),
+                    height: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '$index',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: statusColor,
+                    height: 1.0,
+                  ),
+                ),
               ],
             ),
           ),
-        ),
+          const SizedBox(width: 6),
+
+          // 1. RTI No. Badge (Fixed width 95)
+          InkWell(
+            onTap: () => _openViewModal(rtiId),
+            borderRadius: BorderRadius.circular(6),
+            child: Tooltip(
+              message: TranslationHelper.translate(context, 'Click to see info'),
+              child: Container(
+                height: 38,
+                width: 95,
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: const Color(0xFFCBD5E1)),
+                ),
+                alignment: Alignment.center,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'RTI No.',
+                      style: GoogleFonts.poppins(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF64748B),
+                        height: 1.0,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      srNo,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.navyMid,
+                        decoration: TextDecoration.underline,
+                        height: 1.0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+
+          // 2. Type of Information Badge (Fixed width 150)
+          InkWell(
+            onTap: (infoType.isEmpty || infoType == '-')
+                ? null
+                : () => _showChartCellInfo(
+                    headers['info_type']?.toString() ?? 'Type of Information',
+                    infoType),
+            borderRadius: BorderRadius.circular(6),
+            child: Container(
+              height: 38,
+              width: 150,
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFFBEB),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0xFFFDE68A)),
+              ),
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Type of Info',
+                    style: GoogleFonts.poppins(
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF92400E),
+                      height: 1.0,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Tooltip(
+                    message: infoType.isEmpty ? '—' : infoType,
+                    child: Text(
+                      infoType.isEmpty ? '—' : infoType,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF0F172A),
+                        height: 1.0,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          _buildDivider(),
+
+          // 3. Person / Applicant Name, Age, Mobile, Address (Expanded flex: 5)
+          isExpandedMode
+              ? Expanded(
+                  flex: 5,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Applicant Details',
+                    value: (person.isEmpty || person == '-') ? '—' : person,
+                    icon: Icons.person_outline_rounded,
+                    onTap: (person.isEmpty || person == '-')
+                        ? null
+                        : () => _showChartCellInfo(
+                            headers['person']?.toString() ??
+                                'Name, Age, Mobile No., Address',
+                            person),
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 260,
+                  label: 'Applicant Details',
+                  value: (person.isEmpty || person == '-') ? '—' : person,
+                  icon: Icons.person_outline_rounded,
+                  onTap: (person.isEmpty || person == '-')
+                      ? null
+                      : () => _showChartCellInfo(
+                          headers['person']?.toString() ??
+                              'Name, Age, Mobile No., Address',
+                          person),
+                ),
+
+          _buildDivider(),
+
+          // 4. Received Date (Fixed width 110)
+          _buildFieldColumn(
+            context: context,
+            width: 110,
+            label: 'Received Date',
+            value: (receivedDate.isEmpty || receivedDate == '-') ? '—' : receivedDate,
+            icon: Icons.calendar_today_outlined,
+          ),
+
+          _buildDivider(),
+
+          // 5. Due Date (Fixed width 105)
+          _buildFieldColumn(
+            context: context,
+            width: 105,
+            label: 'Due Date',
+            value: (dueDate.isEmpty || dueDate == '-') ? '—' : dueDate,
+            icon: Icons.event_available_outlined,
+            iconColor: const Color(0xFF0EA5E9),
+            valueColor: const Color(0xFF0284C7),
+          ),
+
+          _buildDivider(),
+
+          // 6. Assigned Officer (Expanded flex: 4)
+          isExpandedMode
+              ? Expanded(
+                  flex: 4,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Assigned Officer',
+                    value: (assignedOfficer.isEmpty || assignedOfficer == '-')
+                        ? '—'
+                        : assignedOfficer,
+                    icon: Icons.badge_outlined,
+                    onTap: (assignedOfficer.isEmpty || assignedOfficer == '-')
+                        ? null
+                        : () => _showChartCellInfo(
+                            headers['assigned_officer']?.toString() ??
+                                'Assigned Officer',
+                            assignedOfficer),
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 200,
+                  label: 'Assigned Officer',
+                  value: (assignedOfficer.isEmpty || assignedOfficer == '-')
+                      ? '—'
+                      : assignedOfficer,
+                  icon: Icons.badge_outlined,
+                  onTap: (assignedOfficer.isEmpty || assignedOfficer == '-')
+                      ? null
+                      : () => _showChartCellInfo(
+                          headers['assigned_officer']?.toString() ??
+                              'Assigned Officer',
+                          assignedOfficer),
+                ),
+
+          _buildDivider(),
+
+          // 7. Status / Information Given Badge (Fixed width 165 for perfect date fit)
+          Container(
+            height: 38,
+            width: 165,
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: statusBg,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: statusBorder),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Status',
+                  style: GoogleFonts.poppins(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: statusColor.withValues(alpha: 0.85),
+                    height: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Tooltip(
+                  message: statusText,
+                  child: Text(
+                    TranslationHelper.translate(context, statusText),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: statusColor,
+                      height: 1.0,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+
+          // 8. Actions: Send Reminder (full button, never cut off), Edit, View, PDF
+          if (remindLabel.isNotEmpty) ...[
+            _buildSendReminderButton(
+              context: context,
+              label: remindLabel,
+              onTap: () => _sendReminder(rtiId),
+            ),
+            const SizedBox(width: 6),
+          ],
+          _buildLabeledActionButton(
+            context: context,
+            icon: Icons.edit_outlined,
+            label: editLabel,
+            color: AppColors.infoBlue,
+            onTap: () => _openEditModal(rtiId),
+          ),
+          const SizedBox(width: 5),
+          _buildLabeledActionButton(
+            context: context,
+            icon: Icons.visibility_outlined,
+            label: viewLabel,
+            color: AppColors.goldPrimary,
+            onTap: () => _openViewModal(rtiId),
+          ),
+          const SizedBox(width: 5),
+          _buildLabeledActionButton(
+            context: context,
+            icon: Icons.picture_as_pdf_outlined,
+            label: pdfLabel,
+            color: AppColors.dangerRed,
+            onTap: () => _downloadPdf(rtiId, srNo),
+          ),
+        ],
       );
-    });
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: const Color(0xFFCBD5E1),
+          width: 1.1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 1400;
+          if (isWide) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              child: buildRowContent(true),
+            );
+          }
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              child: buildRowContent(false),
+            ),
+          );
+        },
+      ),
+    );
   }
 
-  Widget _buildRTIApplicationCard(Map<String, dynamic> item) {
+  /// Dedicated horizontal single-row case card for RTI Applications list (Total tab)
+  Widget _buildRTIApplicationCard(Map<String, dynamic> item, int index) {
     final rtiId = item['rti_id'];
-    final serialDisplay = item['serial_display']?.toString() ?? '-';
-    final applicantName = item['applicant_name']?.toString() ?? '-';
-    final receivedDate = item['received_date']?.toString() ?? '-';
-    final dueDate = item['due_date']?.toString() ?? '-';
-    final status = item['status']?.toString() ?? 'Pending';
+    final serialDisplay = (item['serial_display'] ?? '-').toString().trim();
+    final applicantName = (item['applicant_name'] ?? '-').toString().trim();
+    final receivedDate = (item['received_date'] ?? '-').toString().trim();
+    final dueDate = (item['due_date'] ?? '-').toString().trim();
+    final infoType = (item['info_type'] ?? '-').toString().trim();
+    final status = (item['status'] ?? 'Pending').toString().trim();
 
-    final serialLabel = _config['serial_label']?.toString() ?? 'Sr. No.';
     final actionLabels = (_config['row_action_labels'] as Map?) ?? {};
     final editLabel = actionLabels['edit']?.toString() ?? 'Edit';
     final viewLabel = actionLabels['view']?.toString() ?? 'View';
     final pdfLabel = actionLabels['pdf']?.toString() ?? 'PDF';
 
-    final isDisposal = status.toLowerCase() == 'disposal';
-    final statusColor =
-        isDisposal ? AppColors.successGreen : Colors.amber.shade800;
+    final isDisposal = status.toLowerCase() == 'disposal' ||
+        status.toLowerCase() == 'closed' ||
+        status.toLowerCase() == 'resolved';
+    final Color statusColor =
+        isDisposal ? const Color(0xFF2E7D32) : const Color(0xFFD32F2F);
+    final Color statusBg =
+        isDisposal ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE);
+    final Color statusBorder =
+        isDisposal ? const Color(0xFFA5D6A7) : const Color(0xFFFFCDD2);
 
-    return Card(
-      elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: const BorderSide(color: Color(0xFFE2E8F0)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    Widget buildRowContent(bool isExpandedMode) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 0. Sr. No. Badge (Fixed width 50)
+          Container(
+            height: 38,
+            width: 50,
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+            decoration: BoxDecoration(
+              color: statusBg,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: statusBorder),
+            ),
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: AppColors.navyDark.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(6),
+                Text(
+                  'Sr.No',
+                  style: GoogleFonts.poppins(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: statusColor.withValues(alpha: 0.85),
+                    height: 1.0,
                   ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '$index',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: statusColor,
+                    height: 1.0,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 6),
+
+          // 1. RTI No. Badge (Fixed width 95)
+          InkWell(
+            onTap: () => _openViewModal(rtiId),
+            borderRadius: BorderRadius.circular(6),
+            child: Tooltip(
+              message: TranslationHelper.translate(context, 'Click to see info'),
+              child: Container(
+                height: 38,
+                width: 95,
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: const Color(0xFFCBD5E1)),
+                ),
+                alignment: Alignment.center,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'RTI No.',
+                      style: GoogleFonts.poppins(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF64748B),
+                        height: 1.0,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      serialDisplay,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.navyMid,
+                        decoration: TextDecoration.underline,
+                        height: 1.0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+
+          // 2. Type of Info Badge (Fixed width 150)
+          Container(
+            height: 38,
+            width: 150,
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFFBEB),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: const Color(0xFFFDE68A)),
+            ),
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Type of Info',
+                  style: GoogleFonts.poppins(
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF92400E),
+                    height: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Tooltip(
+                  message: infoType.isEmpty ? '—' : infoType,
                   child: Text(
-                    '$serialLabel $serialDisplay',
+                    infoType.isEmpty ? '—' : infoType,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.navyDark,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF0F172A),
+                      height: 1.0,
                     ),
                   ),
                 ),
-                const Spacer(),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(6),
+              ],
+            ),
+          ),
+
+          _buildDivider(),
+
+          // 3. Applicant Name (Expanded flex: 5)
+          isExpandedMode
+              ? Expanded(
+                  flex: 5,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Applicant Name',
+                    value: (applicantName.isEmpty || applicantName == '-') ? '—' : applicantName,
+                    icon: Icons.person_outline_rounded,
                   ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 260,
+                  label: 'Applicant Name',
+                  value: (applicantName.isEmpty || applicantName == '-') ? '—' : applicantName,
+                  icon: Icons.person_outline_rounded,
+                ),
+
+          _buildDivider(),
+
+          // 4. Received Date (Fixed width 110)
+          _buildFieldColumn(
+            context: context,
+            width: 110,
+            label: 'Received Date',
+            value: (receivedDate.isEmpty || receivedDate == '-') ? '—' : receivedDate,
+            icon: Icons.calendar_today_outlined,
+          ),
+
+          _buildDivider(),
+
+          // 5. Due Date (Fixed width 105)
+          _buildFieldColumn(
+            context: context,
+            width: 105,
+            label: 'Due Date',
+            value: (dueDate.isEmpty || dueDate == '-') ? '—' : dueDate,
+            icon: Icons.event_available_outlined,
+            iconColor: const Color(0xFF0EA5E9),
+            valueColor: const Color(0xFF0284C7),
+          ),
+
+          _buildDivider(),
+
+          // 6. Status Badge (Fixed width 165)
+          Container(
+            height: 38,
+            width: 165,
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: statusBg,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: statusBorder),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Status',
+                  style: GoogleFonts.poppins(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: statusColor.withValues(alpha: 0.85),
+                    height: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Tooltip(
+                  message: status,
                   child: Text(
                     TranslationHelper.translate(context, status),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       color: statusColor,
+                      height: 1.0,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            Text(
-              applicantName,
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.navyDark,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Text(
-                  'Received: $receivedDate',
-                  style: GoogleFonts.poppins(
-                    fontSize: 11.5,
-                    color: AppColors.lightSubText,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'Due: $dueDate',
-                  style: GoogleFonts.poppins(
-                    fontSize: 11.5,
-                    color: AppColors.lightSubText,
-                  ),
-                ),
-              ],
-            ),
-            const Divider(height: 16, color: Color(0xFFF1F5F9)),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                OutlinedButton.icon(
-                  onPressed: () => _openViewModal(rtiId),
-                  icon: const Icon(Icons.visibility_rounded, size: 14),
-                  label: Text(
-                    TranslationHelper.translate(context, viewLabel),
-                    style: GoogleFonts.poppins(fontSize: 11),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                OutlinedButton.icon(
-                  onPressed: () => _openEditModal(rtiId),
-                  icon: const Icon(Icons.edit_rounded, size: 14),
-                  label: Text(
-                    TranslationHelper.translate(context, editLabel),
-                    style: GoogleFonts.poppins(fontSize: 11),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton.icon(
-                  onPressed: () => _downloadPdf(rtiId, serialDisplay),
-                  icon: const Icon(Icons.picture_as_pdf_rounded, size: 14),
-                  label: Text(
-                    TranslationHelper.translate(context, pdfLabel),
-                    style: GoogleFonts.poppins(fontSize: 11),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.navyMid,
-                    foregroundColor: Colors.white,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                ),
-              ],
-            ),
-          ],
+          ),
+          const SizedBox(width: 8),
+
+          // 7. Actions: Edit, View, PDF
+          _buildLabeledActionButton(
+            context: context,
+            icon: Icons.edit_outlined,
+            label: editLabel,
+            color: AppColors.infoBlue,
+            onTap: () => _openEditModal(rtiId),
+          ),
+          const SizedBox(width: 5),
+          _buildLabeledActionButton(
+            context: context,
+            icon: Icons.visibility_outlined,
+            label: viewLabel,
+            color: AppColors.goldPrimary,
+            onTap: () => _openViewModal(rtiId),
+          ),
+          const SizedBox(width: 5),
+          _buildLabeledActionButton(
+            context: context,
+            icon: Icons.picture_as_pdf_outlined,
+            label: pdfLabel,
+            color: AppColors.dangerRed,
+            onTap: () => _downloadPdf(rtiId, serialDisplay),
+          ),
+        ],
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: const Color(0xFFCBD5E1),
+          width: 1.1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 1300;
+          if (isWide) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              child: buildRowContent(true),
+            );
+          }
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              child: buildRowContent(false),
+            ),
+          );
+        },
       ),
     );
   }

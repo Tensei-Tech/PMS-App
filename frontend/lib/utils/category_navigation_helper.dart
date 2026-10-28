@@ -63,8 +63,7 @@ class CategoryNavigationHelper {
   }
 
   /// Prime the cache manually if children are already known.
-  static void primeCache(
-      dynamic category, List<Map<String, dynamic>> children) {
+  static void primeCache(dynamic category, List<Map<String, dynamic>> children) {
     _childrenCache[category.toString().trim().toLowerCase()] = children;
   }
 
@@ -89,8 +88,7 @@ class CategoryNavigationHelper {
     List<Map<String, dynamic>> allCats,
     String label,
   ) {
-    String norm(String s) =>
-        s.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+    String norm(String s) => s.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
     String digits(String s) => s.replaceAll(RegExp(r'[^0-9]'), '');
     final n = norm(label);
     final d = digits(label);
@@ -126,8 +124,7 @@ class CategoryNavigationHelper {
   }) async {
     final cleanName = categoryName.replaceAll('\n', ' ').trim();
 
-    if (cleanName.toLowerCase().contains('passport') ||
-        moduleKey.toLowerCase() == 'passport') {
+    if (cleanName.toLowerCase().contains('passport') || moduleKey.toLowerCase() == 'passport') {
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
@@ -163,15 +160,11 @@ class CategoryNavigationHelper {
           final cName = c['category_name']?.toString().trim();
 
           // 1a. Primary: Match by categoryId if provided
-          if (categoryId != null &&
-              cId != null &&
-              cId == categoryId.toString()) {
+          if (categoryId != null && cId != null && cId == categoryId.toString()) {
             return true;
           }
           // 1b. Secondary: Match by categoryCode if provided
-          if (categoryCode != null &&
-              cCode != null &&
-              cCode.toUpperCase() == categoryCode.toUpperCase()) {
+          if (categoryCode != null && cCode != null && cCode.toUpperCase() == categoryCode.toUpperCase()) {
             return true;
           }
           // 1c. Match by moduleKey if moduleKey matches categoryCode
@@ -179,9 +172,7 @@ class CategoryNavigationHelper {
             return true;
           }
           // 1d. Legacy fallback for other existing tabs (Requirement 4)
-          if (cName != null &&
-              cleanName.isNotEmpty &&
-              cName.toLowerCase() == cleanName.toLowerCase()) {
+          if (cName != null && cleanName.isNotEmpty && cName.toLowerCase() == cleanName.toLowerCase()) {
             return true;
           }
           return false;
@@ -189,8 +180,7 @@ class CategoryNavigationHelper {
         orElse: () => <String, dynamic>{},
       );
 
-      if (matchedDbCategory.isNotEmpty &&
-          matchedDbCategory['category_code'] != null) {
+      if (matchedDbCategory.isNotEmpty && matchedDbCategory['category_code'] != null) {
         resolvedCode = matchedDbCategory['category_code'].toString();
       }
     }
@@ -203,8 +193,7 @@ class CategoryNavigationHelper {
     final targetHsCode = hsConfig['target_category_code']?.toString().trim();
 
     final mpdaConfig = await MpdaService().fetchConfig();
-    final targetMpdaCode =
-        mpdaConfig['target_category_code']?.toString().trim();
+    final targetMpdaCode = mpdaConfig['target_category_code']?.toString().trim();
 
     final ncConfig = await NcService().fetchConfig();
     final targetNcCode = ncConfig['target_category_code']?.toString().trim();
@@ -215,11 +204,8 @@ class CategoryNavigationHelper {
     // A tile label may be written differently from its DB row ("A.D" vs
     // "A.D.", "N.C" vs "N.C."). If nothing matched exactly, accept a name
     // match that ignores case, spaces and punctuation.
-    if ((matchedDbCategory == null || matchedDbCategory.isEmpty) &&
-        resolvedCode == null &&
-        allCats.isNotEmpty) {
-      String norm(String s) =>
-          s.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+    if ((matchedDbCategory == null || matchedDbCategory.isEmpty) && resolvedCode == null && allCats.isNotEmpty) {
+      String norm(String s) => s.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
       final target = norm(cleanName);
       if (target.isNotEmpty) {
         final row = allCats.firstWhere(
@@ -239,9 +225,7 @@ class CategoryNavigationHelper {
       final codeUpper = resolvedCode.trim().toUpperCase();
 
       // 3a. RTI Hub
-      if (targetRtiCode != null &&
-          targetRtiCode.isNotEmpty &&
-          codeUpper == targetRtiCode.toUpperCase()) {
+      if (targetRtiCode != null && targetRtiCode.isNotEmpty && codeUpper == targetRtiCode.toUpperCase()) {
         if (!context.mounted) return;
         Navigator.push(
           context,
@@ -257,9 +241,7 @@ class CategoryNavigationHelper {
       }
 
       // 3b. History Sheeter Hub
-      if (targetHsCode != null &&
-          targetHsCode.isNotEmpty &&
-          codeUpper == targetHsCode.toUpperCase()) {
+      if (targetHsCode != null && targetHsCode.isNotEmpty && codeUpper == targetHsCode.toUpperCase()) {
         if (!context.mounted) return;
         Navigator.push(
           context,
@@ -275,9 +257,7 @@ class CategoryNavigationHelper {
       }
 
       // 3d. N.C. Hub (independent module)
-      if (targetNcCode != null &&
-          targetNcCode.isNotEmpty &&
-          codeUpper == targetNcCode.toUpperCase()) {
+      if (targetNcCode != null && targetNcCode.isNotEmpty && codeUpper == targetNcCode.toUpperCase()) {
         if (!context.mounted) return;
         Navigator.push(
           context,
@@ -293,9 +273,7 @@ class CategoryNavigationHelper {
       }
 
       // 3e. A.D. Hub (Suicide / Other sub-tabs, each with its own list)
-      if (targetAdCode != null &&
-          targetAdCode.isNotEmpty &&
-          codeUpper == targetAdCode.toUpperCase()) {
+      if (targetAdCode != null && targetAdCode.isNotEmpty && codeUpper == targetAdCode.toUpperCase()) {
         if (!context.mounted) return;
         Navigator.push(
           context,
@@ -310,9 +288,7 @@ class CategoryNavigationHelper {
       }
 
       // 3c. MPDA Hub
-      if (targetMpdaCode != null &&
-          targetMpdaCode.isNotEmpty &&
-          codeUpper == targetMpdaCode.toUpperCase()) {
+      if (targetMpdaCode != null && targetMpdaCode.isNotEmpty && codeUpper == targetMpdaCode.toUpperCase()) {
         if (!context.mounted) return;
         Navigator.push(
           context,
@@ -333,18 +309,14 @@ class CategoryNavigationHelper {
       moduleKey: moduleKey,
       categoryName: cleanName,
     );
-    final isDedicated =
-        isDedicatedFormTab(moduleKey) || isDedicatedFormTab(cleanName);
+    final isDedicated = isDedicatedFormTab(moduleKey) || isDedicatedFormTab(cleanName);
     // Ask by the matched row's id: a tile label like "A.D" does not match the
     // DB name "A.D." on the server, so its sub-tabs would not be found.
-    final childrenOf = categoryId ??
-        matchedDbCategory?['category_id'] ??
-        matchedDbCategory?['id'];
+    final childrenOf = categoryId ?? matchedDbCategory?['category_id'] ?? matchedDbCategory?['id'];
     final children = await getChildren(cleanName, categoryId: childrenOf);
     if (!context.mounted) return;
 
-    if (cleanName.toUpperCase() == 'ITSSO' ||
-        moduleKey.toLowerCase() == 'itsso') {
+    if (cleanName.toUpperCase() == 'ITSSO' || moduleKey.toLowerCase() == 'itsso') {
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
@@ -362,9 +334,7 @@ class CategoryNavigationHelper {
             customTitle: cleanName,
             moduleKey: moduleKey,
             categoryId: childrenOf,
-            mode: readOnly
-                ? FormIVSelectionMode.readOnly
-                : FormIVSelectionMode.browse,
+            mode: readOnly ? FormIVSelectionMode.readOnly : FormIVSelectionMode.browse,
           ),
         ),
       );
@@ -397,16 +367,12 @@ class CategoryNavigationHelper {
           page: groupId == 2
               ? FormVISelectionScreen(
                   openCategory: twinName,
-                  mode: readOnly
-                      ? FormVISelectionMode.readOnly
-                      : FormVISelectionMode.browse,
+                  mode: readOnly ? FormVISelectionMode.readOnly : FormVISelectionMode.browse,
                 )
               : FormIVSelectionScreen(
                   openCategory: twinName,
                   customTitle: twinName,
-                  mode: readOnly
-                      ? FormIVSelectionMode.readOnly
-                      : FormIVSelectionMode.browse,
+                  mode: readOnly ? FormIVSelectionMode.readOnly : FormIVSelectionMode.browse,
                 ),
         ),
       );
@@ -415,8 +381,7 @@ class CategoryNavigationHelper {
 
     // If tab has no DB row OR is unlinked with no form bundle and no dedicated screen -> NoFormConfiguredScreen
     final hasNoDbRow = matchedDbCategory == null || matchedDbCategory.isEmpty;
-    if (!isDedicated &&
-        ((hasNoDbRow && resolvedCode == null) || !isLinkedToBaseline)) {
+    if ((hasNoDbRow && resolvedCode == null) || (!isLinkedToBaseline && !isDedicated)) {
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
