@@ -217,6 +217,8 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
         final name = div['name'] ?? 'Division';
         // A division is a sub-division inside one district or city.
         final district = (div['district'] ?? '').toString();
+        // A division is a group of police stations.
+        final stations = (div['stations'] as List?)?.cast<String>() ?? [];
         final admins =
             (div['admins'] as List?)?.cast<Map<String, dynamic>>() ?? [];
 
@@ -246,9 +248,12 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
               ),
             ),
             subtitle: Text(
-              district.isNotEmpty
-                  ? '$district • ${admins.length} Division Admin(s) assigned'
-                  : '${admins.length} Division Admin(s) assigned',
+              [
+                if (district.isNotEmpty) district,
+                '${admins.length} Division Admin(s) assigned',
+                if (stations.isNotEmpty)
+                  '${stations.length} station(s): ${stations.join(', ')}',
+              ].join(' • '),
               style: GoogleFonts.poppins(
                 fontSize: 11,
                 color: Colors.grey.shade600,

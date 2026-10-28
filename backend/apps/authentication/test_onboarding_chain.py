@@ -33,6 +33,9 @@ class OnboardingChainTests(SecurityTestBase):
         # PI is on both the district and the city designation lists.
         payload = {'email': email, 'password': 'Admin@123', 'full_name': 'New Admin',
                    'state_code': 'MH', 'district': 'Ahilyanagar', 'designation': 'PI'}
+        if body.get('role_id') == 'division_admin':
+            # A division is a group of two or more police stations.
+            payload['division_stations'] = [f'{uuid.uuid4().hex[:6]} Police Station' for _ in range(2)]
         payload.update(body)
         response = self.client.post('/api/auth/register/', payload, format='json', **_officer_headers(caller))
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.data)
@@ -236,3 +239,72 @@ class OnboardingChainTests(SecurityTestBase):
         response = self.client.post('/api/auth/login/', login, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
         self.assertEqual(response.data['user']['role_id'], 'station_head')
+
+
+class DivisionStationsTests(SecurityTestBase):
+    """A division is a group of two or more police stations of one district or city."""
+    def setUp(self):
+        super().setUp()
+        from apps.stations.models import District, PoliceStation
+        wardha = District.objects.create(district_id='DST-WARD', name='Wardha')
+        for i, name in enumerate(['Arvi Police Station', 'Ashti Police Station', 'Hinganghat Police Station',
+                                  'Samudrapur Police Station']):
+            PoliceStation.objects.create(station_id=f'W-{i}', station_name=name, district=wardha, district_name='Wardha')
+        self.wardha_admin = _officer('district_admin', station='', district='Wardha', division='')
+
+    def _create_division(self, name, stations, caller=None):
+        email = f'd-{uuid.uuid4().hex[:6]}@mh.gov.in'
+        response = self.client.post('/api/auth/register/', {
+            'email': email, 'password': 'Admin@123', 'full_name': 'Div', 'state_code': 'MH',
+            'role_id': 'division_admin', 'district': 'Wardha', 'division_name': name,
+            'division_stations': stations, 'designation': 'SDPO',
+        }, format='json', **_officer_headers(caller or self.wardha_admin))
+        return response, email
+
+    def test_needs_two_or_more_stations(self):
+        response, _ = self._create_division('Arvi Sub-Division', ['Arvi Police Station'])
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('two police stations', response.data['error'])
+
+    def test_saves_the_stations_on_the_division_admin(self):
+        response, email = self._create_division('Arvi Sub-Division', ['Arvi Police Station', 'Ashti Police Station'])
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.data)
+        self.assertEqual(OfficerProfile.objects.get(email=email).additional_stations,
+                         ['Arvi Police Station', 'Ashti Police Station'])
+
+    def test_stations_must_belong_to_the_district(self):
+        response, _ = self._create_division('Arvi Sub-Division', ['Arvi Police Station', 'Sitabuldi Police Station'])
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('Sitabuldi', response.data['error'])
+
+    def test_a_station_belongs_to_one_division_only(self):
+        self.assertEqual(self._create_division('Arvi Sub-Division',
+                                               ['Arvi Police Station', 'Ashti Police Station'])[0].status_code, 202)
+        response, _ = self._create_division('Hinganghat Sub-Division',
+                                            ['Ashti Police Station', 'Hinganghat Police Station'])
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('Arvi Sub-Division', response.data['error'])
+        # A second admin of the same division may share its stations.
+        self.assertEqual(self._create_division('Arvi Sub-Division',
+                                               ['Arvi Police Station', 'Ashti Police Station'])[0].status_code, 202)
+
+    def test_division_admin_works_on_its_stations_only(self):
+        division_admin = _officer('division_admin', station='', district='Wardha', division='Arvi Sub-Division')
+        division_admin.additional_stations = ['Arvi Police Station', 'Ashti Police Station']
+        _save_everywhere(division_admin)
+        inside = _officer(station='Ashti Police Station', district='Wardha', division='', uid='o-ashti')
+        _officer(station='Hinganghat Police Station', district='Wardha', division='', uid='o-hing')
+        response = self.client.get('/api/users/', **_officer_headers(division_admin))
+        rows = response.data.get('results', response.data) if isinstance(response.data, dict) else response.data
+        self.assertEqual({r['uid'] for r in rows} - {division_admin.uid}, {inside.uid})
+        ok = self.client.post('/api/auth/register/', {
+            'email': 'sho-arvi@mh.gov.in', 'password': 'Admin@123', 'full_name': 'SHO', 'state_code': 'MH',
+            'role_id': 'station_head', 'district': 'Wardha', 'station_name': 'Arvi Police Station', 'designation': 'PI',
+        }, format='json', **_officer_headers(division_admin))
+        self.assertEqual(ok.status_code, status.HTTP_202_ACCEPTED, ok.data)
+        refused = self.client.post('/api/auth/register/', {
+            'email': 'sho-hing@mh.gov.in', 'password': 'Admin@123', 'full_name': 'SHO', 'state_code': 'MH',
+            'role_id': 'station_head', 'district': 'Wardha', 'station_name': 'Hinganghat Police Station',
+            'designation': 'PI',
+        }, format='json', **_officer_headers(division_admin))
+        self.assertEqual(refused.status_code, status.HTTP_403_FORBIDDEN, refused.data)

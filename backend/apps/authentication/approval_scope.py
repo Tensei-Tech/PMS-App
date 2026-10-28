@@ -79,7 +79,14 @@ def in_jurisdiction(caller, target, level):
     if level == DISTRICT:
         return _same_unit(caller, target, 'district_id', ('district',))
     if level == DIVISION:
-        # A sub-division name can repeat in another district.
+        # A division is a group of police stations: when the division admin's
+        # stations are known, an account with a station belongs to the
+        # division only if its station is one of them.
+        stations = division_stations(caller)
+        target_station = (getattr(target, 'station_name', '') or '').strip().casefold()
+        if stations and target_station:
+            return target_station in stations and _same_district_if_known(caller, target)
+        # Otherwise by name; a sub-division name can repeat in another district.
         return (_same_unit(caller, target, 'division_id', ('division_name', 'zone'))
                 and _same_district_if_known(caller, target))
     if level == STATION:
@@ -87,6 +94,14 @@ def in_jurisdiction(caller, target, level):
         return (_same_unit(caller, target, 'station_id', ('station_name',))
                 and _same_district_if_known(caller, target))
     return False
+
+
+def division_stations(user):
+    """The police stations (case-folded) a division admin's division is made of."""
+    if role_level(getattr(user, 'role_id', '')) != DIVISION:
+        return set()
+    return {s.strip().casefold() for s in (getattr(user, 'additional_stations', None) or [])
+            if isinstance(s, str) and s.strip()}
 
 
 def _same_district_if_known(caller, target):
@@ -165,10 +180,16 @@ def officer_scope_q(caller):
         return q | Q(district_id=district_id) if district_id else q
     if level == DIVISION:
         division = (getattr(caller, 'division_name', '') or getattr(caller, 'zone', '') or '').strip()
-        if not division:
+        if not division and not division_stations(caller):
             return Q(pk__in=[])
-        q = Q(division_name__iexact=division) | Q(zone__iexact=division)
-        # A sub-division name can repeat in another district.
-        return q & (Q(district__iexact=district) | Q(district='') | Q(district__isnull=True)) if district else q
+        q = Q(pk__in=[])
+        if division:
+            q = Q(division_name__iexact=division) | Q(zone__iexact=division)
+            # A sub-division name can repeat in another district.
+            if district:
+                q &= Q(district__iexact=district) | Q(district='') | Q(district__isnull=True)
+        # Plus everyone serving at the division's police stations.
+        stations = [s for s in (getattr(caller, 'additional_stations', None) or []) if isinstance(s, str) and s.strip()]
+        return q | any_of('station_name', stations) if stations else q
     stations = _own_stations(caller)
     return any_of('station_name', stations) if stations else Q(pk__in=[])
