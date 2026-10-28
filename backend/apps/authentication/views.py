@@ -10,7 +10,9 @@ from rest_framework.response import Response
 
 from apps.core.tenancy import set_tenant_schema, provision_state_schema, get_active_tenant_schema
 from apps.core.permissions import check_dynamic_permission
-from apps.authentication.approval_scope import MASTER, STATE, caller_level, can_manage_account
+from apps.authentication.approval_scope import (
+    DISTRICT, DIVISION, MASTER, OFFICER, STATE, can_manage_account, caller_level, in_jurisdiction, role_level,
+)
 from apps.public_master.models import MasterUser, StateRegistry, Role, RolePermission, UserRoleMapping
 from apps.users.models import OfficerProfile
 from apps.stations.models import SuperAdmin, District, DistrictAdmin, PoliceStation
@@ -243,6 +245,32 @@ class RegisterView(views.APIView):
                     return Response({
                         'error': f'A Division Admin\'s designation must be one of: {", ".join(DIVISION_DESIGNATIONS)}.'
                     }, status=status.HTTP_400_BAD_REQUEST)
+
+            # An admin creates accounts only below them and inside their own area:
+            # a state admin in their state, a district or city admin in their
+            # district or city, a division admin in their sub-division, a station
+            # head in their station. A Master Admin may create anywhere.
+            if OFFICER < caller_lvl < MASTER:
+                target = SimpleNamespace(
+                    uid='', role_id=role_id, station_name=station_name, station_id=station_id,
+                    division_name=str(data.get('division_name') or data.get('division') or data.get('zone') or ''),
+                    division_id=data.get('division_id') or '', zone=data.get('zone') or '',
+                    district=district_name, district_id=district_id,
+                )
+                target_lvl = role_level(role_id)
+                if target_lvl > caller_lvl or (target_lvl == caller_lvl and caller_lvl != STATE):
+                    return Response({'error': 'You can only create accounts below your own level.'},
+                                    status=status.HTTP_403_FORBIDDEN)
+                caller_state = str(getattr(request, 'state_code', '') or '').upper()
+                if caller_state and caller_state != state_code:
+                    return Response({'error': 'You can only create accounts in your own state.'},
+                                    status=status.HTTP_403_FORBIDDEN)
+                if caller_lvl < STATE and not in_jurisdiction(caller, target, caller_lvl):
+                    area = {DISTRICT: getattr(caller, 'district', ''),
+                            DIVISION: getattr(caller, 'division_name', '') or getattr(caller, 'zone', '')}.get(
+                        caller_lvl, getattr(caller, 'station_name', ''))
+                    return Response({'error': f'You can only create accounts inside your own area ({area}).'},
+                                    status=status.HTTP_403_FORBIDDEN)
 
             # Upstream Command Authority Validation: Block registration if jurisdiction lacks active approving admin
             if role_id not in ['master_admin', 'state_super_admin']:
