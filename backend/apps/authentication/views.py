@@ -570,6 +570,33 @@ class RegisterView(views.APIView):
             return Response({'error': f'Registration failed: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
 
+def _pending_account_details(off):
+    """What an approver needs to see about a pending account."""
+    return {
+        'name': off.name or '',
+        'email': off.email or '',
+        'phone': off.phone or '',
+        'designation': off.designation or '',
+        'badge_number': off.badge_number or '',
+        'target_station': off.station_name or '',
+        'target_district': off.district or '',
+        'division_name': off.division_name or off.zone or '',
+        'additional_stations': list(off.additional_stations or []),
+        'govt_id': off.govt_id or '',
+        'photo_url': off.photo_url or '',
+        'id_card_url': off.id_card_url or '',
+        'role_id': off.role_id or 'officer',
+        'account_status': off.account_status or 'pending_approval',
+    }
+
+
+def _add_account_details(entry, off):
+    """Fill a request's empty fields from its account, keeping what it has."""
+    for key, value in _pending_account_details(off).items():
+        if value and not entry.get(key):
+            entry[key] = value
+
+
 class PendingApprovalsNotificationListView(views.APIView):
     """
     Returns pending registration notifications.
@@ -584,6 +611,7 @@ class PendingApprovalsNotificationListView(views.APIView):
 
         seen_uids = set()
         data = []
+        by_uid = {}  # request per account, to add the account's details
 
         # A request is shown to every admin who may approve the account it is
         # for: the admin above it in its area and everyone above them.
@@ -604,7 +632,7 @@ class PendingApprovalsNotificationListView(views.APIView):
                         uid=uid, role_id='officer', station_name=n.target_station_name, district=n.target_district)
                     if uid and uid not in seen_uids and can_manage_account(request.user, target):
                         seen_uids.add(uid)
-                        data.append({
+                        by_uid[uid] = {
                             'id': n.id,
                             'title': n.title,
                             'body': n.body,
@@ -613,7 +641,8 @@ class PendingApprovalsNotificationListView(views.APIView):
                             'target_station': n.target_station_name or '',
                             'target_district': n.target_district or '',
                             'created_at': n.created_at.isoformat() if hasattr(n, 'created_at') and n.created_at else datetime.now(timezone.utc).isoformat(),
-                        })
+                        }
+                        data.append(by_uid[uid])
         except Exception as e:
             logger.warning(f"[PendingApprovals] Notif query error: {e}")
 
@@ -623,28 +652,21 @@ class PendingApprovalsNotificationListView(views.APIView):
         try:
             with transaction.atomic():  # savepoint: a failed query spoils nothing else
                 for off in list(OfficerProfile.objects.filter(account_status__in=['pending_approval', 'pending'])):
-                    if off.uid and off.uid not in seen_uids and can_manage_account(request.user, off):
+                    if off.uid in by_uid:
+                        # A notification for this account: show its details too.
+                        _add_account_details(by_uid[off.uid], off)
+                    elif off.uid and can_manage_account(request.user, off):
                         seen_uids.add(off.uid)
-                        data.append({
+                        by_uid[off.uid] = {
                             'id': f"off-{off.uid}",
                             'title': f"{off.name} ({off.designation or 'Officer'})",
                             'body': f"Pending officer registration request for {off.station_name or off.district or 'Police Station'}.",
                             'category': 'approval_request',
                             'registration_uid': off.uid,
-                            'name': off.name or '',
-                            'email': off.email or '',
-                            'phone': off.phone or '',
-                            'designation': off.designation or '',
-                            'badge_number': off.badge_number or '',
-                            'target_station': off.station_name or '',
-                            'target_district': off.district or '',
-                            'govt_id': off.govt_id or '',
-                            'photo_url': off.photo_url or '',
-                            'id_card_url': off.id_card_url or '',
-                            'role_id': off.role_id or 'officer',
-                            'account_status': off.account_status or 'pending_approval',
+                            **_pending_account_details(off),
                             'created_at': datetime.now(timezone.utc).isoformat(),
-                        })
+                        }
+                        data.append(by_uid[off.uid])
         except Exception as e:
             logger.warning(f"[PendingApprovals] Tenant officer query error: {e}")
 
@@ -653,28 +675,21 @@ class PendingApprovalsNotificationListView(views.APIView):
             with transaction.atomic():  # savepoint: a failed query spoils nothing else
                 set_tenant_schema('public')
                 for pub_off in list(OfficerProfile.objects.filter(account_status__in=['pending_approval', 'pending'])):
-                    if pub_off.uid and pub_off.uid not in seen_uids and can_manage_account(request.user, pub_off):
+                    if pub_off.uid in by_uid:
+                        # A notification for this account: show its details too.
+                        _add_account_details(by_uid[pub_off.uid], pub_off)
+                    elif pub_off.uid and can_manage_account(request.user, pub_off):
                         seen_uids.add(pub_off.uid)
-                        data.append({
+                        by_uid[pub_off.uid] = {
                             'id': f"pub-{pub_off.uid}",
                             'title': f"{pub_off.name} ({pub_off.designation or 'Officer'})",
                             'body': f"Pending officer registration request for {pub_off.station_name or pub_off.district or 'Police Station'}.",
                             'category': 'approval_request',
                             'registration_uid': pub_off.uid,
-                            'name': pub_off.name or '',
-                            'email': pub_off.email or '',
-                            'phone': pub_off.phone or '',
-                            'designation': pub_off.designation or '',
-                            'badge_number': pub_off.badge_number or '',
-                            'target_station': pub_off.station_name or '',
-                            'target_district': pub_off.district or '',
-                            'govt_id': pub_off.govt_id or '',
-                            'photo_url': pub_off.photo_url or '',
-                            'id_card_url': pub_off.id_card_url or '',
-                            'role_id': pub_off.role_id or 'officer',
-                            'account_status': pub_off.account_status or 'pending_approval',
+                            **_pending_account_details(pub_off),
                             'created_at': datetime.now(timezone.utc).isoformat(),
-                        })
+                        }
+                        data.append(by_uid[pub_off.uid])
         except Exception as e:
             logger.warning(f"[PendingApprovals] Public officer query error: {e}")
         finally:

@@ -10,6 +10,7 @@ import '../constants/app_constants.dart';
 import '../services/api_config.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/officer_details_dialog.dart';
 
 class DistrictAdminHierarchyScreen extends StatefulWidget {
   const DistrictAdminHierarchyScreen({super.key});
@@ -329,6 +330,7 @@ class _DistrictAdminHierarchyScreenState
                         side: const BorderSide(color: Color(0xFFE2E8F0)),
                       ),
                       child: ListTile(
+                        onTap: head == null ? null : () => _showOfficer(head),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 4,
@@ -396,6 +398,7 @@ class _DistrictAdminHierarchyScreenState
       orElse: () => const {},
     )['head'] as Map<String, dynamic>?;
     return ListTile(
+      onTap: head == null ? null : () => _showOfficer(head),
       dense: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
       leading: Icon(Icons.local_police_rounded,
@@ -427,6 +430,11 @@ class _DistrictAdminHierarchyScreenState
     );
   }
 
+  /// Shows an officer's profile and assignment (read-only).
+  void _showOfficer(Map<String, dynamic> officer) {
+    OfficerDetailsDialog.show(context, officerData: officer);
+  }
+
   Widget _buildAdminTile(
     Map<String, dynamic> admin, {
     required String roleLabel,
@@ -442,6 +450,7 @@ class _DistrictAdminHierarchyScreenState
         border: Border(top: BorderSide(color: Color(0xFFF1F5F9))),
       ),
       child: ListTile(
+        onTap: () => _showOfficer(admin),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
         leading: CircleAvatar(
           radius: 14,
