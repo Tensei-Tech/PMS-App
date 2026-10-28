@@ -277,29 +277,93 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
             prefixIcon: Icons.local_police_outlined),
       );
     }
-    return Container(
-      constraints: const BoxConstraints(maxHeight: 180),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.blueGrey.shade100),
-      ),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(8),
-        child: Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: _dbStations
-              .map((st) => FilterChip(
-                    label: Text(st, style: GoogleFonts.poppins(fontSize: 11.5)),
-                    selected: _divisionStations.contains(st),
-                    onSelected: (on) => setState(() => on
-                        ? _divisionStations.add(st)
-                        : _divisionStations.remove(st)),
-                  ))
-              .toList(),
+    // A dropdown-style field: shows the picked stations and opens a
+    // searchable check-box list.
+    final picked = _dbStations.where(_divisionStations.contains).toList();
+    return InkWell(
+      onTap: _openDivisionStationsDropdown,
+      borderRadius: BorderRadius.circular(8),
+      child: InputDecorator(
+        decoration: _buildInputDecoration(
+          prefixIcon: Icons.local_police_outlined,
+          suffixIcon: const Icon(Icons.arrow_drop_down_rounded),
+        ),
+        child: Text(
+          picked.isEmpty ? 'Select police stations' : picked.join(', '),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.poppins(
+            fontSize: 12.5,
+            color: picked.isEmpty ? Colors.grey.shade500 : AppColors.navyDark,
+          ),
         ),
       ),
     );
+  }
+
+  Future<void> _openDivisionStationsDropdown() async {
+    final selection = Set<String>.from(_divisionStations);
+    String query = '';
+    final result = await showDialog<Set<String>>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) {
+          final shown = _dbStations
+              .where((st) => st.toLowerCase().contains(query.toLowerCase()))
+              .toList();
+          return AlertDialog(
+            title: Text('Police stations in this division',
+                style: GoogleFonts.poppins(
+                    fontSize: 14, fontWeight: FontWeight.w700)),
+            content: SizedBox(
+              width: 420,
+              height: 420,
+              child: Column(
+                children: [
+                  TextField(
+                    onChanged: (v) => setLocal(() => query = v),
+                    style: GoogleFonts.poppins(fontSize: 12.5),
+                    decoration: _buildInputDecoration(
+                        hintText: 'Search stations',
+                        prefixIcon: Icons.search_rounded),
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: ListView(
+                      children: shown
+                          .map((st) => CheckboxListTile(
+                                dense: true,
+                                value: selection.contains(st),
+                                title: Text(st,
+                                    style: GoogleFonts.poppins(fontSize: 12.5)),
+                                onChanged: (on) => setLocal(() => on == true
+                                    ? selection.add(st)
+                                    : selection.remove(st)),
+                              ))
+                          .toList(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel')),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(ctx, selection),
+                child: Text('Done (${selection.length} selected)'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    if (result != null && mounted) {
+      setState(() => _divisionStations
+        ..clear()
+        ..addAll(result));
+    }
   }
 
   Future<void> _submitOnboarding() async {
