@@ -67,6 +67,27 @@ class OnboardingChainTests(SecurityTestBase):
         for account in made:
             self.assertTrue(self._sees(self.state_admin, account))
 
+    def test_pending_request_carries_the_accounts_details(self):
+        # The request also comes as a notification, which holds only a title;
+        # the approver still has to see who is asking.
+        from apps.core.tenancy import TenantContext
+        from apps.users.models import NotificationRecord
+
+        account = self._onboard(self.state_admin, role_id='division_admin', full_name='Suresh Patil',
+                                designation='SDPO', phone='9876543210', zone='Shirdi Sub-Division')
+        with TenantContext('maharashtra'):
+            NotificationRecord.objects.create(
+                target_role_id='state_super_admin', target_state_code='MH', title='New Officer Registration Pending',
+                category='approval_request', registration_uid=account.uid, status='pending')
+        response = self.client.get('/api/auth/notifications/pending-approvals/', **_officer_headers(self.state_admin))
+        [item] = [i for i in response.data if i['registration_uid'] == account.uid]
+        self.assertEqual(
+            {k: item.get(k) for k in ('name', 'email', 'phone', 'designation', 'role_id', 'target_district',
+                                      'division_name')},
+            {'name': 'Suresh Patil', 'email': account.email, 'phone': '9876543210', 'designation': 'SDPO',
+             'role_id': 'division_admin', 'target_district': 'Ahilyanagar', 'division_name': 'Shirdi Sub-Division'})
+        self.assertEqual(len(item['additional_stations']), 2)
+
     def test_district_admin_and_state_admin_approve_what_the_district_admin_creates(self):
         division = self._onboard(self.district_admin, role_id='division_admin',
                                  division_name='Rahata Sub-Division', designation='SDPO')

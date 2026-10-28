@@ -8,6 +8,7 @@ import '../constants/app_constants.dart';
 import '../services/api_config.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/officer_details_dialog.dart';
 
 class StateAdminHierarchyScreen extends StatefulWidget {
   const StateAdminHierarchyScreen({super.key});
@@ -137,13 +138,14 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
             fontSize: 12.5,
             fontWeight: FontWeight.w500,
           ),
+          // Same order as the hierarchy: district, city, division, station.
           tabs: const [
+            Tab(icon: Icon(Icons.map_rounded, size: 18), text: 'Districts'),
+            Tab(icon: Icon(Icons.apartment_rounded, size: 18), text: 'Cities'),
             Tab(
               icon: Icon(Icons.location_city_rounded, size: 18),
               text: 'Divisions',
             ),
-            Tab(icon: Icon(Icons.map_rounded, size: 18), text: 'Districts'),
-            Tab(icon: Icon(Icons.apartment_rounded, size: 18), text: 'Cities'),
             Tab(
               icon: Icon(Icons.local_police_rounded, size: 18),
               text: 'Stations',
@@ -160,9 +162,9 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
               : TabBarView(
                   controller: _tabController,
                   children: [
-                    _buildDivisionsTab(),
                     _buildDistrictsTab(),
                     _buildCitiesTab(),
+                    _buildDivisionsTab(),
                     _buildStationsTab(),
                   ],
                 ),
@@ -526,6 +528,7 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
                         side: const BorderSide(color: Color(0xFFE2E8F0)),
                       ),
                       child: ListTile(
+                        onTap: head == null ? null : () => _showOfficer(head),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 4,
@@ -582,6 +585,11 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
     );
   }
 
+  /// Shows an officer's profile and assignment (read-only).
+  void _showOfficer(Map<String, dynamic> officer) {
+    OfficerDetailsDialog.show(context, officerData: officer);
+  }
+
   Widget _buildAdminTile(
     Map<String, dynamic> admin, {
     required String roleLabel,
@@ -599,6 +607,7 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
       child: Material(
         color: Colors.transparent,
         child: ListTile(
+          onTap: () => _showOfficer(admin),
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
           leading: CircleAvatar(

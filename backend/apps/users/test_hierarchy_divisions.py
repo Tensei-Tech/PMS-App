@@ -37,6 +37,17 @@ class HierarchyDivisionsTests(SecurityTestBase):
         self.assertFalse(any(name.endswith(' Division') and name.split(' Division')[0] in OLD_REGIONAL_DIVISIONS
                              for name in (d['name'] for d in data['divisions'])))
 
+    def test_listed_officers_carry_their_details(self):
+        # Tapping an officer on a hierarchy screen shows these.
+        data = self._directory(self.state_admin)
+        [admin] = [a for d in data['divisions'] for a in d['admins'] if a['uid'] == self.shirdi.uid]
+        self.assertEqual(
+            {k: admin[k] for k in ('role_id', 'district', 'division_name', 'account_status')},
+            {'role_id': 'division_admin', 'district': 'Ahilyanagar', 'division_name': 'Shirdi Sub-Division',
+             'account_status': 'active'})
+        for key in ('email', 'phone', 'badge_number', 'station_name', 'additional_stations', 'photo_url'):
+            self.assertIn(key, admin)
+
     def test_district_admin_is_listed_by_role_not_designation(self):
         data = self._directory(self.state_admin)
         district_admins = [a['uid'] for d in data['districts'] for a in d['admins']]
@@ -44,11 +55,12 @@ class HierarchyDivisionsTests(SecurityTestBase):
         self.assertIn(self.district_admin.uid, district_admins)
         self.assertNotIn(self.district_admin.uid, division_admins)
 
-    def test_division_admin_sees_only_their_sub_division_and_district(self):
+    def test_division_admin_sees_only_their_sub_division_not_districts(self):
+        # A division sits below its district or city: no districts or cities.
         data = self._directory(self.shirdi)
         self.assertEqual([d['name'] for d in data['divisions']], ['Shirdi Sub-Division'])
         self.assertEqual(data['assigned_division'], 'Shirdi Sub-Division')
-        self.assertTrue(all(d['name'].casefold() == 'ahilyanagar' for d in data['districts']))
+        self.assertEqual((data['districts'], data['cities']), ([], []))
 
     def test_query_count_does_not_grow_with_stations(self):
         # One lookup per station made the app time out once a state had

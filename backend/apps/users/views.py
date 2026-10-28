@@ -50,6 +50,26 @@ DISTRICT_TO_DIVISION_MAP = {
 }
 
 
+def _officer_card(off, default_designation):
+    """An officer as the hierarchy screens show it, with what the details view needs."""
+    return {
+        'uid': off.uid,
+        'name': off.name,
+        'email': off.email,
+        'phone': off.phone or '',
+        'designation': off.designation or default_designation,
+        'badge_number': off.badge_number or '',
+        'govt_id': off.govt_id or '',
+        'account_status': off.account_status,
+        'role_id': off.role_id or '',
+        'district': off.district or '',
+        'station_name': off.station_name or '',
+        'division_name': off.division_name or off.zone or '',
+        'additional_stations': list(off.additional_stations or []),
+        'photo_url': off.photo_url or '',
+    }
+
+
 class OfficerProfileViewSet(viewsets.ModelViewSet):
     """
     API endpoint for viewing and editing officer profiles.
@@ -172,15 +192,7 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
             for st in off.additional_stations or []:
                 if isinstance(st, str) and st.strip() and st.strip() not in entry['stations']:
                     entry['stations'].append(st.strip())
-            entry['admins'].append({
-                'uid': off.uid,
-                'name': off.name,
-                'email': off.email,
-                'phone': off.phone or '',
-                'designation': off.designation or 'Division Admin',
-                'badge_number': off.badge_number or '',
-                'account_status': off.account_status,
-            })
+            entry['admins'].append(_officer_card(off, 'Division Admin'))
 
         # 3. Gather Districts & District Admins
         districts_map = {}
@@ -214,15 +226,7 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
                         'division_name': '',
                         'admins': [],
                     }
-                districts_map[dist_name]['admins'].append({
-                    'uid': off.uid,
-                    'name': off.name,
-                    'email': off.email,
-                    'phone': off.phone or '',
-                    'designation': off.designation or 'District Admin',
-                    'badge_number': off.badge_number or '',
-                    'account_status': off.account_status,
-                })
+                districts_map[dist_name]['admins'].append(_officer_card(off, 'District Admin'))
 
         # 3b. Cities (police commissionerates) & City Admins. Cities have no
         # master list yet, so a city admin's city is the 'district' they hold.
@@ -235,15 +239,7 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
                 'id': f"city-{city_name.lower().replace(' ', '-')}",
                 'name': city_name,
                 'admins': [],
-            })['admins'].append({
-                'uid': off.uid,
-                'name': off.name,
-                'email': off.email,
-                'phone': off.phone or '',
-                'designation': off.designation or 'City Admin',
-                'badge_number': off.badge_number or '',
-                'account_status': off.account_status,
-            })
+            })['admins'].append(_officer_card(off, 'City Admin'))
 
         # 4. Gather Police Stations & Station Heads
         stations_map = {}
@@ -288,15 +284,7 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
             is_head = role in ['station_admin'] or any(k in desig for k in ['pi', 'inspector', 'sho', 'in charge', 'station head'])
 
             if is_head or stations_map[st_name]['head'] is None:
-                stations_map[st_name]['head'] = {
-                    'uid': off.uid,
-                    'name': off.name,
-                    'email': off.email,
-                    'phone': off.phone or '',
-                    'designation': off.designation or 'Station Head',
-                    'badge_number': off.badge_number or '',
-                    'account_status': off.account_status,
-                }
+                stations_map[st_name]['head'] = _officer_card(off, 'Station Head')
 
         # 5. What the caller sees: a state admin everything; a district or
         # city admin their district/city with its divisions and stations; a
@@ -328,8 +316,12 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
                 divisions_map = {}
                 station_names = {s.casefold() for s in [getattr(caller, 'station_name', '')]
                                  + list(getattr(caller, 'additional_stations', None) or []) if s}
-            districts_map = {k: v for k, v in districts_map.items() if same(k, caller_district)}
-            cities_map = {k: v for k, v in cities_map.items() if same(k, caller_district)}
+            if level == DISTRICT:
+                districts_map = {k: v for k, v in districts_map.items() if same(k, caller_district)}
+                cities_map = {k: v for k, v in cities_map.items() if same(k, caller_district)}
+            else:
+                # A division or station sits below its district or city.
+                districts_map, cities_map = {}, {}
             stations_map = {
                 k: v for k, v in stations_map.items()
                 if (same(v.get('district'), caller_district) if station_names is None
