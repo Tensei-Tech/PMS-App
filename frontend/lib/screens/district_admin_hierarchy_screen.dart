@@ -23,6 +23,7 @@ class _DistrictAdminHierarchyScreenState
   bool _isLoading = true;
   String? _errorMessage;
 
+  List<Map<String, dynamic>> _divisions = [];
   List<Map<String, dynamic>> _stations = [];
   String _assignedDistrictName = 'District Range';
   String _searchQuery = '';
@@ -53,6 +54,8 @@ class _DistrictAdminHierarchyScreenState
       if (response.isSuccess && response.data is Map) {
         final data = response.data as Map<String, dynamic>;
         setState(() {
+          _divisions =
+              (data['divisions'] as List?)?.cast<Map<String, dynamic>>() ?? [];
           _stations =
               (data['stations'] as List?)?.cast<Map<String, dynamic>>() ?? [];
           _assignedDistrictName = data['assigned_district']?.toString() ??
@@ -83,6 +86,8 @@ class _DistrictAdminHierarchyScreenState
       final query = _searchQuery.toLowerCase().trim();
       return name.contains(query);
     }).toList();
+    // The divisions (sub-divisions) of this district or city, then its stations.
+    final showDivisions = _searchQuery.trim().isEmpty && _divisions.isNotEmpty;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
@@ -192,7 +197,7 @@ class _DistrictAdminHierarchyScreenState
                       ),
                     ),
                     Expanded(
-                      child: filteredStations.isEmpty
+                      child: filteredStations.isEmpty && !showDivisions
                           ? _buildEmptyState(
                               _searchQuery.isEmpty
                                   ? 'No police stations found in $_assignedDistrictName.'
@@ -200,8 +205,24 @@ class _DistrictAdminHierarchyScreenState
                             )
                           : ListView.builder(
                               padding: const EdgeInsets.all(12),
-                              itemCount: filteredStations.length,
+                              itemCount: filteredStations.length +
+                                  (showDivisions ? _divisions.length + 2 : 0),
                               itemBuilder: (ctx, idx) {
+                                if (showDivisions) {
+                                  if (idx == 0) {
+                                    return _buildSectionLabel(
+                                        'Divisions in $_assignedDistrictName');
+                                  }
+                                  if (idx <= _divisions.length) {
+                                    return _buildDivisionCard(
+                                        _divisions[idx - 1]);
+                                  }
+                                  if (idx == _divisions.length + 1) {
+                                    return _buildSectionLabel(
+                                        'Police Stations');
+                                  }
+                                  idx -= _divisions.length + 2;
+                                }
                                 final st = filteredStations[idx];
                                 final name = st['name'] ?? 'Police Station';
                                 final head =
@@ -257,6 +278,63 @@ class _DistrictAdminHierarchyScreenState
                     ),
                   ],
                 ),
+    );
+  }
+
+  Widget _buildSectionLabel(String text) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 6, 4, 8),
+      child: Text(
+        text.toUpperCase(),
+        style: GoogleFonts.poppins(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.6,
+          color: Colors.grey.shade700,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDivisionCard(Map<String, dynamic> div) {
+    final admins = (div['admins'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final adminNames = admins
+        .map((a) => '${a['name']} (${a['designation'] ?? 'Division Admin'})')
+        .join(', ');
+    return Card(
+      elevation: 1,
+      margin: const EdgeInsets.only(bottom: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: const BorderSide(color: Color(0xFFE2E8F0)),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        leading: CircleAvatar(
+          radius: 16,
+          backgroundColor: Colors.amber.shade50,
+          child:
+              Icon(Icons.hub_rounded, color: Colors.amber.shade800, size: 18),
+        ),
+        title: Text(
+          div['name'] ?? 'Division',
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: AppColors.navyDark,
+          ),
+        ),
+        subtitle: Text(
+          admins.isEmpty
+              ? 'Division Admin: Unassigned'
+              : 'Division Admin: $adminNames',
+          style: GoogleFonts.poppins(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: admins.isEmpty ? Colors.orange.shade800 : AppColors.navyDark,
+          ),
+        ),
+      ),
     );
   }
 
