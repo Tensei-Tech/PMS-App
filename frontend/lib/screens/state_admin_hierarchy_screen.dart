@@ -205,7 +205,8 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
   // ── 1. DIVISIONS TAB VIEW ──
   Widget _buildDivisionsTab() {
     if (_divisions.isEmpty) {
-      return _buildEmptyState('No Divisions found in system.');
+      return _buildEmptyState(
+          'No Division Admins yet. Create one from Admin Panel → Create Sub-Admin.');
     }
 
     return ListView.builder(
@@ -214,6 +215,8 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
       itemBuilder: (context, index) {
         final div = _divisions[index];
         final name = div['name'] ?? 'Division';
+        // A division is a sub-division inside one district or city.
+        final district = (div['district'] ?? '').toString();
         final admins =
             (div['admins'] as List?)?.cast<Map<String, dynamic>>() ?? [];
 
@@ -243,7 +246,9 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
               ),
             ),
             subtitle: Text(
-              '${admins.length} Division Admin(s) assigned',
+              district.isNotEmpty
+                  ? '$district • ${admins.length} Division Admin(s) assigned'
+                  : '${admins.length} Division Admin(s) assigned',
               style: GoogleFonts.poppins(
                 fontSize: 11,
                 color: Colors.grey.shade600,

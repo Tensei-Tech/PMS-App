@@ -45,15 +45,6 @@ DISTRICT_TO_DIVISION_MAP = {
     'gondia': 'Nagpur Division', 'chandrapur': 'Nagpur Division', 'gadchiroli': 'Nagpur Division',
 }
 
-DEFAULT_6_DIVISIONS = [
-    'Konkan Division',
-    'Pune Division',
-    'Nashik Division',
-    'Chhatrapati Sambhajinagar Division',
-    'Amravati Division',
-    'Nagpur Division',
-]
-
 
 class OfficerProfileViewSet(viewsets.ModelViewSet):
     """
@@ -145,67 +136,44 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
 
         all_officers = list(officers_by_uid.values())
 
-        # 2. Gather Divisions & Division Admins
-
+        # 2. Gather Divisions & Division Admins. A division is a sub-division
+        # inside one district or city, named when its Division Admin is
+        # created, so the tab lists the sub-divisions division admins hold
+        # (plus any rows a state adds to master_divisions). Admin kinds come
+        # from the role, never from the designation text.
         divisions_map = {}
-        # Seed 6 standard police divisions
-        for dname in DEFAULT_6_DIVISIONS:
-            divisions_map[dname] = {
-                'id': f"div-{dname.lower().replace(' ', '-')}",
-                'name': dname,
-                'admins': [],
-            }
+
+        def division_entry(name, district=''):
+            key = (name.strip().casefold(), district.strip().casefold())
+            if key not in divisions_map:
+                slug = '-'.join(p for p in (name, district) if p).lower().replace(' ', '-')
+                divisions_map[key] = {'id': f"div-{slug}", 'name': name.strip(), 'district': district.strip(),
+                                      'admins': []}
+            return divisions_map[key]
 
         try:
             # Schema switch outside the savepoint: it must never run inside a
             # failed transaction (set_tenant_schema then drops the connection).
             with TenantContext(active_schema), transaction.atomic():
-                master_divs = list(MasterDivision.objects.all())
-                for mdiv in master_divs:
-                    div_name = getattr(mdiv, 'name', getattr(mdiv, 'division_name', ''))
-                    if div_name and div_name not in divisions_map:
-                        divisions_map[div_name] = {
-                            'id': f"div-{mdiv.id}",
-                            'name': div_name,
-                            'admins': [],
-                        }
+                for mdiv in MasterDivision.objects.all():
+                    if getattr(mdiv, 'name', ''):
+                        division_entry(mdiv.name)
         except Exception as e:
             logger.warning(f"[HierarchyDirectory] MasterDivision query failed in {active_schema}: {e}")
 
-        # Map Division Admins (role_id == 'division_admin' or designation matching DySP/ACP/SDPO/DIG/IG)
         for off in all_officers:
-            role = (off.role_id or off.role or '').lower()
-            desig = (off.designation or '').lower()
-            if role == 'city_admin':
-                continue  # listed under Cities, whatever their designation
-            is_div_admin = role in ['division_admin', 'supervisor'] or any(k in desig for k in ['dysp', 'acp', 'sdpo', 'dig', 'ig', 'division admin'])
-            if is_div_admin:
-                raw_dist = (off.district or off.station_name or '').lower().strip()
-                div_name = DISTRICT_TO_DIVISION_MAP.get(raw_dist)
-                if not div_name:
-                    # Fallback lookup in default 6 divisions if contains keyword
-                    for dname in DEFAULT_6_DIVISIONS:
-                        if dname.lower() in raw_dist or raw_dist in dname.lower():
-                            div_name = dname
-                            break
-                if not div_name:
-                    div_name = off.district or 'General Division'
-
-                if div_name not in divisions_map:
-                    divisions_map[div_name] = {
-                        'id': f"div-{div_name.lower().replace(' ', '-')}",
-                        'name': div_name,
-                        'admins': [],
-                    }
-                divisions_map[div_name]['admins'].append({
-                    'uid': off.uid,
-                    'name': off.name,
-                    'email': off.email,
-                    'phone': off.phone or '',
-                    'designation': off.designation or 'Division Admin',
-                    'badge_number': off.badge_number or '',
-                    'account_status': off.account_status,
-                })
+            if (off.role_id or '').lower() not in ('division_admin', 'supervisor'):
+                continue
+            division_entry(off.division_name or off.zone or 'Sub-division not set',
+                           off.district or '')['admins'].append({
+                'uid': off.uid,
+                'name': off.name,
+                'email': off.email,
+                'phone': off.phone or '',
+                'designation': off.designation or 'Division Admin',
+                'badge_number': off.badge_number or '',
+                'account_status': off.account_status,
+            })
 
         # 3. Gather Districts & District Admins
         districts_map = {}
@@ -229,13 +197,8 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
 
         # Map District Admins (role_id == 'district_admin' or designation SP/CP/DCP, excluding Division Admins)
         for off in all_officers:
-            role = (off.role_id or off.role or '').lower()
-            desig = (off.designation or '').lower()
-            if role == 'city_admin':
-                continue  # listed under Cities, whatever their designation
-            is_div_admin = role in ['division_admin', 'supervisor'] or any(k in desig for k in ['dysp', 'acp', 'sdpo', 'dig', 'spl. ig', 'special ig', 'division admin']) or (desig.endswith('ig') and 'dgp' not in desig)
-            is_dist_admin = not is_div_admin and (role in ['district_admin'] or any(k in desig for k in ['superintendent', 'commissioner', 'district admin']) or (desig == 'sp' or desig.startswith('sp ') or desig.endswith(' sp') or ' dcp' in desig or 'dcp ' in desig))
-            if is_dist_admin:
+            # By role: a district admin with designation DIG is still a district admin.
+            if (off.role_id or '').lower() == 'district_admin':
                 dist_name = off.district or off.station_name or 'District HQ'
                 if dist_name not in districts_map:
                     districts_map[dist_name] = {
@@ -324,57 +287,25 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
                     'account_status': off.account_status,
                 }
 
-        # 5. Division Admin Scope Filtering (if caller is a Division Admin)
+        # 5. Division Admin Scope Filtering (if caller is a Division Admin):
+        # their own sub-division, and the districts and stations of their district.
         caller = request.user
-        role_id = getattr(caller, 'role_id', '')
-        desig = (getattr(caller, 'designation', '') or '').upper()
-        is_state_super = role_id in ['state_admin', 'state_super_admin', 'super_admin', 'master_admin'] or desig in ['DG', 'DGP', 'ADG', 'ADGP']
-        is_div_admin = not is_state_super and (role_id in ['division_admin', 'supervisor'] or any(k in desig for k in ['DYSP', 'ACP', 'SDPO', 'DIG', 'IG']))
+        role_id = (getattr(caller, 'role_id', '') or '').lower()
+        is_div_admin = role_id in ('division_admin', 'supervisor')
 
         user_division = None
         if is_div_admin:
-            # 1. Primary check: Direct assigned division_name (Division Admins operate across division, not single station/district)
-            direct_div = (getattr(caller, 'division_name', '') or '').strip()
-            if direct_div:
-                for dname in DEFAULT_6_DIVISIONS:
-                    if dname.lower() in direct_div.lower() or direct_div.lower() in dname.lower():
-                        user_division = dname
-                        break
-                if not user_division:
-                    user_division = direct_div
-
-            # 2. Secondary fallback: Infer division from assigned district or station_name
-            if not user_division:
-                raw_dist = (getattr(caller, 'district', '') or getattr(caller, 'station_name', '') or '').lower().strip()
-                user_division = DISTRICT_TO_DIVISION_MAP.get(raw_dist)
-                if not user_division:
-                    for dname in DEFAULT_6_DIVISIONS:
-                        if dname.lower() in raw_dist or raw_dist in dname.lower():
-                            user_division = dname
-                            break
-            if not user_division:
-                user_division = getattr(caller, 'district', None)
-
-            if user_division:
-                # Keep ONLY user's assigned division
-                divisions_map = {k: v for k, v in divisions_map.items() if k == user_division}
-
-                # Identify all districts mapped under this division
-                division_districts = set()
-                for dist_k, div_v in DISTRICT_TO_DIVISION_MAP.items():
-                    if div_v == user_division:
-                        division_districts.add(dist_k.lower())
-
-                # Filter districts_map to only districts inside user's division
-                districts_map = {
-                    k: v for k, v in districts_map.items()
-                    if k.lower().strip() in division_districts or (v.get('division_name') or '') == user_division
-                }
-
-                # Filter stations_map to only stations inside user's division districts
+            user_division = (getattr(caller, 'division_name', '') or getattr(caller, 'zone', '') or '').strip()
+            caller_district = (getattr(caller, 'district', '') or '').strip().casefold()
+            divisions_map = {
+                k: v for k, v in divisions_map.items()
+                if k[0] == user_division.casefold() and (not caller_district or k[1] in ('', caller_district))
+            }
+            if caller_district:
+                districts_map = {k: v for k, v in districts_map.items() if k.strip().casefold() == caller_district}
                 stations_map = {
                     k: v for k, v in stations_map.items()
-                    if (v.get('district') or '').lower().strip() in division_districts
+                    if (v.get('district') or '').strip().casefold() == caller_district
                 }
 
         return Response({
@@ -384,7 +315,7 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
             'cities': [] if is_div_admin else sorted(cities_map.values(), key=lambda c: c['name']),
             'stations': list(stations_map.values()),
             'scope': 'division' if is_div_admin else 'state',
-            'assigned_division': user_division if is_div_admin else 'All State Divisions',
+            'assigned_division': user_division if is_div_admin else 'All Divisions',
         }, status=status.HTTP_200_OK)
 
 
