@@ -240,18 +240,15 @@ class NAFISCasesDataTable extends StatelessWidget {
               .toString()
               .trim();
 
-          final color = (r['nafis_status_color'] ??
-                  extra['nafis_status_color'] ??
-                  '')
-              .toString()
-              .toLowerCase();
-          final rawStatus = (r['nafis_status'] ??
-                  extra['nafis_status'] ??
-                  r['status'] ??
-                  '')
-              .toString()
-              .trim()
-              .toLowerCase();
+          final color =
+              (r['nafis_status_color'] ?? extra['nafis_status_color'] ?? '')
+                  .toString()
+                  .toLowerCase();
+          final rawStatus =
+              (r['nafis_status'] ?? extra['nafis_status'] ?? r['status'] ?? '')
+                  .toString()
+                  .trim()
+                  .toLowerCase();
           final isGreen = color == 'green' ||
               rawStatus == 'done' ||
               rawStatus == 'chargesheeted' ||

@@ -605,9 +605,8 @@ class _RTIHubScreenState extends State<RTIHubScreen>
       ],
     );
 
-    final wrapped = width != null
-        ? SizedBox(width: width, child: content)
-        : content;
+    final wrapped =
+        width != null ? SizedBox(width: width, child: content) : content;
 
     if (onTap != null) {
       return InkWell(
@@ -782,7 +781,8 @@ class _RTIHubScreenState extends State<RTIHubScreen>
     final editLabel = rowActionLabels['edit']?.toString() ?? 'Edit';
     final viewLabel = rowActionLabels['view']?.toString() ?? 'View';
     final pdfLabel = rowActionLabels['pdf']?.toString() ?? 'PDF';
-    final remindLabel = rowActionLabels['remind']?.toString() ?? 'Send Reminder';
+    final remindLabel =
+        rowActionLabels['remind']?.toString() ?? 'Send Reminder';
 
     Widget buildRowContent(bool isExpandedMode) {
       return Row(
@@ -834,7 +834,8 @@ class _RTIHubScreenState extends State<RTIHubScreen>
             onTap: () => _openViewModal(rtiId),
             borderRadius: BorderRadius.circular(6),
             child: Tooltip(
-              message: TranslationHelper.translate(context, 'Click to see info'),
+              message:
+                  TranslationHelper.translate(context, 'Click to see info'),
               child: Container(
                 height: 38,
                 width: 95,
@@ -969,7 +970,9 @@ class _RTIHubScreenState extends State<RTIHubScreen>
             context: context,
             width: 110,
             label: 'Received Date',
-            value: (receivedDate.isEmpty || receivedDate == '-') ? '—' : receivedDate,
+            value: (receivedDate.isEmpty || receivedDate == '-')
+                ? '—'
+                : receivedDate,
             icon: Icons.calendar_today_outlined,
           ),
 
@@ -1219,7 +1222,8 @@ class _RTIHubScreenState extends State<RTIHubScreen>
             onTap: () => _openViewModal(rtiId),
             borderRadius: BorderRadius.circular(6),
             child: Tooltip(
-              message: TranslationHelper.translate(context, 'Click to see info'),
+              message:
+                  TranslationHelper.translate(context, 'Click to see info'),
               child: Container(
                 height: 38,
                 width: 95,
@@ -1315,7 +1319,9 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                   child: _buildFieldColumn(
                     context: context,
                     label: 'Applicant Name',
-                    value: (applicantName.isEmpty || applicantName == '-') ? '—' : applicantName,
+                    value: (applicantName.isEmpty || applicantName == '-')
+                        ? '—'
+                        : applicantName,
                     icon: Icons.person_outline_rounded,
                   ),
                 )
@@ -1323,7 +1329,9 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                   context: context,
                   width: 260,
                   label: 'Applicant Name',
-                  value: (applicantName.isEmpty || applicantName == '-') ? '—' : applicantName,
+                  value: (applicantName.isEmpty || applicantName == '-')
+                      ? '—'
+                      : applicantName,
                   icon: Icons.person_outline_rounded,
                 ),
 
@@ -1334,7 +1342,9 @@ class _RTIHubScreenState extends State<RTIHubScreen>
             context: context,
             width: 110,
             label: 'Received Date',
-            value: (receivedDate.isEmpty || receivedDate == '-') ? '—' : receivedDate,
+            value: (receivedDate.isEmpty || receivedDate == '-')
+                ? '—'
+                : receivedDate,
             icon: Icons.calendar_today_outlined,
           ),
 
