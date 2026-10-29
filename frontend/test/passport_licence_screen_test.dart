@@ -9,10 +9,11 @@ void main() {
 
   testWidgets('Passport/PVR/Licence shows the Passport and Licence tabs',
       (tester) async {
-    await tester.pumpWidget(const MaterialApp(home: PassportLicenceScreen()));
+    await tester.pumpWidget(
+        const MaterialApp(home: PassportLicenceScreen(stationName: 'TEST')));
     await tester.pump();
-    expect(
-        find.text('Passport/PVR/Licence'), findsWidgets); // title and first tab
+    expect(find.text('Passport/PVR/Licence'), findsOneWidget); // title
+    expect(find.text('Passport/PVR'), findsOneWidget); // first tab
     expect(find.text('Licence'), findsOneWidget);
     expect(find.textContaining('cases'), findsNothing);
   });

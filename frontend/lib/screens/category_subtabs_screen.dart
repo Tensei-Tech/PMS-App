@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../modules/form_iv/providers/form_iv_provider.dart';
+import '../modules/licence/screens/licence_hub_screen.dart';
+import '../modules/passport/screens/passport_hub_screen.dart';
 import '../theme/app_theme.dart';
-import '../utils/category_navigation_helper.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
-import 'case_form_screen.dart';
 import 'form_i_v_selection_screen.dart';
 import 'nafis_hub_screen.dart';
 
@@ -172,11 +172,15 @@ class ModuleTabsScreen extends StatelessWidget {
   }
 }
 
-/// The dashboard's Passport/PVR/Licence tile: Passport/PVR/Licence and Licence.
+/// The dashboard's Passport/PVR/Licence tile: Passport/PVR/Licence and Licence,
+/// each opening its module's hub.
 class PassportLicenceScreen extends StatelessWidget {
-  const PassportLicenceScreen({super.key});
+  final String stationName;
+
+  const PassportLicenceScreen({super.key, required this.stationName});
 
   static const String passportLabel = 'Passport/PVR/Licence';
+  static const String passportTabLabel = 'Passport/PVR';
   static const String licenceLabel = 'Licence';
 
   @override
@@ -185,12 +189,13 @@ class PassportLicenceScreen extends StatelessWidget {
       title: passportLabel,
       tabs: [
         (
-          passportLabel,
+          passportTabLabel,
           Icons.badge_rounded,
-          (context) => CategoryNavigationHelper.handleDashboardCategoryTap(
-                context: context,
-                categoryName: 'Passport/\nPVR/Licence',
-                moduleKey: 'passport',
+          (context) => Navigator.push(
+                context,
+                AppTheme.fadeSlideRoute(
+                  page: PassportHubScreen(stationName: stationName),
+                ),
               ),
         ),
         (
@@ -199,7 +204,7 @@ class PassportLicenceScreen extends StatelessWidget {
           (context) => Navigator.push(
                 context,
                 AppTheme.fadeSlideRoute(
-                  page: const CaseFormScreen(categoryName: licenceLabel),
+                  page: LicenceHubScreen(stationName: stationName),
                 ),
               ),
         ),
