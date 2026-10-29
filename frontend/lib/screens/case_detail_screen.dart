@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../modules/core/models/base_record.dart';
 import '../providers/auth_provider.dart';
+import '../services/case_service.dart';
 import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/case_visibility.dart';
@@ -52,25 +53,39 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
   void _subscribeToRecord() {
     final id = _record.id;
     if (id.isEmpty) return;
+    _fetchFreshRecord();
     _subscription?.cancel();
     _subscription = _firestore.watchCaseById(id).listen(
       (next) {
         if (!mounted) return;
-        setState(() {
-          if (next == null) {
-            _recordDeleted = true;
-          } else {
+        if (next != null) {
+          setState(() {
             _recordDeleted = false;
             _accessDenied = false;
             _record = next;
-          }
-        });
+          });
+        }
       },
       onError: (_) {
         if (!mounted) return;
         setState(() => _accessDenied = true);
       },
     );
+  }
+
+  Future<void> _fetchFreshRecord() async {
+    final id = _record.id;
+    if (id.isEmpty) return;
+    try {
+      final fresh = await CaseService().fetchCaseById(id);
+      if (fresh != null && mounted) {
+        setState(() {
+          _recordDeleted = false;
+          _accessDenied = false;
+          _record = fresh;
+        });
+      }
+    } catch (_) {}
   }
 
   @override

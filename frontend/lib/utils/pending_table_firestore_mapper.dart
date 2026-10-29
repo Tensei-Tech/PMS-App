@@ -19,27 +19,137 @@ String pendingTablePeriodLabel(DateTime anchor, DateTime reference) {
 }
 
 String _sectionsLine(ModuleRecord r) {
-  final raw = r.extraFields[kCommonFormExtraFieldsKey];
-  if (raw is Map<String, dynamic>) {
-    final ch = raw['charges'];
-    if (ch is Map) {
-      final parts = <String>[];
-      for (final entry in ch.entries) {
-        final v = entry.value;
-        if (v is Map) {
-          final act = v['act']?.toString().trim();
-          final secs = v['sections'];
-          if (secs is List && secs.isNotEmpty) {
-            parts.add('$act ${secs.join(', ')}'.trim());
-          } else if (act != null && act.isNotEmpty) {
-            parts.add(act);
+  final sectionsList = <String>[];
+
+  void extractFromMap(Map chMap) {
+    for (final entry in chMap.entries) {
+      final v = entry.value;
+      if (v is Map) {
+        final secs = v['sections'];
+        if (secs is List) {
+          for (final s in secs) {
+            final st = s?.toString().trim();
+            if (st != null &&
+                st.isNotEmpty &&
+                st != 'null' &&
+                st != 'None' &&
+                st != '—' &&
+                st != '-') {
+              sectionsList.add(st);
+            }
+          }
+        }
+        final secNum = (v['section_number'] ?? v['section'])?.toString().trim();
+        final sub =
+            (v['subsection_code'] ?? v['subsection'])?.toString().trim();
+        if (secNum != null &&
+            secNum.isNotEmpty &&
+            secNum != 'null' &&
+            secNum != 'None' &&
+            secNum != '—' &&
+            secNum != '-') {
+          if (sub != null &&
+              sub.isNotEmpty &&
+              sub != 'null' &&
+              sub != 'None' &&
+              sub != '—' &&
+              sub != '-') {
+            sectionsList.add('$secNum($sub)');
+          } else {
+            sectionsList.add(secNum);
           }
         }
       }
-      if (parts.isNotEmpty) return parts.join('; ');
     }
   }
-  return r.firestoreCategoryDisplayName.trim();
+
+  void extractFromList(List chList) {
+    for (final item in chList) {
+      if (item is Map) {
+        final secs = item['sections'];
+        if (secs is List) {
+          for (final s in secs) {
+            final st = s?.toString().trim();
+            if (st != null &&
+                st.isNotEmpty &&
+                st != 'null' &&
+                st != 'None' &&
+                st != '—' &&
+                st != '-') {
+              sectionsList.add(st);
+            }
+          }
+        }
+        final secNum =
+            (item['section_number'] ?? item['section'])?.toString().trim();
+        final sub =
+            (item['subsection_code'] ?? item['subsection'])?.toString().trim();
+        if (secNum != null &&
+            secNum.isNotEmpty &&
+            secNum != 'null' &&
+            secNum != 'None' &&
+            secNum != '—' &&
+            secNum != '-') {
+          if (sub != null &&
+              sub.isNotEmpty &&
+              sub != 'null' &&
+              sub != 'None' &&
+              sub != '—' &&
+              sub != '-') {
+            sectionsList.add('$secNum($sub)');
+          } else {
+            sectionsList.add(secNum);
+          }
+        }
+      }
+    }
+  }
+
+  final raw =
+      r.extraFields[kCommonFormExtraFieldsKey] ?? r.extraFields['common_form'];
+  if (raw is Map) {
+    final ch = raw['charges'] ?? raw['acts_sections'];
+    if (ch is Map) extractFromMap(ch);
+    if (ch is List) extractFromList(ch);
+  }
+
+  final topCh = r.extraFields['charges'] ?? r.extraFields['acts_sections'];
+  if (topCh is Map) extractFromMap(topCh);
+  if (topCh is List) extractFromList(topCh);
+
+  final direct = r.extraFields['sections'] ??
+      r.extraFields['section_number'] ??
+      r.extraFields['section_id'];
+  if (direct is List) {
+    for (final s in direct) {
+      final st = s?.toString().trim();
+      if (st != null &&
+          st.isNotEmpty &&
+          st != 'null' &&
+          st != 'None' &&
+          st != '—' &&
+          st != '-') {
+        sectionsList.add(st);
+      }
+    }
+  } else if (direct != null) {
+    final st = direct.toString().trim();
+    if (st.isNotEmpty &&
+        st != 'null' &&
+        st != 'None' &&
+        st != '—' &&
+        st != '-') {
+      sectionsList.add(st);
+    }
+  }
+
+  final seen = <String>{};
+  final unique = sectionsList.where((x) => seen.add(x)).toList();
+  if (unique.isNotEmpty) {
+    return unique.join(', ');
+  }
+
+  return '—';
 }
 
 String _headLine(ModuleRecord r) {
@@ -86,6 +196,19 @@ String _victimConditionLine(ModuleRecord r) {
   return '';
 }
 
+final Map<String, ModuleRecord> _pendingRecordCache = {};
+
+void cachePendingModuleRecord(ModuleRecord r) {
+  if (r.id.isNotEmpty) _pendingRecordCache[r.id] = r;
+  if (r.caseNumber.trim().isNotEmpty) {
+    _pendingRecordCache[r.caseNumber.trim()] = r;
+  }
+}
+
+ModuleRecord? getPendingModuleRecord(String key) {
+  return _pendingRecordCache[key];
+}
+
 /// One row map: keys `sr`, `cr`, `sections`, `date`, `io`, `reason`, `period`, `head`
 /// plus optional `spot` for AD column and victim fields.
 Map<String, String> pendingModuleRecordToTableRow(
@@ -98,8 +221,14 @@ Map<String, String> pendingModuleRecordToTableRow(
   // Dynamically fetch the head directly from the database record instead of hardcoding
   final dynamicHead = _headLine(r);
 
+  // Cache record in memory for instant retrieval
+  cachePendingModuleRecord(r);
+
   return {
-    'sr': '$sr',
+    'id': r.id,
+    'module_key': r.moduleKey,
+    'sub_category': r.subCategory ?? '',
+    'title': r.title,
     'cr': r.caseNumber.trim(),
     'sections': _sectionsLine(r),
     'accused': r.accused.trim().isEmpty ? '—' : r.accused.trim(),
@@ -110,6 +239,11 @@ Map<String, String> pendingModuleRecordToTableRow(
     'victim_name': _victimNamesLine(r),
     'injured_deceased': _victimConditionLine(r),
     'period': pendingTablePeriodLabel(r.incidentDate, reference),
+    'incident_date': r.incidentDate.toIso8601String(),
+    'complainant': r.complainant.trim().isEmpty ? '—' : r.complainant.trim(),
+    'priority': r.priority,
+    'status': r.status,
+    'description': r.description,
   };
 }
 

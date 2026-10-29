@@ -13,7 +13,6 @@ import '../modules/form_iv/providers/form_iv_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/common_form_module.dart';
 import '../utils/translation_helper.dart';
-import 'ad_form_dynamic_document_view.dart' show humanizeFieldKey;
 
 /// Matches PDF / form: plain string with fallback.
 String _v(dynamic v, {String or = ''}) {
@@ -282,23 +281,42 @@ class CommonFormDocumentView extends StatelessWidget {
   ) {
     final desktop = _CaseDetailLayoutScope.isDesktop(context);
     final out = <Widget>[];
+
+    // Filter out empty, null, placeholder, and unselected values
+    final validFields = fields.where((f) {
+      final v = f.value.trim();
+      if (v.isEmpty || v == '—' || v == '-' || v == 'null' || v == 'None') {
+        return false;
+      }
+      final lower = v.toLowerCase();
+      if (lower == 'not uploaded' ||
+          lower == 'not set' ||
+          lower == 'no charges added.' ||
+          lower == 'none') {
+        return false;
+      }
+      return true;
+    }).toList();
+
+    if (validFields.isEmpty) return const [];
+
     if (!desktop) {
-      for (var i = 0; i < fields.length; i++) {
+      for (var i = 0; i < validFields.length; i++) {
         if (i > 0) out.add(_divider());
-        final f = fields[i];
+        final f = validFields[i];
         out.add(_row(f.label, f.value, fullWidth: f.fullWidth));
       }
       return out;
     }
-    for (var i = 0; i < fields.length; i++) {
-      final f = fields[i];
+    for (var i = 0; i < validFields.length; i++) {
+      final f = validFields[i];
       if (f.fullWidth) {
         if (out.isNotEmpty) out.add(_divider());
         out.add(_row(f.label, f.value, fullWidth: true));
         continue;
       }
-      if (i + 1 < fields.length && !fields[i + 1].fullWidth) {
-        final g = fields[i + 1];
+      if (i + 1 < validFields.length && !validFields[i + 1].fullWidth) {
+        final g = validFields[i + 1];
         if (out.isNotEmpty) out.add(_divider());
         out.add(_desktopTwoSimpleFieldsRow(f.label, f.value, g.label, g.value));
         i++;
@@ -335,6 +353,17 @@ class CommonFormDocumentView extends StatelessWidget {
     IconData icon = Icons.article_outlined,
     Widget? headerAction,
   }) {
+    final visibleBody = body.where((w) {
+      if (w is SizedBox &&
+          (w.height == 0 || w.height == null || w.width == 0)) {
+        return false;
+      }
+      return true;
+    }).toList();
+    if (visibleBody.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return _surfaceCard([
       Row(
         children: [
@@ -349,22 +378,8 @@ class CommonFormDocumentView extends StatelessWidget {
       const SizedBox(height: 10),
       _divider(),
       const SizedBox(height: 10),
-      ...body,
+      ...visibleBody,
     ]);
-  }
-
-  Widget _mutedNote(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        text,
-        style: GoogleFonts.poppins(
-          fontSize: 11,
-          fontStyle: FontStyle.italic,
-          color: AppColors.lightSubText,
-        ),
-      ),
-    );
   }
 
   Widget _personCard(
@@ -372,6 +387,23 @@ class CommonFormDocumentView extends StatelessWidget {
     String heading,
     Map<String, dynamic> p,
   ) {
+    final fields = _pairedSimpleFields(context, [
+      (
+        label: 'Name',
+        value: _v(p['name'] ?? p['person_name'] ?? p['accused_name']),
+        fullWidth: false
+      ),
+      (label: 'Age', value: _v(p['age']), fullWidth: false),
+      (label: 'Gender', value: _v(p['gender']), fullWidth: false),
+      (label: 'Occupation', value: _v(p['occ']), fullWidth: false),
+      (label: 'Mobile', value: _v(p['mobile']), fullWidth: false),
+      (label: 'Aadhaar', value: _v(p['aadhaar']), fullWidth: false),
+      (label: 'PAN Number', value: _v(p['pan']), fullWidth: false),
+      (label: 'Religion', value: _v(p['religion']), fullWidth: false),
+      (label: 'Caste', value: _v(p['caste']), fullWidth: false),
+      (label: 'Address', value: _v(p['address']), fullWidth: true),
+    ]);
+    if (fields.isEmpty) return const SizedBox.shrink();
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 10),
@@ -397,18 +429,7 @@ class CommonFormDocumentView extends StatelessWidget {
           const SizedBox(height: 8),
           _divider(),
           const SizedBox(height: 8),
-          ..._pairedSimpleFields(context, [
-            (label: 'Name', value: _v(p['name']), fullWidth: false),
-            (label: 'Age', value: _v(p['age']), fullWidth: false),
-            (label: 'Gender', value: _v(p['gender']), fullWidth: false),
-            (label: 'Occupation', value: _v(p['occ']), fullWidth: false),
-            (label: 'Mobile', value: _v(p['mobile']), fullWidth: false),
-            (label: 'Aadhaar', value: _v(p['aadhaar']), fullWidth: false),
-            (label: 'PAN Number', value: _v(p['pan']), fullWidth: false),
-            (label: 'Religion', value: _v(p['religion']), fullWidth: false),
-            (label: 'Caste', value: _v(p['caste']), fullWidth: false),
-            (label: 'Address', value: _v(p['address']), fullWidth: true),
-          ]),
+          ...fields,
         ],
       ),
     );
@@ -421,18 +442,30 @@ class CommonFormDocumentView extends StatelessWidget {
     Map m,
   ) {
     final desktop = _CaseDetailLayoutScope.isDesktop(context);
-    final procEntries = _kProcLabels.entries.toList();
+    final activeEntries = _kProcLabels.entries.where((e) {
+      final on = procChecks[e.key] == true || m[e.key] == true;
+      final d =
+          (procDates[e.key] ?? m['${e.key}_date'])?.toString().trim() ?? '';
+      return on || d.isNotEmpty;
+    }).toList();
+
     final items = <Widget>[];
 
-    for (var i = 0; i < procEntries.length; i += 2) {
-      final e1 = procEntries[i];
-      final on1 = procChecks[e1.key] == true;
-      final d1 = procDates[e1.key]?.toString().trim() ?? '';
+    for (var i = 0; i < activeEntries.length; i += 2) {
+      final e1 = activeEntries[i];
+      final on1 = procChecks[e1.key] == true || m[e1.key] == true;
+      final d1 =
+          (procDates[e1.key] ?? m['${e1.key}_date'])?.toString().trim() ?? '';
 
-      final hasSecond = i + 1 < procEntries.length;
-      final e2 = hasSecond ? procEntries[i + 1] : null;
-      final on2 = hasSecond ? procChecks[e2!.key] == true : false;
-      final d2 = hasSecond ? procDates[e2!.key]?.toString().trim() ?? '' : '';
+      final hasSecond = i + 1 < activeEntries.length;
+      final e2 = hasSecond ? activeEntries[i + 1] : null;
+      final on2 = hasSecond
+          ? (procChecks[e2!.key] == true || m[e2.key] == true)
+          : false;
+      final d2 = hasSecond
+          ? ((procDates[e2!.key] ?? m['${e2.key}_date'])?.toString().trim() ??
+              '')
+          : '';
 
       if (items.isNotEmpty) {
         items.add(const SizedBox(height: 8));
@@ -461,53 +494,56 @@ class CommonFormDocumentView extends StatelessWidget {
       }
     }
 
-    final eshVal = _v(m['eshakshValue'], or: 'Not set');
     final eshDt = _v(m['eshakshDt']);
     final eshReason = _v(m['eshakshReason']);
     final isEshYes =
-        m['eshakshValue']?.toString().trim().toLowerCase() == 'yes';
+        m['eshakshValue']?.toString().trim().toLowerCase() == 'yes' ||
+            m['e_shakshya'] == true;
     final isEshNo = m['eshakshValue']?.toString().trim().toLowerCase() == 'no';
 
     final eshakshFields = <({String label, String value, bool fullWidth})>[
-      (
-        label: 'E-Shakshya',
-        value: eshVal.toUpperCase(),
-        fullWidth: false,
-      ),
-      if (isEshYes && eshDt != '—')
+      if (isEshYes)
+        (
+          label: 'E-Shakshya',
+          value: 'Yes (Recorded)',
+          fullWidth: false,
+        ),
+      if (isEshYes && eshDt.isNotEmpty && eshDt != '—')
         (
           label: 'E-Shakshya Date & Time',
           value: eshDt,
           fullWidth: false,
         )
-      else if (isEshNo && eshReason != '—')
+      else if (isEshNo && eshReason.isNotEmpty && eshReason != '—')
         (
           label: 'Reason for No E-Shakshya',
           value: eshReason,
           fullWidth: false,
-        )
-      else
-        (
-          label: 'E-Shakshya Details',
-          value: '—',
-          fullWidth: false,
         ),
     ];
 
+    final validEsh = _pairedSimpleFields(context, eshakshFields);
+
+    if (items.isEmpty && validEsh.isEmpty) {
+      return const [];
+    }
+
     return [
-      ...items,
-      const SizedBox(height: 14),
-      Text(
-        'E-SHAKSHYA COMPLIANCE',
-        style: GoogleFonts.poppins(
-          fontSize: 10.5,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.6,
-          color: AppColors.navyMid,
+      if (items.isNotEmpty) ...items,
+      if (items.isNotEmpty && validEsh.isNotEmpty) const SizedBox(height: 14),
+      if (validEsh.isNotEmpty) ...[
+        Text(
+          'E-SHAKSHYA COMPLIANCE',
+          style: GoogleFonts.poppins(
+            fontSize: 10.5,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.6,
+            color: AppColors.navyMid,
+          ),
         ),
-      ),
-      const SizedBox(height: 6),
-      ..._pairedSimpleFields(context, eshakshFields),
+        const SizedBox(height: 6),
+        ...validEsh,
+      ],
     ];
   }
 
@@ -574,8 +610,21 @@ class CommonFormDocumentView extends StatelessWidget {
 
   Widget _chargeCard(int n, Map<dynamic, dynamic> data) {
     final act = _v(data['act']);
-    final secs =
-        (data['sections'] as List?)?.map((s) => s.toString()).toList() ?? [];
+    final rawSecs = data['sections'];
+    final secs = (rawSecs is List)
+        ? rawSecs
+            .map((s) => s.toString().trim())
+            .where((s) => s.isNotEmpty)
+            .toList()
+        : (rawSecs is Map)
+            ? rawSecs.values
+                .map((s) => s.toString().trim())
+                .where((s) => s.isNotEmpty)
+                .toList()
+            : (rawSecs != null && rawSecs.toString().trim().isNotEmpty)
+                ? [rawSecs.toString().trim()]
+                : <String>[];
+    if (act.isEmpty && secs.isEmpty) return const SizedBox.shrink();
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 10),
@@ -765,215 +814,136 @@ class CommonFormDocumentView extends StatelessWidget {
     );
   }
 
-  Widget _buildDynamicNested(BuildContext context, dynamic v) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppColors.lightBg,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.lightBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [..._flattenDynamic(context, v)],
-      ),
-    );
-  }
-
-  List<Widget> _flattenDynamic(BuildContext context, dynamic v) {
-    final rows = <Widget>[];
-    final desktop = _CaseDetailLayoutScope.isDesktop(context);
-
-    void addDivider() {
-      if (rows.isNotEmpty) rows.add(_divider());
-    }
-
-    if (v is Map) {
-      final m = Map<String, dynamic>.from(v);
-      final keys = m.keys.toList();
-      if (!desktop) {
-        for (final k in keys) {
-          addDivider();
-          final val = m[k];
-          if (val is Map || val is List) {
-            rows.add(
-              Text(
-                humanizeFieldKey(k),
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.navyDark,
-                ),
-              ),
-            );
-            rows.addAll(_flattenDynamic(context, val));
-          } else {
-            rows.add(_row(humanizeFieldKey(k), _disp(val)));
-          }
-        }
-        return rows;
-      }
-
-      final pending = <({String label, String value})>[];
-      void flushScalars() {
-        if (pending.isEmpty) return;
-        for (var i = 0; i < pending.length; i += 2) {
-          addDivider();
-          final a = pending[i];
-          if (i + 1 < pending.length) {
-            final b = pending[i + 1];
-            rows.add(
-              _desktopTwoSimpleFieldsRow(a.label, a.value, b.label, b.value),
-            );
-          } else {
-            rows.add(_row(a.label, a.value));
-          }
-        }
-        pending.clear();
-      }
-
-      for (final k in keys) {
-        final val = m[k];
-        if (val is Map || val is List) {
-          flushScalars();
-          addDivider();
-          rows.add(
-            Text(
-              humanizeFieldKey(k),
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: AppColors.navyDark,
-              ),
-            ),
-          );
-          rows.addAll(_flattenDynamic(context, val));
-        } else {
-          pending.add((label: humanizeFieldKey(k), value: _disp(val)));
-        }
-      }
-      flushScalars();
-      return rows;
-    }
-
-    if (v is List) {
-      if (v.isEmpty) {
-        rows.add(
-          Text('—', style: GoogleFonts.poppins(color: AppColors.lightSubText)),
-        );
-        return rows;
-      }
-      if (!desktop) {
-        for (var i = 0; i < v.length; i++) {
-          addDivider();
-          final item = v[i];
-          if (item is Map) {
-            rows.add(
-              Text(
-                'Entry #${i + 1}',
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.navyMid,
-                  fontSize: 12,
-                ),
-              ),
-            );
-            rows.addAll(
-              _flattenDynamic(context, Map<String, dynamic>.from(item)),
-            );
-          } else {
-            rows.add(_row('#${i + 1}', _disp(item)));
-          }
-        }
-        return rows;
-      }
-
-      for (var i = 0; i < v.length; i++) {
-        addDivider();
-        final item = v[i];
-        if (item is Map) {
-          rows.add(
-            Text(
-              'Entry #${i + 1}',
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w700,
-                color: AppColors.navyMid,
-                fontSize: 12,
-              ),
-            ),
-          );
-          rows.addAll(
-            _flattenDynamic(context, Map<String, dynamic>.from(item)),
-          );
-        } else {
-          if (i + 1 < v.length && v[i + 1] is! Map) {
-            rows.add(
-              _desktopTwoSimpleFieldsRow(
-                '#${i + 1}',
-                _disp(item),
-                '#${i + 2}',
-                _disp(v[i + 1]),
-              ),
-            );
-            i++;
-          } else {
-            rows.add(_row('#${i + 1}', _disp(item)));
-          }
-        }
-      }
-      return rows;
-    }
-
-    rows.add(
-      Text(
-        _disp(v),
-        style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
-      ),
-    );
-    return rows;
-  }
-
   List<Widget> _buildExtraMapSection(
     BuildContext context, [
     int sectionNumber = 18,
   ]) {
-    if (extraMap.isEmpty) return [];
-
-    final flat = <({String label, String value, bool fullWidth})>[];
-    final nested = <MapEntry<String, dynamic>>[];
-    for (final e in extraMap.entries) {
-      if (e.value is Map) {
-        nested.add(e);
-      } else {
-        flat.add((
-          label: _labelifyExtraKey(e.key),
-          value: _disp(e.value),
-          fullWidth: false,
-        ));
+    final mergedExtra = Map<String, dynamic>.from(extraMap);
+    if (record != null && record!.extraFields.isNotEmpty) {
+      for (final e in record!.extraFields.entries) {
+        if (!mergedExtra.containsKey(e.key)) {
+          mergedExtra[e.key] = e.value;
+        }
       }
     }
 
-    final out = <Widget>[];
+    if (mergedExtra.isEmpty) return [];
 
-    if (flat.isNotEmpty) {
-      out.add(
-        _sectionShell(
-          sectionNumber,
-          'CASE DISPOSAL & AUDIT DETAILS',
-          AppColors.infoBlue,
-          _pairedSimpleFields(context, flat),
-          icon: Icons.history_edu_outlined,
-        ),
-      );
+    const ignoredKeys = {
+      'commonForm',
+      'common_form',
+      'charges',
+      'acts_sections',
+      'seizures',
+      'object_name',
+      'seizure_description',
+      'seizure_person_name',
+      'proceduralChecks',
+      'proceduralDates',
+      'extra_field_values',
+      'dynamic_extra_fields',
+      'unidentifiedList',
+      'custodyInfo',
+      'custody_records',
+      'arrest_records',
+      'arrests',
+      'suspectedAccused',
+      'unknownAccused',
+      'dischargeDetails',
+      'dischargeByAccused',
+      'preventive_actions',
+      'discharges',
+      'custody',
+      'court',
+      'scrutiny',
+      'unidentified',
+      'complainant',
+      'accused',
+      'remand_custody',
+      'spotVillage',
+      'spotArea',
+      'spotAddress',
+      'crNo',
+      'regDate',
+      'firCopyPath',
+      'isUnknownUntraced',
+      'isUnknownAccused',
+      'isSexualOffence',
+      'village_town',
+      'area_name',
+      'full_address',
+      'cr_number',
+      'registered_datetime',
+      'occurrence_datetime',
+      'io_name',
+      'io_designation',
+      'registered_by_name',
+      'registered_by_designation',
+      'deceased_name',
+      'deceased_age',
+      'deceased_gender',
+      'cause_of_death',
+      'pm_report_date',
+      'witness_summons',
+      'witness_summons_date',
+      'charge_sheet_no',
+      'cc_st_number',
+      'a_final_number',
+      'b_final_number',
+      'c_final_number',
+      'nc_final_number',
+      'abeted_summary_no',
+      'stay_by_high_court_date',
+      'quashed_by_high_court_date',
+      'cctv_checked',
+      'cdr_sent_date',
+      'cdr_received_date',
+      'fingerprint_taken',
+      'nafis_fingerprint',
+      'e_shakshya',
+      'e_shakshya_date',
+      'stay_by_high_court',
+      'quashed_by_high_court',
+    };
+
+    final flat = <({String label, String value, bool fullWidth})>[];
+    for (final e in mergedExtra.entries) {
+      if (ignoredKeys.contains(e.key) ||
+          e.key.endsWith('_date') ||
+          e.key.endsWith('_datetime')) {
+        continue;
+      }
+      final val = e.value;
+      if (val == null ||
+          val == false ||
+          val == '' ||
+          val == '—' ||
+          val == '-' ||
+          val == 'None') {
+        continue;
+      }
+      if (val is Map || val is List) {
+        continue;
+      }
+      flat.add((
+        label: _labelifyExtraKey(e.key),
+        value: _disp(val),
+        fullWidth: false,
+      ));
     }
 
-    for (final e in nested) {
-      out.add(_buildDynamicNested(context, e.value));
-    }
+    final validFlat = _pairedSimpleFields(context, flat);
+    if (validFlat.isEmpty) return [];
 
-    return out;
+    return [
+      _sectionShell(
+        sectionNumber,
+        'AUDIT & ADDITIONAL DETAILS',
+        AppColors.infoBlue,
+        validFlat,
+        icon: Icons.history_edu_outlined,
+      ),
+    ];
   }
 
   @override
@@ -991,8 +961,16 @@ class CommonFormDocumentView extends StatelessWidget {
 
   Widget _buildDetailColumn(BuildContext context) {
     final m = commonMap;
-    final isUnknown = m['isUnknownUntraced'] == true;
-    final charges = (m['charges'] is Map) ? (m['charges'] as Map) : {};
+    final r = record;
+    final isUnknown =
+        m['isUnknownUntraced'] == true || m['isUnknownAccused'] == true;
+    final chargesRaw = m['charges'] ??
+        m['acts_sections'] ??
+        r?.extraFields['charges'] ??
+        r?.extraFields['acts_sections'];
+    final chargesMap = (chargesRaw is Map) ? chargesRaw : {};
+    final chargesList = (chargesRaw is List) ? chargesRaw : [];
+
     final comp = (m['complainant'] is Map) ? (m['complainant'] as Map) : {};
     final u = (m['unidentified'] is Map) ? (m['unidentified'] as Map) : {};
     final unidList =
@@ -1004,7 +982,8 @@ class CommonFormDocumentView extends StatelessWidget {
         (m['proceduralChecks'] is Map) ? (m['proceduralChecks'] as Map) : {};
     final procDates =
         (m['proceduralDates'] is Map) ? (m['proceduralDates'] as Map) : {};
-    final seizures = (m['seizures'] is List) ? (m['seizures'] as List) : [];
+    final seizuresRaw = m['seizures'] ?? r?.extraFields['seizures'];
+    final seizures = (seizuresRaw is List) ? seizuresRaw : [];
     final prev = (m['preventive'] is Map) ? (m['preventive'] as Map) : {};
     final discharge = (m['dischargeByAccused'] is Map)
         ? (m['dischargeByAccused'] as Map)
@@ -1033,153 +1012,273 @@ class CommonFormDocumentView extends StatelessWidget {
 
     final children = <Widget>[
       _sectionTitle(
-        'Crime registration (full Common Form)',
-        Icons.fact_check_outlined,
+        'Case Details',
+        Icons.folder_shared_outlined,
         AppColors.goldPrimary,
       ),
       const SizedBox(height: 10),
-      _sectionShell(
-        sIdx++,
-        'CRIME REGISTRATION INFO',
-        accent,
-        _pairedSimpleFields(context, [
-          (label: 'Cr. No.', value: _v(m['crNo']), fullWidth: false),
-          (label: 'Registered Date', value: _v(m['regDate']), fullWidth: false),
-          (
-            label: 'Unknown / Untraced',
-            value: isUnknown ? 'Yes' : 'No',
-            fullWidth: false,
-          ),
-          (
-            label: 'FIR Copy',
-            value: _v(m['firCopyPath'], or: 'Not uploaded'),
-            fullWidth: false,
-          ),
-        ]),
+    ];
+
+    // ── 1. Core Case Summary ───────────────────────────────────────────────
+    final summaryFields = _pairedSimpleFields(context, [
+      (
+        label: 'Case No.',
+        value: _v(r?.caseNumber.isNotEmpty == true ? r!.caseNumber : m['crNo']),
+        fullWidth: false,
       ),
-      _sectionShell(sIdx++, 'ACTS & SECTIONS FILED', accent, [
-        if (charges.isEmpty)
-          Text(
-            'No charges added.',
-            style: GoogleFonts.poppins(
-              fontStyle: FontStyle.italic,
-              color: AppColors.lightSubText,
-            ),
-          )
-        else
-          ...charges.entries.toList().asMap().entries.map((e) {
-            final i = e.key + 1;
-            final data = (e.value.value is Map)
-                ? (e.value.value as Map)
-                : <dynamic, dynamic>{};
-            return _chargeCard(i, data);
-          }),
-      ]),
-      _sectionShell(
-        sIdx++,
-        'CRIME SPOT',
-        accent,
-        _pairedSimpleFields(context, [
-          (
-            label: 'Village / Town',
-            value: _v(m['spotVillage']),
-            fullWidth: false,
-          ),
-          (label: 'Area Name', value: _v(m['spotArea']), fullWidth: false),
-          (label: 'Address', value: _v(m['spotAddress']), fullWidth: true),
-        ]),
+      (
+        label: 'Crime Type',
+        value: _v(r?.title.isNotEmpty == true
+            ? r!.title
+            : (r?.subCategory ?? m['crimeType'])),
+        fullWidth: false,
       ),
-      _sectionShell(sIdx++, 'COMPLAINANT', accent, [
-        if (comp.isEmpty)
-          Text(
-            'No complainant data.',
-            style: GoogleFonts.poppins(
-              fontStyle: FontStyle.italic,
-              color: AppColors.lightSubText,
-            ),
-          )
-        else ...[
-          ..._pairedSimpleFields(context, [
-            (
-              label: 'Name',
-              value: (commonMap['isSexualOffence'] == true ||
-                      (comp['name']?.toString().contains('Protected') ?? false))
-                  ? '⚠️ [Victim Identity Protected - Confidential]'
-                  : _v(comp['name']),
-              fullWidth: false,
-            ),
-            (label: 'Age', value: _v(comp['age']), fullWidth: false),
-            (label: 'Gender', value: _v(comp['gender']), fullWidth: false),
-            (label: 'Occupation', value: _v(comp['occ']), fullWidth: false),
-            (label: 'Mobile', value: _v(comp['mobile']), fullWidth: false),
-            (label: 'Aadhaar', value: _v(comp['aadhaar']), fullWidth: false),
-            (label: 'Religion', value: _v(comp['religion']), fullWidth: false),
-            (label: 'Caste', value: _v(comp['caste']), fullWidth: false),
-            (label: 'PAN Number', value: _v(comp['pan']), fullWidth: false),
-          ]),
-        ],
-      ]),
-      _sectionShell(sIdx++, 'ACCUSED', accent, [
-        if (isUnknown)
-          _mutedNote('Unknown / Untraced — accused list suppressed in form.'),
-        if (!isUnknown)
-          accusedList.isEmpty
-              ? Text(
-                  'No accused added.',
-                  style: GoogleFonts.poppins(
-                    fontStyle: FontStyle.italic,
-                    color: AppColors.lightSubText,
-                  ),
-                )
-              : Column(
-                  children: accusedList.asMap().entries.map((e) {
-                    return _personCard(
-                      context,
-                      'Accused #${e.key + 1}',
-                      (e.value is Map)
-                          ? Map<String, dynamic>.from(e.value as Map)
-                          : <String, dynamic>{'name': e.value.toString()},
-                    );
-                  }).toList(),
-                ),
-      ]),
-      _sectionShell(sIdx++, 'SUSPECTED ACCUSED', accent, [
-        if (isUnknown) _mutedNote('Hidden when Unknown/Untraced is ON.'),
-        if (!isUnknown)
-          suspectedList.isEmpty
-              ? Text(
-                  'No suspected accused added.',
-                  style: GoogleFonts.poppins(
-                    fontStyle: FontStyle.italic,
-                    color: AppColors.lightSubText,
-                  ),
-                )
-              : Column(
-                  children: suspectedList.asMap().entries.map((e) {
-                    return _personCard(
-                      context,
-                      'Suspected #${e.key + 1}',
-                      (e.value is Map)
-                          ? Map<String, dynamic>.from(e.value as Map)
-                          : <String, dynamic>{'name': e.value.toString()},
-                    );
-                  }).toList(),
-                ),
-      ]),
-      _sectionShell(sIdx++, 'UNIDENTIFIED ACCUSED', accent, [
-        if (unidList.isEmpty && u.isEmpty)
-          Text(
-            'No unidentified accused data.',
-            style: GoogleFonts.poppins(
-              fontStyle: FontStyle.italic,
-              color: AppColors.lightSubText,
-            ),
-          )
-        else if (unidList.isNotEmpty)
-          ...unidList.asMap().entries.map((e) {
-            final row =
-                (e.value is Map) ? (e.value as Map) : <dynamic, dynamic>{};
-            return Container(
+      (
+        label: 'Police Station',
+        value: _v(r?.stationName.isNotEmpty == true
+            ? r!.stationName
+            : m['station_name']),
+        fullWidth: false,
+      ),
+      (
+        label: 'Status',
+        value: _v(r?.status.isNotEmpty == true ? r!.status : m['status']),
+        fullWidth: false,
+      ),
+      (
+        label: 'Priority',
+        value: _v(r?.priority.isNotEmpty == true ? r!.priority : m['priority']),
+        fullWidth: false,
+      ),
+      (
+        label: 'Incident Date',
+        value: r != null && r.incidentDate.year > 1980
+            ? DateFormat('dd/MM/yyyy').format(r.incidentDate)
+            : _v(m['incidentDate'] ?? m['incident_date']),
+        fullWidth: false,
+      ),
+      (
+        label: 'Registered Date',
+        value: _v(m['regDate'] ??
+            (r != null && r.createdAt.year > 1980
+                ? DateFormat('dd/MM/yyyy').format(r.createdAt)
+                : null)),
+        fullWidth: false,
+      ),
+      (
+        label: 'Assigned Officer',
+        value: _v(r?.assignedOfficer.isNotEmpty == true
+            ? r!.assignedOfficer
+            : (cr8['ioName'] ?? m['assigned_officer'])),
+        fullWidth: false,
+      ),
+      (
+        label: 'Location / Spot',
+        value: _v(r?.location.isNotEmpty == true
+            ? r!.location
+            : (m['spotAddress'] ?? m['spotVillage'])),
+        fullWidth: true,
+      ),
+      (
+        label: 'Description',
+        value: _v(r?.description.isNotEmpty == true
+            ? r!.description
+            : m['description']),
+        fullWidth: true,
+      ),
+    ]);
+    if (summaryFields.isNotEmpty) {
+      children.add(
+        _sectionShell(
+          sIdx++,
+          'CASE SUMMARY',
+          accent,
+          summaryFields,
+          icon: Icons.badge_outlined,
+        ),
+      );
+    }
+
+    // ── 2. Crime Registration Info ─────────────────────────────────────────
+    final regFields = _pairedSimpleFields(context, [
+      (label: 'Cr. No.', value: _v(m['crNo']), fullWidth: false),
+      (label: 'Registered Date', value: _v(m['regDate']), fullWidth: false),
+      if (isUnknown)
+        (
+          label: 'Unknown / Untraced',
+          value: 'Yes',
+          fullWidth: false,
+        ),
+      (
+        label: 'FIR Copy',
+        value: _v(m['firCopyPath']),
+        fullWidth: false,
+      ),
+    ]);
+    if (regFields.isNotEmpty) {
+      children.add(
+          _sectionShell(sIdx++, 'CRIME REGISTRATION INFO', accent, regFields));
+    }
+
+    // ── 3. Acts & Sections Filed ───────────────────────────────────────────
+    final chargeWidgets = <Widget>[];
+    if (chargesMap.isNotEmpty) {
+      chargesMap.entries.toList().asMap().entries.forEach((e) {
+        final i = e.key + 1;
+        final data = (e.value.value is Map)
+            ? (e.value.value as Map)
+            : <dynamic, dynamic>{};
+        final card = _chargeCard(i, data);
+        if (card is! SizedBox || (card.height != null && card.height! > 0)) {
+          chargeWidgets.add(card);
+        }
+      });
+    } else if (chargesList.isNotEmpty) {
+      chargesList.asMap().entries.forEach((e) {
+        final i = e.key + 1;
+        final data = (e.value is Map) ? (e.value as Map) : <dynamic, dynamic>{};
+        final card = _chargeCard(i, data);
+        if (card is! SizedBox || (card.height != null && card.height! > 0)) {
+          chargeWidgets.add(card);
+        }
+      });
+    }
+    if (chargeWidgets.isNotEmpty) {
+      children.add(_sectionShell(
+          sIdx++, 'ACTS & SECTIONS FILED', accent, chargeWidgets));
+    }
+
+    // ── 4. Crime Spot ──────────────────────────────────────────────────────
+    final spotFields = _pairedSimpleFields(context, [
+      (
+        label: 'Village / Town',
+        value: _v(m['spotVillage'] ?? m['village_town']),
+        fullWidth: false,
+      ),
+      (
+        label: 'Area Name',
+        value: _v(m['spotArea'] ?? m['area_name']),
+        fullWidth: false
+      ),
+      (
+        label: 'Full Address',
+        value: _v(m['spotAddress'] ?? m['full_address']),
+        fullWidth: true
+      ),
+    ]);
+    if (spotFields.isNotEmpty) {
+      children.add(_sectionShell(sIdx++, 'CRIME SPOT', accent, spotFields));
+    }
+
+    // ── 5. Complainant ─────────────────────────────────────────────────────
+    final compName = _v(comp['name'] ??
+        (r?.complainant.isNotEmpty == true ? r!.complainant : null));
+    final compFields = _pairedSimpleFields(context, [
+      (
+        label: 'Name',
+        value: (commonMap['isSexualOffence'] == true ||
+                compName.contains('Protected'))
+            ? '⚠️ [Victim Identity Protected - Confidential]'
+            : compName,
+        fullWidth: false,
+      ),
+      (label: 'Age', value: _v(comp['age']), fullWidth: false),
+      (label: 'Gender', value: _v(comp['gender']), fullWidth: false),
+      (label: 'Occupation', value: _v(comp['occ']), fullWidth: false),
+      (label: 'Mobile', value: _v(comp['mobile']), fullWidth: false),
+      (label: 'Aadhaar', value: _v(comp['aadhaar']), fullWidth: false),
+      (label: 'Religion', value: _v(comp['religion']), fullWidth: false),
+      (label: 'Caste', value: _v(comp['caste']), fullWidth: false),
+      (label: 'PAN Number', value: _v(comp['pan']), fullWidth: false),
+    ]);
+    if (compFields.isNotEmpty) {
+      children.add(_sectionShell(sIdx++, 'COMPLAINANT', accent, compFields));
+    }
+
+    // ── 6. Accused ─────────────────────────────────────────────────────────
+    final accusedWidgets = <Widget>[];
+    if (accusedList.isNotEmpty) {
+      for (var i = 0; i < accusedList.length; i++) {
+        final item = accusedList[i];
+        final pMap = (item is Map)
+            ? Map<String, dynamic>.from(item)
+            : <String, dynamic>{'name': item.toString()};
+        final card = _personCard(context, 'Accused #${i + 1}', pMap);
+        if (card is! SizedBox || (card.height != null && card.height! > 0)) {
+          accusedWidgets.add(card);
+        }
+      }
+    } else if (r != null &&
+        r.accused.isNotEmpty &&
+        r.accused != '—' &&
+        r.accused != 'None') {
+      final card = _personCard(context, 'Accused #1', {'name': r.accused});
+      if (card is! SizedBox || (card.height != null && card.height! > 0)) {
+        accusedWidgets.add(card);
+      }
+    }
+    if (accusedWidgets.isNotEmpty) {
+      children.add(_sectionShell(sIdx++, 'ACCUSED', accent, accusedWidgets));
+    }
+
+    // ── 7. Suspected Accused ───────────────────────────────────────────────
+    final suspectedWidgets = <Widget>[];
+    if (suspectedList.isNotEmpty) {
+      for (var i = 0; i < suspectedList.length; i++) {
+        final item = suspectedList[i];
+        final pMap = (item is Map)
+            ? Map<String, dynamic>.from(item)
+            : <String, dynamic>{'name': item.toString()};
+        final card = _personCard(context, 'Suspected #${i + 1}', pMap);
+        if (card is! SizedBox || (card.height != null && card.height! > 0)) {
+          suspectedWidgets.add(card);
+        }
+      }
+    }
+    if (suspectedWidgets.isNotEmpty) {
+      children.add(
+          _sectionShell(sIdx++, 'SUSPECTED ACCUSED', accent, suspectedWidgets));
+    }
+
+    // ── 8. Unidentified Accused ────────────────────────────────────────────
+    final unidWidgets = <Widget>[];
+    if (unidList.isNotEmpty) {
+      for (var i = 0; i < unidList.length; i++) {
+        final row =
+            (unidList[i] is Map) ? (unidList[i] as Map) : <dynamic, dynamic>{};
+        final fields = _pairedSimpleFields(context, [
+          (
+            label: 'Approximate age',
+            value: _v(row['approxAge']),
+            fullWidth: false
+          ),
+          (label: 'Gender', value: _v(row['gender']), fullWidth: false),
+          (label: 'Skin colour', value: _v(row['skinColor']), fullWidth: false),
+          (
+            label: 'Possible occupation',
+            value: _v(row['occupation']),
+            fullWidth: false
+          ),
+          (
+            label: 'Identification mark',
+            value: _v(row['otherPhysicalMarkers']),
+            fullWidth: true
+          ),
+          (label: 'Height', value: _v(row['approxHeight']), fullWidth: false),
+          (
+            label: 'Address',
+            value: _v(row['lastKnownAddress']),
+            fullWidth: true
+          ),
+          (
+            label: 'Description',
+            value: _v(row['description']),
+            fullWidth: true
+          ),
+        ]);
+        if (fields.isNotEmpty) {
+          unidWidgets.add(
+            Container(
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
@@ -1191,7 +1290,7 @@ class CommonFormDocumentView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Unidentified Accused #${e.key + 1}',
+                    'Unidentified Accused #${i + 1}',
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -1199,829 +1298,877 @@ class CommonFormDocumentView extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  ..._pairedSimpleFields(context, [
-                    (
-                      label: 'Approximate age',
-                      value: _v(row['approxAge']),
-                      fullWidth: false,
-                    ),
-                    (
-                      label: 'Gender',
-                      value: _v(row['gender']),
-                      fullWidth: false,
-                    ),
-                    (
-                      label: 'Skin colour',
-                      value: _v(row['skinColor']),
-                      fullWidth: false,
-                    ),
-                    (
-                      label: 'Possible occupation',
-                      value: _v(row['occupation']),
-                      fullWidth: false,
-                    ),
-                    (
-                      label: 'Identification mark',
-                      value: _v(row['otherPhysicalMarkers']),
-                      fullWidth: true,
-                    ),
-                    (
-                      label: 'Height',
-                      value: _v(row['approxHeight']),
-                      fullWidth: false,
-                    ),
-                    (
-                      label: 'Address',
-                      value: _v(row['lastKnownAddress']),
-                      fullWidth: true,
-                    ),
-                    (
-                      label: 'Description',
-                      value: _v(row['description']),
-                      fullWidth: true,
-                    ),
-                  ]),
+                  ...fields,
                 ],
               ),
-            );
-          })
-        else
+            ),
+          );
+        }
+      }
+    } else if (u.isNotEmpty) {
+      final fields = _pairedSimpleFields(context, [
+        (label: 'Approximate age', value: _v(u['approxAge']), fullWidth: false),
+        (label: 'Gender', value: _v(u['gender']), fullWidth: false),
+        (label: 'Skin colour', value: _v(u['skinColor']), fullWidth: false),
+        (
+          label: 'Possible occupation',
+          value: _v(u['occupation']),
+          fullWidth: false
+        ),
+        (
+          label: 'Identification mark',
+          value: _v(u['otherPhysicalMarkers']),
+          fullWidth: true
+        ),
+        (label: 'Height', value: _v(u['approxHeight']), fullWidth: false),
+        (label: 'Address', value: _v(u['lastKnownAddress']), fullWidth: true),
+        (label: 'Description', value: _v(u['description']), fullWidth: true),
+      ]);
+      if (fields.isNotEmpty) {
+        unidWidgets.addAll(fields);
+      }
+    }
+    if (unidWidgets.isNotEmpty) {
+      children.add(
+          _sectionShell(sIdx++, 'UNIDENTIFIED ACCUSED', accent, unidWidgets));
+    }
+
+    // ── 9. Unknown Accused ─────────────────────────────────────────────────
+    if (isUnknown) {
+      children.add(
+        _sectionShell(sIdx++, 'UNKNOWN ACCUSED', accent, [
           ..._pairedSimpleFields(context, [
             (
-              label: 'Approximate age',
-              value: _v(u['approxAge']),
-              fullWidth: false,
-            ),
-            (
-              label: 'Gender',
-              value: _v(u['gender']),
-              fullWidth: false,
-            ),
-            (
-              label: 'Skin colour',
-              value: _v(u['skinColor']),
-              fullWidth: false,
-            ),
-            (
-              label: 'Possible occupation',
-              value: _v(u['occupation']),
-              fullWidth: false,
-            ),
-            (
-              label: 'Identification mark',
-              value: _v(u['otherPhysicalMarkers']),
-              fullWidth: true,
-            ),
-            (
-              label: 'Height',
-              value: _v(u['approxHeight']),
-              fullWidth: false,
-            ),
-            (
-              label: 'Address',
-              value: _v(u['lastKnownAddress']),
-              fullWidth: true,
-            ),
-            (
-              label: 'Description',
-              value: _v(u['description']),
+              label: 'Unknown Accused / Untraced',
+              value: 'Yes (✓ - अज्ञात आरोपी)',
               fullWidth: true,
             ),
           ]),
-      ]),
-      _sectionShell(sIdx++, 'UNKNOWN ACCUSED', accent, [
-        ..._pairedSimpleFields(context, [
-          (
-            label: 'Unknown Accused / Untraced',
-            value: isUnknown ? 'Yes (✓ - अज्ञात आरोपी)' : 'No',
-            fullWidth: true,
-          ),
         ]),
-      ]),
-      _sectionShell(
-        sIdx++,
-        'CASE RESPONSIBILITY',
-        accent,
-        _pairedSimpleFields(context, [
-          (
-            label: 'IO Designation',
-            value: _v(cr8['ioDesig']),
-            fullWidth: false,
-          ),
-          (label: 'IO Name', value: _v(cr8['ioName']), fullWidth: false),
-          (
-            label: 'Reg. By Desig.',
-            value: _v(cr8['regDesig']),
-            fullWidth: false,
-          ),
-          (
-            label: 'Registrar Name',
-            value: _v(cr8['regName']),
-            fullWidth: false,
-          ),
-        ]),
+      );
+    }
+
+    // ── 10. Case Responsibility ────────────────────────────────────────────
+    final respFields = _pairedSimpleFields(context, [
+      (
+        label: 'IO Designation',
+        value: _v(cr8['ioDesig'] ?? m['io_designation']),
+        fullWidth: false,
       ),
-      _sectionShell(sIdx++, 'ARREST', accent, [
-        if (arrests.isEmpty)
-          Text(
-            'No arrest records.',
-            style: GoogleFonts.poppins(
-              fontStyle: FontStyle.italic,
-              color: AppColors.lightSubText,
+      (
+        label: 'IO Name',
+        value: _v(cr8['ioName'] ?? m['io_name']),
+        fullWidth: false
+      ),
+      (
+        label: 'Reg. By Desig.',
+        value: _v(cr8['regDesig'] ?? m['registered_by_designation']),
+        fullWidth: false,
+      ),
+      (
+        label: 'Registrar Name',
+        value: _v(cr8['regName'] ?? m['registered_by_name']),
+        fullWidth: false,
+      ),
+    ]);
+    if (respFields.isNotEmpty) {
+      children.add(
+          _sectionShell(sIdx++, 'CASE RESPONSIBILITY', accent, respFields));
+    }
+
+    // ── 11. Arrest ─────────────────────────────────────────────────────────
+    final arrestWidgets = <Widget>[];
+    for (final rRow in arrests) {
+      final row = (rRow is Map) ? rRow : <dynamic, dynamic>{};
+      final isDeceased = row['isDeceased'] == true;
+      final sec47 = row['sec47_48'] == true;
+      final relNotice = row['relOnNotice'] == true;
+      final antBail = row['anticipatoryBail'] == true;
+      final fields = _pairedSimpleFields(context, [
+        (
+          label: 'Accused Name',
+          value: _v(row['accusedName'] ?? row['name']),
+          fullWidth: false,
+        ),
+        (
+          label: 'Arrest Date/Time',
+          value: _v(row['arrestDt'] ?? row['arrest_date']),
+          fullWidth: false,
+        ),
+        if (sec47)
+          (
+            label: 'sec. 47/48 BNSS',
+            value: 'Yes',
+            fullWidth: false,
+          ),
+        (
+          label: 'Relative / Friend Name',
+          value: _v(row['relName']),
+          fullWidth: false,
+        ),
+        (
+          label: 'Relation',
+          value: _v(row['relationship']),
+          fullWidth: false,
+        ),
+        if (relNotice)
+          (
+            label: 'Release on Notice',
+            value: 'Yes (✓)',
+            fullWidth: false,
+          ),
+        if (antBail)
+          (
+            label: 'Anticipatory Bail',
+            value: 'Yes (✓)',
+            fullWidth: false,
+          ),
+        if (isDeceased)
+          (
+            label: 'Death of Accused',
+            value: 'Yes (✓)',
+            fullWidth: false,
+          ),
+        if (isDeceased)
+          (
+            label: 'Date/Time of Death',
+            value: _v(row['deathDt']),
+            fullWidth: false,
+          ),
+      ]);
+      if (fields.isNotEmpty) {
+        arrestWidgets.add(
+          Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: AppColors.lightBg,
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              border: Border.all(color: AppColors.lightBorder),
             ),
-          )
-        else
-          ...arrests.map((r) {
-            final row = (r is Map) ? r : <dynamic, dynamic>{};
-            final isDeceased = row['isDeceased'] == true;
-            final sec47 = row['sec47_48'] == true;
-            final relNotice = row['relOnNotice'] == true;
-            final antBail = row['anticipatoryBail'] == true;
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
+            child: Column(children: fields),
+          ),
+        );
+      }
+    }
+    if (arrestWidgets.isNotEmpty) {
+      children.add(_sectionShell(sIdx++, 'ARREST', accent, arrestWidgets));
+    }
+
+    // ── 12. Custody & Remand (PCR / MCR) ───────────────────────────────────
+    final custody = (m['custody'] is Map) ? (m['custody'] as Map) : {};
+    final surety = (m['surety'] is Map) ? (m['surety'] as Map) : {};
+    final isMcr = custody['mcr'] == true || m['mcr'] == true;
+    final isBail = custody['bail'] == true || custody['bailGranted'] == true;
+    final isJail = custody['jail'] == true;
+    final isPrBond = custody['prBond'] == true;
+    final pcrDaysVal = _v(m['pcrDays'] ?? custody['pcrDays']);
+
+    final custodyFields = _pairedSimpleFields(context, [
+      (
+        label: 'PCR (00 Day)',
+        value: pcrDaysVal,
+        fullWidth: false,
+      ),
+      if (isMcr)
+        (
+          label: 'MCR (Magisterial Custody)',
+          value: 'Yes (✓)',
+          fullWidth: false,
+        ),
+      if (isPrBond)
+        (
+          label: 'PR Bond',
+          value: 'Yes (✓)',
+          fullWidth: false,
+        ),
+      if (isPrBond)
+        (
+          label: 'PR Bond Date',
+          value: _v(custody['prBondDate'] ?? custody['pr_bond_date']),
+          fullWidth: false,
+        ),
+      if (isJail)
+        (
+          label: 'Jail',
+          value: 'Yes (✓)',
+          fullWidth: false,
+        ),
+      if (isJail)
+        (
+          label: 'Jail Date',
+          value: _v(custody['jailDate'] ?? custody['jail_date']),
+          fullWidth: false,
+        ),
+      if (isBail)
+        (
+          label: 'Bail Granted',
+          value: 'Yes (✓)',
+          fullWidth: false,
+        ),
+      if (isJail)
+        (
+          label: 'Jail Name / Details',
+          value: _v(custody['mcrJail'] ?? custody['jailName']),
+          fullWidth: false,
+        ),
+    ]);
+    final suretyFields = _pairedSimpleFields(context, [
+      (
+        label: 'Surety Full Name',
+        value: _v(surety['name'] ?? custody['suretyName']),
+        fullWidth: false,
+      ),
+      (
+        label: 'Surety Age',
+        value: _v(surety['age'] ?? custody['suretyAge']),
+        fullWidth: false,
+      ),
+      (
+        label: 'Surety Gender',
+        value: _v(surety['gender'] ?? custody['suretyGender']),
+        fullWidth: false,
+      ),
+      (
+        label: 'Surety Occupation',
+        value: _v(surety['occupation'] ?? custody['suretyOccupation']),
+        fullWidth: false,
+      ),
+      (
+        label: 'Surety Mobile No.',
+        value: _v(surety['mobile'] ?? custody['suretyMobile']),
+        fullWidth: false,
+      ),
+      (
+        label: 'Surety Aadhaar No.',
+        value: _v(surety['aadhaar'] ?? custody['suretyAadhaar']),
+        fullWidth: false,
+      ),
+      (
+        label: 'Surety PAN No.',
+        value: _v(surety['pan'] ?? custody['suretyPan']),
+        fullWidth: false,
+      ),
+      (
+        label: 'Relation with Accused',
+        value: _v(surety['relationship'] ?? custody['suretyRelation']),
+        fullWidth: false,
+      ),
+      (
+        label: 'Surety Address',
+        value: _v(surety['address'] ?? custody['suretyAddress']),
+        fullWidth: true,
+      ),
+    ]);
+    if (custodyFields.isNotEmpty || (isBail && suretyFields.isNotEmpty)) {
+      children.add(
+        _sectionShell(sIdx++, 'CUSTODY & REMAND (PCR / MCR)', accent, [
+          if (custodyFields.isNotEmpty) ...custodyFields,
+          if (isBail && suretyFields.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
                 color: AppColors.lightBg,
                 borderRadius: BorderRadius.circular(AppRadius.md),
                 border: Border.all(color: AppColors.lightBorder),
-              ),
-              child: Column(
-                children: [
-                  ..._pairedSimpleFields(context, [
-                    (
-                      label: 'Accused Name',
-                      value: _v(row['accusedName']),
-                      fullWidth: false,
-                    ),
-                    (
-                      label: 'Arrest Date/Time',
-                      value: _v(row['arrestDt']),
-                      fullWidth: false,
-                    ),
-                    (
-                      label: 'sec. 47/48 BNSS',
-                      value: sec47 ? 'Yes' : 'No',
-                      fullWidth: false,
-                    ),
-                    (
-                      label: 'Relative / Friend Name',
-                      value: _v(row['relName']),
-                      fullWidth: false,
-                    ),
-                    (
-                      label: 'Relation',
-                      value: _v(row['relationship']),
-                      fullWidth: false,
-                    ),
-                    (
-                      label: 'Release on Notice',
-                      value: relNotice ? 'Yes (✓)' : 'No',
-                      fullWidth: false,
-                    ),
-                    (
-                      label: 'Anticipatory Bail',
-                      value: antBail ? 'Yes (✓)' : 'No',
-                      fullWidth: false,
-                    ),
-                    (
-                      label: 'Death of Accused',
-                      value: isDeceased ? 'Yes (✓)' : 'No',
-                      fullWidth: false,
-                    ),
-                    if (isDeceased)
-                      (
-                        label: 'Date/Time of Death',
-                        value: _v(row['deathDt']),
-                        fullWidth: false,
-                      ),
-                  ]),
-                ],
-              ),
-            );
-          }),
-      ]),
-      // ── Card 11: Custody & Remand ──────────────────────────────────────────
-      _sectionShell(sIdx++, 'CUSTODY & REMAND', accent, [
-        Builder(
-          builder: (ctx) {
-            final custody = (m['custody'] is Map) ? (m['custody'] as Map) : {};
-            final surety = (m['surety'] is Map) ? (m['surety'] as Map) : {};
-            final isMcr = custody['mcr'] == true || m['mcr'] == true;
-            final isBail =
-                custody['bail'] == true || custody['bailGranted'] == true;
-            final isJail = custody['jail'] == true;
-            final isPrBond = custody['prBond'] == true;
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ..._pairedSimpleFields(ctx, [
-                  (
-                    label: 'PCR (00 Day)',
-                    value: _v(m['pcrDays'] ?? custody['pcrDays']),
-                    fullWidth: false,
-                  ),
-                  (
-                    label: 'MCR (Magisterial Custody)',
-                    value: isMcr ? 'Yes (✓)' : 'No',
-                    fullWidth: false,
-                  ),
-                ]),
-                if (isMcr) ...[
-                  const SizedBox(height: 8),
-                  ..._pairedSimpleFields(ctx, [
-                    (
-                      label: 'PR Bond',
-                      value: isPrBond ? 'Yes (✓)' : 'No',
-                      fullWidth: false,
-                    ),
-                    if (isPrBond)
-                      (
-                        label: 'PR Bond Date',
-                        value: _v(
-                            custody['prBondDate'] ?? custody['pr_bond_date']),
-                        fullWidth: false,
-                      ),
-                    (
-                      label: 'Jail',
-                      value: isJail ? 'Yes (✓)' : 'No',
-                      fullWidth: false,
-                    ),
-                    if (isJail)
-                      (
-                        label: 'Jail Date',
-                        value: _v(custody['jailDate'] ?? custody['jail_date']),
-                        fullWidth: false,
-                      ),
-                    (
-                      label: 'Bail Granted',
-                      value: isBail ? 'Yes (✓)' : 'No',
-                      fullWidth: false,
-                    ),
-                    if (isJail)
-                      (
-                        label: 'Jail Name / Details',
-                        value: _v(custody['mcrJail'] ?? custody['jailName']),
-                        fullWidth: false,
-                      ),
-                  ]),
-                  if (isBail) ...[
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                      decoration: BoxDecoration(
-                        color: AppColors.lightBg,
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        border: Border.all(color: AppColors.lightBorder),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'SURETY NAME & KYC DETAILS',
-                            style: GoogleFonts.poppins(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.navyMid,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          ..._pairedSimpleFields(ctx, [
-                            (
-                              label: 'Surety Full Name',
-                              value:
-                                  _v(surety['name'] ?? custody['suretyName']),
-                              fullWidth: false,
-                            ),
-                            (
-                              label: 'Surety Age',
-                              value: _v(surety['age'] ?? custody['suretyAge']),
-                              fullWidth: false,
-                            ),
-                            (
-                              label: 'Surety Gender',
-                              value: _v(
-                                  surety['gender'] ?? custody['suretyGender']),
-                              fullWidth: false,
-                            ),
-                            (
-                              label: 'Surety Occupation',
-                              value: _v(surety['occupation'] ??
-                                  custody['suretyOccupation']),
-                              fullWidth: false,
-                            ),
-                            (
-                              label: 'Surety Mobile No.',
-                              value: _v(
-                                  surety['mobile'] ?? custody['suretyMobile']),
-                              fullWidth: false,
-                            ),
-                            (
-                              label: 'Surety Aadhaar No.',
-                              value: _v(surety['aadhaar'] ??
-                                  custody['suretyAadhaar']),
-                              fullWidth: false,
-                            ),
-                            (
-                              label: 'Surety PAN No.',
-                              value: _v(surety['pan'] ?? custody['suretyPan']),
-                              fullWidth: false,
-                            ),
-                            (
-                              label: 'Relation with Accused',
-                              value: _v(surety['relationship'] ??
-                                  custody['suretyRelation']),
-                              fullWidth: false,
-                            ),
-                            (
-                              label: 'Surety Address',
-                              value: _v(surety['address'] ??
-                                  custody['suretyAddress']),
-                              fullWidth: true,
-                            ),
-                          ]),
-                        ],
-                      ),
-                    ),
-                  ],
-                ],
-              ],
-            );
-          },
-        ),
-      ]),
-
-      // ── Card 12: CCTV & CDR Investigation ─────────────────────────────────
-      _sectionShell(
-        sIdx++,
-        'CCTV & CDR INVESTIGATION',
-        accent,
-        _pairedSimpleFields(context, [
-          (
-            label: 'CCTV Checked',
-            value: (m['cctvChecked'] == true) ? 'Yes (✔️)' : 'No',
-            fullWidth: false,
-          ),
-          (
-            label: 'CDR Send Date',
-            value: _v(m['cdrSend'] ?? m['cdrSent']),
-            fullWidth: false,
-          ),
-          (
-            label: 'CDR Received Date',
-            value: _v(m['cdrReceived'] ?? m['cdrRecv']),
-            fullWidth: false,
-          ),
-        ]),
-      ),
-
-      // ── Card 13: All Panchanama ───────────────────────────────────────────
-      _sectionShell(
-        sIdx++,
-        'ALL PANCHANAMA',
-        accent,
-        _buildProceduralSection(context, procChecks, procDates, m),
-      ),
-
-      // ── Card 14: Evidence & Seizure ───────────────────────────────────────
-      _sectionShell(sIdx++, 'EVIDENCE & SEIZURE', accent, [
-        ..._pairedSimpleFields(context, [
-          (
-            label: 'E-Shakshya',
-            value: _v(m['eshakshValue'], or: 'Not set').toUpperCase(),
-            fullWidth: false,
-          ),
-          if (m['eshakshValue'] == 'yes' &&
-              (m['eshakshDt']?.toString().isNotEmpty ?? false))
-            (
-              label: 'E-Shakshya Date & Time',
-              value: _v(m['eshakshDt']),
-              fullWidth: false,
-            )
-          else if (m['eshakshValue'] == 'no' &&
-              (m['eshakshReason']?.toString().isNotEmpty ?? false))
-            (
-              label: 'Reason for No E-Shakshya',
-              value: _v(m['eshakshReason']),
-              fullWidth: true,
-            ),
-          (
-            label: 'Fingerprint Taken',
-            value: _v(m['fingerprintTaken'] ?? m['fingerprintVal'], or: 'no')
-                .toUpperCase(),
-            fullWidth: false,
-          ),
-          (
-            label: 'NAFIS Fingerprint',
-            value: _v(m['nafisFingerprint'], or: 'no').toUpperCase(),
-            fullWidth: false,
-          ),
-        ]),
-        const SizedBox(height: 12),
-        Text(
-          'SEIZURE PROPERTY DETAILS',
-          style: GoogleFonts.poppins(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: AppColors.navyMid,
-          ),
-        ),
-        const SizedBox(height: 6),
-        if (seizures.isEmpty)
-          Text(
-            'No seizure records added.',
-            style: GoogleFonts.poppins(
-              fontStyle: FontStyle.italic,
-              color: AppColors.lightSubText,
-            ),
-          )
-        else
-          ...seizures.asMap().entries.map((e) {
-            final s =
-                (e.value is Map) ? (e.value as Map) : <dynamic, dynamic>{};
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(AppSpacing.md),
-              decoration: BoxDecoration(
-                color: AppColors.lightBg,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(color: AppColors.lightBorder),
-              ),
-              child: Column(
-                children: [
-                  ..._pairedSimpleFields(context, [
-                    (
-                      label: 'Item #${e.key + 1}',
-                      value: _v(s['desc']),
-                      fullWidth: true,
-                    ),
-                    (
-                      label: 'Quantity / Weight',
-                      value: _v(s['quantity'] ?? s['qty']),
-                      fullWidth: false,
-                    ),
-                    (
-                      label: 'Serial / Model No.',
-                      value: _v(s['serialNo'] ?? s['serial']),
-                      fullWidth: false,
-                    ),
-                    (
-                      label: 'Estimated Value (INR)',
-                      value: _v(s['estValue'] ?? s['val']),
-                      fullWidth: false,
-                    ),
-                    (
-                      label: 'Recovery Date',
-                      value: _v(s['recoveryDate'] ?? s['recDt']),
-                      fullWidth: false,
-                    ),
-                    (
-                      label: 'Custody Location',
-                      value: _v(s['custodyLoc'] ?? s['custody']),
-                      fullWidth: false,
-                    ),
-                    (
-                      label: 'From Whom (Name)',
-                      value: _v(s['fromWhom'], or: '—'),
-                      fullWidth: true,
-                    ),
-                  ]),
-                ],
-              ),
-            );
-          }),
-      ]),
-
-      // ── Card 15: Preventive Action & Bonds ────────────────────────────────
-      _sectionShell(
-        sIdx++,
-        'PREVENTIVE ACTION & BONDS',
-        accent,
-        [
-          if (((prev['items'] is List) && (prev['items'] as List).isNotEmpty) ||
-              ((m['preventive_actions'] is List) &&
-                  (m['preventive_actions'] as List).isNotEmpty)) ...[
-            ...(((prev['items'] is List ? prev['items'] as List : null) ??
-                    (m['preventive_actions'] is List
-                        ? m['preventive_actions'] as List
-                        : null) ??
-                    []))
-                .map((it) {
-              if (it is! Map) return const SizedBox.shrink();
-              final pName = _v(it['person_name'] ??
-                  it['name'] ??
-                  it['accusedName'] ??
-                  it['person']);
-              final pAction = _v(it['action'] ?? it['action_type']);
-              final pDate = _v(it['action_date'] ?? it['actionDate']);
-              final pOut = _v(it['outward_number'] ?? it['outwardNumber']);
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.lightBg,
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                  border: Border.all(color: AppColors.lightBorder),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ..._pairedSimpleFields(context, [
-                      (
-                        label: 'Accused / Person',
-                        value: pName,
-                        fullWidth: false
-                      ),
-                      (label: 'Provision', value: pAction, fullWidth: false),
-                      (label: 'Action Date 📅', value: pDate, fullWidth: false),
-                      (label: 'Outward Number', value: pOut, fullWidth: false),
-                    ]),
-                  ],
-                ),
-              );
-            }),
-            const Divider(height: 16),
-          ] else ...[
-            ..._pairedSimpleFields(context, [
-              (
-                label: 'Preventive Action Act / Section',
-                value: _v(prev['action'] ?? prev['actionType'], or: 'Not set'),
-                fullWidth: false,
-              ),
-              (
-                label: 'Action Date (Mandatory 📅)',
-                value: _v(prev['actionDate']),
-                fullWidth: false,
-              ),
-              (
-                label: 'Outward Number (Optional)',
-                value: _v(prev['outwardNo'] ?? prev['outwardNumber']),
-                fullWidth: false,
-              ),
-            ]),
-            const Divider(height: 16),
-          ],
-          ..._pairedSimpleFields(context, [
-            (
-              label: 'Bond Date 📅',
-              value: _v(prev['bondDate']),
-              fullWidth: false,
-            ),
-            (
-              label: 'Bond Cancellation Date 📅',
-              value: _v(prev['bondCancellation'] ?? prev['bondCancelDate']),
-              fullWidth: false,
-            ),
-            (
-              label: 'Reason for PR Bond',
-              value: _v(prev['bondReason'] ?? prev['prBondReason']),
-              fullWidth: true,
-            ),
-          ]),
-        ],
-      ),
-
-      // ── Card 16: Discharge Accused ────────────────────────────────────────
-      _sectionShell(sIdx++, 'DISCHARGE ACCUSED', accent, [
-        if (discharge.isEmpty &&
-            (m['customDischargeList'] is! List ||
-                (m['customDischargeList'] as List).isEmpty))
-          Text(
-            'No discharge data.',
-            style: GoogleFonts.poppins(
-              fontStyle: FontStyle.italic,
-              color: AppColors.lightSubText,
-            ),
-          )
-        else ...[
-          ...discharge.entries.map((e) {
-            final ok = e.value == true;
-            final name = e.key.toString();
-            final det =
-                (disDetails[name] is Map) ? (disDetails[name] as Map) : {};
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: ok
-                    ? AppColors.successGreen.withValues(alpha: 0.05)
-                    : AppColors.lightBg,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: ok
-                      ? AppColors.successGreen.withValues(alpha: 0.3)
-                      : AppColors.lightBorder,
-                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Icon(
-                        ok ? Icons.check_circle : Icons.cancel_outlined,
-                        size: 18,
-                        color: ok
-                            ? AppColors.successGreen
-                            : AppColors.lightSubText,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          '$name — ${ok ? 'Discharged' : 'Not discharged'}',
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            color: ok
-                                ? AppColors.navyDark
-                                : AppColors.lightSubText,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
+                  Text(
+                    'SURETY NAME & KYC DETAILS',
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyMid,
+                    ),
                   ),
-                  if (ok && det.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    if (det['date'] != null &&
-                        det['date'].toString().isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 26, top: 2),
-                        child: Text(
-                          'Discharge Date: ${det['date']}',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: AppColors.navyDark,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    if (det['reason'] != null &&
-                        det['reason'].toString().isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 26, top: 2),
-                        child: Text(
-                          'Reason: ${det['reason']}',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: AppColors.darkSubText,
-                          ),
-                        ),
-                      ),
-                  ],
+                  const SizedBox(height: 6),
+                  ...suretyFields,
                 ],
               ),
-            );
-          }),
-          if (m['customDischargeList'] is List &&
-              (m['customDischargeList'] as List).isNotEmpty) ...[
-            const SizedBox(height: 6),
+            ),
+          ],
+        ]),
+      );
+    }
+
+    // ── 13. CCTV & CDR Investigation ───────────────────────────────────────
+    final cctvFields = _pairedSimpleFields(context, [
+      if (m['cctvChecked'] == true)
+        (
+          label: 'CCTV Checked',
+          value: 'Yes (✔️)',
+          fullWidth: false,
+        ),
+      (
+        label: 'CDR Send Date',
+        value: _v(m['cdrSend'] ?? m['cdrSent'] ?? m['cdr_sent_date']),
+        fullWidth: false,
+      ),
+      (
+        label: 'CDR Received Date',
+        value: _v(m['cdrReceived'] ?? m['cdrRecv'] ?? m['cdr_received_date']),
+        fullWidth: false,
+      ),
+    ]);
+    if (cctvFields.isNotEmpty) {
+      children.add(_sectionShell(
+          sIdx++, 'CCTV & CDR INVESTIGATION', accent, cctvFields));
+    }
+
+    // ── 14. All Panchanama ─────────────────────────────────────────────────
+    final panchanamaWidgets =
+        _buildProceduralSection(context, procChecks, procDates, m);
+    if (panchanamaWidgets.isNotEmpty) {
+      children.add(
+          _sectionShell(sIdx++, 'ALL PANCHANAMA', accent, panchanamaWidgets));
+    }
+
+    // ── 15. Evidence & Seizure ─────────────────────────────────────────────
+    final flatObjectName =
+        _v(m['object_name'] ?? r?.extraFields['object_name']);
+    final flatSeizureDesc =
+        _v(m['seizure_description'] ?? r?.extraFields['seizure_description']);
+    final flatSeizurePerson =
+        _v(m['seizure_person_name'] ?? r?.extraFields['seizure_person_name']);
+
+    final seizureWidgets = <Widget>[];
+    if (seizures.isNotEmpty) {
+      for (var i = 0; i < seizures.length; i++) {
+        final s =
+            (seizures[i] is Map) ? (seizures[i] as Map) : <dynamic, dynamic>{};
+        final fields = _pairedSimpleFields(context, [
+          (
+            label: 'Item #${i + 1}',
+            value: _v(s['desc'] ?? s['object_name']),
+            fullWidth: true,
+          ),
+          (
+            label: 'Quantity / Weight',
+            value: _v(s['quantity'] ?? s['qty']),
+            fullWidth: false,
+          ),
+          (
+            label: 'Serial / Model No.',
+            value: _v(s['serialNo'] ?? s['serial']),
+            fullWidth: false,
+          ),
+          (
+            label: 'Estimated Value (INR)',
+            value: _v(s['estValue'] ?? s['val']),
+            fullWidth: false,
+          ),
+          (
+            label: 'Recovery Date',
+            value: _v(s['recoveryDate'] ?? s['recDt']),
+            fullWidth: false,
+          ),
+          (
+            label: 'Custody Location',
+            value: _v(s['custodyLoc'] ?? s['custody']),
+            fullWidth: false,
+          ),
+          (
+            label: 'From Whom (Name)',
+            value: _v(s['fromWhom'] ?? s['person_name']),
+            fullWidth: true,
+          ),
+        ]);
+        if (fields.isNotEmpty) {
+          seizureWidgets.add(
+            Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.lightBg,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(color: AppColors.lightBorder),
+              ),
+              child: Column(children: fields),
+            ),
+          );
+        }
+      }
+    } else if (flatObjectName.isNotEmpty ||
+        flatSeizureDesc.isNotEmpty ||
+        flatSeizurePerson.isNotEmpty) {
+      final fields = _pairedSimpleFields(context, [
+        (
+          label: 'Seized Object / Property',
+          value: flatObjectName,
+          fullWidth: false
+        ),
+        (
+          label: 'Seized From (Person)',
+          value: flatSeizurePerson,
+          fullWidth: false
+        ),
+        (
+          label: 'Seizure Description / Details',
+          value: flatSeizureDesc,
+          fullWidth: true
+        ),
+      ]);
+      if (fields.isNotEmpty) {
+        seizureWidgets.add(
+          Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: AppColors.lightBg,
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              border: Border.all(color: AppColors.lightBorder),
+            ),
+            child: Column(children: fields),
+          ),
+        );
+      }
+    }
+
+    final fpTaken = m['fingerprintTaken'] == true ||
+        m['fingerprintTaken'] == 'yes' ||
+        m['fingerprintVal'] == 'yes';
+    final nafisFp =
+        m['nafisFingerprint'] == true || m['nafisFingerprint'] == 'yes';
+    final eshVal = m['eshakshValue']?.toString().trim().toLowerCase();
+    final eshDt = _v(m['eshakshDt']);
+    final eshReason = _v(m['eshakshReason']);
+
+    final evidenceMetaFields = _pairedSimpleFields(context, [
+      if (eshVal == 'yes')
+        (
+          label: 'E-Shakshya',
+          value: 'YES (RECORDED)',
+          fullWidth: false,
+        ),
+      if (eshVal == 'yes' && eshDt.isNotEmpty)
+        (
+          label: 'E-Shakshya Date & Time',
+          value: eshDt,
+          fullWidth: false,
+        )
+      else if (eshVal == 'no' && eshReason.isNotEmpty)
+        (
+          label: 'Reason for No E-Shakshya',
+          value: eshReason,
+          fullWidth: true,
+        ),
+      if (fpTaken)
+        (
+          label: 'Fingerprint Taken',
+          value: 'YES',
+          fullWidth: false,
+        ),
+      if (nafisFp)
+        (
+          label: 'NAFIS Fingerprint',
+          value: 'YES',
+          fullWidth: false,
+        ),
+    ]);
+
+    if (evidenceMetaFields.isNotEmpty || seizureWidgets.isNotEmpty) {
+      children.add(
+        _sectionShell(sIdx++, 'EVIDENCE & SEIZURE', accent, [
+          if (evidenceMetaFields.isNotEmpty) ...evidenceMetaFields,
+          if (evidenceMetaFields.isNotEmpty && seizureWidgets.isNotEmpty)
+            const SizedBox(height: 12),
+          if (seizureWidgets.isNotEmpty) ...[
             Text(
-              'ADDITIONAL DISCHARGED PERSONS',
+              'SEIZURE PROPERTY DETAILS',
               style: GoogleFonts.poppins(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 color: AppColors.navyMid,
               ),
             ),
-            const SizedBox(height: 4),
-            ...((m['customDischargeList'] as List).map((cd) {
-              final cMap =
-                  (cd is Map) ? cd : <dynamic, dynamic>{'name': cd.toString()};
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: AppColors.lightBg,
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  border: Border.all(color: AppColors.lightBorder),
-                ),
-                child: Column(
+            const SizedBox(height: 6),
+            ...seizureWidgets,
+          ],
+        ]),
+      );
+    }
+
+    // ── 16. Preventive Action & Bonds ──────────────────────────────────────
+    final prevItems =
+        ((prev['items'] is List) ? (prev['items'] as List) : null) ??
+            ((m['preventive_actions'] is List)
+                ? (m['preventive_actions'] as List)
+                : null);
+    final prevWidgets = <Widget>[];
+    if (prevItems != null && prevItems.isNotEmpty) {
+      for (final it in prevItems) {
+        if (it is! Map) continue;
+        final pName = _v(it['person_name'] ??
+            it['name'] ??
+            it['accusedName'] ??
+            it['person']);
+        final pAction = _v(it['action'] ?? it['action_type']);
+        final pDate = _v(it['action_date'] ?? it['actionDate']);
+        final pOut = _v(it['outward_number'] ?? it['outwardNumber']);
+        final fields = _pairedSimpleFields(context, [
+          (label: 'Accused / Person', value: pName, fullWidth: false),
+          (label: 'Provision', value: pAction, fullWidth: false),
+          (label: 'Action Date 📅', value: pDate, fullWidth: false),
+          (label: 'Outward Number', value: pOut, fullWidth: false),
+        ]);
+        if (fields.isNotEmpty) {
+          prevWidgets.add(
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.lightBg,
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+                border: Border.all(color: AppColors.lightBorder),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: fields,
+              ),
+            ),
+          );
+        }
+      }
+    }
+    final singlePrevFields = _pairedSimpleFields(context, [
+      (
+        label: 'Preventive Action Act / Section',
+        value: _v(prev['action'] ?? prev['actionType']),
+        fullWidth: false,
+      ),
+      (
+        label: 'Action Date (📅)',
+        value: _v(prev['actionDate']),
+        fullWidth: false,
+      ),
+      (
+        label: 'Outward Number',
+        value: _v(prev['outwardNo'] ?? prev['outwardNumber']),
+        fullWidth: false,
+      ),
+      (
+        label: 'Bond Date 📅',
+        value: _v(prev['bondDate']),
+        fullWidth: false,
+      ),
+      (
+        label: 'Bond Cancellation Date 📅',
+        value: _v(prev['bondCancellation'] ?? prev['bondCancelDate']),
+        fullWidth: false,
+      ),
+      (
+        label: 'Reason for PR Bond',
+        value: _v(prev['bondReason'] ?? prev['prBondReason']),
+        fullWidth: true,
+      ),
+    ]);
+    if (prevWidgets.isNotEmpty || singlePrevFields.isNotEmpty) {
+      children.add(
+        _sectionShell(sIdx++, 'PREVENTIVE ACTION & BONDS', accent, [
+          if (prevWidgets.isNotEmpty) ...prevWidgets,
+          if (singlePrevFields.isNotEmpty) ...singlePrevFields,
+        ]),
+      );
+    }
+
+    // ── 17. Discharge Accused ──────────────────────────────────────────────
+    final disWidgets = <Widget>[];
+    if (discharge.isNotEmpty) {
+      for (final e in discharge.entries) {
+        if (e.value != true) continue;
+        final name = e.key.toString();
+        final det = (disDetails[name] is Map) ? (disDetails[name] as Map) : {};
+        disWidgets.add(
+          Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.successGreen.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: AppColors.successGreen.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    ..._pairedSimpleFields(context, [
-                      (
-                        label: 'Person Name',
-                        value: _v(cMap['name']),
-                        fullWidth: false,
+                    const Icon(
+                      Icons.check_circle,
+                      size: 18,
+                      color: AppColors.successGreen,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '$name — Discharged',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: AppColors.navyDark,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                      (
-                        label: 'Discharge Date 📅',
-                        value: _v(cMap['date']),
-                        fullWidth: false,
-                      ),
-                      (
-                        label: 'Discharge Reason',
-                        value: _v(cMap['reason']),
-                        fullWidth: true,
-                      ),
-                    ]),
+                    ),
                   ],
                 ),
-              );
-            })),
-          ],
-        ],
-      ]),
-
-      // ── Card 17: Scrutiny ─────────────────────────────────────────────────
-      _sectionShell(sIdx++, 'SCRUTINY', accent, [
-        _scrutinyStepUi(
-          context,
-          1,
-          'SDPO / ACP Approval',
-          true,
-          send: _v(sc['sdpoSend']),
-          grant: _v(sc['sdpoGrant']),
-        ),
-        _scrutinyStepUi(
-          context,
-          2,
-          'Addl. SP / DCP Approval',
-          true,
-          send: _v(sc['dcpSend']),
-          grant: _v(sc['dcpGrant']),
-        ),
-        _scrutinyStepUi(
-          context,
-          3,
-          'Addl. CP Approval',
-          true,
-          send: _v(sc['addlCpSend']),
-          grant: _v(sc['addlCpGrant']),
-        ),
-        _scrutinyStepUi(
-          context,
-          4,
-          'APP Scrutiny',
-          true,
-          send: _v(sc['appSend']),
-          grant: _v(sc['appGrant']),
-          isLast: true,
-        ),
-      ]),
-
-      // ── Card 18: Court Filing & Final Summary ─────────────────────────────
-      _sectionShell(sIdx++, 'COURT FILING & FINAL SUMMARY', accent, [
-        _CourtFilingEditableSection(
-          court: court,
-          record: record,
-          readOnly: readOnly,
-          onSubmitted: onChargeSheetSubmitted,
-        ),
-        const SizedBox(height: 10),
-        ..._pairedSimpleFields(context, [
+                if (det.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  if (det['date'] != null &&
+                      det['date'].toString().trim().isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 26, top: 2),
+                      child: Text(
+                        'Discharge Date: ${det['date']}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: AppColors.navyDark,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  if (det['reason'] != null &&
+                      det['reason'].toString().trim().isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 26, top: 2),
+                      child: Text(
+                        'Reason: ${det['reason']}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: AppColors.darkSubText,
+                        ),
+                      ),
+                    ),
+                ],
+              ],
+            ),
+          ),
+        );
+      }
+    }
+    if (m['customDischargeList'] is List &&
+        (m['customDischargeList'] as List).isNotEmpty) {
+      for (final cd in (m['customDischargeList'] as List)) {
+        final cMap =
+            (cd is Map) ? cd : <dynamic, dynamic>{'name': cd.toString()};
+        final fields = _pairedSimpleFields(context, [
           (
-            label: 'A Final Number',
-            value: _v(court['aFinalNo']),
+            label: 'Person Name',
+            value: _v(cMap['name']),
             fullWidth: false,
           ),
           (
-            label: 'B Final Number',
-            value: _v(court['bFinalNo']),
+            label: 'Discharge Date 📅',
+            value: _v(cMap['date']),
             fullWidth: false,
           ),
           (
-            label: 'C Final Number',
-            value: _v(court['cFinalNo']),
-            fullWidth: false,
-          ),
-          (
-            label: 'NC Final Number',
-            value: _v(court['ncFinalNo']),
-            fullWidth: false,
-          ),
-          (
-            label: 'Abated Summary No.',
-            value: _v(court['abatedSummaryNo']),
+            label: 'Discharge Reason',
+            value: _v(cMap['reason']),
             fullWidth: true,
           ),
-          (
-            label: 'Stay by High Court Date 📅',
-            value: _v(court['stayHighCourtDate']),
-            fullWidth: false,
+        ]);
+        if (fields.isNotEmpty) {
+          disWidgets.add(
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.lightBg,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(color: AppColors.lightBorder),
+              ),
+              child: Column(children: fields),
+            ),
+          );
+        }
+      }
+    }
+    if (disWidgets.isNotEmpty) {
+      children
+          .add(_sectionShell(sIdx++, 'DISCHARGE ACCUSED', accent, disWidgets));
+    }
+
+    // ── 18. Scrutiny ───────────────────────────────────────────────────────
+    final hasScrutinyData = [
+      sc['sdpoSend'],
+      sc['sdpoGrant'],
+      sc['dcpSend'],
+      sc['dcpGrant'],
+      sc['addlCpSend'],
+      sc['addlCpGrant'],
+      sc['appSend'],
+      sc['appGrant']
+    ].any((x) =>
+        x != null &&
+        x.toString().trim().isNotEmpty &&
+        x.toString().trim() != '—' &&
+        x.toString().trim() != 'None');
+    if (hasScrutinyData) {
+      children.add(
+        _sectionShell(sIdx++, 'SCRUTINY', accent, [
+          _scrutinyStepUi(
+            context,
+            1,
+            'SDPO / ACP Approval',
+            true,
+            send: _v(sc['sdpoSend']),
+            grant: _v(sc['sdpoGrant']),
           ),
-          (
-            label: 'Quashed by High Court Date 📅',
-            value: _v(court['quashedHighCourtDate'] ?? court['quashDate']),
-            fullWidth: false,
+          _scrutinyStepUi(
+            context,
+            2,
+            'Addl. SP / DCP Approval',
+            true,
+            send: _v(sc['dcpSend']),
+            grant: _v(sc['dcpGrant']),
           ),
-          (
-            label: 'Final Case Classification',
-            value: _v(court['finalClassification'], or: 'Pending'),
-            fullWidth: false,
+          _scrutinyStepUi(
+            context,
+            3,
+            'Addl. CP Approval',
+            true,
+            send: _v(sc['addlCpSend']),
+            grant: _v(sc['addlCpGrant']),
+          ),
+          _scrutinyStepUi(
+            context,
+            4,
+            'APP Scrutiny',
+            true,
+            send: _v(sc['appSend']),
+            grant: _v(sc['appGrant']),
+            isLast: true,
           ),
         ]),
-        const SizedBox(height: 12),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _verdictColumn('✓ ACQUITTED', acquitted, AppColors.successGreen),
-            const SizedBox(width: 10),
-            _verdictColumn('✗ CONVICTED', convicted, AppColors.dangerRed),
-          ],
+      );
+    }
+
+    // ── 19. Court Filing & Final Summary ───────────────────────────────────
+    final courtFields = _pairedSimpleFields(context, [
+      (
+        label: 'A Final Number',
+        value: _v(court['aFinalNo']),
+        fullWidth: false,
+      ),
+      (
+        label: 'B Final Number',
+        value: _v(court['bFinalNo']),
+        fullWidth: false,
+      ),
+      (
+        label: 'C Final Number',
+        value: _v(court['cFinalNo']),
+        fullWidth: false,
+      ),
+      (
+        label: 'NC Final Number',
+        value: _v(court['ncFinalNo']),
+        fullWidth: false,
+      ),
+      (
+        label: 'Abated Summary No.',
+        value: _v(court['abatedSummaryNo']),
+        fullWidth: true,
+      ),
+      (
+        label: 'Stay by High Court Date 📅',
+        value: _v(court['stayHighCourtDate']),
+        fullWidth: false,
+      ),
+      (
+        label: 'Quashed by High Court Date 📅',
+        value: _v(court['quashedHighCourtDate'] ?? court['quashDate']),
+        fullWidth: false,
+      ),
+      if (court['finalClassification'] != null &&
+          court['finalClassification'].toString().trim().isNotEmpty &&
+          court['finalClassification'].toString().trim() != 'Pending')
+        (
+          label: 'Final Case Classification',
+          value: _v(court['finalClassification']),
+          fullWidth: false,
         ),
-      ]),
-      ..._buildExtraMapSection(context, sIdx++),
-    ];
+    ]);
+    final hasChargeSheetData =
+        (court['chargeSheetNumber']?.toString().trim().isNotEmpty ?? false) ||
+            (court['chargeSheetDate']?.toString().trim().isNotEmpty ?? false) ||
+            (court['ccStNumber']?.toString().trim().isNotEmpty ?? false);
+    final hasVerdict = acquitted.isNotEmpty || convicted.isNotEmpty;
+    if (!readOnly ||
+        hasChargeSheetData ||
+        courtFields.isNotEmpty ||
+        hasVerdict) {
+      children.add(
+        _sectionShell(sIdx++, 'COURT FILING & FINAL SUMMARY', accent, [
+          _CourtFilingEditableSection(
+            court: court,
+            record: record,
+            readOnly: readOnly,
+            onSubmitted: onChargeSheetSubmitted,
+          ),
+          if (courtFields.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            ...courtFields,
+          ],
+          if (hasVerdict) ...[
+            const SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _verdictColumn(
+                    '✓ ACQUITTED', acquitted, AppColors.successGreen),
+                const SizedBox(width: 10),
+                _verdictColumn('✗ CONVICTED', convicted, AppColors.dangerRed),
+              ],
+            ),
+          ],
+        ]),
+      );
+    }
+
+    // ── 20. Audit & Additional Details ─────────────────────────────────────
+    final extraWidgets = _buildExtraMapSection(context, sIdx++);
+    if (extraWidgets.isNotEmpty) {
+      children.addAll(extraWidgets);
+    }
+
+    // Fallback if completely empty
+    if (children.length <= 2) {
+      children.add(
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            border: Border.all(color: AppColors.lightBorder),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.folder_open_outlined,
+                size: 48,
+                color: AppColors.lightSubText,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'No additional saved details found for this case.',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.lightSubText,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

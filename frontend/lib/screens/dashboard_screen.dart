@@ -13,9 +13,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:khakhi_diary/providers/settings_provider.dart';
 import 'package:khakhi_diary/providers/notification_provider.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
+
 import 'package:provider/provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
@@ -86,10 +84,14 @@ import '../utils/universal_search.dart';
 import '../widgets/app_logo.dart';
 import 'pending_hub_screen.dart';
 import 'itsso_hub_screen.dart';
+import 'dar_hub_screen.dart';
+import 'irad_hub_screen.dart';
 import 'undetected_hub_screen.dart';
 import 'detected_hub_screen.dart';
 import 'disposal_hub_screen.dart';
 import 'arrested_hub_screen.dart';
+import '../widgets/summons_warrant_report_table.dart';
+import '../widgets/monthly_crime_comparative_table.dart';
 import 'juvenile_hub_screen.dart';
 import 'repeat_offender_summary_screen.dart';
 import 'nafis_hub_screen.dart';
@@ -129,7 +131,6 @@ import 'pending_transfers_screen.dart';
 import '../widgets/dynamic_form/dynamic_form_screen.dart';
 // Navigation targets for Hamburger Menu
 import 'profile_screen.dart';
-import 'report_case_list_screen.dart';
 import 'station_access_grants_screen.dart';
 
 dynamic _dashboardTileIcon(String label, dynamic fallback) {
@@ -379,7 +380,8 @@ String? _getDashboardSvgPath(String label) {
   }
 }
 
-Widget _buildGridIcon(String label, dynamic fallback, Color color, double size) {
+Widget _buildGridIcon(
+    String label, dynamic fallback, Color color, double size) {
   final labelTrim = label.replaceAll('\n', ' ').trim();
   final svgPath = _getDashboardSvgPath(labelTrim);
   if (svgPath != null) {
@@ -400,10 +402,12 @@ Widget _buildGridIcon(String label, dynamic fallback, Color color, double size) 
         svgPath.contains('passport') ||
         svgPath.contains('mvact');
     // Wide icons need a slight constraint so they don't crowd card borders
-    final isWide =
-        svgPath.contains('2-4wheeler') || svgPath.contains('accident') || svgPath.contains('chain_snatching');
+    final isWide = svgPath.contains('2-4wheeler') ||
+        svgPath.contains('accident') ||
+        svgPath.contains('chain_snatching');
 
-    final double scale = isSolidBadge ? 1.20 : (isTall ? 1.50 : (isWide ? 1.34 : 1.42));
+    final double scale =
+        isSolidBadge ? 1.20 : (isTall ? 1.50 : (isWide ? 1.34 : 1.42));
 
     return SvgPicture.asset(
       svgPath,
@@ -428,7 +432,8 @@ Widget _buildGridIcon(String label, dynamic fallback, Color color, double size) 
   return FaIcon(icon, color: color, size: glyphSize);
 }
 
-Widget _buildServiceIcon(String label, dynamic fallback, Color color, double size) {
+Widget _buildServiceIcon(
+    String label, dynamic fallback, Color color, double size) {
   final labelTrim = label.replaceAll('\n', ' ').trim();
   final svgPath = _getDashboardSvgPath(labelTrim);
   if (svgPath != null) {
@@ -463,7 +468,8 @@ class CardsIconPainter extends CustomPainter {
     canvas.translate(w * 0.65, h * 0.45);
     canvas.rotate(0.3);
     final bgRect = RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset.zero, width: w * 0.55, height: h * 0.75), const Radius.circular(3));
+        Rect.fromCenter(center: Offset.zero, width: w * 0.55, height: h * 0.75),
+        const Radius.circular(3));
     canvas.drawRRect(bgRect, Paint()..color = color);
     canvas.restore();
 
@@ -472,7 +478,8 @@ class CardsIconPainter extends CustomPainter {
     canvas.translate(w * 0.35, h * 0.55);
     canvas.rotate(-0.15);
     final fgRect = RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset.zero, width: w * 0.6, height: h * 0.8), const Radius.circular(3));
+        Rect.fromCenter(center: Offset.zero, width: w * 0.6, height: h * 0.8),
+        const Radius.circular(3));
 
     canvas.drawRRect(fgRect, Paint()..color = Colors.white);
     canvas.drawRRect(fgRect, Paint()..color = color);
@@ -538,8 +545,13 @@ class JuvenileIconPainter extends CustomPainter {
 
     final hairPath = Path();
     hairPath.moveTo(w * 0.5, headCenterY - headRadius);
-    hairPath.cubicTo(w * 0.55, headCenterY - headRadius - h * 0.1, w * 0.4, headCenterY - headRadius - h * 0.1,
-        w * 0.48, headCenterY - headRadius - h * 0.03);
+    hairPath.cubicTo(
+        w * 0.55,
+        headCenterY - headRadius - h * 0.1,
+        w * 0.4,
+        headCenterY - headRadius - h * 0.1,
+        w * 0.48,
+        headCenterY - headRadius - h * 0.03);
     canvas.drawPath(hairPath, hairPaint);
 
     // White strokes for face features
@@ -552,19 +564,22 @@ class JuvenileIconPainter extends CustomPainter {
     // Left eye (U curve)
     final leftEyePath = Path();
     leftEyePath.moveTo(w * 0.37, headCenterY - h * 0.02);
-    leftEyePath.quadraticBezierTo(w * 0.42, headCenterY + h * 0.04, w * 0.47, headCenterY - h * 0.02);
+    leftEyePath.quadraticBezierTo(
+        w * 0.42, headCenterY + h * 0.04, w * 0.47, headCenterY - h * 0.02);
     canvas.drawPath(leftEyePath, whiteStroke);
 
     // Right eye
     final rightEyePath = Path();
     rightEyePath.moveTo(w * 0.53, headCenterY - h * 0.02);
-    rightEyePath.quadraticBezierTo(w * 0.58, headCenterY + h * 0.04, w * 0.63, headCenterY - h * 0.02);
+    rightEyePath.quadraticBezierTo(
+        w * 0.58, headCenterY + h * 0.04, w * 0.63, headCenterY - h * 0.02);
     canvas.drawPath(rightEyePath, whiteStroke);
 
     // Smile
     final smilePath = Path();
     smilePath.moveTo(w * 0.42, headCenterY + h * 0.07);
-    smilePath.quadraticBezierTo(w * 0.5, headCenterY + h * 0.12, w * 0.58, headCenterY + h * 0.07);
+    smilePath.quadraticBezierTo(
+        w * 0.5, headCenterY + h * 0.12, w * 0.58, headCenterY + h * 0.07);
     canvas.drawPath(smilePath, whiteStroke);
 
     // Bottom part: Scale of Justice
@@ -572,10 +587,12 @@ class JuvenileIconPainter extends CustomPainter {
     final scaleBottom = h * 0.95;
 
     // Top bar
-    canvas.drawLine(Offset(w * 0.25, barY), Offset(w * 0.75, barY), strokePaint);
+    canvas.drawLine(
+        Offset(w * 0.25, barY), Offset(w * 0.75, barY), strokePaint);
 
     // Central stand (down from bar)
-    canvas.drawLine(Offset(w * 0.5, barY), Offset(w * 0.5, scaleBottom - h * 0.08), strokePaint);
+    canvas.drawLine(Offset(w * 0.5, barY),
+        Offset(w * 0.5, scaleBottom - h * 0.08), strokePaint);
 
     // Base (Trapezoid)
     final basePath = Path();
@@ -597,8 +614,10 @@ class JuvenileIconPainter extends CustomPainter {
     final panY = h * 0.78; // Y where strings meet the pan
 
     // Left strings
-    canvas.drawLine(Offset(w * 0.25, barY), Offset(w * 0.15, panY), stringPaint);
-    canvas.drawLine(Offset(w * 0.25, barY), Offset(w * 0.35, panY), stringPaint);
+    canvas.drawLine(
+        Offset(w * 0.25, barY), Offset(w * 0.15, panY), stringPaint);
+    canvas.drawLine(
+        Offset(w * 0.25, barY), Offset(w * 0.35, panY), stringPaint);
 
     // Left pan (semi circle)
     final leftPanPath = Path();
@@ -612,8 +631,10 @@ class JuvenileIconPainter extends CustomPainter {
     canvas.drawPath(leftPanPath, paint);
 
     // Right strings
-    canvas.drawLine(Offset(w * 0.75, barY), Offset(w * 0.65, panY), stringPaint);
-    canvas.drawLine(Offset(w * 0.75, barY), Offset(w * 0.85, panY), stringPaint);
+    canvas.drawLine(
+        Offset(w * 0.75, barY), Offset(w * 0.65, panY), stringPaint);
+    canvas.drawLine(
+        Offset(w * 0.75, barY), Offset(w * 0.85, panY), stringPaint);
 
     // Right pan
     final rightPanPath = Path();
@@ -657,18 +678,26 @@ class SandTheftIconPainter extends CustomPainter {
 
     // 2. Chassis
     // Left segment
-    canvas.drawLine(Offset(w * 0.05, chassisYTop), Offset(w * 0.13, chassisYTop), strokePaint);
-    canvas.drawLine(Offset(w * 0.05, chassisYBot), Offset(w * 0.13, chassisYBot), strokePaint);
-    canvas.drawLine(Offset(w * 0.05, chassisYTop), Offset(w * 0.05, chassisYBot), strokePaint);
+    canvas.drawLine(Offset(w * 0.05, chassisYTop),
+        Offset(w * 0.13, chassisYTop), strokePaint);
+    canvas.drawLine(Offset(w * 0.05, chassisYBot),
+        Offset(w * 0.13, chassisYBot), strokePaint);
+    canvas.drawLine(Offset(w * 0.05, chassisYTop),
+        Offset(w * 0.05, chassisYBot), strokePaint);
 
     // Middle segment
-    canvas.drawLine(Offset(w * 0.37, chassisYTop), Offset(w * 0.63, chassisYTop), strokePaint);
-    canvas.drawLine(Offset(w * 0.37, chassisYBot), Offset(w * 0.63, chassisYBot), strokePaint);
+    canvas.drawLine(Offset(w * 0.37, chassisYTop),
+        Offset(w * 0.63, chassisYTop), strokePaint);
+    canvas.drawLine(Offset(w * 0.37, chassisYBot),
+        Offset(w * 0.63, chassisYBot), strokePaint);
 
     // Right segment
-    canvas.drawLine(Offset(w * 0.87, chassisYTop), Offset(w * 0.95, chassisYTop), strokePaint);
-    canvas.drawLine(Offset(w * 0.87, chassisYBot), Offset(w * 0.95, chassisYBot), strokePaint);
-    canvas.drawLine(Offset(w * 0.95, chassisYTop), Offset(w * 0.95, chassisYBot), strokePaint);
+    canvas.drawLine(Offset(w * 0.87, chassisYTop),
+        Offset(w * 0.95, chassisYTop), strokePaint);
+    canvas.drawLine(Offset(w * 0.87, chassisYBot),
+        Offset(w * 0.95, chassisYBot), strokePaint);
+    canvas.drawLine(Offset(w * 0.95, chassisYTop),
+        Offset(w * 0.95, chassisYBot), strokePaint);
 
     // 3. Cab
     final cabPath = Path();
@@ -699,7 +728,8 @@ class SandTheftIconPainter extends CustomPainter {
     canvas.drawPath(bedPath, strokePaint);
 
     // 5. Hydraulic Arm
-    canvas.drawLine(Offset(w * 0.4, chassisYTop), Offset(w * 0.35, h * 0.6), strokePaint);
+    canvas.drawLine(
+        Offset(w * 0.4, chassisYTop), Offset(w * 0.35, h * 0.6), strokePaint);
 
     // 6. Sand load (wavy line)
     final sandPath = Path();
@@ -750,7 +780,8 @@ class UndetectedIconPainter extends CustomPainter {
     final handleEndY = h * 0.85;
 
     // Draw handle
-    canvas.drawLine(Offset(handleStartX, handleStartY), Offset(handleEndX, handleEndY), handlePaint);
+    canvas.drawLine(Offset(handleStartX, handleStartY),
+        Offset(handleEndX, handleEndY), handlePaint);
 
     // Gap
     final gapWhite = Paint()
@@ -776,8 +807,10 @@ class UndetectedIconPainter extends CustomPainter {
 
     // X mark
     final xSize = r * 0.3;
-    canvas.drawLine(Offset(cx - xSize, cy - xSize), Offset(cx + xSize, cy + xSize), whiteStroke);
-    canvas.drawLine(Offset(cx + xSize, cy - xSize), Offset(cx - xSize, cy + xSize), whiteStroke);
+    canvas.drawLine(Offset(cx - xSize, cy - xSize),
+        Offset(cx + xSize, cy + xSize), whiteStroke);
+    canvas.drawLine(Offset(cx + xSize, cy - xSize),
+        Offset(cx - xSize, cy + xSize), whiteStroke);
   }
 
   @override
@@ -810,7 +843,8 @@ class HurtIconPainter extends CustomPainter {
     final blade = Path();
     blade.moveTo(w * 0.62, h * 0.3); // Top-right
     blade.lineTo(w * 0.15, h * 0.77); // Tip
-    blade.quadraticBezierTo(w * 0.3, h * 0.85, w * 0.52, h * 0.5); // Bottom curve
+    blade.quadraticBezierTo(
+        w * 0.3, h * 0.85, w * 0.52, h * 0.5); // Bottom curve
     blade.close();
     canvas.drawPath(blade, paint);
 
@@ -821,17 +855,24 @@ class HurtIconPainter extends CustomPainter {
       ..strokeWidth = w * 0.03
       ..strokeCap = StrokeCap.butt;
 
-    canvas.drawLine(Offset(w * 0.58, h * 0.28), Offset(w * 0.72, h * 0.42), cutPaint);
-    canvas.drawLine(Offset(w * 0.54, h * 0.32), Offset(w * 0.68, h * 0.46), cutPaint);
+    canvas.drawLine(
+        Offset(w * 0.58, h * 0.28), Offset(w * 0.72, h * 0.42), cutPaint);
+    canvas.drawLine(
+        Offset(w * 0.54, h * 0.32), Offset(w * 0.68, h * 0.46), cutPaint);
 
     // 4. Blood Splat
     final splat = Path();
     splat.moveTo(w * 0.35, h * 0.5);
-    splat.cubicTo(w * 0.35, h * 0.4, w * 0.55, h * 0.4, w * 0.55, h * 0.5); // Top bulge
-    splat.cubicTo(w * 0.65, h * 0.5, w * 0.65, h * 0.65, w * 0.6, h * 0.65); // Right drip
-    splat.cubicTo(w * 0.55, h * 0.65, w * 0.5, h * 0.55, w * 0.45, h * 0.6); // Inner curve
-    splat.cubicTo(w * 0.4, h * 0.75, w * 0.3, h * 0.75, w * 0.3, h * 0.7); // Left drip
-    splat.cubicTo(w * 0.3, h * 0.6, w * 0.25, h * 0.6, w * 0.35, h * 0.5); // Close
+    splat.cubicTo(
+        w * 0.35, h * 0.4, w * 0.55, h * 0.4, w * 0.55, h * 0.5); // Top bulge
+    splat.cubicTo(
+        w * 0.65, h * 0.5, w * 0.65, h * 0.65, w * 0.6, h * 0.65); // Right drip
+    splat.cubicTo(w * 0.55, h * 0.65, w * 0.5, h * 0.55, w * 0.45,
+        h * 0.6); // Inner curve
+    splat.cubicTo(
+        w * 0.4, h * 0.75, w * 0.3, h * 0.75, w * 0.3, h * 0.7); // Left drip
+    splat.cubicTo(
+        w * 0.3, h * 0.6, w * 0.25, h * 0.6, w * 0.35, h * 0.5); // Close
 
     canvas.drawPath(
         splat,
@@ -847,7 +888,8 @@ class HurtIconPainter extends CustomPainter {
       final drop = Path();
       drop.moveTo(cx, cy - s);
       drop.quadraticBezierTo(cx + s, cy, cx + s, cy + s * 0.5);
-      drop.arcToPoint(Offset(cx - s, cy + s * 0.5), radius: Radius.circular(s), clockwise: true);
+      drop.arcToPoint(Offset(cx - s, cy + s * 0.5),
+          radius: Radius.circular(s), clockwise: true);
       drop.quadraticBezierTo(cx - s, cy, cx, cy - s);
       canvas.drawPath(drop, paint);
 
@@ -855,8 +897,10 @@ class HurtIconPainter extends CustomPainter {
       final innerS = s * 0.4;
       final innerCy = cy + s * 0.35;
       inner.moveTo(cx, innerCy - innerS);
-      inner.quadraticBezierTo(cx + innerS, innerCy, cx + innerS, innerCy + innerS * 0.5);
-      inner.arcToPoint(Offset(cx - innerS, innerCy + innerS * 0.5), radius: Radius.circular(innerS), clockwise: true);
+      inner.quadraticBezierTo(
+          cx + innerS, innerCy, cx + innerS, innerCy + innerS * 0.5);
+      inner.arcToPoint(Offset(cx - innerS, innerCy + innerS * 0.5),
+          radius: Radius.circular(innerS), clockwise: true);
       inner.quadraticBezierTo(cx - innerS, innerCy, cx, innerCy - innerS);
       canvas.drawPath(
           inner,
@@ -913,8 +957,10 @@ class KidnappingIconPainter extends CustomPainter {
           ..strokeCap = StrokeCap.round);
 
     // Legs
-    canvas.drawLine(Offset(w * 0.67, h * 0.6), Offset(w * 0.67, h * 0.95), pStrokePaint);
-    canvas.drawLine(Offset(w * 0.83, h * 0.6), Offset(w * 0.83, h * 0.95), pStrokePaint);
+    canvas.drawLine(
+        Offset(w * 0.67, h * 0.6), Offset(w * 0.67, h * 0.95), pStrokePaint);
+    canvas.drawLine(
+        Offset(w * 0.83, h * 0.6), Offset(w * 0.83, h * 0.95), pStrokePaint);
 
     // Arms
     final arms = Path();
@@ -928,12 +974,16 @@ class KidnappingIconPainter extends CustomPainter {
     // --- GUN ---
     // Barrel
     canvas.drawRRect(
-        RRect.fromRectAndRadius(Rect.fromLTRB(w * 0.08, h * 0.45, w * 0.48, h * 0.57), Radius.circular(w * 0.02)),
+        RRect.fromRectAndRadius(
+            Rect.fromLTRB(w * 0.08, h * 0.45, w * 0.48, h * 0.57),
+            Radius.circular(w * 0.02)),
         fillPaint);
 
     // Sight bump
     canvas.drawRRect(
-        RRect.fromRectAndRadius(Rect.fromLTRB(w * 0.1, h * 0.41, w * 0.15, h * 0.45), Radius.circular(w * 0.01)),
+        RRect.fromRectAndRadius(
+            Rect.fromLTRB(w * 0.1, h * 0.41, w * 0.15, h * 0.45),
+            Radius.circular(w * 0.01)),
         fillPaint);
 
     // Grip
@@ -955,7 +1005,8 @@ class KidnappingIconPainter extends CustomPainter {
     canvas.drawPath(guard, strokePaint..strokeWidth = w * 0.035);
 
     // Trigger
-    canvas.drawLine(Offset(w * 0.25, h * 0.57), Offset(w * 0.23, h * 0.61), strokePaint..strokeWidth = w * 0.02);
+    canvas.drawLine(Offset(w * 0.25, h * 0.57), Offset(w * 0.23, h * 0.61),
+        strokePaint..strokeWidth = w * 0.02);
   }
 
   @override
@@ -1147,10 +1198,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildWideLayout(AuthProvider auth, AppLocalizations l10n, List<Widget> pages, int pageIndex) {
+  Widget _buildWideLayout(AuthProvider auth, AppLocalizations l10n,
+      List<Widget> pages, int pageIndex) {
     return Row(
       children: [
-        _buildWebProfileSidebar(auth, l10n), // Persistent profile menu on wide screens (tablet + web)
+        _buildWebProfileSidebar(auth,
+            l10n), // Persistent profile menu on wide screens (tablet + web)
         Expanded(
           child: Column(
             children: [
@@ -1168,7 +1221,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildNarrowLayout(AuthProvider auth, AppLocalizations l10n, List<Widget> pages, int pageIndex) {
+  Widget _buildNarrowLayout(AuthProvider auth, AppLocalizations l10n,
+      List<Widget> pages, int pageIndex) {
     return Column(
       children: [
         _buildAppBar(auth, showHamburger: true),
@@ -1183,7 +1237,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildAppBar(AuthProvider auth, {required bool showHamburger}) {
-    final l10n = AppLocalizations.of(context)!; // WEB FIX: reuse localized labels for top nav on web
+    final l10n = AppLocalizations.of(
+        context)!; // WEB FIX: reuse localized labels for top nav on web
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallPhone = screenWidth < 420;
     return Container(
@@ -1216,16 +1271,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Builder(
               builder: (ctx) {
                 final stateCode = auth.currentUser?.stateCode ?? auth.stateCode;
-                final stateBranding = StateBrandingHelper.getBranding(stateCode);
+                final stateBranding =
+                    StateBrandingHelper.getBranding(stateCode);
                 final screenWidth = MediaQuery.of(ctx).size.width;
                 final isVeryNarrow = screenWidth < 380;
-                final forceTitleText = isVeryNarrow ? stateBranding.shortForceTitle : stateBranding.policeForceTitle;
+                final forceTitleText = isVeryNarrow
+                    ? stateBranding.shortForceTitle
+                    : stateBranding.policeForceTitle;
 
                 return InkWell(
                   onTap: () => StatePoliceBannerDialog.show(ctx, auth),
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
                       alignment: Alignment.centerLeft,
@@ -1263,17 +1322,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           const SizedBox(width: 6),
                           // Dynamic State Police Badge
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 3),
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  stateBranding.primaryColor.withValues(alpha: 0.08),
-                                  stateBranding.accentColor.withValues(alpha: 0.18),
+                                  stateBranding.primaryColor
+                                      .withValues(alpha: 0.08),
+                                  stateBranding.accentColor
+                                      .withValues(alpha: 0.18),
                                 ],
                               ),
                               borderRadius: BorderRadius.circular(6),
                               border: Border.all(
-                                color: stateBranding.accentColor.withValues(alpha: 0.4),
+                                color: stateBranding.accentColor
+                                    .withValues(alpha: 0.4),
                               ),
                             ),
                             child: Row(
@@ -1359,10 +1422,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return InkWell(
       // WEB FIX: mouse + touch support on web
       onTap: () => _onNavTap(index), // WEB FIX: reuse existing navigation logic
-      borderRadius: BorderRadius.circular(AppRadius.lg), // WEB FIX: match pill style
+      borderRadius:
+          BorderRadius.circular(AppRadius.lg), // WEB FIX: match pill style
       child: Container(
         // WEB FIX
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), // WEB FIX
+        padding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 8), // WEB FIX
         decoration: BoxDecoration(
           // WEB FIX
           color: isActive
@@ -1371,7 +1436,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           borderRadius: BorderRadius.circular(AppRadius.lg), // WEB FIX
           border: Border.all(
             // WEB FIX
-            color: isActive ? AppColors.navyMid.withValues(alpha: 0.25) : AppColors.lightBorder, // WEB FIX
+            color: isActive
+                ? AppColors.navyMid.withValues(alpha: 0.25)
+                : AppColors.lightBorder, // WEB FIX
           ), // WEB FIX
         ), // WEB FIX
         child: Row(
@@ -1397,7 +1464,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ); // WEB FIX
   }
 
-  Widget _buildDrawerHeader(AuthProvider auth, AppLocalizations l10n, {double headerHeight = 180}) {
+  Widget _buildDrawerHeader(AuthProvider auth, AppLocalizations l10n,
+      {double headerHeight = 180}) {
     // RESPONSIVE FIX: get top padding for status bar / notch
     final topPadding = MediaQuery.of(context).padding.top;
     // Scale avatar and font sizes based on header height
@@ -1407,7 +1475,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final nameFontSize = isCompact ? 15.0 : 17.0;
     final topInset = isCompact ? (topPadding + 10) : (topPadding + 14);
 
-    final initial = auth.displayName.isNotEmpty ? auth.displayName[0].toUpperCase() : 'O';
+    final initial =
+        auth.displayName.isNotEmpty ? auth.displayName[0].toUpperCase() : 'O';
 
     return InkWell(
       onTap: () => Navigator.push(
@@ -1462,12 +1531,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: AppColors.goldPrimary.withValues(alpha: 0.6),
+                                color: AppColors.goldPrimary
+                                    .withValues(alpha: 0.6),
                                 width: 2,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.goldPrimary.withValues(alpha: 0.2),
+                                  color: AppColors.goldPrimary
+                                      .withValues(alpha: 0.2),
                                   blurRadius: 10,
                                   spreadRadius: 1,
                                 ),
@@ -1529,7 +1600,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              auth.displayName.isNotEmpty ? auth.displayName : 'Officer',
+                              auth.displayName.isNotEmpty
+                                  ? auth.displayName
+                                  : 'Officer',
                               style: GoogleFonts.poppins(
                                 fontSize: nameFontSize,
                                 fontWeight: FontWeight.w700,
@@ -1546,11 +1619,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               children: [
                                 if (auth.stationName.isNotEmpty) ...[
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 7, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.1),
+                                      color:
+                                          Colors.white.withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                                      border: Border.all(
+                                          color: Colors.white
+                                              .withValues(alpha: 0.15)),
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
@@ -1568,7 +1645,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                               fontSize: 9.5,
                                               fontWeight: FontWeight.w700,
                                               letterSpacing: 0.4,
-                                              color: Colors.white.withValues(alpha: 0.9),
+                                              color: Colors.white
+                                                  .withValues(alpha: 0.9),
                                             ),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
@@ -1580,12 +1658,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ],
                                 if (auth.designation.isNotEmpty) ...[
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 7, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: AppColors.goldPrimary.withValues(alpha: 0.2),
+                                      color: AppColors.goldPrimary
+                                          .withValues(alpha: 0.2),
                                       borderRadius: BorderRadius.circular(6),
                                       border: Border.all(
-                                        color: AppColors.goldPrimary.withValues(alpha: 0.5),
+                                        color: AppColors.goldPrimary
+                                            .withValues(alpha: 0.5),
                                       ),
                                     ),
                                     child: Text(
@@ -1674,19 +1755,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Container(
                 width: 40,
                 height: 4,
-                decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2))),
             Padding(
               padding: const EdgeInsets.all(20),
               child: Row(children: [
                 Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: AppColors.infoBlue.withValues(alpha: 0.12), shape: BoxShape.circle),
-                  child: const Icon(Icons.language_rounded, color: AppColors.infoBlue, size: 20),
+                  decoration: BoxDecoration(
+                      color: AppColors.infoBlue.withValues(alpha: 0.12),
+                      shape: BoxShape.circle),
+                  child: const Icon(Icons.language_rounded,
+                      color: AppColors.infoBlue, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Text(
                   TranslationHelper.translate(context, 'Select Language'),
-                  style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.navyDark),
+                  style: GoogleFonts.poppins(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyDark),
                 ),
               ]),
             ),
@@ -1701,13 +1790,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   return Material(
                     color: Colors.transparent,
                     child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 2),
                       title: Text(
                         l.$1,
                         style: GoogleFonts.poppins(
                           fontSize: 15,
-                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                          color: isSelected ? AppColors.infoBlue : AppColors.navyDark,
+                          fontWeight:
+                              isSelected ? FontWeight.w700 : FontWeight.w500,
+                          color: isSelected
+                              ? AppColors.infoBlue
+                              : AppColors.navyDark,
                         ),
                       ),
                       subtitle: Text(
@@ -1718,8 +1811,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
                       trailing: isSelected
-                          ? const Icon(Icons.check_circle_rounded, color: AppColors.infoBlue, size: 22)
-                          : const Icon(Icons.chevron_right_rounded, color: AppColors.goldPrimary, size: 22),
+                          ? const Icon(Icons.check_circle_rounded,
+                              color: AppColors.infoBlue, size: 22)
+                          : const Icon(Icons.chevron_right_rounded,
+                              color: AppColors.goldPrimary, size: 22),
                       onTap: () {
                         context.read<SettingsProvider>().setLanguage(l.$3);
                         Navigator.pop(context);
@@ -1770,7 +1865,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       backgroundColor: Colors.white,
       child: SafeArea(
         top: false, // header handles its own top padding
-        child: _buildProfileMenuContent(auth, l10n), // WEB FIX: reuse same menu for drawer + web sidebar
+        child: _buildProfileMenuContent(
+            auth, l10n), // WEB FIX: reuse same menu for drawer + web sidebar
       ),
     );
   }
@@ -1783,7 +1879,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Material(
         // WEB FIX: ensure proper ink + theme on web
         color: Colors.white, // WEB FIX: keep same drawer background
-        child: _buildProfileMenuContent(auth, l10n), // WEB FIX: exact same menu as Android drawer
+        child: _buildProfileMenuContent(
+            auth, l10n), // WEB FIX: exact same menu as Android drawer
       ),
     );
   }
@@ -1807,7 +1904,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 physics: const BouncingScrollPhysics(),
                 children: [
                   // ── ROLE-BASED UNIFIED ADMIN PANEL ──
-                  if (PoliceHierarchyHelper.hasAdminAuthority(auth.designation, auth.roleId)) ...[
+                  if (PoliceHierarchyHelper.hasAdminAuthority(
+                      auth.designation, auth.roleId)) ...[
                     _drawerItem(
                       Icons.admin_panel_settings_rounded,
                       MenuLocalizations.get(lang, 'adminPanel'),
@@ -1815,26 +1913,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Navigator.pop(context);
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const AdminPanelScreen()),
+                          MaterialPageRoute(
+                              builder: (_) => const AdminPanelScreen()),
                         );
                       },
                     ),
                   ],
-                  if (PoliceHierarchyHelper.canSendAlerts(auth.designation, auth.roleId) ||
-                      PoliceHierarchyHelper.canSendReminders(auth.designation, auth.roleId)) ...[
+                  if (PoliceHierarchyHelper.canSendAlerts(
+                          auth.designation, auth.roleId) ||
+                      PoliceHierarchyHelper.canSendReminders(
+                          auth.designation, auth.roleId)) ...[
                     _drawerItem(
                       Icons.campaign_rounded,
-                      PoliceHierarchyHelper.isStateSuperAdmin(auth.designation, auth.roleId)
+                      PoliceHierarchyHelper.isStateSuperAdmin(
+                              auth.designation, auth.roleId)
                           ? MenuLocalizations.get(lang, 'sendAlertsState')
-                          : (PoliceHierarchyHelper.isDistrictAdmin(auth.designation, auth.roleId)
-                              ? MenuLocalizations.get(lang, 'sendAlertsDistrict')
+                          : (PoliceHierarchyHelper.isDistrictAdmin(
+                                  auth.designation, auth.roleId)
+                              ? MenuLocalizations.get(
+                                  lang, 'sendAlertsDistrict')
                               : MenuLocalizations.get(lang, 'sendReminderIO')),
                       () => SendBroadcastAlertDialog.show(context),
                     ),
                     const Divider(height: 1),
                   ],
                   // ── Switch Policestation (senior officers only) ──
-                  if (SeniorOfficerRoles.canSwitchLocation(auth.designation)) ...[
+                  if (SeniorOfficerRoles.canSwitchLocation(
+                      auth.designation)) ...[
                     Material(
                       color: Colors.transparent,
                       child: ListTile(
@@ -1843,18 +1948,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         leading: Icon(
                           Icons.swap_horiz_rounded,
                           size: 20,
-                          color: auth.isViewingOtherStation ? AppColors.goldPrimary : AppColors.lightText,
+                          color: auth.isViewingOtherStation
+                              ? AppColors.goldPrimary
+                              : AppColors.lightText,
                         ),
                         title: Text(
                           MenuLocalizations.get(lang, 'switchStation'),
                           style: GoogleFonts.poppins(
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
-                            color: auth.isViewingOtherStation ? AppColors.goldPrimary : AppColors.lightText,
+                            color: auth.isViewingOtherStation
+                                ? AppColors.goldPrimary
+                                : AppColors.lightText,
                           ),
                         ),
                         subtitle: Text(
-                          auth.isViewingOtherStation ? 'Viewing: ${auth.stationName}' : auth.stationName,
+                          auth.isViewingOtherStation
+                              ? 'Viewing: ${auth.stationName}'
+                              : auth.stationName,
                           style: GoogleFonts.poppins(
                             fontSize: 10,
                             color: auth.isViewingOtherStation
@@ -1870,10 +1981,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   auth.resetToHomeStation();
                                 },
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
-                                    color: AppColors.dangerRed.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                                    color: AppColors.dangerRed
+                                        .withValues(alpha: 0.1),
+                                    borderRadius:
+                                        BorderRadius.circular(AppRadius.sm),
                                   ),
                                   child: Text(
                                     MenuLocalizations.get(lang, 'reset'),
@@ -1891,7 +2005,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     const Divider(height: 1),
                   ],
-                  if (SeniorOfficerRoles.canSwitchLocation(auth.designation) || auth.isSupervisor || auth.isAdmin) ...[
+                  if (SeniorOfficerRoles.canSwitchLocation(auth.designation) ||
+                      auth.isSupervisor ||
+                      auth.isAdmin) ...[
                     _drawerItem(
                       Icons.analytics_rounded,
                       MenuLocalizations.get(lang, 'crimeAnalytics'),
@@ -1904,7 +2020,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     const Divider(height: 1),
                   ],
-                  if (TransferRequestRoles.canApproveTransfers(auth.designation)) ...[
+                  if (TransferRequestRoles.canApproveTransfers(
+                      auth.designation)) ...[
                     _drawerItem(
                       Icons.pending_actions_rounded,
                       TransferRequestRoles.isPiOrApi(auth.designation)
@@ -1937,10 +2054,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       MenuLocalizations.get(lang, 'assignOfficer'),
                       () => Navigator.push(
                         context,
-                        AppTheme.fadeSlideRoute(page: const AssignOfficerScreen()),
+                        AppTheme.fadeSlideRoute(
+                            page: const AssignOfficerScreen()),
                       ),
                     ),
-                  if (TransferRequestRoles.canAssignOfficers(auth.designation)) const Divider(height: 1),
+                  if (TransferRequestRoles.canAssignOfficers(auth.designation))
+                    const Divider(height: 1),
                   _drawerItem(
                     Icons.folder_shared_outlined,
                     MenuLocalizations.get(lang, 'myCases'),
@@ -1955,7 +2074,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     l10n.loginSecurity,
                     () => Navigator.push(
                       context,
-                      AppTheme.fadeSlideRoute(page: const LoginSecurityScreen()),
+                      AppTheme.fadeSlideRoute(
+                          page: const LoginSecurityScreen()),
                     ),
                   ),
                   _drawerItem(
@@ -2001,7 +2121,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Icons.logout_rounded,
                     l10n.logout,
                     () {
-                      context.read<SettingsProvider>().setSkipBiometricAutoTrigger(true); // keep same logout flow
+                      context
+                          .read<SettingsProvider>()
+                          .setSkipBiometricAutoTrigger(
+                              true); // keep same logout flow
                       auth.logout(); // keep same logout logic
                     },
                     color: AppColors.dangerRed,
@@ -2015,15 +2138,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _drawerItem(IconData icon, String label, VoidCallback onTap, {Color? color}) {
+  Widget _drawerItem(IconData icon, String label, VoidCallback onTap,
+      {Color? color}) {
     final c = color ?? AppColors.lightText;
     return Material(
       color: Colors.transparent,
       child: ListTile(
         dense: true,
-        visualDensity: const VisualDensity(vertical: -1), // RESPONSIVE FIX: tighter spacing for small screens
+        visualDensity: const VisualDensity(
+            vertical: -1), // RESPONSIVE FIX: tighter spacing for small screens
         leading: Icon(icon, size: 20, color: c),
-        title: Text(label, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500, color: c)),
+        title: Text(label,
+            style: GoogleFonts.poppins(
+                fontSize: 13, fontWeight: FontWeight.w500, color: c)),
         onTap: onTap, // Removed Navigator.pop to keep drawer open (Persistence)
       ),
     );
@@ -2034,7 +2161,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 20, offset: const Offset(0, -5)),
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 20,
+              offset: const Offset(0, -5)),
         ],
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -2055,10 +2185,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     gradient: AppColors.primaryGradient,
                     borderRadius: BorderRadius.circular(AppRadius.lg),
                     boxShadow: [
-                      BoxShadow(color: AppColors.navyMid.withValues(alpha: 0.5), blurRadius: 14, spreadRadius: 2),
+                      BoxShadow(
+                          color: AppColors.navyMid.withValues(alpha: 0.5),
+                          blurRadius: 14,
+                          spreadRadius: 2),
                     ],
                   ),
-                  child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
+                  child: const Icon(Icons.add_rounded,
+                      color: Colors.white, size: 28),
                 ),
               ),
               _navItem(Icons.folder_rounded, l10n.view, 3),
@@ -2080,7 +2214,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? activeColor.withValues(alpha: 0.1) : Colors.transparent,
+          color: isActive
+              ? activeColor.withValues(alpha: 0.1)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(AppRadius.md),
         ),
         child: Column(
@@ -2235,7 +2371,8 @@ class _HomeTabState extends State<_HomeTab> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       try {
-        final notifications = Provider.of<NotificationProvider>(context, listen: false);
+        final notifications =
+            Provider.of<NotificationProvider>(context, listen: false);
         notifications.loadDetentionReminders();
         notifications.loadRtiReminders();
       } on ProviderNotFoundException {
@@ -2292,7 +2429,9 @@ class _HomeTabState extends State<_HomeTab> {
   /// Resets dashboard search UI when the active station changes.
   void _clearSearchStateOnStationSwitch() {
     _debounce?.cancel();
-    final hadSearchState = _searchQuery.isNotEmpty || _explicitSearchDate != null || _searchCtrl.text.isNotEmpty;
+    final hadSearchState = _searchQuery.isNotEmpty ||
+        _explicitSearchDate != null ||
+        _searchCtrl.text.isNotEmpty;
     if (!hadSearchState) return;
 
     _searchCtrl.clear();
@@ -2310,7 +2449,8 @@ class _HomeTabState extends State<_HomeTab> {
     _cachedLiveSearchResults = null;
   }
 
-  bool get _hasActiveSearch => _searchQuery.isNotEmpty || _explicitSearchDate != null;
+  bool get _hasActiveSearch =>
+      _searchQuery.isNotEmpty || _explicitSearchDate != null;
 
   String _moduleDisplayLabel(ModuleRecord record) {
     final name = record.firestoreCategoryDisplayName.trim();
@@ -2363,7 +2503,11 @@ class _HomeTabState extends State<_HomeTab> {
       ('Preventive', 'preventive', rec<PreventiveProvider>((p) => p.records)),
       ('AD', 'ad', rec<AdProvider>((p) => p.records)),
       ('Missing', 'missing', rec<MissingProvider>((p) => p.records)),
-      ('Kidnapping/Missing', 'kidnapping', rec<KidnappingProvider>((p) => p.records)),
+      (
+        'Kidnapping/Missing',
+        'kidnapping',
+        rec<KidnappingProvider>((p) => p.records)
+      ),
       ('Theft', 'theft', rec<TheftProvider>((p) => p.records)),
       ('Sand Theft', 'sand_theft', rec<SandTheftProvider>((p) => p.records)),
       ('Hurt', 'hurt', rec<HurtProvider>((p) => p.records)),
@@ -2406,7 +2550,11 @@ class _HomeTabState extends State<_HomeTab> {
       ('Victim', 'victim', rec<VictimProvider>((p) => p.records)),
       ('Accident', 'accident', rec<AccidentProvider>((p) => p.records)),
       ('Traffic', 'traffic', rec<TrafficProvider>((p) => p.records)),
-      ('Application', 'application', rec<ApplicationProvider>((p) => p.records)),
+      (
+        'Application',
+        'application',
+        rec<ApplicationProvider>((p) => p.records)
+      ),
       ('Sam Warrant', 'sam_warrant', rec<SamWarrantProvider>((p) => p.records)),
       ('Muddemal', 'muddemal', rec<MuddemalProvider>((p) => p.records)),
       ('BNSS', 'bnss', rec<BnssProvider>((p) => p.records)),
@@ -2451,7 +2599,8 @@ class _HomeTabState extends State<_HomeTab> {
       _searchFilters.activeCount,
       recordsFingerprint,
     );
-    if (memoKey == _searchRecordsFingerprint && _cachedLiveSearchResults != null) {
+    if (memoKey == _searchRecordsFingerprint &&
+        _cachedLiveSearchResults != null) {
       return _cachedLiveSearchResults!;
     }
 
@@ -2478,7 +2627,8 @@ class _HomeTabState extends State<_HomeTab> {
     }
     if (mounted) setState(() => _recentRecords = []);
 
-    _recentSub = _firestore.getRecentCasesStream(100, activeStation).listen((data) {
+    _recentSub =
+        _firestore.getRecentCasesStream(100, activeStation).listen((data) {
       if (!mounted) return;
       final mode = CaseVisibility.resolveFor(widget.auth);
       final filtered = CaseVisibility.filterRecords(
@@ -2540,11 +2690,16 @@ class _HomeTabState extends State<_HomeTab> {
     final size = MediaQuery.of(context).size;
     final isWide = size.width >= Breakpoints.tablet;
 
-    final recentCases = _recentRecords.where((r) => r.moduleKey != 'form_1_5').map(_mapRecordToCaseMap).toList();
+    final recentCases = _recentRecords
+        .where((r) => r.moduleKey != 'form_1_5')
+        .map(_mapRecordToCaseMap)
+        .toList();
     final top3Cases = recentCases.take(3).toList();
     final width = MediaQuery.of(context).size.width;
     final caseGridCols = width > 1200 ? 3 : (width > 800 ? 2 : 1);
-    final searchResults = _hasActiveSearch ? _resolveLiveSearchResults(context) : const <SearchResult>[];
+    final searchResults = _hasActiveSearch
+        ? _resolveLiveSearchResults(context)
+        : const <SearchResult>[];
 
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
@@ -2575,7 +2730,8 @@ class _HomeTabState extends State<_HomeTab> {
         ),
         if (!_hasActiveSearch) ...[
           SliverPadding(
-            padding: EdgeInsets.symmetric(horizontal: isWide ? AppSpacing.xl : AppSpacing.lg),
+            padding: EdgeInsets.symmetric(
+                horizontal: isWide ? AppSpacing.xl : AppSpacing.lg),
             sliver: SliverToBoxAdapter(
               child: _buildThreePartClassification(isWide),
             ),
@@ -2636,8 +2792,10 @@ class _HomeTabState extends State<_HomeTab> {
                       ),
                     ),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 10),
-                      side: const BorderSide(color: AppColors.navyDark, width: 1.5),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 28, vertical: 10),
+                      side: const BorderSide(
+                          color: AppColors.navyDark, width: 1.5),
                       shape: const StadiumBorder(),
                       backgroundColor: Colors.white,
                       elevation: 1,
@@ -2705,7 +2863,10 @@ class _HomeTabState extends State<_HomeTab> {
         ),
         borderRadius: BorderRadius.circular(AppRadius.xl),
         boxShadow: [
-          BoxShadow(color: color.withValues(alpha: 0.35), blurRadius: 16, offset: const Offset(0, 6)),
+          BoxShadow(
+              color: color.withValues(alpha: 0.35),
+              blurRadius: 16,
+              offset: const Offset(0, 6)),
         ],
       ),
       child: Row(
@@ -2726,22 +2887,30 @@ class _HomeTabState extends State<_HomeTab> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                   child: Text(TranslationHelper.translate(context, item.tag),
-                      style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.white)),
+                      style: GoogleFonts.poppins(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white)),
                 ),
                 const SizedBox(height: 6),
                 Text(TranslationHelper.translate(context, item.title),
-                    style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
+                    style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 4),
                 Text(TranslationHelper.translate(context, item.description),
-                    style: GoogleFonts.poppins(fontSize: 11, color: Colors.white70),
+                    style: GoogleFonts.poppins(
+                        fontSize: 11, color: Colors.white70),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis),
               ],
@@ -2760,7 +2929,12 @@ class _HomeTabState extends State<_HomeTab> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: AppColors.lightBorder),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4))
+        ],
       ),
       child: TextField(
         controller: _searchCtrl,
@@ -2773,10 +2947,12 @@ class _HomeTabState extends State<_HomeTab> {
         onChanged: _onSearchChanged,
         style: GoogleFonts.poppins(color: AppColors.lightText, fontSize: 14),
         decoration: InputDecoration(
-          hintText:
-              TranslationHelper.translate(context, 'Search cases or type module (e.g. Murder, Theft, Missing)...'),
-          hintStyle: GoogleFonts.poppins(color: AppColors.lightSubText, fontSize: 13),
-          prefixIcon: const Icon(Icons.search_rounded, color: AppColors.navyMid, size: 22),
+          hintText: TranslationHelper.translate(context,
+              'Search cases or type module (e.g. Murder, Theft, Missing)...'),
+          hintStyle:
+              GoogleFonts.poppins(color: AppColors.lightSubText, fontSize: 13),
+          prefixIcon: const Icon(Icons.search_rounded,
+              color: AppColors.navyMid, size: 22),
           suffixIcon: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -2801,13 +2977,17 @@ class _HomeTabState extends State<_HomeTab> {
                         cleanSpoken.endsWith(',') ||
                         cleanSpoken.endsWith('?') ||
                         cleanSpoken.endsWith('!')) {
-                      cleanSpoken = cleanSpoken.substring(0, cleanSpoken.length - 1).trim();
+                      cleanSpoken = cleanSpoken
+                          .substring(0, cleanSpoken.length - 1)
+                          .trim();
                     }
                     if (cleanSpoken.isEmpty) return;
 
-                    final parsedDate = UniversalSearch.tryParseNaturalDate(cleanSpoken);
+                    final parsedDate =
+                        UniversalSearch.tryParseNaturalDate(cleanSpoken);
                     if (parsedDate != null) {
-                      final formatted = DateFormat('dd MMM yyyy').format(parsedDate);
+                      final formatted =
+                          DateFormat('dd MMM yyyy').format(parsedDate);
                       setState(() {
                         _explicitSearchDate = parsedDate;
                         _searchQuery = formatted;
@@ -2823,14 +3003,17 @@ class _HomeTabState extends State<_HomeTab> {
               ),
               IconButton(
                 icon: Icon(Icons.calendar_month_rounded,
-                    color: _explicitSearchDate != null ? AppColors.goldPrimary : AppColors.navyMid),
+                    color: _explicitSearchDate != null
+                        ? AppColors.goldPrimary
+                        : AppColors.navyMid),
                 onPressed: () => _showSearchDatePicker(context),
                 tooltip: 'Select Custom Date',
               ),
             ],
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md, vertical: 16),
         ),
       ),
     );
@@ -2843,104 +3026,178 @@ class _HomeTabState extends State<_HomeTab> {
     Classification('M.V Act', 'traffic', 'traffic'),
   ];
 
-  List<({String title, String subtext, IconData icon, VoidCallback onTap})> _matchingMenuShortcuts(String q) {
+  List<({String title, String subtext, IconData icon, VoidCallback onTap})>
+      _matchingMenuShortcuts(String q) {
     final cleanQ = q.toLowerCase().trim();
     if (cleanQ.isEmpty) return [];
 
-    final shortcuts = <({String title, String subtext, List<String> keywords, IconData icon, VoidCallback onTap})>[
+    final shortcuts = <({
+      String title,
+      String subtext,
+      List<String> keywords,
+      IconData icon,
+      VoidCallback onTap
+    })>[
       (
         title: 'Total Cases',
         subtext: 'Station Cases (All)',
-        keywords: ['total cases', 'total case', 'all cases', 'all case', 'total', 'station cases'],
+        keywords: [
+          'total cases',
+          'total case',
+          'all cases',
+          'all case',
+          'total',
+          'station cases'
+        ],
         icon: Icons.folder_open_rounded,
-        onTap: () =>
-            Navigator.push(context, AppTheme.fadeSlideRoute(page: const MyCasesScreen(initialTab: MyCasesTab.total))),
+        onTap: () => Navigator.push(
+            context,
+            AppTheme.fadeSlideRoute(
+                page: const MyCasesScreen(initialTab: MyCasesTab.total))),
       ),
       (
         title: 'Pending Cases',
         subtext: 'Pending Investigation',
         keywords: ['pending cases', 'pending case', 'pending investigation'],
         icon: Icons.hourglass_top_rounded,
-        onTap: () =>
-            Navigator.push(context, AppTheme.fadeSlideRoute(page: const MyCasesScreen(initialTab: MyCasesTab.pending))),
+        onTap: () => Navigator.push(
+            context,
+            AppTheme.fadeSlideRoute(
+                page: const MyCasesScreen(initialTab: MyCasesTab.pending))),
       ),
       (
         title: 'Disposal Cases',
         subtext: 'Resolved / Disposed',
-        keywords: ['disposal cases', 'disposal case', 'disposed cases', 'disposal', 'disposed', 'closed cases'],
+        keywords: [
+          'disposal cases',
+          'disposal case',
+          'disposed cases',
+          'disposal',
+          'disposed',
+          'closed cases'
+        ],
         icon: Icons.task_alt_rounded,
         onTap: () => Navigator.push(
-            context, AppTheme.fadeSlideRoute(page: const MyCasesScreen(initialTab: MyCasesTab.disposal))),
+            context,
+            AppTheme.fadeSlideRoute(
+                page: const MyCasesScreen(initialTab: MyCasesTab.disposal))),
       ),
       (
         title: 'Pending PI Transfers',
         subtext: 'Transfers',
-        keywords: ['pending pi transfers', 'pending transfers', 'transfer', 'transfers', 'pi transfer'],
+        keywords: [
+          'pending pi transfers',
+          'pending transfers',
+          'transfer',
+          'transfers',
+          'pi transfer'
+        ],
         icon: Icons.pending_actions_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const PendingTransfersScreen())),
+        onTap: () => Navigator.push(context,
+            AppTheme.fadeSlideRoute(page: const PendingTransfersScreen())),
       ),
       (
         title: 'Assign Officer',
         subtext: 'Team & IO',
-        keywords: ['assign officer', 'assign', 'officer assignment', 'add members'],
+        keywords: [
+          'assign officer',
+          'assign',
+          'officer assignment',
+          'add members'
+        ],
         icon: Icons.person_add_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const AssignOfficerScreen())),
+        onTap: () => Navigator.push(context,
+            AppTheme.fadeSlideRoute(page: const AssignOfficerScreen())),
       ),
       (
         title: 'My Cases',
         subtext: 'Station Cases',
         keywords: ['my cases', 'assigned cases', 'station cases', 'cases tab'],
         icon: Icons.folder_shared_outlined,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const MyCasesScreen())),
+        onTap: () => Navigator.push(
+            context, AppTheme.fadeSlideRoute(page: const MyCasesScreen())),
       ),
       (
         title: 'Login & Security',
         subtext: 'Security & PIN',
-        keywords: ['login & security', 'login and security', 'security', 'password', 'change password', 'pin', 'login'],
+        keywords: [
+          'login & security',
+          'login and security',
+          'security',
+          'password',
+          'change password',
+          'pin',
+          'login'
+        ],
         icon: Icons.lock_person_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const LoginSecurityScreen())),
+        onTap: () => Navigator.push(context,
+            AppTheme.fadeSlideRoute(page: const LoginSecurityScreen())),
       ),
       (
         title: 'App Settings',
         subtext: 'Settings & Theme',
-        keywords: ['app settings', 'settings', 'dark mode', 'theme', 'language'],
+        keywords: [
+          'app settings',
+          'settings',
+          'dark mode',
+          'theme',
+          'language'
+        ],
         icon: Icons.settings_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const AppSettingsScreen())),
+        onTap: () => Navigator.push(
+            context, AppTheme.fadeSlideRoute(page: const AppSettingsScreen())),
       ),
       (
         title: 'Feedback',
         subtext: 'Feedback Form',
         keywords: ['feedback', 'feedback form', 'suggest', 'report issue'],
         icon: Icons.feedback_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const FeedbackFormScreen())),
+        onTap: () => Navigator.push(
+            context, AppTheme.fadeSlideRoute(page: const FeedbackFormScreen())),
       ),
       (
         title: 'Help & Support',
         subtext: 'Support & Helpline',
-        keywords: ['help & support', 'help and support', 'support', 'help', 'helpline', 'contact'],
+        keywords: [
+          'help & support',
+          'help and support',
+          'support',
+          'help',
+          'helpline',
+          'contact'
+        ],
         icon: Icons.help_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const HelpSupportScreen())),
+        onTap: () => Navigator.push(
+            context, AppTheme.fadeSlideRoute(page: const HelpSupportScreen())),
       ),
       (
         title: 'About App',
         subtext: 'App Info',
         keywords: ['about app', 'about', 'about khakhi diary', 'tensei tech'],
         icon: Icons.info_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const AboutAppScreen())),
+        onTap: () => Navigator.push(
+            context, AppTheme.fadeSlideRoute(page: const AboutAppScreen())),
       ),
       (
         title: 'Dashboard access grants',
         subtext: 'Grants',
-        keywords: ['dashboard access grants', 'access grants', 'station grants', 'grants'],
+        keywords: [
+          'dashboard access grants',
+          'access grants',
+          'station grants',
+          'grants'
+        ],
         icon: Icons.dashboard_customize_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const StationAccessGrantsScreen())),
+        onTap: () => Navigator.push(context,
+            AppTheme.fadeSlideRoute(page: const StationAccessGrantsScreen())),
       ),
       (
         title: 'Profile',
         subtext: 'Officer Profile',
         keywords: ['profile', 'my profile', 'user profile', 'officer profile'],
         icon: Icons.account_circle_rounded,
-        onTap: () => Navigator.push(context, AppTheme.fadeSlideRoute(page: const ProfileScreen())),
+        onTap: () => Navigator.push(
+            context, AppTheme.fadeSlideRoute(page: const ProfileScreen())),
       ),
     ];
 
@@ -2948,24 +3205,37 @@ class _HomeTabState extends State<_HomeTab> {
         .where((s) {
           final t = s.title.toLowerCase();
           final sub = s.subtext.toLowerCase();
-          final hasKeyword = s.keywords.any((k) => k.contains(cleanQ) || cleanQ.contains(k));
-          return t.contains(cleanQ) || sub.contains(cleanQ) || cleanQ.contains(t) || cleanQ.contains(sub) || hasKeyword;
+          final hasKeyword =
+              s.keywords.any((k) => k.contains(cleanQ) || cleanQ.contains(k));
+          return t.contains(cleanQ) ||
+              sub.contains(cleanQ) ||
+              cleanQ.contains(t) ||
+              cleanQ.contains(sub) ||
+              hasKeyword;
         })
-        .map((s) => (title: s.title, subtext: s.subtext, icon: s.icon, onTap: s.onTap))
+        .map((s) =>
+            (title: s.title, subtext: s.subtext, icon: s.icon, onTap: s.onTap))
         .toList();
   }
 
   int _matchingModulesCount(String query) {
     if (query.trim().isEmpty) return 0;
     var q = query.trim().toLowerCase();
-    while (q.endsWith('.') || q.endsWith(',') || q.endsWith('?') || q.endsWith('!')) {
+    while (q.endsWith('.') ||
+        q.endsWith(',') ||
+        q.endsWith('?') ||
+        q.endsWith('!')) {
       q = q.substring(0, q.length - 1).trim();
     }
     if (q.isEmpty) return 0;
 
-    final matchingFormIV = formIVCaseCategories.where((cat) => cat.toLowerCase().contains(q)).length;
+    final matchingFormIV = formIVCaseCategories
+        .where((cat) => cat.toLowerCase().contains(q))
+        .length;
     final allClasses = [...Classification.all, ..._extraSearchClassifications];
-    final matchingClass = allClasses.where((c) => c.name.replaceAll('\n', ' ').toLowerCase().contains(q)).length;
+    final matchingClass = allClasses
+        .where((c) => c.name.replaceAll('\n', ' ').toLowerCase().contains(q))
+        .length;
     final matchingMenu = _matchingMenuShortcuts(q).length;
     return matchingFormIV + matchingClass + matchingMenu;
   }
@@ -2973,7 +3243,10 @@ class _HomeTabState extends State<_HomeTab> {
   Widget _buildMatchingModuleTabs(String query) {
     if (query.trim().isEmpty) return const SizedBox.shrink();
     var q = query.trim().toLowerCase();
-    while (q.endsWith('.') || q.endsWith(',') || q.endsWith('?') || q.endsWith('!')) {
+    while (q.endsWith('.') ||
+        q.endsWith(',') ||
+        q.endsWith('?') ||
+        q.endsWith('!')) {
       q = q.substring(0, q.length - 1).trim();
     }
     if (q.isEmpty) return const SizedBox.shrink();
@@ -2990,7 +3263,9 @@ class _HomeTabState extends State<_HomeTab> {
 
     final matchingMenus = _matchingMenuShortcuts(q);
 
-    if (matchingFormIV.isEmpty && matchingClassifications.isEmpty && matchingMenus.isEmpty) {
+    if (matchingFormIV.isEmpty &&
+        matchingClassifications.isEmpty &&
+        matchingMenus.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -3000,7 +3275,8 @@ class _HomeTabState extends State<_HomeTab> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: AppColors.goldPrimary.withValues(alpha: 0.4), width: 1.2),
+        border: Border.all(
+            color: AppColors.goldPrimary.withValues(alpha: 0.4), width: 1.2),
         boxShadow: [
           BoxShadow(
             color: AppColors.navyDark.withValues(alpha: 0.06),
@@ -3020,7 +3296,8 @@ class _HomeTabState extends State<_HomeTab> {
                   color: AppColors.goldPrimary.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.flash_on_rounded, size: 16, color: AppColors.goldDark),
+                child: const Icon(Icons.flash_on_rounded,
+                    size: 16, color: AppColors.goldDark),
               ),
               const SizedBox(width: 8),
               Text(
@@ -3054,7 +3331,8 @@ class _HomeTabState extends State<_HomeTab> {
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     onTap: menu.onTap,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [Color(0xFF1E3C72), Color(0xFF2A5298)],
@@ -3064,7 +3342,8 @@ class _HomeTabState extends State<_HomeTab> {
                         borderRadius: BorderRadius.circular(AppRadius.md),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF1E3C72).withValues(alpha: 0.25),
+                            color:
+                                const Color(0xFF1E3C72).withValues(alpha: 0.25),
                             blurRadius: 6,
                             offset: const Offset(0, 2),
                           ),
@@ -3085,9 +3364,11 @@ class _HomeTabState extends State<_HomeTab> {
                           ),
                           const SizedBox(width: 6),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 5, vertical: 2),
                             decoration: BoxDecoration(
-                              color: AppColors.goldPrimary.withValues(alpha: 0.35),
+                              color:
+                                  AppColors.goldPrimary.withValues(alpha: 0.35),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
@@ -3118,7 +3399,8 @@ class _HomeTabState extends State<_HomeTab> {
                       );
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [Color(0xFF2193B0), Color(0xFF6DD5ED)],
@@ -3128,7 +3410,8 @@ class _HomeTabState extends State<_HomeTab> {
                         borderRadius: BorderRadius.circular(AppRadius.md),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF2193B0).withValues(alpha: 0.25),
+                            color:
+                                const Color(0xFF2193B0).withValues(alpha: 0.25),
                             blurRadius: 6,
                             offset: const Offset(0, 2),
                           ),
@@ -3137,7 +3420,8 @@ class _HomeTabState extends State<_HomeTab> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.article_rounded, color: Colors.white, size: 16),
+                          const Icon(Icons.article_rounded,
+                              color: Colors.white, size: 16),
                           const SizedBox(width: 6),
                           Text(
                             cat,
@@ -3149,7 +3433,8 @@ class _HomeTabState extends State<_HomeTab> {
                           ),
                           const SizedBox(width: 6),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 5, vertical: 2),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.25),
                               borderRadius: BorderRadius.circular(4),
@@ -3175,7 +3460,8 @@ class _HomeTabState extends State<_HomeTab> {
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     onTap: () => _openClassificationItem(context, item),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         color: AppColors.navyDark,
                         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -3258,10 +3544,16 @@ class _HomeTabState extends State<_HomeTab> {
           padding: const EdgeInsets.only(bottom: 10),
           child: Row(
             children: [
-              Text('${searchResults.length} result${searchResults.length == 1 ? '' : 's'}',
-                  style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.navyDark)),
+              Text(
+                  '${searchResults.length} result${searchResults.length == 1 ? '' : 's'}',
+                  style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyDark)),
               const SizedBox(width: 6),
-              Text('for "$_searchQuery"', style: GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText)),
+              Text('for "$_searchQuery"',
+                  style: GoogleFonts.poppins(
+                      fontSize: 12, color: AppColors.lightSubText)),
             ],
           ),
         ),
@@ -3283,10 +3575,12 @@ class _HomeTabState extends State<_HomeTab> {
     return Center(
       child: Column(
         children: [
-          const Icon(Icons.search_off_rounded, size: 48, color: AppColors.lightSubText),
+          const Icon(Icons.search_off_rounded,
+              size: 48, color: AppColors.lightSubText),
           const SizedBox(height: 8),
           Text('No results found for "$_searchQuery"',
-              style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightSubText)),
+              style: GoogleFonts.poppins(
+                  fontSize: 13, color: AppColors.lightSubText)),
         ],
       ),
     );
@@ -3370,7 +3664,8 @@ class _HomeTabState extends State<_HomeTab> {
 
     final itemsPerGroup = cols * 3;
     // Standalone categories from /api/categories/ (active rows with group == null && parent_category == null)
-    final List<Map<String, dynamic>> standaloneBackendRows = _backendCategories.where((c) {
+    final List<Map<String, dynamic>> standaloneBackendRows =
+        _backendCategories.where((c) {
       final isActive = c['is_active'] != false;
       final isStandalone = c['group'] == null && c['parent_category'] == null;
       return isActive && isStandalone;
@@ -3394,8 +3689,10 @@ class _HomeTabState extends State<_HomeTab> {
           () {
             final rtiRow = standaloneBackendRows.firstWhere(
               (r) =>
-                  (r['category_name']?.toString() ?? '').toUpperCase() == 'RTI' ||
-                  (r['category_code']?.toString() ?? '').toUpperCase() == 'STAND_RTI',
+                  (r['category_name']?.toString() ?? '').toUpperCase() ==
+                      'RTI' ||
+                  (r['category_code']?.toString() ?? '').toUpperCase() ==
+                      'STAND_RTI',
               orElse: () => <String, dynamic>{},
             );
             return Classification(
@@ -3423,7 +3720,8 @@ class _HomeTabState extends State<_HomeTab> {
     // that match one of these (e.g. "A.D." vs "A.D", "Coin" vs "COIN",
     // "Missing" inside "Kidnapping/Missing", "Sec 156(3)/175(3)(BNSS)" vs
     // "CRPC 1563 / BNSS 1753") must not be added a second time.
-    String norm(String s) => s.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+    String norm(String s) =>
+        s.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
     String digits(String s) => s.replaceAll(RegExp(r'[^0-9]'), '');
     final shownLabels = [
       ...Classification.statsGroup.map((c) => c.name),
@@ -3452,7 +3750,8 @@ class _HomeTabState extends State<_HomeTab> {
       final id = cat['category_id'] ?? cat['id'];
 
       // RTI is integrated into the services RTI tile above
-      if (name.toUpperCase() == 'RTI' || (code != null && code.toUpperCase() == 'STAND_RTI')) {
+      if (name.toUpperCase() == 'RTI' ||
+          (code != null && code.toUpperCase() == 'STAND_RTI')) {
         continue;
       }
 
@@ -3474,17 +3773,20 @@ class _HomeTabState extends State<_HomeTab> {
     // in "1 to 5" (group 1) sit with the case tiles, tiles whose category is in
     // Part 6 (group 2) get their own section in Part 6 order, everything else
     // (RTI, Sam/Warrant, Muddemal, hubs ...) stays with the services.
-    String tileLabel(Classification c) => c.name.split(RegExp(r'\s+')).join(' ');
+    String tileLabel(Classification c) =>
+        c.name.split(RegExp(r'\s+')).join(' ');
 
     int? groupOf(Classification c) {
-      final twin = CategoryNavigationHelper.findGroupTwin(_backendCategories, tileLabel(c));
+      final twin = CategoryNavigationHelper.findGroupTwin(
+          _backendCategories, tileLabel(c));
       if (twin == null) return null;
       final g = twin['group'] ?? twin['group_id'];
       return g is Map ? int.tryParse('${g['group_id']}') : int.tryParse('$g');
     }
 
     int part6Order(Classification c) {
-      final twin = CategoryNavigationHelper.findGroupTwin(_backendCategories, tileLabel(c));
+      final twin = CategoryNavigationHelper.findGroupTwin(
+          _backendCategories, tileLabel(c));
       return int.tryParse('${twin?['display_order']}') ?? 1 << 30;
     }
 
@@ -3513,7 +3815,8 @@ class _HomeTabState extends State<_HomeTab> {
       part6Section,
       serviceSection,
       [
-        for (final tool in ServiceData.dashboardTools) Classification(tool.label, 'service_tool', 'service_tool'),
+        for (final tool in ServiceData.dashboardTools)
+          Classification(tool.label, 'service_tool', 'service_tool'),
       ],
     ];
     // Sections keep their order but flow on continuously, so no row is left
@@ -3521,7 +3824,8 @@ class _HomeTabState extends State<_HomeTab> {
     final displayItems = [for (final section in sections) ...section];
     final List<List<Classification>> groups = [];
     for (int i = 0; i < displayItems.length; i += itemsPerGroup) {
-      groups.add(displayItems.sublist(i, (i + itemsPerGroup).clamp(0, displayItems.length)));
+      groups.add(displayItems.sublist(
+          i, (i + itemsPerGroup).clamp(0, displayItems.length)));
     }
 
     return Column(
@@ -3553,7 +3857,7 @@ class _HomeTabState extends State<_HomeTab> {
                       physics: const NeverScrollableScrollPhysics(),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: cols,
-                        childAspectRatio: cols <= 4 ? 0.70 : (cols <= 6 ? 0.78 : 0.82),
+                        childAspectRatio: 0.82,
                         mainAxisSpacing: 10,
                         crossAxisSpacing: 10,
                       ),
@@ -3564,7 +3868,10 @@ class _HomeTabState extends State<_HomeTab> {
                     ),
                     if (!isLast) ...[
                       const SizedBox(height: 10),
-                      const Divider(height: 1, thickness: 1, color: AppColors.lightBorder),
+                      const Divider(
+                          height: 1,
+                          thickness: 1,
+                          color: AppColors.lightBorder),
                       const SizedBox(height: 10),
                     ],
                   ],
@@ -3584,6 +3891,29 @@ class _HomeTabState extends State<_HomeTab> {
         context,
         AppTheme.fadeSlideRoute(
           page: const ItssoHubScreen(stationName: 'All Stations'),
+        ),
+      );
+      return;
+    }
+    if (label.toUpperCase() == 'DAR' || item.moduleKey.toLowerCase() == 'dar') {
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: DarHubScreen(stationName: auth.stationName),
+        ),
+      );
+      return;
+    }
+    if (label.toUpperCase() == 'IRAD' ||
+        label.toUpperCase() == 'IRDA' ||
+        item.moduleKey.toLowerCase() == 'irad' ||
+        item.moduleKey.toLowerCase() == 'irda') {
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: IradHubScreen(stationName: auth.stationName),
         ),
       );
       return;
@@ -3673,7 +4003,9 @@ class _HomeTabState extends State<_HomeTab> {
           page: NAFISHubScreen(stationName: auth.stationName),
         ),
       );
-    } else if (item.name == 'E-Learning' || item.moduleKey == 'elearning' || item.name == 'E Learning') {
+    } else if (item.name == 'E-Learning' ||
+        item.moduleKey == 'elearning' ||
+        item.name == 'E Learning') {
       final auth = context.read<AuthProvider>();
       Navigator.push(
         context,
@@ -3738,7 +4070,8 @@ class _HomeTabState extends State<_HomeTab> {
     } else if (CategorySubtabsScreen.forTile(item.moduleKey) != null) {
       Navigator.push(
         context,
-        AppTheme.fadeSlideRoute(page: CategorySubtabsScreen.forTile(item.moduleKey)!),
+        AppTheme.fadeSlideRoute(
+            page: CategorySubtabsScreen.forTile(item.moduleKey)!),
       );
     } else if (item.moduleKey == 'hurt' || item.name == 'Hurt') {
       Navigator.push(
@@ -3762,7 +4095,8 @@ class _HomeTabState extends State<_HomeTab> {
         ),
       );
     } else {
-      final isStatsItem = ['Monthly', 'Pending', 'Disposal'].contains(item.name);
+      final isStatsItem =
+          ['Monthly', 'Pending', 'Disposal'].contains(item.name);
       if (isStatsItem) {
         Navigator.push(
           context,
@@ -3787,7 +4121,8 @@ class _HomeTabState extends State<_HomeTab> {
     }
   }
 
-  Widget _buildClassificationGridItem(BuildContext context, Classification item) {
+  Widget _buildClassificationGridItem(
+      BuildContext context, Classification item) {
     final label = item.name.replaceAll('\n', ' ');
     ServiceData? matchedTool;
     for (final t in ServiceData.dashboardTools) {
@@ -3810,32 +4145,38 @@ class _HomeTabState extends State<_HomeTab> {
               ),
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final side =
-                      constraints.maxWidth < constraints.maxHeight ? constraints.maxWidth : constraints.maxHeight;
+                  final side = constraints.maxWidth < constraints.maxHeight
+                      ? constraints.maxWidth
+                      : constraints.maxHeight;
                   final baseSize = (side * 0.44).clamp(18.0, 30.0);
                   return Center(
                     child: _buildGridIcon(
-                        item.name, matchedTool?.icon ?? _classIcon(item.iconName), AppColors.navyMid, baseSize),
+                        item.name,
+                        matchedTool?.icon ?? _classIcon(item.iconName),
+                        AppColors.navyMid,
+                        baseSize),
                   );
                 },
               ),
             ),
           ),
           const SizedBox(height: 5),
-          // Adaptive three-line label area: accommodates up to 3 lines on phone screens
-          // so long names like "Murder/Attempt to Murder" are never clipped.
+          // Fixed two-line label area: one- and two-line labels take the same
+          // height, so every icon box in a row has the same size and position.
           SizedBox(
-            height: MediaQuery.textScalerOf(context).scale(10.0 * 1.22) * 3 + 2,
+            height: MediaQuery.textScalerOf(context).scale(9.5 * 1.2) * 2 + 2,
             child: Align(
               alignment: Alignment.topCenter,
               child: Text(
                 TranslationHelper.translate(context, item.name),
                 textAlign: TextAlign.center,
-                maxLines: 3,
-                softWrap: true,
-                overflow: TextOverflow.visible,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.poppins(
-                    fontSize: 10.0, fontWeight: FontWeight.w500, height: 1.22, color: AppColors.lightText),
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w500,
+                    height: 1.2,
+                    color: AppColors.lightText),
               ),
             ),
           ),
@@ -3844,7 +4185,8 @@ class _HomeTabState extends State<_HomeTab> {
     );
   }
 
-  Widget _sectionHeader(String title, String subtitle, {VoidCallback? onViewAll}) {
+  Widget _sectionHeader(String title, String subtitle,
+      {VoidCallback? onViewAll}) {
     return GestureDetector(
       onTap: onViewAll,
       child: Row(
@@ -3853,12 +4195,19 @@ class _HomeTabState extends State<_HomeTab> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(title,
-                  style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.navyDark)),
-              Text(subtitle, style: GoogleFonts.poppins(fontSize: 11, color: AppColors.lightSubText)),
+                  style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyDark)),
+              Text(subtitle,
+                  style: GoogleFonts.poppins(
+                      fontSize: 11, color: AppColors.lightSubText)),
             ],
           ),
           const Spacer(),
-          if (onViewAll != null) const Icon(Icons.arrow_forward_ios_rounded, size: 18, color: AppColors.navyMid),
+          if (onViewAll != null)
+            const Icon(Icons.arrow_forward_ios_rounded,
+                size: 18, color: AppColors.navyMid),
         ],
       ),
     );
@@ -3870,7 +4219,9 @@ class _HomeTabState extends State<_HomeTab> {
     final rawStatus = c['status'] as String? ?? '';
     final badgeLabel = _statusBadgeLabel(rawStatus);
     final badgeColor = _statusBadgeColor(badgeLabel);
-    final moduleLabel = record != null ? _moduleDisplayLabel(record) : (c['type'] as String? ?? '');
+    final moduleLabel = record != null
+        ? _moduleDisplayLabel(record)
+        : (c['type'] as String? ?? '');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -3894,7 +4245,8 @@ class _HomeTabState extends State<_HomeTab> {
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.sm, AppSpacing.md),
+          padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md, AppSpacing.md, AppSpacing.sm, AppSpacing.md),
           child: Row(
             children: [
               Expanded(
@@ -3903,7 +4255,9 @@ class _HomeTabState extends State<_HomeTab> {
                     if (record != null) {
                       Navigator.push(
                         context,
-                        AppTheme.fadeSlideRoute(page: CaseDetailScreen(caseData: record, showFloatingActions: false)),
+                        AppTheme.fadeSlideRoute(
+                            page: CaseDetailScreen(
+                                caseData: record, showFloatingActions: false)),
                       );
                     }
                   },
@@ -3916,9 +4270,11 @@ class _HomeTabState extends State<_HomeTab> {
                         decoration: BoxDecoration(
                           color: iconColor.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(AppRadius.md),
-                          border: Border.all(color: iconColor.withValues(alpha: 0.2)),
+                          border: Border.all(
+                              color: iconColor.withValues(alpha: 0.2)),
                         ),
-                        child: Icon(c['icon'] as IconData, color: iconColor, size: 22),
+                        child: Icon(c['icon'] as IconData,
+                            color: iconColor, size: 22),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -3928,10 +4284,13 @@ class _HomeTabState extends State<_HomeTab> {
                             if (moduleLabel.isNotEmpty)
                               Container(
                                 margin: const EdgeInsets.only(bottom: 4),
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: AppColors.navyMid.withValues(alpha: 0.08),
-                                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                                  color:
+                                      AppColors.navyMid.withValues(alpha: 0.08),
+                                  borderRadius:
+                                      BorderRadius.circular(AppRadius.sm),
                                 ),
                                 child: Text(
                                   moduleLabel.toUpperCase(),
@@ -3947,22 +4306,28 @@ class _HomeTabState extends State<_HomeTab> {
                               ),
                             Text(c['title'] as String,
                                 style: GoogleFonts.poppins(
-                                    fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.navyDark),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.navyDark),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis),
                             const SizedBox(height: 3),
                             Text('${c['id']} • ${c['date']}',
-                                style: GoogleFonts.poppins(fontSize: 11, color: AppColors.lightSubText)),
+                                style: GoogleFonts.poppins(
+                                    fontSize: 11,
+                                    color: AppColors.lightSubText)),
                           ],
                         ),
                       ),
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
                           color: badgeColor.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(AppRadius.sm),
-                          border: Border.all(color: badgeColor.withValues(alpha: 0.35)),
+                          border: Border.all(
+                              color: badgeColor.withValues(alpha: 0.35)),
                         ),
                         child: Text(
                           badgeLabel,
@@ -3981,8 +4346,10 @@ class _HomeTabState extends State<_HomeTab> {
                 IconButton(
                   tooltip: 'Download PDF',
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-                  icon: const Icon(Icons.picture_as_pdf_outlined, color: AppColors.dangerRed, size: 22),
+                  constraints:
+                      const BoxConstraints(minWidth: 40, minHeight: 40),
+                  icon: const Icon(Icons.picture_as_pdf_outlined,
+                      color: AppColors.dangerRed, size: 22),
                   onPressed: () => PdfHelper.generateCasePdf(record),
                 ),
             ],
@@ -4000,15 +4367,20 @@ class _HomeTabState extends State<_HomeTab> {
         children: [
           Icon(Icons.history_rounded,
               size: 48,
-              color: widget.isDark ? AppColors.darkSubText.withValues(alpha: 0.3) : Colors.grey.withValues(alpha: 0.3)),
+              color: widget.isDark
+                  ? AppColors.darkSubText.withValues(alpha: 0.3)
+                  : Colors.grey.withValues(alpha: 0.3)),
           const SizedBox(height: 16),
-          Text('No cases registered yet', style: GoogleFonts.poppins(fontSize: 14, color: AppColors.lightSubText)),
+          Text('No cases registered yet',
+              style: GoogleFonts.poppins(
+                  fontSize: 14, color: AppColors.lightSubText)),
         ],
       ),
     );
   }
 
-  void _showTop10CasesModal(BuildContext context, List<Map<String, dynamic>> top10) {
+  void _showTop10CasesModal(
+      BuildContext context, List<Map<String, dynamic>> top10) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -4034,10 +4406,14 @@ class _HomeTabState extends State<_HomeTab> {
               padding: const EdgeInsets.all(24),
               child: Row(
                 children: [
-                  const Icon(Icons.history_rounded, color: AppColors.goldPrimary),
+                  const Icon(Icons.history_rounded,
+                      color: AppColors.goldPrimary),
                   const SizedBox(width: 12),
                   Text('Top 10 Recent Cases',
-                      style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.navyDark)),
+                      style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.navyDark)),
                 ],
               ),
             ),
@@ -4089,10 +4465,14 @@ class _HomeTabState extends State<_HomeTab> {
               padding: const EdgeInsets.all(24),
               child: Row(
                 children: [
-                  const Icon(Icons.description_rounded, color: AppColors.goldPrimary),
+                  const Icon(Icons.description_rounded,
+                      color: AppColors.goldPrimary),
                   const SizedBox(width: 12),
                   Text('Form I-V Cases',
-                      style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.navyDark)),
+                      style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.navyDark)),
                 ],
               ),
             ),
@@ -4116,19 +4496,23 @@ class _HomeTabState extends State<_HomeTab> {
                     } else if (label == 'N.C.') {
                       Navigator.push(
                         context,
-                        AppTheme.fadeSlideRoute(page: NcFormScreen(moduleLabel: label)),
+                        AppTheme.fadeSlideRoute(
+                            page: NcFormScreen(moduleLabel: label)),
                       );
                     } else if (label == 'Missing') {
                       Navigator.push(
                         context,
-                        AppTheme.fadeSlideRoute(page: MissingFormScreen(moduleLabel: label)),
+                        AppTheme.fadeSlideRoute(
+                            page: MissingFormScreen(moduleLabel: label)),
                       );
                     } else if (label == 'Preventive') {
                       Navigator.push(
                         context,
-                        AppTheme.fadeSlideRoute(page: PreventiveFormScreen(moduleLabel: label)),
+                        AppTheme.fadeSlideRoute(
+                            page: PreventiveFormScreen(moduleLabel: label)),
                       );
-                    } else if (isTabLinkedToCommonFormBaseline(moduleKey: 'form_1_5', categoryName: label)) {
+                    } else if (isTabLinkedToCommonFormBaseline(
+                        moduleKey: 'form_1_5', categoryName: label)) {
                       Navigator.push(
                         context,
                         AppTheme.fadeSlideRoute(
@@ -4182,8 +4566,20 @@ class _WantedTab extends StatelessWidget {
       'reward': '₹50,000',
       'dangerous': true
     },
-    {'name': 'Mohan Singh', 'id': 'WNT/2024/002', 'crime': 'Sand Theft', 'reward': '₹25,000', 'dangerous': false},
-    {'name': 'Priya Das', 'id': 'WNT/2024/003', 'crime': 'Fraud & Cheating', 'reward': '₹30,000', 'dangerous': false},
+    {
+      'name': 'Mohan Singh',
+      'id': 'WNT/2024/002',
+      'crime': 'Sand Theft',
+      'reward': '₹25,000',
+      'dangerous': false
+    },
+    {
+      'name': 'Priya Das',
+      'id': 'WNT/2024/003',
+      'crime': 'Fraud & Cheating',
+      'reward': '₹30,000',
+      'dangerous': false
+    },
     {
       'name': 'Abdul Hamid',
       'id': 'WNT/2024/004',
@@ -4207,12 +4603,14 @@ class _WantedTab extends StatelessWidget {
       slivers: [
         SliverToBoxAdapter(
           child: Container(
-            margin: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.sm),
+            margin: const EdgeInsets.fromLTRB(
+                AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.sm),
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
               color: AppColors.dangerRed.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(AppRadius.lg),
-              border: Border.all(color: AppColors.dangerRed.withValues(alpha: 0.3)),
+              border:
+                  Border.all(color: AppColors.dangerRed.withValues(alpha: 0.3)),
             ),
             child: Row(
               children: [
@@ -4220,22 +4618,30 @@ class _WantedTab extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text('Wanted List — Active warrants issued',
-                      style:
-                          GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.dangerRed)),
+                      style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.dangerRed)),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration:
-                      BoxDecoration(color: AppColors.dangerRed, borderRadius: BorderRadius.circular(AppRadius.sm)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                      color: AppColors.dangerRed,
+                      borderRadius: BorderRadius.circular(AppRadius.sm)),
                   child: Text('${_wantedPersons.length}',
-                      style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
+                      style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13)),
                 ),
               ],
             ),
           ),
         ),
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, i) {
@@ -4248,11 +4654,16 @@ class _WantedTab extends StatelessWidget {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(AppRadius.lg),
                     border: Border.all(
-                      color: dangerous ? AppColors.dangerRed.withValues(alpha: 0.4) : AppColors.lightBorder,
+                      color: dangerous
+                          ? AppColors.dangerRed.withValues(alpha: 0.4)
+                          : AppColors.lightBorder,
                       width: dangerous ? 1.5 : 1,
                     ),
                     boxShadow: [
-                      BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 3)),
+                      BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3)),
                     ],
                   ),
                   child: Row(
@@ -4263,10 +4674,12 @@ class _WantedTab extends StatelessWidget {
                             width: 50,
                             height: 50,
                             decoration: BoxDecoration(
-                              color: AppColors.dangerRed.withValues(alpha: 0.15),
+                              color:
+                                  AppColors.dangerRed.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(AppRadius.md),
                             ),
-                            child: const Icon(Icons.person_rounded, color: AppColors.dangerRed, size: 26),
+                            child: const Icon(Icons.person_rounded,
+                                color: AppColors.dangerRed, size: 26),
                           ),
                           if (dangerous)
                             Positioned(
@@ -4275,8 +4688,11 @@ class _WantedTab extends StatelessWidget {
                               child: Container(
                                 width: 16,
                                 height: 16,
-                                decoration: const BoxDecoration(color: AppColors.dangerRed, shape: BoxShape.circle),
-                                child: const Icon(Icons.warning_rounded, color: Colors.white, size: 10),
+                                decoration: const BoxDecoration(
+                                    color: AppColors.dangerRed,
+                                    shape: BoxShape.circle),
+                                child: const Icon(Icons.warning_rounded,
+                                    color: Colors.white, size: 10),
                               ),
                             ),
                         ],
@@ -4288,14 +4704,20 @@ class _WantedTab extends StatelessWidget {
                           children: [
                             Text(p['name'] as String,
                                 style: GoogleFonts.poppins(
-                                    fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.navyDark)),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.navyDark)),
                             Text(p['crime'] as String,
-                                style: GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText)),
+                                style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    color: AppColors.lightSubText)),
                             const SizedBox(height: 4),
                             Row(children: [
-                              const Icon(Icons.tag, size: 12, color: AppColors.infoBlue),
+                              const Icon(Icons.tag,
+                                  size: 12, color: AppColors.infoBlue),
                               Text(p['id'] as String,
-                                  style: GoogleFonts.poppins(fontSize: 11, color: AppColors.infoBlue)),
+                                  style: GoogleFonts.poppins(
+                                      fontSize: 11, color: AppColors.infoBlue)),
                             ]),
                           ],
                         ),
@@ -4304,8 +4726,12 @@ class _WantedTab extends StatelessWidget {
                         children: [
                           Text(p['reward'] as String,
                               style: GoogleFonts.poppins(
-                                  fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.successGreen)),
-                          Text('Reward', style: GoogleFonts.poppins(fontSize: 10, color: AppColors.lightSubText)),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.successGreen)),
+                          Text('Reward',
+                              style: GoogleFonts.poppins(
+                                  fontSize: 10, color: AppColors.lightSubText)),
                         ],
                       ),
                     ],
@@ -4351,7 +4777,8 @@ class _ViewTabState extends State<_ViewTab> {
   Stream<List<ModuleRecord>>? _stream;
   String? _streamKey;
 
-  Stream<List<ModuleRecord>> _getStream(AuthProvider auth, CaseVisibilityMode mode) {
+  Stream<List<ModuleRecord>> _getStream(
+      AuthProvider auth, CaseVisibilityMode mode) {
     if (_selectedTabIndex == 1) {
       return _firestore.getPendingCasesStream(auth.activeStation).map(
             (records) => CaseVisibility.filterRecords(
@@ -4414,7 +4841,8 @@ class _ViewTabState extends State<_ViewTab> {
       builder: (context, snapshot) {
         final allRecords = snapshot.data ?? [];
         final filtered = _filterRecords(allRecords);
-        final isLoading = snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData;
+        final isLoading = snapshot.connectionState == ConnectionState.waiting &&
+            !snapshot.hasData;
 
         return CustomScrollView(
           physics: const BouncingScrollPhysics(),
@@ -4423,7 +4851,8 @@ class _ViewTabState extends State<_ViewTab> {
             SliverToBoxAdapter(
               child: Container(
                 color: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: AppSpacing.md),
+                padding: const EdgeInsets.symmetric(
+                    vertical: 10, horizontal: AppSpacing.md),
                 child: Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 820),
@@ -4447,14 +4876,19 @@ class _ViewTabState extends State<_ViewTab> {
                               borderRadius: BorderRadius.circular(AppRadius.sm),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
-                                padding: const EdgeInsets.symmetric(vertical: 9),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 9),
                                 decoration: BoxDecoration(
-                                  color: isSelected ? AppColors.navyDark : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                                  color: isSelected
+                                      ? AppColors.navyDark
+                                      : Colors.transparent,
+                                  borderRadius:
+                                      BorderRadius.circular(AppRadius.sm),
                                   boxShadow: isSelected
                                       ? [
                                           BoxShadow(
-                                            color: AppColors.navyDark.withValues(alpha: 0.25),
+                                            color: AppColors.navyDark
+                                                .withValues(alpha: 0.25),
                                             blurRadius: 6,
                                             offset: const Offset(0, 2),
                                           ),
@@ -4467,15 +4901,23 @@ class _ViewTabState extends State<_ViewTab> {
                                     Icon(
                                       t.$2,
                                       size: 16,
-                                      color: isSelected ? Colors.white : AppColors.navyDark.withValues(alpha: 0.7),
+                                      color: isSelected
+                                          ? Colors.white
+                                          : AppColors.navyDark
+                                              .withValues(alpha: 0.7),
                                     ),
                                     const SizedBox(width: 6),
                                     Text(
                                       t.$3,
                                       style: GoogleFonts.poppins(
                                         fontSize: 13,
-                                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                                        color: isSelected ? Colors.white : AppColors.navyDark.withValues(alpha: 0.8),
+                                        fontWeight: isSelected
+                                            ? FontWeight.w700
+                                            : FontWeight.w500,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : AppColors.navyDark
+                                                .withValues(alpha: 0.8),
                                       ),
                                     ),
                                   ],
@@ -4498,45 +4940,55 @@ class _ViewTabState extends State<_ViewTab> {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 820),
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, 8),
+                    padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.md, AppSpacing.md, AppSpacing.md, 8),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         TextField(
                           controller: _searchCtrl,
                           onChanged: (v) => setState(() => _query = v),
-                          style: GoogleFonts.poppins(fontSize: 13.5, color: AppColors.navyDark),
+                          style: GoogleFonts.poppins(
+                              fontSize: 13.5, color: AppColors.navyDark),
                           decoration: InputDecoration(
-                            hintText: 'Search by FIR, title, location, category…',
+                            hintText:
+                                'Search by FIR, title, location, category…',
                             hintStyle: GoogleFonts.poppins(
                               fontSize: 12.5,
                               color: AppColors.lightSubText,
                             ),
-                            prefixIcon: const Icon(Icons.search_rounded, color: AppColors.navyMid, size: 20),
+                            prefixIcon: const Icon(Icons.search_rounded,
+                                color: AppColors.navyMid, size: 20),
                             suffixIcon: _searchCtrl.text.isNotEmpty
                                 ? IconButton(
                                     onPressed: () {
                                       _searchCtrl.clear();
                                       setState(() => _query = '');
                                     },
-                                    icon: const Icon(Icons.close_rounded, color: AppColors.lightSubText, size: 18),
+                                    icon: const Icon(Icons.close_rounded,
+                                        color: AppColors.lightSubText,
+                                        size: 18),
                                   )
                                 : null,
                             filled: true,
                             fillColor: Colors.white,
                             isDense: true,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 11),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: const BorderSide(color: AppColors.lightBorder),
+                              borderSide: const BorderSide(
+                                  color: AppColors.lightBorder),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: const BorderSide(color: AppColors.lightBorder),
+                              borderSide: const BorderSide(
+                                  color: AppColors.lightBorder),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: const BorderSide(color: AppColors.navyMid, width: 1.5),
+                              borderSide: const BorderSide(
+                                  color: AppColors.navyMid, width: 1.5),
                             ),
                           ),
                         ),
@@ -4582,13 +5034,17 @@ class _ViewTabState extends State<_ViewTab> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            _query.isNotEmpty ? Icons.search_off_rounded : Icons.folder_open_rounded,
+                            _query.isNotEmpty
+                                ? Icons.search_off_rounded
+                                : Icons.folder_open_rounded,
                             size: 48,
                             color: AppColors.navyMid.withValues(alpha: 0.5),
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            _query.isNotEmpty ? 'No matching cases' : 'No records found in database',
+                            _query.isNotEmpty
+                                ? 'No matching cases'
+                                : 'No records found in database',
                             style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -4631,21 +5087,29 @@ class _ViewTabState extends State<_ViewTab> {
                         itemCount: filtered.length,
                         itemBuilder: (context, i) {
                           final c = filtered[i];
-                          final isDisposed = c.status.toLowerCase() == 'closed' ||
-                              c.status.toLowerCase() == 'disposal' ||
-                              c.status.toLowerCase() == 'resolved' ||
-                              c.status.toLowerCase() == 'disposed';
-                          final displayStatus = isDisposed ? 'Disposal' : 'Pending';
-                          final accentColor = _selectedTabIndex == 2 || isDisposed
+                          final isDisposed =
+                              c.status.toLowerCase() == 'closed' ||
+                                  c.status.toLowerCase() == 'disposal' ||
+                                  c.status.toLowerCase() == 'resolved' ||
+                                  c.status.toLowerCase() == 'disposed';
+                          final displayStatus =
+                              isDisposed ? 'Disposal' : 'Pending';
+                          final accentColor =
+                              _selectedTabIndex == 2 || isDisposed
+                                  ? AppColors.successGreen
+                                  : _selectedTabIndex == 1
+                                      ? AppColors.warningOrange
+                                      : AppColors.infoBlue;
+                          final statusColor = isDisposed
                               ? AppColors.successGreen
-                              : _selectedTabIndex == 1
-                                  ? AppColors.warningOrange
-                                  : AppColors.infoBlue;
-                          final statusColor = isDisposed ? AppColors.successGreen : AppColors.warningOrange;
+                              : AppColors.warningOrange;
 
-                          final displayTitle = c.title.trim().isNotEmpty ? c.title.trim() : 'Untitled Case';
-                          final firLabel =
-                              c.caseNumber.trim().isNotEmpty ? c.caseNumber.trim() : 'No FIR / case number';
+                          final displayTitle = c.title.trim().isNotEmpty
+                              ? c.title.trim()
+                              : 'Untitled Case';
+                          final firLabel = c.caseNumber.trim().isNotEmpty
+                              ? c.caseNumber.trim()
+                              : 'No FIR / case number';
 
                           return Container(
                             margin: const EdgeInsets.only(bottom: 10),
@@ -4664,7 +5128,8 @@ class _ViewTabState extends State<_ViewTab> {
                             child: Material(
                               color: Colors.transparent,
                               child: InkWell(
-                                borderRadius: BorderRadius.circular(AppRadius.md),
+                                borderRadius:
+                                    BorderRadius.circular(AppRadius.md),
                                 onTap: () {
                                   Navigator.push(
                                     context,
@@ -4677,13 +5142,15 @@ class _ViewTabState extends State<_ViewTab> {
                                 },
                                 child: IntrinsicHeight(
                                   child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
                                     children: [
                                       Container(
                                         width: 4,
                                         decoration: BoxDecoration(
                                           color: accentColor,
-                                          borderRadius: const BorderRadius.horizontal(
+                                          borderRadius:
+                                              const BorderRadius.horizontal(
                                             left: Radius.circular(AppRadius.md),
                                           ),
                                         ),
@@ -4692,56 +5159,76 @@ class _ViewTabState extends State<_ViewTab> {
                                         child: Padding(
                                           padding: const EdgeInsets.all(12),
                                           child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               // Top Row: FIR and Status Badge
                                               Row(
                                                 children: [
                                                   Container(
-                                                    padding: const EdgeInsets.symmetric(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
                                                       horizontal: 8,
                                                       vertical: 3,
                                                     ),
                                                     decoration: BoxDecoration(
-                                                      color: AppColors.navyMid.withValues(alpha: 0.08),
-                                                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                                                      color: AppColors.navyMid
+                                                          .withValues(
+                                                              alpha: 0.08),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              AppRadius.sm),
                                                     ),
                                                     child: Text(
                                                       firLabel,
-                                                      style: GoogleFonts.poppins(
+                                                      style:
+                                                          GoogleFonts.poppins(
                                                         fontSize: 11,
-                                                        fontWeight: FontWeight.w600,
-                                                        color: AppColors.navyDark,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color:
+                                                            AppColors.navyDark,
                                                       ),
                                                     ),
                                                   ),
                                                   const Spacer(),
                                                   Container(
-                                                    padding: const EdgeInsets.symmetric(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
                                                       horizontal: 8,
                                                       vertical: 3,
                                                     ),
                                                     decoration: BoxDecoration(
-                                                      color: statusColor.withValues(alpha: 0.12),
-                                                      borderRadius: BorderRadius.circular(AppRadius.full),
+                                                      color: statusColor
+                                                          .withValues(
+                                                              alpha: 0.12),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              AppRadius.full),
                                                     ),
                                                     child: Row(
-                                                      mainAxisSize: MainAxisSize.min,
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
                                                       children: [
                                                         Container(
                                                           width: 6,
                                                           height: 6,
-                                                          decoration: BoxDecoration(
+                                                          decoration:
+                                                              BoxDecoration(
                                                             color: statusColor,
-                                                            shape: BoxShape.circle,
+                                                            shape:
+                                                                BoxShape.circle,
                                                           ),
                                                         ),
-                                                        const SizedBox(width: 4),
+                                                        const SizedBox(
+                                                            width: 4),
                                                         Text(
                                                           displayStatus,
-                                                          style: GoogleFonts.poppins(
+                                                          style: GoogleFonts
+                                                              .poppins(
                                                             fontSize: 10.5,
-                                                            fontWeight: FontWeight.w600,
+                                                            fontWeight:
+                                                                FontWeight.w600,
                                                             color: statusColor,
                                                           ),
                                                         ),
@@ -4765,13 +5252,16 @@ class _ViewTabState extends State<_ViewTab> {
 
                                               // Category Pill
                                               Container(
-                                                padding: const EdgeInsets.symmetric(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
                                                   horizontal: 6,
                                                   vertical: 2,
                                                 ),
                                                 decoration: BoxDecoration(
-                                                  color: AppColors.goldPrimary.withValues(alpha: 0.12),
-                                                  borderRadius: BorderRadius.circular(4),
+                                                  color: AppColors.goldPrimary
+                                                      .withValues(alpha: 0.12),
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
                                                 ),
                                                 child: Text(
                                                   c.firestoreCategoryDisplayName,
@@ -4790,57 +5280,77 @@ class _ViewTabState extends State<_ViewTab> {
                                                 runSpacing: 4,
                                                 children: [
                                                   Row(
-                                                    mainAxisSize: MainAxisSize.min,
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
                                                     children: [
                                                       const Icon(
-                                                        Icons.calendar_today_rounded,
+                                                        Icons
+                                                            .calendar_today_rounded,
                                                         size: 12,
-                                                        color: AppColors.lightSubText,
+                                                        color: AppColors
+                                                            .lightSubText,
                                                       ),
                                                       const SizedBox(width: 4),
                                                       Text(
-                                                        DateFormat('dd MMM yyyy').format(c.incidentDate),
-                                                        style: GoogleFonts.poppins(
+                                                        DateFormat(
+                                                                'dd MMM yyyy')
+                                                            .format(
+                                                                c.incidentDate),
+                                                        style:
+                                                            GoogleFonts.poppins(
                                                           fontSize: 11,
-                                                          color: AppColors.lightSubText,
+                                                          color: AppColors
+                                                              .lightSubText,
                                                         ),
                                                       ),
                                                     ],
                                                   ),
                                                   if (c.location.isNotEmpty)
                                                     Row(
-                                                      mainAxisSize: MainAxisSize.min,
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
                                                       children: [
                                                         const Icon(
-                                                          Icons.location_on_rounded,
+                                                          Icons
+                                                              .location_on_rounded,
                                                           size: 12,
-                                                          color: AppColors.lightSubText,
+                                                          color: AppColors
+                                                              .lightSubText,
                                                         ),
-                                                        const SizedBox(width: 4),
+                                                        const SizedBox(
+                                                            width: 4),
                                                         Text(
                                                           c.location,
-                                                          style: GoogleFonts.poppins(
+                                                          style: GoogleFonts
+                                                              .poppins(
                                                             fontSize: 11,
-                                                            color: AppColors.lightSubText,
+                                                            color: AppColors
+                                                                .lightSubText,
                                                           ),
                                                         ),
                                                       ],
                                                     ),
-                                                  if (c.assignedOfficer.isNotEmpty)
+                                                  if (c.assignedOfficer
+                                                      .isNotEmpty)
                                                     Row(
-                                                      mainAxisSize: MainAxisSize.min,
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
                                                       children: [
                                                         const Icon(
                                                           Icons.person_rounded,
                                                           size: 12,
-                                                          color: AppColors.lightSubText,
+                                                          color: AppColors
+                                                              .lightSubText,
                                                         ),
-                                                        const SizedBox(width: 4),
+                                                        const SizedBox(
+                                                            width: 4),
                                                         Text(
                                                           c.assignedOfficer,
-                                                          style: GoogleFonts.poppins(
+                                                          style: GoogleFonts
+                                                              .poppins(
                                                             fontSize: 11,
-                                                            color: AppColors.lightSubText,
+                                                            color: AppColors
+                                                                .lightSubText,
                                                           ),
                                                         ),
                                                       ],
@@ -4851,67 +5361,97 @@ class _ViewTabState extends State<_ViewTab> {
 
                                               // Actions Row: Edit (Guarded), Reminder (Senior Only), PDF, View
                                               Builder(builder: (ctx) {
-                                                final canEdit = PoliceRbacHelper.canEditRecord(c, auth);
-                                                final canSendReminder = PoliceRbacHelper.canSendReminder(auth);
+                                                final canEdit = PoliceRbacHelper
+                                                    .canEditRecord(c, auth);
+                                                final canSendReminder =
+                                                    PoliceRbacHelper
+                                                        .canSendReminder(auth);
 
                                                 return Row(
-                                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceAround,
                                                   children: [
                                                     if (canEdit)
                                                       _buildCardAction(
-                                                        icon: Icons.edit_note_rounded,
+                                                        icon: Icons
+                                                            .edit_note_rounded,
                                                         label: 'Edit',
-                                                        color: AppColors.infoBlue,
+                                                        color:
+                                                            AppColors.infoBlue,
                                                         onTap: () {
-                                                          final isLinked = isTabLinkedToCommonFormBaseline(
-                                                            moduleKey: c.moduleKey,
-                                                            categoryName: c.firestoreCategoryDisplayName,
+                                                          final isLinked =
+                                                              isTabLinkedToCommonFormBaseline(
+                                                            moduleKey:
+                                                                c.moduleKey,
+                                                            categoryName: c
+                                                                .firestoreCategoryDisplayName,
                                                           );
                                                           final page = isLinked
                                                               ? CommonFormScreen(
-                                                                  moduleKey: c.moduleKey,
-                                                                  moduleLabel: c.firestoreCategoryDisplayName,
-                                                                  existingRecord: c,
+                                                                  moduleKey: c
+                                                                      .moduleKey,
+                                                                  moduleLabel: c
+                                                                      .firestoreCategoryDisplayName,
+                                                                  existingRecord:
+                                                                      c,
                                                                 )
                                                               : DynamicFormScreen(
-                                                                  moduleKey: c.moduleKey,
-                                                                  moduleLabel: c.firestoreCategoryDisplayName,
-                                                                  existingRecord: c,
+                                                                  moduleKey: c
+                                                                      .moduleKey,
+                                                                  moduleLabel: c
+                                                                      .firestoreCategoryDisplayName,
+                                                                  existingRecord:
+                                                                      c,
                                                                 );
                                                           Navigator.push(
                                                             context,
-                                                            AppTheme.fadeSlideRoute(page: page),
+                                                            AppTheme
+                                                                .fadeSlideRoute(
+                                                                    page: page),
                                                           );
                                                         },
                                                       ),
                                                     if (canSendReminder)
                                                       _buildCardAction(
-                                                        icon: Icons.notifications_active_outlined,
+                                                        icon: Icons
+                                                            .notifications_active_outlined,
                                                         label: 'Reminder',
-                                                        color: AppColors.warningOrange,
+                                                        color: AppColors
+                                                            .warningOrange,
                                                         onTap: () {
-                                                          SendReminderDialog.show(context, c);
+                                                          SendReminderDialog
+                                                              .show(context, c);
                                                         },
                                                       ),
                                                     _buildCardAction(
-                                                      icon: Icons.picture_as_pdf_rounded,
+                                                      icon: Icons
+                                                          .picture_as_pdf_rounded,
                                                       label: 'PDF',
-                                                      color: AppColors.dangerRed,
+                                                      color:
+                                                          AppColors.dangerRed,
                                                       onTap: () {
-                                                        ModulePdfHelper.generatePdf(c);
+                                                        ModulePdfHelper
+                                                            .generatePdf(c);
                                                       },
                                                     ),
                                                     _buildCardAction(
-                                                      icon: Icons.visibility_rounded,
+                                                      icon: Icons
+                                                          .visibility_rounded,
                                                       label: 'View',
-                                                      color: AppColors.goldPrimary,
+                                                      color:
+                                                          AppColors.goldPrimary,
                                                       onTap: () {
                                                         Navigator.push(
                                                           context,
-                                                          AppTheme.fadeSlideRoute(
-                                                            page: c.moduleKey == 'ad'
-                                                                ? AdRecordDetailScreen(record: c)
-                                                                : ModuleRecordDetailScreen(record: c),
+                                                          AppTheme
+                                                              .fadeSlideRoute(
+                                                            page: c.moduleKey ==
+                                                                    'ad'
+                                                                ? AdRecordDetailScreen(
+                                                                    record: c)
+                                                                : ModuleRecordDetailScreen(
+                                                                    record: c),
                                                           ),
                                                         );
                                                       },
@@ -4995,17 +5535,13 @@ class _CalendarTab extends StatefulWidget {
   State<_CalendarTab> createState() => _CalendarTabState();
 }
 
-enum _CalendarTabArea { weekly, monthly, yearly, custom }
+enum _CalendarTabArea { weekly, monthly, samWarrant, yearly, custom }
 
 class _CalendarTabState extends State<_CalendarTab> {
   _CalendarTabArea _activeArea = _CalendarTabArea.weekly;
   DateTimeRange? _customRange;
   late int _selectedMonth;
   late int _selectedYear;
-  bool _showMonthlySummaryTable = false;
-  bool _showMonthlyClassVTable = false;
-  bool _showMonthlyClassVITable = false;
-  bool _showMonthlyPreventiveTable = false;
 
   @override
   void initState() {
@@ -5013,109 +5549,6 @@ class _CalendarTabState extends State<_CalendarTab> {
     final now = DateTime.now();
     _selectedMonth = now.month;
     _selectedYear = now.year;
-  }
-
-  static const _heads = [
-    'Murder',
-    'Att to Murder',
-    'Dacoity',
-    'Pro Of Dacoity',
-    'Total Robery',
-    'Chain Robery',
-    'Other Robery',
-    'Total H B Ts',
-    'H B Ts (Day)',
-    'H B Ts (Night)',
-    'Total Theft',
-    'Total M VThefts',
-    'SAND THEFT',
-    'Chain Snaching',
-    'Mobile Thefts',
-    'Cattel Theft',
-    'Other Thefts',
-    'Extcrtion',
-    'Cheating',
-    'Cr Br of Trust',
-    'Mischief',
-    'Rioting',
-    'Unlawful Assembly',
-    'Attempt to suicide',
-    'Hurt',
-    'Kidnapping/Missing',
-    'Rape',
-    'Assault on Govt-',
-    'Molestation (354)',
-    '304 (A) I P C',
-    '498 (A) I P C',
-    '509 I P C',
-    'Othar I P C',
-    'Miscellaneous',
-  ];
-
-  static String _getHead(ModuleRecord r) {
-    final sub = (r.subCategory ?? '').toLowerCase();
-    final key = r.moduleKey.toLowerCase();
-
-    if (key.contains('murder') || sub.contains('murder')) {
-      return sub.contains('attempt') || sub.contains('att') ? 'Att to Murder' : 'Murder';
-    }
-    if (key.contains('dacoity') || sub.contains('dacoity')) {
-      return sub.contains('preparation') || sub.contains('pro') ? 'Pro Of Dacoity' : 'Dacoity';
-    }
-    if (key.contains('robbery') || sub.contains('robery')) {
-      if (sub.contains('chain')) return 'Chain Robery';
-      return 'Total Robery'; // Logic can be expanded to return 'Other Robery' if needed
-    }
-    if (key.contains('house') || sub.contains('h b t') || sub.contains('hbt')) {
-      if (sub.contains('day')) return 'H B Ts (Day)';
-      if (sub.contains('night')) return 'H B Ts (Night)';
-      return 'Total H B Ts';
-    }
-    if (key.contains('theft') || sub.contains('theft')) {
-      if (key.contains('sand') || sub.contains('sand')) return 'SAND THEFT';
-      if (key.contains('two_four') || sub.contains('wheeler') || sub.contains('vehicle')) {
-        return 'Total M VThefts';
-      }
-      if (sub.contains('chain')) return 'Chain Snaching';
-      if (sub.contains('mobile')) return 'Mobile Thefts';
-      if (sub.contains('cattle') || sub.contains('cattel')) {
-        return 'Cattel Theft';
-      }
-      if (sub.contains('other')) return 'Other Thefts';
-      return 'Total Theft';
-    }
-    if (key.contains('extortion') || sub.contains('extcrtion')) {
-      return 'Extcrtion';
-    }
-    if (key.contains('cheating') || sub.contains('cheating')) return 'Cheating';
-    if (sub.contains('trust') || sub.contains('br of trust')) {
-      return 'Cr Br of Trust';
-    }
-    if (key.contains('mischief') || sub.contains('mischief')) return 'Mischief';
-    if (key.contains('rioting') || sub.contains('rioting')) return 'Rioting';
-    if (sub.contains('unlawful') || sub.contains('assembly')) {
-      return 'Unlawful Assembly';
-    }
-    if (sub.contains('suicide')) return 'Attempt to suicide';
-    if (key.contains('hurt') || sub.contains('hurt')) return 'Hurt';
-    if (key.contains('kidnapping') || sub.contains('kidnap')) {
-      return 'Kidnapping/Missing';
-    }
-    if (key.contains('rape') || sub.contains('rape')) return 'Rape';
-    if (sub.contains('assault') && sub.contains('govt')) {
-      return 'Assault on Govt-';
-    }
-    if (sub.contains('molestation') || sub.contains('354')) {
-      return 'Molestation (354)';
-    }
-    if (sub.contains('304')) return '304 (A) I P C';
-    if (sub.contains('498')) return '498 (A) I P C';
-    if (sub.contains('509')) return '509 I P C';
-    if (sub.contains('other ipc') || sub.contains('othar')) {
-      return 'Othar I P C';
-    }
-
-    return 'Miscellaneous';
   }
 
   List<ModuleRecord> _getConsolidatedRecords(BuildContext context) {
@@ -5171,7 +5604,8 @@ class _CalendarTabState extends State<_CalendarTab> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 8),
+          padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 8),
           child: Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
@@ -5183,6 +5617,7 @@ class _CalendarTabState extends State<_CalendarTab> {
               children: [
                 _tabBtn('Weekly', _CalendarTabArea.weekly),
                 _tabBtn('Monthly', _CalendarTabArea.monthly),
+                _tabBtn('Sam/Warrant', _CalendarTabArea.samWarrant),
                 _tabBtn('Yearly', _CalendarTabArea.yearly),
                 _tabBtn('Custom', _CalendarTabArea.custom),
               ],
@@ -5210,7 +5645,8 @@ class _CalendarTabState extends State<_CalendarTab> {
     ];
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 8),
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 8),
       child: Row(
         children: [
           Expanded(
@@ -5225,16 +5661,15 @@ class _CalendarTabState extends State<_CalendarTab> {
                 child: DropdownButton<int>(
                   value: _selectedMonth,
                   isExpanded: true,
-                  menuMaxHeight: 260,
-                  borderRadius: BorderRadius.circular(10),
-                  alignment: AlignmentDirectional.centerStart,
-                  icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.navyMid),
+                  icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                      color: AppColors.navyMid),
                   items: List.generate(
                       12,
                       (i) => DropdownMenuItem(
                             value: i + 1,
-                            child:
-                                Text(months[i], style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+                            child: Text(months[i],
+                                style: GoogleFonts.poppins(
+                                    fontSize: 13, fontWeight: FontWeight.w600)),
                           )),
                   onChanged: (val) {
                     if (val != null) setState(() => _selectedMonth = val);
@@ -5254,16 +5689,15 @@ class _CalendarTabState extends State<_CalendarTab> {
             child: DropdownButtonHideUnderline(
               child: DropdownButton<int>(
                 value: _selectedYear,
-                menuMaxHeight: 260,
-                borderRadius: BorderRadius.circular(10),
-                alignment: AlignmentDirectional.centerStart,
-                icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.navyMid),
+                icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                    color: AppColors.navyMid),
                 items: List.generate(
                     5,
                     (i) => DropdownMenuItem(
                           value: DateTime.now().year - i,
                           child: Text('${DateTime.now().year - i}',
-                              style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+                              style: GoogleFonts.poppins(
+                                  fontSize: 13, fontWeight: FontWeight.w600)),
                         )),
                 onChanged: (val) {
                   if (val != null) setState(() => _selectedYear = val);
@@ -5324,7 +5758,8 @@ class _CalendarTabState extends State<_CalendarTab> {
     );
   }
 
-  Widget _buildRegistrationSummary(BuildContext context, _CalendarTabArea area) {
+  Widget _buildRegistrationSummary(
+      BuildContext context, _CalendarTabArea area) {
     final allRecords = _getConsolidatedRecords(context);
     final now = DateTime.now();
 
@@ -5333,18 +5768,26 @@ class _CalendarTabState extends State<_CalendarTab> {
     String reportTitle;
 
     if (area == _CalendarTabArea.weekly) {
-      final weekStart = DateTime(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1));
-      final weekEnd = weekStart.add(const Duration(days: 7)).subtract(const Duration(seconds: 1));
+      final weekStart = DateTime(now.year, now.month, now.day)
+          .subtract(Duration(days: now.weekday - 1));
+      final weekEnd = weekStart
+          .add(const Duration(days: 7))
+          .subtract(const Duration(seconds: 1));
       filtered = allRecords
           .where((r) =>
-              (r.incidentDate.isAfter(weekStart) || r.incidentDate.isAtSameMomentAs(weekStart)) &&
-              (r.incidentDate.isBefore(weekEnd) || r.incidentDate.isAtSameMomentAs(weekEnd)))
+              (r.incidentDate.isAfter(weekStart) ||
+                  r.incidentDate.isAtSameMomentAs(weekStart)) &&
+              (r.incidentDate.isBefore(weekEnd) ||
+                  r.incidentDate.isAtSameMomentAs(weekEnd)))
           .toList();
-      rangeLabel = '${DateFormat('dd MMM').format(weekStart)} - ${DateFormat('dd MMM').format(weekEnd)}';
+      rangeLabel =
+          '${DateFormat('dd MMM').format(weekStart)} - ${DateFormat('dd MMM').format(weekEnd)}';
       reportTitle = 'WEEKLY REGISTRATION REPORT';
     } else if (area == _CalendarTabArea.monthly) {
       filtered = allRecords
-          .where((r) => r.incidentDate.month == _selectedMonth && r.incidentDate.year == _selectedYear)
+          .where((r) =>
+              r.incidentDate.month == _selectedMonth &&
+              r.incidentDate.year == _selectedYear)
           .toList();
       rangeLabel = '${[
         "January",
@@ -5361,31 +5804,56 @@ class _CalendarTabState extends State<_CalendarTab> {
         "December"
       ][_selectedMonth - 1]} $_selectedYear';
       reportTitle = 'MONTHLY REPORT';
+    } else if (area == _CalendarTabArea.samWarrant) {
+      filtered = allRecords;
+      rangeLabel = '${[
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+      ][_selectedMonth - 1]} $_selectedYear';
+      reportTitle = 'SUMMONS & WARRANT MONTHLY REPORT';
     } else if (area == _CalendarTabArea.yearly) {
-      filtered = allRecords.where((r) => r.incidentDate.year == now.year).toList();
+      filtered =
+          allRecords.where((r) => r.incidentDate.year == now.year).toList();
       rangeLabel = '${now.year}';
       reportTitle = 'YEARLY REGISTRATION REPORT';
     } else {
       if (_customRange == null) {
         return SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 40, horizontal: AppSpacing.lg),
+            padding: const EdgeInsets.symmetric(
+                vertical: 40, horizontal: AppSpacing.lg),
             child: Center(
               child: Column(
                 children: [
-                  Icon(Icons.date_range_rounded, size: 64, color: Colors.grey.shade300),
+                  Icon(Icons.date_range_rounded,
+                      size: 64, color: Colors.grey.shade300),
                   const SizedBox(height: 16),
                   Text('Custom Report not generated yet',
                       style: GoogleFonts.poppins(
-                          fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.lightSubText)),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.lightSubText)),
                   const SizedBox(height: 12),
                   ElevatedButton.icon(
                     onPressed: () => _selectCustomRange(context),
-                    icon: const Icon(Icons.date_range_rounded, size: 18, color: Colors.white),
-                    label: Text('Select Date Range', style: GoogleFonts.poppins(color: Colors.white)),
+                    icon: const Icon(Icons.date_range_rounded,
+                        size: 18, color: Colors.white),
+                    label: Text('Select Date Range',
+                        style: GoogleFonts.poppins(color: Colors.white)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.navyMid,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
                     ),
                   ),
                 ],
@@ -5396,8 +5864,10 @@ class _CalendarTabState extends State<_CalendarTab> {
       }
       filtered = allRecords
           .where((r) =>
-              r.incidentDate.isAfter(_customRange!.start.subtract(const Duration(seconds: 1))) &&
-              r.incidentDate.isBefore(_customRange!.end.add(const Duration(days: 1))))
+              r.incidentDate.isAfter(
+                  _customRange!.start.subtract(const Duration(seconds: 1))) &&
+              r.incidentDate
+                  .isBefore(_customRange!.end.add(const Duration(days: 1))))
           .toList();
       rangeLabel =
           '${DateFormat('dd MMM yyyy').format(_customRange!.start)} - ${DateFormat('dd MMM yyyy').format(_customRange!.end)}';
@@ -5410,12 +5880,14 @@ class _CalendarTabState extends State<_CalendarTab> {
       String? sub = r.subCategory;
       final key = '${r.moduleKey}_${sub ?? ""}';
       if (!catMeta.containsKey(key)) {
-        catMeta[key] = _CalCategoryMeta(label: label, moduleKey: r.moduleKey, subCategory: sub, count: 0);
+        catMeta[key] = _CalCategoryMeta(
+            label: label, moduleKey: r.moduleKey, subCategory: sub, count: 0);
       }
       catMeta[key]!.count++;
     }
 
-    final sortedItems = catMeta.values.toList()..sort((a, b) => a.label.compareTo(b.label));
+    final sortedItems = catMeta.values.toList()
+      ..sort((a, b) => a.label.compareTo(b.label));
     final countsForPdf = {for (var it in sortedItems) it.label: it.count};
 
     return SliverPadding(
@@ -5435,7 +5907,10 @@ class _CalendarTabState extends State<_CalendarTab> {
                     colors: [AppColors.navyDark, AppColors.navyMid]),
                 borderRadius: BorderRadius.circular(AppRadius.lg),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 8, offset: const Offset(0, 4)),
+                  BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.12),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4)),
                 ],
               ),
               child: Column(
@@ -5466,9 +5941,12 @@ class _CalendarTabState extends State<_CalendarTab> {
                         GestureDetector(
                           onTap: () => _selectCustomRange(context),
                           child: Row(children: [
-                            const Icon(Icons.edit_calendar_rounded, size: 14, color: Colors.white70),
+                            const Icon(Icons.edit_calendar_rounded,
+                                size: 14, color: Colors.white70),
                             const SizedBox(width: 4),
-                            Text('Change Range', style: GoogleFonts.poppins(fontSize: 11, color: Colors.white70)),
+                            Text('Change Range',
+                                style: GoogleFonts.poppins(
+                                    fontSize: 11, color: Colors.white70)),
                           ]),
                         ),
                     ],
@@ -5477,44 +5955,23 @@ class _CalendarTabState extends State<_CalendarTab> {
               ),
             ),
             if (area == _CalendarTabArea.monthly) ...[
-              // Month/Year selector moved below the Monthly navbar (tabs).
+              // Month/Year selector
               _buildMonthSelector(),
               const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Statistics Summary',
-                          style: GoogleFonts.poppins(
-                              fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.navyDark)),
-                      Text('${filtered.length} cases registered in total',
-                          style: GoogleFonts.poppins(fontSize: 11, color: AppColors.lightSubText)),
-                    ],
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        _showMonthlySummaryTable = !_showMonthlySummaryTable;
-                        if (_showMonthlySummaryTable) {
-                          _showMonthlyClassVTable = false;
-                          _showMonthlyClassVITable = false;
-                          _showMonthlyPreventiveTable = false;
-                        }
-                      });
-                    },
-                    icon: const Icon(Icons.assessment_outlined, size: 16, color: Colors.white),
-                    label: Text('Summary', style: GoogleFonts.poppins(fontSize: 11, color: Colors.white)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.navyMid,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
-                    ),
-                  ),
-                ],
+              // Dynamic Monthly Crime Comparative Table from database backend
+              MonthlyCrimeComparativeTable(
+                selectedYear: _selectedYear,
+                selectedMonth: _selectedMonth,
               ),
-              const SizedBox(height: 20),
+            ] else if (area == _CalendarTabArea.samWarrant) ...[
+              // Month/Year selector
+              _buildMonthSelector(),
+              const SizedBox(height: 16),
+              // Dynamic Summons & Warrant Report Table from database backend
+              SummonsWarrantReportTable(
+                selectedYear: _selectedYear,
+                selectedMonth: _selectedMonth,
+              ),
             ] else ...[
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -5524,2096 +5981,74 @@ class _CalendarTabState extends State<_CalendarTab> {
                     children: [
                       Text('Statistics Summary',
                           style: GoogleFonts.poppins(
-                              fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.navyDark)),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.navyDark)),
                       Text('${filtered.length} cases registered in total',
-                          style: GoogleFonts.poppins(fontSize: 11, color: AppColors.lightSubText)),
+                          style: GoogleFonts.poppins(
+                              fontSize: 11, color: AppColors.lightSubText)),
                     ],
                   ),
                   ElevatedButton.icon(
-                    onPressed: () => ModulePdfHelper.generateSummaryReportPdf(countsForPdf, reportTitle, rangeLabel),
-                    icon: const Icon(Icons.assessment_outlined, size: 16, color: Colors.white),
-                    label: Text('Summary', style: GoogleFonts.poppins(fontSize: 11, color: Colors.white)),
+                    onPressed: () => ModulePdfHelper.generateSummaryReportPdf(
+                        countsForPdf, reportTitle, rangeLabel),
+                    icon: const Icon(Icons.assessment_outlined,
+                        size: 16, color: Colors.white),
+                    label: Text('Summary',
+                        style: GoogleFonts.poppins(
+                            fontSize: 11, color: Colors.white)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.navyMid,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.md)),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 20),
-            ],
-            if (area == _CalendarTabArea.monthly) ...[
-              // Keep the Class V / VI / Preventives buttons always visible.
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(AppRadius.lg),
-                  border: Border.all(color: AppColors.lightBorder),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
-                      blurRadius: 10,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _monthlyReportButtons(filtered, reportTitle, rangeLabel),
-                    const SizedBox(height: 14),
-                    if (sortedItems.isEmpty)
-                      _buildEmptyReport()
-                    else if (_showMonthlySummaryTable)
-                      _buildMonthlySummaryPhotoTable(
-                        context,
-                        allRecords,
-                        _selectedMonth,
-                        _selectedYear,
-                      )
-                    else if (_showMonthlyClassVTable)
-                      _buildMonthlyReportTableInternal(
-                        context,
-                        allRecords,
-                        _selectedMonth,
-                        _selectedYear,
-                      ),
-                    if (sortedItems.isNotEmpty && _showMonthlyClassVITable)
-                      _buildMonthlyReportTableInternalVI(
-                        context,
-                        allRecords,
-                        _selectedMonth,
-                        _selectedYear,
-                      ),
-                    if (sortedItems.isNotEmpty && _showMonthlyPreventiveTable)
-                      _buildMonthlyReportTableInternalPreventive(
-                        context,
-                        allRecords,
-                        _selectedMonth,
-                        _selectedYear,
-                      ),
-                  ],
-                ),
-              ),
-            ] else ...[
-              if (sortedItems.isEmpty) _buildEmptyReport() else ...sortedItems.map((meta) => _buildReportTile(meta)),
+              if (sortedItems.isEmpty)
+                _buildEmptyReport()
+              else
+                ...sortedItems.map((meta) => _buildReportTile(meta)),
             ],
           ],
         ),
       ),
     );
   }
-
-  static Widget _buildMonthlyReportTableInternal(
-    BuildContext context,
-    List<ModuleRecord> allRecords,
-    int selectedMonth,
-    int selectedYear,
-  ) {
-    final List<Map<String, dynamic>> tableRows = [];
-
-    List<ModuleRecord> filter(int m, int y, {bool isYearCurrent = false, bool isYearPrevious = false}) {
-      return allRecords.where((r) {
-        if (isYearCurrent) {
-          return r.incidentDate.year == y && r.incidentDate.month <= m;
-        }
-        if (isYearPrevious) {
-          return r.incidentDate.year == y && r.incidentDate.month <= m;
-        }
-        return r.incidentDate.month == m && r.incidentDate.year == y;
-      }).toList();
-    }
-
-    final currentMonthRecords = filter(selectedMonth, selectedYear);
-    final previousMonth = selectedMonth == 1 ? 12 : selectedMonth - 1;
-    final previousMonthYear = selectedMonth == 1 ? selectedYear - 1 : selectedYear;
-    final previousMonthRecords = filter(previousMonth, previousMonthYear);
-    final sameMonthLastYearRecords = filter(selectedMonth, selectedYear - 1);
-    final yearCurrentRecords = filter(selectedMonth, selectedYear, isYearCurrent: true);
-    final yearPreviousRecords = filter(selectedMonth, selectedYear - 1, isYearPrevious: true);
-
-    int totalcmR = 0, totalcmD = 0;
-    int totalpmR = 0, totalpmD = 0;
-    int totalsmlyR = 0, totalsmlyD = 0;
-    int totalycR = 0, totalycD = 0;
-    int totalypR = 0, totalypD = 0;
-
-    for (int i = 0; i < _heads.length; i++) {
-      final head = _heads[i];
-      List<ModuleRecord> getByHead(List<ModuleRecord> recs) => recs.where((r) => _getHead(r) == head).toList();
-
-      final cm = getByHead(currentMonthRecords);
-      final pm = getByHead(previousMonthRecords);
-      final smly = getByHead(sameMonthLastYearRecords);
-      final yc = getByHead(yearCurrentRecords);
-      final yp = getByHead(yearPreviousRecords);
-
-      int detected(List<ModuleRecord> recs) => recs.where((r) => r.status.toLowerCase() != 'open').length;
-
-      final cmR = cm.length;
-      final cmD = detected(cm);
-      final pmR = pm.length;
-      final pmD = detected(pm);
-      final smlyR = smly.length;
-      final smlyD = detected(smly);
-      final ycR = yc.length;
-      final ycD = detected(yc);
-      final ypR = yp.length;
-      final ypD = detected(yp);
-
-      final variation = ycR - ypR;
-
-      tableRows.add({
-        'N': i + 1,
-        'Heads': head,
-        'cm_R': cmR,
-        'cm_D': cmD,
-        'pm_R': pmR,
-        'pm_D': pmD,
-        'smly_R': smlyR,
-        'smly_D': smlyD,
-        'yc_R': ycR,
-        'yc_D': ycD,
-        'yp_R': ypR,
-        'yp_D': ypD,
-        'variation': variation,
-        'cmRecords': cm,
-        'pmRecords': pm,
-        'smlyRecords': smly,
-        'ycRecords': yc,
-        'ypRecords': yp,
-      });
-
-      totalcmR += cmR;
-      totalcmD += cmD;
-      totalpmR += pmR;
-      totalpmD += pmD;
-      totalsmlyR += smlyR;
-      totalsmlyD += smlyD;
-      totalycR += ycR;
-      totalycD += ycD;
-      totalypR += ypR;
-      totalypD += ypD;
-    }
-
-    tableRows.add({
-      'N': '',
-      'Heads': 'TOTAL',
-      'cm_R': totalcmR,
-      'cm_D': totalcmD,
-      'pm_R': totalpmR,
-      'pm_D': totalpmD,
-      'smly_R': totalsmlyR,
-      'smly_D': totalsmlyD,
-      'yc_R': totalycR,
-      'yc_D': totalycD,
-      'yp_R': totalypR,
-      'yp_D': totalypD,
-      'variation': totalycR - totalypR,
-      'cmRecords': const <ModuleRecord>[],
-      'pmRecords': const <ModuleRecord>[],
-      'smlyRecords': const <ModuleRecord>[],
-      'ycRecords': const <ModuleRecord>[],
-      'ypRecords': const <ModuleRecord>[],
-    });
-
-    final prevMonth = selectedMonth == 1 ? 12 : selectedMonth - 1;
-    final prevMonthYear = selectedMonth == 1 ? selectedYear - 1 : selectedYear;
-    final cmDateLabel = DateFormat('MMMM,yyyy').format(DateTime(selectedYear, selectedMonth));
-    final pmDateLabel = DateFormat('MMMM,yyyy').format(DateTime(prevMonthYear, prevMonth));
-    final smlyDateLabel = DateFormat('MMMM,yyyy').format(DateTime(selectedYear - 1, selectedMonth));
-    final ycDateLabel = 'Year,$selectedYear';
-    final ypDateLabel = 'Year,${selectedYear - 1}';
-
-    final classVRowDefs = <Map<String, dynamic>>[
-      {'sr': '1', 'label': 'Murder', 'head': 'Murder'},
-      {'sr': '2', 'label': 'Attempt to murder', 'head': 'Att to Murder'},
-      {'sr': '3', 'label': 'Dacoity', 'head': 'Dacoity'},
-      {'sr': '4', 'label': 'Pro of Decoity', 'head': 'Pro Of Dacoity'},
-      {'sr': '5', 'label': 'Total Robery', 'head': 'Total Robery', 'bold': true},
-      {'sr': 'a', 'label': 'Chain Robery', 'head': 'Chain Robery', 'indent': 1},
-      {'sr': 'b', 'label': 'Other Robery', 'head': 'Other Robery', 'indent': 1},
-      {'sr': '6', 'label': 'Total H.B.Ts', 'head': 'Total H B Ts', 'bold': true},
-      {'sr': 'a', 'label': 'H.B.Ts (Day)', 'head': 'H B Ts (Day)', 'indent': 1},
-      {
-        'sr': 'b',
-        'label': 'H.B.Ts (Night)',
-        'head': 'H B Ts (Night)',
-        'indent': 1,
-      },
-      {'sr': '7', 'label': 'Total thefts', 'head': 'Total Theft', 'bold': true},
-      {
-        'sr': 'a',
-        'label': 'Total MV Thefts',
-        'head': 'Total M VThefts',
-        'indent': 1,
-      },
-      {'sr': 'b', 'label': 'Sand Theft', 'head': 'SAND THEFT', 'indent': 1},
-      {
-        'sr': 'c',
-        'label': 'Chain Snaching',
-        'head': 'Chain Snaching',
-        'indent': 1,
-      },
-      {'sr': 'd', 'label': 'Mobile Thefts', 'head': 'Mobile Thefts', 'indent': 1},
-      {'sr': 'e', 'label': 'Cattle Thefts', 'head': 'Cattel Theft', 'indent': 1},
-      {'sr': 'f', 'label': 'Other Thefts', 'head': 'Other Thefts', 'indent': 1},
-      {'sr': '8', 'label': 'Extortion', 'head': 'Extcrtion'},
-      {'sr': '9', 'label': 'Cheating', 'head': 'Cheating', 'bold': true},
-      {'sr': '10', 'label': 'Cr Br of Trust', 'head': 'Cr Br of Trust'},
-      {'sr': '11', 'label': 'Mischief', 'head': 'Mischief'},
-      {'sr': '12', 'label': 'Rioting', 'head': 'Rioting'},
-      {'sr': '13', 'label': 'Unlawful assembly', 'head': 'Unlawful Assembly'},
-      {'sr': '14', 'label': 'Attempt to Suicide', 'head': 'Attempt to suicide'},
-      {'sr': '15', 'label': 'Hurt', 'head': 'Hurt', 'bold': true},
-      {'sr': '16', 'label': 'Kidnapping/Missing', 'head': 'Kidnapping/Missing', 'bold': true},
-      {'sr': '17', 'label': 'Rape', 'head': 'Rape', 'bold': true},
-      {
-        'sr': '18',
-        'label': 'Assault on Govt.',
-        'head': 'Assault on Govt-',
-        'bold': true,
-      },
-      {'sr': '19', 'label': 'Molestation (354)', 'head': 'Molestation (354)'},
-      {'sr': '20', 'label': '304 (A) IPC', 'head': '304 (A) I P C'},
-      {'sr': '21', 'label': '498 (A) IPC', 'head': '498 (A) I P C'},
-      {'sr': '22', 'label': '509 IPC', 'head': '509 I P C'},
-      {'sr': '23', 'label': 'Other IPC', 'head': 'Othar I P C'},
-      {'sr': '', 'label': 'Total', 'head': 'TOTAL', 'bold': true},
-    ];
-
-    // Class V screen: slightly larger type; Murder–Other IPC share vertical padding
-    // so adjacent rows do not stack default top+bottom cell padding (extra gap).
-    const classVBodyFontSize = 11.0;
-    const classVTitleFontSize = 12.0;
-    const classVTightRowHeads = <String>{
-      'Murder',
-      'Att to Murder',
-      'Dacoity',
-      'Pro Of Dacoity',
-      'Total Robery',
-      'Chain Robery',
-      'Other Robery',
-      'Total H B Ts',
-      'H B Ts (Day)',
-      'H B Ts (Night)',
-      'Total Theft',
-      'Total M VThefts',
-      'SAND THEFT',
-      'Chain Snaching',
-      'Mobile Thefts',
-      'Cattel Theft',
-      'Other Thefts',
-      'Extcrtion',
-      'Cheating',
-      'Cr Br of Trust',
-      'Mischief',
-      'Rioting',
-      'Unlawful Assembly',
-      'Attempt to suicide',
-      'Hurt',
-      'Kidnapping/Missing',
-      'Rape',
-      'Assault on Govt-',
-      'Molestation (354)',
-      '304 (A) I P C',
-      '498 (A) I P C',
-      '509 I P C',
-      'Othar I P C',
-    };
-
-    EdgeInsets classVCellPad({
-      required bool denseTop,
-      required bool denseBottom,
-      double horizontal = 3,
-    }) {
-      const v = 3.0; // minimal vertical padding (was 4)
-      return EdgeInsets.fromLTRB(
-        horizontal,
-        denseTop ? 0 : v,
-        horizontal,
-        denseBottom ? 0 : v,
-      );
-    }
-
-    Map<String, dynamic> rowFor(String head) {
-      for (final r in tableRows) {
-        if (r['Heads'] == head) return r;
-      }
-      return <String, dynamic>{};
-    }
-
-    int vInt(Map<String, dynamic> r, String k) => (r[k] as int?) ?? 0;
-
-    const flexAll = 20;
-    const dataFlexes = <int>[2, 7, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
-    const headerGroupFlexes = <int>[2, 7, 2, 2, 2, 2, 2, 1];
-
-    Widget rowOfFlex(List<int> flexes, List<Widget> children) {
-      assert(flexes.length == children.length);
-      return IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (var i = 0; i < flexes.length; i++)
-              Expanded(
-                flex: flexes[i],
-                child: children[i],
-              ),
-          ],
-        ),
-      );
-    }
-
-    Widget cBox({
-      required Widget child,
-      EdgeInsets? padding,
-      AlignmentGeometry alignment = Alignment.center,
-    }) {
-      return Container(
-        padding: padding ?? const EdgeInsets.symmetric(horizontal: 3, vertical: 3),
-        decoration: BoxDecoration(
-          border: Border.all(color: AppColors.lightBorder, width: 0.5),
-        ),
-        alignment: alignment,
-        child: child,
-      );
-    }
-
-    Widget cText(
-      String s, {
-      bool bold = false,
-      bool alignLeft = false,
-      double indent = 0,
-      double fontSize = classVBodyFontSize,
-    }) {
-      return Padding(
-        padding: EdgeInsets.only(left: indent),
-        child: Text(
-          s,
-          textAlign: alignLeft ? TextAlign.left : TextAlign.center,
-          softWrap: true,
-          style: GoogleFonts.poppins(
-            fontSize: fontSize,
-            fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-            color: AppColors.lightText,
-            height: 1.15,
-          ),
-        ),
-      );
-    }
-
-    Widget cLink(
-      int n,
-      List<ModuleRecord> recs,
-      String title, {
-      bool bold = false,
-      double fontSize = classVBodyFontSize,
-    }) {
-      final empty = recs.isEmpty;
-      return InkWell(
-        onTap: empty
-            ? null
-            : () {
-                Navigator.push(
-                  context,
-                  AppTheme.fadeSlideRoute(
-                    page: ReportCaseListScreen(title: title, records: recs),
-                  ),
-                );
-              },
-        child: Text(
-          '$n',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(
-            fontSize: fontSize,
-            fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-            color: empty ? AppColors.lightSubText : AppColors.infoBlue,
-            decoration: empty ? null : TextDecoration.underline,
-            height: 1.15,
-          ),
-        ),
-      );
-    }
-
-    List<ModuleRecord> detRecs(List<ModuleRecord> r) => r.where((x) => x.status.toLowerCase() != 'open').toList();
-
-    Widget buildScreenDataRow(Map<String, dynamic> def) {
-      final headKey = def['head'] as String;
-      final inTightBlock = classVTightRowHeads.contains(headKey);
-      final denseTop = inTightBlock && headKey != 'Murder';
-      final denseBottom = inTightBlock && headKey != 'Othar I P C';
-      final src = rowFor(headKey);
-      final bold = (def['bold'] as bool?) ?? false;
-      final indent = ((def['indent'] as int?) ?? 0) * 12.0;
-      final cmR = vInt(src, 'cm_R');
-      final cmD = vInt(src, 'cm_D');
-      final pmR = vInt(src, 'pm_R');
-      final pmD = vInt(src, 'pm_D');
-      final smlyR = vInt(src, 'smly_R');
-      final smlyD = vInt(src, 'smly_D');
-      final ycR = vInt(src, 'yc_R');
-      final ycD = vInt(src, 'yc_D');
-      final ypR = vInt(src, 'yp_R');
-      final ypD = vInt(src, 'yp_D');
-      final varVal = vInt(src, 'variation');
-      final cmRecs = (src['cmRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
-      final pmRecs = (src['pmRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
-      final smlyRecs = (src['smlyRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
-      final ycRecs = (src['ycRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
-      final ypRecs = (src['ypRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
-      final label = def['label'] as String;
-      final labelPad = classVCellPad(
-        denseTop: denseTop,
-        denseBottom: denseBottom,
-        horizontal: 4,
-      );
-
-      return rowOfFlex(dataFlexes, [
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cText(def['sr'] as String, bold: bold),
-        ),
-        cBox(
-          alignment: Alignment.centerLeft,
-          padding: labelPad,
-          child: cText(
-            label,
-            bold: bold,
-            alignLeft: true,
-            indent: indent,
-          ),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(cmR, cmRecs, '$label • $cmDateLabel • R', bold: bold),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(
-            cmD,
-            detRecs(cmRecs),
-            '$label • $cmDateLabel • D',
-            bold: bold,
-          ),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(pmR, pmRecs, '$label • $pmDateLabel • R', bold: bold),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(
-            pmD,
-            detRecs(pmRecs),
-            '$label • $pmDateLabel • D',
-            bold: bold,
-          ),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(smlyR, smlyRecs, '$label • $smlyDateLabel • R', bold: bold),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(
-            smlyD,
-            detRecs(smlyRecs),
-            '$label • $smlyDateLabel • D',
-            bold: bold,
-          ),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(ycR, ycRecs, '$label • $ycDateLabel • R', bold: bold),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(
-            ycD,
-            detRecs(ycRecs),
-            '$label • $ycDateLabel • D',
-            bold: bold,
-          ),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(ypR, ypRecs, '$label • $ypDateLabel • R', bold: bold),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(
-            ypD,
-            detRecs(ypRecs),
-            '$label • $ypDateLabel • D',
-            bold: bold,
-          ),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cText('$varVal', bold: bold),
-        ),
-      ]);
-    }
-
-    Widget buildScreenTable() {
-      return LayoutBuilder(
-        builder: (context, constraints) {
-          final barW = constraints.hasBoundedWidth && constraints.maxWidth.isFinite
-              ? constraints.maxWidth
-              : MediaQuery.sizeOf(context).width;
-
-          return Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.lightBorder),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  width: barW,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: cBox(
-                          child: cText(
-                            'Name of the Police Station',
-                            bold: true,
-                            fontSize: classVTitleFontSize,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                rowOfFlex(headerGroupFlexes, [
-                  cBox(child: cText('Sr.No', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('Types of Crime', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: Center(child: cText(cmDateLabel, bold: true, fontSize: classVBodyFontSize))),
-                  cBox(child: Center(child: cText(pmDateLabel, bold: true, fontSize: classVBodyFontSize))),
-                  cBox(child: Center(child: cText(smlyDateLabel, bold: true, fontSize: classVBodyFontSize))),
-                  cBox(child: Center(child: cText(ycDateLabel, bold: true, fontSize: classVBodyFontSize))),
-                  cBox(child: Center(child: cText(ypDateLabel, bold: true, fontSize: classVBodyFontSize))),
-                  cBox(child: cText('Var.', bold: true, fontSize: classVBodyFontSize)),
-                ]),
-                rowOfFlex(dataFlexes, [
-                  cBox(child: cText('', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('R', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('D', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('R', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('D', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('R', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('D', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('R', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('D', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('R', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('D', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(child: cText('', bold: true, fontSize: classVBodyFontSize)),
-                ]),
-                for (final def in classVRowDefs) buildScreenDataRow(def),
-              ],
-            ),
-          );
-        },
-      );
-    }
-
-    pw.Widget pCellBox(
-      String text, {
-      bool bold = false,
-      bool alignLeft = false,
-      int indentLevel = 0,
-      double fontSize = 7,
-    }) {
-      return pw.Container(
-        padding: pw.EdgeInsets.fromLTRB(
-          2.0 + indentLevel * 6.0,
-          2,
-          2,
-          2,
-        ),
-        alignment: alignLeft ? pw.Alignment.centerLeft : pw.Alignment.center,
-        child: pw.Text(
-          text,
-          textAlign: alignLeft ? pw.TextAlign.left : pw.TextAlign.center,
-          style: pw.TextStyle(
-            fontSize: fontSize,
-            fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
-          ),
-        ),
-      );
-    }
-
-    pw.Widget pTableRow(List<int> flexes, List<pw.Widget> cells) {
-      return pw.Table(
-        border: pw.TableBorder.all(color: PdfColors.grey600, width: 0.4),
-        columnWidths: {
-          for (var i = 0; i < flexes.length; i++) i: pw.FlexColumnWidth(flexes[i].toDouble()),
-        },
-        children: [pw.TableRow(children: cells)],
-      );
-    }
-
-    pw.Widget buildPdfDataRow(Map<String, dynamic> def) {
-      final src = rowFor(def['head'] as String);
-      final bold = (def['bold'] as bool?) ?? false;
-      final indent = (def['indent'] as int?) ?? 0;
-      final cmR = vInt(src, 'cm_R');
-      final cmD = vInt(src, 'cm_D');
-      final pmR = vInt(src, 'pm_R');
-      final pmD = vInt(src, 'pm_D');
-      final smlyR = vInt(src, 'smly_R');
-      final smlyD = vInt(src, 'smly_D');
-      final ycR = vInt(src, 'yc_R');
-      final ycD = vInt(src, 'yc_D');
-      final ypR = vInt(src, 'yp_R');
-      final ypD = vInt(src, 'yp_D');
-      final varVal = vInt(src, 'variation');
-      String s(int n) => '$n';
-      return pTableRow(dataFlexes, [
-        pCellBox(def['sr'] as String, bold: bold),
-        pCellBox(
-          def['label'] as String,
-          bold: bold,
-          alignLeft: true,
-          indentLevel: indent,
-        ),
-        pCellBox(s(cmR), bold: bold),
-        pCellBox(s(cmD), bold: bold),
-        pCellBox(s(pmR), bold: bold),
-        pCellBox(s(pmD), bold: bold),
-        pCellBox(s(smlyR), bold: bold),
-        pCellBox(s(smlyD), bold: bold),
-        pCellBox(s(ycR), bold: bold),
-        pCellBox(s(ycD), bold: bold),
-        pCellBox(s(ypR), bold: bold),
-        pCellBox(s(ypD), bold: bold),
-        pCellBox(s(varVal), bold: bold),
-      ]);
-    }
-
-    Future<void> exportPdf() async {
-      final doc = pw.Document();
-      final body = <pw.Widget>[
-        pTableRow([
-          flexAll
-        ], [
-          pCellBox('Name of the Police Station', bold: true, fontSize: 9),
-        ]),
-        pTableRow(headerGroupFlexes, [
-          pCellBox('Sr.No', bold: true),
-          pCellBox('Types of Crime', bold: true),
-          pCellBox(cmDateLabel, bold: true),
-          pCellBox(pmDateLabel, bold: true),
-          pCellBox(smlyDateLabel, bold: true),
-          pCellBox(ycDateLabel, bold: true),
-          pCellBox(ypDateLabel, bold: true),
-          pCellBox('Var.', bold: true),
-        ]),
-        pTableRow(dataFlexes, [
-          pCellBox('', bold: true),
-          pCellBox('', bold: true),
-          pCellBox('R', bold: true),
-          pCellBox('D', bold: true),
-          pCellBox('R', bold: true),
-          pCellBox('D', bold: true),
-          pCellBox('R', bold: true),
-          pCellBox('D', bold: true),
-          pCellBox('R', bold: true),
-          pCellBox('D', bold: true),
-          pCellBox('R', bold: true),
-          pCellBox('D', bold: true),
-          pCellBox('', bold: true),
-        ]),
-        for (final def in classVRowDefs) buildPdfDataRow(def),
-      ];
-      doc.addPage(
-        pw.Page(
-          pageFormat: PdfPageFormat.a4.landscape.copyWith(
-            marginTop: 12,
-            marginBottom: 12,
-            marginLeft: 14,
-            marginRight: 14,
-          ),
-          build: (ctx) => pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-            children: body,
-          ),
-        ),
-      );
-      final fileName = 'Station_Report_${DateTime.now().millisecondsSinceEpoch}.pdf';
-      await Printing.sharePdf(bytes: await doc.save(), filename: fileName);
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final w = constraints.maxWidth;
-            const minW = 560.0;
-            return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: SizedBox(
-                width: w < minW ? minW : w,
-                child: buildScreenTable(),
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 20),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: exportPdf,
-            icon: const Icon(
-              Icons.picture_as_pdf_rounded,
-              color: Colors.white,
-              size: 18,
-            ),
-            label: Text(
-              'Export Table PDF',
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.dangerRed,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  static Widget _buildMonthlySummaryPhotoTable(
-    BuildContext context,
-    List<ModuleRecord> allRecords,
-    int selectedMonth,
-    int selectedYear,
-  ) {
-    bool isInMonth(ModuleRecord r) => r.incidentDate.year == selectedYear && r.incidentDate.month == selectedMonth;
-    bool isInYear(ModuleRecord r) => r.incidentDate.year == selectedYear;
-
-    bool isDetected(ModuleRecord r) => r.status == 'Resolved' || r.status == 'Closed' || r.moduleKey == 'detected';
-
-    List<ModuleRecord> monthRecsWhere(bool Function(ModuleRecord) test) =>
-        allRecords.where((r) => isInMonth(r) && test(r)).toList();
-    List<ModuleRecord> yearRecsWhere(bool Function(ModuleRecord) test) =>
-        allRecords.where((r) => isInYear(r) && test(r)).toList();
-    List<ModuleRecord> monthDetRecsWhere(bool Function(ModuleRecord) test) =>
-        allRecords.where((r) => isInMonth(r) && test(r) && isDetected(r)).toList();
-    List<ModuleRecord> yearDetRecsWhere(bool Function(ModuleRecord) test) =>
-        allRecords.where((r) => isInYear(r) && test(r) && isDetected(r)).toList();
-
-    Widget cellBox(Widget child, {int flex = 1, bool alignLeft = false}) {
-      return Expanded(
-        flex: flex,
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: AppColors.lightBorder, width: 0.5),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-          alignment: alignLeft ? Alignment.centerLeft : Alignment.center,
-          constraints: const BoxConstraints(minHeight: 26),
-          child: child,
-        ),
-      );
-    }
-
-    Widget headText(String s) => Text(
-          s,
-          textAlign: TextAlign.center,
-          softWrap: true,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.poppins(
-            fontSize: 9.5,
-            fontWeight: FontWeight.w800,
-            color: AppColors.navyDark,
-          ),
-        );
-
-    Widget labelText(String s, {bool bold = false}) => Text(
-          s,
-          textAlign: TextAlign.left,
-          softWrap: true,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.poppins(
-            fontSize: 9.5,
-            fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-            color: bold ? AppColors.navyDark : AppColors.lightText,
-          ),
-        );
-
-    Widget linkText(int n, List<ModuleRecord> recs, String title, {bool bold = false}) {
-      return InkWell(
-        onTap: recs.isEmpty
-            ? null
-            : () {
-                Navigator.push(
-                  context,
-                  AppTheme.fadeSlideRoute(
-                    page: ReportCaseListScreen(title: title, records: recs),
-                  ),
-                );
-              },
-        child: Text(
-          '$n',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(
-            fontSize: 9.5,
-            fontWeight: bold ? FontWeight.w700 : FontWeight.w600,
-            color: recs.isEmpty ? AppColors.lightSubText : AppColors.infoBlue,
-            decoration: recs.isEmpty ? null : TextDecoration.underline,
-          ),
-        ),
-      );
-    }
-
-    Widget rowOf(List<Widget> cells) => IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: cells,
-          ),
-        );
-
-    Widget dataRow5(String label, bool Function(ModuleRecord) test, {bool bold = false, String detLabel = 'Detected'}) {
-      final cmReg = monthRecsWhere(test);
-      final cmDet = monthDetRecsWhere(test);
-      final cyReg = yearRecsWhere(test);
-      final cyDet = yearDetRecsWhere(test);
-      return rowOf([
-        cellBox(labelText(label, bold: bold), flex: 5, alignLeft: true),
-        cellBox(linkText(cmReg.length, cmReg, '$label • Current Month • Registered', bold: bold)),
-        cellBox(linkText(cmDet.length, cmDet, '$label • Current Month • $detLabel', bold: bold)),
-        cellBox(linkText(cyReg.length, cyReg, '$label • Current Year • Registered', bold: bold)),
-        cellBox(linkText(cyDet.length, cyDet, '$label • Current Year • $detLabel', bold: bold)),
-      ]);
-    }
-
-    Widget dataRow3(String label, bool Function(ModuleRecord) test, {bool bold = false}) {
-      final cmReg = monthRecsWhere(test);
-      final cyReg = yearRecsWhere(test);
-      return rowOf([
-        cellBox(labelText(label, bold: bold), flex: 5, alignLeft: true),
-        cellBox(linkText(cmReg.length, cmReg, '$label • Current Month • Registered', bold: bold), flex: 2),
-        cellBox(linkText(cyReg.length, cyReg, '$label • Current Year • Registered', bold: bold), flex: 2),
-      ]);
-    }
-
-    Widget groupHeader(String label) => rowOf([
-          cellBox(headText(label), flex: 5),
-          cellBox(headText('Current Month'), flex: 2),
-          cellBox(headText('Current Year'), flex: 2),
-        ]);
-
-    Widget groupSubHeader(String regLabel, String detLabel) => rowOf([
-          cellBox(headText(''), flex: 5),
-          cellBox(headText(regLabel)),
-          cellBox(headText(detLabel)),
-          cellBox(headText(regLabel)),
-          cellBox(headText(detLabel)),
-        ]);
-
-    bool isBnss(ModuleRecord r) => r.moduleKey == 'bnss' || r.title.toLowerCase().contains('bnss');
-    bool isOtherSection(ModuleRecord r) => r.moduleKey == 'it_act';
-    bool isGambling(ModuleRecord r) => r.moduleKey == 'coin' || r.title.toLowerCase().contains('gambl');
-    bool isProhibition(ModuleRecord r) => r.moduleKey == 'mpda' || r.title.toLowerCase().contains('prohibit');
-
-    bool isAd(ModuleRecord r) => r.moduleKey == 'ad';
-    bool isAccident(ModuleRecord r) => r.moduleKey == 'accident';
-    bool isNc(ModuleRecord r) => r.moduleKey == 'nc';
-
-    bool isSec186175Bnss(ModuleRecord r) => r.moduleKey == 'bnss';
-    bool isSec128Bnss(ModuleRecord r) => r.moduleKey == 'bnss';
-    bool isSec129Bnss(ModuleRecord r) => r.moduleKey == 'bnss';
-    bool isSec93Ndps(ModuleRecord r) => r.moduleKey == 'ndps';
-    bool isSec144Crpc(ModuleRecord r) => r.moduleKey == 'gowans' || r.moduleKey == 'it_act';
-    bool isSec55_57Police(ModuleRecord r) => r.moduleKey == 'mpda' || r.moduleKey == 'coin';
-    bool isCotpa(ModuleRecord r) => r.moduleKey == 'it_act';
-    bool isSec122Police(ModuleRecord r) => r.moduleKey == 'mpda';
-    bool isMpda(ModuleRecord r) => r.moduleKey == 'mpda';
-
-    bool isMotorVehicleAct(ModuleRecord r) => r.moduleKey == 'traffic';
-    bool isOtherMvAct(ModuleRecord r) => false;
-
-    bool g1Total(ModuleRecord r) => isBnss(r) || isOtherSection(r) || isGambling(r) || isProhibition(r);
-    bool g1NcTotal(ModuleRecord r) => isAd(r) || isAccident(r) || isNc(r);
-    bool g2Total(ModuleRecord r) =>
-        isSec186175Bnss(r) ||
-        isSec128Bnss(r) ||
-        isSec129Bnss(r) ||
-        isSec93Ndps(r) ||
-        isSec144Crpc(r) ||
-        isSec55_57Police(r) ||
-        isCotpa(r) ||
-        isSec122Police(r) ||
-        isMpda(r);
-    bool g3Total(ModuleRecord r) => isMotorVehicleAct(r) || isOtherMvAct(r);
-
-    final monthYearLabel = DateFormat('MMMM yyyy').format(DateTime(selectedYear, selectedMonth));
-
-    // SINGLE SOURCE OF TRUTH for the Monthly Summary table.
-    // Both the on-screen table and the PDF export iterate this exact list,
-    // so they cannot drift apart. Each entry kind:
-    //   'h'  : group header   (label spans col 1; "Current Month" / "Current Year" span 2/2)
-    //   's'  : group sub-head (empty col 1; reg/det reg/det)
-    //   'd5' : 5-column data row (label + cmReg + cmDet + cyReg + cyDet)
-    //   'd3' : 3-column data row (label + cmReg(span2) + cyReg(span2)) — col 3 & 5 merged
-    //   'b'  : blank row separator
-    final rowDefs = <Map<String, dynamic>>[
-      {'k': 'h', 'l': 'Category'},
-      {'k': 's', 'r': 'Registered', 'd': 'Detected'},
-      {'k': 'd5', 'l': 'IPC/BNS', 't': isBnss, 'bold': true, 'dl': 'Detected'},
-      {'k': 'd5', 'l': 'Section 6', 't': isOtherSection, 'dl': 'Detected'},
-      {'k': 'd5', 'l': 'Gambling', 't': isGambling, 'dl': 'Detected'},
-      {'k': 'd5', 'l': 'Prohibition', 't': isProhibition, 'dl': 'Detected'},
-      {'k': 'd5', 'l': 'Total', 't': g1Total, 'bold': true, 'dl': 'Detected'},
-      {'k': 'd5', 'l': 'AD', 't': isAd, 'dl': 'Detected'},
-      {'k': 'd5', 'l': 'N.C Injury', 't': isAccident, 'dl': 'Detected'},
-      {'k': 'd5', 'l': 'N.C others', 't': isNc, 'dl': 'Detected'},
-      {'k': 'd5', 'l': 'N.C Total', 't': g1NcTotal, 'bold': true, 'dl': 'Detected'},
-      {'k': 'b'},
-      {'k': 'h', 'l': 'Preventive'},
-      {'k': 'd3', 'l': 'Sec. 126, 135(2) BNSS', 't': isSec186175Bnss},
-      {'k': 'd3', 'l': 'Sec. 128 BNSS', 't': isSec128Bnss},
-      {'k': 'd3', 'l': 'Sec. 129 BNSS', 't': isSec129Bnss},
-      {'k': 'd3', 'l': 'Sec. 93 Prohibition Act', 't': isSec93Ndps},
-      {'k': 'd3', 'l': 'Sec 144(1) BNSS act', 't': isSec144Crpc},
-      {'k': 'd3', 'l': 'Sec. 55-57 MAH Police act', 't': isSec55_57Police},
-      {'k': 'd3', 'l': 'COTPA', 't': isCotpa},
-      {'k': 'd3', 'l': 'Sec 122 MAH Police act', 't': isSec122Police},
-      {'k': 'd3', 'l': 'MPDA', 't': isMpda},
-      {'k': 'd3', 'l': 'Total', 't': g2Total, 'bold': true},
-      {'k': 'b'},
-      {'k': 'h', 'l': 'MV Act'},
-      {'k': 's', 'r': 'Registered', 'd': 'Fine'},
-      {'k': 'd5', 'l': 'Sec. 66/192 MV Act', 't': isMotorVehicleAct, 'dl': 'Fine'},
-      {'k': 'd5', 'l': 'Other MV Act', 't': isOtherMvAct, 'dl': 'Fine'},
-      {'k': 'd5', 'l': 'Total MV Act', 't': g3Total, 'bold': true, 'dl': 'Fine'},
-      // {'k': 'b'},
-      // {'k': 'h', 'l': 'Missing'},
-      // {'k': 's', 'r': 'Registered', 'd': 'Found'},
-      // {'k': 'd5', 'l': 'Male', 't': isMissingMale, 'dl': 'Found'},
-      // {'k': 'd5', 'l': 'Female', 't': isMissingFemale, 'dl': 'Found'},
-      // {
-      //   'k': 'd5',
-      //   'l': 'Total missing',
-      //   't': isMissingTotal,
-      //   'bold': true,
-      //   'dl': 'Found'
-      // },
-    ];
-
-    Widget buildScreenRow(Map<String, dynamic> r) {
-      switch (r['k'] as String) {
-        case 'b':
-          return const SizedBox(height: 8);
-        case 'h':
-          return groupHeader(r['l'] as String);
-        case 's':
-          return groupSubHeader(r['r'] as String, r['d'] as String);
-        case 'd5':
-          return dataRow5(
-            r['l'] as String,
-            r['t'] as bool Function(ModuleRecord),
-            bold: (r['bold'] as bool?) ?? false,
-            detLabel: (r['dl'] as String?) ?? 'Detected',
-          );
-        case 'd3':
-          return dataRow3(
-            r['l'] as String,
-            r['t'] as bool Function(ModuleRecord),
-            bold: (r['bold'] as bool?) ?? false,
-          );
-      }
-      return const SizedBox.shrink();
-    }
-
-    final tableWidget = Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: rowDefs.map(buildScreenRow).toList(),
-    );
-
-    Future<void> exportPdf() async {
-      final doc = pw.Document();
-
-      pw.Widget pCellBox(String text, {bool bold = false, bool alignLeft = false}) {
-        return pw.Container(
-          padding: const pw.EdgeInsets.symmetric(horizontal: 3, vertical: 2),
-          alignment: alignLeft ? pw.Alignment.centerLeft : pw.Alignment.center,
-          constraints: const pw.BoxConstraints(minHeight: 11),
-          child: pw.Text(
-            text,
-            textAlign: alignLeft ? pw.TextAlign.left : pw.TextAlign.center,
-            style: pw.TextStyle(
-              fontSize: 7,
-              fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
-            ),
-          ),
-        );
-      }
-
-      // A single-row pw.Table whose columnWidths sum to the same total flex
-      // (9 units) for every row kind — this guarantees column boundaries
-      // line up vertically across the whole table even though some rows
-      // use merged (colspan) cells.
-      //   d5/s : widths 5, 1, 1, 1, 1   (5-col rows: label + 4 numbers)
-      //   d3/h : widths 5, 2, 2         (3-col rows: label + 2 spans)
-      pw.Widget pTableRow(List<int> flexes, List<pw.Widget> cells) {
-        return pw.Table(
-          border: pw.TableBorder.all(color: PdfColors.grey500, width: 0.4),
-          columnWidths: {
-            for (var i = 0; i < flexes.length; i++) i: pw.FlexColumnWidth(flexes[i].toDouble()),
-          },
-          children: [pw.TableRow(children: cells)],
-        );
-      }
-
-      pw.Widget buildPdfRow(Map<String, dynamic> r) {
-        switch (r['k'] as String) {
-          case 'b':
-            return pw.SizedBox(height: 4);
-          case 'h':
-            return pTableRow([
-              5,
-              2,
-              2
-            ], [
-              pCellBox(r['l'] as String, bold: true),
-              pCellBox('Current Month', bold: true),
-              pCellBox('Current Year', bold: true),
-            ]);
-          case 's':
-            return pTableRow([
-              5,
-              1,
-              1,
-              1,
-              1
-            ], [
-              pCellBox(''),
-              pCellBox(r['r'] as String, bold: true),
-              pCellBox(r['d'] as String, bold: true),
-              pCellBox(r['r'] as String, bold: true),
-              pCellBox(r['d'] as String, bold: true),
-            ]);
-          case 'd5':
-            final test = r['t'] as bool Function(ModuleRecord);
-            final bold = (r['bold'] as bool?) ?? false;
-            return pTableRow([
-              5,
-              1,
-              1,
-              1,
-              1
-            ], [
-              pCellBox(r['l'] as String, bold: bold, alignLeft: true),
-              pCellBox('${monthRecsWhere(test).length}', bold: bold),
-              pCellBox('${monthDetRecsWhere(test).length}', bold: bold),
-              pCellBox('${yearRecsWhere(test).length}', bold: bold),
-              pCellBox('${yearDetRecsWhere(test).length}', bold: bold),
-            ]);
-          case 'd3':
-            final test = r['t'] as bool Function(ModuleRecord);
-            final bold = (r['bold'] as bool?) ?? false;
-            return pTableRow([
-              5,
-              2,
-              2
-            ], [
-              pCellBox(r['l'] as String, bold: bold, alignLeft: true),
-              pCellBox('${monthRecsWhere(test).length}', bold: bold),
-              pCellBox('${yearRecsWhere(test).length}', bold: bold),
-            ]);
-        }
-        return pw.SizedBox.shrink();
-      }
-
-      doc.addPage(
-        pw.Page(
-          pageFormat: PdfPageFormat.a4,
-          margin: const pw.EdgeInsets.all(16),
-          build: (ctx) => pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-            mainAxisSize: pw.MainAxisSize.min,
-            children: [
-              pw.Container(
-                width: double.infinity,
-                padding: const pw.EdgeInsets.all(8),
-                decoration: const pw.BoxDecoration(
-                  color: PdfColor.fromInt(0xFF1A2A4A),
-                ),
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text(
-                      'MONTHLY SUMMARY REPORT',
-                      style: pw.TextStyle(
-                        color: PdfColors.white,
-                        fontSize: 12,
-                        fontWeight: pw.FontWeight.bold,
-                      ),
-                    ),
-                    pw.SizedBox(height: 2),
-                    pw.Text(
-                      monthYearLabel,
-                      style: const pw.TextStyle(
-                        color: PdfColor.fromInt(0xFFFFC107),
-                        fontSize: 9,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              pw.SizedBox(height: 6),
-              ...rowDefs.map(buildPdfRow),
-            ],
-          ),
-        ),
-      );
-
-      final fileName = 'Monthly_Summary_${monthYearLabel.replaceAll(' ', '_')}.pdf';
-      await Printing.sharePdf(
-        bytes: await doc.save(),
-        filename: fileName,
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.lightBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final w = constraints.maxWidth;
-              const minW = 560.0;
-              return SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: SizedBox(
-                  width: w < minW ? minW : w,
-                  child: tableWidget,
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: exportPdf,
-              icon: const Icon(
-                Icons.picture_as_pdf_rounded,
-                color: Colors.white,
-                size: 18,
-              ),
-              label: Text(
-                'Export PDF',
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.dangerRed,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                elevation: 0,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static Widget _buildMonthlyReportTableInternalVI(
-    BuildContext context,
-    List<ModuleRecord> allRecords,
-    int selectedMonth,
-    int selectedYear,
-  ) {
-    const heads = [
-      'Arms Act',
-      'Gambling Act',
-      'Prohibition',
-      'NDPS Act',
-      '135 B Pact',
-      '142 B Pact',
-      '122 B Pact',
-      'M V Act',
-      'Miscellaneous',
-    ];
-
-    String getHead(ModuleRecord r) {
-      final sub = (r.subCategory ?? '').toLowerCase();
-      final key = r.moduleKey.toLowerCase();
-
-      if (key != 'form_6') return 'Miscellaneous';
-
-      if (sub.contains('arms')) return 'Arms Act';
-      if (sub.contains('gambl')) return 'Gambling Act';
-      if (sub.contains('prohib')) return 'Prohibition';
-      if (sub.contains('ndps')) return 'NDPS Act';
-      if (sub.contains('135')) return '135 B Pact';
-      if (sub.contains('142')) return '142 B Pact';
-      if (sub.contains('122')) return '122 B Pact';
-      if (sub.contains('m v') || sub.contains('mv') || sub.contains('motor')) {
-        return 'M V Act';
-      }
-
-      return 'Miscellaneous';
-    }
-
-    List<ModuleRecord> filterMonth(int m, int y) => allRecords
-        .where((r) => r.moduleKey == 'form_6' && r.incidentDate.year == y && r.incidentDate.month == m)
-        .toList();
-
-    List<ModuleRecord> filterYearToMonth(int m, int y) => allRecords
-        .where((r) => r.moduleKey == 'form_6' && r.incidentDate.year == y && r.incidentDate.month <= m)
-        .toList();
-
-    final currentMonthRecords = filterMonth(selectedMonth, selectedYear);
-    final prevMonth = selectedMonth == 1 ? 12 : selectedMonth - 1;
-    final prevYear = selectedMonth == 1 ? selectedYear - 1 : selectedYear;
-    final previousMonthRecords = filterMonth(prevMonth, prevYear);
-    final sameMonthLastYearRecords = filterMonth(selectedMonth, selectedYear - 1);
-    final yearCurrentRecords = filterYearToMonth(selectedMonth, selectedYear);
-    final yearPreviousRecords = filterYearToMonth(selectedMonth, selectedYear - 1);
-
-    final tableRows = <Map<String, dynamic>>[];
-    int totalcmR = 0;
-    int totalpmR = 0;
-    int totalsmlyR = 0;
-    int totalycR = 0;
-    int totalypR = 0;
-
-    for (int i = 0; i < heads.length; i++) {
-      final head = heads[i];
-      List<ModuleRecord> byHead(List<ModuleRecord> list) => list.where((r) => getHead(r) == head).toList();
-
-      final cm = byHead(currentMonthRecords);
-      final pm = byHead(previousMonthRecords);
-      final smly = byHead(sameMonthLastYearRecords);
-      final yc = byHead(yearCurrentRecords);
-      final yp = byHead(yearPreviousRecords);
-
-      final cmR = cm.length;
-      final pmR = pm.length;
-      final smlyR = smly.length;
-      final ycR = yc.length;
-      final ypR = yp.length;
-      final variation = ycR - ypR;
-
-      tableRows.add({
-        'N': i + 1,
-        'Heads': head,
-        'cm_R': cmR,
-        'pm_R': pmR,
-        'smly_R': smlyR,
-        'yc_R': ycR,
-        'yp_R': ypR,
-        'variation': variation,
-        'cmRecords': cm,
-        'pmRecords': pm,
-        'smlyRecords': smly,
-        'ycRecords': yc,
-        'ypRecords': yp,
-      });
-
-      totalcmR += cmR;
-      totalpmR += pmR;
-      totalsmlyR += smlyR;
-      totalycR += ycR;
-      totalypR += ypR;
-    }
-
-    tableRows.add({
-      'N': '',
-      'Heads': 'TOTAL',
-      'cm_R': totalcmR,
-      'pm_R': totalpmR,
-      'smly_R': totalsmlyR,
-      'yc_R': totalycR,
-      'yp_R': totalypR,
-      'variation': totalycR - totalypR,
-      'cmRecords': currentMonthRecords,
-      'pmRecords': previousMonthRecords,
-      'smlyRecords': sameMonthLastYearRecords,
-      'ycRecords': yearCurrentRecords,
-      'ypRecords': yearPreviousRecords,
-    });
-
-    final prevMonth2 = selectedMonth == 1 ? 12 : selectedMonth - 1;
-    final prevMonthYear = selectedMonth == 1 ? selectedYear - 1 : selectedYear;
-    String mLabel(DateTime d) {
-      final m = DateFormat('MMM').format(d).toUpperCase();
-      return '$m\n${d.year}';
-    }
-
-    final cmLabel = mLabel(DateTime(selectedYear, selectedMonth));
-    final pmLabel = mLabel(DateTime(prevMonthYear, prevMonth2));
-    final smlyLabel = mLabel(DateTime(selectedYear - 1, selectedMonth));
-    final ycLabel = 'Year\n$selectedYear';
-    final ypLabel = 'Year\n${selectedYear - 1}';
-
-    DataColumn col(String label, {bool alignLeft = false}) => DataColumn(
-          label: Text(
-            label,
-            textAlign: alignLeft ? TextAlign.left : TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: 9,
-              fontWeight: FontWeight.w800,
-              color: AppColors.navyDark,
-            ),
-          ),
-        );
-
-    DataCell cell(String text, {bool alignLeft = false, bool isBold = false, Color? color}) => DataCell(
-          Align(
-            alignment: alignLeft ? Alignment.centerLeft : Alignment.center,
-            child: Text(
-              text,
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
-                color: color ?? (isBold ? AppColors.navyDark : AppColors.lightText),
-              ),
-            ),
-          ),
-        );
-
-    DataCell clickableCell(
-      String text,
-      List<ModuleRecord> recs,
-      String title, {
-      bool alignLeft = false,
-      bool isBold = false,
-      Color? color,
-    }) {
-      return DataCell(
-        Align(
-          alignment: alignLeft ? Alignment.centerLeft : Alignment.center,
-          child: Text(
-            text,
-            style: GoogleFonts.poppins(
-              fontSize: 10,
-              fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
-              color: color ?? (isBold ? AppColors.navyDark : AppColors.lightText),
-            ),
-          ),
-        ),
-        onTap: recs.isEmpty
-            ? null
-            : () {
-                Navigator.push(
-                  context,
-                  AppTheme.fadeSlideRoute(
-                    page: ReportCaseListScreen(title: title, records: recs),
-                  ),
-                );
-              },
-      );
-    }
-
-    DataCell navCell(String text, List<ModuleRecord> recs, String title, {bool isBold = false}) {
-      return DataCell(
-        InkWell(
-          onTap: recs.isEmpty
-              ? null
-              : () {
-                  Navigator.push(
-                    context,
-                    AppTheme.fadeSlideRoute(
-                      page: ReportCaseListScreen(title: title, records: recs),
-                    ),
-                  );
-                },
-          child: Align(
-            alignment: Alignment.center,
-            child: Text(
-              text,
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
-                color: recs.isEmpty ? AppColors.lightSubText : AppColors.infoBlue,
-                decoration: recs.isEmpty ? null : TextDecoration.underline,
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final w = constraints.maxWidth;
-            // Keep the monthly report table compact like a standard data table.
-            final colSpace = w < 360 ? 6.0 : (w < 600 ? 8.0 : (w < 1000 ? 12.0 : 16.0));
-            final margin = w < 360 ? 6.0 : (w < 1000 ? 8.0 : 12.0);
-            final headingH = w < 360 ? 40.0 : (w < 1000 ? 44.0 : 48.0);
-            final rowH = w < 360 ? 32.0 : (w < 1000 ? 34.0 : 38.0);
-            return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minWidth: w, // fill available width on PC
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.lightBorder),
-                  ),
-                  child: DataTable(
-                    headingRowColor: WidgetStateProperty.all(
-                      AppColors.navyMid.withValues(alpha: 0.05),
-                    ),
-                    dataRowMinHeight: rowH,
-                    dataRowMaxHeight: rowH,
-                    headingRowHeight: headingH,
-                    horizontalMargin: margin,
-                    columnSpacing: colSpace,
-                    border: TableBorder.all(
-                      color: AppColors.lightBorder,
-                      width: 0.5,
-                    ),
-                    columns: [
-                      col('N'),
-                      col('Heads', alignLeft: true),
-                      col(cmLabel),
-                      col(pmLabel),
-                      col(smlyLabel),
-                      col(ycLabel),
-                      col(ypLabel),
-                      col('var.'),
-                    ],
-                    rows: tableRows.map((row) {
-                      final isTotal = row['Heads'] == 'TOTAL';
-                      return DataRow(
-                        color: isTotal
-                            ? WidgetStateProperty.all(
-                                AppColors.goldPrimary.withValues(alpha: 0.1),
-                              )
-                            : null,
-                        cells: [
-                          cell(row['N'].toString(), isBold: isTotal),
-                          cell(row['Heads'].toString(), alignLeft: true, isBold: true),
-                          navCell(
-                            '${row['cm_R']}',
-                            (row['cmRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[],
-                            '${row['Heads']} • $cmLabel',
-                            isBold: isTotal,
-                          ),
-                          navCell(
-                            '${row['pm_R']}',
-                            (row['pmRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[],
-                            '${row['Heads']} • $pmLabel',
-                            isBold: isTotal,
-                          ),
-                          navCell(
-                            '${row['smly_R']}',
-                            (row['smlyRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[],
-                            '${row['Heads']} • $smlyLabel',
-                            isBold: isTotal,
-                          ),
-                          navCell(
-                            '${row['yc_R']}',
-                            (row['ycRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[],
-                            '${row['Heads']} • $ycLabel',
-                            isBold: isTotal,
-                          ),
-                          navCell(
-                            '${row['yp_R']}',
-                            (row['ypRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[],
-                            '${row['Heads']} • $ypLabel',
-                            isBold: isTotal,
-                          ),
-                          clickableCell(
-                            row['variation'].toString(),
-                            (row['ycRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[],
-                            '${row['Heads']} • $ycLabel • Variation',
-                            isBold: isTotal,
-                            color: (row['variation'] as int) > 0
-                                ? AppColors.dangerRed
-                                : ((row['variation'] as int) < 0 ? AppColors.successGreen : null),
-                          ),
-                        ],
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: () {
-              final label = DateFormat('MMMM yyyy').format(DateTime(selectedYear, selectedMonth));
-              ModulePdfHelper.generateMonthlyTablePdf(label, tableRows);
-            },
-            icon: const Icon(Icons.picture_as_pdf_rounded, color: Colors.white, size: 18),
-            label: Text(
-              'Export Table PDF',
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.dangerRed,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  static Widget _buildMonthlyReportTableInternalPreventive(
-    BuildContext context,
-    List<ModuleRecord> allRecords,
-    int selectedMonth,
-    int selectedYear,
-  ) {
-    const heads = [
-      '107 Crpc/126 BNSS',
-      '109 Crpc/128 BNSS',
-      '110 Crpc/129 BNSS',
-      '151 (3) Crpc/170(3) BNSS',
-      '55 to 57 B P Act',
-      'U/s 122  B P Act',
-      'U/s 124  B P Act',
-      '142 B P Act',
-      'M H O R',
-      '93 Pro Act',
-      'N S A',
-      'M P D A',
-      'M.C.O.C.A.',
-    ];
-
-    String getHead(ModuleRecord r) {
-      final key = r.moduleKey.toLowerCase();
-      final sub = (r.subCategory ?? '').toLowerCase();
-      if (key != 'preventive') return 'M H O R';
-
-      if (sub.contains('107') || sub.contains('126')) {
-        return '107 Crpc/126 BNSS';
-      }
-      if (sub.contains('109') || sub.contains('128')) {
-        return '109 Crpc/128 BNSS';
-      }
-      if (sub.contains('110') || sub.contains('129')) {
-        return '110 Crpc/129 BNSS';
-      }
-      if (sub.contains('151') || sub.contains('170')) {
-        return '151 (3) Crpc/170(3) BNSS';
-      }
-      if (sub.contains('55') || sub.contains('56') || sub.contains('57')) {
-        return '55 to 57 B P Act';
-      }
-      if (sub.contains('122')) return 'U/s 122  B P Act';
-      if (sub.contains('124')) return 'U/s 124  B P Act';
-      if (sub.contains('142')) return '142 B P Act';
-      if (sub.contains('mhor') || sub.contains('m h o r')) return 'M H O R';
-      if (sub.contains('93') || sub.contains('pro act')) return '93 Pro Act';
-      if (sub.contains('nsa') || sub.contains('n s a')) return 'N S A';
-      if (sub.contains('mpda') || sub.contains('m p d a')) return 'M P D A';
-      if (sub.contains('mcoca') || sub.contains('m.c.o.c.a')) {
-        return 'M.C.O.C.A.';
-      }
-
-      return 'M H O R';
-    }
-
-    List<ModuleRecord> filterMonth(int m, int y) => allRecords
-        .where((r) => r.moduleKey == 'preventive' && r.incidentDate.year == y && r.incidentDate.month == m)
-        .toList();
-
-    List<ModuleRecord> filterYearToMonth(int m, int y) => allRecords
-        .where((r) => r.moduleKey == 'preventive' && r.incidentDate.year == y && r.incidentDate.month <= m)
-        .toList();
-
-    final currentMonthRecords = filterMonth(selectedMonth, selectedYear);
-    final prevMonth = selectedMonth == 1 ? 12 : selectedMonth - 1;
-    final prevYear = selectedMonth == 1 ? selectedYear - 1 : selectedYear;
-    final previousMonthRecords = filterMonth(prevMonth, prevYear);
-    final sameMonthLastYearRecords = filterMonth(selectedMonth, selectedYear - 1);
-    final yearCurrentRecords = filterYearToMonth(selectedMonth, selectedYear);
-    final yearPreviousRecords = filterYearToMonth(selectedMonth, selectedYear - 1);
-
-    final tableRows = <Map<String, dynamic>>[];
-    int totalcm = 0, totalpm = 0, totalsmly = 0, totalyc = 0, totalyp = 0;
-
-    for (int i = 0; i < heads.length; i++) {
-      final head = heads[i];
-      List<ModuleRecord> byHead(List<ModuleRecord> list) => list.where((r) => getHead(r) == head).toList();
-
-      final cmRecs = byHead(currentMonthRecords);
-      final pmRecs = byHead(previousMonthRecords);
-      final smlyRecs = byHead(sameMonthLastYearRecords);
-      final ycRecs = byHead(yearCurrentRecords);
-      final ypRecs = byHead(yearPreviousRecords);
-
-      final cm = cmRecs.length;
-      final pm = pmRecs.length;
-      final smly = smlyRecs.length;
-      final yc = ycRecs.length;
-      final yp = ypRecs.length;
-      final variation = yc - yp;
-
-      tableRows.add({
-        'N': i + 1,
-        'Heads': head,
-        'cm_R': cm,
-        'pm_R': pm,
-        'smly_R': smly,
-        'yc_R': yc,
-        'yp_R': yp,
-        'variation': variation,
-        'cmRecords': cmRecs,
-        'pmRecords': pmRecs,
-        'smlyRecords': smlyRecs,
-        'ycRecords': ycRecs,
-        'ypRecords': ypRecs,
-      });
-
-      totalcm += cm;
-      totalpm += pm;
-      totalsmly += smly;
-      totalyc += yc;
-      totalyp += yp;
-    }
-
-    tableRows.add({
-      'N': '',
-      'Heads': 'TOTAL',
-      'cm_R': totalcm,
-      'pm_R': totalpm,
-      'smly_R': totalsmly,
-      'yc_R': totalyc,
-      'yp_R': totalyp,
-      'variation': totalyc - totalyp,
-      'cmRecords': currentMonthRecords,
-      'pmRecords': previousMonthRecords,
-      'smlyRecords': sameMonthLastYearRecords,
-      'ycRecords': yearCurrentRecords,
-      'ypRecords': yearPreviousRecords,
-    });
-
-    String mLabel(DateTime d) {
-      final m = DateFormat('MMM').format(d).toUpperCase();
-      return '$m\n${d.year}';
-    }
-
-    final prevMonthYear = prevYear;
-    final cmLabel = mLabel(DateTime(selectedYear, selectedMonth));
-    final pmLabel = mLabel(DateTime(prevMonthYear, prevMonth));
-    final smlyLabel = mLabel(DateTime(selectedYear - 1, selectedMonth));
-    final ycLabel = 'Year\n$selectedYear';
-    final ypLabel = 'Year\n${selectedYear - 1}';
-
-    DataColumn col(String label, {bool alignLeft = false}) => DataColumn(
-          label: Text(
-            label,
-            textAlign: alignLeft ? TextAlign.left : TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: 9,
-              fontWeight: FontWeight.w800,
-              color: AppColors.navyDark,
-            ),
-          ),
-        );
-
-    DataCell cell(String text, {bool alignLeft = false, bool isBold = false}) => DataCell(
-          Align(
-            alignment: alignLeft ? Alignment.centerLeft : Alignment.center,
-            child: Text(
-              text,
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
-                color: isBold ? AppColors.navyDark : AppColors.lightText,
-              ),
-            ),
-          ),
-        );
-
-    DataCell navCell(String text, List<ModuleRecord> recs, String title, {bool isBold = false}) {
-      return DataCell(
-        InkWell(
-          onTap: recs.isEmpty
-              ? null
-              : () {
-                  Navigator.push(
-                    context,
-                    AppTheme.fadeSlideRoute(
-                      page: ReportCaseListScreen(title: title, records: recs),
-                    ),
-                  );
-                },
-          child: Align(
-            alignment: Alignment.center,
-            child: Text(
-              text,
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
-                color: recs.isEmpty ? AppColors.lightSubText : AppColors.infoBlue,
-                decoration: recs.isEmpty ? null : TextDecoration.underline,
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    String varText(dynamic v) {
-      final n = (v as int?) ?? 0;
-      if (n == 0) return '=';
-      return n > 0 ? '+$n' : '$n';
-    }
-
-    DataCell clickableCell(
-      String text,
-      List<ModuleRecord> recs,
-      String title, {
-      bool isBold = false,
-    }) {
-      return DataCell(
-        Align(
-          alignment: Alignment.center,
-          child: Text(
-            text,
-            style: GoogleFonts.poppins(
-              fontSize: 10,
-              fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
-              color: isBold ? AppColors.navyDark : AppColors.lightText,
-            ),
-          ),
-        ),
-        onTap: recs.isEmpty
-            ? null
-            : () {
-                Navigator.push(
-                  context,
-                  AppTheme.fadeSlideRoute(
-                    page: ReportCaseListScreen(title: title, records: recs),
-                  ),
-                );
-              },
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final w = constraints.maxWidth;
-            // Keep the monthly report table compact like a standard data table.
-            final colSpace = w < 360 ? 6.0 : (w < 600 ? 8.0 : (w < 1000 ? 12.0 : 16.0));
-            final margin = w < 360 ? 6.0 : (w < 1000 ? 8.0 : 12.0);
-            final headingH = w < 360 ? 40.0 : (w < 1000 ? 44.0 : 48.0);
-            final rowH = w < 360 ? 32.0 : (w < 1000 ? 34.0 : 38.0);
-            return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minWidth: w, // fill available width on PC
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.lightBorder),
-                  ),
-                  child: SizedBox(
-                    width: w,
-                    child: DataTable(
-                      headingRowColor: WidgetStateProperty.all(
-                        AppColors.navyMid.withValues(alpha: 0.05),
-                      ),
-                      dataRowMinHeight: rowH,
-                      dataRowMaxHeight: rowH,
-                      headingRowHeight: headingH,
-                      horizontalMargin: margin,
-                      columnSpacing: colSpace,
-                      border: TableBorder.all(
-                        color: AppColors.lightBorder,
-                        width: 0.5,
-                      ),
-                      columns: [
-                        col('SR'),
-                        col('Heads', alignLeft: true),
-                        col(cmLabel),
-                        col(pmLabel),
-                        col(smlyLabel),
-                        col(ycLabel),
-                        col(ypLabel),
-                        col('var.'),
-                      ],
-                      rows: tableRows.map((row) {
-                        final isTotal = row['Heads'] == 'TOTAL';
-                        return DataRow(
-                          color: isTotal
-                              ? WidgetStateProperty.all(
-                                  AppColors.goldPrimary.withValues(alpha: 0.1),
-                                )
-                              : null,
-                          cells: [
-                            cell(row['N'].toString(), isBold: isTotal),
-                            cell(row['Heads'].toString(), alignLeft: true, isBold: true),
-                            navCell(
-                              '${row['cm_R']}',
-                              (row['cmRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[],
-                              '${row['Heads']} • $cmLabel',
-                              isBold: isTotal,
-                            ),
-                            navCell(
-                              '${row['pm_R']}',
-                              (row['pmRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[],
-                              '${row['Heads']} • $pmLabel',
-                              isBold: isTotal,
-                            ),
-                            navCell(
-                              '${row['smly_R']}',
-                              (row['smlyRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[],
-                              '${row['Heads']} • $smlyLabel',
-                              isBold: isTotal,
-                            ),
-                            navCell(
-                              '${row['yc_R']}',
-                              (row['ycRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[],
-                              '${row['Heads']} • $ycLabel',
-                              isBold: isTotal,
-                            ),
-                            navCell(
-                              '${row['yp_R']}',
-                              (row['ypRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[],
-                              '${row['Heads']} • $ypLabel',
-                              isBold: isTotal,
-                            ),
-                            clickableCell(
-                              varText(row['variation']),
-                              (row['ycRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[],
-                              '${row['Heads']} • $ycLabel • Variation',
-                              isBold: isTotal,
-                            ),
-                          ],
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: () {
-              final label = DateFormat('MMMM yyyy').format(DateTime(selectedYear, selectedMonth));
-              ModulePdfHelper.generateMonthlyTablePdf(label, tableRows);
-            },
-            icon: const Icon(Icons.picture_as_pdf_rounded, color: Colors.white, size: 18),
-            label: Text(
-              'Export Table PDF',
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.dangerRed,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _monthlyReportButtons(List<ModuleRecord> records, String title, String range) {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _reportBtn(
-              'Class V',
-              () {
-                setState(() {
-                  _showMonthlySummaryTable = false;
-                  _showMonthlyClassVTable = true;
-                  _showMonthlyClassVITable = false;
-                  _showMonthlyPreventiveTable = false;
-                });
-              },
-              isSelected: _showMonthlyClassVTable,
-            ),
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: _reportBtn(
-              'Class VI',
-              () {
-                setState(() {
-                  _showMonthlySummaryTable = false;
-                  _showMonthlyClassVTable = false;
-                  _showMonthlyClassVITable = true;
-                  _showMonthlyPreventiveTable = false;
-                });
-              },
-              isSelected: _showMonthlyClassVITable,
-            ),
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: _reportBtn(
-              'Preventives',
-              () {
-                setState(() {
-                  _showMonthlySummaryTable = false;
-                  _showMonthlyClassVTable = false;
-                  _showMonthlyClassVITable = false;
-                  _showMonthlyPreventiveTable = true;
-                });
-              },
-              isSelected: _showMonthlyPreventiveTable,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _reportBtn(String label, VoidCallback? onTap, {bool isSelected = false}) {
-    return SizedBox(
-      height: 38,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.navyMid : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: AppColors.navyMid.withValues(alpha: 0.22),
-                    blurRadius: 4,
-                    offset: const Offset(0, 1.5),
-                  ),
-                ]
-              : null,
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(8),
-            child: Center(
-              child: Text(
-                label,
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                  color: isSelected ? Colors.white : AppColors.navyDark,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // (intentionally removed) Monthly preview dialog: monthly screen is now table-driven.
 
   Widget _buildReportTile(_CalCategoryMeta meta) {
     return GestureDetector(
       onTap: () {
-        if (meta.moduleKey.toLowerCase() == 'itsso' || meta.label.toUpperCase() == 'ITSSO') {
+        if (meta.moduleKey.toLowerCase() == 'itsso' ||
+            meta.label.toUpperCase() == 'ITSSO') {
           Navigator.push(
             context,
-            AppTheme.fadeSlideRoute(page: const ItssoHubScreen(stationName: 'All Stations')),
+            AppTheme.fadeSlideRoute(
+                page: const ItssoHubScreen(stationName: 'All Stations')),
+          );
+          return;
+        }
+        if (meta.moduleKey.toLowerCase() == 'dar' ||
+            meta.label.toUpperCase() == 'DAR') {
+          final auth = context.read<AuthProvider>();
+          Navigator.push(
+            context,
+            AppTheme.fadeSlideRoute(
+                page: DarHubScreen(stationName: auth.stationName)),
+          );
+          return;
+        }
+        if (meta.moduleKey.toLowerCase() == 'irad' ||
+            meta.moduleKey.toLowerCase() == 'irda' ||
+            meta.label.toUpperCase() == 'IRAD' ||
+            meta.label.toUpperCase() == 'IRDA') {
+          final auth = context.read<AuthProvider>();
+          Navigator.push(
+            context,
+            AppTheme.fadeSlideRoute(
+                page: IradHubScreen(stationName: auth.stationName)),
           );
           return;
         }
@@ -7646,7 +6081,10 @@ class _CalendarTabState extends State<_CalendarTab> {
           borderRadius: BorderRadius.circular(AppRadius.md),
           border: Border.all(color: AppColors.lightBorder),
           boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 4, offset: const Offset(0, 2)),
+            BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 4,
+                offset: const Offset(0, 2)),
           ],
         ),
         child: Row(
@@ -7655,9 +6093,13 @@ class _CalendarTabState extends State<_CalendarTab> {
             Expanded(
               child: Row(children: [
                 Text(meta.label,
-                    style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.lightText)),
+                    style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.lightText)),
                 const SizedBox(width: 8),
-                Icon(Icons.open_in_new_rounded, size: 14, color: AppColors.navyMid.withValues(alpha: 0.5)),
+                Icon(Icons.open_in_new_rounded,
+                    size: 14, color: AppColors.navyMid.withValues(alpha: 0.5)),
               ]),
             ),
             Container(
@@ -7667,7 +6109,10 @@ class _CalendarTabState extends State<_CalendarTab> {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text('${meta.count}',
-                  style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.goldPrimary)),
+                  style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.goldPrimary)),
             ),
           ],
         ),
@@ -7683,7 +6128,8 @@ class _CalendarTabState extends State<_CalendarTab> {
           Icon(Icons.analytics_outlined, size: 48, color: Colors.grey.shade300),
           const SizedBox(height: 12),
           Text('No data available for this range',
-              style: GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText)),
+              style: GoogleFonts.poppins(
+                  fontSize: 12, color: AppColors.lightSubText)),
         ]),
       ),
     );
@@ -7699,7 +6145,8 @@ class _DashboardStationSwitcher extends StatefulWidget {
   final AuthProvider auth;
 
   @override
-  State<_DashboardStationSwitcher> createState() => _DashboardStationSwitcherState();
+  State<_DashboardStationSwitcher> createState() =>
+      _DashboardStationSwitcherState();
 }
 
 class _DashboardStationSwitcherState extends State<_DashboardStationSwitcher> {
@@ -7707,7 +6154,8 @@ class _DashboardStationSwitcherState extends State<_DashboardStationSwitcher> {
   List<String> _stations = [];
   bool _loading = false;
 
-  bool get _canSwitch => SeniorOfficerRoles.canSwitchLocation(widget.auth.designation);
+  bool get _canSwitch =>
+      SeniorOfficerRoles.canSwitchLocation(widget.auth.designation);
 
   @override
   void initState() {
@@ -7718,7 +6166,9 @@ class _DashboardStationSwitcherState extends State<_DashboardStationSwitcher> {
   @override
   void didUpdateWidget(covariant _DashboardStationSwitcher oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (_canSwitch && oldWidget.auth.designation != widget.auth.designation && _stations.isEmpty) {
+    if (_canSwitch &&
+        oldWidget.auth.designation != widget.auth.designation &&
+        _stations.isEmpty) {
       _loadStations();
     }
   }
@@ -7736,7 +6186,8 @@ class _DashboardStationSwitcherState extends State<_DashboardStationSwitcher> {
   List<String> _dropdownItems(String active) {
     final items = <String>{..._stations};
     if (active.trim().isNotEmpty) items.add(active.trim());
-    final sorted = items.toList()..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    final sorted = items.toList()
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
     return sorted;
   }
 
@@ -7745,7 +6196,8 @@ class _DashboardStationSwitcherState extends State<_DashboardStationSwitcher> {
     final auth = widget.auth;
     final active = auth.activeStation.trim();
     final screenWidth = MediaQuery.of(context).size.width;
-    final maxSwitcherWidth = screenWidth < 380 ? 110.0 : (screenWidth < 480 ? 130.0 : 220.0);
+    final maxSwitcherWidth =
+        screenWidth < 380 ? 110.0 : (screenWidth < 480 ? 130.0 : 220.0);
     final labelStyle = GoogleFonts.poppins(
       fontSize: screenWidth < 400 ? 10 : 11,
       fontWeight: FontWeight.w600,
@@ -7772,10 +6224,14 @@ class _DashboardStationSwitcherState extends State<_DashboardStationSwitcher> {
       constraints: BoxConstraints(maxWidth: maxSwitcherWidth),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: auth.isViewingOtherStation ? AppColors.goldPrimary.withValues(alpha: 0.12) : const Color(0xFFF4F6FB),
+          color: auth.isViewingOtherStation
+              ? AppColors.goldPrimary.withValues(alpha: 0.12)
+              : const Color(0xFFF4F6FB),
           borderRadius: BorderRadius.circular(AppRadius.lg),
           border: Border.all(
-            color: auth.isViewingOtherStation ? AppColors.goldPrimary.withValues(alpha: 0.45) : AppColors.lightBorder,
+            color: auth.isViewingOtherStation
+                ? AppColors.goldPrimary.withValues(alpha: 0.45)
+                : AppColors.lightBorder,
           ),
         ),
         child: Padding(
@@ -7783,8 +6239,6 @@ class _DashboardStationSwitcherState extends State<_DashboardStationSwitcher> {
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               isExpanded: true,
-              menuMaxHeight: 320,
-              borderRadius: BorderRadius.circular(12),
               value: value,
               hint: Text(
                 _loading ? 'Loading…' : 'Select station',
@@ -7797,7 +6251,9 @@ class _DashboardStationSwitcherState extends State<_DashboardStationSwitcher> {
               icon: Icon(
                 Icons.arrow_drop_down_rounded,
                 size: screenWidth < 400 ? 18 : 24,
-                color: auth.isViewingOtherStation ? AppColors.goldPrimary : AppColors.navyMid,
+                color: auth.isViewingOtherStation
+                    ? AppColors.goldPrimary
+                    : AppColors.navyMid,
               ),
               items: items
                   .map(
@@ -7900,7 +6356,8 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
       if (currentArea.isEmpty) {
         return names;
       }
-      for (final station in MaharashtraPoliceStationsRepository.getStationsForDistrict(
+      for (final station
+          in MaharashtraPoliceStationsRepository.getStationsForDistrict(
         currentArea,
       )) {
         if (isCp && station.type != 'Commissionerate Police') continue;
@@ -7922,7 +6379,8 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
   List<_SwitcherZone> _buildZones(Set<String> rawNames) {
     if (!MaharashtraPoliceStationsRepository.isLoaded) {
       if (rawNames.isEmpty) return const [];
-      final entries = rawNames.toList()..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+      final entries = rawNames.toList()
+        ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
       return [_SwitcherZone(zoneName: _otherZoneName, entries: entries)];
     }
 
@@ -7938,18 +6396,22 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
       zoneEntries.putIfAbsent(zone, () => {}).add(entry.trim());
     }
 
-    String zoneForEntry(String name) => _resolveDistrictForName(name) ?? _otherZoneName;
+    String zoneForEntry(String name) =>
+        _resolveDistrictForName(name) ?? _otherZoneName;
 
     bool districtExpanded(String district) {
-      if (currentArea.isNotEmpty && district.toLowerCase() == currentArea.toLowerCase()) {
+      if (currentArea.isNotEmpty &&
+          district.toLowerCase() == currentArea.toLowerCase()) {
         return true;
       }
-      return additional.any((a) => a.trim().toLowerCase() == district.toLowerCase());
+      return additional
+          .any((a) => a.trim().toLowerCase() == district.toLowerCase());
     }
 
     void addDistrictStations(String district) {
       if (!districtExpanded(district)) return;
-      for (final station in MaharashtraPoliceStationsRepository.getStationsForDistrict(
+      for (final station
+          in MaharashtraPoliceStationsRepository.getStationsForDistrict(
         district,
       )) {
         if (isCp && station.type != 'Commissionerate Police') continue;
@@ -7979,7 +6441,8 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
 
     return sortedZoneNames
         .map((zoneName) {
-          final entries = zoneEntries[zoneName]!.toList()..sort(_compareSwitcherEntries);
+          final entries = zoneEntries[zoneName]!.toList()
+            ..sort(_compareSwitcherEntries);
           return _SwitcherZone(zoneName: zoneName, entries: entries);
         })
         .where((zone) => zone.entries.isNotEmpty)
@@ -8008,7 +6471,9 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
         filtered.add(zone);
         continue;
       }
-      final matchingEntries = zone.entries.where((entry) => entry.toLowerCase().contains(q)).toList();
+      final matchingEntries = zone.entries
+          .where((entry) => entry.toLowerCase().contains(q))
+          .toList();
       if (matchingEntries.isNotEmpty) {
         filtered.add(
           _SwitcherZone(zoneName: zone.zoneName, entries: matchingEntries),
@@ -8048,7 +6513,8 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
     if (asDistrict != null) return asDistrict;
 
     if (!MaharashtraPoliceStationsRepository.isLoaded) return null;
-    for (final station in MaharashtraPoliceStationsRepository.getAllStations()) {
+    for (final station
+        in MaharashtraPoliceStationsRepository.getAllStations()) {
       if (station.stationName.toLowerCase() == value.toLowerCase()) {
         return station.districtName;
       }
@@ -8065,7 +6531,8 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
     _applySearchFilter();
   }
 
-  bool get _hasVisibleEntries => _visibleZones.any((zone) => zone.entries.isNotEmpty);
+  bool get _hasVisibleEntries =>
+      _visibleZones.any((zone) => zone.entries.isNotEmpty);
 
   Future<void> _confirmDeleteLocation(String location) async {
     final homeStation = widget.auth.homeStationName;
@@ -8098,7 +6565,8 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
     }
     final active = widget.auth.stationName;
     final activeArea = _resolveCurrentArea(active);
-    final isDeletingActive = active == location || activeArea.toLowerCase() == location.toLowerCase();
+    final isDeletingActive = active == location ||
+        activeArea.toLowerCase() == location.toLowerCase();
 
     await widget.auth.removeStation(location);
 
@@ -8128,7 +6596,8 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
   Widget build(BuildContext context) {
     final activeStation = widget.auth.stationName;
     final homeStation = widget.auth.homeStationName;
-    final canAdd = SeniorOfficerRoles.canSwitchLocation(widget.auth.designation);
+    final canAdd =
+        SeniorOfficerRoles.canSwitchLocation(widget.auth.designation);
 
     return Container(
       constraints: BoxConstraints(
@@ -8160,7 +6629,8 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
                     color: AppColors.navyMid.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.swap_horiz_rounded, color: AppColors.navyMid, size: 20),
+                  child: const Icon(Icons.swap_horiz_rounded,
+                      color: AppColors.navyMid, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -8195,11 +6665,14 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
               style: GoogleFonts.poppins(fontSize: 14),
               decoration: InputDecoration(
                 hintText: 'Search zone or station...',
-                hintStyle: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightSubText),
-                prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppColors.navyMid),
+                hintStyle: GoogleFonts.poppins(
+                    fontSize: 13, color: AppColors.lightSubText),
+                prefixIcon: const Icon(Icons.search_rounded,
+                    size: 20, color: AppColors.navyMid),
                 filled: true,
                 fillColor: const Color(0xFFF4F6FB),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.md),
                   borderSide: BorderSide.none,
@@ -8219,11 +6692,15 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
               padding: const EdgeInsets.all(40),
               child: Column(
                 children: [
-                  const Icon(Icons.location_off_rounded, size: 40, color: AppColors.lightSubText),
+                  const Icon(Icons.location_off_rounded,
+                      size: 40, color: AppColors.lightSubText),
                   const SizedBox(height: 8),
                   Text(
-                    _search.trim().isNotEmpty ? 'No zones or stations match "${_search.trim()}"' : 'No stations found',
-                    style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightSubText),
+                    _search.trim().isNotEmpty
+                        ? 'No zones or stations match "${_search.trim()}"'
+                        : 'No stations found',
+                    style: GoogleFonts.poppins(
+                        fontSize: 13, color: AppColors.lightSubText),
                   ),
                   if (canAdd) ...[
                     const SizedBox(height: 16),
@@ -8259,7 +6736,8 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 children: [
                   for (var zi = 0; zi < _visibleZones.length; zi++) ...[
-                    if (zi > 0) const Divider(height: 1, indent: 20, endIndent: 20),
+                    if (zi > 0)
+                      const Divider(height: 1, indent: 20, endIndent: 20),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
                       child: Text(
@@ -8316,7 +6794,8 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
   }) {
     final isActive = station == activeStation;
     final isHome = station == homeStation;
-    final isAddedLocation = widget.auth.additionalStations.contains(station) && !isHome;
+    final isAddedLocation =
+        widget.auth.additionalStations.contains(station) && !isHome;
 
     return Material(
       color: Colors.transparent,
@@ -8325,7 +6804,9 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
         selected: isActive,
         selectedTileColor: AppColors.navyMid.withValues(alpha: 0.08),
         leading: Icon(
-          isActive ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
+          isActive
+              ? Icons.radio_button_checked_rounded
+              : Icons.radio_button_off_rounded,
           size: 20,
           color: isActive ? AppColors.navyMid : AppColors.lightSubText,
         ),
@@ -8343,7 +6824,8 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
                 children: [
                   if (isHome)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
                         color: AppColors.goldPrimary.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -8412,7 +6894,8 @@ class _AddLocationSheetState extends State<_AddLocationSheet> {
     if (!mounted) return;
     setState(() {
       _districtsByState = map;
-      _maharashtraDistricts = MaharashtraPoliceStationsRepository.getDistricts();
+      _maharashtraDistricts =
+          MaharashtraPoliceStationsRepository.getDistricts();
       _loading = false;
     });
   }
@@ -8472,7 +6955,8 @@ class _AddLocationSheetState extends State<_AddLocationSheet> {
                   const Center(
                     child: Padding(
                       padding: EdgeInsets.all(40),
-                      child: CircularProgressIndicator(color: AppColors.navyMid),
+                      child:
+                          CircularProgressIndicator(color: AppColors.navyMid),
                     ),
                   )
                 else ...[
@@ -8489,19 +6973,24 @@ class _AddLocationSheetState extends State<_AddLocationSheet> {
                   ),
                   SearchablePickerField(
                     label: widget.isCpLevel ? 'City' : 'District',
-                    hintText: widget.isCpLevel ? 'Select City' : 'Select District',
+                    hintText:
+                        widget.isCpLevel ? 'Select City' : 'Select District',
                     items: _getCities(),
                     value: _city,
                     onChanged: (v) => setState(() => _city = v),
                     enabled: _state != null,
-                    leadingIcon: widget.isCpLevel ? Icons.location_city_rounded : Icons.map_rounded,
+                    leadingIcon: widget.isCpLevel
+                        ? Icons.location_city_rounded
+                        : Icons.map_rounded,
                   ),
                   const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
                     height: 54,
                     child: ElevatedButton(
-                      onPressed: _city == null ? null : () => Navigator.pop(context, _city),
+                      onPressed: _city == null
+                          ? null
+                          : () => Navigator.pop(context, _city),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.navyDark,
                         foregroundColor: Colors.white,
@@ -8552,7 +7041,8 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final filteredItems = Classification.addMenuAll
-        .where((item) => item.name.toLowerCase().contains(_searchQuery.toLowerCase()))
+        .where((item) =>
+            item.name.toLowerCase().contains(_searchQuery.toLowerCase()))
         .toList();
 
     return Container(
@@ -8582,11 +7072,15 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
                     color: AppColors.goldPrimary.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.add_task_rounded, color: AppColors.goldPrimary, size: 24),
+                  child: const Icon(Icons.add_task_rounded,
+                      color: AppColors.goldPrimary, size: 24),
                 ),
                 const SizedBox(width: 16),
                 Text('Unified Police Entry Menu',
-                    style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.navyDark)),
+                    style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.navyDark)),
               ],
             ),
           ),
@@ -8601,11 +7095,14 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
               child: TextField(
                 controller: _searchCtrl,
                 onChanged: (val) => setState(() => _searchQuery = val),
-                style: GoogleFonts.poppins(fontSize: 13, color: AppColors.navyDark),
+                style: GoogleFonts.poppins(
+                    fontSize: 13, color: AppColors.navyDark),
                 decoration: InputDecoration(
                   hintText: 'Search entry types...',
-                  hintStyle: GoogleFonts.poppins(fontSize: 13, color: Colors.grey),
-                  prefixIcon: const Icon(Icons.search_rounded, size: 18, color: Colors.grey),
+                  hintStyle:
+                      GoogleFonts.poppins(fontSize: 13, color: Colors.grey),
+                  prefixIcon: const Icon(Icons.search_rounded,
+                      size: 18, color: Colors.grey),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(vertical: 11),
                 ),
@@ -8620,7 +7117,8 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
                 SliverPadding(
                   padding: const EdgeInsets.all(20),
                   sliver: SliverGrid(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 3,
                       childAspectRatio: 0.82,
                       mainAxisSpacing: 15,
@@ -8775,19 +7273,28 @@ class _SearchModuleGroup extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.navyMid.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.navyMid.withValues(alpha: 0.2)),
+              border:
+                  Border.all(color: AppColors.navyMid.withValues(alpha: 0.2)),
             ),
             child: Row(children: [
-              const Icon(Icons.folder_copy_rounded, size: 15, color: AppColors.goldPrimary),
+              const Icon(Icons.folder_copy_rounded,
+                  size: 15, color: AppColors.goldPrimary),
               const SizedBox(width: 8),
               Text(moduleLabel.toUpperCase(),
                   style: GoogleFonts.poppins(
-                      fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1.2, color: AppColors.goldPrimary)),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2,
+                      color: AppColors.goldPrimary)),
               const Spacer(),
               Text('${results.length} match${results.length == 1 ? '' : 'es'}',
-                  style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.lightSubText)),
+                  style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.lightSubText)),
               const SizedBox(width: 4),
-              const Icon(Icons.arrow_forward_ios_rounded, size: 11, color: AppColors.goldPrimary),
+              const Icon(Icons.arrow_forward_ios_rounded,
+                  size: 11, color: AppColors.goldPrimary),
             ]),
           ),
         ),
@@ -8802,7 +7309,10 @@ class _SearchModuleGroup extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.only(bottom: 12, left: 4),
               child: Text('+ $overflow more in $moduleLabel →',
-                  style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.goldPrimary)),
+                  style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.goldPrimary)),
             ),
           ),
         const SizedBox(height: 4),
@@ -8820,22 +7330,35 @@ class _SearchModuleGroup extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: AppColors.lightBorder),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 6,
+              offset: const Offset(0, 2))
+        ],
       ),
       child: Row(children: [
         Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(record.title,
-                style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.navyDark),
+                style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.navyDark),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis),
             const SizedBox(height: 3),
             Row(children: [
               Text(record.caseNumber,
-                  style: GoogleFonts.poppins(fontSize: 11, color: AppColors.infoBlue, fontWeight: FontWeight.w600)),
+                  style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      color: AppColors.infoBlue,
+                      fontWeight: FontWeight.w600)),
               const SizedBox(width: 8),
               Text('• ${DateFormat('dd MMM yyyy').format(record.incidentDate)}',
-                  style: GoogleFonts.poppins(fontSize: 11, color: AppColors.lightSubText)),
+                  style: GoogleFonts.poppins(
+                      fontSize: 11, color: AppColors.lightSubText)),
             ]),
           ]),
         ),
@@ -8848,7 +7371,8 @@ class _SearchModuleGroup extends StatelessWidget {
             border: Border.all(color: sc.withValues(alpha: 0.3)),
           ),
           child: Text(record.status == 'Open' ? 'Pending' : record.status,
-              style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: sc)),
+              style: GoogleFonts.poppins(
+                  fontSize: 10, fontWeight: FontWeight.w700, color: sc)),
         ),
       ]),
     );

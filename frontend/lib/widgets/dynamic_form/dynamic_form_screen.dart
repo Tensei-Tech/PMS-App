@@ -352,7 +352,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           if (widget.existingRecord != null &&
               widget.existingRecord!.id.trim().isNotEmpty) {
             _caseService
-                .fetchCaseById(widget.existingRecord!.id)
+                .fetchCaseDetailsMap(widget.existingRecord!.id)
                 .then((caseDetail) {
               if (caseDetail != null && mounted) {
                 if (caseDetail['extra_fields'] is Map) {

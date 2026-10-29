@@ -296,6 +296,7 @@ class _FilteredPendingScreenState extends State<FilteredPendingScreen> {
                                     realDataRows: _tableRows,
                                     isAbsconded: widget.isAbsconded,
                                     isVictim: widget.isVictim,
+                                    isUndetected: widget.isUndetected,
                                   ),
                                 ),
                               ),

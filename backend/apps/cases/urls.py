@@ -40,6 +40,14 @@ from apps.cases.views import (
     VictimStatsView,
     VictimTimeWiseView,
     VictimIOWiseView,
+    DarCasesListView,
+    DarSummaryStatsView,
+    DarRemindIOView,
+    IradCasesListView,
+    IradSummaryStatsView,
+    IradRemindIOView,
+    SummonsWarrantReportView,
+    MonthlyCrimeComparativeView,
 )
 
 router = DefaultRouter()
@@ -91,6 +99,20 @@ urlpatterns = [
     path('victim/time-wise/', VictimTimeWiseView.as_view(), name='victim-time-wise'),
     path('victim/io-wise/', VictimIOWiseView.as_view(), name='victim-io-wise'),
     path('victim/stats/', VictimStatsView.as_view(), name='victim-stats'),
+    path('summons-warrant/', SummonsWarrantReportView.as_view(), name='summons-warrant-report'),
+    path('monthly-comparative/', MonthlyCrimeComparativeView.as_view(), name='monthly-crime-comparative'),
+
+    path('sam-warrant/', SummonsWarrantReportView.as_view(), name='sam-warrant-report'),
+    path('dar/', DarCasesListView.as_view(), name='dar-cases-list'),
+    path('dar/cases/', DarCasesListView.as_view(), name='dar-cases-list-alias'),
+    path('dar/stats/', DarSummaryStatsView.as_view(), name='dar-summary-stats'),
+    path('dar/<str:pk>/remind/', DarRemindIOView.as_view(), name='dar-remind-io'),
+    path('dar/<str:pk>/action/', DarRemindIOView.as_view(), name='dar-action'),
+    path('irad/', IradCasesListView.as_view(), name='irad-cases-list'),
+    path('irad/cases/', IradCasesListView.as_view(), name='irad-cases-list-alias'),
+    path('irad/stats/', IradSummaryStatsView.as_view(), name='irad-summary-stats'),
+    path('irad/<str:pk>/remind/', IradRemindIOView.as_view(), name='irad-remind-io'),
+    path('irad/<str:pk>/action/', IradRemindIOView.as_view(), name='irad-action'),
 
     # Existing CaseRecordViewSet router (ModelViewSet)
     path('', include(router.urls)),

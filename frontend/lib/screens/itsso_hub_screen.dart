@@ -592,7 +592,7 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
         elevation: 1,
         iconTheme: const IconThemeData(color: AppColors.navyDark),
         title: Text(
-          'ITSSO (POCSO)',
+          'ITSSO',
           style: GoogleFonts.poppins(
             color: AppColors.navyDark,
             fontWeight: FontWeight.w700,

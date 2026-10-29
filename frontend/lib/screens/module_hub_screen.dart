@@ -42,6 +42,9 @@ import '../modules/nc/providers/nc_provider.dart';
 import '../modules/nc/screens/nc_form_screen.dart';
 import '../modules/ndps/providers/ndps_provider.dart';
 import '../modules/passport/providers/passport_provider.dart';
+import '../widgets/summons_warrant_report_table.dart';
+import '../widgets/monthly_crime_comparative_table.dart';
+import '../widgets/add_warrant_case_dialog.dart';
 import '../modules/pending/providers/pending_provider.dart';
 import '../modules/pocso/providers/pocso_provider.dart';
 import '../modules/preventive/providers/preventive_provider.dart';
@@ -61,7 +64,6 @@ import '../theme/app_theme.dart';
 import '../utils/ad_disposal_helper.dart';
 import '../utils/common_form_module.dart';
 import '../utils/module_pdf_helper.dart';
-import '../utils/pending_io_wise_logic.dart';
 import '../utils/pdf_auth_gate.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/forms_accordion_list.dart';
@@ -83,6 +85,8 @@ import 'filtered_pending_screen.dart';
 import 'pending_io_wise_screens.dart';
 import 'pending_summary_screen.dart';
 import 'report_case_list_screen.dart';
+import '../services/backend_case_service.dart';
+import '../utils/pending_table_firestore_mapper.dart';
 
 class _CategoryMeta {
   final String label;
@@ -133,10 +137,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   String? _pendingCategory;
   String? _pendingTimeRange;
   String? _pendingViewMode;
-
-  static const List<String> _pendingHubCategories = [
-    ...kPendingDashboardCategoriesForIoWise,
-  ];
 
   static const List<String> _pendingHubTimeRanges = [
     'Select time range',
@@ -391,6 +391,18 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   }
 
   void _openNewEntryForm(BuildContext context) {
+    if (widget.moduleKey == 'sam_warrant') {
+      AddWarrantCaseDialog.show(
+        context,
+        initialYear: _reportYear,
+        initialMonth: _reportMonth,
+      ).then((added) {
+        if (added == true && mounted) {
+          setState(() {});
+        }
+      });
+      return;
+    }
     if (widget.moduleKey == 'ad') {
       Navigator.push(
         context,
@@ -660,6 +672,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           if (widget.moduleKey != 'form_1_5' &&
               widget.moduleKey != 'disposal' &&
               widget.moduleKey != 'monthly' &&
+              widget.moduleKey != 'sam_warrant' &&
               widget.moduleKey != 'pending')
             _buildStatsRow(totalCount, disposalCount, pendingCount),
           if (isTheftOrFormIVStyle) _buildToolbar(displayRecords.length),
@@ -671,10 +684,13 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   // Monthly module is report-only (no records section).
                   SliverToBoxAdapter(
                       child: _buildMonthlyReport(context, allRecords)),
+                ] else if (widget.moduleKey == 'sam_warrant') ...[
+                  // Sam/Warrant module is report-only (fetching dynamically from database).
+                  SliverToBoxAdapter(
+                      child: _buildSamWarrantModuleReportOnly(context)),
                 ] else if (widget.moduleKey == 'pending') ...[
                   SliverToBoxAdapter(
-                      child:
-                          _buildPendingModuleReportOnly(context, allRecords)),
+                      child: _buildPendingModuleReportOnly(context)),
                 ] else if (widget.moduleLabel == 'Forms' &&
                     widget.moduleKey == 'form_1_5') ...[
                   SliverToBoxAdapter(
@@ -745,7 +761,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     final transCase = TranslationHelper.translate(context, caseWord);
     final subtitle = isTheftOrFormIVStyle
         ? '$categoryName · $total $transCase'
-        : '$total $transRecord $transReg';
+        : (widget.moduleKey == 'sam_warrant'
+            ? TranslationHelper.translate(context, 'Summons & Warrant Report')
+            : '$total $transRecord $transReg');
 
     final bool showAddButton = !(widget.readOnly ||
         widget.moduleKey == 'detected' ||
@@ -927,39 +945,90 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                         readOnly: true,
                       )));
                 })),
-          const SizedBox(height: 24),
-          _buildDemoReportSection(),
         ],
       ),
     );
   }
 
-  Widget _buildPendingModuleReportOnly(
-      BuildContext context, List<ModuleRecord> allRecords) {
+  String _pendingHubSubtitle(BuildContext context) {
+    if (_pendingCategory == null) {
+      return TranslationHelper.translate(context, 'Select a category');
+    }
+    final transCategory =
+        TranslationHelper.translate(context, _pendingCategory!);
+    if (_pendingTimeRange == null) {
+      final transSelectTime =
+          TranslationHelper.translate(context, 'Select time range');
+      return '$transCategory — $transSelectTime';
+    }
+    final transTimeRange =
+        TranslationHelper.translate(context, _pendingTimeRange!);
+    return '$transCategory — $transTimeRange';
+  }
+
+  Widget _buildPendingModuleReportOnly(BuildContext context) {
     final auth = context.read<AuthProvider>();
 
-    return Align(
-      alignment: Alignment.topCenter,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1200),
-        child: ModuleHubReportCard(
-          title: TranslationHelper.translate(context, 'Pending Reports'),
-          subtitle: TranslationHelper.translate(
-              context, 'Select a category to view pending cases'),
-          showFilterRow: false,
-          filterRow: const SizedBox.shrink(),
-          onSummaryTap: () {
-            Navigator.push(
-              context,
-              AppTheme.fadeSlideRoute(
-                page: PendingSummaryScreen(stationName: auth.stationName),
-              ),
-            );
-          },
-          wrapCategoryButtonsInCard: false,
-          categoryButtons: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: LayoutBuilder(
+    return ModuleHubReportCard(
+      title: TranslationHelper.translate(context, 'Pending Reports'),
+      subtitle: _pendingHubSubtitle(context),
+      showFilterRow: false,
+      filterRow: const SizedBox.shrink(),
+      onSummaryTap: () {
+        Navigator.push(
+          context,
+          AppTheme.fadeSlideRoute(
+            page: PendingSummaryScreen(stationName: auth.stationName),
+          ),
+        );
+      },
+      wrapCategoryButtonsInCard: false,
+      categoryButtons: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: FutureBuilder<List<Map<String, dynamic>>?>(
+          future: BackendCaseService().fetchPendingCases(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: CircularProgressIndicator(color: AppColors.navyMid),
+                ),
+              );
+            }
+
+            final data = snapshot.data ?? [];
+            final records = data.map((m) => ModuleRecord.fromMap(m)).toList();
+            final mappedRows =
+                pendingModuleRecordsToTableRows(records, DateTime.now());
+
+            final Map<String, int> categoryCounts = {};
+            for (final r in mappedRows) {
+              final head = r['head']?.trim().isNotEmpty == true
+                  ? r['head']!.trim()
+                  : 'Other';
+              categoryCounts[head] = (categoryCounts[head] ?? 0) + 1;
+            }
+
+            final categories = categoryCounts.keys.toList()..sort();
+
+            if (categories.isEmpty) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Text(
+                    TranslationHelper.translate(
+                        context, 'No pending categories found in database'),
+                    style: GoogleFonts.poppins(
+                      color: AppColors.lightSubText,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              );
+            }
+
+            return LayoutBuilder(
               builder: (context, constraints) {
                 final bool isSmallScreen = constraints.maxWidth < 600;
                 final double gap = isSmallScreen ? 12 : 16;
@@ -974,34 +1043,26 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   spacing: gap,
                   runSpacing: gap,
                   alignment: WrapAlignment.start,
-                  children: _pendingHubCategories.map((cat) {
+                  children: categories.map((cat) {
                     final transCategory =
                         TranslationHelper.translate(context, cat);
-                    final pendingCount = allRecords
-                        .where((r) =>
-                            r.status != 'Resolved' &&
-                            r.status != 'Closed' &&
-                            pendingRecordMatchesDashboardCategory(
-                              r: r,
-                              dashboardCategory: cat,
-                            ))
-                        .length;
+                    final count = categoryCounts[cat] ?? 0;
 
                     return SizedBox(
                       width: itemWidth,
-                      height: 60,
+                      height: 64,
                       child: Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                              color: Colors.grey.shade200, width: 1.2),
+                              color: Colors.grey.shade200, width: 1.5),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.navyDark.withValues(alpha: 0.03),
-                              blurRadius: 6,
+                              color: AppColors.navyDark.withValues(alpha: 0.04),
+                              blurRadius: 8,
                               spreadRadius: 1,
-                              offset: const Offset(0, 3),
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
@@ -1009,7 +1070,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                           color: Colors.transparent,
                           borderRadius: BorderRadius.circular(12),
                           child: PopupMenuButton<String>(
-                            offset: const Offset(0, 64),
+                            offset: const Offset(0, 68),
                             tooltip: transCategory,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -1018,12 +1079,12 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                             ),
                             child: Padding(
                               padding: EdgeInsets.symmetric(
-                                  horizontal: isSmallScreen ? 10 : 14),
+                                  horizontal: isSmallScreen ? 10 : 16),
                               child: Row(
                                 children: [
                                   Container(
                                     padding:
-                                        EdgeInsets.all(isSmallScreen ? 6 : 7),
+                                        EdgeInsets.all(isSmallScreen ? 6 : 8),
                                     decoration: BoxDecoration(
                                       color: AppColors.navyMid
                                           .withValues(alpha: 0.08),
@@ -1035,53 +1096,50 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                                       size: isSmallScreen ? 16 : 18,
                                     ),
                                   ),
-                                  SizedBox(width: isSmallScreen ? 8 : 10),
+                                  SizedBox(width: isSmallScreen ? 8 : 12),
                                   Expanded(
-                                    child: Text(
-                                      transCategory,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: isSmallScreen ? 12 : 13.5,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.navyDark,
-                                        height: 1.2,
-                                      ),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          transCategory,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: GoogleFonts.poppins(
+                                            fontSize: isSmallScreen ? 12 : 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.navyDark,
+                                            height: 1.2,
+                                          ),
+                                        ),
+                                        Text(
+                                          '$count ${count == 1 ? "case" : "cases"}',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w500,
+                                            color: AppColors.lightSubText,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  const SizedBox(width: 6),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 7, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: pendingCount > 0
-                                          ? AppColors.navyMid
-                                              .withValues(alpha: 0.09)
-                                          : const Color(0xFFF1F5F9),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      '$pendingCount',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w700,
-                                        color: pendingCount > 0
-                                            ? AppColors.navyMid
-                                            : const Color(0xFF94A3B8),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 4),
+                                  SizedBox(width: isSmallScreen ? 4 : 8),
                                   Icon(
                                     Icons.keyboard_arrow_down_rounded,
                                     color: AppColors.navyDark
-                                        .withValues(alpha: 0.45),
+                                        .withValues(alpha: 0.5),
                                     size: isSmallScreen ? 18 : 20,
                                   ),
                                 ],
                               ),
                             ),
                             onSelected: (val) {
+                              setState(() {
+                                _pendingCategory = cat;
+                              });
                               if (val == 'IO Wise') {
                                 Navigator.push(
                                   context,
@@ -1091,94 +1149,68 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                                   ),
                                 );
                               } else {
+                                setState(() {
+                                  _pendingTimeRange = val;
+                                });
+                                String? startDate;
+                                String? endDate;
                                 final now = DateTime.now();
-                                DateTime? start, end;
-                                if (val == '1 month') {
-                                  start =
-                                      now.subtract(const Duration(days: 30));
-                                } else if (val == 'Within 3 months') {
-                                  start =
-                                      now.subtract(const Duration(days: 90));
-                                } else if (val == '3 to 6 months') {
-                                  start =
-                                      now.subtract(const Duration(days: 180));
-                                  end = now.subtract(const Duration(days: 90));
+                                if (val == 'More than 1 year') {
+                                  endDate = DateFormat('yyyy-MM-dd').format(
+                                      now.subtract(const Duration(days: 365)));
                                 } else if (val == '6 to 12 months') {
-                                  start =
-                                      now.subtract(const Duration(days: 365));
-                                  end = now.subtract(const Duration(days: 180));
-                                } else if (val == 'More than 1 year') {
-                                  end = now.subtract(const Duration(days: 365));
-                                } else if (val == 'More than 3 months') {
-                                  end = now.subtract(const Duration(days: 90));
+                                  startDate = DateFormat('yyyy-MM-dd').format(
+                                      now.subtract(const Duration(days: 365)));
+                                  endDate = DateFormat('yyyy-MM-dd').format(
+                                      now.subtract(const Duration(days: 180)));
+                                } else if (val == '3 to 6 months') {
+                                  startDate = DateFormat('yyyy-MM-dd').format(
+                                      now.subtract(const Duration(days: 180)));
+                                  endDate = DateFormat('yyyy-MM-dd').format(
+                                      now.subtract(const Duration(days: 90)));
+                                } else if (val == 'Within 3 months') {
+                                  startDate = DateFormat('yyyy-MM-dd').format(
+                                      now.subtract(const Duration(days: 90)));
+                                  endDate =
+                                      DateFormat('yyyy-MM-dd').format(now);
+                                } else if (val == '1 month') {
+                                  startDate = DateFormat('yyyy-MM-dd').format(
+                                      now.subtract(const Duration(days: 30)));
+                                  endDate =
+                                      DateFormat('yyyy-MM-dd').format(now);
                                 }
-
                                 Navigator.push(
                                   context,
                                   AppTheme.fadeSlideRoute(
                                     page: FilteredPendingScreen(
-                                      title: val == 'All' ? cat : '$cat — $val',
+                                      title: '$cat - $val',
                                       category: cat,
-                                      startDate: start
-                                          ?.toIso8601String()
-                                          .split('T')[0],
-                                      endDate:
-                                          end?.toIso8601String().split('T')[0],
+                                      startDate: startDate,
+                                      endDate: endDate,
                                     ),
                                   ),
                                 );
                               }
                             },
                             itemBuilder: (BuildContext context) {
-                              return <PopupMenuEntry<String>>[
-                                PopupMenuItem<String>(
-                                  value: 'All',
+                              final List<String> options = [
+                                ..._pendingHubTimeRanges
+                                    .where((t) => t != 'Select time range'),
+                                'IO Wise',
+                              ];
+                              return options.map((String choice) {
+                                return PopupMenuItem<String>(
+                                  value: choice,
                                   child: Text(
                                     TranslationHelper.translate(
-                                        context, 'All Cases'),
+                                        context, choice),
                                     style: GoogleFonts.poppins(
                                       fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.navyDark,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
-                                ),
-                                const PopupMenuDivider(),
-                                PopupMenuItem<String>(
-                                  value: 'IO Wise',
-                                  child: Row(
-                                    children: [
-                                      const Icon(Icons.badge_outlined,
-                                          size: 16, color: AppColors.navyMid),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        TranslationHelper.translate(
-                                            context, 'IO Wise Breakdown'),
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.navyMid,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const PopupMenuDivider(),
-                                ..._pendingHubTimeRanges
-                                    .where((t) => t != 'Select time range')
-                                    .map((choice) => PopupMenuItem<String>(
-                                          value: choice,
-                                          child: Text(
-                                            TranslationHelper.translate(
-                                                context, choice),
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 12.5,
-                                              fontWeight: FontWeight.w500,
-                                              color: AppColors.lightText,
-                                            ),
-                                          ),
-                                        )),
-                              ];
+                                );
+                              }).toList();
                             },
                           ),
                         ),
@@ -1187,11 +1219,11 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   }).toList(),
                 );
               },
-            ),
-          ),
-          child: null,
+            );
+          },
         ),
       ),
+      child: null,
     );
   }
 
@@ -1509,6 +1541,13 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 if (_showMonthlyPreventiveTable)
                   _buildMonthlyRegistrationTablePreventive(
                       context, allRecords, _reportMonth, _reportYear),
+                const SizedBox(height: 16),
+
+                // Dynamic Monthly Crime Comparative Table from database API
+                MonthlyCrimeComparativeTable(
+                  selectedYear: _reportYear,
+                  selectedMonth: _reportMonth,
+                ),
               ],
             ),
           ),
@@ -3874,6 +3913,161 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     );
   }
 
+  Widget _buildSamWarrantModuleReportOnly(BuildContext context) {
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+
+    final transMonth =
+        TranslationHelper.translate(context, months[_reportMonth - 1]);
+    final monthYearLabel = '$transMonth $_reportYear';
+
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(color: AppColors.lightBorder),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      TranslationHelper.translate(
+                          context, 'Summons & Warrant Report'),
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.navyDark,
+                      ),
+                    ),
+                    Text(
+                      monthYearLabel,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.goldPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Month/Year selector (compact)
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      border: Border.all(color: AppColors.lightBorder),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<int>(
+                        value: _reportMonth,
+                        isExpanded: true,
+                        icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                            color: AppColors.navyMid),
+                        items: List.generate(
+                          12,
+                          (i) => DropdownMenuItem(
+                            value: i + 1,
+                            child: Text(
+                              TranslationHelper.translate(context, months[i]),
+                              style: GoogleFonts.poppins(
+                                  fontSize: 13, fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ),
+                        onChanged: (v) {
+                          if (v != null) {
+                            setState(() => _reportMonth = v);
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    border: Border.all(color: AppColors.lightBorder),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<int>(
+                      value: _reportYear,
+                      icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                          color: AppColors.navyMid),
+                      items: List.generate(
+                        5,
+                        (i) {
+                          final y = DateTime.now().year - i;
+                          return DropdownMenuItem(
+                            value: y,
+                            child: Text(
+                              '$y',
+                              style: GoogleFonts.poppins(
+                                  fontSize: 13, fontWeight: FontWeight.w600),
+                            ),
+                          );
+                        },
+                      ),
+                      onChanged: (v) {
+                        if (v != null) {
+                          setState(() => _reportYear = v);
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // Dynamic Summons & Warrant Report Table from database API
+            SummonsWarrantReportTable(
+              selectedYear: _reportYear,
+              selectedMonth: _reportMonth,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildEmptyReport() {
     return Center(
       child: Padding(
@@ -3888,34 +4082,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildDemoReportSection() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.infoBlue.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: AppColors.infoBlue.withValues(alpha: 0.2)),
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          const Icon(Icons.info_outline_rounded,
-              size: 18, color: AppColors.infoBlue),
-          const SizedBox(width: 8),
-          Text('Demo Statistics',
-              style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.infoBlue)),
-        ]),
-        const SizedBox(height: 8),
-        Text(
-            'The counts above reflect all cases registered across all modules for the current month. You can add new cases from the dashboard to see them reflected here instantly.',
-            style: GoogleFonts.poppins(
-                fontSize: 11, color: AppColors.lightSubText)),
-      ]),
     );
   }
 
