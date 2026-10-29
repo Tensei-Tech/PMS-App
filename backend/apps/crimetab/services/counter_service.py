@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 from typing import Dict, List, Optional, Set
 from django.db.models import Count, Q
 from apps.cases.models import CaseRecord
@@ -7,49 +8,62 @@ from apps.crimetab.models.groupings import CaseCategoryLink, CaseCategory
 logger = logging.getLogger(__name__)
 
 
-def get_twin_category_ids(category_id: int) -> List[int]:
+class CategoryIndex:
+    """
+    Every category (id, name, parent, active) loaded in one query, so twins and
+    sub-tab trees are worked out in memory instead of with a query per node.
+    Build one per request and pass it to the helpers below.
+    """
+
+    def __init__(self):
+        self._names: Dict[int, str] = {}
+        self._active_by_name: Dict[str, List[int]] = defaultdict(list)
+        self._active_children: Dict[int, List[int]] = defaultdict(list)
+        rows = CaseCategory.objects.values_list('category_id', 'category_name', 'parent_category_id', 'is_active')
+        for cid, name, parent_id, active in rows:
+            self._names[cid] = name or ''
+            if active:
+                self._active_by_name[(name or '').strip().lower()].append(cid)
+                if parent_id is not None:
+                    self._active_children[parent_id].append(cid)
+
+    def twins(self, category_id: int) -> List[int]:
+        if category_id not in self._names:
+            return [category_id]
+        ids = list(self._active_by_name.get(self._names[category_id].strip().lower(), []))
+        if category_id not in ids:
+            ids.append(category_id)
+        return ids
+
+    def active_children(self, category_id: int) -> List[int]:
+        return list(self._active_children.get(category_id, []))
+
+
+def get_twin_category_ids(category_id: int, index: Optional[CategoryIndex] = None) -> List[int]:
     """
     Given a category_id, returns the IDs of all "twin" categories (same category_name,
     case-insensitive, including itself) across groups and standalone tabs.
     Does not hardcode IDs.
     """
-    cat = CaseCategory.objects.filter(pk=category_id).first()
-    if not cat:
-        return [category_id]
-
-    twin_ids = list(
-        CaseCategory.objects.filter(
-            category_name__iexact=cat.category_name.strip(),
-            is_active=True
-        ).values_list('category_id', flat=True)
-    )
-    if category_id not in twin_ids:
-        twin_ids.append(category_id)
-    return twin_ids
+    return (index or CategoryIndex()).twins(category_id)
 
 
-def get_descendant_category_ids(category_id: int) -> List[int]:
+def get_descendant_category_ids(category_id: int, index: Optional[CategoryIndex] = None) -> List[int]:
     """
     Recursively finds all category IDs in the subtree under `category_id` (including itself)
     and all twin categories across standalone and group copies.
     Handles nested sub-tabs (e.g. Accident -> Normal Accident / Road Accident -> Death Due to Rash Driving)
     by expanding children across all twin parent rows.
     """
+    index = index or CategoryIndex()
     all_category_ids: Set[int] = set()
-    to_process: List[int] = get_twin_category_ids(category_id)
+    to_process: List[int] = index.twins(category_id)
     all_category_ids.update(to_process)
 
     while to_process:
         current_id = to_process.pop()
-        child_ids = list(
-            CaseCategory.objects.filter(
-                parent_category_id=current_id,
-                is_active=True
-            ).values_list('category_id', flat=True)
-        )
-        for cid in child_ids:
-            twin_cids = get_twin_category_ids(cid)
-            for t_cid in twin_cids:
+        for cid in index.active_children(current_id):
+            for t_cid in index.twins(cid):
                 if t_cid not in all_category_ids:
                     all_category_ids.add(t_cid)
                     to_process.append(t_cid)
@@ -67,8 +81,9 @@ def get_group_counters(group_id: int, station_name: Optional[str] = None) -> Dic
             CaseCategory.objects.filter(group_id=group_id, is_active=True).values_list('category_id', flat=True)
         )
         all_cat_ids: Set[int] = set()
+        index = CategoryIndex()
         for cat_id in group_cat_ids:
-            all_cat_ids.update(get_descendant_category_ids(cat_id))
+            all_cat_ids.update(get_descendant_category_ids(cat_id, index))
 
         from apps.cases.constants import DISPOSAL_KEYS
         from django.db.models.functions import Coalesce, Concat
@@ -121,7 +136,8 @@ def get_group_counters(group_id: int, station_name: Optional[str] = None) -> Dic
         }
 
 
-def get_category_counters(category_id: int, station_name: Optional[str] = None) -> Dict[str, int]:
+def get_category_counters(category_id: int, station_name: Optional[str] = None,
+                          index: Optional[CategoryIndex] = None) -> Dict[str, int]:
     """
     Calculates live Total/Pending/Disposal counters for a specific Sub-tab / Category (e.g. 'Theft', 'Accident'),
     rolling up cases from all its twin categories and nested child sub-tabs.
@@ -133,7 +149,7 @@ def get_category_counters(category_id: int, station_name: Optional[str] = None) 
         from django.db.models import Value
         from django.db.models.fields.json import KeyTextTransform
         
-        descendant_ids = get_descendant_category_ids(category_id)
+        descendant_ids = get_descendant_category_ids(category_id, index)
         queryset = CaseRecord.objects.filter(
             category_links__category_id__in=descendant_ids
         )
