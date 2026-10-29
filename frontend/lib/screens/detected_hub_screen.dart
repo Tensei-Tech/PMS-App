@@ -705,6 +705,8 @@ class _DetectedHubScreenState extends State<DetectedHubScreen>
             color: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: TabBar(
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
               controller: _tabController,
               labelColor: AppColors.navyMid,
               unselectedLabelColor: AppColors.lightSubText,

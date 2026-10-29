@@ -245,6 +245,9 @@ class ModuleHubFilterDropdown<T> extends StatelessWidget {
         child: DropdownButton<T>(
           value: value,
           isExpanded: expanded,
+          menuMaxHeight: 280,
+          borderRadius: BorderRadius.circular(10),
+          alignment: AlignmentDirectional.centerStart,
           icon: const Icon(Icons.keyboard_arrow_down_rounded,
               color: AppColors.navyMid),
           items: items,
