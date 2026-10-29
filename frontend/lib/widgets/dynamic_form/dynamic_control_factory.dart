@@ -80,10 +80,15 @@ class DynamicControlFactory extends StatelessWidget {
     return seen.toList();
   }
 
-  List<TextInputFormatter>? get _lengthFormatters =>
-      maxLength != null && maxLength! > 0
-          ? [LengthLimitingTextInputFormatter(maxLength)]
-          : null;
+  List<TextInputFormatter>? get _lengthFormatters {
+    final maxWords = fieldDef.maxWords;
+    final formatters = [
+      if (maxLength != null && maxLength! > 0)
+        LengthLimitingTextInputFormatter(maxLength),
+      if (maxWords != null) maxWordsFormatter(maxWords),
+    ];
+    return formatters.isEmpty ? null : formatters;
+  }
 
   String get _displayLabel {
     final lower = fieldDef.fieldLabel.toLowerCase().trim();
@@ -144,6 +149,8 @@ class DynamicControlFactory extends StatelessWidget {
         return _buildDateField(context);
       case 'datetime':
         return _buildDateTimeField(context);
+      case 'time':
+        return _buildTimeField(context);
       case 'dropdown':
         return _buildDropdownField(context);
       case 'radio':
@@ -476,6 +483,19 @@ class DynamicControlFactory extends StatelessWidget {
         maxField,
       );
     }
+    if (fieldDef.isStepper && !isTotal) {
+      return _buildFieldLayout(
+        context,
+        _StepperNumberField(
+          controller: controller,
+          readOnly: readOnly,
+          label: fieldDef.fieldLabel,
+          isRequired: fieldDef.isRequired,
+          onChanged: onChanged,
+          decoration: _inputDecoration(),
+        ),
+      );
+    }
     final numField = TextFormField(
       controller: controller,
       readOnly: readOnly || isTotal,
@@ -591,6 +611,60 @@ class DynamicControlFactory extends StatelessWidget {
                   );
                   controller?.text = DateFormat('dd/MM/yyyy HH:mm').format(dt);
                   onChanged?.call(controller?.text);
+                }
+              },
+        validator: (v) {
+          if (fieldDef.isRequired && (v == null || v.trim().isEmpty)) {
+            return '${fieldDef.fieldLabel} is required';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
+  Widget _buildTimeField(BuildContext context) {
+    return _buildFieldLayout(
+      context,
+      TextFormField(
+        controller: controller,
+        readOnly: true,
+        style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
+        decoration: _inputDecoration(
+          hint: 'HH:mm',
+          suffixIcon: const Icon(Icons.access_time_rounded,
+              size: 18, color: AppColors.navyMid),
+        ),
+        onTap: readOnly
+            ? null
+            : () async {
+                final now = TimeOfDay.now();
+                TimeOfDay initial = now;
+                if (controller != null && controller!.text.trim().isNotEmpty) {
+                  final parts = controller!.text.trim().split(':');
+                  if (parts.length >= 2) {
+                    final h = int.tryParse(parts[0]) ?? now.hour;
+                    final m = int.tryParse(parts[1]) ?? now.minute;
+                    initial = TimeOfDay(hour: h, minute: m);
+                  }
+                }
+                final picked = await showTimePicker(
+                  context: context,
+                  initialTime: initial,
+                  builder: (context, child) {
+                    return MediaQuery(
+                      data: MediaQuery.of(context)
+                          .copyWith(alwaysUse24HourFormat: true),
+                      child: child ?? const SizedBox.shrink(),
+                    );
+                  },
+                );
+                if (picked != null) {
+                  final hStr = picked.hour.toString().padLeft(2, '0');
+                  final mStr = picked.minute.toString().padLeft(2, '0');
+                  final formatted = '$hStr:$mStr';
+                  controller?.text = formatted;
+                  onChanged?.call(formatted);
                 }
               },
         validator: (v) {
@@ -2252,6 +2326,17 @@ class AadhaarGroupFormatter extends TextInputFormatter {
   }
 }
 
+/// Keeps a text at most [maxWords] words: an edit that would add a word past
+/// the limit is not applied (spaces after the last word are still allowed).
+TextInputFormatter maxWordsFormatter(int maxWords) {
+  final space = RegExp(r'\s+');
+  return TextInputFormatter.withFunction((oldValue, newValue) {
+    final words =
+        newValue.text.trim().split(space).where((w) => w.isNotEmpty).length;
+    return words > maxWords ? oldValue : newValue;
+  });
+}
+
 /// Digits-only field that stops at [maxDigits]; trying to type more shows
 /// "<label> can be at most N digits" under the field until the next edit.
 class _MaxDigitsField extends StatefulWidget {
@@ -2311,6 +2396,144 @@ class _MaxDigitsFieldState extends State<_MaxDigitsField> {
         }
         return null;
       },
+    );
+  }
+}
+
+class _StepperNumberField extends StatefulWidget {
+  final TextEditingController? controller;
+  final bool readOnly;
+  final String label;
+  final bool isRequired;
+  final ValueChanged<String>? onChanged;
+  final InputDecoration decoration;
+
+  const _StepperNumberField({
+    required this.controller,
+    required this.readOnly,
+    required this.label,
+    required this.isRequired,
+    required this.onChanged,
+    required this.decoration,
+  });
+
+  @override
+  State<_StepperNumberField> createState() => _StepperNumberFieldState();
+}
+
+class _StepperNumberFieldState extends State<_StepperNumberField> {
+  int _currentVal() {
+    final text = widget.controller?.text.trim() ?? '';
+    return int.tryParse(text) ?? 0;
+  }
+
+  void _updateVal(int val) {
+    if (widget.readOnly) return;
+    final clamped = val < 0 ? 0 : val;
+    final str = clamped.toString();
+    if (widget.controller != null) {
+      widget.controller!.text = str;
+    }
+    widget.onChanged?.call(str);
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: widget.readOnly ? const Color(0xFFF8FAFC) : Colors.white,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: AppColors.lightBorder),
+      ),
+      child: Row(
+        children: [
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(AppRadius.md),
+                bottomLeft: Radius.circular(AppRadius.md),
+              ),
+              onTap:
+                  widget.readOnly ? null : () => _updateVal(_currentVal() - 1),
+              child: Container(
+                width: 44,
+                height: 44,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  border: Border(
+                    right: BorderSide(color: AppColors.lightBorder),
+                  ),
+                ),
+                child: const Icon(
+                  Icons.remove_rounded,
+                  size: 20,
+                  color: AppColors.navyMid,
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: TextFormField(
+              controller: widget.controller,
+              readOnly: widget.readOnly,
+              textAlign: TextAlign.center,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              onChanged: (val) {
+                widget.onChanged?.call(val);
+                setState(() {});
+              },
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.navyDark,
+              ),
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                hintText: '0',
+              ),
+              validator: (v) {
+                if ((v?.trim() ?? '').isEmpty && widget.isRequired) {
+                  return '${widget.label} is required';
+                }
+                return null;
+              },
+            ),
+          ),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: const BorderRadius.only(
+                topRight: Radius.circular(AppRadius.md),
+                bottomRight: Radius.circular(AppRadius.md),
+              ),
+              onTap:
+                  widget.readOnly ? null : () => _updateVal(_currentVal() + 1),
+              child: Container(
+                width: 44,
+                height: 44,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  border: Border(
+                    left: BorderSide(color: AppColors.lightBorder),
+                  ),
+                ),
+                child: const Icon(
+                  Icons.add_rounded,
+                  size: 20,
+                  color: AppColors.navyMid,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

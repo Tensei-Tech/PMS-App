@@ -5,6 +5,7 @@ import '../models/transfer_request_model.dart';
 import '../providers/auth_provider.dart';
 import '../services/transfer_request_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/logout_confirm_dialog.dart';
 import 'transfer_request_screen.dart';
 
 /// Transfer outcome guidance — optional route (not a dashboard gate).
@@ -192,7 +193,11 @@ class _TransferStatusScreenState extends State<TransferStatusScreen> {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   TextButton(
-                    onPressed: () => auth.fullLogout(),
+                    onPressed: () async {
+                      if (await confirmLogout(context, label: 'Sign out')) {
+                        auth.fullLogout();
+                      }
+                    },
                     child: Text(
                       'Sign out',
                       style: GoogleFonts.poppins(

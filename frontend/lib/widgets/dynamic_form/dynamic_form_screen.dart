@@ -4,12 +4,12 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../modules/core/models/base_record.dart';
-import '../../modules/kidnapping/widgets/kidnapping_extra_fields.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/case_service.dart';
 import '../../services/firestore_service.dart';
@@ -20,6 +20,7 @@ import 'dynamic_field_model.dart';
 import 'dynamic_section_builder.dart';
 import '../repeating_cascading_charges_selector.dart';
 import '../../services/dynamic_options_service.dart';
+import '../age_digits_limit.dart';
 
 class DynamicFormScreen extends StatefulWidget {
   final dynamic categoryId;
@@ -75,30 +76,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   List<dynamic> _copyOnTickRules = [];
   final Map<String, dynamic> _previousValues = {};
 
-  // Category-specific extra section (Kidnapping); same rules and saved keys as
-  // CommonFormScreen. Theft's, Sand Theft's and POCSO's questions come from
-  // their database templates like any other field.
-  final GlobalKey<KidnappingExtraFieldsState> _kidnappingKey =
-      GlobalKey<KidnappingExtraFieldsState>();
-
-  String get _extrasMatchText => [
-        widget.moduleKey,
-        widget.subCategory ?? '',
-        widget.moduleLabel,
-      ].join(' ').trim().toLowerCase();
-
-  bool get _hasKidnappingExtras {
-    final key = widget.moduleKey.trim().toLowerCase();
-    return key == 'kid' || _extrasMatchText.contains('kidnap');
-  }
-
-  /// The extra section widget for this category, or null.
-  Widget? _buildCategoryExtras() {
-    if (_hasKidnappingExtras) {
-      return KidnappingExtraFields(key: _kidnappingKey);
-    }
-    return null;
-  }
+  // Category questions (Kidnapping / Missing, Theft, Sand Theft, POCSO ...)
+  // come from their database templates like any other field.
 
   // Controllers & Values keyed by fieldKey
   final Map<String, TextEditingController> _controllers = {};
@@ -216,16 +195,22 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           await DynamicOptionsService().fetchOptions('/api/options/gender/');
       final relations = await DynamicOptionsService()
           .fetchOptions('/api/options/surety_relations/');
+      final yesNo =
+          await DynamicOptionsService().fetchOptions('/api/options/yes_no/');
       if (mounted) {
         setState(() {
           if (opts.isNotEmpty) _genderOptions = opts;
           if (relations.isNotEmpty) _suretyRelationChoices = relations;
+          if (yesNo.isNotEmpty) _yesNoOptions = yesNo;
         });
       }
     } catch (_) {}
   }
 
   List<String> _suretyRelationChoices = [];
+
+  /// Yes / No answers from the database (/api/options/yes_no/), first = Yes
+  List<String> _yesNoOptions = [];
 
   final bool _hideEmptyInViewMode = true;
   List<String> _designationOptions = [];
@@ -337,6 +322,33 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             _controllers.putIfAbsent(f.fieldKey, () => TextEditingController());
             if (f.fieldType == 'checkbox') {
               _values.putIfAbsent(f.fieldKey, () => false);
+              if (f.fieldKey.contains('same_as_complainant')) {
+                final prefix = f.fieldKey.replaceAll('same_as_complainant', '');
+                final pairs = [
+                  'name',
+                  'age',
+                  'gender',
+                  'occupation',
+                  'mobile',
+                  'aadhaar',
+                  'pan',
+                  'religion',
+                  'caste',
+                ];
+                for (final p in pairs) {
+                  final target = '${prefix}injured_$p';
+                  if (!_copyOnTickRules.any((r) =>
+                      r is Map &&
+                      r['trigger_field'] == f.fieldKey &&
+                      r['target_field'] == target)) {
+                    _copyOnTickRules.add({
+                      'trigger_field': f.fieldKey,
+                      'source_field': 'complainant_$p',
+                      'target_field': target,
+                    });
+                  }
+                }
+              }
             }
           }
         });
@@ -456,6 +468,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               'religion': item['religion']?.toString() ?? '',
               'caste': item['caste']?.toString() ?? '',
               'address': item['address']?.toString() ?? '',
+              'medical': item['medical']?.toString() ?? '',
+              'medical_date': item['medical_date']?.toString() ?? '',
               'role': 'accused',
             });
           }
@@ -490,6 +504,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               'religion': p['religion']?.toString() ?? '',
               'caste': p['caste']?.toString() ?? '',
               'address': p['address']?.toString() ?? '',
+              'medical': p['medical']?.toString() ?? '',
+              'medical_date': p['medical_date']?.toString() ?? '',
               'role': 'accused',
             });
           }
@@ -1657,20 +1673,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       }
     }
 
-    // Category extra sections: fill them once their widgets are built
-    void hydrateExtra(GlobalKey key, dynamic raw) {
-      if (raw is! Map) return;
-      final data = Map<String, dynamic>.from(raw);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        final state = key.currentState;
-        if (state is KidnappingExtraFieldsState) state.hydrateFrom(data);
-      });
-    }
-
-    if (_hasKidnappingExtras) {
-      hydrateExtra(_kidnappingKey, extra['kidnapping_extra']);
-    }
+    _applySumTotals('');
 
     if (mounted) {
       setState(() {});
@@ -2557,13 +2560,6 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     extraFields['is_discharged'] = _dischargedAccusedList.isNotEmpty;
     extraFields['lastEditedBy'] = auth.displayName;
     extraFields['lastEditedAt'] = DateTime.now().toIso8601String();
-    // Category extra sections (same keys as CommonFormScreen)
-    if (_hasKidnappingExtras) {
-      final kData = _kidnappingKey.currentState?.collectData();
-      if (kData != null && kData.isNotEmpty) {
-        extraFields['kidnapping_extra'] = kData;
-      }
-    }
 
     // Independent modules (N.C., RTI, MPDA, A.D. ...) save through their own API
     if (widget.onSubmitCustom != null) {
@@ -3015,24 +3011,54 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   }
 
   /// Recalculates every `sum:` total field that adds up [changedKey]
-  /// (e.g. Total Crime = Serious + Miscellaneous). Empty parts count as 0;
-  /// when every part is empty the total is cleared.
+  /// (e.g. Total Crime = Serious + Miscellaneous, or repeating group row values).
+  /// Empty parts count as 0; when every part is empty the total is cleared.
+  /// If [changedKey] is empty, all sum fields are recalculated.
   void _applySumTotals(String changedKey) {
     for (final f in _formDef?.fields ?? const <DynamicFieldDef>[]) {
       final parts = f.sumOf;
-      if (!parts.contains(changedKey)) continue;
-      var total = 0;
+      if (parts.isEmpty) continue;
+      if (changedKey.isNotEmpty &&
+          !parts.any((p) =>
+              p == changedKey ||
+              p.startsWith('$changedKey.') ||
+              p.endsWith('.$changedKey'))) {
+        continue;
+      }
+      num total = 0;
       var anyValue = false;
       for (final p in parts) {
-        final raw =
-            (_controllers[p]?.text ?? _values[p]?.toString() ?? '').trim();
-        final n = int.tryParse(raw);
-        if (n != null) {
-          total += n;
-          anyValue = true;
+        if (p.contains('.')) {
+          final dotIdx = p.indexOf('.');
+          final groupKey = p.substring(0, dotIdx);
+          final childKey = p.substring(dotIdx + 1);
+          final rows = _values[groupKey];
+          if (rows is List) {
+            for (final row in rows) {
+              if (row is Map) {
+                final raw =
+                    (row[childKey] ?? '').toString().trim().replaceAll(',', '');
+                final n = num.tryParse(raw);
+                if (n != null) {
+                  total += n;
+                  anyValue = true;
+                }
+              }
+            }
+          }
+        } else {
+          final raw = (_controllers[p]?.text ?? _values[p]?.toString() ?? '')
+              .trim()
+              .replaceAll(',', '');
+          final n = num.tryParse(raw);
+          if (n != null) {
+            total += n;
+            anyValue = true;
+          }
         }
       }
-      final text = anyValue ? '$total' : '';
+      final text =
+          anyValue ? (total % 1 == 0 ? '${total.toInt()}' : '$total') : '';
       _controllers.putIfAbsent(f.fieldKey, () => TextEditingController());
       if (_controllers[f.fieldKey]!.text != text) {
         _controllers[f.fieldKey]!.text = text;
@@ -3520,14 +3546,6 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           ),
         );
       }
-    }
-
-    final categoryExtras = _buildCategoryExtras();
-    if (categoryExtras != null) {
-      final spotIdx = sectionCards.indexWhere((c) =>
-          c is DynamicSectionCard && c.title.toLowerCase().contains('spot'));
-      final at = spotIdx >= 0 ? spotIdx + 1 : (sectionCards.isEmpty ? 0 : 1);
-      sectionCards.insert(at, categoryExtras);
     }
 
     final screenWidth = MediaQuery.sizeOf(context).width;
@@ -4640,6 +4658,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                           final item = entry.value;
                           return _InlinePersonCard(
                             genderOptions: _genderOptions,
+                            showMedical: true,
+                            yesNoOptions: _yesNoOptions,
                             key: ObjectKey(item),
                             index: idx,
                             roleTitle: 'Accused',
@@ -7735,6 +7755,11 @@ class _InlinePersonCard extends StatefulWidget {
   /// card's own list
   final List<String> genderOptions;
 
+  /// Show Medical (an option of /api/options/yes_no/) and, when it is the
+  /// group's first option (Yes), Medical Date
+  final bool showMedical;
+  final List<String> yesNoOptions;
+
   const _InlinePersonCard({
     super.key,
     required this.index,
@@ -7745,6 +7770,8 @@ class _InlinePersonCard extends StatefulWidget {
     this.readOnly = false,
     this.canRemove = false,
     this.genderOptions = const [],
+    this.showMedical = false,
+    this.yesNoOptions = const [],
   });
 
   @override
@@ -7761,7 +7788,9 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
   late final TextEditingController _religionCtrl;
   late final TextEditingController _casteCtrl;
   late final TextEditingController _addressCtrl;
+  late final TextEditingController _medicalDateCtrl;
   String _selectedGender = '';
+  String _medical = '';
   bool _isCollapsed = false;
 
   @override
@@ -7789,6 +7818,9 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
 
     final g = widget.data['gender']?.toString();
     _selectedGender = g ?? '';
+    _medical = widget.data['medical']?.toString() ?? '';
+    _medicalDateCtrl = TextEditingController(
+        text: _displayDate(widget.data['medical_date']?.toString() ?? ''));
 
     _nameCtrl.addListener(() => _sync('name', _nameCtrl.text));
     _ageCtrl.addListener(() => _sync('age', _ageCtrl.text));
@@ -7799,7 +7831,20 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
     _religionCtrl.addListener(() => _sync('religion', _religionCtrl.text));
     _casteCtrl.addListener(() => _sync('caste', _casteCtrl.text));
     _addressCtrl.addListener(() => _sync('address', _addressCtrl.text));
+    _medicalDateCtrl
+        .addListener(() => _sync('medical_date', _medicalDateCtrl.text));
   }
+
+  /// dd/MM/yyyy for a saved date that may come back as yyyy-MM-dd
+  String _displayDate(String raw) {
+    final iso = DateTime.tryParse(raw.trim());
+    return iso != null && raw.contains('-')
+        ? DateFormat('dd/MM/yyyy').format(iso)
+        : raw;
+  }
+
+  bool get _medicalDone =>
+      widget.yesNoOptions.isNotEmpty && _medical == widget.yesNoOptions.first;
 
   void _sync(String key, String val) {
     widget.data[key] = val;
@@ -7839,6 +7884,7 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
     _religionCtrl.dispose();
     _casteCtrl.dispose();
     _addressCtrl.dispose();
+    _medicalDateCtrl.dispose();
     super.dispose();
   }
 
@@ -7873,11 +7919,28 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
     bool isRequired = false,
     int maxLines = 1,
     TextInputType? keyboardType,
+    bool isAge = false,
   }) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth >= 280;
         final isMultiline = maxLines > 1;
+
+        Widget box(List<TextInputFormatter>? formatters, String? errorText) =>
+            TextFormField(
+              controller: controller,
+              readOnly: widget.readOnly,
+              maxLines: maxLines,
+              keyboardType: keyboardType,
+              inputFormatters: formatters,
+              style:
+                  GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
+              decoration: _inputDeco(hint).copyWith(errorText: errorText),
+            );
+        // Ages: at most 3 digits, with the same message as every other tab
+        final input = isAge
+            ? AgeDigitsLimit(label: label, builder: box)
+            : box(null, null);
 
         if (!isWide) {
           return Column(
@@ -7906,15 +7969,7 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
                   ],
                 ),
               ),
-              TextFormField(
-                controller: controller,
-                readOnly: widget.readOnly,
-                maxLines: maxLines,
-                keyboardType: keyboardType,
-                style: GoogleFonts.poppins(
-                    fontSize: 13, color: AppColors.lightText),
-                decoration: _inputDeco(hint),
-              ),
+              input,
             ],
           );
         }
@@ -7955,20 +8010,110 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: TextFormField(
-                controller: controller,
-                readOnly: widget.readOnly,
-                maxLines: maxLines,
-                keyboardType: keyboardType,
-                style: GoogleFonts.poppins(
-                    fontSize: 13, color: AppColors.lightText),
-                decoration: _inputDeco(hint),
-              ),
+              child: input,
             ),
           ],
         );
       },
     );
+  }
+
+  /// Label beside (wide) or above (narrow) an input, like the card's other fields
+  Widget _labeled(String label, Widget input) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final text = Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.navyDark,
+          ),
+        );
+        if (constraints.maxWidth < 280) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(padding: const EdgeInsets.only(bottom: 4), child: text),
+              input,
+            ],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(width: 105, child: text),
+            const SizedBox(width: 8),
+            Expanded(child: input),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildMedicalField() {
+    final options = widget.yesNoOptions;
+    return _labeled(
+      'Medical',
+      DropdownButtonFormField<String>(
+        key: ValueKey('medical_${options.length}'),
+        initialValue: options.contains(_medical) ? _medical : null,
+        items: options
+            .map((o) => DropdownMenuItem(
+                  value: o,
+                  child: Text(o,
+                      style: GoogleFonts.poppins(
+                          fontSize: 13, color: AppColors.lightText)),
+                ))
+            .toList(),
+        onChanged: widget.readOnly
+            ? null
+            : (val) {
+                if (val == null) return;
+                setState(() => _medical = val);
+                _sync('medical', val);
+                // The date belongs to a done medical only
+                if (!_medicalDone) _medicalDateCtrl.clear();
+              },
+        decoration: _inputDeco('Select'),
+        icon: const Icon(Icons.keyboard_arrow_down_rounded,
+            color: AppColors.navyMid, size: 20),
+        dropdownColor: Colors.white,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
+    );
+  }
+
+  Widget _buildMedicalDateField() {
+    return _labeled(
+      'Medical Date',
+      TextFormField(
+        controller: _medicalDateCtrl,
+        readOnly: true,
+        onTap: widget.readOnly ? null : _pickMedicalDate,
+        style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
+        decoration: _inputDeco('dd/mm/yyyy').copyWith(
+          suffixIcon: const Icon(Icons.calendar_today_rounded,
+              size: 18, color: AppColors.navyMid),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickMedicalDate() async {
+    DateTime initial = DateTime.now();
+    try {
+      initial = DateFormat('dd/MM/yyyy').parseStrict(_medicalDateCtrl.text);
+    } catch (_) {}
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      _medicalDateCtrl.text = DateFormat('dd/MM/yyyy').format(picked);
+    }
   }
 
   Widget _buildGenderField() {
@@ -8156,6 +8301,7 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
                   controller: _ageCtrl,
                   hint: 'Enter Age',
                   keyboardType: TextInputType.number,
+                  isAge: true,
                 );
                 final genderFld = _buildGenderField();
                 final occFld = _buildField(
@@ -8196,6 +8342,12 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
                   hint: 'Enter Address',
                   maxLines: 2,
                 );
+                final medicalFlds = widget.showMedical
+                    ? [
+                        _buildMedicalField(),
+                        if (_medicalDone) _buildMedicalDateField(),
+                      ]
+                    : const <Widget>[];
 
                 if (!isWide) {
                   return Column(
@@ -8219,6 +8371,10 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
                       const SizedBox(height: 12),
                       casteFld,
                       const SizedBox(height: 12),
+                      for (final f in medicalFlds) ...[
+                        f,
+                        const SizedBox(height: 12),
+                      ],
                       addrFld,
                     ],
                   );
@@ -8268,9 +8424,23 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
                       children: [
                         Expanded(child: casteFld),
                         const SizedBox(width: 16),
-                        const Expanded(child: SizedBox.shrink()),
+                        Expanded(
+                            child: medicalFlds.isNotEmpty
+                                ? medicalFlds.first
+                                : const SizedBox.shrink()),
                       ],
                     ),
+                    if (medicalFlds.length > 1) ...[
+                      const SizedBox(height: 12),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Expanded(child: SizedBox.shrink()),
+                          const SizedBox(width: 16),
+                          Expanded(child: medicalFlds[1]),
+                        ],
+                      ),
+                    ],
                     const SizedBox(height: 12),
                     addrFld,
                   ],

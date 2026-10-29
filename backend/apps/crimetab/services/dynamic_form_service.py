@@ -19,12 +19,22 @@ from apps.crimetab.models.common_form import (
 logger = logging.getLogger(__name__)
 
 PREVENTIVE_ACTION_OPTION_GROUP = 'preventive_action_types'
+GENDER_OPTION_GROUP = 'gender'
 
 
 def get_preventive_action_types() -> List[str]:
     """Active Common Form preventive provisions from public.option_values, in display order."""
     return list(
         OptionValue.objects.filter(option_group=PREVENTIVE_ACTION_OPTION_GROUP, is_active=True)
+        .order_by('display_order', 'id')
+        .values_list('option_value', flat=True)
+    )
+
+
+def get_gender_choices() -> List[str]:
+    """Active genders from public.option_values ('gender' group), in display order."""
+    return list(
+        OptionValue.objects.filter(option_group=GENDER_OPTION_GROUP, is_active=True)
         .order_by('display_order', 'id')
         .values_list('option_value', flat=True)
     )
@@ -233,7 +243,7 @@ def get_form_definition(
             acts_dict[k] = v
 
     preventive_choices = get_preventive_action_types() if has_linked_bundle else []
-    gender_choices = ['Male', 'Female', 'Other']
+    gender_choices = get_gender_choices() if has_linked_bundle else []
     procedural_map = {
         'chkPanchSpot': 'Spot Panchanama',
         'chkSeizurePanch': 'Seizure Panchanama',

@@ -94,7 +94,6 @@ import '../widgets/summons_warrant_report_table.dart';
 import '../widgets/monthly_crime_comparative_table.dart';
 import 'juvenile_hub_screen.dart';
 import 'repeat_offender_summary_screen.dart';
-import 'nafis_hub_screen.dart';
 import 'elearning_screen.dart';
 import '../widgets/bell_icon_widget.dart';
 import '../widgets/form_iv_category_button.dart';
@@ -129,6 +128,7 @@ import 'module_record_detail_screen.dart';
 import 'my_cases_screen.dart';
 import 'pending_transfers_screen.dart';
 import '../widgets/dynamic_form/dynamic_form_screen.dart';
+import '../widgets/logout_confirm_dialog.dart';
 // Navigation targets for Hamburger Menu
 import 'profile_screen.dart';
 import 'station_access_grants_screen.dart';
@@ -207,10 +207,14 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
     case 'CRPC 1563 / BNSS 1753':
     case 'CRPC 1563 / 1753 (BNSS)':
     case 'CRPC 156(3) / BNSS 175(3)':
+    case 'CRPC 156(3)/BNSS 175(3)':
+    case 'CRPC 156(3)/ BNSS 175(3)':
     case 'Sec 186/175 (BNSS)':
       return FontAwesomeIcons.scaleBalanced;
     case 'Passport/PVR/Lic':
     case 'Passport/ PVR/Lic':
+    case 'Passport/PVR/Licence':
+    case 'Passport/ PVR/Licence':
     case 'Passport/PVR':
       return FontAwesomeIcons.idCard;
     case 'NDPS':
@@ -1909,14 +1913,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     _drawerItem(
                       Icons.admin_panel_settings_rounded,
                       MenuLocalizations.get(lang, 'adminPanel'),
-                      () {
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const AdminPanelScreen()),
-                        );
-                      },
+                      // Like the other items: the menu stays open, so Back
+                      // returns to it.
+                      () => Navigator.push(
+                        context,
+                        AppTheme.fadeSlideRoute(page: const AdminPanelScreen()),
+                      ),
                     ),
                   ],
                   if (PoliceHierarchyHelper.canSendAlerts(
@@ -2120,7 +2122,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _drawerItem(
                     Icons.logout_rounded,
                     l10n.logout,
-                    () {
+                    () async {
+                      // Ask first; nothing happens on Cancel.
+                      if (!await confirmLogout(context, label: l10n.logout) ||
+                          !context.mounted) {
+                        return;
+                      }
                       context
                           .read<SettingsProvider>()
                           .setSkipBiometricAutoTrigger(
@@ -3485,7 +3492,8 @@ class _HomeTabState extends State<_HomeTab> {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            item.name.replaceAll('\n', ' '),
+                            TranslationHelper.translate(
+                                context, item.name.replaceAll('\n', ' ')),
                             style: GoogleFonts.poppins(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -3719,7 +3727,7 @@ class _HomeTabState extends State<_HomeTab> {
     // Labels already shown by the fixed tiles above. Backend standalone rows
     // that match one of these (e.g. "A.D." vs "A.D", "Coin" vs "COIN",
     // "Missing" inside "Kidnapping/Missing", "Sec 156(3)/175(3)(BNSS)" vs
-    // "CRPC 1563 / BNSS 1753") must not be added a second time.
+    // "CRPC 156(3)/BNSS 175(3)") must not be added a second time.
     String norm(String s) =>
         s.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
     String digits(String s) => s.replaceAll(RegExp(r'[^0-9]'), '');
@@ -3728,6 +3736,7 @@ class _HomeTabState extends State<_HomeTab> {
       ...cases.map((c) => c.name),
       ...services.map((c) => c.name),
       ...ServiceData.dashboardTools.map((t) => t.label),
+      PassportLicenceScreen.licenceLabel, // a tab inside Passport/PVR/Licence
     ];
     final shownNorm = shownLabels.map(norm).toList();
     final shownDigits = shownLabels.map(digits).toList();
@@ -3996,11 +4005,12 @@ class _HomeTabState extends State<_HomeTab> {
         ),
       );
     } else if (item.name == 'NAFIS' || item.moduleKey == 'nafis') {
+      // Two tabs: NAFIS and Fingerprint
       final auth = context.read<AuthProvider>();
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
-          page: NAFISHubScreen(stationName: auth.stationName),
+          page: NafisFingerprintScreen(stationName: auth.stationName),
         ),
       );
     } else if (item.name == 'E-Learning' ||
@@ -4067,11 +4077,29 @@ class _HomeTabState extends State<_HomeTab> {
           ),
         ),
       );
+    } else if (item.moduleKey == 'kidnapping') {
+      // The combined "Kidnapping/Missing" tab of "1 to 5"
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const FormIVSelectionScreen(
+            openCategory: 'Kidnapping/Missing',
+            customTitle: 'Kidnapping/Missing',
+            mode: FormIVSelectionMode.browse,
+          ),
+        ),
+      );
     } else if (CategorySubtabsScreen.forTile(item.moduleKey) != null) {
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
             page: CategorySubtabsScreen.forTile(item.moduleKey)!),
+      );
+    } else if (item.moduleKey == 'passport') {
+      // Two tabs: Passport/PVR/Licence and Licence
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(page: const PassportLicenceScreen()),
       );
     } else if (item.moduleKey == 'hurt' || item.name == 'Hurt') {
       Navigator.push(
@@ -7164,6 +7192,21 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
             categoryName: item.name,
             moduleKey: item.moduleKey,
           );
+        } else if (item.moduleKey == 'passport') {
+          // Two tabs: Passport/PVR/Licence and Licence
+          Navigator.push(context,
+              AppTheme.fadeSlideRoute(page: const PassportLicenceScreen()));
+        } else if (item.moduleKey == 'kidnapping') {
+          // The combined "Kidnapping/Missing" tab of "1 to 5"
+          Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(
+                page: const FormIVSelectionScreen(
+                  openCategory: 'Kidnapping/Missing',
+                  customTitle: 'Kidnapping/Missing',
+                  mode: FormIVSelectionMode.add,
+                ),
+              ));
         } else if (item.moduleKey == 'missing') {
           Navigator.push(
               context,

@@ -28,7 +28,6 @@ import '../modules/hurt/providers/hurt_provider.dart';
 import '../modules/it_act/providers/it_act_provider.dart';
 import '../modules/juvenile/providers/juvenile_provider.dart';
 import '../modules/kidnapping/providers/kidnapping_provider.dart';
-import '../modules/kidnapping/widgets/kidnapping_extra_fields.dart';
 import '../modules/sand_theft/widgets/sand_theft_extra_fields.dart';
 import '../modules/mcoca/providers/mcoca_provider.dart';
 import '../modules/missing/providers/missing_provider.dart';
@@ -160,8 +159,6 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       GlobalKey<ReasonOfArrestFormViewState>();
   final GlobalKey<TransitRemandFormViewState> _transitRemandKey =
       GlobalKey<TransitRemandFormViewState>();
-  final GlobalKey<KidnappingExtraFieldsState> _kidnappingKey =
-      GlobalKey<KidnappingExtraFieldsState>();
   final GlobalKey<SandTheftExtraFieldsState> _sandTheftKey =
       GlobalKey<SandTheftExtraFieldsState>();
   final GlobalKey<PocsoExtraFieldsState> _pocsoKey =
@@ -200,17 +197,6 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
   bool get _isFinalReportForm => widget.subCategory == 'Final Report Form';
   bool get _isHousePropertySearchSeizureForm =>
       widget.subCategory == 'House/Property Search & Seizure';
-  bool get _hasKidnappingExtras {
-    final key = widget.moduleKey.trim().toLowerCase();
-    final sub = (widget.subCategory ?? '').trim().toLowerCase();
-    final label = widget.moduleLabel.trim().toLowerCase();
-    return key == 'kidnapping' ||
-        key == 'kid' ||
-        key.contains('kidnap') ||
-        sub.contains('kidnap') ||
-        label.contains('kidnap');
-  }
-
   bool get _hasSandTheftExtras {
     final key = widget.moduleKey.trim().toLowerCase();
     final sub = (widget.subCategory ?? '').trim().toLowerCase();
@@ -412,17 +398,6 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
             form.hydrateFromDocumentMap(Map<String, dynamic>.from(nested));
           } else {
             form.hydrateFromModuleRecordBasics(existing);
-          }
-        }
-        if (_hasKidnappingExtras && existing != null) {
-          final kRaw = existing.extraFields['kidnapping_extra'];
-          if (kRaw is Map) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (!mounted) return;
-              _kidnappingKey.currentState?.hydrateFrom(
-                Map<String, dynamic>.from(kRaw),
-              );
-            });
           }
         }
         if (_hasSandTheftExtras && existing != null) {
@@ -697,12 +672,6 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
         if (rawExtras != null && rawExtras.isNotEmpty) {
           extraMap = Map<String, dynamic>.from(rawExtras);
           extraMap.remove(kCommonFormExtraFieldsKey);
-        }
-        if (_hasKidnappingExtras) {
-          final kData = _kidnappingKey.currentState?.collectData();
-          if (kData != null && kData.isNotEmpty) {
-            extraMap['kidnapping_extra'] = kData;
-          }
         }
         if (_hasPocsoExtras) {
           final pData = _pocsoKey.currentState?.collectData();
@@ -1251,12 +1220,6 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
     extra['lastEditedByName'] = auth.displayName;
     extra['lastEditedByDesignation'] = auth.designation;
     extra['lastEditedAt'] = DateTime.now().toIso8601String();
-    if (!_isCrimeDetailForm && _hasKidnappingExtras) {
-      final kData = _kidnappingKey.currentState?.collectData();
-      if (kData != null && kData.isNotEmpty) {
-        extra['kidnapping_extra'] = kData;
-      }
-    }
     if (!_isCrimeDetailForm && _hasSandTheftExtras) {
       final sData = _sandTheftKey.currentState?.collectData();
       if (sData != null && sData.isNotEmpty) {
@@ -2052,26 +2015,19 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                                                                                   categoryId: widget.categoryId,
                                                                                   moduleLabel: widget.moduleLabel,
                                                                                   subCategory: widget.subCategory,
-                                                                                  middleSlot: _hasKidnappingExtras
-                                                                                      ? KidnappingExtraFields(
-                                                                                          key: _kidnappingKey,
-                                                                                          onActiveFieldTap: (label, ctrl, [section = '']) {
-                                                                                            _formKey.currentState?.setActiveVoiceField(label, ctrl, section);
-                                                                                          },
-                                                                                        )
-                                                                                      : _hasSandTheftExtras
-                                                                                          ? SandTheftExtraFields(key: _sandTheftKey)
-                                                                                          : _hasPocsoExtras
-                                                                                              ? PocsoExtraFields(
-                                                                                                  key: _pocsoKey,
-                                                                                                  onVictimNameChanged: (v) {
-                                                                                                    _formKey.currentState?.setVictimName(v);
-                                                                                                  },
-                                                                                                  onActiveFieldTap: (label, ctrl, [section = '']) {
-                                                                                                    _formKey.currentState?.setActiveVoiceField(label, ctrl, section);
-                                                                                                  },
-                                                                                                )
-                                                                                              : null,
+                                                                                  middleSlot: _hasSandTheftExtras
+                                                                                      ? SandTheftExtraFields(key: _sandTheftKey)
+                                                                                      : _hasPocsoExtras
+                                                                                          ? PocsoExtraFields(
+                                                                                              key: _pocsoKey,
+                                                                                              onVictimNameChanged: (v) {
+                                                                                                _formKey.currentState?.setVictimName(v);
+                                                                                              },
+                                                                                              onActiveFieldTap: (label, ctrl, [section = '']) {
+                                                                                                _formKey.currentState?.setActiveVoiceField(label, ctrl, section);
+                                                                                              },
+                                                                                            )
+                                                                                          : null,
                                                                                 ),
       bottomNavigationBar: SafeArea(
         child: Padding(

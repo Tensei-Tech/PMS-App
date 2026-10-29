@@ -882,6 +882,42 @@ class CommonFormE2ETests(TestCase):
         arrests = ArrestReleaseStatus.objects.filter(person__case_id=case_id)
         self.assertEqual(arrests.count(), 2)
 
+    def test_12b_accused_medical_yes_with_date_and_edit(self):
+        """Accused Medical (Yes / No) and Medical Date are saved, and an edit updates them."""
+        import uuid
+        from datetime import date
+        case_id = str(uuid.uuid4())
+        payload = {
+            'id': case_id,
+            'case_number': f'CR/TEST-MED-{uuid.uuid4().hex[:4]}',
+            'title': 'TEST Accused Medical',
+            'station_name': 'Test Station',
+            'status': 'Pending',
+            'accused': [
+                {'name': 'TEST Medical Done', 'medical': 'Yes', 'medical_date': '05/10/2026'},
+                {'name': 'TEST No Medical', 'medical': 'No', 'medical_date': ''},
+                {'name': 'TEST Not Answered'},
+            ],
+        }
+        res = self.client.post('/api/cases/', data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.data)
+
+        def person(name):
+            return CasesPerson.objects.get(case_id=case_id, role='accused', name=name)
+
+        self.assertEqual(person('TEST Medical Done').medical, 'Yes')
+        self.assertEqual(person('TEST Medical Done').medical_date, date(2026, 10, 5))
+        self.assertEqual(person('TEST No Medical').medical, 'No')
+        self.assertIsNone(person('TEST No Medical').medical_date)
+        self.assertIsNone(person('TEST Not Answered').medical)
+
+        # Edit: the first accused's answer changes to No (the form clears the date)
+        payload['accused'][0] = {'name': 'TEST Medical Done', 'medical': 'No', 'medical_date': ''}
+        res = self.client.put(f'/api/cases/{case_id}/', data=json.dumps(payload), content_type='application/json')
+        self.assertIn(res.status_code, (200, 201), res.data)
+        self.assertEqual(person('TEST Medical Done').medical, 'No')
+        self.assertIsNone(person('TEST Medical Done').medical_date)
+
     def test_13_unknown_accused_repeating_list(self):
         """
         Part I:

@@ -83,7 +83,10 @@ class _DynamicRepeatingGroupWidgetState
       _rows = [];
     }
     if (_rows.isEmpty &&
-        (widget.fieldDef.fieldKey.contains('accused') || _isSingleRow)) {
+        (widget.fieldDef.fieldKey.contains('accused') ||
+            widget.fieldDef.fieldKey.contains('injured') ||
+            widget.fieldDef.fieldKey.contains('damage') ||
+            _isSingleRow)) {
       _rows.add({});
     }
     if (widget.groupByFieldKey != null) {
@@ -224,7 +227,13 @@ class _DynamicRepeatingGroupWidgetState
                 label: Text(
                   widget.fieldDef.fieldKey.contains('accused')
                       ? 'Add Accused'
-                      : 'Add',
+                      : widget.fieldDef.fieldKey.contains('victim')
+                          ? 'Add Victim'
+                          : widget.fieldDef.fieldKey.contains('injured')
+                              ? 'Add Injured Person'
+                              : widget.fieldDef.fieldKey.contains('damage')
+                                  ? 'Add Damaged Property'
+                                  : 'Add',
                   style: GoogleFonts.poppins(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -257,6 +266,9 @@ class _DynamicRepeatingGroupWidgetState
   }) {
     final isAccused = widget.fieldDef.fieldKey.contains('accused');
     final isGang = widget.fieldDef.fieldKey.contains('gang');
+    final isVictim = widget.fieldDef.fieldKey.contains('victim');
+    final isInjured = widget.fieldDef.fieldKey.contains('injured');
+    final isDamage = widget.fieldDef.fieldKey.contains('damage');
     // Other groups are numbered by their own name: "Complainant 1", "Complainant 2"
     final titleText = groupLabel != null
         ? '$groupLabel Crime #${itemNumber ?? (index + 1)}'
@@ -264,7 +276,13 @@ class _DynamicRepeatingGroupWidgetState
             ? 'Accused Person #${index + 1}'
             : isGang
                 ? 'Member #${index + 1}'
-                : '${widget.fieldDef.fieldLabel} ${index + 1}';
+                : isVictim
+                    ? 'Victim #${index + 1}'
+                    : isInjured
+                        ? 'Injured Person #${index + 1}'
+                        : isDamage
+                            ? 'Damaged Property #${index + 1}'
+                            : '${widget.fieldDef.fieldLabel} ${index + 1}';
 
     final visibleChildren = widget.childFields
         .where((child) => _isChildVisibleInRow(child, row))
