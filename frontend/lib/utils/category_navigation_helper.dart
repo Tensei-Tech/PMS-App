@@ -12,6 +12,7 @@ import '../screens/no_form_configured_screen.dart';
 import '../screens/rti/rti_hub_screen.dart';
 import '../services/ad_service.dart';
 import '../screens/juvenile_hub_screen.dart';
+import '../screens/victim_hub_screen.dart';
 import '../screens/itsso_hub_screen.dart';
 import '../screens/dar_hub_screen.dart';
 import '../screens/irad_hub_screen.dart';
@@ -146,6 +147,38 @@ class CategoryNavigationHelper {
         context,
         AppTheme.fadeSlideRoute(
           page: const LicenceHubScreen(stationName: ''),
+        ),
+      );
+      return;
+    }
+
+    if (cleanName.toLowerCase() == 'sam/warrant' ||
+        cleanName.toLowerCase() == 'sam warrant' ||
+        cleanName.toLowerCase() == 'summons/warrant' ||
+        cleanName.toLowerCase() == 'summons & warrant' ||
+        moduleKey.toLowerCase() == 'sam_warrant' ||
+        moduleKey.toLowerCase() == 'samwarrant') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: ModuleHubScreen(
+            moduleLabel: cleanName,
+            moduleKey: 'sam_warrant',
+            readOnly: readOnly,
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (cleanName.toLowerCase() == 'victim' ||
+        moduleKey.toLowerCase() == 'victim') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const VictimHubScreen(
+            stationName: 'Current Station',
+          ),
         ),
       );
       return;

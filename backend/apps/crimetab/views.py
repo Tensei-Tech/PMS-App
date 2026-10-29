@@ -53,6 +53,7 @@ from apps.crimetab.serializers import (
 )
 from apps.crimetab.services.dynamic_form_service import get_form_definition, get_preventive_action_types
 from apps.crimetab.services.counter_service import (
+    CategoryIndex,
     get_group_counters,
     get_category_counters,
     get_twin_category_ids,
@@ -392,7 +393,9 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
                 return Response([], status=status.HTTP_200_OK)
 
             station_name = request.query_params.get('station_name') or getattr(request, 'station_name', None)
-            twin_ids = get_twin_category_ids(cat_id)
+            # All categories in one query; twins, sub-trees and counts use it
+            index = CategoryIndex()
+            twin_ids = get_twin_category_ids(cat_id, index)
             direct_children = list(CaseCategory.objects.filter(parent_category_id=cat_id, is_active=True).order_by('display_order', 'category_id'))
             seen_names = {c.category_name.strip().lower() for c in direct_children}
             twin_children = list(CaseCategory.objects.filter(parent_category_id__in=twin_ids, is_active=True).order_by('display_order', 'category_id'))
@@ -407,9 +410,8 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
             results = []
             for c in combined_children:
                 c_data = CaseCategorySerializer(c).data
-                c_data['counters'] = get_category_counters(c.category_id, station_name=station_name)
-                child_twin_ids = get_twin_category_ids(c.category_id)
-                c_data['has_children'] = CaseCategory.objects.filter(parent_category_id__in=child_twin_ids, is_active=True).exists()
+                c_data['counters'] = get_category_counters(c.category_id, station_name=station_name, index=index)
+                c_data['has_children'] = any(index.active_children(t) for t in index.twins(c.category_id))
                 results.append(c_data)
             return Response(results)
 

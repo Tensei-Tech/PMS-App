@@ -59,6 +59,11 @@ const Set<String> _kCommonFormBaselineModules = {
 /// Standalone category display names linked to "Common Form Baseline Template"
 /// in public.category_field_templates.
 const Set<String> _kCommonFormBaselineCategoryNames = {
+  'sam/warrant',
+  'sam warrant',
+  'summons/warrant',
+  'summons & warrant',
+  'victim',
   'murder',
   'attempt to murder',
   'dacoity',

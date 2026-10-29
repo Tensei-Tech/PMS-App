@@ -49,7 +49,6 @@ import '../modules/nc/providers/nc_provider.dart';
 import '../modules/nc/screens/nc_form_screen.dart';
 import '../modules/ndps/providers/ndps_provider.dart';
 import '../modules/passport/providers/passport_provider.dart';
-import '../modules/passport/screens/passport_hub_screen.dart';
 import '../modules/passport/widgets/passport_add_edit_dialog.dart';
 import '../modules/licence/providers/licence_provider.dart';
 import '../modules/licence/screens/licence_hub_screen.dart';
@@ -93,6 +92,7 @@ import 'arrested_hub_screen.dart';
 import '../widgets/summons_warrant_report_table.dart';
 import '../widgets/monthly_crime_comparative_table.dart';
 import 'juvenile_hub_screen.dart';
+import 'victim_hub_screen.dart';
 import 'repeat_offender_summary_screen.dart';
 import 'elearning_screen.dart';
 import '../widgets/bell_icon_widget.dart';
@@ -243,8 +243,10 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
     case 'ITSSO':
       return Icons.description_rounded;
     case 'NAFIS':
+    case 'NAFIS/Fingerprint':
       return Icons.fingerprint_rounded;
     case 'DAR':
+    case 'DAR/IRAD':
       return Icons.folder_rounded;
     case 'IRAD':
     case 'IRDA':
@@ -351,6 +353,7 @@ String? _getDashboardSvgPath(String label) {
     case 'repeatoffender':
       return 'assets/icons/repeatoffender.svg';
     case 'dar':
+    case 'darirad':
       return 'assets/icons/dar.svg';
     case 'irad':
     case 'irda':
@@ -3737,6 +3740,8 @@ class _HomeTabState extends State<_HomeTab> {
       ...services.map((c) => c.name),
       ...ServiceData.dashboardTools.map((t) => t.label),
       PassportLicenceScreen.licenceLabel, // a tab inside Passport/PVR/Licence
+      'DAR', 'IRAD', // tabs inside DAR/IRAD
+      'NAFIS', // a tab inside NAFIS/Fingerprint
     ];
     final shownNorm = shownLabels.map(norm).toList();
     final shownDigits = shownLabels.map(digits).toList();
@@ -3904,6 +3909,17 @@ class _HomeTabState extends State<_HomeTab> {
       );
       return;
     }
+    if (label.toUpperCase() == DarIradScreen.title) {
+      // Two tabs: DAR and IRAD
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: DarIradScreen(stationName: auth.stationName),
+        ),
+      );
+      return;
+    }
     if (label.toUpperCase() == 'DAR' || item.moduleKey.toLowerCase() == 'dar') {
       final auth = context.read<AuthProvider>();
       Navigator.push(
@@ -4004,7 +4020,9 @@ class _HomeTabState extends State<_HomeTab> {
           page: RepeatOffenderSummaryScreen(stationName: auth.stationName),
         ),
       );
-    } else if (item.name == 'NAFIS' || item.moduleKey == 'nafis') {
+    } else if (item.name == 'NAFIS' ||
+        item.name == NafisFingerprintScreen.title ||
+        item.moduleKey == 'nafis') {
       // Two tabs: NAFIS and Fingerprint
       final auth = context.read<AuthProvider>();
       Navigator.push(
@@ -4037,10 +4055,11 @@ class _HomeTabState extends State<_HomeTab> {
     } else if (label.toLowerCase().contains('passport') ||
         item.name.toLowerCase().contains('passport') ||
         item.moduleKey == 'passport') {
+      // Two tabs: Passport/PVR/Licence and Licence
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
-          page: PassportHubScreen(stationName: widget.auth.stationName),
+          page: PassportLicenceScreen(stationName: widget.auth.stationName),
         ),
       );
     } else if (item.moduleKey == 'service_tool') {
@@ -4095,12 +4114,6 @@ class _HomeTabState extends State<_HomeTab> {
         AppTheme.fadeSlideRoute(
             page: CategorySubtabsScreen.forTile(item.moduleKey)!),
       );
-    } else if (item.moduleKey == 'passport') {
-      // Two tabs: Passport/PVR/Licence and Licence
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(page: const PassportLicenceScreen()),
-      );
     } else if (item.moduleKey == 'hurt' || item.name == 'Hurt') {
       Navigator.push(
         context,
@@ -4122,9 +4135,21 @@ class _HomeTabState extends State<_HomeTab> {
           page: JuvenileHubScreen(stationName: widget.auth.stationName),
         ),
       );
+    } else if (item.moduleKey == 'victim' || item.name == 'Victim') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: VictimHubScreen(stationName: widget.auth.stationName),
+        ),
+      );
     } else {
-      final isStatsItem =
-          ['Monthly', 'Pending', 'Disposal'].contains(item.name);
+      final isStatsItem = [
+        'Monthly',
+        'Pending',
+        'Disposal',
+        'Sam/Warrant',
+        'Sam Warrant'
+      ].contains(item.name);
       if (isStatsItem) {
         Navigator.push(
           context,
@@ -7192,10 +7217,6 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
             categoryName: item.name,
             moduleKey: item.moduleKey,
           );
-        } else if (item.moduleKey == 'passport') {
-          // Two tabs: Passport/PVR/Licence and Licence
-          Navigator.push(context,
-              AppTheme.fadeSlideRoute(page: const PassportLicenceScreen()));
         } else if (item.moduleKey == 'kidnapping') {
           // The combined "Kidnapping/Missing" tab of "1 to 5"
           Navigator.push(
