@@ -60,8 +60,7 @@ class FormVISelectionScreen extends StatefulWidget {
     String category, [
     Set<String>? descendants,
   ]) {
-    if (category == FormVISelectionScreen.allFilterLabel ||
-        category.toLowerCase() == 'all') {
+    if (category == FormVISelectionScreen.allFilterLabel || category.toLowerCase() == 'all') {
       return true;
     }
 
@@ -83,8 +82,7 @@ class FormVISelectionScreen extends StatefulWidget {
     if (rawCat is String && rawCat.trim().isNotEmpty) {
       candidates.add(rawCat.trim());
     }
-    final rawSubCat =
-        r.extraFields['subCategory'] ?? r.extraFields['sub_category'];
+    final rawSubCat = r.extraFields['subCategory'] ?? r.extraFields['sub_category'];
     if (rawSubCat is String && rawSubCat.trim().isNotEmpty) {
       candidates.add(rawSubCat.trim());
     }
@@ -97,12 +95,10 @@ class FormVISelectionScreen extends StatefulWidget {
       candidates.add(rawCaseType.trim());
     }
 
-    String normalize(String s) =>
-        s.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+    String normalize(String s) => s.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
 
     final targetNames = <String>{category, ...(descendants ?? {})};
-    final normalizedTargets =
-        targetNames.map(normalize).where((s) => s.isNotEmpty).toSet();
+    final normalizedTargets = targetNames.map(normalize).where((s) => s.isNotEmpty).toSet();
 
     for (final cand in candidates) {
       final normCand = normalize(cand);
@@ -142,8 +138,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
   bool _isLoadingApiCategories = false;
   bool _isUsingFallbackCategories = false;
 
-  List<String> get _filterOptions =>
-      _apiCategories.isNotEmpty ? _apiCategories : kFormVICaseCategories;
+  List<String> get _filterOptions => _apiCategories.isNotEmpty ? _apiCategories : kFormVICaseCategories;
 
   @override
   void initState() {
@@ -163,12 +158,10 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
       final cats = await CaseService().fetchGroupCategories(2);
       if (mounted) {
         if (cats.isNotEmpty) {
-          final topLevel =
-              cats.where((c) => c['parent_category'] == null).toList();
+          final topLevel = cats.where((c) => c['parent_category'] == null).toList();
           final targetList = topLevel.isNotEmpty ? topLevel : cats;
           final names = targetList
-              .map((c) =>
-                  (c['category_name'] ?? c['name'] ?? '').toString().trim())
+              .map((c) => (c['category_name'] ?? c['name'] ?? '').toString().trim())
               .where((n) => n.isNotEmpty)
               .toSet()
               .toList();
@@ -207,9 +200,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
               r.extraFields['category']?.toString().trim() ??
               r.extraFields['moduleDisplayName']?.toString().trim() ??
               '';
-          if (fallbackName.isNotEmpty &&
-              !options
-                  .any((o) => o.toLowerCase() == fallbackName.toLowerCase())) {
+          if (fallbackName.isNotEmpty && !options.any((o) => o.toLowerCase() == fallbackName.toLowerCase())) {
             options.add(fallbackName);
           }
         }
@@ -218,10 +209,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
     }
     final parent = _categoryBreadcrumb.last;
     final children = _categoryChildrenCache[parent] ?? [];
-    return children
-        .map((c) => (c['category_name'] ?? c['name'] ?? '').toString())
-        .where((n) => n.isNotEmpty)
-        .toList();
+    return children.map((c) => (c['category_name'] ?? c['name'] ?? '').toString()).where((n) => n.isNotEmpty).toList();
   }
 
   Set<String> _getDescendantCategoryNames(String category) {
@@ -230,8 +218,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
       final children = _categoryChildrenCache[cat];
       if (children != null) {
         for (final child in children) {
-          final name =
-              (child['category_name'] ?? child['name'] ?? '').toString();
+          final name = (child['category_name'] ?? child['name'] ?? '').toString();
           if (name.isNotEmpty && !result.contains(name)) {
             result.add(name);
             collect(name);
@@ -283,8 +270,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
   }
 
   void _handleBackNavigation() {
-    if (widget.openCategory != null &&
-        _selectedCategory == widget.openCategory) {
+    if (widget.openCategory != null && _selectedCategory == widget.openCategory) {
       Navigator.pop(context);
     } else if (_selectedCategory != null) {
       setState(() => _selectedCategory = null);
@@ -297,10 +283,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
 
   bool _isDisposalRecord(ModuleRecord r) {
     final s = r.status.trim().toLowerCase();
-    return s == 'disposal' ||
-        s == 'disposed' ||
-        s == 'closed' ||
-        s == 'resolved';
+    return s == 'disposal' || s == 'disposed' || s == 'closed' || s == 'resolved';
   }
 
   bool _isPendingRecord(ModuleRecord r) {
@@ -308,9 +291,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
   }
 
   DateTime _recordTargetDate(ModuleRecord r) {
-    return _dateField == FormVIDateField.incidentDate
-        ? r.incidentDate
-        : r.createdAt;
+    return _dateField == FormVIDateField.incidentDate ? r.incidentDate : r.createdAt;
   }
 
   bool _recordMatchesDate(ModuleRecord r) {
@@ -358,9 +339,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
   String _formatDateRangeShort(DateTimeRange range) {
     final start = range.start;
     final end = range.end;
-    final sameDay = start.year == end.year &&
-        start.month == end.month &&
-        start.day == end.day;
+    final sameDay = start.year == end.year && start.month == end.month && start.day == end.day;
     if (sameDay) {
       return DateFormat('dd MMM yyyy').format(start);
     }
@@ -737,8 +716,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                               child: _buildChoiceTile(
                                 title: 'Incident Date',
                                 subtitle: 'Crime date',
-                                isSelected:
-                                    _dateField == FormVIDateField.incidentDate,
+                                isSelected: _dateField == FormVIDateField.incidentDate,
                                 onTap: () {
                                   setState(() {
                                     _dateField = FormVIDateField.incidentDate;
@@ -752,8 +730,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                               child: _buildChoiceTile(
                                 title: 'Registration Date',
                                 subtitle: 'Filing date',
-                                isSelected:
-                                    _dateField == FormVIDateField.createdAt,
+                                isSelected: _dateField == FormVIDateField.createdAt,
                                 onTap: () {
                                   setState(() {
                                     _dateField = FormVIDateField.createdAt;
@@ -783,12 +760,10 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                               child: _buildChoiceTile(
                                 title: 'Newest First',
                                 subtitle: 'Descending (↓)',
-                                isSelected: _dateSortOrder ==
-                                    FormVIDateSortOrder.newestFirst,
+                                isSelected: _dateSortOrder == FormVIDateSortOrder.newestFirst,
                                 onTap: () {
                                   setState(() {
-                                    _dateSortOrder =
-                                        FormVIDateSortOrder.newestFirst;
+                                    _dateSortOrder = FormVIDateSortOrder.newestFirst;
                                   });
                                   setModalState(() {});
                                 },
@@ -799,12 +774,10 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                               child: _buildChoiceTile(
                                 title: 'Oldest First',
                                 subtitle: 'Ascending (↑)',
-                                isSelected: _dateSortOrder ==
-                                    FormVIDateSortOrder.oldestFirst,
+                                isSelected: _dateSortOrder == FormVIDateSortOrder.oldestFirst,
                                 onTap: () {
                                   setState(() {
-                                    _dateSortOrder =
-                                        FormVIDateSortOrder.oldestFirst;
+                                    _dateSortOrder = FormVIDateSortOrder.oldestFirst;
                                   });
                                   setModalState(() {});
                                 },
@@ -887,8 +860,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
           color: isSelected ? const Color(0xFF1976D2) : const Color(0xFFF1F5F9),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color:
-                isSelected ? const Color(0xFF1976D2) : const Color(0xFFCBD5E1),
+            color: isSelected ? const Color(0xFF1976D2) : const Color(0xFFCBD5E1),
           ),
         ),
         child: Text(
@@ -919,8 +891,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
           color: isSelected ? const Color(0xFFE8F1FC) : Colors.white,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color:
-                isSelected ? const Color(0xFF1976D2) : const Color(0xFFCBD5E1),
+            color: isSelected ? const Color(0xFF1976D2) : const Color(0xFFCBD5E1),
             width: isSelected ? 1.5 : 1.0,
           ),
         ),
@@ -930,13 +901,9 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
             Row(
               children: [
                 Icon(
-                  isSelected
-                      ? Icons.radio_button_checked_rounded
-                      : Icons.radio_button_off_rounded,
+                  isSelected ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
                   size: 14,
-                  color: isSelected
-                      ? const Color(0xFF1976D2)
-                      : AppColors.lightSubText,
+                  color: isSelected ? const Color(0xFF1976D2) : AppColors.lightSubText,
                 ),
                 const SizedBox(width: 6),
                 Expanded(
@@ -946,11 +913,8 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
                       fontSize: 11.5,
-                      fontWeight:
-                          isSelected ? FontWeight.w700 : FontWeight.w500,
-                      color: isSelected
-                          ? const Color(0xFF1976D2)
-                          : AppColors.navyDark,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      color: isSelected ? const Color(0xFF1976D2) : AppColors.navyDark,
                     ),
                   ),
                 ),
@@ -993,27 +957,19 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
     final descendants = _getDescendantCategoryNames(category);
     final categoryRecords = category == FormVISelectionScreen.allFilterLabel
         ? records.toList()
-        : records
-            .where((r) => FormVISelectionScreen.recordMatchesCategory(
-                r, category, descendants))
-            .toList();
+        : records.where((r) => FormVISelectionScreen.recordMatchesCategory(r, category, descendants)).toList();
 
     final filtered = categoryRecords.where(_recordMatchesDate).toList();
 
     filtered.sort((a, b) {
       final dateA = _recordTargetDate(a);
       final dateB = _recordTargetDate(b);
-      return _dateSortOrder == FormVIDateSortOrder.newestFirst
-          ? dateB.compareTo(dateA)
-          : dateA.compareTo(dateB);
+      return _dateSortOrder == FormVIDateSortOrder.newestFirst ? dateB.compareTo(dateA) : dateA.compareTo(dateB);
     });
     return filtered;
   }
 
-  void _openForm(String category,
-      {ModuleRecord? existingRecord,
-      dynamic categoryId,
-      bool readOnly = false}) async {
+  void _openForm(String category, {ModuleRecord? existingRecord, dynamic categoryId, bool readOnly = false}) async {
     final result = await Navigator.push(
       context,
       AppTheme.fadeSlideRoute(
@@ -1030,8 +986,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
     if (!mounted) return;
     await context.read<FormVIProvider>().refresh();
     if (result is ModuleRecord &&
-        (result.status.toLowerCase() == 'disposal' ||
-            result.status.toLowerCase() == 'disposed')) {
+        (result.status.toLowerCase() == 'disposal' || result.status.toLowerCase() == 'disposed')) {
       setState(() {
         _selectedStatusTab = FormVIStatusTab.disposal;
       });
@@ -1040,8 +995,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
 
   void _onNewCase() {
     String category;
-    if (_selectedCategory != null &&
-        _selectedCategory != FormVISelectionScreen.allFilterLabel) {
+    if (_selectedCategory != null && _selectedCategory != FormVISelectionScreen.allFilterLabel) {
       category = _selectedCategory!;
     } else if (_currentDisplayCategories.isNotEmpty) {
       category = _currentDisplayCategories.first;
@@ -1078,9 +1032,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
               color: hasDateFilter ? const Color(0xFFE8F1FC) : Colors.white,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: hasDateFilter
-                    ? const Color(0xFF1976D2)
-                    : const Color(0xFFCBD5E1),
+                color: hasDateFilter ? const Color(0xFF1976D2) : const Color(0xFFCBD5E1),
                 width: hasDateFilter ? 1.3 : 1.0,
               ),
               boxShadow: [
@@ -1099,20 +1051,15 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                 Icon(
                   Icons.calendar_month_rounded,
                   size: 15,
-                  color: hasDateFilter
-                      ? const Color(0xFF1976D2)
-                      : AppColors.navyMid,
+                  color: hasDateFilter ? const Color(0xFF1976D2) : AppColors.navyMid,
                 ),
                 const SizedBox(width: 6),
                 Text(
                   dateText,
                   style: GoogleFonts.poppins(
                     fontSize: 12,
-                    fontWeight:
-                        hasDateFilter ? FontWeight.w600 : FontWeight.w500,
-                    color: hasDateFilter
-                        ? const Color(0xFF1976D2)
-                        : AppColors.navyDark,
+                    fontWeight: hasDateFilter ? FontWeight.w600 : FontWeight.w500,
+                    color: hasDateFilter ? const Color(0xFF1976D2) : AppColors.navyDark,
                   ),
                 ),
                 if (hasDateFilter) ...[
@@ -1167,8 +1114,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
               child: Row(
                 children: [
                   Icon(
-                    _dateField == FormVIDateField.incidentDate &&
-                            _dateSortOrder == FormVIDateSortOrder.newestFirst
+                    _dateField == FormVIDateField.incidentDate && _dateSortOrder == FormVIDateSortOrder.newestFirst
                         ? Icons.check_circle_rounded
                         : Icons.radio_button_unchecked_rounded,
                     size: 16,
@@ -1187,8 +1133,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
               child: Row(
                 children: [
                   Icon(
-                    _dateField == FormVIDateField.incidentDate &&
-                            _dateSortOrder == FormVIDateSortOrder.oldestFirst
+                    _dateField == FormVIDateField.incidentDate && _dateSortOrder == FormVIDateSortOrder.oldestFirst
                         ? Icons.check_circle_rounded
                         : Icons.radio_button_unchecked_rounded,
                     size: 16,
@@ -1208,8 +1153,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
               child: Row(
                 children: [
                   Icon(
-                    _dateField == FormVIDateField.createdAt &&
-                            _dateSortOrder == FormVIDateSortOrder.newestFirst
+                    _dateField == FormVIDateField.createdAt && _dateSortOrder == FormVIDateSortOrder.newestFirst
                         ? Icons.check_circle_rounded
                         : Icons.radio_button_unchecked_rounded,
                     size: 16,
@@ -1228,8 +1172,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
               child: Row(
                 children: [
                   Icon(
-                    _dateField == FormVIDateField.createdAt &&
-                            _dateSortOrder == FormVIDateSortOrder.oldestFirst
+                    _dateField == FormVIDateField.createdAt && _dateSortOrder == FormVIDateSortOrder.oldestFirst
                         ? Icons.check_circle_rounded
                         : Icons.radio_button_unchecked_rounded,
                     size: 16,
@@ -1298,8 +1241,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
     final fieldName = _dateField == FormVIDateField.incidentDate
         ? TranslationHelper.translate(context, 'incident date')
         : TranslationHelper.translate(context, 'registration date');
-    final label =
-        _datePresetLabel ?? _formatDateRangeShort(_selectedDateRange!);
+    final label = _datePresetLabel ?? _formatDateRangeShort(_selectedDateRange!);
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
@@ -1364,19 +1306,16 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
 
     List<ModuleRecord> baseRecords = allRecords;
 
-    if (_selectedCategory != null &&
-        _selectedCategory != FormVISelectionScreen.allFilterLabel) {
+    if (_selectedCategory != null && _selectedCategory != FormVISelectionScreen.allFilterLabel) {
       final descendants = _getDescendantCategoryNames(_selectedCategory!);
       baseRecords = baseRecords
-          .where((r) => FormVISelectionScreen.recordMatchesCategory(
-              r, _selectedCategory!, descendants))
+          .where((r) => FormVISelectionScreen.recordMatchesCategory(r, _selectedCategory!, descendants))
           .toList();
     } else if (_categoryBreadcrumb.isNotEmpty) {
       final currentCategory = _categoryBreadcrumb.last;
       final descendants = _getDescendantCategoryNames(currentCategory);
       baseRecords = baseRecords
-          .where((r) => FormVISelectionScreen.recordMatchesCategory(
-              r, currentCategory, descendants))
+          .where((r) => FormVISelectionScreen.recordMatchesCategory(r, currentCategory, descendants))
           .toList();
     }
 
@@ -1391,13 +1330,10 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
     statusRecords.sort((a, b) {
       final dateA = _recordTargetDate(a);
       final dateB = _recordTargetDate(b);
-      return _dateSortOrder == FormVIDateSortOrder.newestFirst
-          ? dateB.compareTo(dateA)
-          : dateA.compareTo(dateB);
+      return _dateSortOrder == FormVIDateSortOrder.newestFirst ? dateB.compareTo(dateA) : dateA.compareTo(dateB);
     });
 
-    final visibleRecords =
-        _selectedCategory != null ? statusRecords : <ModuleRecord>[];
+    final visibleRecords = _selectedCategory != null ? statusRecords : <ModuleRecord>[];
 
     final dateSuffix = (_selectedCategory != null && _selectedDateRange != null)
         ? ' · ${_datePresetLabel ?? _formatDateRangeShort(_selectedDateRange!)}'
@@ -1408,11 +1344,9 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
       final transCases = TranslationHelper.translate(context, 'cases');
       final transTypes = TranslationHelper.translate(context, 'types');
       if (_categoryBreadcrumb.isEmpty) {
-        subtitle =
-            '${statusRecords.length} $transCases · ${_filterOptions.length} $transTypes';
+        subtitle = '${statusRecords.length} $transCases · ${_filterOptions.length} $transTypes';
       } else {
-        subtitle =
-            '${_categoryBreadcrumb.join(' / ')} · ${_currentDisplayCategories.length} $transTypes';
+        subtitle = '${_categoryBreadcrumb.join(' / ')} · ${_currentDisplayCategories.length} $transTypes';
       }
     } else if (_selectedCategory == FormVISelectionScreen.allFilterLabel) {
       final transCases = TranslationHelper.translate(context, 'cases');
@@ -1423,11 +1357,8 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
         _selectedCategory!,
       );
       final transCases = TranslationHelper.translate(context, 'cases');
-      final prefix = _categoryBreadcrumb.isNotEmpty
-          ? '${_categoryBreadcrumb.join(' / ')} / '
-          : '';
-      subtitle =
-          '$prefix$transCategory · ${visibleRecords.length} $transCases$dateSuffix';
+      final prefix = _categoryBreadcrumb.isNotEmpty ? '${_categoryBreadcrumb.join(' / ')} / ' : '';
+      subtitle = '$prefix$transCategory · ${visibleRecords.length} $transCases$dateSuffix';
     }
 
     final Widget? actionWidget = _showNewCaseFab
@@ -1454,8 +1385,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
         : null;
 
     return PopScope(
-      canPop: (widget.openCategory != null &&
-              _selectedCategory == widget.openCategory) ||
+      canPop: (widget.openCategory != null && _selectedCategory == widget.openCategory) ||
           (_selectedCategory == null && _categoryBreadcrumb.isEmpty),
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
@@ -1485,8 +1415,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
             if (kDebugMode && _isUsingFallbackCategories)
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.amber.shade100,
                   borderRadius: BorderRadius.circular(6),
@@ -1494,23 +1423,18 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.warning_amber_rounded,
-                        size: 16, color: Colors.amber.shade900),
+                    Icon(Icons.warning_amber_rounded, size: 16, color: Colors.amber.shade900),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
                         'DEBUG NOTICE: Using offline fallback category list for Group 2.',
-                        style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.amber.shade900,
-                            fontWeight: FontWeight.w600),
+                        style: TextStyle(fontSize: 11, color: Colors.amber.shade900, fontWeight: FontWeight.w600),
                       ),
                     ),
                   ],
                 ),
               ),
-            if (_isLoadingApiCategories && _apiCategories.isEmpty)
-              const LinearProgressIndicator(minHeight: 2),
+            if (_isLoadingApiCategories && _apiCategories.isEmpty) const LinearProgressIndicator(minHeight: 2),
             if (_selectedCategory == null) ...[
               if (_categoryBreadcrumb.isNotEmpty)
                 Container(
@@ -1520,8 +1444,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                   ),
                   decoration: const BoxDecoration(
                     color: Colors.white,
-                    border:
-                        Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+                    border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
                   ),
                   width: double.infinity,
                   child: Row(
@@ -1552,8 +1475,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                                 TranslationHelper.translate(
                                   context,
                                   _categoryBreadcrumb.length > 1
-                                      ? _categoryBreadcrumb[
-                                          _categoryBreadcrumb.length - 2]
+                                      ? _categoryBreadcrumb[_categoryBreadcrumb.length - 2]
                                       : 'All Categories',
                                 ),
                                 style: GoogleFonts.poppins(
@@ -1591,12 +1513,9 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                                   ),
                                 ),
                               ),
-                              for (int i = 0;
-                                  i < _categoryBreadcrumb.length;
-                                  i++) ...[
+                              for (int i = 0; i < _categoryBreadcrumb.length; i++) ...[
                                 Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 6),
+                                  padding: const EdgeInsets.symmetric(horizontal: 6),
                                   child: Text(
                                     '/',
                                     style: GoogleFonts.poppins(
@@ -1759,8 +1678,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                   ],
                 ),
               ),
-              if (_selectedDateRange != null)
-                _buildActiveDateFilterBanner(visibleRecords.length),
+              if (_selectedDateRange != null) _buildActiveDateFilterBanner(visibleRecords.length),
               Expanded(
                 child: visibleRecords.isEmpty
                     ? _EmptyCasesState(
@@ -1796,15 +1714,11 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                               });
                             },
                             onEdit: () => _openForm(
-                              record.subCategory?.isNotEmpty == true
-                                  ? record.subCategory!
-                                  : record.title,
+                              record.subCategory?.isNotEmpty == true ? record.subCategory! : record.title,
                               existingRecord: record,
                             ),
                             onView: () => _openForm(
-                              record.subCategory?.isNotEmpty == true
-                                  ? record.subCategory!
-                                  : record.title,
+                              record.subCategory?.isNotEmpty == true ? record.subCategory! : record.title,
                               existingRecord: record,
                               readOnly: true,
                             ),
@@ -1893,9 +1807,7 @@ class FormVIStatusTabBar extends StatelessWidget {
                         decoration: BoxDecoration(
                           border: Border(
                             bottom: BorderSide(
-                              color: isSelected
-                                  ? const Color(0xFF1976D2)
-                                  : Colors.transparent,
+                              color: isSelected ? const Color(0xFF1976D2) : Colors.transparent,
                               width: 2.5,
                             ),
                           ),
@@ -1907,12 +1819,8 @@ class FormVIStatusTabBar extends StatelessWidget {
                               TranslationHelper.translate(context, item.label),
                               style: GoogleFonts.poppins(
                                 fontSize: 13.5,
-                                fontWeight: isSelected
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                                color: isSelected
-                                    ? AppColors.navyDark
-                                    : AppColors.lightSubText,
+                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                color: isSelected ? AppColors.navyDark : AppColors.lightSubText,
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -1923,8 +1831,7 @@ class FormVIStatusTabBar extends StatelessWidget {
                               ),
                               decoration: BoxDecoration(
                                 color: item.badgeBg,
-                                borderRadius:
-                                    BorderRadius.circular(AppRadius.full),
+                                borderRadius: BorderRadius.circular(AppRadius.full),
                               ),
                               child: Text(
                                 '${item.count}',
@@ -1972,12 +1879,8 @@ class _CategoryGridView extends StatelessWidget {
     if (category == FormVISelectionScreen.allFilterLabel) {
       return records.length;
     }
-    final descendants =
-        getDescendantNames != null ? getDescendantNames!(category) : {category};
-    return records
-        .where((r) => FormVISelectionScreen.recordMatchesCategory(
-            r, category, descendants))
-        .length;
+    final descendants = getDescendantNames != null ? getDescendantNames!(category) : {category};
+    return records.where((r) => FormVISelectionScreen.recordMatchesCategory(r, category, descendants)).length;
   }
 
   IconData _iconForCategory(String category) {
@@ -2013,8 +1916,7 @@ class _CategoryGridView extends StatelessWidget {
             final category = categories[index];
             final count = _countFor(category);
             final isAll = category == FormVISelectionScreen.allFilterLabel;
-            final transCategory =
-                TranslationHelper.translate(context, category);
+            final transCategory = TranslationHelper.translate(context, category);
 
             return _CategoryGridCard(
               category: transCategory,
@@ -2074,9 +1976,7 @@ class _CategoryGridCardState extends State<_CategoryGridCard> {
           ),
           boxShadow: [
             BoxShadow(
-              color: _hovered
-                  ? const Color(0xFF1976D2).withValues(alpha: 0.12)
-                  : Colors.black.withValues(alpha: 0.03),
+              color: _hovered ? const Color(0xFF1976D2).withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.03),
               blurRadius: _hovered ? 10 : 3,
               offset: Offset(0, _hovered ? 3 : 1),
             ),
@@ -2097,21 +1997,15 @@ class _CategoryGridCardState extends State<_CategoryGridCard> {
                     decoration: BoxDecoration(
                       color: widget.isAll
                           ? const Color(0xFF1976D2).withValues(alpha: 0.1)
-                          : (hasCases
-                              ? const Color(0xFF0284C7).withValues(alpha: 0.1)
-                              : const Color(0xFFF1F5F9)),
+                          : (hasCases ? const Color(0xFF0284C7).withValues(alpha: 0.1) : const Color(0xFFF1F5F9)),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: CategoryIconHelper.buildWidget(
-                      widget.isAll
-                          ? 'all'
-                          : (widget.rawCategory ?? widget.category),
+                      widget.isAll ? 'all' : (widget.rawCategory ?? widget.category),
                       size: 20,
                       color: widget.isAll
                           ? const Color(0xFF1976D2)
-                          : (hasCases
-                              ? const Color(0xFF0284C7)
-                              : AppColors.lightSubText),
+                          : (hasCases ? const Color(0xFF0284C7) : AppColors.lightSubText),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -2133,16 +2027,11 @@ class _CategoryGridCardState extends State<_CategoryGridCard> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          widget.count == 1
-                              ? '1 case'
-                              : '${widget.count} cases',
+                          widget.count == 1 ? '1 case' : '${widget.count} cases',
                           style: GoogleFonts.poppins(
                             fontSize: 11,
-                            color: hasCases
-                                ? const Color(0xFF1976D2)
-                                : AppColors.lightSubText,
-                            fontWeight:
-                                hasCases ? FontWeight.w600 : FontWeight.w400,
+                            color: hasCases ? const Color(0xFF1976D2) : AppColors.lightSubText,
+                            fontWeight: hasCases ? FontWeight.w600 : FontWeight.w400,
                           ),
                         ),
                       ],
@@ -2152,9 +2041,7 @@ class _CategoryGridCardState extends State<_CategoryGridCard> {
                   Icon(
                     Icons.chevron_right_rounded,
                     size: 16,
-                    color: _hovered
-                        ? const Color(0xFF1976D2)
-                        : const Color(0xFFCBD5E1),
+                    color: _hovered ? const Color(0xFF1976D2) : const Color(0xFFCBD5E1),
                   ),
                 ],
               ),
@@ -2339,21 +2226,18 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
     }
   }
 
-  Future<void> _showQuickDisposeDialog(
-      BuildContext context, ModuleRecord record) async {
+  Future<void> _showQuickDisposeDialog(BuildContext context, ModuleRecord record) async {
     final ccCtrl = TextEditingController();
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: Text('Quick Dispose',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
+        title: Text('Quick Dispose', style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-                'Enter CC / ST Number (Optional) to mark this case as disposed.',
+            Text('Enter CC / ST Number (Optional) to mark this case as disposed.',
                 style: GoogleFonts.poppins(fontSize: 13)),
             const SizedBox(height: 16),
             TextField(
@@ -2361,8 +2245,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
               decoration: InputDecoration(
                 labelText: 'CC / ST No.',
                 labelStyle: GoogleFonts.poppins(fontSize: 13),
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                 isDense: true,
               ),
             ),
@@ -2371,19 +2254,16 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text('Cancel',
-                style: GoogleFonts.poppins(color: AppColors.lightSubText)),
+            child: Text('Cancel', style: GoogleFonts.poppins(color: AppColors.lightSubText)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.successGreen,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: Text('Dispose Case',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+            child: Text('Dispose Case', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -2395,9 +2275,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
     final currentRecord = record;
 
     final newCourt = Map<String, dynamic>.from(
-      (currentRecord.extraFields['court'] is Map)
-          ? currentRecord.extraFields['court'] as Map
-          : {},
+      (currentRecord.extraFields['court'] is Map) ? currentRecord.extraFields['court'] as Map : {},
     );
     if (ccVal.isNotEmpty) newCourt['ccStNumber'] = ccVal;
 
@@ -2431,9 +2309,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          ccVal.isNotEmpty
-              ? 'Case disposed with CC/ST No. $ccVal'
-              : 'Case marked as disposed',
+          ccVal.isNotEmpty ? 'Case disposed with CC/ST No. $ccVal' : 'Case marked as disposed',
           style: GoogleFonts.poppins(),
         ),
         backgroundColor: AppColors.successGreen,
@@ -2450,7 +2326,19 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
     final accusedName = _getNameOfAccused(record, doc);
     final crimeDate = _getCrimeDate(record, doc);
 
-    final statusColor = _statusColor(record.status);
+    final isDisposal = record.status.toLowerCase() == 'disposal' ||
+        record.status.toLowerCase() == 'closed' ||
+        record.status.toLowerCase() == 'resolved';
+    final isPending = record.status.toLowerCase() == 'pending' ||
+        record.status.toLowerCase() == 'open' ||
+        record.status.toLowerCase() == 'active';
+    final Color statusColor =
+        isDisposal ? const Color(0xFF2E7D32) : (isPending ? const Color(0xFFE65100) : const Color(0xFFD32F2F));
+    final Color statusBg =
+        isDisposal ? const Color(0xFFE8F5E9) : (isPending ? const Color(0xFFFFF3E0) : const Color(0xFFFFEBEE));
+    final Color statusBorder =
+        isDisposal ? const Color(0xFFA5D6A7) : (isPending ? const Color(0xFFFFCC80) : const Color(0xFFFFCDD2));
+
     final categoryLabel = record.subCategory?.trim().isNotEmpty == true
         ? TranslationHelper.translate(context, record.subCategory!.trim())
         : TranslationHelper.translate(
@@ -2458,287 +2346,309 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
             record.firestoreCategoryDisplayName,
           );
 
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1100),
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: const Color(0xFFE2E8F0),
-              width: 1.1,
+    Widget buildDetailsRow(bool isExpandedMode) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 1. Identification: CR No. Badge + Category Badge
+          Container(
+            height: 38,
+            width: 120,
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: const Color(0xFFCBD5E1)),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'CR No.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF64748B),
+                    height: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Tooltip(
+                  message: crNo,
+                  child: Text(
+                    crNo,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyDark,
+                      height: 1.0,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header Row: All fields in one clean line
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final isWide = constraints.maxWidth >= 820;
-
-                    if (!isWide) {
-                      return _buildMobileCompactHeader(
-                        crNo: crNo,
-                        categoryLabel: categoryLabel,
-                        sectionAct: sectionAct,
-                        accusedName: accusedName,
-                        crimeDate: crimeDate,
-                        statusColor: statusColor,
-                        record: record,
-                      );
-                    }
-
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // 1. Identification: CR No. Badge + Category Badge
-                        Container(
-                          height: 38,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: const Color(0xFFCBD5E1)),
-                          ),
-                          alignment: Alignment.center,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'CR No.',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF64748B),
-                                  height: 1.0,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                crNo,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.navyDark,
-                                  height: 1.0,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (categoryLabel.isNotEmpty) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            height: 38,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color:
-                                  AppColors.goldPrimary.withValues(alpha: 0.10),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: AppColors.goldPrimary
-                                    .withValues(alpha: 0.35),
-                              ),
-                            ),
-                            alignment: Alignment.center,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Category',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.goldPrimary,
-                                    height: 1.0,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  categoryLabel,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.goldPrimary,
-                                    height: 1.0,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-
-                        _buildDivider(),
-
-                        // 2. Section / Act (flex: 3)
-                        Expanded(
-                          flex: 3,
-                          child: _buildFieldColumn(
-                            context: context,
-                            label: 'Section / Act',
-                            value: (sectionAct.isEmpty || sectionAct == '-')
-                                ? '—'
-                                : sectionAct,
-                            icon: Icons.gavel_rounded,
-                          ),
-                        ),
-
-                        _buildDivider(),
-
-                        // 3. Name of Accused (flex: 4)
-                        Expanded(
-                          flex: 4,
-                          child: _buildFieldColumn(
-                            context: context,
-                            label: 'Accused Name',
-                            value: (accusedName.isEmpty || accusedName == '-')
-                                ? '—'
-                                : accusedName,
-                            icon: Icons.person_outline_rounded,
-                          ),
-                        ),
-
-                        _buildDivider(),
-
-                        // 4. Crime Date (flex: 2)
-                        Expanded(
-                          flex: 2,
-                          child: _buildFieldColumn(
-                            context: context,
-                            label: 'Crime Date',
-                            value: (crimeDate.isEmpty || crimeDate == '-')
-                                ? '—'
-                                : crimeDate,
-                            icon: Icons.calendar_today_outlined,
-                          ),
-                        ),
-
-                        _buildDivider(),
-
-                        // 5. Status Badge (Fixed width 96)
-                        Container(
-                          height: 34,
-                          width: 96,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 2),
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: statusColor.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                                color: statusColor.withValues(alpha: 0.35)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                width: 6,
-                                height: 6,
-                                decoration: BoxDecoration(
-                                  color: statusColor,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Flexible(
-                                child: Tooltip(
-                                  message: record.status,
-                                  child: Text(
-                                    TranslationHelper.translate(
-                                        context, record.status),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: statusColor,
-                                      height: 1.0,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        _buildDivider(),
-
-                        // 6. Action Buttons: Dispose, Edit, View, PDF
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            if (!widget.readOnly &&
-                                record.status != 'Disposal') ...[
-                              _buildCompactActionButton(
-                                icon: Icons.fact_check_outlined,
-                                label: 'Dispose',
-                                color: AppColors.successGreen,
-                                onTap: () =>
-                                    _showQuickDisposeDialog(context, record),
-                              ),
-                              const SizedBox(width: 6),
-                            ],
-                            if (!widget.readOnly) ...[
-                              _buildCompactActionButton(
-                                icon: Icons.edit_outlined,
-                                label: 'Edit',
-                                color: AppColors.navyDark,
-                                onTap: widget.onEdit,
-                              ),
-                              const SizedBox(width: 6),
-                            ],
-                            _buildCompactActionButton(
-                              icon: Icons.visibility_outlined,
-                              label: 'View',
-                              color: AppColors.navyDark,
-                              onTap: widget.onView,
-                            ),
-                            const SizedBox(width: 6),
-                            _buildCompactActionButton(
-                              icon: Icons.picture_as_pdf_outlined,
-                              label: 'PDF',
-                              color: AppColors.navyDark,
-                              onTap: () => runWithPdfAuthGate(
-                                context,
-                                () => ModulePdfHelper.generatePdf(
-                                    record, context),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    );
-                  },
+          if (categoryLabel.isNotEmpty) ...[
+            const SizedBox(width: 8),
+            Container(
+              height: 38,
+              width: 90,
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.goldPrimary.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: AppColors.goldPrimary.withValues(alpha: 0.35),
                 ),
               ),
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Category',
+                    style: GoogleFonts.poppins(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.goldPrimary,
+                      height: 1.0,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Tooltip(
+                    message: categoryLabel,
+                    child: Text(
+                      categoryLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.goldPrimary,
+                        height: 1.0,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
 
-              // Expanded details drawer showing all form fields & highlights
-              /* if (_expanded) ...[
+          _buildDivider(),
+
+          // 2. Section / Act (flex: 3)
+          isExpandedMode
+              ? Expanded(
+                  flex: 3,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Section / Act',
+                    value: (sectionAct.isEmpty || sectionAct == '-') ? '—' : sectionAct,
+                    icon: Icons.gavel_rounded,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 140,
+                  label: 'Section / Act',
+                  value: (sectionAct.isEmpty || sectionAct == '-') ? '—' : sectionAct,
+                  icon: Icons.gavel_rounded,
+                ),
+
+          _buildDivider(),
+
+          // 3. Name of Accused (flex: 4)
+          isExpandedMode
+              ? Expanded(
+                  flex: 4,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Accused Name',
+                    value: (accusedName.isEmpty || accusedName == '-') ? '—' : accusedName,
+                    icon: Icons.person_outline_rounded,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 180,
+                  label: 'Accused Name',
+                  value: (accusedName.isEmpty || accusedName == '-') ? '—' : accusedName,
+                  icon: Icons.person_outline_rounded,
+                ),
+
+          _buildDivider(),
+
+          // 4. Crime Date (flex: 2)
+          isExpandedMode
+              ? Expanded(
+                  flex: 2,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Crime Date',
+                    value: (crimeDate.isEmpty || crimeDate == '-') ? '—' : crimeDate,
+                    icon: Icons.calendar_today_outlined,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 110,
+                  label: 'Crime Date',
+                  value: (crimeDate.isEmpty || crimeDate == '-') ? '—' : crimeDate,
+                  icon: Icons.calendar_today_outlined,
+                ),
+
+          _buildDivider(),
+
+          // 5. Status Badge (Fixed width 110 matching RTI)
+          Container(
+            height: 34,
+            width: 110,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: statusBg,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: statusBorder),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Tooltip(
+                    message: record.status,
+                    child: Text(
+                      TranslationHelper.translate(context, record.status),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: statusColor,
+                        height: 1.0,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    Widget buildActionButtons() {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          if (!widget.readOnly && !isDisposal) ...[
+            _buildCompactActionButton(
+              icon: Icons.fact_check_outlined,
+              label: 'Dispose',
+              color: AppColors.successGreen,
+              width: 44,
+              onTap: () => _showQuickDisposeDialog(context, record),
+            ),
+            const SizedBox(width: 6),
+          ],
+          if (!widget.readOnly) ...[
+            _buildCompactActionButton(
+              icon: Icons.edit_outlined,
+              label: 'Edit',
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: widget.onEdit,
+            ),
+            const SizedBox(width: 6),
+          ],
+          _buildCompactActionButton(
+            icon: Icons.visibility_outlined,
+            label: 'View',
+            color: AppColors.navyDark,
+            width: 38,
+            onTap: widget.onView,
+          ),
+          const SizedBox(width: 6),
+          _buildCompactActionButton(
+            icon: Icons.picture_as_pdf_outlined,
+            label: 'PDF',
+            color: AppColors.navyDark,
+            width: 38,
+            onTap: () => runWithPdfAuthGate(
+              context,
+              () => ModulePdfHelper.generatePdf(record, context),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: const Color(0xFFCBD5E1),
+          width: 1.1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header Row: Scrollable/adaptive inner card details + Fixed action buttons
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 8,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isWide = constraints.maxWidth >= 820;
+                      if (isWide) {
+                        return buildDetailsRow(true);
+                      }
+                      return SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        child: buildDetailsRow(false),
+                      );
+                    },
+                  ),
+                ),
+                _buildDivider(),
+                buildActionButtons(),
+              ],
+            ),
+          ),
+          // Expanded details drawer showing all form fields & highlights
+          /* if (_expanded) ...[
                 const Divider(height: 1, color: Color(0xFFE2E8F0)),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
@@ -3034,9 +2944,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                   ),
                 ),
               ], */
-            ],
-          ),
-        ),
+        ],
       ),
     );
   }
@@ -3069,8 +2977,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Icon(icon,
-                  size: 11.5, color: iconColor ?? const Color(0xFF64748B)),
+              Icon(icon, size: 11.5, color: iconColor ?? const Color(0xFF64748B)),
               const SizedBox(width: 3.5),
             ],
             Flexible(
@@ -3106,8 +3013,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
       ],
     );
 
-    final wrapped =
-        width != null ? SizedBox(width: width, child: content) : content;
+    final wrapped = width != null ? SizedBox(width: width, child: content) : content;
 
     if (onTap != null) {
       return InkWell(
@@ -3124,6 +3030,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
     required String label,
     required VoidCallback onTap,
     Color? color,
+    double? width,
   }) {
     final fg = color ?? AppColors.navyDark;
     return Tooltip(
@@ -3133,7 +3040,8 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
         borderRadius: BorderRadius.circular(6),
         child: Container(
           height: 38,
-          width: 38,
+          width: width ?? 38,
+          padding: const EdgeInsets.symmetric(horizontal: 2),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(6),
@@ -3158,7 +3066,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.poppins(
-                  fontSize: 8.5,
+                  fontSize: 8.0,
                   fontWeight: FontWeight.w600,
                   color: fg,
                   height: 1.0,
@@ -3396,9 +3304,7 @@ class FormIVEmptyCasesState extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              hasDateFilter
-                  ? Icons.event_busy_rounded
-                  : Icons.folder_open_rounded,
+              hasDateFilter ? Icons.event_busy_rounded : Icons.folder_open_rounded,
               size: 72,
               color: Colors.grey.shade300,
             ),

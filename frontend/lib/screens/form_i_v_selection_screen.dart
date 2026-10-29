@@ -2592,7 +2592,22 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
     final accusedName = _getNameOfAccused(record, doc);
     final crimeDate = _getCrimeDate(record, doc);
 
-    final statusColor = _statusColor(record.status);
+    final isDisposal = record.status.toLowerCase() == 'disposal' ||
+        record.status.toLowerCase() == 'closed' ||
+        record.status.toLowerCase() == 'resolved';
+    final isPending = record.status.toLowerCase() == 'pending' ||
+        record.status.toLowerCase() == 'open' ||
+        record.status.toLowerCase() == 'active';
+    final Color statusColor = isDisposal
+        ? const Color(0xFF2E7D32)
+        : (isPending ? const Color(0xFFE65100) : const Color(0xFFD32F2F));
+    final Color statusBg = isDisposal
+        ? const Color(0xFFE8F5E9)
+        : (isPending ? const Color(0xFFFFF3E0) : const Color(0xFFFFEBEE));
+    final Color statusBorder = isDisposal
+        ? const Color(0xFFA5D6A7)
+        : (isPending ? const Color(0xFFFFCC80) : const Color(0xFFFFCDD2));
+
     final categoryLabel = record.subCategory?.trim().isNotEmpty == true
         ? TranslationHelper.translate(context, record.subCategory!.trim())
         : TranslationHelper.translate(
@@ -2600,285 +2615,319 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
             record.firestoreCategoryDisplayName,
           );
 
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1100),
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: const Color(0xFFE2E8F0),
-              width: 1.1,
+    Widget buildDetailsRow(bool isExpandedMode) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 1. Identification: CR No. Badge + Category Badge
+          Container(
+            height: 38,
+            width: 120,
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: const Color(0xFFCBD5E1)),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'CR No.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF64748B),
+                    height: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Tooltip(
+                  message: crNo,
+                  child: Text(
+                    crNo,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyDark,
+                      height: 1.0,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header Row: All fields in one clean line
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final isWide = constraints.maxWidth >= 820;
-
-                    if (!isWide) {
-                      return _buildMobileCompactHeader(
-                        crNo: crNo,
-                        categoryLabel: categoryLabel,
-                        sectionAct: sectionAct,
-                        accusedName: accusedName,
-                        crimeDate: crimeDate,
-                        statusColor: statusColor,
-                        record: record,
-                      );
-                    }
-
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // 1. Identification: CR No. Badge + Category Badge
-                        Container(
-                          height: 38,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: const Color(0xFFCBD5E1)),
-                          ),
-                          alignment: Alignment.center,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'CR No.',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF64748B),
-                                  height: 1.0,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                crNo,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.navyDark,
-                                  height: 1.0,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (categoryLabel.isNotEmpty) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            height: 38,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color:
-                                  AppColors.goldPrimary.withValues(alpha: 0.10),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: AppColors.goldPrimary
-                                    .withValues(alpha: 0.35),
-                              ),
-                            ),
-                            alignment: Alignment.center,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Category',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.goldPrimary,
-                                    height: 1.0,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  categoryLabel,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.goldPrimary,
-                                    height: 1.0,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-
-                        _buildDivider(),
-
-                        // 2. Section / Act (flex: 3)
-                        Expanded(
-                          flex: 3,
-                          child: _buildFieldColumn(
-                            context: context,
-                            label: 'Section / Act',
-                            value: (sectionAct.isEmpty || sectionAct == '-')
-                                ? '—'
-                                : sectionAct,
-                            icon: Icons.gavel_rounded,
-                          ),
-                        ),
-
-                        _buildDivider(),
-
-                        // 3. Name of Accused (flex: 4)
-                        Expanded(
-                          flex: 4,
-                          child: _buildFieldColumn(
-                            context: context,
-                            label: 'Accused Name',
-                            value: (accusedName.isEmpty || accusedName == '-')
-                                ? '—'
-                                : accusedName,
-                            icon: Icons.person_outline_rounded,
-                          ),
-                        ),
-
-                        _buildDivider(),
-
-                        // 4. Crime Date (flex: 2)
-                        Expanded(
-                          flex: 2,
-                          child: _buildFieldColumn(
-                            context: context,
-                            label: 'Crime Date',
-                            value: (crimeDate.isEmpty || crimeDate == '-')
-                                ? '—'
-                                : crimeDate,
-                            icon: Icons.calendar_today_outlined,
-                          ),
-                        ),
-
-                        _buildDivider(),
-
-                        // 5. Status Badge (Fixed width 96)
-                        Container(
-                          height: 34,
-                          width: 96,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 2),
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: statusColor.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                                color: statusColor.withValues(alpha: 0.35)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                width: 6,
-                                height: 6,
-                                decoration: BoxDecoration(
-                                  color: statusColor,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Flexible(
-                                child: Tooltip(
-                                  message: record.status,
-                                  child: Text(
-                                    TranslationHelper.translate(
-                                        context, record.status),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: statusColor,
-                                      height: 1.0,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        _buildDivider(),
-
-                        // 6. Action Buttons: Dispose, Edit, View, PDF
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            if (!widget.readOnly &&
-                                record.status != 'Disposal') ...[
-                              _buildCompactActionButton(
-                                icon: Icons.fact_check_outlined,
-                                label: 'Dispose',
-                                color: AppColors.successGreen,
-                                onTap: () =>
-                                    _showQuickDisposeDialog(context, record),
-                              ),
-                              const SizedBox(width: 6),
-                            ],
-                            if (!widget.readOnly) ...[
-                              _buildCompactActionButton(
-                                icon: Icons.edit_outlined,
-                                label: 'Edit',
-                                color: AppColors.navyDark,
-                                onTap: widget.onEdit,
-                              ),
-                              const SizedBox(width: 6),
-                            ],
-                            _buildCompactActionButton(
-                              icon: Icons.visibility_outlined,
-                              label: 'View',
-                              color: AppColors.navyDark,
-                              onTap: widget.onView,
-                            ),
-                            const SizedBox(width: 6),
-                            _buildCompactActionButton(
-                              icon: Icons.picture_as_pdf_outlined,
-                              label: 'PDF',
-                              color: AppColors.navyDark,
-                              onTap: () => runWithPdfAuthGate(
-                                context,
-                                () => ModulePdfHelper.generatePdf(
-                                    record, context),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    );
-                  },
+          if (categoryLabel.isNotEmpty) ...[
+            const SizedBox(width: 8),
+            Container(
+              height: 38,
+              width: 90,
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.goldPrimary.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: AppColors.goldPrimary.withValues(alpha: 0.35),
                 ),
               ),
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Category',
+                    style: GoogleFonts.poppins(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.goldPrimary,
+                      height: 1.0,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Tooltip(
+                    message: categoryLabel,
+                    child: Text(
+                      categoryLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.goldPrimary,
+                        height: 1.0,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
 
+          _buildDivider(),
+
+          // 2. Section / Act (flex: 3)
+          isExpandedMode
+              ? Expanded(
+                  flex: 3,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Section / Act',
+                    value: (sectionAct.isEmpty || sectionAct == '-')
+                        ? '—'
+                        : sectionAct,
+                    icon: Icons.gavel_rounded,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 140,
+                  label: 'Section / Act',
+                  value: (sectionAct.isEmpty || sectionAct == '-')
+                      ? '—'
+                      : sectionAct,
+                  icon: Icons.gavel_rounded,
+                ),
+
+          _buildDivider(),
+
+          // 3. Name of Accused (flex: 4)
+          isExpandedMode
+              ? Expanded(
+                  flex: 4,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Accused Name',
+                    value: (accusedName.isEmpty || accusedName == '-')
+                        ? '—'
+                        : accusedName,
+                    icon: Icons.person_outline_rounded,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 180,
+                  label: 'Accused Name',
+                  value: (accusedName.isEmpty || accusedName == '-')
+                      ? '—'
+                      : accusedName,
+                  icon: Icons.person_outline_rounded,
+                ),
+
+          _buildDivider(),
+
+          // 4. Crime Date (flex: 2)
+          isExpandedMode
+              ? Expanded(
+                  flex: 2,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Crime Date',
+                    value: (crimeDate.isEmpty || crimeDate == '-')
+                        ? '—'
+                        : crimeDate,
+                    icon: Icons.calendar_today_outlined,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 110,
+                  label: 'Crime Date',
+                  value: (crimeDate.isEmpty || crimeDate == '-')
+                      ? '—'
+                      : crimeDate,
+                  icon: Icons.calendar_today_outlined,
+                ),
+
+          _buildDivider(),
+
+          // 5. Status Badge (Fixed width 110 matching RTI)
+          Container(
+            height: 34,
+            width: 110,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: statusBg,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: statusBorder),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Tooltip(
+                    message: record.status,
+                    child: Text(
+                      TranslationHelper.translate(context, record.status),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: statusColor,
+                        height: 1.0,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    Widget buildActionButtons() {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          if (!widget.readOnly && !isDisposal) ...[
+            _buildCompactActionButton(
+              icon: Icons.fact_check_outlined,
+              label: 'Dispose',
+              color: AppColors.successGreen,
+              width: 44,
+              onTap: () => _showQuickDisposeDialog(context, record),
+            ),
+            const SizedBox(width: 6),
+          ],
+          if (!widget.readOnly) ...[
+            _buildCompactActionButton(
+              icon: Icons.edit_outlined,
+              label: 'Edit',
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: widget.onEdit,
+            ),
+            const SizedBox(width: 6),
+          ],
+          _buildCompactActionButton(
+            icon: Icons.visibility_outlined,
+            label: 'View',
+            color: AppColors.navyDark,
+            width: 38,
+            onTap: widget.onView,
+          ),
+          const SizedBox(width: 6),
+          _buildCompactActionButton(
+            icon: Icons.picture_as_pdf_outlined,
+            label: 'PDF',
+            color: AppColors.navyDark,
+            width: 38,
+            onTap: () => runWithPdfAuthGate(
+              context,
+              () => ModulePdfHelper.generatePdf(record, context),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: const Color(0xFFCBD5E1),
+          width: 1.1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header Row: Scrollable/adaptive inner card details + Fixed action buttons
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 8,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isWide = constraints.maxWidth >= 820;
+                      if (isWide) {
+                        return buildDetailsRow(true);
+                      }
+                      return SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        child: buildDetailsRow(false),
+                      );
+                    },
+                  ),
+                ),
+                _buildDivider(),
+                buildActionButtons(),
+              ],
+            ),
+          ),
               // Expanded details drawer showing all form fields & highlights
               /* if (_expanded) ...[
                 const Divider(height: 1, color: Color(0xFFE2E8F0)),
@@ -3178,8 +3227,6 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
               ], */
             ],
           ),
-        ),
-      ),
     );
   }
 
@@ -3266,6 +3313,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
     required String label,
     required VoidCallback onTap,
     Color? color,
+    double? width,
   }) {
     final fg = color ?? AppColors.navyDark;
     return Tooltip(
@@ -3275,7 +3323,8 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
         borderRadius: BorderRadius.circular(6),
         child: Container(
           height: 38,
-          width: 38,
+          width: width ?? 38,
+          padding: const EdgeInsets.symmetric(horizontal: 2),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(6),
@@ -3300,7 +3349,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.poppins(
-                  fontSize: 8.5,
+                  fontSize: 8.0,
                   fontWeight: FontWeight.w600,
                   color: fg,
                   height: 1.0,

@@ -1505,6 +1505,137 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
     );
   }
 
+  Widget _buildDivider() {
+    return Container(
+      width: 1,
+      height: 26,
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      color: const Color(0xFFE2E8F0),
+    );
+  }
+
+  Widget _buildFieldColumn({
+    required BuildContext context,
+    required String label,
+    required String value,
+    IconData? icon,
+    Color? iconColor,
+    Color? valueColor,
+    VoidCallback? onTap,
+    double? width,
+  }) {
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 11.5, color: iconColor ?? const Color(0xFF64748B)),
+              const SizedBox(width: 3.5),
+            ],
+            Flexible(
+              child: Text(
+                TranslationHelper.translate(context, label),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF64748B),
+                  height: 1.1,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Tooltip(
+          message: value,
+          child: Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: valueColor ?? const Color(0xFF0F172A),
+              height: 1.1,
+            ),
+          ),
+        ),
+      ],
+    );
+
+    final wrapped =
+        width != null ? SizedBox(width: width, child: content) : content;
+
+    if (onTap != null) {
+      return InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(4),
+        child: wrapped,
+      );
+    }
+    return wrapped;
+  }
+
+  Widget _buildCompactActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    Color? color,
+    double? width,
+  }) {
+    final fg = color ?? AppColors.navyDark;
+    return Tooltip(
+      message: TranslationHelper.translate(context, label),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          height: 38,
+          width: width ?? 38,
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: const Color(0xFFCBD5E1), width: 1.1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 2,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 14, color: fg),
+              const SizedBox(height: 1.5),
+              Text(
+                TranslationHelper.translate(context, label),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 8.0,
+                  fontWeight: FontWeight.w600,
+                  color: fg,
+                  height: 1.0,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildMpdaCard(Map<String, dynamic> item) {
     final id = item['id'];
     final proposalNo = item['proposal_no_and_year']?.toString() ?? '';
@@ -1521,172 +1652,329 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
     final viewLabel = _getConfigString(actionLabels, 'view');
     final pdfLabel = _getConfigString(actionLabels, 'pdf');
 
-    return Card(
-      elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: const BorderSide(color: Color(0xFFE2E8F0)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    final String detentionPeriod;
+    if (detentionDate.isNotEmpty && completionDate.isNotEmpty) {
+      detentionPeriod = ' - ';
+    } else if (detentionDate.isNotEmpty) {
+      detentionPeriod = detentionDate;
+    } else if (completionDate.isNotEmpty) {
+      detentionPeriod = completionDate;
+    } else {
+      detentionPeriod = '—';
+    }
+
+    final o = outcome.toLowerCase();
+    final isApproved = o.contains('approved') || o.contains('granted');
+    final isRejected = o.contains('rejected');
+    final isRevoked = o.contains('revoked');
+    final Color statusColor;
+    final Color statusBg;
+    final Color statusBorder;
+    if (isApproved) {
+      statusColor = const Color(0xFF2E7D32);
+      statusBg = const Color(0xFFE8F5E9);
+      statusBorder = const Color(0xFFA5D6A7);
+    } else if (isRejected) {
+      statusColor = const Color(0xFFD32F2F);
+      statusBg = const Color(0xFFFFEBEE);
+      statusBorder = const Color(0xFFFFCDD2);
+    } else if (isRevoked) {
+      statusColor = const Color(0xFFE65100);
+      statusBg = const Color(0xFFFFF3E0);
+      statusBorder = const Color(0xFFFFCC80);
+    } else {
+      statusColor = const Color(0xFF0284C7);
+      statusBg = const Color(0xFFE0F2FE);
+      statusBorder = const Color(0xFFBAE6FD);
+    }
+    final statusText = outcome.isNotEmpty ? outcome : 'Pending';
+
+    Widget buildDetailsRow(bool isExpandedMode) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 1. Identification: Proposal No. Badge
+          Container(
+            height: 38,
+            width: 110,
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: const Color(0xFFCBD5E1)),
+            ),
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (proposalNo.isNotEmpty)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.navyDark.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      proposalNo,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.navyDark,
-                      ),
+                Text(
+                  'Proposal No.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF64748B),
+                    height: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Tooltip(
+                  message: proposalNo,
+                  child: Text(
+                    proposalNo.isNotEmpty ? proposalNo : '—',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyDark,
+                      height: 1.0,
                     ),
                   ),
-                const Spacer(),
-                if (outcome.isNotEmpty)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.navyMid.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      outcome,
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyMid,
-                      ),
-                    ),
-                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 8),
-            Text(
-              accusedName,
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.navyDark,
-              ),
-            ),
-            if (category.isNotEmpty) ...[
-              const SizedBox(height: 2),
-              Text(
-                category,
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontStyle: FontStyle.italic,
-                  color: AppColors.lightSubText,
+          ),
+          if (category.isNotEmpty) ...[
+            const SizedBox(width: 8),
+            Container(
+              height: 38,
+              width: 90,
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.goldPrimary.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: AppColors.goldPrimary.withValues(alpha: 0.35),
                 ),
               ),
-            ],
-            if (jailName.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(
-                jailName,
-                style: GoogleFonts.poppins(
-                  fontSize: 11.5,
-                  color: AppColors.navyDark,
-                ),
-              ),
-            ],
-            if (detentionDate.isNotEmpty || completionDate.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Row(
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  if (detentionDate.isNotEmpty)
-                    Text(
-                      detentionDate,
+                  Text(
+                    'Category',
+                    style: GoogleFonts.poppins(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.goldPrimary,
+                      height: 1.0,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Tooltip(
+                    message: category,
+                    child: Text(
+                      category,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        color: AppColors.lightSubText,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.goldPrimary,
+                        height: 1.0,
                       ),
                     ),
-                  if (detentionDate.isNotEmpty && completionDate.isNotEmpty)
-                    const Text('  -  '),
-                  if (completionDate.isNotEmpty)
-                    Text(
-                      completionDate,
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        color: AppColors.lightSubText,
-                      ),
-                    ),
-                ],
-              ),
-            ],
-            const Divider(height: 16, color: Color(0xFFF1F5F9)),
-            Align(
-              alignment: Alignment.centerRight,
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 6,
-                alignment: WrapAlignment.end,
-                children: [
-                  if (viewLabel.isNotEmpty)
-                    OutlinedButton.icon(
-                      onPressed: () => _openViewModal(id),
-                      icon: const Icon(Icons.visibility_rounded, size: 14),
-                      label: Text(
-                        TranslationHelper.translate(context, viewLabel),
-                        style: GoogleFonts.poppins(fontSize: 11),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                    ),
-                  if (editLabel.isNotEmpty)
-                    OutlinedButton.icon(
-                      onPressed: () => _openEditModal(id),
-                      icon: const Icon(Icons.edit_rounded, size: 14),
-                      label: Text(
-                        TranslationHelper.translate(context, editLabel),
-                        style: GoogleFonts.poppins(fontSize: 11),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                    ),
-                  if (pdfLabel.isNotEmpty)
-                    ElevatedButton.icon(
-                      onPressed: () => _downloadPdf(id, proposalNo),
-                      icon: const Icon(Icons.picture_as_pdf_rounded, size: 14),
-                      label: Text(
-                        TranslationHelper.translate(context, pdfLabel),
-                        style: GoogleFonts.poppins(fontSize: 11),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.navyMid,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                    ),
+                  ),
                 ],
               ),
             ),
           ],
+
+          _buildDivider(),
+
+          // 2. Accused Name (flex: 4, width: 180)
+          isExpandedMode
+              ? Expanded(
+                  flex: 4,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Accused Name',
+                    value: accusedName.isNotEmpty ? accusedName : '—',
+                    icon: Icons.person_outline_rounded,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 180,
+                  label: 'Accused Name',
+                  value: accusedName.isNotEmpty ? accusedName : '—',
+                  icon: Icons.person_outline_rounded,
+                ),
+
+          _buildDivider(),
+
+          // 3. Jail Name (flex: 3, width: 140)
+          isExpandedMode
+              ? Expanded(
+                  flex: 3,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Jail Name',
+                    value: jailName.isNotEmpty ? jailName : '—',
+                    icon: Icons.location_city_outlined,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 140,
+                  label: 'Jail Name',
+                  value: jailName.isNotEmpty ? jailName : '—',
+                  icon: Icons.location_city_outlined,
+                ),
+
+          _buildDivider(),
+
+          // 4. Detention Period (flex: 3, width: 160)
+          isExpandedMode
+              ? Expanded(
+                  flex: 3,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Detention Period',
+                    value: detentionPeriod,
+                    icon: Icons.calendar_today_outlined,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 160,
+                  label: 'Detention Period',
+                  value: detentionPeriod,
+                  icon: Icons.calendar_today_outlined,
+                ),
+
+          _buildDivider(),
+
+          // 5. Status Badge (Fixed width 110 matching RTI)
+          Container(
+            height: 34,
+            width: 110,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: statusBg,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: statusBorder),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Tooltip(
+                    message: statusText,
+                    child: Text(
+                      TranslationHelper.translate(context, statusText),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: statusColor,
+                        height: 1.0,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    Widget buildActionButtons() {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          if (viewLabel.isNotEmpty) ...[
+            _buildCompactActionButton(
+              icon: Icons.visibility_outlined,
+              label: viewLabel,
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: () => _openViewModal(id),
+            ),
+            const SizedBox(width: 6),
+          ],
+          if (editLabel.isNotEmpty) ...[
+            _buildCompactActionButton(
+              icon: Icons.edit_outlined,
+              label: editLabel,
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: () => _openEditModal(id),
+            ),
+            const SizedBox(width: 6),
+          ],
+          if (pdfLabel.isNotEmpty)
+            _buildCompactActionButton(
+              icon: Icons.picture_as_pdf_outlined,
+              label: pdfLabel,
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: () => _downloadPdf(id, proposalNo),
+            ),
+        ],
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: const Color(0xFFCBD5E1),
+          width: 1.1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 1. Scrollable/adaptive inner card details
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth >= 820;
+                if (isWide) {
+                  return buildDetailsRow(true);
+                }
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: buildDetailsRow(false),
+                );
+              },
+            ),
+          ),
+
+          _buildDivider(),
+
+          // 2. Fixed right-side Action Buttons
+          buildActionButtons(),
+        ],
       ),
     );
   }
+
 }

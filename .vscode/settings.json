@@ -1,8 +1,5 @@
 {
-  "python.analysis.extraPaths": [
-    "./backend"
-  ],
-  "python.autoComplete.extraPaths": [
-    "./backend"
-  ]
+  "python.analysis.extraPaths": ["./backend"],
+  "python.autoComplete.extraPaths": ["./backend"],
+  "cmake.sourceDirectory": "C:/Users/vveda/Desktop/PMS1/frontend/linux"
 }
