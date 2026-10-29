@@ -111,6 +111,7 @@ class _CategorySubtabsScreenState extends State<CategorySubtabsScreen> {
           final (name, icon) = widget.subtabs[i];
           return CategoryGridCard(
             category: TranslationHelper.translate(context, name),
+            rawCategory: name,
             icon: icon,
             count: records
                 .where(

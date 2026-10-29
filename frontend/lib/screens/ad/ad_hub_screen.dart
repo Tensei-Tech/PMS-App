@@ -292,33 +292,7 @@ class _AdHubScreenState extends State<AdHubScreen>
       body: Column(
         children: [
           _buildSubCategoryBar(),
-          Container(
-            color: Colors.white,
-            child: TabBar(
-              controller: _tabController,
-              isScrollable: true,
-              indicatorColor: AppColors.navyMid,
-              labelColor: AppColors.navyDark,
-              unselectedLabelColor: AppColors.lightSubText,
-              labelStyle: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w700, fontSize: 13),
-              unselectedLabelStyle: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w500, fontSize: 13),
-              tabs: _tabKeys.map((k) {
-                return Tab(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(TranslationHelper.translate(
-                          context, _cfg('sub_tab_labels', k))),
-                      const SizedBox(width: 6),
-                      _CountBadge(count: _counts[k]),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
+          _buildStatusTabBar(),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
             child: TextField(
@@ -347,39 +321,175 @@ class _AdHubScreenState extends State<AdHubScreen>
   }
 
   /// Sub-tabs (Suicide / Other ...) from the A.D. tab's child categories.
+  /// Sub-tabs (Suicide / Other ...) styled with clean pill buttons.
   Widget _buildSubCategoryBar() {
     final subs = _subCategories;
     if (subs.isEmpty) return const SizedBox.shrink();
     return Container(
       width: double.infinity,
       color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: Wrap(
-        spacing: 8,
+        spacing: 10,
         runSpacing: 8,
         children: [
-          for (final c in subs)
-            ChoiceChip(
-              label: Text(
-                TranslationHelper.translate(context, c['name'].toString()),
-                style: GoogleFonts.poppins(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: c['code'] == _category
-                      ? Colors.white
-                      : AppColors.navyDark,
+          for (final c in subs) ...[
+            Builder(builder: (context) {
+              final isSelected = c['code'] == _category;
+              return InkWell(
+                onTap: () {
+                  if (c['code'] != _category) {
+                    _selectCategory(c['code'].toString());
+                  }
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.navyMid : Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: isSelected
+                          ? AppColors.navyMid
+                          : const Color(0xFFE2E8F0),
+                      width: 1.2,
+                    ),
+                  ),
+                  child: Text(
+                    TranslationHelper.translate(context, c['name'].toString()),
+                    style: GoogleFonts.poppins(
+                      fontSize: 12.5,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.w500,
+                      color: isSelected ? Colors.white : AppColors.navyDark,
+                    ),
+                  ),
                 ),
+              );
+            }),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Status tab bar styled with exact colors matching Form I-V cases.
+  Widget _buildStatusTabBar() {
+    final tabs = [
+      (
+        key: 'total',
+        label: _cfg('sub_tab_labels', 'total').isNotEmpty
+            ? _cfg('sub_tab_labels', 'total')
+            : 'Total Cases',
+        count: _counts['total'] ?? 0,
+        badgeBg: const Color(0xFFE8F1FC),
+        badgeFg: const Color(0xFF1976D2),
+      ),
+      (
+        key: 'pending',
+        label: _cfg('sub_tab_labels', 'pending').isNotEmpty
+            ? _cfg('sub_tab_labels', 'pending')
+            : 'Pending',
+        count: _counts['pending'] ?? 0,
+        badgeBg: const Color(0xFFFFF3E0),
+        badgeFg: const Color(0xFFE65100),
+      ),
+      (
+        key: 'disposal',
+        label: _cfg('sub_tab_labels', 'disposal').isNotEmpty
+            ? _cfg('sub_tab_labels', 'disposal')
+            : 'Disposal',
+        count: _counts['disposal'] ?? 0,
+        badgeBg: const Color(0xFFE8F5E9),
+        badgeFg: const Color(0xFF2E7D32),
+      ),
+    ];
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.only(left: 16, right: 8),
+              child: Row(
+                children: tabs.map((item) {
+                  final isSelected = _tab == item.key;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 24),
+                    child: InkWell(
+                      onTap: () {
+                        final idx = _tabKeys.indexOf(item.key);
+                        if (idx != -1 && idx != _tabController.index) {
+                          _tabController.animateTo(idx);
+                        }
+                      },
+                      hoverColor: Colors.transparent,
+                      splashColor: AppColors.navyMid.withValues(alpha: 0.08),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: isSelected
+                                  ? const Color(0xFF1976D2)
+                                  : Colors.transparent,
+                              width: 2.5,
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              TranslationHelper.translate(context, item.label),
+                              style: GoogleFonts.poppins(
+                                fontSize: 13.5,
+                                fontWeight: isSelected
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                                color: isSelected
+                                    ? AppColors.navyDark
+                                    : AppColors.lightSubText,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: item.badgeBg,
+                                borderRadius:
+                                    BorderRadius.circular(AppRadius.full),
+                              ),
+                              child: Text(
+                                '${item.count ?? 0}',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: item.badgeFg,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
               ),
-              selected: c['code'] == _category,
-              selectedColor: AppColors.navyMid,
-              backgroundColor: AppColors.navyMid.withValues(alpha: 0.06),
-              showCheckmark: false,
-              onSelected: (_) {
-                if (c['code'] != _category) {
-                  _selectCategory(c['code'].toString());
-                }
-              },
             ),
+          ),
         ],
       ),
     );
@@ -639,30 +749,6 @@ class _AdHubScreenState extends State<AdHubScreen>
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         minimumSize: Size.zero,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ),
-    );
-  }
-}
-
-class _CountBadge extends StatelessWidget {
-  final dynamic count;
-  const _CountBadge({required this.count});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-      decoration: BoxDecoration(
-        color: AppColors.navyDark.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        '${count ?? ''}',
-        style: GoogleFonts.poppins(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: AppColors.navyDark,
-        ),
       ),
     );
   }

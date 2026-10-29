@@ -5,6 +5,7 @@ from rest_framework import status
 from apps.public_master.models import Role, Permission, RolePermission, StateRegistry
 from apps.users.models import OfficerProfile
 from apps.cases.models import CaseRecord
+from apps.authentication.testing_utils import activate_account
 
 
 class UndetectedAPITests(TestCase):
@@ -81,6 +82,91 @@ class UndetectedAPITests(TestCase):
             extra_fields={'ccStNumber': 'CC-999/2026'}
         )
 
+        # 5. DAR case (unidentified accused) - should NOT show in undetected
+        self.c_dar = CaseRecord.objects.create(
+            module_key='dar',
+            sub_category='Road Accident',
+            title='DAR Crash',
+            case_number='DAR-301/2026',
+            accused='',
+            station_name='Shivajinagar Police Station',
+            assigned_officer='PI Pawar',
+            assigned_officer_uid=self.officer.uid,
+            created_by=self.officer.uid
+        )
+        # 6. Missing case (no accused) - should NOT show in undetected
+        self.c_missing = CaseRecord.objects.create(
+            module_key='missing',
+            sub_category='Missing',
+            title='Missing Person',
+            case_number='MIS-302/2026',
+            accused='',
+            station_name='Shivajinagar Police Station',
+            assigned_officer='PI Pawar',
+            assigned_officer_uid=self.officer.uid,
+            created_by=self.officer.uid
+        )
+        # 7. RTI case (no accused) - should NOT show in undetected
+        self.c_rti = CaseRecord.objects.create(
+            module_key='rti',
+            sub_category='RTI',
+            title='RTI Application',
+            case_number='RTI-303/2026',
+            accused='',
+            station_name='Shivajinagar Police Station',
+            assigned_officer='PI Pawar',
+            assigned_officer_uid=self.officer.uid,
+            created_by=self.officer.uid
+        )
+        # 8. Repeat offender case (no accused) - should NOT show in undetected
+        self.c_ro = CaseRecord.objects.create(
+            module_key='repeat_offender',
+            sub_category='Repeat Offender',
+            title='Repeat Offender Track',
+            case_number='RO-304/2026',
+            accused='',
+            station_name='Shivajinagar Police Station',
+            assigned_officer='PI Pawar',
+            assigned_officer_uid=self.officer.uid,
+            created_by=self.officer.uid
+        )
+        # 9. Tadipar case (no accused) - should NOT show in undetected
+        self.c_tadipar = CaseRecord.objects.create(
+            module_key='tadipar',
+            sub_category='Tadipar',
+            title='Tadipar Notice',
+            case_number='TAD-305/2026',
+            accused='',
+            station_name='Shivajinagar Police Station',
+            assigned_officer='PI Pawar',
+            assigned_officer_uid=self.officer.uid,
+            created_by=self.officer.uid
+        )
+        # 10. Victim case (no accused) - should NOT show in undetected
+        self.c_victim = CaseRecord.objects.create(
+            module_key='victim',
+            sub_category='Victim',
+            title='Victim Compensation',
+            case_number='VIC-306/2026',
+            accused='',
+            station_name='Shivajinagar Police Station',
+            assigned_officer='PI Pawar',
+            assigned_officer_uid=self.officer.uid,
+            created_by=self.officer.uid
+        )
+        # 11. License case (no accused) - should NOT show in undetected
+        self.c_license = CaseRecord.objects.create(
+            module_key='licence',
+            sub_category='Licence Verification',
+            title='Arms Licence Request',
+            case_number='LIC-307/2026',
+            accused='',
+            station_name='Shivajinagar Police Station',
+            assigned_officer='PI Pawar',
+            assigned_officer_uid=self.officer.uid,
+            created_by=self.officer.uid
+        )
+
     def _register_and_login(self, email, password, role_id, state_code):
         OfficerProfile.objects.filter(email=email).delete()
         self.client.post('/api/auth/register/', {
@@ -91,8 +177,10 @@ class UndetectedAPITests(TestCase):
             'state_code': state_code,
             'badge_number': f'BDG-{uuid.uuid4().hex[:6]}',
             'station_name': 'Shivajinagar Police Station',
-            'account_status': 'active',
         }, format='json')
+
+        # Public sign-up waits for approval; activate directly for the test.
+        activate_account(email)
 
         login_resp = self.client.post('/api/auth/login/', {
             'email': email,
@@ -117,6 +205,11 @@ class UndetectedAPITests(TestCase):
         self.assertIn(str(self.c2.id), case_ids)
         self.assertNotIn(str(self.c3.id), case_ids)
         self.assertNotIn(str(self.c4.id), case_ids)
+        for excluded_case in [
+            self.c_dar, self.c_missing, self.c_rti, self.c_ro,
+            self.c_tadipar, self.c_victim, self.c_license
+        ]:
+            self.assertNotIn(str(excluded_case.id), case_ids)
 
     def test_filter_by_module_key_detected(self):
         """Test GET /api/cases/?module_key=detected returns only detected non-disposed cases."""
@@ -147,6 +240,11 @@ class UndetectedAPITests(TestCase):
         self.assertIn(str(self.c1.id), case_ids)
         self.assertIn(str(self.c2.id), case_ids)
         self.assertNotIn(str(self.c3.id), case_ids)
+        for excluded_case in [
+            self.c_dar, self.c_missing, self.c_rti, self.c_ro,
+            self.c_tadipar, self.c_victim, self.c_license
+        ]:
+            self.assertNotIn(str(excluded_case.id), case_ids)
 
     def test_undetected_io_wise_view(self):
         """Test GET /api/cases/undetected/io-wise/ endpoint."""
@@ -156,6 +254,7 @@ class UndetectedAPITests(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(len(response.data) > 0)
+        # Should only count c1 and c2, none of the 7 excluded cases
         self.assertEqual(response.data[0]['undetected_count'], 2)
 
     def test_undetected_time_wise_view(self):

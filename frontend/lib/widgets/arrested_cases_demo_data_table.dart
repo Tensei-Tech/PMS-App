@@ -30,11 +30,12 @@ class ArrestedCasesDemoDataTable extends StatelessWidget {
 
         final columnWidths = <int, TableColumnWidth>{
           0: const IntrinsicColumnWidth(),
-          1: const FlexColumnWidth(1.2),
-          2: const FlexColumnWidth(1.5),
-          3: const FlexColumnWidth(1.2),
+          1: const FlexColumnWidth(1.1),
+          2: const FlexColumnWidth(1.3),
+          3: const FlexColumnWidth(1.3),
           4: const FlexColumnWidth(1.5),
-          5: const FlexColumnWidth(2.0),
+          5: const FlexColumnWidth(1.2),
+          6: const FlexColumnWidth(1.4),
         };
 
         Widget headerCell(String s) => Container(
@@ -75,41 +76,49 @@ class ArrestedCasesDemoDataTable extends StatelessWidget {
           headerCell('Sr. No'),
           headerCell('Cr. No.'),
           headerCell('SEC & ACT'),
+          headerCell('Head'),
+          headerCell('Accused Name'),
           headerCell('Date of Arrest'),
           headerCell('IO Name'),
-          headerCell('Police station name'),
         ];
 
         TableRow rowFor(int idx, Map<String, String> r) {
-          final bg = idx.isEven ? Colors.white : const Color(0xFFF6F8FF);
+          final bg = idx.isEven ? Colors.white : const Color(0xFFF8FAFD);
           return TableRow(
             decoration: BoxDecoration(color: bg),
             children: [
               dataCell('${serialOffset + idx + 1}'),
               dataCell(r['cr'] ?? '—'),
               dataCell(r['sections'] ?? '—'),
+              dataCell(r['head'] ?? '—'),
+              dataCell(
+                  r['accused_name']?.isNotEmpty == true
+                      ? r['accused_name']!
+                      : '—',
+                  align: Alignment.centerLeft),
               dataCell(r['arrest_date'] ?? '—'),
               dataCell(r['io'] ?? '—', align: Alignment.centerLeft),
-              dataCell(r['station'] ?? '—', align: Alignment.centerLeft),
             ],
           );
         }
 
-        final maxH = constraints.maxHeight;
         final inner = ClipRRect(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           child: Container(
             width: double.infinity,
-            height: maxH.isFinite ? maxH : null,
             decoration: BoxDecoration(
               color: Colors.white,
-              border: Border.all(color: AppColors.lightBorder),
-              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Table(
               columnWidths: columnWidths,
               defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-              border: TableBorder.all(color: AppColors.lightBorder, width: 1),
+              border: const TableBorder(
+                horizontalInside:
+                    BorderSide(color: Color(0xFFEDF2F7), width: 1),
+                verticalInside: BorderSide(color: Color(0xFFEDF2F7), width: 1),
+              ),
               children: [
                 TableRow(
                   decoration: const BoxDecoration(color: AppColors.navyDark),
@@ -120,11 +129,7 @@ class ArrestedCasesDemoDataTable extends StatelessWidget {
             ),
           ),
         );
-        if (maxH.isFinite) return inner;
-        const estimatedRowPx = 44.0;
-        final estHeight =
-            estimatedRowPx * (rows.isEmpty ? 2 : rows.length + 1) + 16;
-        return SizedBox(height: estHeight, child: inner);
+        return inner;
       },
     );
     return tableCore;

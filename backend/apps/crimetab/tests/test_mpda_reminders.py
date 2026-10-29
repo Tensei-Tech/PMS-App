@@ -84,6 +84,7 @@ class MpdaDetentionReminderTests(TestCase):
         for i in range(5):
             p = self._prop(f'TEST {i}', i)
             MpdaAccusedPerson.objects.create(proposal=p, name=f'TEST A{i}', display_order=1)
+        self._get()  # fill the settings cache so both measurements are warm
         with CaptureQueriesContext(connection) as few:
             self._get()
         for i in range(5, 11):

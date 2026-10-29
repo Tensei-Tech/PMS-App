@@ -242,7 +242,14 @@ class UniversalSearch {
   }
 
   static List<String> _extractQueryVariations(String raw) {
-    final list = <String>{raw};
+    var cleanNoPunct = raw.trim();
+    while (cleanNoPunct.endsWith('.') ||
+        cleanNoPunct.endsWith(',') ||
+        cleanNoPunct.endsWith('?') ||
+        cleanNoPunct.endsWith('!')) {
+      cleanNoPunct = cleanNoPunct.substring(0, cleanNoPunct.length - 1).trim();
+    }
+    final list = <String>{raw, if (cleanNoPunct.isNotEmpty) cleanNoPunct};
 
     // Strip common speech prefixes: "fir 45" -> "45", "fir number 102" -> "102"
     var stripped = raw;

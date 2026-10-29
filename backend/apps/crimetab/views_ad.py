@@ -29,6 +29,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.cases.models import CaseRecord
+from apps.crimetab.case_access import can_edit_case
 from apps.core.tenancy import TenantContext
 from apps.crimetab.services import ad_service as svc
 from apps.crimetab.standalone_helpers import log_standalone_audit, resolve_tenant_and_auth
@@ -297,6 +298,8 @@ class AdDetailView(APIView):
                 record = _load_one(pk, stations)
                 if record is None:
                     return _err(settings, 'not_found_message', status.HTTP_404_NOT_FOUND)
+                if not can_edit_case(request.user, record):
+                    return Response({'error': 'You can edit only your own cases.'}, status=status.HTTP_403_FORBIDDEN)
                 cat = _record_category(record, settings)
                 if cat is None:
                     return _err(settings, 'invalid_request_message')

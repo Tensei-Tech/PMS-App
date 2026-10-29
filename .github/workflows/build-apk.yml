@@ -15,6 +15,13 @@ jobs:
   build-apk:
     name: Build Flutter APK
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the GitHub Release on pushes to dev
+    env:
+      # Each run gets a higher build number; the app compares it with
+      # APP_LATEST_BUILD / APP_MIN_BUILD on the backend to offer updates.
+      BUILD_NUMBER: ${{ github.run_number }}
+      PUBLISH: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
 
     steps:
       - name: Checkout repository
@@ -29,7 +36,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.x'
+          flutter-version: '3.47.2'
           channel: 'stable'
           cache: true
 
@@ -48,10 +55,38 @@ jobs:
             *) echo "::error::frontend/config/prod.json must set API_BASE_URL to an https:// URL (got '$url')"; exit 1 ;;
           esac
 
+      # Android installs an update only if it is signed with the same key as the
+      # installed app, so published builds must use the fixed release key.
+      - name: Set up release signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            if [ "$PUBLISH" = "true" ]; then
+              echo "::error::Secret ANDROID_KEYSTORE_BASE64 is not set; a published build must be signed with the release key."
+              exit 1
+            fi
+            echo "::warning::No release key available; this APK is signed with a throwaway debug key and cannot update an installed app."
+            exit 0
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          echo "KHAKHI_STORE_FILE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+
       - name: Build Release APK
+        env:
+          KHAKHI_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KHAKHI_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KHAKHI_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           cd frontend
-          flutter build apk --release --android-skip-build-dependency-validation --dart-define-from-file=config/prod.json
+          # Version name (e.g. 1.0.1) comes from pubspec.yaml; the app shows it in About/Settings.
+          VERSION_NAME=$(sed -nE 's/^version:[[:space:]]*([^+[:space:]]+).*/\1/p' pubspec.yaml)
+          echo "VERSION_NAME=$VERSION_NAME" >> "$GITHUB_ENV"
+          flutter build apk --release --android-skip-build-dependency-validation \
+            --dart-define-from-file=config/prod.json \
+            --build-number="$BUILD_NUMBER" \
+            --dart-define=APP_BUILD_NUMBER="$BUILD_NUMBER" \
+            --dart-define=APP_VERSION_NAME="$VERSION_NAME"
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
@@ -59,3 +94,23 @@ jobs:
           name: PMS-App-Release-APK
           path: frontend/build/app/outputs/flutter-apk/app-release.apk
           retention-days: 30
+
+      # The backend's /api/app-version/download/ serves the APK from the
+      # release tagged build-<APP_LATEST_BUILD>, so testers never need GitHub access.
+      - name: Publish GitHub Release
+        if: env.PUBLISH == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          apk="khakhi-diary-build-$BUILD_NUMBER.apk"
+          cp frontend/build/app/outputs/flutter-apk/app-release.apk "$apk"
+          gh release create "build-$BUILD_NUMBER" "$apk" \
+            --target "$GITHUB_SHA" \
+            --title "v$VERSION_NAME build $BUILD_NUMBER" \
+            --notes "$(git log -1 --pretty=format:'%s')" \
+            --prerelease
+          {
+            echo "### Version $VERSION_NAME, build $BUILD_NUMBER published"
+            echo "To roll it out, set on Render: APP_LATEST_BUILD=$BUILD_NUMBER"
+            echo "To force everyone onto it, also set: APP_MIN_BUILD=$BUILD_NUMBER"
+          } >> "$GITHUB_STEP_SUMMARY"

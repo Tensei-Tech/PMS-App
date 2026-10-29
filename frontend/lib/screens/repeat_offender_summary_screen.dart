@@ -34,43 +34,19 @@ class RepeatOffenderSummaryScreen extends StatelessWidget {
   static bool _usingExplicitLive(List<Map<String, String>>? live) =>
       live != null && live.isNotEmpty;
 
-  static String _bucketForRow(Map<String, String> row) {
-    return row['head']?.trim().isNotEmpty == true
-        ? row['head']!.trim()
-        : UiConfigService.repeatOffenderSummary['other_bucket_label'];
-  }
-
-  List<Map<String, String>> _rowsForBucket(
-    List<Map<String, String>> data,
-    String bucketLabel,
-  ) {
-    return data.where((r) => _bucketForRow(r) == bucketLabel).toList();
-  }
-
-  List<String> _getUniqueCategories(List<Map<String, String>> data) {
-    final Set<String> categories = {};
-    for (final r in data) {
-      categories.add(_bucketForRow(r));
-    }
-    final list = categories.toList()..sort();
-    return list;
-  }
-
   Future<void> _exportPdf(
     BuildContext context,
     List<Map<String, String>> dataset,
   ) async {
-    final flat = <Map<String, String>>[];
-    final categories = _getUniqueCategories(dataset);
-    for (final section in categories) {
-      flat.addAll(_rowsForBucket(dataset, section));
-    }
-    if (flat.isEmpty) return;
+    if (dataset.isEmpty) return;
+    final dittoRows =
+        RepeatOffenderCasesDataTable.applyDittoFormatting(dataset);
     final theme = await PdfUnicodeFonts.openSansTheme();
     final doc = DynamicMapPdf.buildLandscapeDataTableDocument(
       theme: theme,
       title: 'Repeat Offender — Summary (all periods)',
-      rows: flat.map((e) => Map<String, dynamic>.from(e)).toList(),
+      rows: dittoRows.map((e) => Map<String, dynamic>.from(e)).toList(),
+      columnOrder: ['accused_name', 'cr', 'sections', 'head', 'station'],
     );
     await Printing.sharePdf(
       bytes: await doc.save(),
@@ -88,75 +64,101 @@ class RepeatOffenderSummaryScreen extends StatelessWidget {
     final anyRows = dataset.isNotEmpty;
 
     return Scaffold(
-      backgroundColor: AppColors.lightBg,
+      backgroundColor: const Color(0xFFF6F8FF),
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-              child: Row(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
                 children: [
-                  GestureDetector(
+                  InkWell(
                     onTap: () => Navigator.pop(context),
+                    borderRadius: BorderRadius.circular(10),
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.lightBorder),
-                      ),
-                      child: const Icon(Icons.arrow_back_rounded,
-                          color: AppColors.navyMid, size: 20),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
-                        height: 1.15,
-                      ),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: !anyRows ? null : () => _exportPdf(context, dataset),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: AppColors.navyMid,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.download_rounded,
-                              color: Colors.white, size: 18),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Export',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                              height: 1.15,
-                            ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
                           ),
                         ],
+                      ),
+                      child: const Icon(Icons.arrow_back_rounded,
+                          color: AppColors.navyDark, size: 20),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.poppins(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.navyDark,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.navyMid.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '${dataset.length} Total',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.navyMid,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  ElevatedButton.icon(
+                    onPressed:
+                        !anyRows ? null : () => _exportPdf(context, dataset),
+                    icon: const Icon(Icons.download_rounded, size: 16),
+                    label: Text(
+                      'Export',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: Colors.white,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.navyMid,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
                       ),
                     ),
                   ),
                 ],
               ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              const SizedBox(height: 20),
+              Expanded(
                 child: dataset.isEmpty
                     ? Center(
                         child: Text(
@@ -169,10 +171,30 @@ class RepeatOffenderSummaryScreen extends StatelessWidget {
                           ),
                         ),
                       )
-                    : RepeatOffenderCasesDataTable(realDataRows: dataset),
+                    : SingleChildScrollView(
+                        padding: const EdgeInsets.only(bottom: 24),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                                color: Colors.grey.withValues(alpha: 0.2)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.03),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(16),
+                          child: RepeatOffenderCasesDataTable(
+                              realDataRows: dataset),
+                        ),
+                      ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -181,9 +203,17 @@ class RepeatOffenderSummaryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (_usingExplicitLive(liveRows)) {
+      final sortedLive = List<Map<String, String>>.from(liveRows!)
+        ..sort((a, b) {
+          final comp = (a['accused_name'] ?? '')
+              .toLowerCase()
+              .compareTo((b['accused_name'] ?? '').toLowerCase());
+          if (comp != 0) return comp;
+          return (a['cr'] ?? '').compareTo(b['cr'] ?? '');
+        });
       return _builtContent(
         context,
-        dataset: liveRows!,
+        dataset: sortedLive,
         firedFromFirestoreExclusive: true,
         showDemoNote: false,
       );
@@ -294,7 +324,7 @@ class _LiveRepeatOffenderSummaryLoaderState
 
     if (_error != null) {
       return Scaffold(
-        backgroundColor: AppColors.lightBg,
+        backgroundColor: const Color(0xFFF6F8FF),
         body: SafeArea(
           child: Center(
             child: Padding(
@@ -316,7 +346,7 @@ class _LiveRepeatOffenderSummaryLoaderState
 
     if (_initialLoad && modules.isEmpty) {
       return const Scaffold(
-        backgroundColor: AppColors.lightBg,
+        backgroundColor: Color(0xFFF6F8FF),
         body: SafeArea(
           child: Center(
             child: CircularProgressIndicator(color: AppColors.navyMid),
@@ -326,25 +356,44 @@ class _LiveRepeatOffenderSummaryLoaderState
     }
 
     final exclusive = modules.isNotEmpty;
-    // We'll reuse the arrestedTableRowsAll for now, but we'll map fields properly in the caller if needed
     final now = DateTime.now();
     final rawDataset = exclusive
         ? arrestedTableRowsAll(modules, now)
         : <Map<String, String>>[];
 
-    // Deduplicate by accused_name so each offender only appears once
+    // Fetch all repeat offender cases
     final dataset = <Map<String, String>>[];
-    final seenAccused = <String>{};
     for (var row in rawDataset) {
-      final name = row['accused_name'] ?? '';
-      if (name.isNotEmpty &&
-          name !=
-              UiConfigService.repeatOffenderSummary['unknown_offender_label']) {
-        if (seenAccused.contains(name)) continue;
-        seenAccused.add(name);
+      final name = (row['accused_name'] ?? '').trim();
+      final cr = (row['cr'] ?? '').trim();
+      final multipleCr = (row['multiple_cr'] ?? '').trim();
+
+      // Exclude invalid/empty CR or cases without other repeat CRs
+      if (cr.isEmpty || cr == '—' || cr == '-') {
+        continue;
       }
+      if (multipleCr.isEmpty || multipleCr == '—' || multipleCr == '-') {
+        continue;
+      }
+
+      final lowerName = name.toLowerCase();
+      if (lowerName == 'default accused' ||
+          name.isEmpty ||
+          name ==
+              UiConfigService.repeatOffenderSummary['unknown_offender_label']) {
+        continue;
+      }
+
       dataset.add(row);
     }
+
+    dataset.sort((a, b) {
+      final comp = (a['accused_name'] ?? '')
+          .toLowerCase()
+          .compareTo((b['accused_name'] ?? '').toLowerCase());
+      if (comp != 0) return comp;
+      return (a['cr'] ?? '').compareTo(b['cr'] ?? '');
+    });
 
     const showDemoNote = false;
 

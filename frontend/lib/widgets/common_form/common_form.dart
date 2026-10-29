@@ -21,7 +21,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../modules/core/models/base_record.dart';
-import '../../screens/ad_form_screen.dart' show ACT_DATA;
 import '../../services/case_service.dart';
 import '../../services/gender_options.dart';
 import '../age_digits_limit.dart';
@@ -678,7 +677,7 @@ class CommonFormState extends State<CommonForm> {
   bool _isUsingFallback = false;
 
   Map<String, Map<String, dynamic>> get _activeActsData =>
-      _actsData.isNotEmpty ? _actsData : ACT_DATA;
+      _actsData.isNotEmpty ? _actsData : BackendCaseService.cachedActData;
   Map<String, String> get _activeProceduralKeys =>
       _proceduralKeys.isNotEmpty ? _proceduralKeys : _kProceduralKeys;
 
@@ -768,10 +767,20 @@ class CommonFormState extends State<CommonForm> {
   // ─── lifecycle ─────────────────────────────────────────────────────────────
   Future<void> _fetchGlobalActs() async {
     final acts = await BackendCaseService().fetchActDataMap();
-    if (acts != null && mounted) {
+    if (acts != null && acts.isNotEmpty && mounted) {
       setState(() {
         _actsData = acts;
       });
+    } else if (mounted &&
+        _actsData.isEmpty &&
+        BackendCaseService.cachedActData.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to load legal acts and sections from server.'),
+          backgroundColor: _kRed,
+          duration: Duration(seconds: 4),
+        ),
+      );
     }
   }
 
@@ -1782,6 +1791,8 @@ class CommonFormState extends State<CommonForm> {
     return v.toString();
   }
 
+  List _safeList(dynamic v) => (v is List) ? v : const [];
+
   void hydrateFromDocumentMap(Map<String, dynamic> m) {
     clearForm();
     _crNo.text = _s(m['crNo']);
@@ -1813,7 +1824,9 @@ class CommonFormState extends State<CommonForm> {
         _s(m['occurrenceDateTime'] ?? m['occurrenceDate']);
 
     _stolenProperties.clear();
-    final spList = m['stolenProperties'] as List?;
+    final spList = (m['stolenProperties'] is List)
+        ? (m['stolenProperties'] as List)
+        : null;
     if (spList != null && spList.isNotEmpty) {
       for (final sp in spList) {
         if (sp is Map) _stolenProperties.add(_createStolenPropRow(sp));
@@ -1862,7 +1875,9 @@ class CommonFormState extends State<CommonForm> {
     }
 
     _recoveredProperties.clear();
-    final rpList = m['recoveredProperties'] as List?;
+    final rpList = (m['recoveredProperties'] is List)
+        ? (m['recoveredProperties'] as List)
+        : null;
     if (rpList != null && rpList.isNotEmpty) {
       for (final rp in rpList) {
         if (rp is Map) _recoveredProperties.add(_createRecoveredPropRow(rp));
@@ -2015,23 +2030,23 @@ class CommonFormState extends State<CommonForm> {
       (row['desc'] as TextEditingController).text = _s(raw['description']);
     }
 
-    for (final item in (m['accused'] as List? ?? [])) {
+    for (final item in _safeList(m['accused'])) {
       if (item is! Map) continue;
       addPersonAccused();
       applyPerson(_accused.last, item);
     }
-    for (final item in (m['suspectedAccused'] as List? ?? [])) {
+    for (final item in _safeList(m['suspectedAccused'])) {
       if (item is! Map) continue;
       addPersonSuspected();
       applyPerson(_suspected.last, item);
     }
 
-    for (final item in (m['unidentifiedList'] as List? ?? [])) {
+    for (final item in _safeList(m['unidentifiedList'])) {
       if (item is! Map) continue;
       addUnidentified();
       applyUnid(_unidentified.last, item);
     }
-    for (final item in (m['unknownList'] as List? ?? [])) {
+    for (final item in _safeList(m['unknownList'])) {
       if (item is! Map) continue;
       addUnknown();
       applyUnid(_unknown.last, item);
@@ -2060,7 +2075,7 @@ class CommonFormState extends State<CommonForm> {
       _cctvDt.text = _s(cr['cctvDateTime']);
     }
 
-    for (final r0 in (m['arrestRelease'] as List? ?? [])) {
+    for (final r0 in _safeList(m['arrestRelease'])) {
       if (r0 is! Map) continue;
       final name = _s(r0['accusedName']);
       final row = _arrestRows.firstWhere(
@@ -2130,7 +2145,7 @@ class CommonFormState extends State<CommonForm> {
       _nafisDate.text = _s(m['nafisDate']);
     }
 
-    for (final s0 in (m['seizures'] as List? ?? [])) {
+    for (final s0 in _safeList(m['seizures'])) {
       if (s0 is! Map) continue;
       _seizures.add({
         'desc': TextEditingController(text: _s(s0['desc'])),
@@ -2149,7 +2164,7 @@ class CommonFormState extends State<CommonForm> {
     _cdrSent.text = _s(m['cdrSent']);
     _cdrRecv.text = _s(m['cdrRecv']);
 
-    for (final c0 in (m['custodyInfo'] as List? ?? [])) {
+    for (final c0 in _safeList(m['custodyInfo'])) {
       if (c0 is! Map) continue;
       final name = _s(c0['accusedName']);
       final row = _custodyRows.firstWhere(
@@ -2190,7 +2205,8 @@ class CommonFormState extends State<CommonForm> {
       (row['suretyRel'] as TextEditingController).text = _s(c0['suretyRel']);
     }
 
-    final pRows = m['preventiveRows'] as List?;
+    final pRows =
+        (m['preventiveRows'] is List) ? (m['preventiveRows'] as List) : null;
     if (pRows != null) {
       for (final r0 in pRows) {
         if (r0 is! Map) continue;
@@ -2246,7 +2262,9 @@ class CommonFormState extends State<CommonForm> {
       }
     }
 
-    final customDis = m['customDischargeList'] as List?;
+    final customDis = (m['customDischargeList'] is List)
+        ? (m['customDischargeList'] as List)
+        : null;
     if (customDis != null) {
       for (final cd in customDis) {
         if (cd is Map) {
@@ -2282,13 +2300,13 @@ class CommonFormState extends State<CommonForm> {
 
     final ver = m['verdict'] as Map?;
     if (ver != null) {
-      final aq = ver['acquitted'] as List?;
+      final aq = (ver['acquitted'] is List) ? (ver['acquitted'] as List) : null;
       if (aq != null) {
         _acquitted.addAll(
           aq.map((x) => x.toString()).where((s) => s.isNotEmpty),
         );
       }
-      final cv = ver['convicted'] as List?;
+      final cv = (ver['convicted'] is List) ? (ver['convicted'] as List) : null;
       if (cv != null) {
         _convicted.addAll(
           cv.map((x) => x.toString()).where((s) => s.isNotEmpty),
@@ -5756,7 +5774,25 @@ class _SectionSearchPickerState extends State<_SectionSearchPicker> {
 
   @override
   Widget build(BuildContext context) {
-    final acts = widget.actsData ?? ACT_DATA;
+    final acts = widget.actsData ?? BackendCaseService.cachedActData;
+    if (acts.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            const Icon(Icons.error_outline, size: 16, color: _kRed),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                TranslationHelper.translate(context,
+                    'Error: Failed to load acts and sections from server.'),
+                style: const TextStyle(fontSize: 12, color: _kRed),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     final sections = (acts[widget.actKey]?['sections'] as List<dynamic>? ?? [])
         .map((r) => r as Map<String, dynamic>)
         .toList();

@@ -62,15 +62,51 @@ class OfficerDetailsDialog extends StatelessWidget {
     final photoUrl = officerData['photo_url']?.toString() ?? '';
     final idCardUrl = officerData['id_card_url']?.toString() ?? '';
 
-    // Smart logic for Station/Division applicability based on role
+    // Approve/Reject buttons mean a registration review; otherwise it is an
+    // officer's profile opened from a hierarchy screen.
+    final isReview = onApprove != null || onReject != null;
+    final accountStatus =
+        officerData['account_status']?.toString() ?? 'pending_approval';
+    final isActive = accountStatus == 'active';
+    final statusLabel = isActive
+        ? 'ACTIVE'
+        : accountStatus.startsWith('pending')
+            ? 'PENDING APPROVAL'
+            : accountStatus.replaceAll('_', ' ').toUpperCase();
+    final MaterialColor statusColor = isActive
+        ? Colors.green
+        : accountStatus.startsWith('pending')
+            ? Colors.orange
+            : Colors.red;
+    const roleLabels = {
+      'master_admin': 'Master Admin',
+      'state_admin': 'State Admin',
+      'state_super_admin': 'State Admin',
+      'district_admin': 'District Admin',
+      'city_admin': 'City Admin',
+      'division_admin': 'Division Admin',
+      'station_head': 'Station Head',
+      'station_admin': 'Station Head',
+      'officer': 'Officer',
+    };
+    final roleLabel = roleLabels[roleId] ?? roleId.replaceAll('_', ' ');
+
+    final divisionStations = (officerData['additional_stations'] as List?)
+            ?.map((s) => s.toString())
+            .where((s) => s.trim().isNotEmpty)
+            .toList() ??
+        const <String>[];
+
+    // Which units apply comes from the role, never from the rank text (a
+    // City Admin with rank CP is not a State Admin).
     final isStateLevel = roleId.contains('state') ||
         roleId.contains('dgp') ||
         roleId.contains('master') ||
-        desig.toLowerCase().contains('ig') ||
-        desig.toLowerCase().contains('cp');
+        roleId == 'super_admin' ||
+        roleId == 'admin';
     final isDivLevel = roleId.contains('div') ||
-        desig.toLowerCase().contains('dig') ||
-        desig.toLowerCase().contains('sp');
+        const {'district_admin', 'city_admin', 'sp', 'cp', 'dcp'}
+            .contains(roleId);
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -103,7 +139,9 @@ class OfficerDetailsDialog extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Officer Registration Details',
+                          isReview
+                              ? 'Officer Registration Details'
+                              : 'Officer Details',
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
@@ -111,7 +149,9 @@ class OfficerDetailsDialog extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'Full registration submission review',
+                          isReview
+                              ? 'Full registration submission review'
+                              : 'Profile and assignment',
                           style: GoogleFonts.poppins(
                             fontSize: 10.5,
                             color: Colors.white.withValues(alpha: 0.8),
@@ -196,18 +236,18 @@ class OfficerDetailsDialog extends StatelessWidget {
                                     vertical: 2,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.orange.shade50,
+                                    color: statusColor.shade50,
                                     borderRadius: BorderRadius.circular(6),
                                     border: Border.all(
-                                      color: Colors.orange.shade300,
+                                      color: statusColor.shade300,
                                     ),
                                   ),
                                   child: Text(
-                                    'STATUS: PENDING APPROVAL',
+                                    'STATUS: $statusLabel',
                                     style: GoogleFonts.poppins(
                                       fontSize: 9.5,
                                       fontWeight: FontWeight.w800,
-                                      color: Colors.orange.shade900,
+                                      color: statusColor.shade900,
                                     ),
                                   ),
                                 ),
@@ -225,6 +265,7 @@ class OfficerDetailsDialog extends StatelessWidget {
                     _detailRow('Full Name', name),
                     _detailRow('Government Email', email),
                     _detailRow('Phone Number', phone),
+                    _detailRow('Role', roleLabel),
                     _detailRow('Rank / Designation', desig),
                     _detailRow('Badge No. / Govt ID', badge),
 
@@ -250,12 +291,16 @@ class OfficerDetailsDialog extends StatelessWidget {
                               : ''),
                     ),
                     _detailRow(
-                      'Police Station',
-                      station.isNotEmpty
-                          ? station
-                          : ((isStateLevel || isDivLevel)
-                              ? 'Not Applicable (High Rank / Command)'
-                              : ''),
+                      divisionStations.isNotEmpty
+                          ? 'Division Stations'
+                          : 'Police Station',
+                      divisionStations.isNotEmpty
+                          ? divisionStations.join(', ')
+                          : station.isNotEmpty
+                              ? station
+                              : ((isStateLevel || isDivLevel)
+                                  ? 'Not Applicable (High Rank / Command)'
+                                  : ''),
                     ),
 
                     const SizedBox(height: 16),

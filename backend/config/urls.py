@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.urls import path, include
 from django.http import JsonResponse
 
+from apps.core.app_version import AppDownloadView, AppVersionView
+
 
 def health_check(request):
     return JsonResponse({
@@ -14,9 +16,14 @@ def health_check(request):
 urlpatterns = [
     # Root Health Check for Render & Load Balancers
     path('', health_check, name='root-health-check'),
+    path('api/', health_check, name='api-root-health-check'),
 
     # Enterprise Django Admin Console
     path('admin/', admin.site.urls),
+
+    # Android in-app update check (before 'api/', which crimetab claims broadly)
+    path('api/app-version/', AppVersionView.as_view(), name='app-version'),
+    path('api/app-version/download/', AppDownloadView.as_view(), name='app-version-download'),
 
     # Enterprise REST API Domain Services (Clean Resource-Oriented Routing)
     path('api/auth/', include('apps.authentication.urls')),

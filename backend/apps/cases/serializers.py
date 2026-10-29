@@ -239,6 +239,8 @@ class DisposalCaseRecordSerializer(CaseRecordSerializer):
         from apps.crimetab.models.groupings import CaseCategory
         
         extra = instance.extra_fields or {}
+        mk = (instance.module_key or "").strip().lower()
+        sub = (instance.sub_category or "").strip()
         
         types = []
         nums = []
@@ -254,10 +256,54 @@ class DisposalCaseRecordSerializer(CaseRecordSerializer):
             val = extra.get(key)
             if val is not None and str(val).strip():
                 cc_st.append(str(val).strip())
+
+        is_ad = (mk == 'ad' or sub.lower() in ['ad', 'accidental death'])
+        if is_ad and not types:
+            from apps.cases.models import _extract_first_non_empty, AD_SUMMARY_NO_KEYS, AD_SUMMARY_DATE_KEYS
+            ad_num = _extract_first_non_empty(extra, AD_SUMMARY_NO_KEYS)
+            ad_date = _extract_first_non_empty(extra, AD_SUMMARY_DATE_KEYS)
+            if ad_num:
+                types.append("AD Summary No")
+                nums.append(ad_num)
+            if ad_date and not extra.get('disposal_date'):
+                data['disposal_date'] = ad_date
+
+        is_preventive = (mk in ['preventive', 'preventive_action', 'preventive_actions', 'chapter_case'] or
+                         sub.lower() in ['preventive', 'preventive_action', 'chapter case', 'chapter_case', 'प्रतिबंधक कारवाई', 'प्रतिबंधक'])
+        if is_preventive and not types:
+            from apps.cases.models import _extract_first_non_empty, PREVENTIVE_NO_KEYS, PREVENTIVE_DATE_KEYS
+            p_num = _extract_first_non_empty(extra, PREVENTIVE_NO_KEYS)
+            p_date = _extract_first_non_empty(extra, PREVENTIVE_DATE_KEYS)
+            istegasha_dict = extra.get('istegasha') if isinstance(extra.get('istegasha'), dict) else {}
+            outward = extra.get('outwardNo') or extra.get('outwardNumber') or istegasha_dict.get('outwardNo') or istegasha_dict.get('outwardNumber')
+            if p_num:
+                types.append("Preventive No")
+                nums.append(f"{p_num} (Outward: {outward})" if outward else p_num)
+            if p_date and not extra.get('disposal_date'):
+                data['disposal_date'] = p_date
                 
+        is_nc = (mk in ['nc', 'nc_register', 'nc_form'] or sub.lower() in ['nc', 'non-cognizable', 'non cognizable', 'nc register'])
+        if is_nc and not types:
+            p_details = extra.get('preventiveDetails') if isinstance(extra.get('preventiveDetails'), dict) else {}
+            reason = extra.get('noPreventiveReason') or p_details.get('noPreventiveReason') or extra.get('preventive_not_done_reason') or extra.get('reason')
+            p_num = p_details.get('preventiveNumber') or extra.get('preventiveNumber') or extra.get('preventiveNo') or extra.get('preventive_no')
+            p_outward = p_details.get('outwardNumber') or extra.get('outwardNumber') or extra.get('preventiveOutwardNumber') or extra.get('preventive_outward_no')
+            
+            if reason:
+                other = extra.get('noPreventiveOtherDetails')
+                reason_str = f"{reason} ({other})" if (str(reason).lower() == 'other' and other) else str(reason)
+                types.append("No Preventive")
+                nums.append(reason_str)
+            elif p_num or p_outward:
+                types.append("Preventive Action")
+                parts = []
+                if p_num: parts.append(f"No: {p_num}")
+                if p_outward: parts.append(f"Outward: {p_outward}")
+                nums.append(", ".join(parts))
+
         data['disposal_type'] = ", ".join(types) if types else "N/A"
         data['disposal_no'] = ", ".join(nums) if nums else "N/A"
-        data['disposal_date'] = extra.get('disposal_date', 'N/A')
+        data['disposal_date'] = extra.get('disposal_date') or data.get('disposal_date') or 'N/A'
         
         # Dedupe cc_st_no and return "" if empty
         unique_cc_st = []
@@ -268,13 +314,15 @@ class DisposalCaseRecordSerializer(CaseRecordSerializer):
         
         # Get crime_type_name from CaseCategory via context map
         cat_map = self.context.get('cat_map', {})
-        mk = (instance.module_key or "").strip().lower()
-        sub = (instance.sub_category or "").strip()
         
         # Priority: 
         # If it's a generic form (like form_1_5), the actual crime name (e.g., Murder, Sand Theft) is in sub_category
         if mk == 'form_1_5':
             data['crime_type_name'] = sub if sub else 'Other Crimes'
+        elif is_ad:
+            data['crime_type_name'] = 'Accidental Death (A.D.)'
+        elif is_preventive:
+            data['crime_type_name'] = 'Preventive Action (प्रतिबंधक कारवाई)'
         elif sub and not cat_map.get(mk):
             data['crime_type_name'] = sub
         else:
@@ -285,11 +333,11 @@ class DisposalCaseRecordSerializer(CaseRecordSerializer):
         if isinstance(acts_sections, list) and acts_sections:
             first_as = acts_sections[0]
             if isinstance(first_as, dict):
-                data['act'] = first_as.get('act') or extra.get('act') or ''
-                data['section'] = first_as.get('section') or extra.get('section') or ''
+                data['act'] = first_as.get('act') or extra.get('act') or extra.get('preventiveAct') or ''
+                data['section'] = first_as.get('section') or extra.get('section') or extra.get('sections') or extra.get('preventiveSecAct') or extra.get('preventiveSectionAct') or ''
         else:
-            data['act'] = extra.get('act') or ''
-            data['section'] = extra.get('section') or ''
+            data['act'] = extra.get('act') or extra.get('preventiveAct') or ''
+            data['section'] = extra.get('section') or extra.get('sections') or extra.get('preventiveSecAct') or extra.get('preventiveSectionAct') or ''
         
         return data
 
@@ -627,6 +675,382 @@ class ItssoCaseRecordSerializer(serializers.ModelSerializer):
         days_passed = (timezone.now().date() - reg_date).days
         return not self._has_charge_sheet(obj)
 
+def format_section_act(val):
+    if not val:
+        return ''
+    
+    # If val is a string, check if it's a stringified python/json list or dict
+    if isinstance(val, str):
+        s = val.strip()
+        if (s.startswith('[') and s.endswith(']')) or (s.startswith('{') and s.endswith('}')):
+            import ast, json
+            parsed = None
+            try:
+                parsed = json.loads(s)
+            except Exception:
+                try:
+                    parsed = ast.literal_eval(s)
+                except Exception:
+                    parsed = None
+            if parsed is not None:
+                return format_section_act(parsed)
+        if s in ('None', 'null', '[]', '{}'):
+            return ''
+        return s
+
+    if isinstance(val, list):
+        items = []
+        for item in val:
+            formatted = format_section_act(item)
+            if formatted and formatted not in items:
+                items.append(formatted)
+        return ', '.join(items)
+
+    if isinstance(val, dict):
+        if val.get('otherSections'):
+            return str(val['otherSections']).strip()
+        
+        act = val.get('act_name') or val.get('act') or ''
+        if isinstance(act, dict):
+            act = act.get('act_name') or act.get('name') or ''
+        elif not isinstance(act, str):
+            act = '' if act is None or isinstance(act, (int, float)) else str(act)
+        act = act.strip()
+        if act in ('None', 'null'):
+            act = ''
+
+        # Normalize common Act names to short abbreviations
+        act_lower = act.lower()
+        if 'bharatiya nyaya' in act_lower or act_lower == 'bns':
+            act = 'BNS'
+        elif 'indian penal' in act_lower or act_lower == 'ipc':
+            act = 'IPC'
+        elif 'nagarik suraksha' in act_lower or 'nagrik suraksha' in act_lower or act_lower == 'bnss':
+            act = 'BNSS'
+        elif 'sakshya' in act_lower or act_lower == 'bsa':
+            act = 'BSA'
+        elif 'protection of children' in act_lower or 'pocso' in act_lower:
+            act = 'POCSO'
+
+        sec = val.get('subsection_code') or val.get('section_number') or val.get('section') or val.get('section_title') or ''
+        if isinstance(sec, dict):
+            sec = sec.get('number') or sec.get('section_number') or ''
+        elif not isinstance(sec, str):
+            sec = '' if sec is None else str(sec)
+        sec = sec.strip()
+        if sec in ('None', 'null'):
+            sec = ''
+
+        parts = []
+        if act:
+            parts.append(act)
+        if sec:
+            if not sec.lower().startswith('sec') and not parts:
+                parts.append(f"Sec. {sec}")
+            else:
+                parts.append(sec)
+
+        if parts:
+            return ' '.join(parts)
+        
+        # Fallback to other sub-fields in dict
+        for k in ['section', 'act', 'sections']:
+            sub_val = val.get(k)
+            if sub_val and sub_val != val and not isinstance(sub_val, (int, float)):
+                res = format_section_act(sub_val)
+                if res:
+                    return res
+        return ''
+
+    return str(val).strip()
+
+
+class DarCaseRecordSerializer(serializers.ModelSerializer):
+    """
+    Serializer for DAR (Detailed Accident Report) Road Accident cases.
+    Provides table-ready attributes:
+    - Sr. No. (sr_no)
+    - CR No. (cr_no / case_number)
+    - Act and Section (act_and_section)
+    - IO Name (io_name)
+    - Status (status: Pending / Filled)
+    - Status Color (status_color: Red / Green)
+    - Remind Action (can_remind)
+    """
+    sr_no = serializers.IntegerField(read_only=True, required=False)
+    cr_no = serializers.CharField(source='case_number', read_only=True)
+    act_and_section = serializers.SerializerMethodField()
+    io_name = serializers.SerializerMethodField()
+    io_uid = serializers.CharField(source='assigned_officer_uid', read_only=True)
+    status = serializers.SerializerMethodField()
+    dar_status = serializers.SerializerMethodField()
+    status_color = serializers.SerializerMethodField()
+    dar_date = serializers.SerializerMethodField()
+    dar_fields = serializers.SerializerMethodField()
+    can_remind = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CaseRecord
+        fields = [
+            'id',
+            'sr_no',
+            'cr_no',
+            'case_number',
+            'act_and_section',
+            'io_name',
+            'io_uid',
+            'status',
+            'dar_status',
+            'status_color',
+            'dar_date',
+            'dar_fields',
+            'can_remind',
+            'station_name',
+            'sub_category',
+            'module_key',
+            'incident_date',
+            'created_at',
+            'extra_fields',
+        ]
+
+    def _get_eval(self, obj):
+        if self.context and 'dar_eval' in self.context:
+            return self.context['dar_eval']
+        from apps.cases.dar_service import RoadAccidentDarService
+        return RoadAccidentDarService.evaluate_case_dar(obj)
+
+    def get_status(self, obj):
+        return self._get_eval(obj).get('status', 'Pending')
+
+    def get_dar_status(self, obj):
+        return self._get_eval(obj).get('status', 'Pending')
+
+    def get_status_color(self, obj):
+        return self._get_eval(obj).get('status_color', '#E74C3C')
+
+    def get_dar_date(self, obj):
+        return self._get_eval(obj).get('dar_date')
+
+    def get_dar_fields(self, obj):
+        return self._get_eval(obj).get('dar_fields', {})
+
+    def get_can_remind(self, obj):
+        return self._get_eval(obj).get('can_remind', True)
+
+    def get_io_name(self, obj):
+        extra = obj.extra_fields if isinstance(obj.extra_fields, dict) else {}
+        name = (
+            obj.assigned_officer
+            or extra.get('io_name')
+            or extra.get('assigned_officer')
+            or ''
+        )
+        return str(name).strip() or '-'
+
+    def get_act_and_section(self, obj):
+        # 1. Fetch from relational database table CrimeCaseActsSections
+        try:
+            from apps.crimetab.models.common_form import CrimeCaseActsSections
+            acts_rel = CrimeCaseActsSections.objects.filter(case=obj).select_related('act', 'section')
+            act_list = []
+            for item in acts_rel:
+                act_name = item.act.act_name if item.act and item.act.act_name else ''
+                sec_num = item.section.section_number if item.section and item.section.section_number else ''
+                combined = f"{act_name} {sec_num}".strip()
+                if combined:
+                    act_list.append(combined)
+            if act_list:
+                return ", ".join(act_list)
+        except Exception:
+            pass
+
+        # 2. Fetch from extra_fields stored during form submission
+        extra = obj.extra_fields if isinstance(obj.extra_fields, dict) else {}
+        for key in ['acts_sections', 'section_act', 'act_section', 'charges']:
+            if extra.get(key):
+                formatted = format_section_act(extra[key])
+                if formatted and 'None' not in formatted and formatted.strip():
+                    return formatted.strip()
+
+        # 3. Fetch from direct charges or act_id / section_id in database
+        if getattr(obj, 'charges', None):
+            act_str = str(obj.charges).strip()
+            if act_str and 'None' not in act_str:
+                return act_str
+
+        act_id = extra.get('act_id') or getattr(obj, 'act_id', None)
+        section_id = extra.get('section_id') or getattr(obj, 'section_id', None)
+        if act_id or section_id:
+            try:
+                from apps.crimetab.models.common_form import Act, ActSection
+                act_name = ''
+                sec_num = ''
+                if act_id:
+                    act_obj = Act.objects.filter(act_id=act_id).first()
+                    if act_obj and act_obj.act_name:
+                        act_name = act_obj.act_name
+                if section_id:
+                    sec_obj = ActSection.objects.filter(section_id=section_id).first()
+                    if sec_obj and sec_obj.section_number:
+                        sec_num = sec_obj.section_number
+                combined = f"{act_name} {sec_num}".strip()
+                if combined:
+                    return combined
+            except Exception:
+                pass
+
+        # 4. Check sub_category or title from database record
+        if obj.sub_category and str(obj.sub_category).strip():
+            return str(obj.sub_category).strip()
+
+        if obj.title and str(obj.title).strip():
+            return str(obj.title).strip()
+
+        return '-'
+
+
+class IradCaseRecordSerializer(serializers.ModelSerializer):
+    """
+    Dedicated dynamic serializer for Road Accident IRAD Table.
+    Outputs:
+    - Sr. No.
+    - CR No.
+    - Act and Section
+    - IO Name
+    - Status (Pending/Filled)
+    - Action Button / Remind to IO (can_remind)
+    """
+    sr_no = serializers.IntegerField(read_only=True)
+    cr_no = serializers.CharField(source='case_number', read_only=True)
+    act_and_section = serializers.SerializerMethodField()
+    io_name = serializers.SerializerMethodField()
+    io_uid = serializers.CharField(source='assigned_officer_uid', read_only=True)
+    status = serializers.SerializerMethodField()
+    irad_status = serializers.SerializerMethodField()
+    status_color = serializers.SerializerMethodField()
+    irad_date = serializers.SerializerMethodField()
+    irad_fields = serializers.SerializerMethodField()
+    can_remind = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CaseRecord
+        fields = [
+            'id',
+            'sr_no',
+            'cr_no',
+            'case_number',
+            'act_and_section',
+            'io_name',
+            'io_uid',
+            'status',
+            'irad_status',
+            'status_color',
+            'irad_date',
+            'irad_fields',
+            'can_remind',
+            'station_name',
+            'sub_category',
+            'module_key',
+            'incident_date',
+            'created_at',
+            'extra_fields',
+        ]
+
+    def _get_eval(self, obj):
+        if self.context and 'irad_eval' in self.context:
+            return self.context['irad_eval']
+        from apps.cases.irad_service import RoadAccidentIradService
+        return RoadAccidentIradService.evaluate_case_irad(obj)
+
+    def get_status(self, obj):
+        return self._get_eval(obj).get('status', 'Pending')
+
+    def get_irad_status(self, obj):
+        return self._get_eval(obj).get('status', 'Pending')
+
+    def get_status_color(self, obj):
+        return self._get_eval(obj).get('status_color', '#E74C3C')
+
+    def get_irad_date(self, obj):
+        return self._get_eval(obj).get('irad_date')
+
+    def get_irad_fields(self, obj):
+        return self._get_eval(obj).get('irad_fields', {})
+
+    def get_can_remind(self, obj):
+        return self._get_eval(obj).get('can_remind', True)
+
+    def get_io_name(self, obj):
+        extra = obj.extra_fields if isinstance(obj.extra_fields, dict) else {}
+        name = (
+            obj.assigned_officer
+            or extra.get('io_name')
+            or extra.get('assigned_officer')
+            or ''
+        )
+        return str(name).strip() or '-'
+
+    def get_act_and_section(self, obj):
+        # 1. Fetch from relational database table CrimeCaseActsSections
+        try:
+            from apps.crimetab.models.common_form import CrimeCaseActsSections
+            acts_rel = CrimeCaseActsSections.objects.filter(case=obj).select_related('act', 'section')
+            act_list = []
+            for item in acts_rel:
+                act_name = item.act.act_name if item.act and item.act.act_name else ''
+                sec_num = item.section.section_number if item.section and item.section.section_number else ''
+                combined = f"{act_name} {sec_num}".strip()
+                if combined:
+                    act_list.append(combined)
+            if act_list:
+                return ", ".join(act_list)
+        except Exception:
+            pass
+
+        # 2. Fetch from extra_fields stored during form submission
+        extra = obj.extra_fields if isinstance(obj.extra_fields, dict) else {}
+        for key in ['acts_sections', 'section_act', 'act_section', 'charges']:
+            if extra.get(key):
+                formatted = format_section_act(extra[key])
+                if formatted and 'None' not in formatted and formatted.strip():
+                    return formatted.strip()
+
+        # 3. Fetch from direct charges or act_id / section_id in database
+        if getattr(obj, 'charges', None):
+            act_str = str(obj.charges).strip()
+            if act_str and 'None' not in act_str:
+                return act_str
+
+        act_id = extra.get('act_id') or getattr(obj, 'act_id', None)
+        section_id = extra.get('section_id') or getattr(obj, 'section_id', None)
+        if act_id or section_id:
+            try:
+                from apps.crimetab.models.common_form import Act, ActSection
+                act_name = ''
+                sec_num = ''
+                if act_id:
+                    act_obj = Act.objects.filter(act_id=act_id).first()
+                    if act_obj and act_obj.act_name:
+                        act_name = act_obj.act_name
+                if section_id:
+                    sec_obj = ActSection.objects.filter(section_id=section_id).first()
+                    if sec_obj and sec_obj.section_number:
+                        sec_num = sec_obj.section_number
+                combined = f"{act_name} {sec_num}".strip()
+                if combined:
+                    return combined
+            except Exception:
+                pass
+
+        # 4. Check sub_category or title from database record
+        if obj.sub_category and str(obj.sub_category).strip():
+            return str(obj.sub_category).strip()
+
+        if obj.title and str(obj.title).strip():
+            return str(obj.title).strip()
+
+        return '-'
+
 
 class NafisCaseRecordSerializer(serializers.ModelSerializer):
     sr_no = serializers.IntegerField(read_only=True)
@@ -635,14 +1059,15 @@ class NafisCaseRecordSerializer(serializers.ModelSerializer):
     nafis_status = serializers.SerializerMethodField()
     section_act = serializers.SerializerMethodField()
     accused_name = serializers.SerializerMethodField()
+    head = serializers.SerializerMethodField()
     days_passed = serializers.SerializerMethodField()
     action_required = serializers.SerializerMethodField()
 
     class Meta:
         model = CaseRecord
         fields = [
-            'id', 'sr_no', 'case_number', 'section_act', 'charge_sheet_date',
-            'assigned_officer', 'accused_name', 'nafis_status', 'nafis_status_color',
+            'id', 'sr_no', 'case_number', 'section_act', 'head', 'sub_category', 'title', 'charge_sheet_date',
+            'assigned_officer', 'accused_name', 'accused', 'nafis_status', 'nafis_status_color',
             'created_at', 'station_name', 'days_passed', 'action_required', 'extra_fields'
         ]
 
@@ -705,6 +1130,9 @@ class NafisCaseRecordSerializer(serializers.ModelSerializer):
 
         return ''
 
+    def get_head(self, obj):
+        return obj.sub_category or obj.title or ''
+
     def get_accused_name(self, obj):
         extra = obj.extra_fields if isinstance(obj.extra_fields, dict) else {}
         name = (
@@ -712,15 +1140,31 @@ class NafisCaseRecordSerializer(serializers.ModelSerializer):
             extra.get('accused_name') or
             extra.get('accused') or
             extra.get('commonForm', {}).get('accused') or
+            extra.get('commonForm', {}).get('accused_name') or
+            extra.get('commonForm', {}).get('accused_list') or
+            extra.get('accused_list') or
+            extra.get('commonForm', {}).get('suspected_accused_name') or
             ''
         )
         if isinstance(name, list):
             items = [str(x.get('name') if isinstance(x, dict) else x).strip() for x in name if x]
-            return ', '.join([x for x in items if x and x not in ('None', 'null')])
+            res = ', '.join([x for x in items if x and x not in ('None', 'null')])
+            if res:
+                return res
         if isinstance(name, dict):
-            return str(name.get('name') or name.get('accused_name') or '').strip()
+            res = str(name.get('name') or name.get('accused_name') or '').strip()
+            if res and res not in ('None', 'null'):
+                return res
         s = str(name).strip()
-        return '' if s in ('None', 'null') else s
+        if s and s not in ('None', 'null', '[]', '{}'):
+            return s
+        try:
+            persons = obj.persons.filter(role__in=['accused', 'suspected_accused', 'suspect'])
+            if persons.exists():
+                return ', '.join([p.name.strip() for p in persons if p.name and p.name.strip()])
+        except Exception:
+            pass
+        return ''
 
     def _has_charge_sheet(self, obj):
         extra = obj.extra_fields if isinstance(obj.extra_fields, dict) else {}

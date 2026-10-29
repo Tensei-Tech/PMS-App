@@ -6,6 +6,7 @@ from apps.public_master.models import Role, Permission, RolePermission, StateReg
 from apps.users.models import OfficerProfile
 from apps.cases.models import CaseRecord
 from apps.cases.utils import get_absconded_cases, get_cases_by_status
+from apps.authentication.testing_utils import activate_account
 
 
 class AbscondedLogicTests(TestCase):
@@ -31,8 +32,10 @@ class AbscondedLogicTests(TestCase):
             'state_code': 'MH',
             'badge_number': f'BDG-{uuid.uuid4().hex[:6]}',
             'station_name': 'Crime Branch',
-            'account_status': 'active',
         }, format='json')
+
+        # Public sign-up waits for approval; activate directly for the test.
+        activate_account('io_absconded@mhpolice.gov.in')
 
         login_resp = self.client.post('/api/auth/login/', {
             'email': 'io_absconded@mhpolice.gov.in',
@@ -87,6 +90,50 @@ class AbscondedLogicTests(TestCase):
                 'arrest_date': '2026-05-10',
             }
         )
+
+        # Case 4: License case (no arrest date, accused populated) -> NOT Absconded
+        self.c_license = CaseRecord.objects.create(
+            module_key='licence',
+            title='Licence Verification',
+            sub_category='Licence Verification',
+            case_number='LIC-261016-052',
+            accused='Applicant License Person',
+            station_name='Crime Branch',
+            assigned_officer='IO Absconded Test',
+            assigned_officer_uid=self.officer.uid,
+            created_by=self.officer.uid,
+            extra_fields={}
+        )
+
+        # Case 5: Passport case (no arrest date, accused populated) -> NOT Absconded
+        self.c_passport = CaseRecord.objects.create(
+            module_key='passport',
+            title='Passport Verification',
+            sub_category='Passport Verification',
+            case_number='PV-261016-418',
+            accused='Applicant Passport Person',
+            station_name='Crime Branch',
+            assigned_officer='IO Absconded Test',
+            assigned_officer_uid=self.officer.uid,
+            created_by=self.officer.uid,
+            extra_fields={}
+        )
+
+    def test_license_and_passport_not_in_absconded(self):
+        """License and Passport cases must NOT appear in Absconded."""
+        absconded_ids = set(str(x) for x in get_absconded_cases().values_list('id', flat=True))
+        self.assertNotIn(str(self.c_license.id), absconded_ids)
+        self.assertNotIn(str(self.c_passport.id), absconded_ids)
+
+        resp = self.client.get(
+            '/api/cases/absconded/',
+            HTTP_AUTHORIZATION=f'Bearer {self.token}'
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        results = resp.data.get('results') if isinstance(resp.data, dict) else resp.data
+        case_ids = [str(r['id']) for r in results]
+        self.assertNotIn(str(self.c_license.id), case_ids)
+        self.assertNotIn(str(self.c_passport.id), case_ids)
 
     def test_absconded_with_cc_in_disposal_and_absconded(self):
         """Case with missing arrest date and CC ST Number must appear under both Disposal and Absconded."""

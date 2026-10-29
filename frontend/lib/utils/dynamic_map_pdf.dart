@@ -532,26 +532,52 @@ class DynamicMapPdf {
     );
   }
 
-  /// Landscape listing PDF: columns = union of all row keys (sorted). Labels via [pdfLabelForKey].
-  /// Optional leading serial column replaces a stored `sr` key to avoid duplication.
+  static bool _isSerialKey(String k) {
+    final clean = k.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+    return clean == 'sr' ||
+        clean == 'srno' ||
+        clean == 'sno' ||
+        clean == 'slno' ||
+        clean == 'serialno';
+  }
+
+  /// Landscape listing PDF: columns = union of all row keys (sorted or via [columnOrder]). Labels via [pdfLabelForKey].
+  /// Optional leading serial column replaces a stored serial key to avoid duplication.
   static pw.Document buildLandscapeDataTableDocument({
     required pw.ThemeData theme,
     required String title,
     required List<Map<String, dynamic>> rows,
     bool prependSerial = true,
+    List<String>? columnOrder,
   }) {
     final doc = pw.Document();
-    final allKeys = <String>{};
-    for (final r in rows) {
-      for (final k in r.keys) {
-        final ks = k.toString();
-        if (prependSerial && (ks == 'sr' || ks == 'Sr' || ks == 'SR')) {
-          continue;
+
+    final hasSerialInColumnOrder =
+        columnOrder != null && columnOrder.any(_isSerialKey);
+    final bool effectivePrependSerial =
+        prependSerial && !hasSerialInColumnOrder;
+
+    final List<String> effectiveKeys;
+    if (columnOrder != null && columnOrder.isNotEmpty) {
+      effectiveKeys = columnOrder.where((k) {
+        if (effectivePrependSerial && _isSerialKey(k)) {
+          return false;
         }
-        allKeys.add(ks);
+        return true;
+      }).toList();
+    } else {
+      final allKeys = <String>{};
+      for (final r in rows) {
+        for (final k in r.keys) {
+          final ks = k.toString();
+          if (effectivePrependSerial && _isSerialKey(ks)) {
+            continue;
+          }
+          allKeys.add(ks);
+        }
       }
+      effectiveKeys = allKeys.toList()..sort();
     }
-    final sortedKeys = allKeys.toList()..sort();
 
     doc.addPage(
       pw.Page(
@@ -584,8 +610,8 @@ class DynamicMapPdf {
               children: [
                 pw.TableRow(
                   children: [
-                    if (prependSerial) _landscapeHeaderCell('Sr. No.'),
-                    ...sortedKeys.map(
+                    if (effectivePrependSerial) _landscapeHeaderCell('Sr. No.'),
+                    ...effectiveKeys.map(
                       (k) => _landscapeHeaderCell(pdfLabelForKey(k)),
                     ),
                   ],
@@ -593,9 +619,20 @@ class DynamicMapPdf {
                 for (var i = 0; i < rows.length; i++)
                   pw.TableRow(
                     children: [
-                      if (prependSerial) _landscapeBodyCell('${i + 1}'),
-                      ...sortedKeys.map(
-                        (k) => _landscapeBodyCell(disp(rows[i][k])),
+                      if (effectivePrependSerial)
+                        _landscapeBodyCell('${i + 1}'),
+                      ...effectiveKeys.map(
+                        (k) {
+                          final v = rows[i][k];
+                          if (_isSerialKey(k)) {
+                            return _landscapeBodyCell(
+                              (v != null && v.toString().trim().isNotEmpty)
+                                  ? disp(v)
+                                  : '${i + 1}',
+                            );
+                          }
+                          return _landscapeBodyCell(disp(v));
+                        },
                       ),
                     ],
                   ),

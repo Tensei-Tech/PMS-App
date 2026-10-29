@@ -4,6 +4,9 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../modules/core/models/base_record.dart';
+import '../utils/app_constants.dart';
+import '../widgets/form_iv_category_button.dart';
+import '../widgets/form_vi_category_button.dart';
 import 'api_config.dart';
 import 'api_service.dart';
 
@@ -271,8 +274,33 @@ class CaseService {
     }
   }
 
-  /// Fetch full case details by ID: GET /api/cases/{id}/
-  Future<Map<String, dynamic>?> fetchCaseById(String caseId) async {
+  /// Fetch a single case record by ID dynamically from Django PostgreSQL backend: GET /api/cases/{id}/
+  Future<ModuleRecord?> fetchCaseById(String caseId) async {
+    if (caseId.trim().isEmpty) return null;
+    final token = await _api.getAuthToken();
+    if (token == null || token.isEmpty || _api.isTokenExpired(token)) {
+      return null;
+    }
+
+    return _gate.run(() async {
+      try {
+        final url = '${ApiConfig.cases}$caseId/';
+        final response = await _api.get(url);
+        if (response.isSuccess && response.data is Map) {
+          final data = Map<String, dynamic>.from(response.data as Map);
+          return ModuleRecord.fromMap(data, data['id']?.toString() ?? caseId);
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('[CaseService] fetchCaseById exception: $e');
+        }
+      }
+      return null;
+    });
+  }
+
+  /// Fetch full case details as Map by ID: GET /api/cases/{id}/
+  Future<Map<String, dynamic>?> fetchCaseDetailsMap(String caseId) async {
     if (caseId.trim().isEmpty) return null;
     try {
       final url = '${ApiConfig.cases}$caseId/';
@@ -282,7 +310,7 @@ class CaseService {
       }
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('[CaseService] fetchCaseById exception: $e');
+        debugPrint('[CaseService] fetchCaseDetailsMap exception: $e');
       }
     }
     return null;
@@ -367,10 +395,20 @@ class CaseService {
 
   List<Map<String, dynamic>>? _allCategoriesCache;
 
-  /// Clear in-memory categories cache
+  /// Clear in-memory categories cache, including cached category children
+  /// (otherwise a different account on the same device could see them).
   void clearCategoryCache() {
     _allCategoriesCache = null;
+    _childrenCache.clear();
   }
+
+  @visibleForTesting
+  void primeChildrenCacheForTest(
+          String key, List<Map<String, dynamic>> children) =>
+      _childrenCache[key] = children;
+
+  @visibleForTesting
+  bool hasChildrenCacheForTest(String key) => _childrenCache.containsKey(key);
 
   /// Prime or mock categories cache
   void setCategoriesCache(List<Map<String, dynamic>> categories) {
@@ -466,9 +504,20 @@ class CaseService {
             : null,
       );
       if (response.isSuccess && response.data is List) {
-        return (response.data as List)
+        final list = (response.data as List)
             .map((e) => Map<String, dynamic>.from(e as Map))
             .toList();
+        final names = list
+            .map((c) =>
+                (c['category_name'] ?? c['name'] ?? '').toString().trim())
+            .where((n) => n.isNotEmpty)
+            .toList();
+        if (groupId == 1 && names.isNotEmpty) {
+          updateDynamicFormIVCategories(names);
+        } else if (groupId == 2 && names.isNotEmpty) {
+          updateDynamicFormVICategories(names);
+        }
+        return list;
       }
     } catch (e) {
       if (kDebugMode) {
@@ -718,9 +767,11 @@ class CaseService {
     try {
       final response = await _api.get(ApiConfig.designations);
       if (response.isSuccess && response.data is List) {
-        return (response.data as List)
+        final list = (response.data as List)
             .map((e) => Map<String, dynamic>.from(e as Map))
             .toList();
+        PoliceDesignations.updateFromBackend(list);
+        return list;
       }
     } catch (e) {
       if (kDebugMode) {

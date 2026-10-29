@@ -132,22 +132,18 @@ class DynamicControlFactory extends StatelessWidget {
       case 'aadhaar':
         return _buildAadhaarField(context);
       case 'year':
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildLabel(context),
-            YearPickerField(
-              controller: controller,
-              readOnly: readOnly,
-              isRequired: fieldDef.isRequired,
-              label: fieldDef.fieldLabel,
-              onChanged: onChanged,
-              decoration: _inputDecoration(
-                      hint: 'Select or type year (e.g. 03)')
-                  .copyWith(
-                      suffixIcon: const Icon(Icons.arrow_drop_down_rounded)),
-            ),
-          ],
+        return _buildFieldLayout(
+          context,
+          YearPickerField(
+            controller: controller,
+            readOnly: readOnly,
+            isRequired: fieldDef.isRequired,
+            label: fieldDef.fieldLabel,
+            onChanged: onChanged,
+            decoration: _inputDecoration(hint: 'Select or type year (e.g. 03)')
+                .copyWith(
+                    suffixIcon: const Icon(Icons.arrow_drop_down_rounded)),
+          ),
         );
       case 'date':
         return _buildDateField(context);
@@ -189,6 +185,7 @@ class DynamicControlFactory extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildLabel(context),
+          const SizedBox(height: 6),
           control,
         ],
       );
@@ -202,59 +199,43 @@ class DynamicControlFactory extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildLabel(context),
+              const SizedBox(height: 6),
               control,
             ],
           );
         }
+        final labelWidth = constraints.maxWidth >= 400 ? 165.0 : 145.0;
         return Row(
           crossAxisAlignment: isMultiline
               ? CrossAxisAlignment.start
               : CrossAxisAlignment.center,
           children: [
             SizedBox(
-              width: 130,
+              width: labelWidth,
               child: Padding(
-                padding: EdgeInsets.only(top: isMultiline ? 12 : 0),
-                child: Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        _displayLabel,
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.navyDark,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                padding: EdgeInsets.only(top: isMultiline ? 10 : 0),
+                child: Text.rich(
+                  TextSpan(
+                    text: _displayLabel,
+                    style: GoogleFonts.poppins(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.navyDark,
+                      height: 1.25,
                     ),
-                    if (fieldDef.isRequired)
-                      const Text(
-                        ' *',
-                        style: TextStyle(
-                          color: AppColors.dangerRed,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    if (fieldDef.fieldSource == 'custom')
-                      Container(
-                        margin: const EdgeInsets.only(left: 4),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 4, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: AppColors.goldPrimary.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                        child: Text(
-                          'SP',
-                          style: GoogleFonts.poppins(
-                            fontSize: 8,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.navyMid,
+                    children: [
+                      if (fieldDef.isRequired)
+                        const TextSpan(
+                          text: ' *',
+                          style: TextStyle(
+                            color: AppColors.dangerRed,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ),
@@ -290,27 +271,25 @@ class DynamicControlFactory extends StatelessWidget {
   Widget _buildLabel(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              _displayLabel,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppColors.navyDark,
-              ),
-            ),
+      child: Text.rich(
+        TextSpan(
+          text: _displayLabel,
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.navyDark,
           ),
-          if (fieldDef.isRequired)
-            const Text(
-              ' *',
-              style: TextStyle(
-                color: AppColors.dangerRed,
-                fontWeight: FontWeight.bold,
+          children: [
+            if (fieldDef.isRequired)
+              const TextSpan(
+                text: ' *',
+                style: TextStyle(
+                  color: AppColors.dangerRed,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -364,101 +343,92 @@ class DynamicControlFactory extends StatelessWidget {
 
   /// Optional 10-digit mobile number; the error shows under the field while typing.
   Widget _buildMobileField(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel(context),
-        TextFormField(
-          controller: controller,
-          readOnly: readOnly,
-          onChanged: onChanged,
-          keyboardType: TextInputType.phone,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
-          decoration: _inputDecoration(),
-          validator: (v) {
-            final value = v?.trim() ?? '';
-            if (value.isEmpty) {
-              return fieldDef.isRequired
-                  ? '${fieldDef.fieldLabel} is required'
-                  : null;
-            }
-            if (!RegExp(r'^[0-9]{10}$').hasMatch(value)) {
-              return '${fieldDef.fieldLabel} must be exactly 10 digits';
-            }
-            return null;
-          },
-        ),
-      ],
+    return _buildFieldLayout(
+      context,
+      TextFormField(
+        controller: controller,
+        readOnly: readOnly,
+        onChanged: onChanged,
+        keyboardType: TextInputType.phone,
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+        style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
+        decoration: _inputDecoration(),
+        validator: (v) {
+          final value = v?.trim() ?? '';
+          if (value.isEmpty) {
+            return fieldDef.isRequired
+                ? '${fieldDef.fieldLabel} is required'
+                : null;
+          }
+          if (!RegExp(r'^[0-9]{10}$').hasMatch(value)) {
+            return '${fieldDef.fieldLabel} must be exactly 10 digits';
+          }
+          return null;
+        },
+      ),
     );
   }
 
   /// Optional e-mail address; checked only when something is typed.
   Widget _buildEmailField(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel(context),
-        TextFormField(
-          controller: controller,
-          readOnly: readOnly,
-          onChanged: onChanged,
-          keyboardType: TextInputType.emailAddress,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
-          decoration: _inputDecoration(),
-          validator: (v) {
-            final value = v?.trim() ?? '';
-            if (value.isEmpty) {
-              return fieldDef.isRequired
-                  ? '${fieldDef.fieldLabel} is required'
-                  : null;
-            }
-            if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value)) {
-              return 'Enter a valid ${fieldDef.fieldLabel}';
-            }
-            return null;
-          },
-        ),
-      ],
+    return _buildFieldLayout(
+      context,
+      TextFormField(
+        controller: controller,
+        readOnly: readOnly,
+        onChanged: onChanged,
+        keyboardType: TextInputType.emailAddress,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+        style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
+        decoration: _inputDecoration(),
+        validator: (v) {
+          final value = v?.trim() ?? '';
+          if (value.isEmpty) {
+            return fieldDef.isRequired
+                ? '${fieldDef.fieldLabel} is required'
+                : null;
+          }
+          if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value)) {
+            return 'Enter a valid ${fieldDef.fieldLabel}';
+          }
+          return null;
+        },
+      ),
     );
   }
 
   /// Optional 12-digit Aadhaar number, typed in groups of four
   /// (1234 5678 9012); the error shows under the field while typing.
   Widget _buildAadhaarField(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel(context),
-        TextFormField(
-          controller: controller,
-          readOnly: readOnly,
-          onChanged: onChanged,
-          keyboardType: TextInputType.number,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(12),
-            AadhaarGroupFormatter(),
-          ],
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
-          decoration: _inputDecoration(hint: 'XXXX XXXX XXXX'),
-          validator: (v) {
-            final digits = (v ?? '').replaceAll(' ', '');
-            if (digits.isEmpty) {
-              return fieldDef.isRequired
-                  ? '${fieldDef.fieldLabel} is required'
-                  : null;
-            }
-            if (digits.length != 12) {
-              return '${fieldDef.fieldLabel} must be exactly 12 digits';
-            }
-            return null;
-          },
-        ),
-      ],
+    return _buildFieldLayout(
+      context,
+      TextFormField(
+        controller: controller,
+        readOnly: readOnly,
+        onChanged: onChanged,
+        keyboardType: TextInputType.number,
+        inputFormatters: [
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(12),
+          AadhaarGroupFormatter(),
+        ],
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+        style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
+        decoration: _inputDecoration(hint: 'XXXX XXXX XXXX'),
+        validator: (v) {
+          final digits = (v ?? '').replaceAll(' ', '');
+          if (digits.isEmpty) {
+            return fieldDef.isRequired
+                ? '${fieldDef.fieldLabel} is required'
+                : null;
+          }
+          if (digits.length != 12) {
+            return '${fieldDef.fieldLabel} must be exactly 12 digits';
+          }
+          return null;
+        },
+      ),
     );
   }
 
@@ -499,17 +469,18 @@ class DynamicControlFactory extends StatelessWidget {
     // e.g. ages): extra digits are refused with a message under the field
     final maxDigits = fieldDef.maxDigits;
     if (maxDigits != null && !isTotal) {
+      final maxField = _MaxDigitsField(
+        controller: controller,
+        readOnly: readOnly,
+        maxDigits: maxDigits,
+        label: fieldDef.fieldLabel,
+        isRequired: fieldDef.isRequired,
+        onChanged: onChanged,
+        decoration: _inputDecoration(),
+      );
       return _buildFieldLayout(
         context,
-        _MaxDigitsField(
-          controller: controller,
-          readOnly: readOnly,
-          maxDigits: maxDigits,
-          label: fieldDef.fieldLabel,
-          isRequired: fieldDef.isRequired,
-          onChanged: onChanged,
-          decoration: _inputDecoration(),
-        ),
+        maxField,
       );
     }
     if (fieldDef.isStepper && !isTotal) {
@@ -525,32 +496,33 @@ class DynamicControlFactory extends StatelessWidget {
         ),
       );
     }
+    final numField = TextFormField(
+      controller: controller,
+      readOnly: readOnly || isTotal,
+      canRequestFocus: !isTotal,
+      keyboardType: TextInputType.number,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      onChanged: onChanged,
+      style: GoogleFonts.poppins(
+          fontSize: 13,
+          color: AppColors.lightText,
+          fontWeight: isTotal ? FontWeight.w600 : FontWeight.normal),
+      decoration: isTotal
+          ? _inputDecoration().copyWith(fillColor: const Color(0xFFF8FAFC))
+          : _inputDecoration(),
+      validator: (v) {
+        final value = v?.trim() ?? '';
+        if (value.isEmpty) {
+          return fieldDef.isRequired
+              ? '${fieldDef.fieldLabel} is required'
+              : null;
+        }
+        return null;
+      },
+    );
     return _buildFieldLayout(
       context,
-      TextFormField(
-        controller: controller,
-        readOnly: readOnly || isTotal,
-        canRequestFocus: !isTotal,
-        keyboardType: TextInputType.number,
-        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-        onChanged: onChanged,
-        style: GoogleFonts.poppins(
-            fontSize: 13,
-            color: AppColors.lightText,
-            fontWeight: isTotal ? FontWeight.w600 : FontWeight.normal),
-        decoration: isTotal
-            ? _inputDecoration().copyWith(fillColor: const Color(0xFFF8FAFC))
-            : _inputDecoration(),
-        validator: (v) {
-          final value = v?.trim() ?? '';
-          if (value.isEmpty) {
-            return fieldDef.isRequired
-                ? '${fieldDef.fieldLabel} is required'
-                : null;
-          }
-          return null;
-        },
-      ),
+      numField,
     );
   }
 
@@ -816,53 +788,65 @@ class DynamicControlFactory extends StatelessWidget {
         fieldDef.options.isEmpty &&
         isPreventive &&
         (preventiveOptions?.isNotEmpty ?? false)) {
-      return _DynamicDropdownWidget(
-        fieldDef: fieldDef.copyWith(options: preventiveOptions),
-        controller: controller,
-        value: value,
-        onChanged: onChanged,
-        readOnly: readOnly,
-        stationId: stationId,
-        decoration: _inputDecoration(hint: 'Select ${fieldDef.fieldLabel}'),
-        labelWidget: _buildLabel(context),
+      return _buildFieldLayout(
+        context,
+        _DynamicDropdownWidget(
+          fieldDef: fieldDef.copyWith(options: preventiveOptions),
+          controller: controller,
+          value: value,
+          onChanged: onChanged,
+          readOnly: readOnly,
+          stationId: stationId,
+          decoration: _inputDecoration(hint: 'Select ${fieldDef.fieldLabel}'),
+          labelWidget: const SizedBox.shrink(),
+        ),
       );
     }
     if (source.startsWith(_rowsOptionsPrefix)) {
       final opts = _rowsOptions(source);
       // Options follow the other group's rows: rebuild when they change
-      return _DynamicDropdownWidget(
-        key: ValueKey('${fieldDef.fieldKey}|${opts.join('|')}'),
-        fieldDef: fieldDef.copyWith(options: opts),
+      return _buildFieldLayout(
+        context,
+        _DynamicDropdownWidget(
+          key: ValueKey('${fieldDef.fieldKey}|${opts.join('|')}'),
+          fieldDef: fieldDef.copyWith(options: opts),
+          controller: controller,
+          value: value,
+          onChanged: onChanged,
+          readOnly: readOnly,
+          stationId: stationId,
+          decoration: _inputDecoration(hint: 'Select ${fieldDef.fieldLabel}'),
+          labelWidget: const SizedBox.shrink(),
+        ),
+      );
+    }
+    return _buildFieldLayout(
+      context,
+      _DynamicDropdownWidget(
+        fieldDef: fieldDef,
         controller: controller,
         value: value,
         onChanged: onChanged,
         readOnly: readOnly,
         stationId: stationId,
         decoration: _inputDecoration(hint: 'Select ${fieldDef.fieldLabel}'),
-        labelWidget: _buildLabel(context),
-      );
-    }
-    return _DynamicDropdownWidget(
-      fieldDef: fieldDef,
-      controller: controller,
-      value: value,
-      onChanged: onChanged,
-      readOnly: readOnly,
-      stationId: stationId,
-      decoration: _inputDecoration(hint: 'Select ${fieldDef.fieldLabel}'),
-      labelWidget: _buildLabel(context),
+        labelWidget: const SizedBox.shrink(),
+      ),
     );
   }
 
   Widget _buildRadioGroup(BuildContext context) {
-    return _DynamicRadioWidget(
-      fieldDef: fieldDef,
-      controller: controller,
-      value: value,
-      onChanged: onChanged,
-      readOnly: readOnly,
-      stationId: stationId,
-      labelWidget: _buildLabel(context),
+    return _buildFieldLayout(
+      context,
+      _DynamicRadioWidget(
+        fieldDef: fieldDef,
+        controller: controller,
+        value: value,
+        onChanged: onChanged,
+        readOnly: readOnly,
+        stationId: stationId,
+        labelWidget: const SizedBox.shrink(),
+      ),
     );
   }
 
@@ -1604,6 +1588,17 @@ class _DynamicDropdownWidgetState extends State<_DynamicDropdownWidget> {
     final validVal = _options.contains(currentVal) ? currentVal : null;
 
     if (_isLoading) {
+      if (widget.labelWidget is SizedBox) {
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          child: SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(
+                strokeWidth: 2, color: AppColors.navyMid),
+          ),
+        );
+      }
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1679,40 +1674,45 @@ class _DynamicDropdownWidgetState extends State<_DynamicDropdownWidget> {
       );
     }
 
+    final dropdownControl = DropdownButtonFormField<String>(
+      isExpanded: true,
+      initialValue: validVal,
+      items: _options.map((opt) {
+        return DropdownMenuItem<String>(
+          value: opt,
+          child: Text(
+            opt,
+            overflow: TextOverflow.ellipsis,
+            style:
+                GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
+          ),
+        );
+      }).toList(),
+      onChanged: widget.readOnly
+          ? null
+          : (newVal) {
+              if (widget.controller != null && newVal != null) {
+                widget.controller!.text = newVal;
+              }
+              widget.onChanged?.call(newVal);
+            },
+      decoration: widget.decoration,
+      validator: (v) {
+        if (widget.fieldDef.isRequired && (v == null || v.isEmpty)) {
+          return '${widget.fieldDef.fieldLabel} is required';
+        }
+        return null;
+      },
+    );
+
+    if (widget.labelWidget is SizedBox) {
+      return dropdownControl;
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         widget.labelWidget,
-        DropdownButtonFormField<String>(
-          isExpanded: true,
-          initialValue: validVal,
-          items: _options.map((opt) {
-            return DropdownMenuItem<String>(
-              value: opt,
-              child: Text(
-                opt,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
-                    fontSize: 13, color: AppColors.lightText),
-              ),
-            );
-          }).toList(),
-          onChanged: widget.readOnly
-              ? null
-              : (newVal) {
-                  if (widget.controller != null && newVal != null) {
-                    widget.controller!.text = newVal;
-                  }
-                  widget.onChanged?.call(newVal);
-                },
-          decoration: widget.decoration,
-          validator: (v) {
-            if (widget.fieldDef.isRequired && (v == null || v.isEmpty)) {
-              return '${widget.fieldDef.fieldLabel} is required';
-            }
-            return null;
-          },
-        ),
+        dropdownControl,
       ],
     );
   }
@@ -1812,6 +1812,17 @@ class _DynamicRadioWidgetState extends State<_DynamicRadioWidget> {
         widget.value?.toString() ?? widget.controller?.text ?? '';
 
     if (_isLoading) {
+      if (widget.labelWidget is SizedBox) {
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          child: SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(
+                strokeWidth: 2, color: AppColors.navyMid),
+          ),
+        );
+      }
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1830,6 +1841,16 @@ class _DynamicRadioWidgetState extends State<_DynamicRadioWidget> {
     }
 
     if (_error != null) {
+      if (widget.labelWidget is SizedBox) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Text(
+            _error!,
+            style:
+                GoogleFonts.poppins(fontSize: 12, color: AppColors.dangerRed),
+          ),
+        );
+      }
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1846,77 +1867,83 @@ class _DynamicRadioWidgetState extends State<_DynamicRadioWidget> {
       );
     }
 
+    final radioWrap = Align(
+      alignment: Alignment.centerLeft,
+      child: Wrap(
+        spacing: 12,
+        runSpacing: 6,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: _options.map((opt) {
+          final isSelected = opt.toLowerCase() == currentVal.toLowerCase();
+          return InkWell(
+            onTap: widget.readOnly
+                ? null
+                : () {
+                    if (widget.controller != null) {
+                      widget.controller!.text = opt;
+                    }
+                    widget.onChanged?.call(opt);
+                  },
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppColors.navyMid.withValues(alpha: 0.08)
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(
+                  color: isSelected ? AppColors.navyMid : AppColors.lightBorder,
+                  width: isSelected ? 1.5 : 1.0,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Radio<String>(
+                    value: opt,
+                    groupValue: currentVal,
+                    activeColor: AppColors.navyMid,
+                    onChanged: widget.readOnly
+                        ? null
+                        : (val) {
+                            if (val != null) {
+                              if (widget.controller != null) {
+                                widget.controller!.text = val;
+                              }
+                              widget.onChanged?.call(val);
+                            }
+                          },
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    opt,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12.5,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.w500,
+                      color:
+                          isSelected ? AppColors.navyDark : AppColors.lightText,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+
+    if (widget.labelWidget is SizedBox) {
+      return radioWrap;
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         widget.labelWidget,
-        Wrap(
-          spacing: 16,
-          runSpacing: 8,
-          children: _options.map((opt) {
-            final isSelected = opt.toLowerCase() == currentVal.toLowerCase();
-            return InkWell(
-              onTap: widget.readOnly
-                  ? null
-                  : () {
-                      if (widget.controller != null) {
-                        widget.controller!.text = opt;
-                      }
-                      widget.onChanged?.call(opt);
-                    },
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? AppColors.navyMid.withValues(alpha: 0.08)
-                      : Colors.white,
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  border: Border.all(
-                    color:
-                        isSelected ? AppColors.navyMid : AppColors.lightBorder,
-                    width: isSelected ? 1.5 : 1.0,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Radio<String>(
-                      value: opt,
-                      groupValue: currentVal,
-                      activeColor: AppColors.navyMid,
-                      onChanged: widget.readOnly
-                          ? null
-                          : (val) {
-                              if (val != null) {
-                                if (widget.controller != null) {
-                                  widget.controller!.text = val;
-                                }
-                                widget.onChanged?.call(val);
-                              }
-                            },
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      visualDensity: VisualDensity.compact,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      opt,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12.5,
-                        fontWeight:
-                            isSelected ? FontWeight.w600 : FontWeight.w500,
-                        color: isSelected
-                            ? AppColors.navyDark
-                            : AppColors.lightText,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }).toList(),
-        ),
+        radioWrap,
       ],
     );
   }

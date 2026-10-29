@@ -1,10 +1,11 @@
 // ignore_for_file: avoid_web_libraries_in_flutter, deprecated_member_use
 
+import 'dart:async';
 import 'dart:html' as html;
 import 'dart:js' as js;
 
-Stream<html.Event>? _resultStream;
-Stream<html.Event>? _statusStream;
+StreamSubscription<html.Event>? _resultSub;
+StreamSubscription<html.Event>? _statusSub;
 
 void startWebVoiceRecognition(
   void Function(String text, bool isFinal) onResult,
@@ -12,9 +13,10 @@ void startWebVoiceRecognition(
   String lang = 'en-IN',
 }) {
   try {
-    // Setup event listeners if not already setup
-    _resultStream ??= html.window.on['voice_result'];
-    _resultStream?.listen((event) {
+    _resultSub?.cancel();
+    _statusSub?.cancel();
+
+    _resultSub = html.window.on['voice_result'].listen((event) {
       if (event is html.CustomEvent && event.detail != null) {
         final text = event.detail['text']?.toString() ?? '';
         final isFinal = event.detail['isFinal'] == true;
@@ -22,8 +24,7 @@ void startWebVoiceRecognition(
       }
     });
 
-    _statusStream ??= html.window.on['voice_status'];
-    _statusStream?.listen((event) {
+    _statusSub = html.window.on['voice_status'].listen((event) {
       if (event is html.CustomEvent && event.detail != null) {
         final status = event.detail['status']?.toString() ?? '';
         final message = event.detail['message']?.toString() ?? '';
@@ -45,6 +46,11 @@ void startWebVoiceRecognition(
 
 void stopWebVoiceRecognition() {
   try {
+    _resultSub?.cancel();
+    _resultSub = null;
+    _statusSub?.cancel();
+    _statusSub = null;
+
     if (js.context.hasProperty('voiceRecognizer')) {
       final recognizer = js.context['voiceRecognizer'];
       if (recognizer != null) {

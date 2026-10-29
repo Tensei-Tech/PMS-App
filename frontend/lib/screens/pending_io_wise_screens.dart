@@ -94,7 +94,7 @@ class _PendingIoWiseByCategoryScreenState
 
       final buckets = <String, List<ModuleRecord>>{};
       for (final r in _filtered) {
-        final io = pendingIoWiseIoDisplayName(r)!;
+        final io = pendingIoWiseIoDisplayName(r) ?? 'Unknown';
         buckets.putIfAbsent(io, () => []).add(r);
       }
 

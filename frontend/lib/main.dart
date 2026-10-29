@@ -41,8 +41,12 @@ import 'screens/classification_list_screen.dart';
 import 'screens/standalone_selection_screen.dart';
 import 'screens/pin_reauth_screen.dart';
 import 'services/api_config.dart';
+import 'services/backend_case_service.dart';
+import 'widgets/app_update_gate.dart';
 import 'services/ui_config_service.dart';
 import 'services/biometric_service.dart';
+import 'services/case_service.dart';
+import 'providers/connectivity_provider.dart';
 import 'package:flutter_web_plugins/url_strategy.dart'; // PLATFORM FIX: Web path URL routing parity
 
 import 'dart:ui';
@@ -63,6 +67,10 @@ void main() async {
 
   // Pre-warm backend immediately on startup to avoid standby delays
   ApiConfig.prewarmBackend();
+  unawaited(BackendCaseService().fetchActDataMap());
+  unawaited(CaseService().fetchDesignations());
+  unawaited(CaseService().fetchGroupCategories(1));
+  unawaited(CaseService().fetchGroupCategories(2));
 
   // Catch all Flutter framework errors so they show in console, not white screen.
   FlutterError.onError = (details) {
@@ -138,6 +146,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
+        ChangeNotifierProvider(create: (_) => ConnectivityProvider()),
         ChangeNotifierProvider(create: (_) => NewsProvider()),
         ChangeNotifierProvider(create: (_) => CaseProvider()),
         ChangeNotifierProvider(
@@ -197,6 +206,11 @@ class _PoliceMgmtAppState extends State<PoliceMgmtApp>
   }
 
   Future<void> _handleAppResume() async {
+    if (mounted) {
+      unawaited(
+        context.read<ConnectivityProvider>().checkConnection(background: true),
+      );
+    }
     // Skip the very first resume after cold start so we don't double-prompt
     // on top of the normal launch flow.
     if (_skipFirstResume) {
@@ -290,7 +304,7 @@ class _PoliceMgmtAppState extends State<PoliceMgmtApp>
         state == AppLifecycleState.inactive) {
       // Immediate lock on background
       auth.lockApp();
-    } else 
+    } else
     */
     if (state == AppLifecycleState.detached) {
       // App fully closed → lock immediately
@@ -376,7 +390,11 @@ class _PoliceMgmtAppState extends State<PoliceMgmtApp>
                 context.read<AuthProvider>().onUserInteraction(),
             onPointerSignal: (_) =>
                 context.read<AuthProvider>().onUserInteraction(),
-            child: _AppLockNavigator(navigatorKey: _navKey, child: child),
+            // Update gate sits above the lock screen so a required update
+            // cannot be bypassed.
+            child: AppUpdateGate(
+              child: _AppLockNavigator(navigatorKey: _navKey, child: child),
+            ),
           ),
         );
       },

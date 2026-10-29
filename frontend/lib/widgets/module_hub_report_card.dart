@@ -77,7 +77,7 @@ class ModuleHubReportCard extends StatelessWidget {
                 if (showSummaryButton && onSummaryTap != null)
                   ElevatedButton.icon(
                     onPressed: onSummaryTap,
-                    icon: const Icon(Icons.download_rounded,
+                    icon: const Icon(Icons.assessment_outlined,
                         size: 16, color: Colors.white),
                     label: Text(
                       TranslationHelper.translate(context, 'Summary'),

@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import '../services/app_version.dart';
 import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
@@ -231,7 +232,7 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Version 2.4.0 • Build 2026.08',
+                  AppVersion.label,
                   style: GoogleFonts.poppins(
                     fontSize: 11,
                     color: AppColors.lightSubText,

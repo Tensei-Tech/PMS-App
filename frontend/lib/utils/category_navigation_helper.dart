@@ -13,6 +13,10 @@ import '../screens/rti/rti_hub_screen.dart';
 import '../services/ad_service.dart';
 import '../screens/juvenile_hub_screen.dart';
 import '../screens/itsso_hub_screen.dart';
+import '../screens/dar_hub_screen.dart';
+import '../screens/irad_hub_screen.dart';
+import '../modules/passport/screens/passport_hub_screen.dart';
+import '../modules/licence/screens/licence_hub_screen.dart';
 import '../services/case_service.dart';
 import '../services/history_sheeter_service.dart';
 import '../services/mpda_service.dart';
@@ -123,6 +127,29 @@ class CategoryNavigationHelper {
     bool readOnly = false,
   }) async {
     final cleanName = categoryName.replaceAll('\n', ' ').trim();
+
+    if (cleanName.toLowerCase().contains('passport') ||
+        moduleKey.toLowerCase() == 'passport') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const PassportHubScreen(stationName: ''),
+        ),
+      );
+      return;
+    }
+
+    if (cleanName.toLowerCase() == 'licence' ||
+        cleanName.toLowerCase() == 'license' ||
+        moduleKey.toLowerCase() == 'licence') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const LicenceHubScreen(stationName: ''),
+        ),
+      );
+      return;
+    }
 
     // 1. Resolve categoryCode dynamically from database categories
     String? resolvedCode = categoryCode;
@@ -316,7 +343,6 @@ class CategoryNavigationHelper {
         matchedDbCategory?['category_id'] ??
         matchedDbCategory?['id'];
     final children = await getChildren(cleanName, categoryId: childrenOf);
-
     if (!context.mounted) return;
 
     if (cleanName.toUpperCase() == 'ITSSO' ||
@@ -325,6 +351,27 @@ class CategoryNavigationHelper {
         context,
         AppTheme.fadeSlideRoute(
           page: const ItssoHubScreen(stationName: 'All Stations'),
+        ),
+      );
+      return;
+    }
+    if (cleanName.toUpperCase() == 'DAR' || moduleKey.toLowerCase() == 'dar') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const DarHubScreen(stationName: 'All Stations'),
+        ),
+      );
+      return;
+    }
+    if (cleanName.toUpperCase() == 'IRAD' ||
+        cleanName.toUpperCase() == 'IRDA' ||
+        moduleKey.toLowerCase() == 'irad' ||
+        moduleKey.toLowerCase() == 'irda') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const IradHubScreen(stationName: 'All Stations'),
         ),
       );
       return;

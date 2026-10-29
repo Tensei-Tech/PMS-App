@@ -229,14 +229,8 @@ class CaseRecordViewSet(viewsets.ModelViewSet):
             from apps.crimetab.models.groupings import CaseCategory
             mod_lower = module_key.lower().strip()
             if mod_lower == 'undetected':
-                undetected_q = (
-                    Q(accused__isnull=True) |
-                    Q(accused__exact='') |
-                    Q(accused__iexact='unknown') |
-                    Q(accused__iexact='अज्ञात') |
-                    Q(accused__iexact='unidentified')
-                )
-                queryset = queryset.filter(undetected_q).exclude(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved'])
+                from apps.cases.utils import get_undetected_base_queryset
+                queryset = get_undetected_base_queryset(queryset)
             elif mod_lower == 'detected':
                 detected_q = (
                     Q(accused__isnull=False) &
@@ -328,9 +322,9 @@ class CaseCountsView(APIView):
     Returns aggregated case counts computed directly in SQL (COUNT(DISTINCT id)),
     grouped overall, by groups (1 to 5, Part 6), and by tab (module_key),
     split by status (total, pending, disposal, detected).
-    Cached for 60 seconds, keyed by tenant schema.
+    Cached for 60 seconds per user.
     """
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     @cache_response(ttl=60, key_prefix="cases:counts")
     def get(self, request):
@@ -473,12 +467,23 @@ class PendingCasesView(EnrichDataMixin, APIView):
                 # Apply ?io filter
                 io_name = request.query_params.get('io')
                 if io_name:
-                    queryset = queryset.filter(assigned_officer=io_name)
+                    from django.db.models import Q
+                    queryset = queryset.filter(
+                        Q(assigned_officer__iexact=io_name) | Q(assigned_officer_uid__iexact=io_name)
+                    )
 
-                # Apply ?head filter (category)
-                head = request.query_params.get('head')
-                if head:
-                    queryset = queryset.filter(head__iexact=head)
+                # Apply ?category / ?head filter
+                category = request.query_params.get('category') or request.query_params.get('head')
+                if category:
+                    from django.db.models import Q
+                    norm_cat = category.replace('_', ' ').strip()
+                    queryset = queryset.filter(
+                        Q(module_key__iexact=category) |
+                        Q(sub_category__iexact=category) |
+                        Q(sub_category__iexact=norm_cat) |
+                        Q(category_links__category__category_name__iexact=norm_cat) |
+                        Q(category_links__category__category_code__iexact=category)
+                    ).distinct()
 
                 # Apply time range filter (start_date, end_date)
                 start_date = request.query_params.get('start_date')
@@ -607,17 +612,8 @@ class UndetectedCasesView(EnrichDataMixin, APIView):
             return err_resp
         with TenantContext(target_schema):
             try:
-                from django.db.models import Q
-                undetected_q = (
-                    Q(accused__isnull=True) |
-                    Q(accused__exact='') |
-                    Q(accused__iexact='unknown') |
-                    Q(accused__iexact='अज्ञात') |
-                    Q(accused__iexact='unidentified')
-                )
-                queryset = CaseRecord.objects.filter(undetected_q).exclude(
-                    status__in=['Disposal', 'Disposed', 'Closed', 'Resolved']
-                )
+                from apps.cases.utils import get_undetected_base_queryset
+                queryset = get_undetected_base_queryset()
 
                 # Enforce station-level visibility
                 user = request.user
@@ -628,7 +624,10 @@ class UndetectedCasesView(EnrichDataMixin, APIView):
                 # Apply ?io filter
                 io_name = request.query_params.get('io')
                 if io_name:
-                    queryset = queryset.filter(assigned_officer=io_name)
+                    from django.db.models import Q
+                    queryset = queryset.filter(
+                        Q(assigned_officer__iexact=io_name) | Q(assigned_officer_uid__iexact=io_name)
+                    )
 
                 # Apply ?category / ?head filter
                 category = request.query_params.get('category') or request.query_params.get('head')
@@ -677,17 +676,9 @@ class UndetectedIOWiseView(APIView):
             return err_resp
         with TenantContext(target_schema):
             try:
-                from django.db.models import Count, Q
-                undetected_q = (
-                    Q(accused__isnull=True) |
-                    Q(accused__exact='') |
-                    Q(accused__iexact='unknown') |
-                    Q(accused__iexact='अज्ञात') |
-                    Q(accused__iexact='unidentified')
-                )
-                queryset = CaseRecord.objects.filter(undetected_q).exclude(
-                    status__in=['Disposal', 'Disposed', 'Closed', 'Resolved']
-                )
+                from django.db.models import Count
+                from apps.cases.utils import get_undetected_base_queryset
+                queryset = get_undetected_base_queryset()
 
                 user = request.user
                 if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
@@ -729,20 +720,10 @@ class UndetectedTimeWiseView(APIView):
             return err_resp
         with TenantContext(target_schema):
             try:
-                from django.db.models import Q
                 from django.utils import timezone
                 from datetime import timedelta
-
-                undetected_q = (
-                    Q(accused__isnull=True) |
-                    Q(accused__exact='') |
-                    Q(accused__iexact='unknown') |
-                    Q(accused__iexact='अज्ञात') |
-                    Q(accused__iexact='unidentified')
-                )
-                queryset = CaseRecord.objects.filter(undetected_q).exclude(
-                    status__in=['Disposal', 'Disposed', 'Closed', 'Resolved']
-                )
+                from apps.cases.utils import get_undetected_base_queryset
+                queryset = get_undetected_base_queryset()
 
                 user = request.user
                 if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
@@ -1349,6 +1330,7 @@ class CreateCaseView(APIView):
                     status=validated.get('status', 'Draft'),
                     description=validated.get('description', ''),
                     station_name=validated.get('station_name', ''),
+                    created_by=str(getattr(request.user, 'uid', '') or getattr(request.user, 'id', '') or ''),
                     extra_fields={
                         'case_type': validated.get('case_type', '1-5'),
                         'crime_type_master_id': validated.get('crime_type_master_id'),
@@ -1376,6 +1358,27 @@ class DetectedCasesView(EnrichDataMixin, APIView):
                 if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
                     stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                     queryset = queryset.filter(station_name__in=stations)
+
+                # Apply ?io filter
+                io_name = request.query_params.get('io')
+                if io_name:
+                    from django.db.models import Q
+                    queryset = queryset.filter(
+                        Q(assigned_officer__iexact=io_name) | Q(assigned_officer_uid__iexact=io_name)
+                    )
+
+                # Apply ?category / ?head filter
+                category = request.query_params.get('category') or request.query_params.get('head')
+                if category:
+                    from django.db.models import Q
+                    norm_cat = category.replace('_', ' ').strip()
+                    queryset = queryset.filter(
+                        Q(module_key__iexact=category) |
+                        Q(sub_category__iexact=category) |
+                        Q(sub_category__iexact=norm_cat) |
+                        Q(category_links__category__category_name__iexact=norm_cat) |
+                        Q(category_links__category__category_code__iexact=category)
+                    ).distinct()
 
                 # Optional time range filter
                 start_date = request.query_params.get('start_date')
@@ -1604,32 +1607,24 @@ class TimeWiseArrestedView(TimeWisePendingView):
 
 class RepeatOffenderCaseWiseView(PendingCasesView):
 
-    def _enrich_data(self, data_list):
-        from apps.crimetab.models.common_form import CasesPerson
-        from django.db.models import Count
-        repeat_names_qs = CasesPerson.objects.filter(role__in=['accused', 'suspected_accused']).exclude(name__isnull=True).exclude(name__exact='').values('name').annotate(case_count=Count('case_id', distinct=True)).filter(case_count__gt=1)
-        repeat_names = set(repeat_names_qs.values_list('name', flat=True))
-        repeat_persons = CasesPerson.objects.filter(name__in=repeat_names, role__in=['accused', 'suspected_accused']).select_related('case')
-        name_to_crs = {}
-        for p in repeat_persons:
-            name_to_crs.setdefault(p.name, set())
-            if p.case and p.case.case_number:
-                name_to_crs[p.name].add(p.case.case_number)
+    def _enrich_data(self, data_list, station_names=None):
+        from apps.cases.utils import get_repeat_offender_map
+        _, case_to_info = get_repeat_offender_map(station_names=station_names)
         for item in data_list:
             case_id = item.get('id')
-            if not case_id: continue
+            if not case_id:
+                continue
             if not isinstance(item.get('extra_fields'), dict):
                 item['extra_fields'] = {}
-            case_persons = CasesPerson.objects.filter(case_id=case_id, role__in=['accused', 'suspected_accused'])
-            accused_names_in_this_case = [p.name for p in case_persons if p.name in repeat_names]
-            if accused_names_in_this_case:
-                primary = accused_names_in_this_case[0]
-                item['extra_fields']['accused_name'] = primary
-                all_crs = name_to_crs.get(primary, set())
-                other_crs = [cr for cr in all_crs if cr != item.get('case_number')]
-                item['extra_fields']['multiple_cr'] = ', '.join(sorted(other_crs)) if other_crs else '-'
+            info = case_to_info.get(case_id)
+            if info:
+                item['accused'] = info['accused_name']
+                item['accused_name'] = info['accused_name']
+                item['extra_fields']['accused_name'] = info['accused_name']
+                item['extra_fields']['accused'] = info['accused_name']
+                item['extra_fields']['multiple_cr'] = info['multiple_cr']
             else:
-                item['extra_fields']['accused_name'] = 'Unknown'
+                item['extra_fields']['accused_name'] = item.get('accused') or 'Unknown'
                 item['extra_fields']['multiple_cr'] = '-'
 
 
@@ -1639,6 +1634,7 @@ class RepeatOffenderCaseWiseView(PendingCasesView):
             queryset = get_cases_by_status('repeat_offender')
             
             user = request.user
+            stations = None
             if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
                 stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                 queryset = queryset.filter(station_name__in=stations)
@@ -1661,12 +1657,12 @@ class RepeatOffenderCaseWiseView(PendingCasesView):
             if page is not None:
                 serializer = CaseRecordSerializer(page, many=True)
                 data = serializer.data
-                self._enrich_data(data)
+                self._enrich_data(data, station_names=stations)
                 return paginator.get_paginated_response(data)
                 
             serializer = CaseRecordSerializer(queryset.order_by('-created_at'), many=True)
             data = serializer.data
-            self._enrich_data(data)
+            self._enrich_data(data, station_names=stations)
             return Response(data)
         except Exception as e:
             logger.exception(f'[RepeatOffenderCaseWiseView] Database error: {e}')
@@ -2522,3 +2518,681 @@ class ItssoActionView(APIView):
         except Exception as e:
             logger.exception(f"[ItssoActionView] Error: {e}")
             return Response({'error': 'Failed to send action.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class DarCasesListView(APIView):
+    """
+    API endpoint for DAR (Detailed Accident Report) Road Accident cases.
+    Provides:
+    - Summary Cards (Total DAR, DAR Form Filled, DAR Form Pending)
+    - Tabular records (Sr. No., CR No., Act & Section, IO Name, Status: Pending/Filled, Status Color)
+    - Filtering by Status ('all', 'pending', 'filled') and Police Station
+    """
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        if not user or not user.is_authenticated:
+            raise exceptions.NotAuthenticated("Authentication credentials were not provided.")
+
+        try:
+            from apps.cases.dar_service import RoadAccidentDarService
+            from apps.core.tenancy import get_active_tenant_schema, set_tenant_schema
+
+            # Ensure active tenant schema
+            schema = getattr(request, 'state_schema', None) or get_active_tenant_schema(request)
+            if not schema or schema == 'public':
+                schema = getattr(user, 'state_schema', None) or 'maharashtra'
+            set_tenant_schema(schema)
+
+            can_view_all = (
+                getattr(user, 'is_superuser', False)
+                or getattr(user, 'is_staff', False)
+                or check_dynamic_permission(user, 'district:view_data')
+                or check_dynamic_permission(user, 'state:view_all')
+            )
+
+            target_station = request.query_params.get('station_name')
+            status_param = request.query_params.get('status')
+            search_param = request.query_params.get('search')
+            allowed_stations = None
+
+            if not can_view_all:
+                user_stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                user_stations = [s for s in user_stations if s]
+                if target_station:
+                    if target_station not in user_stations:
+                        raise exceptions.PermissionDenied("You do not have access to view data for this police station.")
+                else:
+                    allowed_stations = user_stations
+
+            service = RoadAccidentDarService(
+                station_name=target_station,
+                allowed_stations=allowed_stations
+            )
+
+            summary, cases_data = service.get_cases_data(
+                status_filter=status_param,
+                search=search_param
+            )
+
+            # Support pagination if requested
+            page_param = request.query_params.get('page')
+            page_size_param = request.query_params.get('page_size')
+            if page_param or page_size_param:
+                try:
+                    p = max(1, int(page_param or 1))
+                    ps = max(1, min(200, int(page_size_param or 20)))
+                    start = (p - 1) * ps
+                    end = start + ps
+                    paginated_cases = cases_data[start:end]
+                    return Response({
+                        'summary': summary,
+                        'stats': summary,
+                        'total_dar': summary.get('total_dar', 0),
+                        'dar_form_filled': summary.get('dar_filled', 0),
+                        'dar_form_pending': summary.get('dar_pending', 0),
+                        'dar_filled': summary.get('dar_filled', 0),
+                        'dar_pending': summary.get('dar_pending', 0),
+                        'total_count': len(cases_data),
+                        'page': p,
+                        'page_size': ps,
+                        'count': len(paginated_cases),
+                        'results': paginated_cases,
+                        'cases': paginated_cases,
+                    }, status=status.HTTP_200_OK)
+                except (ValueError, TypeError):
+                    pass
+
+            return Response({
+                'summary': summary,
+                'stats': summary,
+                'total_dar': summary.get('total_dar', 0),
+                'dar_form_filled': summary.get('dar_filled', 0),
+                'dar_form_pending': summary.get('dar_pending', 0),
+                'dar_filled': summary.get('dar_filled', 0),
+                'dar_pending': summary.get('dar_pending', 0),
+                'count': len(cases_data),
+                'results': cases_data,
+                'cases': cases_data,
+            }, status=status.HTTP_200_OK)
+
+        except exceptions.PermissionDenied as pd:
+            raise pd
+        except Exception as e:
+            logger.exception(f"[DarCasesListView] Database error: {e}")
+            return Response(
+                {'error': 'Failed to fetch DAR road accident cases.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class DarSummaryStatsView(APIView):
+    """
+    Lightweight endpoint returning dynamic DAR Summary Cards:
+    - Total DAR
+    - DAR Form Filled
+    - DAR Form Pending
+    """
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        try:
+            from apps.cases.dar_service import RoadAccidentDarService
+            from apps.core.tenancy import get_active_tenant_schema, set_tenant_schema
+
+            schema = getattr(request, 'state_schema', None) or get_active_tenant_schema(request)
+            if not schema or schema == 'public':
+                schema = getattr(user, 'state_schema', None) or 'maharashtra'
+            set_tenant_schema(schema)
+
+            can_view_all = (
+                getattr(user, 'is_superuser', False)
+                or getattr(user, 'is_staff', False)
+                or check_dynamic_permission(user, 'district:view_data')
+                or check_dynamic_permission(user, 'state:view_all')
+            )
+
+            target_station = request.query_params.get('station_name')
+            allowed_stations = None
+
+            if not can_view_all:
+                user_stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                user_stations = [s for s in user_stations if s]
+                if target_station and target_station not in user_stations:
+                    raise exceptions.PermissionDenied("You do not have access to view data for this police station.")
+                allowed_stations = user_stations
+
+            service = RoadAccidentDarService(
+                station_name=target_station,
+                allowed_stations=allowed_stations
+            )
+            summary = service.get_summary_statistics()
+            return Response(summary, status=status.HTTP_200_OK)
+
+        except exceptions.PermissionDenied as pd:
+            raise pd
+        except Exception as e:
+            logger.exception(f"[DarSummaryStatsView] Database error: {e}")
+            return Response(
+                {'error': 'Failed to calculate DAR summary statistics.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class DarRemindIOView(APIView):
+    """
+    Action endpoint to send a formal reminder to the assigned Investigating Officer (IO)
+    for a pending DAR form. Creates a scoped NotificationRecord and audit entry.
+    """
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def post(self, request, pk, *args, **kwargs):
+        user = request.user
+        try:
+            from apps.cases.models import CaseRecord
+            from apps.cases.dar_service import RoadAccidentDarService
+            from apps.users.models import NotificationRecord
+            from apps.core.models import AuditLog
+            from apps.core.tenancy import get_active_tenant_schema, set_tenant_schema
+
+            schema = getattr(request, 'state_schema', None) or get_active_tenant_schema(request)
+            if not schema or schema == 'public':
+                schema = getattr(user, 'state_schema', None) or 'maharashtra'
+            set_tenant_schema(schema)
+
+            case = CaseRecord.objects.get(pk=pk)
+
+            eval_res = RoadAccidentDarService.evaluate_case_dar(case)
+            target_uid = case.assigned_officer_uid
+            officer_name = case.assigned_officer or 'Investigating Officer'
+
+            title = f"Action Required: DAR Form Pending for CR {case.case_number}"
+            body = (
+                f"Please complete and submit the pending Detailed Accident Report (DAR) form "
+                f"for Road Accident case {case.case_number} registered at {case.station_name} immediately."
+            )
+
+            # Create notification for IO
+            NotificationRecord.objects.create(
+                target_user_uid=target_uid or '',
+                target_station_name=case.station_name,
+                title=title,
+                body=body,
+                category='reminder',
+                registration_uid=str(case.case_number),
+                status='pending'
+            )
+
+            # Audit trail
+            try:
+                AuditLog.objects.create(
+                    event='dar_reminder_sent',
+                    category='case',
+                    uid=request.user.pk,
+                    user_name=getattr(request.user, 'name', ''),
+                    user_role=getattr(request.user, 'role', ''),
+                    station_name=getattr(request.user, 'station_name', ''),
+                    action_details=f"Sent DAR pending reminder to IO {officer_name} for CR {case.case_number}",
+                    metadata={'case_id': str(case.pk), 'assigned_officer_uid': target_uid}
+                )
+            except Exception as ae:
+                logger.warning(f"[DarRemindIOView] AuditLog creation skipped: {ae}")
+
+            return Response({
+                'status': 'success',
+                'message': f"Reminder successfully sent to Investigating Officer {officer_name} for case {case.case_number}.",
+                'case_id': str(case.pk),
+                'case_number': case.case_number,
+                'io_name': officer_name,
+                'io_uid': target_uid,
+                'dar_status': eval_res['status'],
+            }, status=status.HTTP_200_OK)
+
+        except CaseRecord.DoesNotExist:
+            return Response({'error': 'Road accident case not found.'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.exception(f"[DarRemindIOView] Error sending reminder: {e}")
+            return Response(
+                {'error': 'Failed to send reminder to IO.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class IradCasesListView(APIView):
+    """
+    Dedicated endpoint returning dynamically evaluated Road Accident cases for the IRAD tab.
+    Provides:
+    - Summary metrics: Total IRAD, IRAD Form Filled, IRAD Form Pending
+    - Table columns: Sr. No., CR No., Act and Section, IO Name, Status, Action/Remind to IO
+    """
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        if not user or not user.is_authenticated:
+            raise exceptions.NotAuthenticated("Authentication credentials were not provided.")
+
+        try:
+            from apps.cases.irad_service import RoadAccidentIradService
+            from apps.core.tenancy import get_active_tenant_schema, set_tenant_schema
+
+            # Ensure active tenant schema
+            schema = getattr(request, 'state_schema', None) or get_active_tenant_schema(request)
+            if not schema or schema == 'public':
+                schema = getattr(user, 'state_schema', None) or 'maharashtra'
+            set_tenant_schema(schema)
+
+            can_view_all = (
+                getattr(user, 'is_superuser', False)
+                or getattr(user, 'is_staff', False)
+                or check_dynamic_permission(user, 'district:view_data')
+                or check_dynamic_permission(user, 'state:view_all')
+            )
+
+            target_station = request.query_params.get('station_name')
+            status_param = request.query_params.get('status')
+            search_param = request.query_params.get('search')
+            allowed_stations = None
+
+            if not can_view_all:
+                user_stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                user_stations = [s for s in user_stations if s]
+                if target_station:
+                    if target_station not in user_stations:
+                        raise exceptions.PermissionDenied("You do not have access to view data for this police station.")
+                else:
+                    allowed_stations = user_stations
+
+            service = RoadAccidentIradService(
+                station_name=target_station,
+                allowed_stations=allowed_stations
+            )
+
+            summary, cases_data = service.get_cases_data(
+                status_filter=status_param,
+                search=search_param
+            )
+
+            # Support pagination if requested
+            page_param = request.query_params.get('page')
+            page_size_param = request.query_params.get('page_size')
+            if page_param or page_size_param:
+                try:
+                    p = max(1, int(page_param or 1))
+                    ps = max(1, min(200, int(page_size_param or 20)))
+                    start = (p - 1) * ps
+                    end = start + ps
+                    paginated_cases = cases_data[start:end]
+                    return Response({
+                        'summary': summary,
+                        'stats': summary,
+                        'total_irad': summary.get('total_irad', 0),
+                        'irad_form_filled': summary.get('irad_filled', 0),
+                        'irad_form_pending': summary.get('irad_pending', 0),
+                        'irad_filled': summary.get('irad_filled', 0),
+                        'irad_pending': summary.get('irad_pending', 0),
+                        'total_count': len(cases_data),
+                        'page': p,
+                        'page_size': ps,
+                        'count': len(paginated_cases),
+                        'results': paginated_cases,
+                        'cases': paginated_cases,
+                    }, status=status.HTTP_200_OK)
+                except (ValueError, TypeError):
+                    pass
+
+            return Response({
+                'summary': summary,
+                'stats': summary,
+                'total_irad': summary.get('total_irad', 0),
+                'irad_form_filled': summary.get('irad_filled', 0),
+                'irad_form_pending': summary.get('irad_pending', 0),
+                'irad_filled': summary.get('irad_filled', 0),
+                'irad_pending': summary.get('irad_pending', 0),
+                'count': len(cases_data),
+                'results': cases_data,
+                'cases': cases_data,
+            }, status=status.HTTP_200_OK)
+
+        except exceptions.PermissionDenied as pd:
+            raise pd
+        except Exception as e:
+            logger.exception(f"[IradCasesListView] Database error: {e}")
+            return Response(
+                {'error': 'Failed to fetch IRAD road accident cases.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class IradSummaryStatsView(APIView):
+    """
+    Lightweight endpoint returning dynamic IRAD Summary Cards:
+    - Total IRAD
+    - IRAD Form Filled
+    - IRAD Form Pending
+    """
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        try:
+            from apps.cases.irad_service import RoadAccidentIradService
+            from apps.core.tenancy import get_active_tenant_schema, set_tenant_schema
+
+            schema = getattr(request, 'state_schema', None) or get_active_tenant_schema(request)
+            if not schema or schema == 'public':
+                schema = getattr(user, 'state_schema', None) or 'maharashtra'
+            set_tenant_schema(schema)
+
+            can_view_all = (
+                getattr(user, 'is_superuser', False)
+                or getattr(user, 'is_staff', False)
+                or check_dynamic_permission(user, 'district:view_data')
+                or check_dynamic_permission(user, 'state:view_all')
+            )
+
+            target_station = request.query_params.get('station_name')
+            allowed_stations = None
+
+            if not can_view_all:
+                user_stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                user_stations = [s for s in user_stations if s]
+                if target_station and target_station not in user_stations:
+                    raise exceptions.PermissionDenied("You do not have access to view data for this police station.")
+                allowed_stations = user_stations
+
+            service = RoadAccidentIradService(
+                station_name=target_station,
+                allowed_stations=allowed_stations
+            )
+            summary = service.get_summary_statistics()
+            return Response(summary, status=status.HTTP_200_OK)
+
+        except exceptions.PermissionDenied as pd:
+            raise pd
+        except Exception as e:
+            logger.exception(f"[IradSummaryStatsView] Database error: {e}")
+            return Response(
+                {'error': 'Failed to calculate IRAD summary statistics.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class IradRemindIOView(APIView):
+    """
+    Action endpoint to send a formal reminder to the assigned Investigating Officer (IO)
+    for a pending IRAD form. Creates a scoped NotificationRecord and audit entry.
+    """
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def post(self, request, pk, *args, **kwargs):
+        user = request.user
+        try:
+            from apps.cases.models import CaseRecord
+            from apps.cases.irad_service import RoadAccidentIradService
+            from apps.users.models import NotificationRecord
+            from apps.core.models import AuditLog
+            from apps.core.tenancy import get_active_tenant_schema, set_tenant_schema
+
+            schema = getattr(request, 'state_schema', None) or get_active_tenant_schema(request)
+            if not schema or schema == 'public':
+                schema = getattr(user, 'state_schema', None) or 'maharashtra'
+            set_tenant_schema(schema)
+
+            case = CaseRecord.objects.get(pk=pk)
+
+            eval_res = RoadAccidentIradService.evaluate_case_irad(case)
+            target_uid = case.assigned_officer_uid
+            officer_name = case.assigned_officer or 'Investigating Officer'
+
+            title = f"Action Required: IRAD Form Pending for CR {case.case_number}"
+            body = (
+                f"Please complete and submit the pending Integrated Road Accident Database (IRAD) form "
+                f"for Road Accident case {case.case_number} registered at {case.station_name} immediately."
+            )
+
+            # Create notification for IO
+            NotificationRecord.objects.create(
+                target_user_uid=target_uid or '',
+                target_station_name=case.station_name,
+                title=title,
+                body=body,
+                category='reminder',
+                registration_uid=str(case.case_number),
+                status='pending'
+            )
+
+            # Audit trail
+            try:
+                AuditLog.objects.create(
+                    event='irad_reminder_sent',
+                    category='case',
+                    uid=request.user.pk,
+                    user_name=getattr(request.user, 'name', ''),
+                    user_role=getattr(request.user, 'role', ''),
+                    station_name=getattr(request.user, 'station_name', ''),
+                    action_details=f"Sent IRAD pending reminder to IO {officer_name} for CR {case.case_number}",
+                    metadata={'case_id': str(case.pk), 'assigned_officer_uid': target_uid}
+                )
+            except Exception as ae:
+                logger.warning(f"[IradRemindIOView] AuditLog creation skipped: {ae}")
+
+            return Response({
+                'status': 'success',
+                'message': f"Reminder successfully sent to Investigating Officer {officer_name} for case {case.case_number}.",
+                'case_id': str(case.pk),
+                'case_number': case.case_number,
+                'io_name': officer_name,
+                'io_uid': target_uid,
+                'irad_status': eval_res['status'],
+            }, status=status.HTTP_200_OK)
+
+        except CaseRecord.DoesNotExist:
+            return Response({'error': 'Road accident case not found.'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.exception(f"[IradRemindIOView] Error sending reminder: {e}")
+            return Response(
+                {'error': 'Failed to send reminder to IO.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class SummonsWarrantReportView(APIView):
+    """
+    API endpoint for the Summons and Warrant (समंस वारंट) Monthly Report.
+    Calculates dynamic counts and percentages across 3 distinct legal sections:
+    1. Summons (समंस)
+    2. BW - Bailable Warrant (जमानती वारंट)
+    3. NBW - Non-Bailable Warrant (पकड वारंट)
+
+    Metrics per section:
+    - Previous Month (मागील)
+    - Current Month (चालु माहे)
+    - Total (बेरीज)
+    - Executed (तामील)
+    - Executed % (तामील टक्के)
+    - Unserved (अदम)
+    - Pending (अखेर)
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        if not user or not user.is_authenticated:
+            raise exceptions.NotAuthenticated("Authentication credentials were not provided.")
+
+        try:
+            from apps.cases.warrant_service import SummonsWarrantReportService
+            from django.utils import timezone
+
+            now = timezone.now()
+
+            # Parse year and month query parameters
+            year_param = request.query_params.get('year')
+            month_param = request.query_params.get('month')
+
+            try:
+                year = int(year_param) if year_param else now.year
+            except (ValueError, TypeError):
+                year = now.year
+
+            try:
+                month = int(month_param) if month_param else now.month
+                if not (1 <= month <= 12):
+                    month = now.month
+            except (ValueError, TypeError):
+                month = now.month
+
+            # Cutoff day or to_date
+            cutoff_day = None
+            to_date_param = request.query_params.get('to_date') or request.query_params.get('as_of_date')
+            cutoff_day_param = request.query_params.get('cutoff_day')
+            if cutoff_day_param:
+                try:
+                    cutoff_day = int(cutoff_day_param)
+                except (ValueError, TypeError):
+                    cutoff_day = None
+            elif to_date_param:
+                try:
+                    if '-' in to_date_param:
+                        parts = to_date_param.split('-')
+                        if len(parts) == 3:
+                            cutoff_day = int(parts[2])
+                    elif '/' in to_date_param:
+                        parts = to_date_param.split('/')
+                        if len(parts) == 3:
+                            cutoff_day = int(parts[0])
+                except (ValueError, TypeError):
+                    cutoff_day = None
+
+            # Station / District filtering with multi-tenancy access checks
+            can_view_all = check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')
+            target_station = request.query_params.get('station_name')
+            target_district = request.query_params.get('district') or request.query_params.get('district_name')
+            allowed_stations = None
+
+            if not can_view_all:
+                user_stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                user_stations = [s for s in user_stations if s]
+                if target_station:
+                    if target_station not in user_stations:
+                        raise exceptions.PermissionDenied("You do not have access to view data for this police station.")
+                else:
+                    allowed_stations = user_stations
+
+            service = SummonsWarrantReportService(
+                station_name=target_station,
+                district_name=target_district,
+                allowed_stations=allowed_stations
+            )
+            result = service.get_report(year=year, month=month, cutoff_day=cutoff_day)
+            return Response(result, status=status.HTTP_200_OK)
+
+        except exceptions.PermissionDenied as pd:
+            raise pd
+        except Exception as e:
+            logger.exception(f"[SummonsWarrantReportView] Database error: {e}")
+            return Response(
+                {'error': 'Failed to generate summons warrant report.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class MonthlyCrimeComparativeView(APIView):
+    """
+    Police Monthly Crime Comparative Report API View.
+    Aggregates dynamic database records across 5 reporting windows:
+    - Current Month (REP / DET)
+    - Previous Month (REP / DET)
+    - Same Month Previous Year (REP / DET)
+    - Monthly INC/DEC
+    - Current Year YTD (REP / DET)
+    - Previous Year YTD (REP / DET)
+    - YTD INC/DEC
+    Following official Maharashtra & Indian Police crime comparative report format.
+    """
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def get(self, request):
+        try:
+            from django.utils import timezone
+            from apps.cases.comparative_service import MonthlyCrimeComparativeService
+            from apps.core.tenancy import get_active_tenant_schema, set_tenant_schema
+
+            # Ensure tenant schema
+            schema = get_active_tenant_schema()
+            if schema and schema != 'public':
+                set_tenant_schema(schema)
+
+            user = request.user
+            now = timezone.now()
+
+            # Parse year and month query parameters
+            year_param = request.query_params.get('year')
+            month_param = request.query_params.get('month')
+
+            try:
+                year = int(year_param) if year_param else now.year
+            except (ValueError, TypeError):
+                year = now.year
+
+            try:
+                month = int(month_param) if month_param else now.month
+                if not (1 <= month <= 12):
+                    month = now.month
+            except (ValueError, TypeError):
+                month = now.month
+
+            # Cutoff day or to_date
+            cutoff_day = None
+            to_date_param = request.query_params.get('to_date') or request.query_params.get('as_of_date')
+            cutoff_day_param = request.query_params.get('cutoff_day')
+            if cutoff_day_param:
+                try:
+                    cutoff_day = int(cutoff_day_param)
+                except (ValueError, TypeError):
+                    cutoff_day = None
+            elif to_date_param:
+                try:
+                    if '-' in to_date_param:
+                        parts = to_date_param.split('-')
+                        if len(parts) == 3:
+                            cutoff_day = int(parts[2])
+                    elif '/' in to_date_param:
+                        parts = to_date_param.split('/')
+                        if len(parts) == 3:
+                            cutoff_day = int(parts[0])
+                except (ValueError, TypeError):
+                    cutoff_day = None
+
+            # Station filtering with multi-tenancy access checks
+            can_view_all = check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')
+            target_station = request.query_params.get('station_name')
+            allowed_stations = None
+
+            if not can_view_all:
+                user_stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                user_stations = [s for s in user_stations if s]
+                if target_station:
+                    if target_station not in user_stations:
+                        raise exceptions.PermissionDenied("You do not have access to view data for this police station.")
+                else:
+                    allowed_stations = user_stations
+
+            service = MonthlyCrimeComparativeService(
+                station_name=target_station,
+                allowed_stations=allowed_stations
+            )
+            result = service.get_comparative_statement(year=year, month=month, cutoff_day=cutoff_day)
+            return Response(result, status=status.HTTP_200_OK)
+
+        except exceptions.PermissionDenied as pd:
+            raise pd
+        except Exception as e:
+            logger.exception(f"[MonthlyCrimeComparativeView] Database error: {e}")
+            return Response(
+                {'error': 'Failed to generate monthly crime comparative report.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
