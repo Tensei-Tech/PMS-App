@@ -84,7 +84,8 @@ const Set<String> _kCommonFormBaselineCategoryNames = {
   'ipc (a) 304',
   '498 (a) ipc',
   'other ipc',
-  'chain snatching',
+  // 'chain snatching' opens the dynamic form (database template): its extra
+  // questions come from "Chain Snatching Extra Fields" in the database
   'crime against women',
   'accident',
   'normal accident',

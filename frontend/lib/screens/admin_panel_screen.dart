@@ -109,15 +109,15 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             : 'Provision Station Heads (SHO/PI) across police stations in your assigned district.';
 
     final hierarchyTitle = isStateAdmin
-        ? 'State Admin Hierarchy & Directory'
+        ? 'State Admin Directory'
         : isDivAdmin
-            ? 'Division Hierarchy & Directory'
+            ? 'Division Directory'
             : 'District Stations & Directory';
 
     final hierarchySubtitle = isStateAdmin
-        ? 'View all 6 Divisions, Districts, and Station Heads across Maharashtra Police.'
+        ? 'View Districts, Cities, Divisions and Station Heads across Maharashtra Police.'
         : isDivAdmin
-            ? 'View districts and police stations assigned under your division range.'
+            ? 'View the police stations of your division and their Station Heads.'
             : 'View police stations and Station Heads (SHO) assigned under your district.';
 
     final panelTitle = isStateAdmin

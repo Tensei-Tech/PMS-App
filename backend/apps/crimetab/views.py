@@ -694,6 +694,8 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
                 religion=p.get('religion'),
                 caste=p.get('caste'),
                 address=p.get('address'),
+                medical=p.get('medical') or None,
+                medical_date=_parse_d(p.get('medical_date')),
                 approximate_age=p.get('approximate_age'),
                 skin_colour=p.get('skin_colour'),
                 possible_occupation=p.get('possible_occupation'),
@@ -710,7 +712,13 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
                 return
             cleaned = str(nm).strip()
             existing = CasesPerson.objects.filter(case=case, name__iexact=cleaned, role=role).first()
-            if not existing:
+            if existing:
+                # Edits of an already saved person: keep Medical / Medical Date current
+                if 'medical' in p_map or 'medical_date' in p_map:
+                    existing.medical = p_map.get('medical') or None
+                    existing.medical_date = _parse_d(p_map.get('medical_date'))
+                    existing.save(update_fields=['medical', 'medical_date'])
+            else:
                 CasesPerson.objects.create(
                     case=case,
                     role=role,
@@ -724,6 +732,8 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
                     religion=p_map.get('religion'),
                     caste=p_map.get('caste'),
                     address=p_map.get('address'),
+                    medical=p_map.get('medical') or None,
+                    medical_date=_parse_d(p_map.get('medical_date')),
                 )
 
         _add_person('complainant', m.get('complainant'))

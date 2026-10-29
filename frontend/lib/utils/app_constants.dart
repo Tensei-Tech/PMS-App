@@ -130,8 +130,8 @@ class Classification {
     Classification('Application', 'description', 'application'),
     Classification('Sam/Warrant', 'assignment', 'sam_warrant'),
     Classification('Muddemal', 'inventory', 'muddemal'),
-    Classification('CRPC 1563 /\nBNSS 1753', 'balance', 'bnss'),
-    Classification('Passport/\nPVR/Lic', 'badge', 'passport'),
+    Classification('CRPC 156(3)/\nBNSS 175(3)', 'balance', 'bnss'),
+    Classification('Passport/\nPVR/Licence', 'badge', 'passport'),
     Classification('NDPS', 'medication', 'ndps'),
     Classification('Gowansh', 'home_work', 'gowans'),
     Classification('IT Act', 'computer', 'it_act'),
@@ -175,8 +175,8 @@ class Classification {
     Classification('Application', 'description', 'application'),
     Classification('Sam (Summons) / Warrant', 'assignment', 'sam_warrant'),
     Classification('Muddemal', 'inventory', 'muddemal'),
-    Classification('CRPC 1563 / BNSS 1753', 'balance', 'bnss'),
-    Classification('Passport /PVR / License', 'badge', 'passport'),
+    Classification('CRPC 156(3)/BNSS 175(3)', 'balance', 'bnss'),
+    Classification('Passport/PVR/Licence', 'badge', 'passport'),
     Classification('NDPS', 'medication', 'ndps'),
     Classification('Gowansh', 'home_work', 'gowans'),
     Classification('IT Act', 'computer', 'it_act'),
@@ -304,8 +304,8 @@ class ServiceData {
   const ServiceData(this.label, this.icon, this.color);
 
   /// Tools shown directly on the dashboard grid.
+  /// Licence is a tab inside the Passport/PVR/Licence tile.
   static const List<ServiceData> dashboardTools = [
-    ServiceData('Licence', Icons.assignment_ind_rounded, 0xFF9B59B6),
     ServiceData('Tadipar', Icons.gavel_rounded, 0xFF1ABC9C),
     ServiceData('Repeat Offender', Icons.warning_rounded, 0xFFF39C12),
     ServiceData('ITSSO', Icons.description_rounded, 0xFFE91E63),

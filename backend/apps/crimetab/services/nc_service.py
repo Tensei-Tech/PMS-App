@@ -18,6 +18,7 @@ from django.db.models.functions import Coalesce
 
 from apps.crimetab.models import FieldTemplateField, ModuleSetting, OptionValue
 from apps.crimetab.models.nc import NcCharge, NcPerson, NcPreventiveAction, NcRecord
+from apps.crimetab.age_limits import MAX_AGE, MIN_AGE
 
 logger = logging.getLogger(__name__)
 
@@ -343,7 +344,7 @@ def _check_age(value, settings):
         age = int(float(s))
     except ValueError:
         raise NcValidationError(settings.text('invalid_age_message', value=s))
-    if age < 1 or age > 120:
+    if age < MIN_AGE or age > MAX_AGE:
         raise NcValidationError(settings.text('invalid_age_message', value=s))
     return age
 

@@ -5,6 +5,7 @@ import '../theme/app_theme.dart';
 import 'juvenile_summary_screen.dart';
 import 'filtered_arrested_screen.dart'; // We can reuse this or create a filtered screen
 import '../modules/core/models/base_record.dart';
+import '../utils/translation_helper.dart';
 import '../utils/arrested_table_firestore_mapper.dart'; // For converting cases to rows
 
 class JuvenileHubScreen extends StatefulWidget {
@@ -357,7 +358,7 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
         elevation: 1,
         iconTheme: const IconThemeData(color: AppColors.navyDark),
         title: Text(
-          'Juvenile',
+          TranslationHelper.translate(context, 'Juvenile'),
           style: GoogleFonts.poppins(
             color: AppColors.navyDark,
             fontWeight: FontWeight.w700,

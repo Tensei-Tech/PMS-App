@@ -63,6 +63,20 @@ class DynamicFieldDef {
     return n != null && n > 0 ? n : null;
   }
 
+  static const String maxWordsPrefix = 'words:';
+
+  /// Most words a text field accepts: options source `words:<n>` (e.g.
+  /// `words:20` on a short description); typing more words is blocked.
+  int? get maxWords {
+    final src = optionsSource ?? '';
+    if ((fieldType != 'text' && fieldType != 'textarea') ||
+        !src.startsWith(maxWordsPrefix)) {
+      return null;
+    }
+    final n = int.tryParse(src.substring(maxWordsPrefix.length).trim());
+    return n != null && n > 0 ? n : null;
+  }
+
   static const String maxItemsPrefix = 'max:';
 
   /// Most rows a repeating group may hold: options source `max:<n>`
@@ -74,6 +88,15 @@ class DynamicFieldDef {
     }
     final n = int.tryParse(src.substring(maxItemsPrefix.length).trim());
     return n != null && n > 0 ? n : null;
+  }
+
+  static const String stepperSourcePrefix = 'stepper';
+
+  /// Whether this number field has a stepper with (- 1 +) increment/decrement buttons.
+  bool get isStepper {
+    final src = (optionsSource ?? '').toLowerCase().trim();
+    return fieldType == 'number' &&
+        (src == stepperSourcePrefix || src.startsWith('$stepperSourcePrefix:'));
   }
 
   DynamicFieldDef copyWith({
@@ -175,7 +198,7 @@ class DynamicFormDefinition {
     required this.fields,
     this.actsSections = const {},
     this.preventiveItems = const [],
-    this.genders = const ['Male', 'Female', 'Other'],
+    this.genders = const [],
     this.proceduralItems = const {},
   });
 
@@ -207,7 +230,7 @@ class DynamicFormDefinition {
           : const [],
       genders: (json['genders'] is List)
           ? (json['genders'] as List).map((e) => e.toString()).toList()
-          : const ['Male', 'Female', 'Other'],
+          : const [],
       proceduralItems: (json['procedural_items'] is Map)
           ? (json['procedural_items'] as Map)
               .map((k, v) => MapEntry(k.toString(), v.toString()))

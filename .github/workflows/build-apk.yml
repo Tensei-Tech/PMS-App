@@ -38,10 +38,20 @@ jobs:
           cd frontend
           flutter pub get
 
+      # A release APK without API_BASE_URL falls back to 127.0.0.1, which a
+      # phone cannot reach ("Could not connect to authentication server").
+      - name: Check API_BASE_URL in config/prod.json
+        run: |
+          url=$(python3 -c "import json; print(json.load(open('frontend/config/prod.json')).get('API_BASE_URL', ''))")
+          case "$url" in
+            https://*) echo "API_BASE_URL=$url" ;;
+            *) echo "::error::frontend/config/prod.json must set API_BASE_URL to an https:// URL (got '$url')"; exit 1 ;;
+          esac
+
       - name: Build Release APK
         run: |
           cd frontend
-          flutter build apk --release --android-skip-build-dependency-validation
+          flutter build apk --release --android-skip-build-dependency-validation --dart-define-from-file=config/prod.json
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4

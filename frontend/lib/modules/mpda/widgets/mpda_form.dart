@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+
+import '../../../services/gender_options.dart';
+import '../../../widgets/age_digits_limit.dart';
 
 import '../../../widgets/common_form/pocso_voice_banner.dart';
 
@@ -153,7 +157,10 @@ class MpdaFormViewState extends State<MpdaFormView> {
   // -------------------------------------------------------------
   final TextEditingController accusedNameController = TextEditingController();
   final TextEditingController accusedAgeController = TextEditingController();
-  String selectedAccusedGender = 'Male';
+  String selectedAccusedGender = '';
+
+  /// Gender choices from the database
+  List<String> _genders = GenderOptions.cached;
   final TextEditingController accusedMobileController = TextEditingController();
   final TextEditingController accusedAadhaarController =
       TextEditingController();
@@ -231,6 +238,9 @@ class MpdaFormViewState extends State<MpdaFormView> {
   void initState() {
     super.initState();
     _activeVoiceController = proposalNoController;
+    GenderOptions.load().then((g) {
+      if (mounted && g.isNotEmpty) setState(() => _genders = g);
+    });
     if (widget.initialData != null) {
       _hydrateFromData(widget.initialData!);
     }
@@ -244,7 +254,7 @@ class MpdaFormViewState extends State<MpdaFormView> {
 
     accusedNameController.clear();
     accusedAgeController.clear();
-    selectedAccusedGender = 'Male';
+    selectedAccusedGender = '';
     accusedMobileController.clear();
     accusedAadhaarController.clear();
     accusedPanController.clear();
@@ -339,7 +349,7 @@ class MpdaFormViewState extends State<MpdaFormView> {
     accusedAgeController.text =
         (accused['age'] ?? rawData['accusedAge'] ?? '').toString();
     selectedAccusedGender =
-        (accused['gender'] ?? rawData['accusedGender'] ?? 'Male').toString();
+        (accused['gender'] ?? rawData['accusedGender'] ?? '').toString();
     accusedMobileController.text =
         (accused['mobile'] ?? rawData['accusedMobile'] ?? '').toString();
     accusedAadhaarController.text =
@@ -937,6 +947,7 @@ class MpdaFormViewState extends State<MpdaFormView> {
                 controller: accusedAgeController,
                 hintText: 'e.g. 32',
                 keyboardType: TextInputType.number,
+                isAge: true,
               ),
             ),
             const SizedBox(width: 12),
@@ -945,7 +956,7 @@ class MpdaFormViewState extends State<MpdaFormView> {
               child: _buildDropdownField<String>(
                 label: 'Gender',
                 value: selectedAccusedGender,
-                items: const ['Male', 'Female', 'Other'],
+                items: _genders,
                 onChanged: (val) {
                   if (val != null) setState(() => selectedAccusedGender = val);
                 },
@@ -1555,6 +1566,7 @@ class MpdaFormViewState extends State<MpdaFormView> {
     int maxLines = 1,
     int? maxLength,
     bool enabled = true,
+    bool isAge = false,
   }) {
     final active = enabled && !widget.isReadOnly;
 
@@ -1572,51 +1584,63 @@ class MpdaFormViewState extends State<MpdaFormView> {
                   letterSpacing: 0.3),
         ),
         const SizedBox(height: 5),
-        TextFormField(
-          controller: controller,
-          enabled: active,
-          readOnly: !active,
-          keyboardType: keyboardType,
-          maxLines: maxLines,
-          maxLength: maxLength,
-          onTap: () {
-            setActiveVoiceField(label, controller);
-          },
-          style: TextStyle(fontSize: 12, color: active ? _kDark : _kMuted),
-          decoration: InputDecoration(
-            hintText: hintText,
-            hintStyle: const TextStyle(fontSize: 12, color: _kMuted),
-            counterText: '',
-            isDense: true,
-            filled: true,
-            fillColor: active ? _kInputBg : const Color(0xFFF1F5F9),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                  color: active
-                      ? _kBorder
-                      : const Color(0xFFE2E8F0).withValues(alpha: 0.6)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: _kBorder),
-            ),
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                  color: const Color(0xFFE2E8F0).withValues(alpha: 0.6)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: _kTeal, width: 1.5),
-            ),
-          ),
-        ),
+        _ageOrPlain(
+            isAge,
+            label,
+            (formatters, errorText) => TextFormField(
+                  controller: controller,
+                  inputFormatters: formatters,
+                  enabled: active,
+                  readOnly: !active,
+                  keyboardType: keyboardType,
+                  maxLines: maxLines,
+                  maxLength: maxLength,
+                  onTap: () {
+                    setActiveVoiceField(label, controller);
+                  },
+                  style:
+                      TextStyle(fontSize: 12, color: active ? _kDark : _kMuted),
+                  decoration: InputDecoration(
+                    hintText: hintText,
+                    hintStyle: const TextStyle(fontSize: 12, color: _kMuted),
+                    counterText: '',
+                    errorText: errorText,
+                    isDense: true,
+                    filled: true,
+                    fillColor: active ? _kInputBg : const Color(0xFFF1F5F9),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 10),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(
+                          color: active
+                              ? _kBorder
+                              : const Color(0xFFE2E8F0).withValues(alpha: 0.6)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: _kBorder),
+                    ),
+                    disabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(
+                          color:
+                              const Color(0xFFE2E8F0).withValues(alpha: 0.6)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: _kTeal, width: 1.5),
+                    ),
+                  ),
+                )),
       ],
     );
   }
+
+  /// [build] limited to an age's digits (shared message) when [isAge]
+  Widget _ageOrPlain(bool isAge, String label,
+          Widget Function(List<TextInputFormatter>? f, String? e) build) =>
+      isAge ? AgeDigitsLimit(label: label, builder: build) : build(null, null);
 
   Widget _buildDateField({
     required String label,

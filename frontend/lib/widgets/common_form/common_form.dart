@@ -23,6 +23,8 @@ import 'package:image_picker/image_picker.dart';
 import '../../modules/core/models/base_record.dart';
 import '../../screens/ad_form_screen.dart' show ACT_DATA;
 import '../../services/case_service.dart';
+import '../../services/gender_options.dart';
+import '../age_digits_limit.dart';
 import '../../services/backend_case_service.dart';
 import '../../utils/app_constants.dart';
 import '../../utils/common_form_pdf.dart';
@@ -63,7 +65,6 @@ const _tsMuted = TextStyle(fontSize: 11, color: _kMuted);
 const _tsBody = TextStyle(fontSize: 12, color: _kDark);
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-const _kGenders = ['Male', 'Female', 'Other'];
 
 // ── Warning Triangle Icon (Image 3) ─────────────────────────────────────────
 class WarningTrianglePainter extends CustomPainter {
@@ -363,6 +364,9 @@ class CommonFormState extends State<CommonForm> {
   final _compName = TextEditingController();
   final _compAge = TextEditingController();
   String _compGender = 'Male';
+
+  /// Gender choices from the database
+  List<String> _genders = GenderOptions.cached;
   final _compOcc = TextEditingController();
   final _compMobile = TextEditingController();
   final _compAadhaar = TextEditingController();
@@ -774,6 +778,9 @@ class CommonFormState extends State<CommonForm> {
   @override
   void initState() {
     super.initState();
+    GenderOptions.load().then((g) {
+      if (mounted && g.isNotEmpty) setState(() => _genders = g);
+    });
     _ownsScroll = widget.scrollController == null;
     _isTwoFourWheelerTheft = _isTwoFourWheeler;
     _fetchGlobalActs();
@@ -1910,7 +1917,7 @@ class CommonFormState extends State<CommonForm> {
       _compName.text = n.contains('Protected') ? '' : n;
       _compAge.text = _s(comp['age']);
       final g = comp['gender']?.toString();
-      if (g != null && _kGenders.contains(g)) _compGender = g;
+      if (g != null && g.isNotEmpty) _compGender = g;
       _compOcc.text = _s(comp['occ']);
       _compMobile.text = _s(comp['mobile']);
       _compAadhaar.text = _s(comp['aadhaar']);
@@ -1926,7 +1933,7 @@ class CommonFormState extends State<CommonForm> {
       _vName.text = _s(victim['name']);
       _vAge.text = _s(victim['age']);
       final g = victim['gender']?.toString();
-      if (g != null && _kGenders.contains(g)) _vGender = g;
+      if (g != null && g.isNotEmpty) _vGender = g;
       _vOcc.text = _s(victim['occ']);
       _vMobile.text = _s(victim['mobile']);
       _vAadhaar.text = _s(victim['aadhaar']);
@@ -1941,7 +1948,7 @@ class CommonFormState extends State<CommonForm> {
       _dName.text = _s(deceased['name']);
       _dAge.text = _s(deceased['age']);
       final g = deceased['gender']?.toString();
-      if (g != null && _kGenders.contains(g)) _dGender = g;
+      if (g != null && g.isNotEmpty) _dGender = g;
       _dOcc.text = _s(deceased['occ']);
       _dMobile.text = _s(deceased['mobile']);
       _dAadhaar.text = _s(deceased['aadhaar']);
@@ -1956,7 +1963,7 @@ class CommonFormState extends State<CommonForm> {
       _injName.text = _s(inj['name']);
       _injAge.text = _s(inj['age']);
       final g = inj['gender']?.toString();
-      if (g != null && _kGenders.contains(g)) _injGender = g;
+      if (g != null && g.isNotEmpty) _injGender = g;
       _injOcc.text = _s(inj['occ']);
       _injMobile.text = _s(inj['mobile']);
       _injAadhaar.text = _s(inj['aadhaar']);
@@ -1984,7 +1991,7 @@ class CommonFormState extends State<CommonForm> {
       (row['name'] as TextEditingController).text = _s(raw['name']);
       (row['age'] as TextEditingController).text = _s(raw['age']);
       final g = raw['gender']?.toString();
-      if (g != null && _kGenders.contains(g)) row['gender'] = g;
+      if (g != null && g.isNotEmpty) row['gender'] = g;
       (row['occ'] as TextEditingController).text = _s(raw['occ']);
       (row['mobile'] as TextEditingController).text = _s(raw['mobile']);
       (row['aadhaar'] as TextEditingController).text = _s(raw['aadhaar']);
@@ -1996,7 +2003,7 @@ class CommonFormState extends State<CommonForm> {
 
     void applyUnid(Map<String, dynamic> row, Map raw) {
       final g = raw['gender']?.toString();
-      if (g != null && _kGenders.contains(g)) row['gender'] = g;
+      if (g != null && g.isNotEmpty) row['gender'] = g;
       (row['age'] as TextEditingController).text = _s(raw['approxAge']);
       (row['height'] as TextEditingController).text = _s(raw['approxHeight']);
       (row['skin'] as TextEditingController).text = _s(raw['skinColor']);
@@ -2601,7 +2608,28 @@ class CommonFormState extends State<CommonForm> {
     List<TextInputFormatter>? inputFormatters,
     String? Function(String?)? validator,
     AutovalidateMode? autovalidateMode,
+    bool isAge = false,
+    String? errorText,
   }) {
+    if (isAge) {
+      // Ages: at most 3 digits, with the same message as every other tab
+      return AgeDigitsLimit(
+        label: label,
+        builder: (formatters, ageError) => _tf(label, ctrl,
+            maxLines: maxLines,
+            keyboardType: keyboardType,
+            onChanged: onChanged,
+            onTap: onTap,
+            enabled: enabled,
+            hintText: hintText,
+            helperText: helperText,
+            helperColor: helperColor,
+            inputFormatters: formatters,
+            validator: validator,
+            autovalidateMode: autovalidateMode,
+            errorText: ageError),
+      );
+    }
     return TextFormField(
       controller: ctrl,
       keyboardType: keyboardType,
@@ -2637,6 +2665,7 @@ class CommonFormState extends State<CommonForm> {
             : null,
         helperMaxLines: 2,
         errorMaxLines: 2,
+        errorText: errorText,
         helperStyle: helperText != null
             ? TextStyle(
                 fontSize: 10,
@@ -3585,8 +3614,7 @@ class CommonFormState extends State<CommonForm> {
     } else if (type == 'dropdown') {
       final currentVal = _dynamicValues[key]?.toString();
       final isGender = key.toLowerCase().contains('gender');
-      final options =
-          isGender ? ['Male', 'Female', 'Other'] : ['Yes', 'No', 'Other'];
+      final options = isGender ? _genders : ['Yes', 'No', 'Other'];
       return Container(
         margin: const EdgeInsets.only(bottom: 8),
         child: DropdownButtonFormField<String>(
@@ -3694,12 +3722,13 @@ class CommonFormState extends State<CommonForm> {
               enabled: !_isRapeCase,
               hintText: _isRapeCase ? 'Identity Protected by Law' : null,
             ),
-            _tf('Age', _compAge, keyboardType: TextInputType.number),
+            _tf('Age', _compAge,
+                keyboardType: TextInputType.number, isAge: true),
           ]),
           _row([
             _chipSelector(
               label: 'Gender',
-              items: _kGenders,
+              items: _genders,
               selected: _compGender,
               onSelect: (v) => setState(() => _compGender = v),
             ),
@@ -3917,13 +3946,14 @@ class CommonFormState extends State<CommonForm> {
                 'Age',
                 row['age'] as TextEditingController,
                 keyboardType: TextInputType.number,
+                isAge: true,
               ),
             ]),
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: _chipSelector(
                 label: 'Gender',
-                items: _kGenders,
+                items: _genders,
                 selected: row['gender'] as String?,
                 onSelect: (v) => setState(() => row['gender'] = v),
               ),
@@ -4036,7 +4066,7 @@ class CommonFormState extends State<CommonForm> {
             padding: const EdgeInsets.only(bottom: 12),
             child: _chipSelector(
               label: 'Gender',
-              items: _kGenders,
+              items: _genders,
               selected: row['gender'] as String?,
               onSelect: (v) => setState(() => row['gender'] = v),
             ),
@@ -4621,10 +4651,11 @@ class CommonFormState extends State<CommonForm> {
                                     'Surety Age',
                                     suretyAgeCtrl,
                                     keyboardType: TextInputType.number,
+                                    isAge: true,
                                   ),
                                   _chipSelector(
                                     label: 'Surety Gender',
-                                    items: _kGenders,
+                                    items: _genders,
                                     selected: suretyGender,
                                     onSelect: (v) =>
                                         setState(() => row['suretyGender'] = v),

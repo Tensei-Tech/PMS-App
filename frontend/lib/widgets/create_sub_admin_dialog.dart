@@ -214,7 +214,7 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                'Successfully onboarded ${_nameCtrl.text.trim()} as $_selectedRole!'),
+                'Successfully assigned ${_nameCtrl.text.trim()} as $_selectedRole!'),
             backgroundColor: AppColors.successGreen,
           ),
         );
@@ -222,7 +222,7 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
         final data = json.decode(response.body);
         setState(() {
           _isSubmitting = false;
-          _errorMessage = data['error'] ?? 'Failed to onboard sub-admin.';
+          _errorMessage = data['error'] ?? 'Failed to assign sub-admin.';
         });
       }
     } catch (e) {
@@ -297,8 +297,8 @@ class _CreateSubAdminDialogState extends State<CreateSubAdminDialog> {
                             children: [
                               Text(
                                 isSuper
-                                    ? 'Onboard District / Sub-Admin'
-                                    : 'Onboard Division / Station Head',
+                                    ? 'Assign District / Sub-Admin'
+                                    : 'Assign Division / Station Head',
                                 style: GoogleFonts.poppins(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,

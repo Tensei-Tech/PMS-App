@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 /// Configuration class for Django REST API endpoints and base URL.
@@ -50,11 +51,25 @@ class ApiConfig {
     } catch (_) {}
   }
 
+  /// Local backend used when API_BASE_URL is not set (development only).
+  static const String _localBaseUrl = 'http://127.0.0.1:8000/api';
+
+  /// True for a release build made without API_BASE_URL. Such a build points
+  /// at 127.0.0.1, which a phone cannot reach, so login must refuse early.
+  /// Build releases with --dart-define-from-file=config/prod.json.
+  static bool get isMissingInRelease => kReleaseMode && _envBaseUrl.isEmpty;
+
+  /// Host the app talks to, for error messages.
+  static String get serverHost {
+    final host = Uri.tryParse(baseUrl)?.host ?? '';
+    return host.isNotEmpty ? host : baseUrl;
+  }
+
   /// Base API URL: strictly uses API_BASE_URL env var
   static String get baseUrl {
     String url = _envBaseUrl;
     if (url.isEmpty) {
-      url = 'http://127.0.0.1:8000/api';
+      url = _localBaseUrl;
     }
 
     // Enforce HTTPS scheme for non-localhost endpoints
@@ -85,7 +100,7 @@ class ApiConfig {
   static String get stations => '$baseUrl/stations/';
   static String get cases => '$baseUrl/cases/';
   static String get master => '$baseUrl/master/';
-  static String get uiConfig => '$master/ui-config/';
+  static String get uiConfig => '${master}ui-config/'; // master ends with '/'
   static String get masterStates => '$baseUrl/master/states/';
   static String get transfers => '$baseUrl/users/transfers/';
   static String get auditLogs => '$baseUrl/core/audit-logs/';

@@ -248,7 +248,7 @@ class OfficerProfileViewSet(viewsets.ModelViewSet):
         stations_map = {}
         try:
             set_tenant_schema('public')
-            master_stations = list(PoliceStation.objects.all())
+            master_stations = list(PoliceStation.objects.select_related('district').all())
             for ps in master_stations:
                 st_name = getattr(ps, 'station_name', None) or getattr(ps, 'name', 'Police Station')
                 st_id = getattr(ps, 'station_id', None) or getattr(ps, 'id', '0')

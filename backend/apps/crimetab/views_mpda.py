@@ -28,6 +28,7 @@ from apps.crimetab.models.mpda import (
     MpdaCrimeChartEntry,
 )
 from apps.crimetab.models import ModuleSetting, OptionValue
+from apps.crimetab.age_limits import MAX_AGE, MIN_AGE
 from apps.crimetab.serializers_mpda import (
     MpdaProposalListSerializer,
     MpdaProposalDetailSerializer,
@@ -138,7 +139,7 @@ def _sanitize_mpda_data(norm, is_patch=False, existing_instance=None):
     Sanitizes raw form field inputs for MPDA proposal creation and update:
     - Strips all string fields; converts empty string "" or whitespace-only to None.
     - Validates accused_mobile format (10 digits) if provided, or sets None.
-    - Validates accused_age (integer 1..120) if provided, or sets None.
+    - Validates accused_age (integer MIN_AGE..MAX_AGE) if provided, or sets None.
     - Parses numbers (total_crime, serious_crimes) to int or None.
     - Parses date fields and enforces outcome radio exclusivity.
     - Synchronizes proposal_no, proposal_year, and proposal_no_and_year.
@@ -193,12 +194,12 @@ def _sanitize_mpda_data(norm, is_patch=False, existing_instance=None):
         if age_val is not None:
             try:
                 age_int = int(str(age_val).strip())
-                if 1 <= age_int <= 120:
+                if MIN_AGE <= age_int <= MAX_AGE:
                     norm['accused_age'] = age_int
                 else:
-                    return None, "Accused age must be between 1 and 120."
+                    return None, f"Accused age must be between {MIN_AGE} and {MAX_AGE}."
             except (ValueError, TypeError):
-                return None, "Accused age must be a valid number between 1 and 120."
+                return None, f"Accused age must be a valid number between {MIN_AGE} and {MAX_AGE}."
         else:
             norm['accused_age'] = None
 
@@ -375,7 +376,7 @@ def _gang_member_rows(prop, entries):
                 age = int(vals['age'])
             except ValueError:
                 age = None
-            if age is not None and not 1 <= age <= 120:
+            if age is not None and not MIN_AGE <= age <= MAX_AGE:
                 age = None
         mobile = vals['mobile'] if re.fullmatch(r'\d{10}', vals['mobile'] or '') else None
         data = {col: (vals[col] or None) for col in _GANG_COLUMNS.values()

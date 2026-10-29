@@ -329,9 +329,16 @@ class UIConfigView(views.APIView):
     permission_classes = [permissions.AllowAny]
     
     def get(self, request):
+        from django.db import DatabaseError
         from .models import DynamicUIConfig
-        configs = DynamicUIConfig.objects.all()
-        data = {c.key: c.value for c in configs}
+        try:
+            data = {c.key: c.value for c in DynamicUIConfig.objects.all()}
+        except DatabaseError as e:
+            # The app calls this before login (search_path=public). On some
+            # databases dynamic_ui_configs was migrated into a state schema
+            # instead of public; serve the defaults rather than a 500.
+            logger.warning(f"[UIConfigView] Could not read dynamic_ui_configs, serving defaults: {type(e).__name__}")
+            data = {}
         if not data:
             data = {
                 "repeat_offender_summary": {

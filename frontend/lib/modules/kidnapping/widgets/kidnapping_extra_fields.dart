@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import '../../../services/gender_options.dart';
+import '../../../widgets/age_digits_limit.dart';
 
 class KidnappingExtraFields extends StatefulWidget {
   final void Function(String label, TextEditingController ctrl,
@@ -19,8 +23,30 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
     int maxLines = 1,
     TextInputType keyboardType = TextInputType.text,
     void Function(String)? onChanged,
+    bool isAge = false,
   }) {
+    if (isAge) {
+      return AgeDigitsLimit(
+        label: label,
+        builder: (formatters, errorText) => _textField(label, controller,
+            maxLines, keyboardType, onChanged, formatters, errorText),
+      );
+    }
+    return _textField(
+        label, controller, maxLines, keyboardType, onChanged, null, null);
+  }
+
+  Widget _textField(
+    String label,
+    TextEditingController controller,
+    int maxLines,
+    TextInputType keyboardType,
+    void Function(String)? onChanged,
+    List<TextInputFormatter>? formatters,
+    String? errorText,
+  ) {
     return TextFormField(
+      inputFormatters: formatters,
       controller: controller,
       style: const TextStyle(
         fontSize: 12,
@@ -33,7 +59,7 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
       onTap: () {
         widget.onActiveFieldTap?.call(label, controller, 'Kidnapping Details');
       },
-      decoration: _inputDecoration(label),
+      decoration: _inputDecoration(label).copyWith(errorText: errorText),
     );
   }
 
@@ -81,6 +107,17 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
   bool _inCameraRecorded = false;
   final _inCameraDate = TextEditingController();
   final _inCameraTime = TextEditingController();
+
+  /// Gender choices from the database
+  List<String> _genders = GenderOptions.cached;
+
+  @override
+  void initState() {
+    super.initState();
+    GenderOptions.load().then((g) {
+      if (mounted && g.isNotEmpty) setState(() => _genders = g);
+    });
+  }
 
   @override
   void dispose() {
@@ -489,6 +526,7 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                     label: 'Age',
                     controller: _kidnappedAge,
                     keyboardType: TextInputType.number,
+                    isAge: true,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -496,15 +534,16 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                   context: context,
                   first: DropdownButtonFormField<String>(
                     key: ValueKey(
-                      'kidnappedGender_${_kidnappedGender ?? ''}',
+                      'kidnappedGender_${_kidnappedGender ?? ''}_${_genders.length}',
                     ),
-                    initialValue: _kidnappedGender,
+                    initialValue:
+                        GenderOptions.pick(_kidnappedGender, _genders),
                     decoration: _inputDecoration('Gender'),
                     style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                         color: Color(0xFF1E293B)),
-                    items: const ['Male', 'Female', 'Other']
+                    items: _genders
                         .map(
                           (e) => DropdownMenuItem<String>(
                             value: e,
@@ -683,6 +722,7 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                                   label: 'Age',
                                   controller: _custodyAge,
                                   keyboardType: TextInputType.number,
+                                  isAge: true,
                                 ),
                               ),
                               const SizedBox(height: 12),
@@ -690,15 +730,16 @@ class KidnappingExtraFieldsState extends State<KidnappingExtraFields> {
                                 context: context,
                                 first: DropdownButtonFormField<String>(
                                   key: ValueKey(
-                                    'custodyGender_${_custodyGender ?? ''}',
+                                    'custodyGender_${_custodyGender ?? ''}_${_genders.length}',
                                   ),
-                                  initialValue: _custodyGender,
+                                  initialValue: GenderOptions.pick(
+                                      _custodyGender, _genders),
                                   decoration: _inputDecoration('Gender'),
                                   style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w500,
                                       color: Color(0xFF1E293B)),
-                                  items: const ['Male', 'Female', 'Other']
+                                  items: _genders
                                       .map(
                                         (e) => DropdownMenuItem<String>(
                                           value: e,
