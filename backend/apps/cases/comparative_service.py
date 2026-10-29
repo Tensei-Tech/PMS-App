@@ -134,7 +134,12 @@ def classify_case_record(case: CaseRecord) -> Tuple[str, str]:
     """
     # 1. Check direct database Category Links
     try:
-        links = case.category_links.select_related('category__group').all()
+        # Use the links the caller prefetched (with category and group); a
+        # select_related here would ignore them and query once per case.
+        if 'category_links' in getattr(case, '_prefetched_objects_cache', {}):
+            links = case.category_links.all()
+        else:
+            links = case.category_links.select_related('category__group').all()
         for link in links:
             cat = link.category
             if not cat:
