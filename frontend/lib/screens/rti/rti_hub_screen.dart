@@ -544,7 +544,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
     return Container(
       width: 1,
       height: 26,
-      margin: const EdgeInsets.symmetric(horizontal: 6),
+      margin: const EdgeInsets.symmetric(horizontal: 8),
       color: const Color(0xFFE2E8F0),
     );
   }
@@ -623,50 +623,12 @@ class _RTIHubScreenState extends State<RTIHubScreen>
     required VoidCallback onTap,
     String? label,
   }) {
-    final text = TranslationHelper.translate(
-      context,
-      (label != null && label.isNotEmpty) ? label : 'Send Reminder',
-    );
-    return Tooltip(
-      message: text,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(6),
-        child: Container(
-          height: 38,
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          decoration: BoxDecoration(
-            color: AppColors.navyDark,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          alignment: Alignment.center,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.notifications_active_outlined,
-                size: 14,
-                color: Colors.white,
-              ),
-              const SizedBox(width: 5),
-              Text(
-                text,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                  letterSpacing: 0.1,
-                  height: 1.0,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+    return _buildLabeledActionButton(
+      context: context,
+      icon: Icons.notifications_active_outlined,
+      label: 'Remind',
+      color: AppColors.navyDark,
+      onTap: onTap,
     );
   }
 
@@ -817,7 +779,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
               ],
             ),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 8),
 
           // 1. RTI No. Badge (Fixed width 95)
           InkWell(
@@ -866,9 +828,9 @@ class _RTIHubScreenState extends State<RTIHubScreen>
               ),
             ),
           ),
-          const SizedBox(width: 6),
+          _buildDivider(),
 
-          // 2. Type of Information (Fixed width 140)
+          // 2. Type of Information (flex: 3)
           isExpandedMode
               ? Expanded(
                   flex: 3,
@@ -902,10 +864,10 @@ class _RTIHubScreenState extends State<RTIHubScreen>
 
           _buildDivider(),
 
-          // 3. Person / Applicant Name, Age, Mobile, Address (Expanded flex: 5)
+          // 3. Person / Applicant Name, Age, Mobile, Address (flex: 4)
           isExpandedMode
               ? Expanded(
-                  flex: 5,
+                  flex: 4,
                   child: _buildFieldColumn(
                     context: context,
                     label: 'Applicant Details',
@@ -921,7 +883,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                 )
               : _buildFieldColumn(
                   context: context,
-                  width: 260,
+                  width: 220,
                   label: 'Applicant Details',
                   value: (person.isEmpty || person == '-') ? '—' : person,
                   icon: Icons.person_outline_rounded,
@@ -935,34 +897,56 @@ class _RTIHubScreenState extends State<RTIHubScreen>
 
           _buildDivider(),
 
-          // 4. Received Date (Fixed width 110)
-          _buildFieldColumn(
-            context: context,
-            width: 110,
-            label: 'Received Date',
-            value: (receivedDate.isEmpty || receivedDate == '-')
-                ? '—'
-                : receivedDate,
-            icon: Icons.calendar_today_outlined,
-          ),
-
-          _buildDivider(),
-
-          // 5. Due Date (Fixed width 105)
-          _buildFieldColumn(
-            context: context,
-            width: 105,
-            label: 'Due Date',
-            value: (dueDate.isEmpty || dueDate == '-') ? '—' : dueDate,
-            icon: Icons.event_available_outlined,
-          ),
-
-          _buildDivider(),
-
-          // 6. Assigned Officer (Expanded flex: 4)
+          // 4. Received Date (flex: 2)
           isExpandedMode
               ? Expanded(
-                  flex: 4,
+                  flex: 2,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Received Date',
+                    value: (receivedDate.isEmpty || receivedDate == '-')
+                        ? '—'
+                        : receivedDate,
+                    icon: Icons.calendar_today_outlined,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 110,
+                  label: 'Received Date',
+                  value: (receivedDate.isEmpty || receivedDate == '-')
+                      ? '—'
+                      : receivedDate,
+                  icon: Icons.calendar_today_outlined,
+                ),
+
+          _buildDivider(),
+
+          // 5. Due Date (flex: 2)
+          isExpandedMode
+              ? Expanded(
+                  flex: 2,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Due Date',
+                    value: (dueDate.isEmpty || dueDate == '-') ? '—' : dueDate,
+                    icon: Icons.event_available_outlined,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 105,
+                  label: 'Due Date',
+                  value: (dueDate.isEmpty || dueDate == '-') ? '—' : dueDate,
+                  icon: Icons.event_available_outlined,
+                ),
+
+          _buildDivider(),
+
+          // 6. Assigned Officer (flex: 3)
+          isExpandedMode
+              ? Expanded(
+                  flex: 3,
                   child: _buildFieldColumn(
                     context: context,
                     label: 'Assigned Officer',
@@ -980,7 +964,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                 )
               : _buildFieldColumn(
                   context: context,
-                  width: 200,
+                  width: 160,
                   label: 'Assigned Officer',
                   value: (assignedOfficer.isEmpty || assignedOfficer == '-')
                       ? '—'
@@ -996,11 +980,11 @@ class _RTIHubScreenState extends State<RTIHubScreen>
 
           _buildDivider(),
 
-          // 7. Status / Information Given Badge (Fixed width 155)
+          // 7. Status / Information Given Badge (Fixed width 110)
           Container(
             height: 34,
-            width: 155,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            width: 110,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: statusBg,
@@ -1063,7 +1047,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
             color: AppColors.navyDark,
             onTap: () => _openEditModal(rtiId),
           ),
-          const SizedBox(width: 5),
+          const SizedBox(width: 6),
           _buildLabeledActionButton(
             context: context,
             icon: Icons.visibility_outlined,
@@ -1071,7 +1055,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
             color: AppColors.navyDark,
             onTap: () => _openViewModal(rtiId),
           ),
-          const SizedBox(width: 5),
+          const SizedBox(width: 6),
           _buildLabeledActionButton(
             context: context,
             icon: Icons.picture_as_pdf_outlined,
@@ -1084,7 +1068,6 @@ class _RTIHubScreenState extends State<RTIHubScreen>
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
@@ -1199,7 +1182,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
               ],
             ),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 8),
 
           // 1. RTI No. Badge (Fixed width 95)
           InkWell(
@@ -1248,7 +1231,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
               ),
             ),
           ),
-          const SizedBox(width: 6),
+          _buildDivider(),
 
           // 2. Type of Info (Fixed width 140)
           isExpandedMode
@@ -1272,10 +1255,10 @@ class _RTIHubScreenState extends State<RTIHubScreen>
 
           _buildDivider(),
 
-          // 3. Applicant Name (Expanded flex: 5)
+          // 3. Applicant Name (flex: 4)
           isExpandedMode
               ? Expanded(
-                  flex: 5,
+                  flex: 4,
                   child: _buildFieldColumn(
                     context: context,
                     label: 'Applicant Name',
@@ -1287,7 +1270,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                 )
               : _buildFieldColumn(
                   context: context,
-                  width: 260,
+                  width: 200,
                   label: 'Applicant Name',
                   value: (applicantName.isEmpty || applicantName == '-')
                       ? '—'
@@ -1297,35 +1280,57 @@ class _RTIHubScreenState extends State<RTIHubScreen>
 
           _buildDivider(),
 
-          // 4. Received Date (Fixed width 110)
-          _buildFieldColumn(
-            context: context,
-            width: 110,
-            label: 'Received Date',
-            value: (receivedDate.isEmpty || receivedDate == '-')
-                ? '—'
-                : receivedDate,
-            icon: Icons.calendar_today_outlined,
-          ),
+          // 4. Received Date (flex: 2)
+          isExpandedMode
+              ? Expanded(
+                  flex: 2,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Received Date',
+                    value: (receivedDate.isEmpty || receivedDate == '-')
+                        ? '—'
+                        : receivedDate,
+                    icon: Icons.calendar_today_outlined,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 110,
+                  label: 'Received Date',
+                  value: (receivedDate.isEmpty || receivedDate == '-')
+                      ? '—'
+                      : receivedDate,
+                  icon: Icons.calendar_today_outlined,
+                ),
 
           _buildDivider(),
 
-          // 5. Due Date (Fixed width 105)
-          _buildFieldColumn(
-            context: context,
-            width: 105,
-            label: 'Due Date',
-            value: (dueDate.isEmpty || dueDate == '-') ? '—' : dueDate,
-            icon: Icons.event_available_outlined,
-          ),
+          // 5. Due Date (flex: 2)
+          isExpandedMode
+              ? Expanded(
+                  flex: 2,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Due Date',
+                    value: (dueDate.isEmpty || dueDate == '-') ? '—' : dueDate,
+                    icon: Icons.event_available_outlined,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 105,
+                  label: 'Due Date',
+                  value: (dueDate.isEmpty || dueDate == '-') ? '—' : dueDate,
+                  icon: Icons.event_available_outlined,
+                ),
 
           _buildDivider(),
 
-          // 6. Status Badge (Fixed width 155)
+          // 6. Status Badge (Fixed width 110)
           Container(
             height: 34,
-            width: 155,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            width: 110,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: statusBg,
@@ -1380,7 +1385,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
             color: AppColors.navyDark,
             onTap: () => _openEditModal(rtiId),
           ),
-          const SizedBox(width: 5),
+          const SizedBox(width: 6),
           _buildLabeledActionButton(
             context: context,
             icon: Icons.visibility_outlined,
@@ -1388,7 +1393,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
             color: AppColors.navyDark,
             onTap: () => _openViewModal(rtiId),
           ),
-          const SizedBox(width: 5),
+          const SizedBox(width: 6),
           _buildLabeledActionButton(
             context: context,
             icon: Icons.picture_as_pdf_outlined,
@@ -1401,7 +1406,6 @@ class _RTIHubScreenState extends State<RTIHubScreen>
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
