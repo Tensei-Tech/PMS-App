@@ -634,18 +634,10 @@ class _RTIHubScreenState extends State<RTIHubScreen>
         borderRadius: BorderRadius.circular(6),
         child: Container(
           height: 38,
-          width: 135,
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           decoration: BoxDecoration(
-            color: AppColors.navyMid,
+            color: AppColors.navyDark,
             borderRadius: BorderRadius.circular(6),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.navyMid.withValues(alpha: 0.25),
-                blurRadius: 4,
-                offset: const Offset(0, 1.5),
-              ),
-            ],
           ),
           alignment: Alignment.center,
           child: Row(
@@ -654,23 +646,21 @@ class _RTIHubScreenState extends State<RTIHubScreen>
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Icon(
-                Icons.notifications_active_rounded,
+                Icons.notifications_active_outlined,
                 size: 14,
                 color: Colors.white,
               ),
               const SizedBox(width: 5),
-              Flexible(
-                child: Text(
-                  text,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.poppins(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                    letterSpacing: 0.2,
-                    height: 1.0,
-                  ),
+              Text(
+                text,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                  letterSpacing: 0.1,
+                  height: 1.0,
                 ),
               ),
             ],
@@ -784,19 +774,19 @@ class _RTIHubScreenState extends State<RTIHubScreen>
     final remindLabel =
         rowActionLabels['remind']?.toString() ?? 'Send Reminder';
 
-    Widget buildRowContent(bool isExpandedMode) {
+    Widget buildDetailsRow(bool isExpandedMode) {
       return Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // 0. Sr. No. Badge (Fixed width 50)
+          // 0. Sr. No. Badge (Fixed width 46) - Neutral slate styling
           Container(
             height: 38,
-            width: 50,
+            width: 46,
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
             decoration: BoxDecoration(
-              color: statusBg,
+              color: const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: statusBorder),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
             alignment: Alignment.center,
             child: Column(
@@ -808,7 +798,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                   style: GoogleFonts.poppins(
                     fontSize: 9,
                     fontWeight: FontWeight.w600,
-                    color: statusColor.withValues(alpha: 0.85),
+                    color: const Color(0xFF64748B),
                     height: 1.0,
                   ),
                 ),
@@ -820,7 +810,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: statusColor,
+                    color: AppColors.navyDark,
                     height: 1.0,
                   ),
                 ),
@@ -841,7 +831,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                 width: 95,
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
+                  color: const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(color: const Color(0xFFCBD5E1)),
                 ),
@@ -867,8 +857,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.navyMid,
-                        decoration: TextDecoration.underline,
+                        color: AppColors.navyDark,
                         height: 1.0,
                       ),
                     ),
@@ -879,56 +868,37 @@ class _RTIHubScreenState extends State<RTIHubScreen>
           ),
           const SizedBox(width: 6),
 
-          // 2. Type of Information Badge (Fixed width 150)
-          InkWell(
-            onTap: (infoType.isEmpty || infoType == '-')
-                ? null
-                : () => _showChartCellInfo(
-                    headers['info_type']?.toString() ?? 'Type of Information',
-                    infoType),
-            borderRadius: BorderRadius.circular(6),
-            child: Container(
-              height: 38,
-              width: 150,
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFFBEB),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: const Color(0xFFFDE68A)),
-              ),
-              alignment: Alignment.center,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Type of Info',
-                    style: GoogleFonts.poppins(
-                      fontSize: 8.5,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF92400E),
-                      height: 1.0,
-                    ),
+          // 2. Type of Information (Fixed width 140)
+          isExpandedMode
+              ? Expanded(
+                  flex: 3,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Type of Info',
+                    value:
+                        (infoType.isEmpty || infoType == '-') ? '—' : infoType,
+                    icon: Icons.info_outline_rounded,
+                    onTap: (infoType.isEmpty || infoType == '-')
+                        ? null
+                        : () => _showChartCellInfo(
+                            headers['info_type']?.toString() ??
+                                'Type of Information',
+                            infoType),
                   ),
-                  const SizedBox(height: 2),
-                  Tooltip(
-                    message: infoType.isEmpty ? '—' : infoType,
-                    child: Text(
-                      infoType.isEmpty ? '—' : infoType,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF0F172A),
-                        height: 1.0,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 140,
+                  label: 'Type of Info',
+                  value: (infoType.isEmpty || infoType == '-') ? '—' : infoType,
+                  icon: Icons.info_outline_rounded,
+                  onTap: (infoType.isEmpty || infoType == '-')
+                      ? null
+                      : () => _showChartCellInfo(
+                          headers['info_type']?.toString() ??
+                              'Type of Information',
+                          infoType),
+                ),
 
           _buildDivider(),
 
@@ -985,8 +955,6 @@ class _RTIHubScreenState extends State<RTIHubScreen>
             label: 'Due Date',
             value: (dueDate.isEmpty || dueDate == '-') ? '—' : dueDate,
             icon: Icons.event_available_outlined,
-            iconColor: const Color(0xFF0EA5E9),
-            valueColor: const Color(0xFF0284C7),
           ),
 
           _buildDivider(),
@@ -1028,51 +996,58 @@ class _RTIHubScreenState extends State<RTIHubScreen>
 
           _buildDivider(),
 
-          // 7. Status / Information Given Badge (Fixed width 165 for perfect date fit)
+          // 7. Status / Information Given Badge (Fixed width 155)
           Container(
-            height: 38,
-            width: 165,
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            height: 34,
+            width: 155,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: statusBg,
               borderRadius: BorderRadius.circular(6),
               border: Border.all(color: statusBorder),
             ),
-            child: Column(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  'Status',
-                  style: GoogleFonts.poppins(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w600,
-                    color: statusColor.withValues(alpha: 0.85),
-                    height: 1.0,
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    shape: BoxShape.circle,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Tooltip(
-                  message: statusText,
-                  child: Text(
-                    TranslationHelper.translate(context, statusText),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: statusColor,
-                      height: 1.0,
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Tooltip(
+                    message: statusText,
+                    child: Text(
+                      TranslationHelper.translate(context, statusText),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: statusColor,
+                        height: 1.0,
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 8),
+        ],
+      );
+    }
 
-          // 8. Actions: Send Reminder (full button, never cut off), Edit, View, PDF
+    Widget buildActionButtons() {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
           if (remindLabel.isNotEmpty) ...[
             _buildSendReminderButton(
               context: context,
@@ -1085,7 +1060,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
             context: context,
             icon: Icons.edit_outlined,
             label: editLabel,
-            color: AppColors.infoBlue,
+            color: AppColors.navyDark,
             onTap: () => _openEditModal(rtiId),
           ),
           const SizedBox(width: 5),
@@ -1093,7 +1068,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
             context: context,
             icon: Icons.visibility_outlined,
             label: viewLabel,
-            color: AppColors.goldPrimary,
+            color: AppColors.navyDark,
             onTap: () => _openViewModal(rtiId),
           ),
           const SizedBox(width: 5),
@@ -1101,7 +1076,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
             context: context,
             icon: Icons.picture_as_pdf_outlined,
             label: pdfLabel,
-            color: AppColors.dangerRed,
+            color: AppColors.navyDark,
             onTap: () => _downloadPdf(rtiId, srNo),
           ),
         ],
@@ -1125,24 +1100,33 @@ class _RTIHubScreenState extends State<RTIHubScreen>
           ),
         ],
       ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isWide = constraints.maxWidth >= 1400;
-          if (isWide) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              child: buildRowContent(true),
-            );
-          }
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              child: buildRowContent(false),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 1. Scrollable/adaptive inner card details
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth >= 1050;
+                if (isWide) {
+                  return buildDetailsRow(true);
+                }
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: buildDetailsRow(false),
+                );
+              },
             ),
-          );
-        },
+          ),
+
+          // Divider between scrollable details and fixed actions
+          _buildDivider(),
+
+          // 2. Fixed action buttons
+          buildActionButtons(),
+        ],
       ),
     );
   }
@@ -1172,19 +1156,19 @@ class _RTIHubScreenState extends State<RTIHubScreen>
     final Color statusBorder =
         isDisposal ? const Color(0xFFA5D6A7) : const Color(0xFFFFCDD2);
 
-    Widget buildRowContent(bool isExpandedMode) {
+    Widget buildDetailsRow(bool isExpandedMode) {
       return Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // 0. Sr. No. Badge (Fixed width 50)
+          // 0. Sr. No. Badge (Fixed width 46) - Neutral slate styling
           Container(
             height: 38,
-            width: 50,
+            width: 46,
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
             decoration: BoxDecoration(
-              color: statusBg,
+              color: const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: statusBorder),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
             alignment: Alignment.center,
             child: Column(
@@ -1196,7 +1180,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                   style: GoogleFonts.poppins(
                     fontSize: 9,
                     fontWeight: FontWeight.w600,
-                    color: statusColor.withValues(alpha: 0.85),
+                    color: const Color(0xFF64748B),
                     height: 1.0,
                   ),
                 ),
@@ -1208,7 +1192,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: statusColor,
+                    color: AppColors.navyDark,
                     height: 1.0,
                   ),
                 ),
@@ -1229,7 +1213,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                 width: 95,
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
+                  color: const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(color: const Color(0xFFCBD5E1)),
                 ),
@@ -1255,8 +1239,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.navyMid,
-                        decoration: TextDecoration.underline,
+                        color: AppColors.navyDark,
                         height: 1.0,
                       ),
                     ),
@@ -1267,48 +1250,25 @@ class _RTIHubScreenState extends State<RTIHubScreen>
           ),
           const SizedBox(width: 6),
 
-          // 2. Type of Info Badge (Fixed width 150)
-          Container(
-            height: 38,
-            width: 150,
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFFBEB),
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: const Color(0xFFFDE68A)),
-            ),
-            alignment: Alignment.center,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Type of Info',
-                  style: GoogleFonts.poppins(
-                    fontSize: 8.5,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF92400E),
-                    height: 1.0,
+          // 2. Type of Info (Fixed width 140)
+          isExpandedMode
+              ? Expanded(
+                  flex: 3,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Type of Info',
+                    value:
+                        (infoType.isEmpty || infoType == '-') ? '—' : infoType,
+                    icon: Icons.info_outline_rounded,
                   ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 140,
+                  label: 'Type of Info',
+                  value: (infoType.isEmpty || infoType == '-') ? '—' : infoType,
+                  icon: Icons.info_outline_rounded,
                 ),
-                const SizedBox(height: 2),
-                Tooltip(
-                  message: infoType.isEmpty ? '—' : infoType,
-                  child: Text(
-                    infoType.isEmpty ? '—' : infoType,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF0F172A),
-                      height: 1.0,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
 
           _buildDivider(),
 
@@ -1357,62 +1317,67 @@ class _RTIHubScreenState extends State<RTIHubScreen>
             label: 'Due Date',
             value: (dueDate.isEmpty || dueDate == '-') ? '—' : dueDate,
             icon: Icons.event_available_outlined,
-            iconColor: const Color(0xFF0EA5E9),
-            valueColor: const Color(0xFF0284C7),
           ),
 
           _buildDivider(),
 
-          // 6. Status Badge (Fixed width 165)
+          // 6. Status Badge (Fixed width 155)
           Container(
-            height: 38,
-            width: 165,
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            height: 34,
+            width: 155,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: statusBg,
               borderRadius: BorderRadius.circular(6),
               border: Border.all(color: statusBorder),
             ),
-            child: Column(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  'Status',
-                  style: GoogleFonts.poppins(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w600,
-                    color: statusColor.withValues(alpha: 0.85),
-                    height: 1.0,
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    shape: BoxShape.circle,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Tooltip(
-                  message: status,
-                  child: Text(
-                    TranslationHelper.translate(context, status),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: statusColor,
-                      height: 1.0,
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Tooltip(
+                    message: status,
+                    child: Text(
+                      TranslationHelper.translate(context, status),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: statusColor,
+                        height: 1.0,
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 8),
+        ],
+      );
+    }
 
-          // 7. Actions: Edit, View, PDF
+    Widget buildActionButtons() {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
           _buildLabeledActionButton(
             context: context,
             icon: Icons.edit_outlined,
             label: editLabel,
-            color: AppColors.infoBlue,
+            color: AppColors.navyDark,
             onTap: () => _openEditModal(rtiId),
           ),
           const SizedBox(width: 5),
@@ -1420,7 +1385,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
             context: context,
             icon: Icons.visibility_outlined,
             label: viewLabel,
-            color: AppColors.goldPrimary,
+            color: AppColors.navyDark,
             onTap: () => _openViewModal(rtiId),
           ),
           const SizedBox(width: 5),
@@ -1428,7 +1393,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
             context: context,
             icon: Icons.picture_as_pdf_outlined,
             label: pdfLabel,
-            color: AppColors.dangerRed,
+            color: AppColors.navyDark,
             onTap: () => _downloadPdf(rtiId, serialDisplay),
           ),
         ],
@@ -1452,24 +1417,33 @@ class _RTIHubScreenState extends State<RTIHubScreen>
           ),
         ],
       ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isWide = constraints.maxWidth >= 1300;
-          if (isWide) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              child: buildRowContent(true),
-            );
-          }
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              child: buildRowContent(false),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 1. Scrollable/adaptive inner card details
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth >= 860;
+                if (isWide) {
+                  return buildDetailsRow(true);
+                }
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: buildDetailsRow(false),
+                );
+              },
             ),
-          );
-        },
+          ),
+
+          // Divider between scrollable details and fixed actions
+          _buildDivider(),
+
+          // 2. Fixed 3 Action Buttons (Edit, View, PDF)
+          buildActionButtons(),
+        ],
       ),
     );
   }

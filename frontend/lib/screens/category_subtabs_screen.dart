@@ -102,7 +102,7 @@ class _CategorySubtabsScreenState extends State<CategorySubtabsScreen> {
           crossAxisCount: cols,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
-          mainAxisExtent: 74,
+          mainAxisExtent: width < 480 ? 84 : 74,
         ),
         itemBuilder: (context, i) {
           final (name, icon) = widget.subtabs[i];

@@ -354,3 +354,95 @@ class AppTheme {
     );
   }
 }
+
+// ── Typography System ─────────────────────────────────────────────────────────
+class AppTypography {
+  /// Top page titles and login hero text (20–22px, bold)
+  static TextStyle pageTitle(BuildContext context, {Color? color}) {
+    final scale = MediaQuery.textScalerOf(context).scale(20.0);
+    return GoogleFonts.poppins(
+      fontSize: scale,
+      fontWeight: FontWeight.w700,
+      color: color ?? AppColors.navyDark,
+      letterSpacing: -0.2,
+    );
+  }
+
+  /// Section headers and dialog titles (16–17px, semi-bold)
+  static TextStyle sectionTitle(BuildContext context, {Color? color}) {
+    final scale = MediaQuery.textScalerOf(context).scale(16.0);
+    return GoogleFonts.poppins(
+      fontSize: scale,
+      fontWeight: FontWeight.w600,
+      color: color ?? AppColors.navyDark,
+      letterSpacing: 0.1,
+    );
+  }
+
+  /// Card titles, list headers, and modal labels (14px, semi-bold)
+  static TextStyle cardTitle(BuildContext context, {Color? color}) {
+    final scale = MediaQuery.textScalerOf(context).scale(14.0);
+    return GoogleFonts.poppins(
+      fontSize: scale,
+      fontWeight: FontWeight.w600,
+      color: color ?? AppColors.navyDark,
+    );
+  }
+
+  /// Primary body text and table cell content (13px, regular)
+  static TextStyle body(BuildContext context,
+      {Color? color, FontWeight? fontWeight}) {
+    final scale = MediaQuery.textScalerOf(context).scale(13.0);
+    return GoogleFonts.poppins(
+      fontSize: scale,
+      fontWeight: fontWeight ?? FontWeight.w400,
+      color: color ?? AppColors.lightText,
+      height: 1.35,
+    );
+  }
+
+  /// Small body text, subtitles, and descriptions (12px, regular)
+  static TextStyle bodySmall(BuildContext context,
+      {Color? color, FontWeight? fontWeight}) {
+    final scale = MediaQuery.textScalerOf(context).scale(12.0);
+    return GoogleFonts.poppins(
+      fontSize: scale,
+      fontWeight: fontWeight ?? FontWeight.w400,
+      color: color ?? AppColors.lightSubText,
+      height: 1.3,
+    );
+  }
+
+  /// Captions, metadata, and helper text (11px, regular/medium)
+  static TextStyle caption(BuildContext context,
+      {Color? color, FontWeight? fontWeight}) {
+    final scale = MediaQuery.textScalerOf(context).scale(11.0);
+    return GoogleFonts.poppins(
+      fontSize: scale,
+      fontWeight: fontWeight ?? FontWeight.w400,
+      color: color ?? AppColors.lightSubText,
+      height: 1.25,
+    );
+  }
+
+  /// Grid tile labels (10px on mobile, grows gracefully up to 3 lines)
+  static TextStyle gridLabel(BuildContext context,
+      {Color? color, FontWeight? fontWeight}) {
+    return GoogleFonts.poppins(
+      fontSize: 10.0,
+      fontWeight: fontWeight ?? FontWeight.w500,
+      color: color ?? AppColors.lightText,
+      height: 1.25,
+    );
+  }
+
+  /// Tab bar items (13px, bold if selected, medium if not)
+  static TextStyle tabLabel(BuildContext context,
+      {required bool isSelected, Color? color}) {
+    return GoogleFonts.poppins(
+      fontSize: 13.0,
+      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+      color: color,
+    );
+  }
+}

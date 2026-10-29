@@ -757,6 +757,8 @@ class _PendingHubScreenState extends State<PendingHubScreen>
             color: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: TabBar(
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
               controller: _tabController,
               labelColor: AppColors.navyMid,
               unselectedLabelColor: AppColors.lightSubText,

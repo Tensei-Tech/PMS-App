@@ -605,6 +605,8 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
             color: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: TabBar(
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
               controller: _tabController,
               labelColor: AppColors.navyMid,
               unselectedLabelColor: AppColors.lightSubText,

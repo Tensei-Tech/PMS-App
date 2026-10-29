@@ -2246,7 +2246,7 @@ class _CategoryGridView extends StatelessWidget {
             crossAxisCount: cols,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            mainAxisExtent: 74,
+            mainAxisExtent: availableWidth < 480 ? 84 : 74,
           ),
           itemBuilder: (context, index) {
             final category = categories[index];
@@ -2364,13 +2364,14 @@ class CategoryGridCardState extends State<CategoryGridCard> {
                       children: [
                         Text(
                           widget.category,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                          maxLines: 3,
+                          softWrap: true,
+                          overflow: TextOverflow.visible,
                           style: GoogleFonts.poppins(
-                            fontSize: 12.5,
+                            fontSize: 12.0,
                             fontWeight: FontWeight.w600,
                             color: AppColors.navyDark,
-                            height: 1.15,
+                            height: 1.18,
                           ),
                         ),
                         const SizedBox(height: 2),

@@ -1275,6 +1275,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         child: DropdownButton<int>(
           value: _reportMonth,
           isDense: true,
+          menuMaxHeight: 260,
+          borderRadius: BorderRadius.circular(10),
+          alignment: AlignmentDirectional.centerStart,
           icon: const Icon(Icons.keyboard_arrow_down_rounded,
               size: 18, color: AppColors.navyMid),
           items: List.generate(
@@ -1306,6 +1309,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         child: DropdownButton<int>(
           value: _reportYear,
           isDense: true,
+          menuMaxHeight: 260,
+          borderRadius: BorderRadius.circular(10),
+          alignment: AlignmentDirectional.centerStart,
           icon: const Icon(Icons.keyboard_arrow_down_rounded,
               size: 18, color: AppColors.navyMid),
           items: List.generate(

@@ -271,6 +271,7 @@ class _NcHubScreenState extends State<NcHubScreen>
             child: TabBar(
               controller: _tabController,
               isScrollable: true,
+              tabAlignment: TabAlignment.start,
               indicatorColor: AppColors.navyMid,
               labelColor: AppColors.navyDark,
               unselectedLabelColor: AppColors.lightSubText,
