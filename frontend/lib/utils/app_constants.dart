@@ -74,8 +74,16 @@ class Classification {
   final String name;
   final String iconName;
   final String moduleKey;
+  final dynamic categoryId;
+  final String? categoryCode;
 
-  const Classification(this.name, this.iconName, this.moduleKey);
+  const Classification(
+    this.name,
+    this.iconName,
+    this.moduleKey, {
+    this.categoryId,
+    this.categoryCode,
+  });
 
   // ── Part 1: Crime Statistics ──────────────────────────────────────────────
   static const List<Classification> statsGroup = [
@@ -91,8 +99,13 @@ class Classification {
 
   // ── Part 2: Case Categories ───────────────────────────────────────────────
   static const List<Classification> casesGroup = [
+    // Open "1 to 5" categories as sub-tabs (CategorySubtabsScreen.groups)
+    Classification('Murder/Attempt to Murder', 'gavel', 'murder'),
+    Classification('Dacoity/Robbery', 'gavel', 'dacoity'),
+    Classification('Cheating/CBT', 'gavel', 'cheating'),
+    // Opens the "1 to 5" Chain Snatching tab directly
+    Classification('Chain Snatching', 'gavel', 'chain_snatching'),
     Classification('A.D', 'gavel', 'ad'),
-    Classification('Suicide', 'heart_broken', 'suicide'),
     Classification('Hurt', 'local_hospital', 'hurt'),
     Classification('Theft', 'no_encryption', 'theft'),
     Classification('Sand Theft', 'terrain', 'sand_theft'),
@@ -120,12 +133,10 @@ class Classification {
     Classification('CRPC 1563 /\nBNSS 1753', 'balance', 'bnss'),
     Classification('Passport/\nPVR/Lic', 'badge', 'passport'),
     Classification('NDPS', 'medication', 'ndps'),
-    Classification('ST Drugs', 'medication', 'st_drugs'),
     Classification('Gowansh', 'home_work', 'gowans'),
     Classification('IT Act', 'computer', 'it_act'),
     Classification('MCOCA', 'policy', 'mcoca'),
     Classification('UAPA', 'account_balance', 'uapa'),
-    Classification('MPDA', 'admin_panel', 'mpda'),
     Classification('COIN', 'monetization_on', 'coin'),
   ];
 
@@ -141,7 +152,6 @@ class Classification {
     Classification('I to V', 'description', 'form_1_5'),
     Classification('VI', 'article', 'form_6'),
     Classification('A.D', 'gavel', 'ad'),
-    Classification('Suicide', 'heart_broken', 'suicide'),
     Classification('Hurt', 'local_hospital', 'hurt'),
     Classification('Theft', 'no_encryption', 'theft'),
     Classification('Sand Theft', 'terrain', 'sand_theft'),
@@ -168,12 +178,10 @@ class Classification {
     Classification('CRPC 1563 / BNSS 1753', 'balance', 'bnss'),
     Classification('Passport /PVR / License', 'badge', 'passport'),
     Classification('NDPS', 'medication', 'ndps'),
-    Classification('ST Drugs', 'medication', 'st_drugs'),
     Classification('Gowansh', 'home_work', 'gowans'),
     Classification('IT Act', 'computer', 'it_act'),
     Classification('MCOCA', 'policy', 'mcoca'),
     Classification('UAPA', 'account_balance', 'uapa'),
-    Classification('MPDA', 'admin_panel', 'mpda'),
     Classification('COIN', 'monetization_on', 'coin'),
   ];
 }
@@ -298,15 +306,12 @@ class ServiceData {
   /// Tools shown directly on the dashboard grid.
   static const List<ServiceData> dashboardTools = [
     ServiceData('Licence', Icons.assignment_ind_rounded, 0xFF9B59B6),
-    ServiceData('CCTNS', Icons.security_rounded, 0xFFF39C12),
-    ServiceData('Dial 112', Icons.call_rounded, 0xFFE74C3C),
     ServiceData('Tadipar', Icons.gavel_rounded, 0xFF1ABC9C),
-    ServiceData('History Sheeter', Icons.assignment_rounded, 0xFFE74C3C),
     ServiceData('Repeat Offender', Icons.warning_rounded, 0xFFF39C12),
     ServiceData('ITSSO', Icons.description_rounded, 0xFFE91E63),
     ServiceData('NAFIS', Icons.fingerprint_rounded, 0xFF673AB7),
     ServiceData('DAR', Icons.folder_rounded, 0xFF607D8B),
-    ServiceData('IRDA', Icons.analytics_rounded, 0xFF34495E),
+    ServiceData('IRAD', Icons.analytics_rounded, 0xFF34495E),
     ServiceData('E-Learning', Icons.school_rounded, 0xFF7F8C8D),
   ];
 }
@@ -328,8 +333,27 @@ class PoliceDesignationEntry {
 class PoliceDesignations {
   PoliceDesignations._();
 
+  static List<String>? _dynamicIoDesignations;
+  static List<String>? _dynamicFormIoAndReg;
+
+  /// Update active designations directly from backend API master (`public.designations`)
+  static void updateFromBackend(List<Map<String, dynamic>> designations) {
+    if (designations.isEmpty) return;
+    final codes = designations
+        .map((d) => (d['code'] ?? d['abbreviation'] ?? '').toString().trim())
+        .where((c) => c.isNotEmpty)
+        .toList();
+    if (codes.isNotEmpty) {
+      _dynamicFormIoAndReg = codes;
+      _dynamicIoDesignations = codes;
+    }
+  }
+
   /// Canonical IO Designations (from HC up to Addl. SP / Addl. CP).
-  static const List<String> ioDesignations = [
+  static List<String> get ioDesignations =>
+      _dynamicIoDesignations ?? _fallbackIoDesignations;
+
+  static const List<String> _fallbackIoDesignations = [
     'HC',
     'ASI',
     'SI',
@@ -348,7 +372,10 @@ class PoliceDesignations {
   ];
 
   /// Form IO / Reg dropdowns (common form, NC, missing).
-  static const List<String> formIoAndReg = [
+  static List<String> get formIoAndReg =>
+      _dynamicFormIoAndReg ?? _fallbackFormIoAndReg;
+
+  static const List<String> _fallbackFormIoAndReg = [
     'HC',
     'PN',
     'PC',

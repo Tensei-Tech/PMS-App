@@ -7,7 +7,7 @@ import 'filtered_pending_screen.dart';
 import '../services/backend_case_service.dart';
 import '../modules/core/models/base_record.dart';
 import '../utils/pending_io_wise_logic.dart';
-import '../utils/pending_table_firestore_mapper.dart';
+import '../utils/category_icon_helper.dart';
 import '../widgets/read_only_module_record_hub_card.dart';
 
 class PendingHubScreen extends StatefulWidget {
@@ -27,34 +27,40 @@ class _PendingHubScreenState extends State<PendingHubScreen>
   late TabController _tabController;
   final BackendCaseService _backend = BackendCaseService();
 
+  List<Map<String, dynamic>>? _crimeWiseData;
   List<Map<String, dynamic>>? _timeWiseData;
   List<Map<String, dynamic>>? _ioWiseData;
-  Map<String, List<Map<String, String>>>? _caseWiseData;
 
+  bool _isLoadingCrime = false;
   bool _isLoadingTime = false;
   bool _isLoadingIO = false;
-  bool _isLoadingCase = false;
+  String? _errorCrime;
   String? _errorTime;
   String? _errorIO;
-  String? _errorCase;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(_handleTabChange);
-    _loadCaseWise();
+    _loadCrimeWise();
+    _loadTimeWise();
+    _loadIOWise();
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_handleTabChange);
     _tabController.dispose();
     super.dispose();
   }
 
   void _handleTabChange() {
-    if (_tabController.index == 0 && _caseWiseData == null && !_isLoadingCase) {
-      _loadCaseWise();
+    if (_tabController.indexIsChanging) return;
+    if (_tabController.index == 0 &&
+        _crimeWiseData == null &&
+        !_isLoadingCrime) {
+      _loadCrimeWise();
     } else if (_tabController.index == 1 &&
         _timeWiseData == null &&
         !_isLoadingTime) {
@@ -66,174 +72,313 @@ class _PendingHubScreenState extends State<PendingHubScreen>
     }
   }
 
-  Future<void> _loadCaseWise() async {
-    setState(() {
-      _isLoadingCase = true;
-      _errorCase = null;
-    });
+  Future<void> _loadCrimeWise() async {
+    if (_crimeWiseData == null) {
+      setState(() {
+        _isLoadingCrime = true;
+        _errorCrime = null;
+      });
+    }
 
-    final dataList = await _backend.fetchPendingCases();
+    try {
+      final dataList = await _backend.fetchPendingCases(pageSize: 1000);
 
-    if (mounted) {
-      if (dataList != null) {
-        final records = dataList.map((m) => ModuleRecord.fromMap(m)).toList();
-        final mappedRows =
-            pendingModuleRecordsToTableRows(records, DateTime.now());
+      if (mounted) {
+        if (dataList != null) {
+          final grouped = <String, Map<String, dynamic>>{};
+          for (final m in dataList) {
+            final r = ModuleRecord.fromMap(m);
+            final rawKey = r.subCategory?.trim().isNotEmpty == true
+                ? r.subCategory!.trim()
+                : (r.firestoreCategoryDisplayName.trim().isNotEmpty
+                    ? r.firestoreCategoryDisplayName.trim()
+                    : (r.moduleKey.trim().isNotEmpty
+                        ? r.moduleKey.trim()
+                        : 'Other'));
 
-        final grouped = <String, List<Map<String, String>>>{};
-        for (int i = 0; i < mappedRows.length; i++) {
-          final r = mappedRows[i];
-          final head = r['head']?.trim().isNotEmpty == true
-              ? r['head']!.trim()
-              : 'Other';
-          grouped.putIfAbsent(head, () => []).add(r);
+            if (!grouped.containsKey(rawKey)) {
+              grouped[rawKey] = {
+                'crime_type': rawKey,
+                'crime_type_name': rawKey,
+                'count': 0,
+              };
+            }
+            grouped[rawKey]!['count'] = (grouped[rawKey]!['count'] as int) + 1;
+          }
+
+          final results = grouped.values.toList()
+            ..sort((a, b) => (b['count'] as int).compareTo(a['count'] as int));
+
+          setState(() {
+            _isLoadingCrime = false;
+            _crimeWiseData = results;
+          });
+        } else {
+          setState(() {
+            _isLoadingCrime = false;
+            if (_crimeWiseData == null) {
+              _errorCrime = "Failed to load crime-wise pending cases.";
+            }
+          });
         }
-
+      }
+    } catch (e) {
+      if (mounted) {
         setState(() {
-          _isLoadingCase = false;
-          _caseWiseData = grouped;
-        });
-      } else {
-        setState(() {
-          _isLoadingCase = false;
-          _errorCase = "Failed to load pending case data from database.";
+          _isLoadingCrime = false;
+          _errorCrime = e.toString();
         });
       }
     }
   }
 
   Future<void> _loadTimeWise() async {
-    setState(() {
-      _isLoadingTime = true;
-      _errorTime = null;
-    });
-
-    final data = await _backend.fetchPendingTimeWise();
-
-    if (mounted) {
+    if (_timeWiseData == null) {
       setState(() {
-        _isLoadingTime = false;
-        if (data != null) {
-          _timeWiseData = data;
-        } else {
-          _errorTime = "Failed to load time-wise pending data from database.";
-        }
+        _isLoadingTime = true;
+        _errorTime = null;
       });
+    }
+
+    try {
+      final data = await _backend.fetchPendingTimeWise();
+
+      if (mounted) {
+        setState(() {
+          _isLoadingTime = false;
+          if (data != null) {
+            _timeWiseData = data;
+          } else if (_timeWiseData == null) {
+            _errorTime = "Failed to load time-wise pending data.";
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingTime = false;
+          _errorTime = e.toString();
+        });
+      }
     }
   }
 
   Future<void> _loadIOWise() async {
-    setState(() {
-      _isLoadingIO = true;
-      _errorIO = null;
-    });
-
-    final data = await _backend.fetchPendingIOWise();
-
-    if (mounted) {
+    if (_ioWiseData == null) {
       setState(() {
-        _isLoadingIO = false;
-        if (data != null) {
-          _ioWiseData = data;
-        } else {
-          _errorIO = "Failed to load IO-wise pending data from database.";
-        }
+        _isLoadingIO = true;
+        _errorIO = null;
       });
+    }
+
+    try {
+      final data = await _backend.fetchPendingIOWise();
+
+      if (mounted) {
+        setState(() {
+          _isLoadingIO = false;
+          if (data != null) {
+            _ioWiseData = data;
+          } else if (_ioWiseData == null) {
+            _errorIO = "Failed to load IO-wise pending data.";
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingIO = false;
+          _errorIO = e.toString();
+        });
+      }
     }
   }
 
+  Widget _buildEmptyState({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Future<void> Function() onRefresh,
+  }) {
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      color: AppColors.navyMid,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(height: MediaQuery.of(context).size.height * 0.15),
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.navyMid.withValues(alpha: 0.06),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 44,
+                    color: AppColors.navyMid.withValues(alpha: 0.5),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.navyDark,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12.5,
+                    color: AppColors.lightSubText,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCaseWiseTab() {
-    if (_isLoadingCase) {
+    if (_isLoadingCrime) {
       return const Center(
         child: CircularProgressIndicator(color: AppColors.navyMid),
       );
     }
-    if (_errorCase != null) {
+    if (_errorCrime != null) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(_errorCase!, style: GoogleFonts.poppins(color: Colors.red)),
-            const SizedBox(height: 12),
-            ElevatedButton.icon(
-              onPressed: _loadCaseWise,
-              icon: const Icon(Icons.refresh_rounded, size: 16),
-              label: const Text('Retry'),
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.navyMid),
-            ),
-          ],
+        child: Text(
+          _errorCrime!,
+          style: GoogleFonts.poppins(color: AppColors.dangerRed),
         ),
       );
     }
-    if (_caseWiseData == null || _caseWiseData!.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.check_circle_outline, size: 48, color: Colors.grey[400]),
-            const SizedBox(height: 12),
-            Text(
-              "No pending cases found",
-              style: GoogleFonts.poppins(
-                color: Colors.grey[600],
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
+    if (_crimeWiseData == null || _crimeWiseData!.isEmpty) {
+      return _buildEmptyState(
+        title: 'No Pending Cases',
+        subtitle: 'Pending cases will appear here once registered',
+        icon: Icons.hourglass_empty_rounded,
+        onRefresh: _loadCrimeWise,
       );
     }
 
-    final keys = _caseWiseData!.keys.toList()..sort();
+    return RefreshIndicator(
+      onRefresh: _loadCrimeWise,
+      color: AppColors.navyMid,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: _crimeWiseData!.length,
+        itemBuilder: (context, index) {
+          final item = _crimeWiseData![index];
+          final typeKey = item['crime_type']?.toString() ?? '';
+          final typeName = item['crime_type_name']?.toString() ??
+              (typeKey.isNotEmpty ? typeKey : 'Other');
+          final count = (item['count'] as num?)?.toInt() ?? 0;
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: keys.length,
-      itemBuilder: (context, index) {
-        final head = keys[index];
-        final cases = _caseWiseData![head]!;
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          elevation: 1,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: const BorderSide(color: AppColors.lightBorder),
-          ),
-          child: ListTile(
-            onTap: () {
-              Navigator.push(
-                context,
-                AppTheme.fadeSlideRoute(
-                  page: PendingSummaryScreen(
-                    liveRows: cases,
-                    stationName: widget.stationName,
-                    title: 'Pending Cases — $head',
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(14),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    AppTheme.fadeSlideRoute(
+                      page: FilteredPendingScreen(
+                        title: 'Case Wise - $typeName',
+                        crimeType: typeKey,
+                      ),
+                    ),
+                  );
+                },
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color:
+                              const Color(0xFFE65100).withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: CategoryIconHelper.buildWidget(
+                          typeName,
+                          color: const Color(0xFFE65100),
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          typeName,
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14.5,
+                            color: AppColors.navyDark,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 5),
+                        decoration: BoxDecoration(
+                          color:
+                              const Color(0xFFE65100).withValues(alpha: 0.06),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color:
+                                const Color(0xFFE65100).withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: Text(
+                          '$count Cases',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                            color: const Color(0xFFE65100),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppColors.lightSubText,
+                        size: 22,
+                      ),
+                    ],
                   ),
                 ),
-              );
-            },
-            title: Text(
-              head,
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-            ),
-            trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.navyMid.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                '${cases.length} Cases',
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.navyMid,
-                ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
@@ -245,92 +390,143 @@ class _PendingHubScreenState extends State<PendingHubScreen>
     }
     if (_errorTime != null) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(_errorTime!, style: GoogleFonts.poppins(color: Colors.red)),
-            const SizedBox(height: 12),
-            ElevatedButton.icon(
-              onPressed: _loadTimeWise,
-              icon: const Icon(Icons.refresh_rounded, size: 16),
-              label: const Text('Retry'),
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.navyMid),
-            ),
-          ],
+        child: Text(
+          _errorTime!,
+          style: GoogleFonts.poppins(color: AppColors.dangerRed),
         ),
       );
     }
     if (_timeWiseData == null || _timeWiseData!.isEmpty) {
-      return const Center(child: Text("No time-wise data found"));
+      return _buildEmptyState(
+        title: 'No Time Intervals Found',
+        subtitle: 'Pending duration breakdown will appear here',
+        icon: Icons.schedule_rounded,
+        onRefresh: _loadTimeWise,
+      );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _timeWiseData!.length,
-      itemBuilder: (context, index) {
-        final item = _timeWiseData![index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          elevation: 1,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: const BorderSide(color: AppColors.lightBorder),
-          ),
-          child: ListTile(
-            onTap: () {
-              final now = DateTime.now();
-              DateTime? start, end;
+    return RefreshIndicator(
+      onRefresh: _loadTimeWise,
+      color: AppColors.navyMid,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: _timeWiseData!.length,
+        itemBuilder: (context, index) {
+          final item = _timeWiseData![index];
+          final period = item['period']?.toString() ?? '';
+          final count = (item['count'] as num?)?.toInt() ?? 0;
 
-              final p = item['period'] ?? '';
-              if (p == 'Under 1 month') {
-                start = now.subtract(const Duration(days: 30));
-              } else if (p == '1 to 3 months') {
-                start = now.subtract(const Duration(days: 90));
-                end = now.subtract(const Duration(days: 30));
-              } else if (p == '3 to 6 months') {
-                start = now.subtract(const Duration(days: 180));
-                end = now.subtract(const Duration(days: 90));
-              } else if (p == '6 to 12 months') {
-                start = now.subtract(const Duration(days: 365));
-                end = now.subtract(const Duration(days: 180));
-              } else if (p == 'More than 1 year') {
-                end = now.subtract(const Duration(days: 365));
-              } else if (p == 'Under 3 months (Total)') {
-                start = now.subtract(const Duration(days: 90));
-              }
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(14),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () {
+                  final now = DateTime.now();
+                  DateTime? start, end;
 
-              Navigator.push(
-                context,
-                AppTheme.fadeSlideRoute(
-                  page: FilteredPendingScreen(
-                    title: 'Pending - $p',
-                    startDate: start?.toIso8601String().split('T')[0],
-                    endDate: end?.toIso8601String().split('T')[0],
+                  if (period == 'Under 1 month') {
+                    start = now.subtract(const Duration(days: 30));
+                  } else if (period == '1 to 3 months') {
+                    start = now.subtract(const Duration(days: 90));
+                    end = now.subtract(const Duration(days: 30));
+                  } else if (period == '3 to 6 months') {
+                    start = now.subtract(const Duration(days: 180));
+                    end = now.subtract(const Duration(days: 90));
+                  } else if (period == '6 to 12 months') {
+                    start = now.subtract(const Duration(days: 365));
+                    end = now.subtract(const Duration(days: 180));
+                  } else if (period == 'More than 1 year') {
+                    end = now.subtract(const Duration(days: 365));
+                  } else if (period == 'Under 3 months (Total)') {
+                    start = now.subtract(const Duration(days: 90));
+                  }
+
+                  Navigator.push(
+                    context,
+                    AppTheme.fadeSlideRoute(
+                      page: FilteredPendingScreen(
+                        title: 'Time Wise - $period',
+                        startDate: start?.toIso8601String().split('T')[0],
+                        endDate: end?.toIso8601String().split('T')[0],
+                      ),
+                    ),
+                  );
+                },
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppColors.navyMid.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.schedule_rounded,
+                          color: AppColors.navyMid,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          period,
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14.5,
+                            color: AppColors.navyDark,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.navyMid.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                              color: AppColors.navyMid.withValues(alpha: 0.15)),
+                        ),
+                        child: Text(
+                          '$count Cases',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                            color: AppColors.navyMid,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppColors.lightSubText,
+                        size: 22,
+                      ),
+                    ],
                   ),
                 ),
-              );
-            },
-            title: Text(
-              item['period'] ?? '',
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-            ),
-            trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.navyMid.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                '${item['count'] ?? 0} Cases',
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.navyMid,
-                ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
@@ -342,81 +538,166 @@ class _PendingHubScreenState extends State<PendingHubScreen>
     }
     if (_errorIO != null) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(_errorIO!, style: GoogleFonts.poppins(color: Colors.red)),
-            const SizedBox(height: 12),
-            ElevatedButton.icon(
-              onPressed: _loadIOWise,
-              icon: const Icon(Icons.refresh_rounded, size: 16),
-              label: const Text('Retry'),
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.navyMid),
-            ),
-          ],
+        child: Text(
+          _errorIO!,
+          style: GoogleFonts.poppins(color: AppColors.dangerRed),
         ),
       );
     }
     if (_ioWiseData == null || _ioWiseData!.isEmpty) {
-      return const Center(child: Text("No IO-wise data found"));
+      return _buildEmptyState(
+        title: 'No Officers Found',
+        subtitle:
+            'Pending counts mapped to investigating officers will appear here',
+        icon: Icons.badge_outlined,
+        onRefresh: _loadIOWise,
+      );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _ioWiseData!.length,
-      itemBuilder: (context, index) {
-        final item = _ioWiseData![index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          elevation: 1,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: const BorderSide(color: AppColors.lightBorder),
-          ),
-          child: ListTile(
-            onTap: () {
-              Navigator.push(
-                context,
-                AppTheme.fadeSlideRoute(
-                  page: FilteredPendingScreen(
-                    title: 'Pending - ${item['io_name'] ?? 'Unknown'}',
-                    ioUid: item['io_uid']?.toString(),
+    return RefreshIndicator(
+      onRefresh: _loadIOWise,
+      color: AppColors.navyMid,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: _ioWiseData!.length,
+        itemBuilder: (context, index) {
+          final item = _ioWiseData![index];
+          final ioName = item['io_name']?.toString() ?? 'Unknown';
+          final ioRank = item['io_rank']?.toString() ?? '';
+          final stationName = item['station_name']?.toString() ?? '';
+          final count =
+              (item['pending_count'] ?? item['count'] as num?)?.toInt() ?? 0;
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(14),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    AppTheme.fadeSlideRoute(
+                      page: FilteredPendingScreen(
+                        title: 'IO Wise - $ioName',
+                        ioUid: item['io_uid']?.toString(),
+                      ),
+                    ),
+                  );
+                },
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: AppColors.navyDark,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.person_rounded,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              ioName,
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14.5,
+                                color: AppColors.navyDark,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              ioRank.isNotEmpty || stationName.isNotEmpty
+                                  ? [
+                                      if (ioRank.isNotEmpty) ioRank,
+                                      if (stationName.isNotEmpty) stationName
+                                    ].join(' • ')
+                                  : 'Investigating Officer',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                color: AppColors.lightSubText,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 5),
+                        decoration: BoxDecoration(
+                          color:
+                              const Color(0xFFE65100).withValues(alpha: 0.06),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color:
+                                const Color(0xFFE65100).withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.hourglass_top_rounded,
+                              size: 13,
+                              color: Color(0xFFE65100),
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              '$count Pending',
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12,
+                                color: const Color(0xFFE65100),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppColors.lightSubText,
+                        size: 22,
+                      ),
+                    ],
                   ),
                 ),
-              );
-            },
-            title: Text(
-              item['io_name'] ?? 'Unknown',
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-            ),
-            subtitle: Text(
-              '${item['io_rank'] ?? ''} - ${item['station_name'] ?? ''}',
-              style: GoogleFonts.poppins(fontSize: 12),
-            ),
-            trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.navyMid.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                '${item['pending_count'] ?? item['count'] ?? 0} Cases',
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.navyMid,
-                ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.lightBg,
+      backgroundColor: const Color(0xFFF6F8FF),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 1,
@@ -430,66 +711,118 @@ class _PendingHubScreenState extends State<PendingHubScreen>
           ),
         ),
         actions: [
-          IconButton(
-            tooltip: 'Refresh',
-            icon: const Icon(Icons.refresh_rounded, color: AppColors.navyMid),
-            onPressed: () {
-              if (_tabController.index == 0) _loadCaseWise();
-              if (_tabController.index == 1) _loadTimeWise();
-              if (_tabController.index == 2) _loadIOWise();
-            },
-          ),
           Padding(
-            padding: const EdgeInsets.only(right: 12, top: 10, bottom: 10),
+            padding: const EdgeInsets.only(right: 16),
             child: ElevatedButton.icon(
               onPressed: () {
                 Navigator.push(
                   context,
                   AppTheme.fadeSlideRoute(
-                    page: PendingSummaryScreen(stationName: widget.stationName),
+                    page: PendingSummaryScreen(
+                      stationName: widget.stationName,
+                    ),
                   ),
                 );
               },
-              icon: const Icon(Icons.download_rounded, color: Colors.white, size: 16),
+              icon: const Icon(
+                Icons.assessment_outlined,
+                color: Colors.white,
+                size: 16,
+              ),
               label: Text(
                 'Summary',
                 style: GoogleFonts.poppins(
                   fontWeight: FontWeight.w600,
-                  fontSize: 12,
+                  fontSize: 13,
                   color: Colors.white,
                 ),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.navyMid,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
                 ),
               ),
             ),
           ),
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: AppColors.navyMid,
-          unselectedLabelColor: AppColors.lightSubText,
-          indicatorColor: AppColors.navyMid,
-          labelStyle:
-              GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13),
-          tabs: const [
-            Tab(text: 'Case Wise'),
-            Tab(text: 'Time Wise'),
-            Tab(text: 'IO Wise'),
-          ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: Container(
+            color: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: TabBar(
+              controller: _tabController,
+              labelColor: AppColors.navyMid,
+              unselectedLabelColor: AppColors.lightSubText,
+              indicatorColor: AppColors.navyMid,
+              indicatorWeight: 3,
+              indicatorSize: TabBarIndicatorSize.label,
+              labelStyle: GoogleFonts.poppins(
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+              ),
+              unselectedLabelStyle: GoogleFonts.poppins(
+                fontWeight: FontWeight.w500,
+                fontSize: 13,
+              ),
+              tabs: const [
+                Tab(
+                  iconMargin: EdgeInsets.zero,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.category_outlined, size: 16),
+                      SizedBox(width: 6),
+                      Text('Case Wise'),
+                    ],
+                  ),
+                ),
+                Tab(
+                  iconMargin: EdgeInsets.zero,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.schedule_rounded, size: 16),
+                      SizedBox(width: 6),
+                      Text('Time Wise'),
+                    ],
+                  ),
+                ),
+                Tab(
+                  iconMargin: EdgeInsets.zero,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.badge_outlined, size: 16),
+                      SizedBox(width: 6),
+                      Text('IO Wise'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildCaseWiseTab(),
-          _buildTimeWiseTab(),
-          _buildIOWiseTab(),
-        ],
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+          child: TabBarView(
+            controller: _tabController,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              _buildCaseWiseTab(),
+              _buildTimeWiseTab(),
+              _buildIOWiseTab(),
+            ],
+          ),
+        ),
       ),
     );
   }

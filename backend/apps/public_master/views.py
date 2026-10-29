@@ -3,6 +3,8 @@ from rest_framework import viewsets, views, permissions, status
 from rest_framework.response import Response
 from apps.core.tenancy import provision_state_schema
 from apps.core.permissions import HasPermission
+from apps.authentication.approval_scope import MASTER, STATE, caller_level
+from apps.public_master.permissions import ReadAnyWriteStateAdmin, ReadAuthenticatedWriteMaster
 from apps.public_master.models import MasterUser, StateRegistry, Role, Permission, RolePermission, UserRoleMapping
 from apps.public_master.serializers import (
     MasterUserSerializer, StateRegistrySerializer, RoleSerializer,
@@ -23,12 +25,17 @@ class StateRegistryViewSet(viewsets.ModelViewSet):
     queryset = StateRegistry.objects.all()
     serializer_class = StateRegistrySerializer
 
+    # A State Admin may only change the branding of their own state.
+    STATE_ADMIN_EDITABLE_FIELDS = {'department_logo_url'}
+
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
             return [permissions.AllowAny()]
-        return [permissions.IsAuthenticated()]
+        if self.action in ['update', 'partial_update']:
+            return [permissions.IsAuthenticated()]
+        return [ReadAuthenticatedWriteMaster()]
 
-    @cache_response(ttl=43200, key_prefix="public_master:states")
+    @cache_response(ttl=43200, key_prefix="public_master:states", per_user=False)
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
@@ -50,6 +57,15 @@ class StateRegistryViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
+        level = caller_level(request.user)
+        if level < MASTER:
+            state = self.get_object()
+            own_state = (str(getattr(request, 'state_code', '') or '').upper() == state.state_code.upper()
+                         or (getattr(request, 'state_schema', None) or '') == state.schema_name)
+            extra = set(request.data.keys()) - self.STATE_ADMIN_EDITABLE_FIELDS
+            if level < STATE or not own_state or extra:
+                return Response({'error': 'Only a Master Admin can change state settings. A State Admin can change the logo of their own state only.'},
+                                status=status.HTTP_403_FORBIDDEN)
         res = super().update(request, *args, **kwargs)
         upstash_cache.delete_pattern("pms:cache:*:public_master:states:*")
         return res
@@ -66,9 +82,9 @@ class RoleViewSet(viewsets.ModelViewSet):
     """
     queryset = Role.objects.all()
     serializer_class = RoleSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [ReadAuthenticatedWriteMaster]
 
-    @cache_response(ttl=43200, key_prefix="public_master:roles")
+    @cache_response(ttl=43200, key_prefix="public_master:roles", per_user=False)
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
@@ -84,9 +100,9 @@ class PermissionViewSet(viewsets.ModelViewSet):
     """
     queryset = Permission.objects.all()
     serializer_class = PermissionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [ReadAuthenticatedWriteMaster]
 
-    @cache_response(ttl=43200, key_prefix="public_master:permissions")
+    @cache_response(ttl=43200, key_prefix="public_master:permissions", per_user=False)
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
@@ -103,7 +119,7 @@ class RolePermissionViewSet(viewsets.ModelViewSet):
     """
     queryset = RolePermission.objects.all()
     serializer_class = RolePermissionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [ReadAuthenticatedWriteMaster]
 
     def create(self, request, *args, **kwargs):
         res = super().create(request, *args, **kwargs)
@@ -129,7 +145,7 @@ class DesignationViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny]
     pagination_class = None
 
-    @cache_response(ttl=43200, key_prefix="public_master:designations")
+    @cache_response(ttl=43200, key_prefix="public_master:designations", per_user=False)
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
@@ -168,7 +184,7 @@ class MasterDivisionsView(views.APIView):
     """
     permission_classes = [permissions.AllowAny]
 
-    @cache_response(ttl=43200, key_prefix="hierarchy:divisions")
+    @cache_response(ttl=43200, key_prefix="hierarchy:divisions", per_user=False)
     def get(self, request):
         from .models import MasterDivision, StateRegistry
         from apps.core.tenancy import TenantContext, get_active_tenant_schema
@@ -217,7 +233,7 @@ class MasterDistrictsView(views.APIView):
     """
     permission_classes = [permissions.AllowAny]
 
-    @cache_response(ttl=43200, key_prefix="hierarchy:districts")
+    @cache_response(ttl=43200, key_prefix="hierarchy:districts", per_user=False)
     def get(self, request):
         from apps.stations.models import District
         from apps.core.tenancy import TenantContext, get_active_tenant_schema
@@ -255,7 +271,7 @@ class MasterStationsView(views.APIView):
     """
     permission_classes = [permissions.AllowAny]
 
-    @cache_response(ttl=43200, key_prefix="hierarchy:stations")
+    @cache_response(ttl=43200, key_prefix="hierarchy:stations", per_user=False)
     def get(self, request):
         from apps.stations.models import PoliceStation
         from apps.core.tenancy import TenantContext, get_active_tenant_schema
@@ -300,7 +316,7 @@ class AvailableUnitsView(views.APIView):
     """
     permission_classes = [permissions.AllowAny]
 
-    @cache_response(ttl=3600, key_prefix="hierarchy:units")
+    @cache_response(ttl=3600, key_prefix="hierarchy:units", per_user=False)
     def get(self, request):
         from .hierarchy_availability import HierarchyAvailabilityEngine
         state_code = request.query_params.get('state_code', 'MH').upper()
@@ -317,14 +333,54 @@ class AppAnnouncementViewSet(viewsets.ModelViewSet):
 
     queryset = AppAnnouncement.objects.filter(is_active=True).order_by('order', '-created_at')
     serializer_class = AppAnnouncementSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [ReadAnyWriteStateAdmin]
 
     def get_queryset(self):
         from apps.public_master.models import AppAnnouncement
-        if self.request.user and getattr(self.request.user, 'role', '') in ['admin', 'master_admin', 'state_super_admin']:
+        if caller_level(self.request.user) >= STATE:
             return AppAnnouncement.objects.all().order_by('order', '-created_at')
         return AppAnnouncement.objects.filter(is_active=True).order_by('order', '-created_at')
 
+DEFAULT_UI_CONFIG = {
+    "repeat_offender_summary": {
+        "unknown_offender_label": "Unknown Offender",
+        "other_bucket_label": "Other",
+        "empty_placeholder": "—",
+        "error_message": "Could not load repeat offender cases",
+        "add_button_label": "Add Repeat Offender",
+        "form_module_key": "form_1_5",
+        "form_sub_category": "Repeat Offender",
+        "form_module_label": "Repeat Offender",
+        "no_cases_label": "No cases",
+        "title": "Repeat Offender — Summary"
+    },
+    "juvenile_summary": {
+        "unknown_offender_label": "Unknown Offender",
+        "other_bucket_label": "Other",
+        "empty_placeholder": "—",
+        "error_message": "Could not load juvenile cases",
+        "add_button_label": "Add Juvenile",
+        "form_module_key": "pocso",
+        "form_sub_category": "Juvenile",
+        "form_module_label": "Juvenile",
+        "no_cases_label": "No cases",
+        "title": "Juvenile — Summary"
+    }
+}
 
 
+class UIConfigView(views.APIView):
+    permission_classes = [permissions.AllowAny]
 
+    def get(self, request):
+        from django.db import DatabaseError
+        from .models import DynamicUIConfig
+        try:
+            data = {c.key: c.value for c in DynamicUIConfig.objects.all()}
+        except DatabaseError as e:
+            # The app calls this before login (search_path=public). On some
+            # databases dynamic_ui_configs was migrated into a state schema
+            # instead of public; serve the defaults rather than a 500.
+            logger.warning(f"[UIConfigView] Could not read dynamic_ui_configs, serving defaults: {type(e).__name__}")
+            data = {}
+        return Response(data or DEFAULT_UI_CONFIG)

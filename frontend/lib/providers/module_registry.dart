@@ -18,6 +18,7 @@ import '../modules/sand_theft/providers/sand_theft_provider.dart';
 import '../modules/hurt/providers/hurt_provider.dart';
 import '../modules/pocso/providers/pocso_provider.dart';
 import '../modules/passport/providers/passport_provider.dart';
+import '../modules/licence/providers/licence_provider.dart';
 import '../modules/monthly/providers/monthly_provider.dart';
 import '../modules/pending/providers/pending_provider.dart';
 import '../modules/detected/providers/detected_provider.dart';
@@ -42,7 +43,6 @@ import '../modules/mcoca/providers/mcoca_provider.dart';
 import '../modules/uapa/providers/uapa_provider.dart';
 import '../modules/mpda/providers/mpda_provider.dart';
 import '../modules/coin/providers/coin_provider.dart';
-import '../modules/suicide/providers/suicide_provider.dart';
 import '../modules/st_drugs/providers/st_drugs_provider.dart';
 
 // ── Helper macro — wires AuthProvider → any BaseModuleProvider subclass ──────
@@ -82,6 +82,7 @@ List<SingleChildWidget> moduleProviders = [
   _wired<HurtProvider>(() => HurtProvider()),
   _wired<PocsoProvider>(() => PocsoProvider()),
   _wired<PassportProvider>(() => PassportProvider()),
+  _wired<LicenceProvider>(() => LicenceProvider()),
   _wired<MonthlyProvider>(() => MonthlyProvider()),
   _wired<PendingProvider>(() => PendingProvider()),
   _wired<DetectedProvider>(() => DetectedProvider()),
@@ -106,7 +107,6 @@ List<SingleChildWidget> moduleProviders = [
   _wired<UapaProvider>(() => UapaProvider()),
   _wired<MpdaProvider>(() => MpdaProvider()),
   _wired<CoinProvider>(() => CoinProvider()),
-  _wired<SuicideProvider>(() => SuicideProvider()),
   _wired<StDrugsProvider>(() => StDrugsProvider()),
 ];
 
@@ -145,6 +145,7 @@ const Map<String, String> labelToModuleKey = {
   'Accident': 'accident',
   'Traffic': 'traffic',
   'Application': 'application',
+  'RTI': 'application',
   'Sam (Summons) / Warrant': 'sam_warrant',
   'Muddemal': 'muddemal',
   'Section 186/175/BNSS': 'bnss',
@@ -152,6 +153,8 @@ const Map<String, String> labelToModuleKey = {
   'CRPC 1563 /\nBNSS 1753': 'bnss',
   'CRPC 156(3) / BNSS 175(3)': 'bnss',
   'Passport /PVR / License': 'passport',
+  'Licence': 'licence',
+  'License': 'licence',
   'NDPS': 'ndps',
   'Gowansh': 'gowans',
   'IT Act': 'it_act',
@@ -159,7 +162,6 @@ const Map<String, String> labelToModuleKey = {
   'UAPA': 'uapa',
   'MPDA': 'mpda',
   'COIN': 'coin',
-  'Suicide': 'suicide',
   'ST Drugs': 'st_drugs',
 };
 
@@ -176,6 +178,7 @@ final List<Type> allDataProviders = [
   HurtProvider,
   PocsoProvider,
   PassportProvider,
+  LicenceProvider,
   TwoFourWheelerProvider,
   ArrestedProvider,
   AbscondedProvider,
@@ -195,7 +198,6 @@ final List<Type> allDataProviders = [
   UapaProvider,
   MpdaProvider,
   CoinProvider,
-  SuicideProvider,
   StDrugsProvider,
 ];
 
@@ -227,6 +229,8 @@ BaseModuleProvider getProvider(BuildContext context, String label) {
       return context.read<PocsoProvider>();
     case 'passport':
       return context.read<PassportProvider>();
+    case 'licence':
+      return context.read<LicenceProvider>();
     case 'monthly':
       return context.read<MonthlyProvider>();
     case 'pending':
@@ -275,8 +279,6 @@ BaseModuleProvider getProvider(BuildContext context, String label) {
       return context.read<MpdaProvider>();
     case 'coin':
       return context.read<CoinProvider>();
-    case 'suicide':
-      return context.read<SuicideProvider>();
     case 'st_drugs':
       return context.read<StDrugsProvider>();
     default:
@@ -298,6 +300,7 @@ List<BaseModuleProvider> getModuleProviders(BuildContext context) {
     context.read<HurtProvider>(),
     context.read<PocsoProvider>(),
     context.read<PassportProvider>(),
+    context.read<LicenceProvider>(),
     context.read<MonthlyProvider>(),
     context.read<PendingProvider>(),
     context.read<DetectedProvider>(),
@@ -322,7 +325,6 @@ List<BaseModuleProvider> getModuleProviders(BuildContext context) {
     context.read<UapaProvider>(),
     context.read<MpdaProvider>(),
     context.read<CoinProvider>(),
-    context.read<SuicideProvider>(),
     context.read<StDrugsProvider>(),
   ];
 }

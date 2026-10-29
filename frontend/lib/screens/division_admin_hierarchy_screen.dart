@@ -1,12 +1,16 @@
 // lib/screens/division_admin_hierarchy_screen.dart
-// Dedicated Division Admin Hierarchy Directory (Districts & Stations only for assigned division range).
+// Division Admin directory: the police stations their division is made of,
+// with each station's head. A division sits below its district or city, so
+// no districts are listed here.
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../constants/app_constants.dart';
 import '../services/api_config.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/officer_details_dialog.dart';
 
 class DivisionAdminHierarchyScreen extends StatefulWidget {
   const DivisionAdminHierarchyScreen({super.key});
@@ -17,29 +21,19 @@ class DivisionAdminHierarchyScreen extends StatefulWidget {
 }
 
 class _DivisionAdminHierarchyScreenState
-    extends State<DivisionAdminHierarchyScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+    extends State<DivisionAdminHierarchyScreen> {
   final ApiService _apiService = ApiService();
 
   bool _isLoading = true;
   String? _errorMessage;
 
-  List<Map<String, dynamic>> _districts = [];
   List<Map<String, dynamic>> _stations = [];
   String _assignedDivisionName = 'Division Range';
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
     _fetchDivisionHierarchyDirectory();
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   Future<void> _fetchDivisionHierarchyDirectory() async {
@@ -49,14 +43,15 @@ class _DivisionAdminHierarchyScreenState
     });
 
     try {
-      final response = await _apiService.get(ApiConfig.hierarchyDirectory);
+      final response = await _apiService.get(
+        ApiConfig.hierarchyDirectory,
+        timeout: ApiConstants.longReceiveTimeout,
+      );
       if (!mounted) return;
 
       if (response.isSuccess && response.data is Map) {
         final data = response.data as Map<String, dynamic>;
         setState(() {
-          _districts =
-              (data['districts'] as List?)?.cast<Map<String, dynamic>>() ?? [];
           _stations =
               (data['stations'] as List?)?.cast<Map<String, dynamic>>() ?? [];
           _assignedDivisionName =
@@ -128,27 +123,31 @@ class _DivisionAdminHierarchyScreenState
             tooltip: 'Refresh Directory',
           ),
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: AppColors.goldPrimary,
-          indicatorWeight: 3,
-          labelColor: AppColors.goldLight,
-          unselectedLabelColor: Colors.white.withValues(alpha: 0.7),
-          labelStyle: GoogleFonts.poppins(
-            fontSize: 12.5,
-            fontWeight: FontWeight.w700,
-          ),
-          unselectedLabelStyle: GoogleFonts.poppins(
-            fontSize: 12.5,
-            fontWeight: FontWeight.w500,
-          ),
-          tabs: const [
-            Tab(icon: Icon(Icons.map_rounded, size: 18), text: 'Districts'),
-            Tab(
-              icon: Icon(Icons.local_police_rounded, size: 18),
-              text: 'Stations',
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(40),
+          child: Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 10),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.local_police_rounded,
+                  size: 18,
+                  color: AppColors.goldLight,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  _isLoading
+                      ? 'Police Stations'
+                      : 'Police Stations (${_stations.length})',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.goldLight,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
       body: _isLoading
@@ -157,88 +156,14 @@ class _DivisionAdminHierarchyScreenState
             )
           : _errorMessage != null
               ? _buildErrorView()
-              : TabBarView(
-                  controller: _tabController,
-                  children: [_buildDistrictsTab(), _buildStationsTab()],
-                ),
-    );
-  }
-
-  Widget _buildDistrictsTab() {
-    if (_districts.isEmpty) {
-      return _buildEmptyState(
-        'No districts assigned under $_assignedDivisionName.',
-      );
-    }
-    return ListView.builder(
-      padding: const EdgeInsets.all(12),
-      itemCount: _districts.length,
-      itemBuilder: (ctx, idx) {
-        final dist = _districts[idx];
-        final name = dist['name'] ?? 'District';
-        final admins =
-            (dist['admins'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-
-        return Card(
-          elevation: 1,
-          margin: const EdgeInsets.only(bottom: 8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-            side: const BorderSide(color: Color(0xFFE2E8F0)),
-          ),
-          child: ExpansionTile(
-            leading: CircleAvatar(
-              radius: 16,
-              backgroundColor: Colors.blue.shade50,
-              child: Icon(
-                Icons.map_rounded,
-                color: Colors.blue.shade700,
-                size: 18,
-              ),
-            ),
-            title: Text(
-              name,
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: AppColors.navyDark,
-              ),
-            ),
-            subtitle: Text(
-              '${admins.length} District Admin(s) assigned',
-              style: GoogleFonts.poppins(
-                fontSize: 11,
-                color: Colors.grey.shade600,
-              ),
-            ),
-            children: admins.isEmpty
-                ? [
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Text(
-                        'No District Admin currently assigned.',
-                        style: GoogleFonts.poppins(
-                          fontSize: 11.5,
-                          color: Colors.grey.shade500,
-                        ),
-                      ),
-                    ),
-                  ]
-                : admins
-                    .map(
-                      (adm) => _buildOfficerListTile(adm, 'District Admin'),
-                    )
-                    .toList(),
-          ),
-        );
-      },
+              : _buildStationsTab(),
     );
   }
 
   Widget _buildStationsTab() {
     if (_stations.isEmpty) {
       return _buildEmptyState(
-        'No police stations assigned under $_assignedDivisionName.',
+        'No police stations in $_assignedDivisionName yet.',
       );
     }
     return ListView.builder(
@@ -258,6 +183,7 @@ class _DivisionAdminHierarchyScreenState
             side: const BorderSide(color: Color(0xFFE2E8F0)),
           ),
           child: ListTile(
+            onTap: head == null ? null : () => _showOfficer(head),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 12,
               vertical: 4,
@@ -311,67 +237,9 @@ class _DivisionAdminHierarchyScreenState
     );
   }
 
-  Widget _buildOfficerListTile(
-    Map<String, dynamic> officer,
-    String defaultRole,
-  ) {
-    final name = officer['name'] ?? 'Officer';
-    final desig = officer['designation'] ?? defaultRole;
-    final badge = officer['badge_number'] ?? '';
-    final phone = officer['phone'] ?? '';
-    final status = officer['account_status'] ?? 'active';
-
-    return Container(
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: Color(0xFFF1F5F9))),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-        leading: CircleAvatar(
-          radius: 14,
-          backgroundColor: AppColors.navyDark.withValues(alpha: 0.1),
-          child: const Icon(
-            Icons.person_rounded,
-            size: 16,
-            color: AppColors.navyDark,
-          ),
-        ),
-        title: Text(
-          '$name ($desig)',
-          style: GoogleFonts.poppins(
-            fontSize: 12.5,
-            fontWeight: FontWeight.w600,
-            color: AppColors.navyDark,
-          ),
-        ),
-        subtitle: Text(
-          'Badge: ${badge.isNotEmpty ? badge : "N/A"} • Phone: ${phone.isNotEmpty ? phone : "N/A"}',
-          style: GoogleFonts.poppins(
-            fontSize: 10.5,
-            color: Colors.grey.shade600,
-          ),
-        ),
-        trailing: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          decoration: BoxDecoration(
-            color: status == 'active'
-                ? Colors.green.shade50
-                : Colors.orange.shade50,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(
-            status.toUpperCase(),
-            style: GoogleFonts.poppins(
-              fontSize: 9.5,
-              fontWeight: FontWeight.w700,
-              color: status == 'active'
-                  ? Colors.green.shade800
-                  : Colors.orange.shade800,
-            ),
-          ),
-        ),
-      ),
-    );
+  /// Shows an officer's profile and assignment (read-only).
+  void _showOfficer(Map<String, dynamic> officer) {
+    OfficerDetailsDialog.show(context, officerData: officer);
   }
 
   Widget _buildEmptyState(String msg) {

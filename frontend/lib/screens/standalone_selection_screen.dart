@@ -12,9 +12,8 @@ import '../services/case_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/category_navigation_helper.dart';
 import '../utils/translation_helper.dart';
+import '../utils/category_icon_helper.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
-import 'common_form_screen.dart';
-import 'form_i_v_selection_screen.dart';
 import 'module_record_detail_screen.dart';
 
 /// Offline fallback list of all 26 standalone category names from database master
@@ -33,15 +32,13 @@ const List<String> kDefaultStandaloneCategories = [
   'Accident',
   'Sec 156(3)/175(3)(BNSS)',
   'Coin',
-  'Suicide',
   'A.D.',
   'N.C.',
-  'ST Drugs',
   'Prohibition',
   'Gambling',
   'POCSO',
   'NDPS',
-  'Gowans',
+  'Gowansh',
   'IT Act',
   'M.V Act',
   'UAPA',
@@ -69,8 +66,10 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
   final TextEditingController _searchCtrl = TextEditingController();
 
   String? _selectedCategory;
-  List<ModuleRecord> _categoryCases = [];
-  bool _isLoadingCases = false;
+  final List<ModuleRecord> _categoryCases = [];
+  final bool _isLoadingCases = false;
+
+  List<Map<String, dynamic>> _rawCategories = [];
 
   @override
   void initState() {
@@ -90,6 +89,7 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
       final cats = await _caseService.fetchStandaloneCategories();
       if (!mounted) return;
       if (cats.isNotEmpty) {
+        _rawCategories = cats;
         final names = cats
             .map((c) =>
                 (c['category_name'] ?? c['name'] ?? '').toString().trim())
@@ -102,6 +102,7 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
           _isUsingFallback = false;
         });
       } else {
+        _rawCategories = [];
         setState(() {
           _displayCategories = List.from(kDefaultStandaloneCategories);
           _isLoading = false;
@@ -110,6 +111,7 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
       }
     } catch (e) {
       if (!mounted) return;
+      _rawCategories = [];
       setState(() {
         _displayCategories = List.from(kDefaultStandaloneCategories);
         _isLoading = false;
@@ -129,66 +131,44 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
   }
 
   void _onCategoryTap(String category) async {
-    final children = await CategoryNavigationHelper.getChildren(category);
-    if (!mounted) return;
-    if (children.isNotEmpty) {
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: FormIVSelectionScreen(
-            initialCategory: category,
-            customTitle: category,
-            moduleKey: 'form_1_5',
-            mode: widget.readOnly
-                ? FormIVSelectionMode.readOnly
-                : FormIVSelectionMode.browse,
-          ),
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      _selectedCategory = category;
-      _isLoadingCases = true;
-    });
-
-    try {
-      final cases = await _caseService.fetchCategoryCases(category);
-      if (!mounted) return;
-      setState(() {
-        _categoryCases = cases;
-        _isLoadingCases = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _categoryCases = [];
-        _isLoadingCases = false;
-      });
-    }
+    final matched = _rawCategories.firstWhere(
+      (c) =>
+          (c['category_name'] ?? c['name'] ?? '').toString().trim() == category,
+      orElse: () => <String, dynamic>{},
+    );
+    await CategoryNavigationHelper.handleDashboardCategoryTap(
+      context: context,
+      categoryName: category,
+      moduleKey: 'standalone',
+      categoryId: matched['category_id'],
+      categoryCode: matched['category_code']?.toString(),
+      readOnly: widget.readOnly,
+    );
   }
 
-  void _onNewCase() {
+  void _onNewCase() async {
     final category = _selectedCategory ??
         (_filteredCategories.isNotEmpty ? _filteredCategories.first : 'Theft');
-    Navigator.push(
-      context,
-      AppTheme.fadeSlideRoute(
-        page: CommonFormScreen(
-          moduleLabel: category,
-          moduleKey: 'form_1_5',
-          subCategory: category,
-        ),
-      ),
+    final matched = _rawCategories.firstWhere(
+      (c) =>
+          (c['category_name'] ?? c['name'] ?? '').toString().trim() == category,
+      orElse: () => <String, dynamic>{},
+    );
+
+    await CategoryNavigationHelper.handleDashboardCategoryTap(
+      context: context,
+      categoryName: category,
+      moduleKey: 'standalone',
+      categoryId: matched['category_id'],
+      categoryCode: matched['category_code']?.toString(),
+      readOnly: widget.readOnly,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final subtitle = _selectedCategory != null
-        ? '${TranslationHelper.translate(context, _selectedCategory!)} · ${_categoryCases.length} cases'
-        : '${_filteredCategories.length} ${TranslationHelper.translate(context, 'categories')} (Standalone)';
+    final subtitle =
+        '${_filteredCategories.length} ${TranslationHelper.translate(context, 'categories')} (Standalone)';
 
     final actionWidget = !widget.readOnly
         ? ElevatedButton.icon(
@@ -441,12 +421,10 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
                     color: Colors.white.withValues(alpha: 0.18),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.folder_special_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
+                  child: CategoryIconHelper.buildWidget(
+                    name,
+                    color: Colors.white,
+                    size: 20,
                   ),
                 ),
                 const SizedBox(width: 10),

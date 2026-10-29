@@ -4,6 +4,9 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../modules/core/models/base_record.dart';
+import '../utils/app_constants.dart';
+import '../widgets/form_iv_category_button.dart';
+import '../widgets/form_vi_category_button.dart';
 import 'api_config.dart';
 import 'api_service.dart';
 
@@ -222,6 +225,7 @@ class CaseService {
     } else {
       _casesCache.clear();
       _casesCacheTime.clear();
+      _allCategoriesCache = null;
     }
   }
 
@@ -295,6 +299,23 @@ class CaseService {
     });
   }
 
+  /// Fetch full case details as Map by ID: GET /api/cases/{id}/
+  Future<Map<String, dynamic>?> fetchCaseDetailsMap(String caseId) async {
+    if (caseId.trim().isEmpty) return null;
+    try {
+      final url = '${ApiConfig.cases}$caseId/';
+      final response = await _api.get(url);
+      if (response.isSuccess && response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchCaseDetailsMap exception: $e');
+      }
+    }
+    return null;
+  }
+
   /// Fetch Case PDF report payload from Django backend: GET /api/cases/{id}/pdf/
   Future<Map<String, dynamic>?> fetchCasePdfData(String caseId) async {
     if (caseId.trim().isEmpty) return null;
@@ -316,7 +337,7 @@ class CaseService {
 
   /// Fetch child categories for a category ID or name: GET /api/categories/{id}/children/
   Future<List<Map<String, dynamic>>> fetchCategoryChildren(
-    String categoryIdOrName, {
+    dynamic categoryIdOrName, {
     String? stationName,
     bool forceRefresh = false,
   }) async {
@@ -325,7 +346,7 @@ class CaseService {
       return _childrenCache[key]!;
     }
     try {
-      final encoded = Uri.encodeComponent(categoryIdOrName.trim());
+      final encoded = Uri.encodeComponent(categoryIdOrName.toString().trim());
       final url = '${ApiConfig.baseUrl}/categories/$encoded/children/';
       final response = await _api.get(
         url,
@@ -370,6 +391,52 @@ class CaseService {
       }
     }
     return null;
+  }
+
+  List<Map<String, dynamic>>? _allCategoriesCache;
+
+  /// Clear in-memory categories cache, including cached category children
+  /// (otherwise a different account on the same device could see them).
+  void clearCategoryCache() {
+    _allCategoriesCache = null;
+    _childrenCache.clear();
+  }
+
+  @visibleForTesting
+  void primeChildrenCacheForTest(
+          String key, List<Map<String, dynamic>> children) =>
+      _childrenCache[key] = children;
+
+  @visibleForTesting
+  bool hasChildrenCacheForTest(String key) => _childrenCache.containsKey(key);
+
+  /// Prime or mock categories cache
+  void setCategoriesCache(List<Map<String, dynamic>> categories) {
+    _allCategoriesCache = categories;
+  }
+
+  /// Fetch all master categories: GET /api/categories/
+  Future<List<Map<String, dynamic>>> fetchAllCategories({
+    bool forceRefresh = false,
+  }) async {
+    if (!forceRefresh && _allCategoriesCache != null) {
+      return _allCategoriesCache!;
+    }
+    try {
+      final url = '${ApiConfig.baseUrl}/categories/';
+      final response = await _api.get(url);
+      if (response.isSuccess && response.data is List) {
+        _allCategoriesCache = (response.data as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+        return _allCategoriesCache!;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchAllCategories exception: $e');
+      }
+    }
+    return _allCategoriesCache ?? [];
   }
 
   /// Fetch standalone categories: GET /api/categories/standalone/?station_name=...
@@ -437,9 +504,20 @@ class CaseService {
             : null,
       );
       if (response.isSuccess && response.data is List) {
-        return (response.data as List)
+        final list = (response.data as List)
             .map((e) => Map<String, dynamic>.from(e as Map))
             .toList();
+        final names = list
+            .map((c) =>
+                (c['category_name'] ?? c['name'] ?? '').toString().trim())
+            .where((n) => n.isNotEmpty)
+            .toList();
+        if (groupId == 1 && names.isNotEmpty) {
+          updateDynamicFormIVCategories(names);
+        } else if (groupId == 2 && names.isNotEmpty) {
+          updateDynamicFormVICategories(names);
+        }
+        return list;
       }
     } catch (e) {
       if (kDebugMode) {
@@ -521,13 +599,14 @@ class CaseService {
 
   /// Fetch cases for a specific category: GET /api/categories/{id}/cases/
   Future<List<ModuleRecord>> fetchCategoryCases(
-    String categoryIdOrName, {
+    dynamic categoryIdOrName, {
     String? stationName,
     String? status,
     String? search,
   }) async {
     try {
-      final url = '${ApiConfig.baseUrl}/categories/$categoryIdOrName/cases/';
+      final encoded = Uri.encodeComponent(categoryIdOrName.toString().trim());
+      final url = '${ApiConfig.baseUrl}/categories/$encoded/cases/';
       final params = <String, dynamic>{};
       if (stationName != null && stationName.isNotEmpty) {
         params['station_name'] = stationName;
@@ -583,8 +662,8 @@ class CaseService {
       return _formDefCache[cacheKey];
     }
     try {
-      final url =
-          '${ApiConfig.baseUrl}/categories/$categoryIdOrName/form-definition/';
+      final encoded = Uri.encodeComponent(categoryIdOrName.toString().trim());
+      final url = '${ApiConfig.baseUrl}/categories/$encoded/form-definition/';
       final params = <String, dynamic>{};
       if (caseId != null && caseId.isNotEmpty) {
         params['case_id'] = caseId;
@@ -678,6 +757,25 @@ class CaseService {
     } catch (e) {
       if (kDebugMode) {
         debugPrint('[CaseService] fetchActSubsections exception: $e');
+      }
+    }
+    return [];
+  }
+
+  /// Fetch list of official police designations from public_master
+  Future<List<Map<String, dynamic>>> fetchDesignations() async {
+    try {
+      final response = await _api.get(ApiConfig.designations);
+      if (response.isSuccess && response.data is List) {
+        final list = (response.data as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+        PoliceDesignations.updateFromBackend(list);
+        return list;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchDesignations exception: $e');
       }
     }
     return [];

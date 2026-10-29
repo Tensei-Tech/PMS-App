@@ -1,14 +1,18 @@
-import sys
+from types import SimpleNamespace
 import logging
 import jwt
 from datetime import datetime, timedelta, timezone
 from django.conf import settings
+from django.core.cache import cache
 from django.db import transaction
 from rest_framework import status, views, permissions
 from rest_framework.response import Response
 
 from apps.core.tenancy import set_tenant_schema, provision_state_schema, get_active_tenant_schema
 from apps.core.permissions import check_dynamic_permission
+from apps.authentication.approval_scope import (
+    DISTRICT, DIVISION, MASTER, OFFICER, STATE, can_manage_account, caller_level, in_jurisdiction, role_level,
+)
 from apps.public_master.models import MasterUser, StateRegistry, Role, RolePermission, UserRoleMapping
 from apps.users.models import OfficerProfile
 from apps.stations.models import SuperAdmin, District, DistrictAdmin, PoliceStation
@@ -114,6 +118,67 @@ class CheckContactExistsView(views.APIView):
         }, status=status.HTTP_200_OK)
 
 
+def _state_logo_url(state_code):
+    """The state's branding logo (URL or base64), or None."""
+    try:
+        return StateRegistry.objects.filter(state_code=state_code).values_list(
+            'department_logo_url', flat=True).first() or None
+    except Exception as e:
+        logger.warning(f"[LoginView] State logo lookup failed: {e}")
+        return None
+
+
+def _check_division_stations(stations, district_name, division_name):
+    """
+    Why a division's police stations can't be used, or None. Each must be a
+    station of the division's district or city (when that district has
+    stations on record) and must not already belong to another division there.
+    """
+    from django.db.models import Q
+    if not stations:
+        return None
+    district = (district_name or '').strip()
+    try:
+        with transaction.atomic():
+            known = {s.casefold(): s for s in PoliceStation.objects.filter(
+                Q(district__name__iexact=district) | Q(district_name__iexact=district)
+            ).values_list('station_name', flat=True)}
+    except Exception:
+        known = {}
+    if known:
+        for name in stations:
+            if name.casefold() not in known:
+                return f'"{name}" is not a police station of {district}.'
+    wanted = {s.casefold() for s in stations}
+    division = (division_name or '').strip().casefold()
+    try:
+        with transaction.atomic():
+            others = OfficerProfile.objects.filter(
+                role_id='division_admin', district__iexact=district,
+                account_status__in=['active', 'approved', 'pending_approval', 'pending'],
+            ).only('division_name', 'zone', 'additional_stations')
+            for other in others:
+                other_division = (other.division_name or other.zone or '').strip()
+                if other_division.casefold() == division:
+                    continue  # the same division may have several admins
+                taken = wanted & {s.casefold() for s in (other.additional_stations or []) if isinstance(s, str)}
+                if taken:
+                    return f'"{sorted(taken)[0]}" already belongs to the division {other_division}.'
+    except Exception as e:
+        logger.warning(f"[Register] Division station check skipped: {e}")
+    return None
+
+
+def _optional_caller(request):
+    """The logged-in user behind an optional Bearer token, or None."""
+    from apps.authentication.authentication import PrimaryJWTAuthentication
+    try:
+        result = PrimaryJWTAuthentication().authenticate(request)
+    except Exception:
+        return None
+    return result[0] if result else None
+
+
 class RegisterView(views.APIView):
     """
     Primary Registration API endpoint: POST /api/v1/auth/register/
@@ -147,11 +212,127 @@ class RegisterView(views.APIView):
             if phone and (MasterUser.objects.filter(phone=phone).exists() or OfficerProfile.objects.filter(phone=phone).exists()):
                 return Response({'error': f'An account with phone number "{phone}" already exists.'}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Block State Admin self-registration via public API
-            if role_id in ['state_admin', 'state_super_admin']:
+            # An admin onboarding someone sends their own token; everyone else is anonymous.
+            caller = _optional_caller(request)
+            caller_lvl = caller_level(caller)
+
+            # Master Admins are created only by an existing Master Admin.
+            if role_id == 'master_admin' and caller_lvl < MASTER:
+                return Response({
+                    'error': 'Master Admin accounts cannot be created via public self-registration.'
+                }, status=status.HTTP_403_FORBIDDEN)
+
+            # State Admins are onboarded only by a Master Admin or an existing State Admin.
+            if role_id in ['state_admin', 'state_super_admin'] and caller_lvl < STATE:
                 return Response({
                     'error': 'State Admin accounts cannot be created via public self-registration. State Admins are onboarded directly by a Master Admin or existing State Admin.'
                 }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Require unit matching the role dynamically from module_settings
+            if role_id not in ['master_admin', 'state_super_admin']:
+                from apps.crimetab.models import ModuleSetting
+
+                def _get_setting_val(key, default):
+                    s = ModuleSetting.objects.filter(module_key='rti', setting_key=key).first()
+                    if s and s.setting_value is not None:
+                        return s.setting_value.strip()
+                    return default
+
+                station_roles = [r.strip() for r in _get_setting_val('scope_station_roles', 'officer,station_admin,station_head').split(',') if r.strip()]
+                division_roles = [r.strip() for r in _get_setting_val('scope_division_roles', 'division_admin,supervisor').split(',') if r.strip()]
+                district_roles = [r.strip() for r in _get_setting_val('scope_district_roles', 'district_admin').split(',') if r.strip()]
+
+                division_val = str(data.get('division_name') or data.get('division') or data.get('division_id')
+                                   or data.get('zone') or '').strip()
+                district_val = str(data.get('district') or data.get('district_name') or data.get('district_id') or '').strip()
+                station_val = str(data.get('station_name') or data.get('station_id') or '').strip()
+
+                if role_id in station_roles:
+                    if not station_val:
+                        no_st_msg = _get_setting_val('no_station_message', 'No police station assigned to the logged-in user.')
+                        return Response({'error': no_st_msg}, status=status.HTTP_400_BAD_REQUEST)
+                elif role_id in division_roles:
+                    if not division_val:
+                        no_div_msg = _get_setting_val('no_division_message', 'No division assigned to the logged-in user.')
+                        return Response({'error': no_div_msg}, status=status.HTTP_400_BAD_REQUEST)
+                elif role_id in district_roles:
+                    if not district_val:
+                        no_dist_msg = _get_setting_val('no_district_message', 'No district assigned to the logged-in user.')
+                        return Response({'error': no_dist_msg}, status=status.HTTP_400_BAD_REQUEST)
+                # A city admin's city is kept in 'district' until cities get their own list.
+                if role_id == 'city_admin' and not district_val:
+                    return Response({'error': 'Enter the city for the City Admin.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # A city admin, and everyone a city admin onboards, holds a city designation.
+            if role_id == 'city_admin' or getattr(caller, 'role_id', '') == 'city_admin':
+                from apps.public_master.designation_matrix import CITY_DESIGNATIONS, is_city_designation
+                if not is_city_designation(designation):
+                    return Response({
+                        'error': f'Under a City Admin the designation must be one of: {", ".join(CITY_DESIGNATIONS)}.'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Likewise a district admin, and everyone a district admin onboards.
+            elif role_id == 'district_admin' or getattr(caller, 'role_id', '') == 'district_admin':
+                from apps.public_master.designation_matrix import DISTRICT_DESIGNATIONS, is_district_designation
+                if not is_district_designation(designation):
+                    return Response({
+                        'error': f'Under a District Admin the designation must be one of: {", ".join(DISTRICT_DESIGNATIONS)}.'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+            # A division admin made by anyone else holds a city or a district designation.
+            elif role_id == 'division_admin':
+                from apps.public_master.designation_matrix import DIVISION_DESIGNATIONS, is_division_designation
+                if not is_division_designation(designation):
+                    return Response({
+                        'error': f'A Division Admin\'s designation must be one of: {", ".join(DIVISION_DESIGNATIONS)}.'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+            # An admin creates accounts only below them and inside their own area:
+            # a state admin in their state, a district or city admin in their
+            # district or city, a division admin in their sub-division, a station
+            # head in their station. A Master Admin may create anywhere.
+            if OFFICER < caller_lvl < MASTER:
+                target = SimpleNamespace(
+                    uid='', role_id=role_id, station_name=station_name, station_id=station_id,
+                    division_name=str(data.get('division_name') or data.get('division') or data.get('zone') or ''),
+                    division_id=data.get('division_id') or '', zone=data.get('zone') or '',
+                    district=district_name, district_id=district_id,
+                )
+                target_lvl = role_level(role_id)
+                if target_lvl > caller_lvl or (target_lvl == caller_lvl and caller_lvl != STATE):
+                    return Response({'error': 'You can only create accounts below your own level.'},
+                                    status=status.HTTP_403_FORBIDDEN)
+                caller_state = str(getattr(request, 'state_code', '') or '').upper()
+                if caller_state and caller_state != state_code:
+                    return Response({'error': 'You can only create accounts in your own state.'},
+                                    status=status.HTTP_403_FORBIDDEN)
+                if caller_lvl < STATE and not in_jurisdiction(caller, target, caller_lvl):
+                    area = {DISTRICT: getattr(caller, 'district', ''),
+                            DIVISION: getattr(caller, 'division_name', '') or getattr(caller, 'zone', '')}.get(
+                        caller_lvl, getattr(caller, 'station_name', ''))
+                    return Response({'error': f'You can only create accounts inside your own area ({area}).'},
+                                    status=status.HTTP_403_FORBIDDEN)
+
+            # A division is a group of two or more police stations of one
+            # district or city: an admin creating a Division Admin picks them.
+            division_station_list = []
+            if role_id == 'division_admin':
+                raw = data.get('division_stations') or data.get('stations') or []
+                if isinstance(raw, str):
+                    raw = raw.split(',')
+                seen = set()
+                for name in raw:
+                    name = str(name or '').strip()
+                    if name and name.casefold() not in seen:
+                        seen.add(name.casefold())
+                        division_station_list.append(name)
+                if OFFICER < caller_lvl and len(division_station_list) < 2:
+                    return Response({'error': 'Select at least two police stations for the division.'},
+                                    status=status.HTTP_400_BAD_REQUEST)
+                error = _check_division_stations(division_station_list, district_name,
+                                                 data.get('division_name') or data.get('division') or data.get('zone') or '')
+                if error:
+                    return Response({'error': error}, status=status.HTTP_400_BAD_REQUEST)
 
             # Upstream Command Authority Validation: Block registration if jurisdiction lacks active approving admin
             if role_id not in ['master_admin', 'state_super_admin']:
@@ -203,12 +384,17 @@ class RegisterView(views.APIView):
             import uuid
             uid = str(uuid.uuid4())
 
-            # Determine account status: Self-registered officers require hierarchical approval except in test runs or explicit active status
-            is_testing = 'test' in sys.argv
-            initial_status = 'active' if (data.get('account_status') == 'active' or role_id == 'master_admin' or is_testing) else 'pending_approval'
-
-            division_name = data.get('division_name') or data.get('division') or ''
+            # The app's admin dialog has sent a division admin's division as 'zone'.
+            zone = data.get('zone') or ''
+            division_name = data.get('division_name') or data.get('division') or zone
             division_id = data.get('division_id') or ''
+
+            # Every new account waits in Pending Approvals, where any admin above
+            # it in its area (the admin who created it, and those above them up
+            # to the state admin) approves it. Only an account a Master Admin
+            # creates (e.g. a state admin) starts active. A client-sent
+            # account_status is ignored.
+            initial_status = 'active' if caller_level(caller) >= MASTER else 'pending_approval'
             now_utc = datetime.now(timezone.utc)
 
             officer = OfficerProfile(
@@ -222,6 +408,8 @@ class RegisterView(views.APIView):
                 station_id=station_id,
                 division_name=division_name,
                 division_id=division_id,
+                zone=zone or None,
+                additional_stations=division_station_list,
                 district=district_name,
                 district_id=district_id,
                 role_id=role_id,
@@ -233,22 +421,25 @@ class RegisterView(views.APIView):
 
             # If district admin, register in District & DistrictAdmin models
             if role_id == 'district_admin' and district_name:
+                # Savepoint: where the optional district tables are missing, the
+                # failed query must not spoil the rest of the request.
                 try:
-                    dist_obj, _ = District.objects.get_or_create(
-                        name=district_name,
-                        defaults={'district_id': f"DST-{district_name[:4].upper()}", 'status': 'approved'}
-                    )
-                    DistrictAdmin.objects.update_or_create(
-                        uid=uid,
-                        defaults={
-                            'district': dist_obj,
-                            'name': full_name,
-                            'email': email,
-                            'phone': phone,
-                            'badge_number': badge_number,
-                            'status': 'active'
-                        }
-                    )
+                    with transaction.atomic():
+                        dist_obj, _ = District.objects.get_or_create(
+                            name=district_name,
+                            defaults={'district_id': f"DST-{district_name[:4].upper()}", 'status': 'approved'}
+                        )
+                        DistrictAdmin.objects.update_or_create(
+                            uid=uid,
+                            defaults={
+                                'district': dist_obj,
+                                'name': full_name,
+                                'email': email,
+                                'phone': phone,
+                                'badge_number': badge_number,
+                                'status': 'active'
+                            }
+                        )
                 except Exception as e:
                     logger.warning(f"Failed to sync DistrictAdmin record: {e}")
 
@@ -267,6 +458,8 @@ class RegisterView(views.APIView):
                         station_id=station_id,
                         division_name=division_name,
                         division_id=division_id,
+                        zone=zone or None,
+                        additional_stations=division_station_list,
                         district=district_name,
                         district_id=district_id,
                         role_id=role_id,
@@ -377,6 +570,33 @@ class RegisterView(views.APIView):
             return Response({'error': f'Registration failed: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
 
+def _pending_account_details(off):
+    """What an approver needs to see about a pending account."""
+    return {
+        'name': off.name or '',
+        'email': off.email or '',
+        'phone': off.phone or '',
+        'designation': off.designation or '',
+        'badge_number': off.badge_number or '',
+        'target_station': off.station_name or '',
+        'target_district': off.district or '',
+        'division_name': off.division_name or off.zone or '',
+        'additional_stations': list(off.additional_stations or []),
+        'govt_id': off.govt_id or '',
+        'photo_url': off.photo_url or '',
+        'id_card_url': off.id_card_url or '',
+        'role_id': off.role_id or 'officer',
+        'account_status': off.account_status or 'pending_approval',
+    }
+
+
+def _add_account_details(entry, off):
+    """Fill a request's empty fields from its account, keeping what it has."""
+    for key, value in _pending_account_details(off).items():
+        if value and not entry.get(key):
+            entry[key] = value
+
+
 class PendingApprovalsNotificationListView(views.APIView):
     """
     Returns pending registration notifications.
@@ -391,23 +611,38 @@ class PendingApprovalsNotificationListView(views.APIView):
 
         seen_uids = set()
         data = []
+        by_uid = {}  # request per account, to add the account's details
+
+        # A request is shown to every admin who may approve the account it is
+        # for: the admin above it in its area and everyone above them.
+        try:
+            with transaction.atomic():  # savepoint: a failed query spoils nothing else
+                pending_by_uid = {o.uid: o for o in OfficerProfile.objects.filter(
+                    account_status__in=['pending_approval', 'pending'])}
+        except Exception as e:
+            logger.warning(f"[PendingApprovals] Pending profile query error: {e}")
+            pending_by_uid = {}
 
         # 1. Gather pending NotificationRecord entries in active tenant schema
         try:
-            for n in NotificationRecord.objects.filter(status='pending', category='approval_request'):
-                uid = n.registration_uid
-                if uid and uid not in seen_uids:
-                    seen_uids.add(uid)
-                    data.append({
-                        'id': n.id,
-                        'title': n.title,
-                        'body': n.body,
-                        'category': n.category,
-                        'registration_uid': uid,
-                        'target_station': n.target_station_name or '',
-                        'target_district': n.target_district or '',
-                        'created_at': n.created_at.isoformat() if hasattr(n, 'created_at') and n.created_at else datetime.now(timezone.utc).isoformat(),
-                    })
+            with transaction.atomic():  # savepoint: a failed query spoils nothing else
+                for n in NotificationRecord.objects.filter(status='pending', category='approval_request'):
+                    uid = n.registration_uid
+                    target = pending_by_uid.get(uid) or SimpleNamespace(
+                        uid=uid, role_id='officer', station_name=n.target_station_name, district=n.target_district)
+                    if uid and uid not in seen_uids and can_manage_account(request.user, target):
+                        seen_uids.add(uid)
+                        by_uid[uid] = {
+                            'id': n.id,
+                            'title': n.title,
+                            'body': n.body,
+                            'category': n.category,
+                            'registration_uid': uid,
+                            'target_station': n.target_station_name or '',
+                            'target_district': n.target_district or '',
+                            'created_at': n.created_at.isoformat() if hasattr(n, 'created_at') and n.created_at else datetime.now(timezone.utc).isoformat(),
+                        }
+                        data.append(by_uid[uid])
         except Exception as e:
             logger.warning(f"[PendingApprovals] Notif query error: {e}")
 
@@ -415,58 +650,46 @@ class PendingApprovalsNotificationListView(views.APIView):
 
         # 2. Gather pending OfficerProfile entries in active tenant schema
         try:
-            for off in list(OfficerProfile.objects.filter(account_status__in=['pending_approval', 'pending'])):
-                if off.uid and off.uid not in seen_uids:
-                    seen_uids.add(off.uid)
-                    data.append({
-                        'id': f"off-{off.uid}",
-                        'title': f"{off.name} ({off.designation or 'Officer'})",
-                        'body': f"Pending officer registration request for {off.station_name or off.district or 'Police Station'}.",
-                        'category': 'approval_request',
-                        'registration_uid': off.uid,
-                        'name': off.name or '',
-                        'email': off.email or '',
-                        'phone': off.phone or '',
-                        'designation': off.designation or '',
-                        'badge_number': off.badge_number or '',
-                        'target_station': off.station_name or '',
-                        'target_district': off.district or '',
-                        'govt_id': off.govt_id or '',
-                        'photo_url': off.photo_url or '',
-                        'id_card_url': off.id_card_url or '',
-                        'role_id': off.role_id or 'officer',
-                        'account_status': off.account_status or 'pending_approval',
-                        'created_at': datetime.now(timezone.utc).isoformat(),
-                    })
+            with transaction.atomic():  # savepoint: a failed query spoils nothing else
+                for off in list(OfficerProfile.objects.filter(account_status__in=['pending_approval', 'pending'])):
+                    if off.uid in by_uid:
+                        # A notification for this account: show its details too.
+                        _add_account_details(by_uid[off.uid], off)
+                    elif off.uid and can_manage_account(request.user, off):
+                        seen_uids.add(off.uid)
+                        by_uid[off.uid] = {
+                            'id': f"off-{off.uid}",
+                            'title': f"{off.name} ({off.designation or 'Officer'})",
+                            'body': f"Pending officer registration request for {off.station_name or off.district or 'Police Station'}.",
+                            'category': 'approval_request',
+                            'registration_uid': off.uid,
+                            **_pending_account_details(off),
+                            'created_at': datetime.now(timezone.utc).isoformat(),
+                        }
+                        data.append(by_uid[off.uid])
         except Exception as e:
             logger.warning(f"[PendingApprovals] Tenant officer query error: {e}")
 
         # 3. Gather pending OfficerProfile entries in public schema
         try:
-            set_tenant_schema('public')
-            for pub_off in list(OfficerProfile.objects.filter(account_status__in=['pending_approval', 'pending'])):
-                if pub_off.uid and pub_off.uid not in seen_uids:
-                    seen_uids.add(pub_off.uid)
-                    data.append({
-                        'id': f"pub-{pub_off.uid}",
-                        'title': f"{pub_off.name} ({pub_off.designation or 'Officer'})",
-                        'body': f"Pending officer registration request for {pub_off.station_name or pub_off.district or 'Police Station'}.",
-                        'category': 'approval_request',
-                        'registration_uid': pub_off.uid,
-                        'name': pub_off.name or '',
-                        'email': pub_off.email or '',
-                        'phone': pub_off.phone or '',
-                        'designation': pub_off.designation or '',
-                        'badge_number': pub_off.badge_number or '',
-                        'target_station': pub_off.station_name or '',
-                        'target_district': pub_off.district or '',
-                        'govt_id': pub_off.govt_id or '',
-                        'photo_url': pub_off.photo_url or '',
-                        'id_card_url': pub_off.id_card_url or '',
-                        'role_id': pub_off.role_id or 'officer',
-                        'account_status': pub_off.account_status or 'pending_approval',
-                        'created_at': datetime.now(timezone.utc).isoformat(),
-                    })
+            with transaction.atomic():  # savepoint: a failed query spoils nothing else
+                set_tenant_schema('public')
+                for pub_off in list(OfficerProfile.objects.filter(account_status__in=['pending_approval', 'pending'])):
+                    if pub_off.uid in by_uid:
+                        # A notification for this account: show its details too.
+                        _add_account_details(by_uid[pub_off.uid], pub_off)
+                    elif pub_off.uid and can_manage_account(request.user, pub_off):
+                        seen_uids.add(pub_off.uid)
+                        by_uid[pub_off.uid] = {
+                            'id': f"pub-{pub_off.uid}",
+                            'title': f"{pub_off.name} ({pub_off.designation or 'Officer'})",
+                            'body': f"Pending officer registration request for {pub_off.station_name or pub_off.district or 'Police Station'}.",
+                            'category': 'approval_request',
+                            'registration_uid': pub_off.uid,
+                            **_pending_account_details(pub_off),
+                            'created_at': datetime.now(timezone.utc).isoformat(),
+                        }
+                        data.append(by_uid[pub_off.uid])
         except Exception as e:
             logger.warning(f"[PendingApprovals] Public officer query error: {e}")
         finally:
@@ -504,18 +727,11 @@ class ApproveRejectOfficerRegistrationView(views.APIView):
         if not officer:
             return Response({'error': 'Target officer profile not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Dynamic DB Permission + ABAC + RBAC Scope Verification
-        role_id = getattr(caller, 'role_id', '')
-        desig = (getattr(caller, 'designation', '') or '').upper()
-
-        has_user_approve_perm = check_dynamic_permission(caller, 'user:approve')
-        is_master = role_id == 'master_admin' or getattr(caller, 'user_type', '') == 'master'
-        is_state_super = check_dynamic_permission(caller, 'state:manage') or role_id in ['state_super_admin', 'super_admin', 'state_admin', 'admin'] or desig in ['DG', 'DGP', 'ADG', 'ADGP']
-        is_division_admin = check_dynamic_permission(caller, 'division:manage') or role_id in ['division_admin'] or desig in ['DIG', 'IG', 'SPL.IG']
-        is_district_admin = check_dynamic_permission(caller, 'district:manage') or role_id in ['district_admin', 'sp', 'cp', 'dcp'] or desig in ['SP', 'CP', 'SSP', 'DCP', 'ADDL. SP', 'ADDL. CP']
-        is_station_head = role_id in ['station_head', 'station_admin', 'pi', 'sho'] or (getattr(caller, 'station_name', '') == officer.station_name if officer.station_name else False)
-
-        if not (has_user_approve_perm or is_master or is_state_super or is_division_admin or is_district_admin or is_station_head):
+        # RBAC (role / DB permission level) + ABAC (same unit, lower level, not self).
+        # An account outside the caller's state schema is only for a Master Admin.
+        in_caller_state = OfficerProfile.objects.filter(uid=uid).exists()
+        if not can_manage_account(caller, officer) or (
+                not in_caller_state and caller_level(caller) < MASTER):
             return Response({
                 'error': f'Access Denied: You do not have permissions to approve registration requests in jurisdiction scope ({getattr(caller, "station_name", getattr(caller, "district", "N/A"))}).'
             }, status=status.HTTP_403_FORBIDDEN)
@@ -523,36 +739,38 @@ class ApproveRejectOfficerRegistrationView(views.APIView):
         new_status = 'active' if action == 'approve' else 'rejected'
         notif_status = 'approved' if action == 'approve' else 'rejected'
 
+        def update_copies(schema_label):
+            # One savepoint per table: a schema without a notifications table
+            # must not undo the account update, nor spoil the rest of the request.
+            for model, field, values in ((OfficerProfile, 'uid', {'account_status': new_status}),
+                                         (NotificationRecord, 'registration_uid',
+                                          {'status': notif_status, 'is_read': True})):
+                try:
+                    with transaction.atomic():
+                        model.objects.filter(**{field: str(uid)}).update(**values)
+                except Exception as ex:
+                    logger.warning(f"[ApproveRegistration] {schema_label} {model.__name__} update error: {ex}")
+
         # 1. Update in active schema
-        try:
-            OfficerProfile.objects.filter(uid=str(uid)).update(account_status=new_status)
-            NotificationRecord.objects.filter(registration_uid=str(uid)).update(status=notif_status, is_read=True)
-        except Exception as ex:
-            logger.warning(f"[ApproveRegistration] Active schema update error: {ex}")
+        update_copies('Active schema')
 
         # 2. Update in public schema
         if active_schema != 'public':
             try:
                 set_tenant_schema('public')
-                OfficerProfile.objects.filter(uid=str(uid)).update(account_status=new_status)
-                NotificationRecord.objects.filter(registration_uid=str(uid)).update(status=notif_status, is_read=True)
-            except Exception as ex:
-                logger.warning(f"[ApproveRegistration] Public schema update error: {ex}")
+                update_copies('Public schema')
             finally:
                 set_tenant_schema(active_schema)
 
         # 3. Update across all registered state tenant schemas
         try:
-            set_tenant_schema('public')
-            state_schemas = list(StateRegistry.objects.values_list('schema_name', flat=True))
+            with transaction.atomic():
+                set_tenant_schema('public')
+                state_schemas = list(StateRegistry.objects.values_list('schema_name', flat=True))
             for sch in state_schemas:
                 if sch != active_schema:
-                    try:
-                        set_tenant_schema(sch)
-                        OfficerProfile.objects.filter(uid=str(uid)).update(account_status=new_status)
-                        NotificationRecord.objects.filter(registration_uid=str(uid)).update(status=notif_status, is_read=True)
-                    except Exception:
-                        pass
+                    set_tenant_schema(sch)
+                    update_copies(f"Schema {sch}")
         except Exception as ex:
             logger.warning(f"[ApproveRegistration] Multi-tenant update error: {ex}")
         finally:
@@ -562,6 +780,13 @@ class ApproveRejectOfficerRegistrationView(views.APIView):
             return Response({'message': f'Officer {officer.name} account successfully APPROVED and activated.'}, status=status.HTTP_200_OK)
         else:
             return Response({'message': f'Officer {officer.name} registration REJECTED.'}, status=status.HTTP_200_OK)
+
+
+LOGIN_SCHEMA_CACHE_SECONDS = 12 * 60 * 60
+
+
+def _login_schema_cache_key(email):
+    return f"login_schema:{email}"
 
 
 class LoginView(views.APIView):
@@ -636,12 +861,30 @@ class LoginView(views.APIView):
         officer = None
         matched_state_code = state_registry.state_code if state_registry else None
 
+        # Each password check runs PBKDF2 (1.5M rounds in Django 6.1, several
+        # seconds on a small server), so verify each stored hash at most once per
+        # login. The same officer mirrored in public and a state schema shares
+        # the hash.
+        verified_hashes = {}
+
+        def password_ok(user):
+            encoded = user.password or ''
+            if encoded not in verified_hashes:
+                verified_hashes[encoded] = user.check_password(password)
+            return verified_hashes[encoded]
+
+        # Schema this email last logged in from; only tried first, never trusted.
+        preferred_schema = cache.get(_login_schema_cache_key(email))
+
+        def preferred_first(states):
+            return sorted(states, key=lambda st: st.schema_name != preferred_schema)
+
         # Step 2A: Search ONLY in the declared tenant schema (strict isolation)
         if schema_name:
             try:
                 set_tenant_schema(schema_name)
                 cand = OfficerProfile.objects.filter(email=email).first()
-                if cand and cand.password and cand.check_password(password):
+                if cand and cand.password and password_ok(cand):
                     officer = cand
             except Exception as e:
                 logger.warning(f"[LoginView] Targeted schema {schema_name} query failed: {e}")
@@ -656,7 +899,7 @@ class LoginView(views.APIView):
                 set_tenant_schema('public')
                 cand = OfficerProfile.objects.filter(email=email).first()
                 if cand:
-                    if cand.password and cand.check_password(password):
+                    if cand.password and password_ok(cand):
                         officer = cand
                         # If tenant was declared, keep matched_state_code from state_registry.
                         # If not declared, matched_state_code remains None (resolved in Step 2D).
@@ -669,20 +912,20 @@ class LoginView(views.APIView):
         # Step 2C: Cross-schema search — ONLY when no explicit state was declared.
         # If the client said state_code=BR and we found nothing, return 401 immediately
         # rather than searching other states and potentially leaking cross-tenant data.
-        if not officer or not officer.check_password(password):
+        if not officer or not password_ok(officer):
             if tenant_explicitly_declared:
                 # Explicit state declared but officer not found/authenticated in that state
                 logger.info(f"[LoginView] Tenant isolation: refusing cross-schema search for declared tenant '{requested_tenant}'")
                 return Response({'error': 'Invalid email or password.'}, status=status.HTTP_401_UNAUTHORIZED)
             # No state declared: legacy cross-schema fallback (only for accounts without state_code)
-            active_states = list(StateRegistry.objects.filter(is_active=True))
+            active_states = preferred_first(StateRegistry.objects.filter(is_active=True))
             for st in active_states:
                 if schema_name and st.schema_name == schema_name:
                     continue
                 try:
                     set_tenant_schema(st.schema_name)
                     cand = OfficerProfile.objects.filter(email=email).first()
-                    if cand and cand.password and cand.check_password(password):
+                    if cand and cand.password and password_ok(cand):
                         officer = cand
                         schema_name = st.schema_name
                         matched_state_code = st.state_code
@@ -703,7 +946,7 @@ class LoginView(views.APIView):
                     break
 
             if not matched_state_code:
-                for st in StateRegistry.objects.filter(is_active=True):
+                for st in preferred_first(StateRegistry.objects.filter(is_active=True)):
                     try:
                         set_tenant_schema(st.schema_name)
                         if OfficerProfile.objects.filter(uid=officer.uid).exists():
@@ -724,11 +967,14 @@ class LoginView(views.APIView):
 
         set_tenant_schema(schema_name)
 
-        if officer and officer.check_password(password):
+        if officer and password_ok(officer):
             if officer.account_status != 'active':
                 return Response({
                     'error': 'Account Authorization Pending: Your registration request is currently awaiting approval from your Station Head or Superior Officer.'
                 }, status=status.HTTP_403_FORBIDDEN)
+
+            if schema_name and schema_name != 'public':
+                cache.set(_login_schema_cache_key(email), schema_name, timeout=LOGIN_SCHEMA_CACHE_SECONDS)
 
             tokens = generate_tokens_for_user(
                 uid=officer.uid,
@@ -751,7 +997,8 @@ class LoginView(views.APIView):
                     'state_code': matched_state_code,
                     'district': officer.district,
                     'station_name': officer.station_name,
-                    'account_status': officer.account_status
+                    'account_status': officer.account_status,
+                    'department_logo_url': _state_logo_url(matched_state_code),
                 },
                 'tokens': tokens
             }, status=status.HTTP_200_OK)

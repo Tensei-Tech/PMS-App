@@ -100,7 +100,7 @@ class ModuleRecord {
     final rawCreated = map['createdAt'] ?? map['created_at'];
 
     return ModuleRecord(
-      id: docId ?? map['id'] ?? '',
+      id: docId ?? map['id']?.toString() ?? '',
       moduleKey: map['moduleKey'] ?? map['module_key'] ?? '',
       title: map['title'] ?? '',
       caseNumber: map['caseNumber'] ?? map['case_number'] ?? '',

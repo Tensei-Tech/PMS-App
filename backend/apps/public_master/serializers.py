@@ -12,7 +12,7 @@ class MasterUserSerializer(serializers.ModelSerializer):
 class StateRegistrySerializer(serializers.ModelSerializer):
     class Meta:
         model = StateRegistry
-        fields = ['state_code', 'state_name', 'schema_name', 'is_active', 'created_at']
+        fields = ['state_code', 'state_name', 'schema_name', 'department_logo_url', 'is_active', 'created_at']
 
 
 class RoleSerializer(serializers.ModelSerializer):

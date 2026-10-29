@@ -1,13 +1,16 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/backend_case_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/excel_export_helper.dart';
 
 class DisposalCaseListView extends StatefulWidget {
   final String? ioUid;
   final String? startDate;
   final String? endDate;
   final String? crimeType;
+  final void Function(List<Map<String, dynamic>> records)? onRecordsLoaded;
 
   const DisposalCaseListView({
     super.key,
@@ -15,7 +18,35 @@ class DisposalCaseListView extends StatefulWidget {
     this.startDate,
     this.endDate,
     this.crimeType,
+    this.onRecordsLoaded,
   });
+
+  static String getSectionAct(Map<String, dynamic> record) {
+    final extra =
+        record['extra_fields'] is Map ? record['extra_fields'] as Map : {};
+    final secActRaw = record['section_act'] ??
+        record['acts_sections'] ??
+        record['sections'] ??
+        record['section'] ??
+        record['act_section'] ??
+        record['sectionAct'] ??
+        extra['section_act'] ??
+        extra['acts_sections'] ??
+        extra['sections'] ??
+        extra['section'] ??
+        extra['act_section'] ??
+        extra['sectionAct'];
+    final act = (record['act'] ?? extra['act'] ?? '').toString().trim();
+    final sec = (record['section'] ?? extra['section'] ?? '').toString().trim();
+
+    if (secActRaw != null && secActRaw.toString().trim().isNotEmpty) {
+      return secActRaw.toString().trim();
+    }
+    if (sec.isNotEmpty || act.isNotEmpty) {
+      return '$sec $act'.trim();
+    }
+    return '—';
+  }
 
   @override
   State<DisposalCaseListView> createState() => _DisposalCaseListViewState();
@@ -30,7 +61,7 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
   bool _isLoadingMore = false;
   String? _error;
   int _currentPage = 1;
-  final int _pageSize = 20;
+  final int _pageSize = 100;
   bool _hasMore = true;
   int _totalCount = 0;
 
@@ -88,6 +119,7 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
           _hasMore = dataMap['next'] != null || _records.length < _totalCount;
           _isLoading = false;
         });
+        widget.onRecordsLoaded?.call(_records);
       } else {
         setState(() {
           _error = "Failed to load disposal cases.";
@@ -130,9 +162,10 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
           _hasMore = dataMap['next'] != null || _records.length < _totalCount;
           _isLoadingMore = false;
         });
+        widget.onRecordsLoaded?.call(_records);
       } else {
         setState(() {
-          _hasMore = false; // Stop trying if error on pagination
+          _hasMore = false;
           _isLoadingMore = false;
         });
       }
@@ -145,76 +178,131 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
     }
   }
 
-  Widget _buildHeaderRow() {
-    return Container(
-      color: AppColors.navyMid,
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      child: Row(
-        children: [
-          _buildHeaderCell("SR. No", flex: 1),
-          _buildHeaderCell("CR. No", flex: 2),
-          _buildHeaderCell("Section and Act", flex: 3),
-          _buildHeaderCell("CC & ST. No", flex: 2),
-          _buildHeaderCell("IO Name", flex: 2),
-          _buildHeaderCell("Police Station Name", flex: 2),
-          _buildHeaderCell("Crime Sub-tab Name", flex: 2),
-        ],
-      ),
-    );
-  }
+  Widget _buildTable(BuildContext context, List<Map<String, dynamic>> records) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const double cellFontSize = 11.5;
+        const double headerFontSize = 11.5;
 
-  Widget _buildHeaderCell(String text, {int flex = 1}) {
-    return Expanded(
-      flex: flex,
-      child: Text(
-        text,
-        style: GoogleFonts.poppins(
-            color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12),
-        textAlign: TextAlign.center,
-      ),
-    );
-  }
+        final columnWidths = <int, TableColumnWidth>{
+          0: const IntrinsicColumnWidth(),
+          1: const FlexColumnWidth(1.2),
+          2: const FlexColumnWidth(1.2),
+          3: const FlexColumnWidth(1.4),
+          4: const FlexColumnWidth(1.6),
+          5: const FlexColumnWidth(1.4),
+        };
 
-  Widget _buildDataRow(Map<String, dynamic> record, int index) {
-    final bgColor = index % 2 == 0 ? Colors.white : AppColors.lightBg;
+        Widget headerCell(String s) => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+              color: AppColors.navyDark,
+              alignment: Alignment.center,
+              child: Text(
+                s,
+                textAlign: TextAlign.center,
+                softWrap: true,
+                style: GoogleFonts.poppins(
+                  fontSize: headerFontSize,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  height: 1.15,
+                ),
+              ),
+            );
 
-    // Extract Section and Act from extra_fields or directly
-    final extra = record['extra_fields'] ?? {};
-    final act = extra['act'] ?? record['act'] ?? '';
-    final section = extra['section'] ?? record['section'] ?? '';
-    final sectionAct =
-        (section.toString().isNotEmpty || act.toString().isNotEmpty)
-            ? '$section $act'.trim()
-            : '—';
+        Widget dataCell(String s, {Alignment align = Alignment.center}) =>
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+              alignment: align,
+              child: Text(
+                s.isEmpty ? '—' : s,
+                textAlign: align == Alignment.center
+                    ? TextAlign.center
+                    : TextAlign.left,
+                softWrap: true,
+                overflow: TextOverflow.visible,
+                style: GoogleFonts.poppins(
+                  fontSize: cellFontSize,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.lightText,
+                  height: 1.15,
+                ),
+              ),
+            );
 
-    final ccStNo = record['cc_st_no']?.toString() ?? '';
+        final headers = <Widget>[
+          headerCell('Sr. No.'),
+          headerCell('Cr. No.'),
+          headerCell('Sec & Act'),
+          headerCell('Head'),
+          headerCell('Case Summary'),
+          headerCell('IO Name'),
+        ];
 
-    return Container(
-      color: bgColor,
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      child: Row(
-        children: [
-          _buildDataCell((record['sr_no'] ?? '').toString(), flex: 1),
-          _buildDataCell((record['case_number'] ?? '').toString(), flex: 2),
-          _buildDataCell(sectionAct, flex: 3),
-          _buildDataCell(ccStNo.isNotEmpty ? ccStNo : '—', flex: 2),
-          _buildDataCell((record['assigned_officer'] ?? '').toString(),
-              flex: 2),
-          _buildDataCell((record['station_name'] ?? '').toString(), flex: 2),
-          _buildDataCell((record['crime_type_name'] ?? '').toString(), flex: 2),
-        ],
-      ),
-    );
-  }
+        TableRow rowFor(int idx, Map<String, dynamic> r) {
+          final bg = idx.isEven ? Colors.white : const Color(0xFFF6F8FF);
+          final srNo = r['sr_no']?.toString() ?? '${idx + 1}';
+          final crNo =
+              (r['case_number'] ?? r['cr_no'] ?? r['cr'] ?? '—').toString();
+          final secAct = DisposalCaseListView.getSectionAct(r);
+          final head = (r['crime_type_name'] ??
+                  r['head'] ??
+                  r['crime_type'] ??
+                  r['sub_category'] ??
+                  '—')
+              .toString();
+          final courtNo =
+              ExcelExportHelper.extractDisposalNumbers(r, multiLine: true);
+          final io = (r['assigned_officer'] ?? r['io_name'] ?? r['io'] ?? '—')
+              .toString();
 
-  Widget _buildDataCell(String text, {int flex = 1}) {
-    return Expanded(
-      flex: flex,
-      child: Text(
-        text,
-        style: GoogleFonts.poppins(color: AppColors.navyDark, fontSize: 12),
-        textAlign: TextAlign.center,
-      ),
+          return TableRow(
+            decoration: BoxDecoration(color: bg),
+            children: [
+              dataCell(srNo),
+              dataCell(crNo),
+              dataCell(secAct),
+              dataCell(head),
+              dataCell(courtNo),
+              dataCell(io),
+            ],
+          );
+        }
+
+        final tableWidth = math.max(constraints.maxWidth, 900.0);
+
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SizedBox(
+            width: tableWidth,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: AppColors.lightBorder),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Table(
+                  columnWidths: columnWidths,
+                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                  border:
+                      TableBorder.all(color: AppColors.lightBorder, width: 1),
+                  children: [
+                    TableRow(
+                      decoration:
+                          const BoxDecoration(color: AppColors.navyDark),
+                      children: headers,
+                    ),
+                    for (var i = 0; i < records.length; i++)
+                      rowFor(i, records[i]),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -232,86 +320,24 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
       return const Center(child: Text("No disposal cases found"));
     }
 
-    // Group records by crime type
-    final List<Map<String, dynamic>> groups = [];
-    String? currentGroup;
-    List<Map<String, dynamic>> currentItems = [];
-
-    for (var record in _records) {
-      final crime = record['crime_type_name']?.toString() ?? 'Other';
-      if (crime != currentGroup) {
-        if (currentGroup != null) {
-          groups.add({'group': currentGroup, 'items': currentItems});
-        }
-        currentGroup = crime;
-        currentItems = [record];
-      } else {
-        currentItems.add(record);
-      }
-    }
-    if (currentGroup != null) {
-      groups.add({'group': currentGroup, 'items': currentItems});
-    }
-
     return RefreshIndicator(
       onRefresh: _loadFirstPage,
       color: AppColors.navyMid,
-      child: ListView.builder(
+      child: SingleChildScrollView(
         controller: _scrollController,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        itemCount: groups.length + (_hasMore ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index == groups.length) {
-            return const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Center(
-                  child: CircularProgressIndicator(color: AppColors.navyMid)),
-            );
-          }
-
-          final groupName = groups[index]['group'] as String;
-          final items = groups[index]['items'] as List<Map<String, dynamic>>;
-
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Text(
-                    groupName,
-                    style: GoogleFonts.poppins(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.navyDark,
-                    ),
-                  ),
-                ),
-                LayoutBuilder(builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: SizedBox(
-                      width: constraints.maxWidth > 1000
-                          ? constraints.maxWidth
-                          : 1000,
-                      child: Column(
-                        children: [
-                          _buildHeaderRow(),
-                          ...items
-                              .asMap()
-                              .entries
-                              .map((e) => _buildDataRow(e.value, e.key)),
-                        ],
-                      ),
-                    ),
-                  );
-                }),
-              ],
-            ),
-          );
-        },
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildTable(context, _records),
+            if (_isLoadingMore)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Center(
+                    child: CircularProgressIndicator(color: AppColors.navyMid)),
+              ),
+          ],
+        ),
       ),
     );
   }

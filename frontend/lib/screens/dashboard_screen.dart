@@ -3,6 +3,7 @@
 // Profile icon dropdown, News carousel, functional search, "Case Types" rename.
 
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:khakhi_diary/providers/settings_provider.dart';
+import 'package:khakhi_diary/providers/notification_provider.dart';
+
 import 'package:provider/provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
@@ -46,6 +49,10 @@ import '../modules/nc/providers/nc_provider.dart';
 import '../modules/nc/screens/nc_form_screen.dart';
 import '../modules/ndps/providers/ndps_provider.dart';
 import '../modules/passport/providers/passport_provider.dart';
+import '../modules/passport/screens/passport_hub_screen.dart';
+import '../modules/passport/widgets/passport_add_edit_dialog.dart';
+import '../modules/licence/providers/licence_provider.dart';
+import '../modules/licence/screens/licence_hub_screen.dart';
 import '../modules/pending/providers/pending_provider.dart';
 import '../modules/pocso/providers/pocso_provider.dart';
 import '../modules/preventive/providers/preventive_provider.dart';
@@ -85,17 +92,22 @@ import 'disposal_hub_screen.dart';
 import 'arrested_hub_screen.dart';
 import '../widgets/summons_warrant_report_table.dart';
 import '../widgets/monthly_crime_comparative_table.dart';
+import 'juvenile_hub_screen.dart';
+import 'repeat_offender_summary_screen.dart';
+import 'nafis_hub_screen.dart';
+import 'elearning_screen.dart';
 import '../widgets/bell_icon_widget.dart';
 import '../widgets/form_iv_category_button.dart';
 import '../widgets/searchable_picker_field.dart';
 import '../widgets/send_broadcast_alert_dialog.dart';
+import '../utils/app_data_cache.dart';
 import '../utils/category_navigation_helper.dart';
+import '../services/case_service.dart';
 import '../widgets/send_reminder_dialog.dart';
 import '../widgets/state_police_banner_dialog.dart';
 import '../widgets/voice_search_dialog.dart';
 import 'about_app_screen.dart';
 import 'absconded_hub_screen.dart';
-import 'ad_form_screen.dart';
 import 'ad_record_detail_screen.dart';
 import 'add_members_screen.dart';
 import 'admin_panel_screen.dart';
@@ -106,6 +118,7 @@ import 'case_form_screen.dart';
 import 'common_form_screen.dart';
 import 'feedback_form_screen.dart';
 import 'form_i_v_selection_screen.dart';
+import 'category_subtabs_screen.dart';
 import 'form_vi_selection_screen.dart';
 import 'help_support_screen.dart';
 import 'hurt_cases_screen.dart';
@@ -115,12 +128,13 @@ import 'module_hub_screen.dart';
 import 'module_record_detail_screen.dart';
 import 'my_cases_screen.dart';
 import 'pending_transfers_screen.dart';
+import '../widgets/dynamic_form/dynamic_form_screen.dart';
 // Navigation targets for Hamburger Menu
 import 'profile_screen.dart';
 import 'station_access_grants_screen.dart';
 
 dynamic _dashboardTileIcon(String label, dynamic fallback) {
-  final k = label.replaceAll('\n', ' ').trim();
+  final k = label.replaceAll(RegExp(r'\s+'), ' ').trim();
   switch (k) {
     case 'Monthly':
       return FontAwesomeIcons.calendarDay;
@@ -140,10 +154,16 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
       return FontAwesomeIcons.bottleDroplet;
     case 'Gambling':
       return FontAwesomeIcons.dice;
+    case 'Murder/Attempt to Murder':
+      return FontAwesomeIcons.skull;
+    case 'Dacoity/Robbery':
+      return FontAwesomeIcons.peopleGroup;
+    case 'Cheating/CBT':
+      return FontAwesomeIcons.maskFace;
+    case 'Chain Snatching':
+      return FontAwesomeIcons.link;
     case 'A.D':
       return FontAwesomeIcons.triangleExclamation;
-    case 'Suicide':
-      return FontAwesomeIcons.heartCrack;
     case 'ST Drugs':
       return FontAwesomeIcons.capsules;
     case 'Hurt':
@@ -191,6 +211,7 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
       return FontAwesomeIcons.scaleBalanced;
     case 'Passport/PVR/Lic':
     case 'Passport/ PVR/Lic':
+    case 'Passport/PVR':
       return FontAwesomeIcons.idCard;
     case 'NDPS':
       return FontAwesomeIcons.pills;
@@ -208,10 +229,6 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
       return FontAwesomeIcons.coins;
     case 'Licence':
       return Icons.assignment_ind_rounded;
-    case 'CCTNS':
-      return Icons.security_rounded;
-    case 'Dial 112':
-      return Icons.call_rounded;
     case 'Tadipar':
       return Icons.gavel_rounded;
     case 'History Sheeter':
@@ -225,6 +242,7 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
       return Icons.fingerprint_rounded;
     case 'DAR':
       return Icons.folder_rounded;
+    case 'IRAD':
     case 'IRDA':
       return Icons.analytics_rounded;
     case 'E-Learning':
@@ -234,403 +252,206 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
   }
 }
 
+String? _getDashboardSvgPath(String label) {
+  final clean = label.toLowerCase().replaceAll(RegExp(r'[\s/._\\]+'), '');
+  switch (clean) {
+    case 'itov':
+    case '1to5':
+      return 'assets/icons/1to5.svg';
+    case 'vi':
+    case '6':
+      return 'assets/icons/6.svg';
+    case 'pending':
+      return 'assets/icons/pending.svg';
+    case 'gambling':
+      return 'assets/icons/gambling.svg';
+    case 'juvenile':
+      return 'assets/icons/juvenile.svg';
+    case 'sandtheft':
+      return 'assets/icons/sandtheft.svg';
+    case 'undetected':
+      return 'assets/icons/undetected.svg';
+    case 'hurt':
+      return 'assets/icons/hurt.svg';
+    case 'kidnappingmissing':
+    case 'kidnapping':
+      return 'assets/icons/kidnapping.svg';
+    case 'missing':
+      return 'assets/icons/missing.svg';
+    case 'nc':
+      return 'assets/icons/nc.svg';
+    case 'arrested':
+      return 'assets/icons/arrested.svg';
+    case 'pocso':
+      return 'assets/icons/pocso.svg';
+    case 'crimeagainstwomen':
+      return 'assets/icons/crimewomen.svg';
+    case 'victim':
+      return 'assets/icons/victim.svg';
+    case 'ad':
+      return 'assets/icons/ad.svg';
+    case 'prohibition':
+      return 'assets/icons/prohibiton.svg';
+    case 'theft':
+      return 'assets/icons/theft.svg';
+    case 'twofourwheelertheft':
+    case 'twofourwheelerstolen':
+    case '24wheeler':
+      return 'assets/icons/2-4wheeler.svg';
+    case 'samwarrant':
+    case 'samwarrants':
+      return 'assets/icons/sam-warrants.svg';
+    case 'muddemal':
+    case 'propertyrecovery':
+      return 'assets/icons/muddemal.svg';
+    case 'rti':
+      return 'assets/icons/rti.svg';
+    case 'passportpvr':
+    case 'passportpvrlic':
+    case 'passport':
+      return 'assets/icons/passport.svg';
+    case 'ndps':
+      return 'assets/icons/ndps.svg';
+    case 'gowansh':
+    case 'gowans':
+      return 'assets/icons/gowans.svg';
+    case 'itact':
+      return 'assets/icons/itact.svg';
+    case 'mcoca':
+    case 'macoca':
+      return 'assets/icons/macoca.svg';
+    case 'uapa':
+      return 'assets/icons/uapa.svg';
+    case 'mpda':
+      return 'assets/icons/mpda.svg';
+    case 'coin':
+      return 'assets/icons/coin.svg';
+    case 'mvact':
+      return 'assets/icons/mvact.svg';
+    case 'accident':
+      return 'assets/icons/accident.svg';
+    case 'detected':
+      return 'assets/icons/detected.svg';
+    case 'disposal':
+      return 'assets/icons/disposal.svg';
+    case 'monthly':
+      return 'assets/icons/monthly.svg';
+    case 'absconded':
+      return 'assets/icons/absconded.svg';
+    case 'cctns':
+      return 'assets/icons/cctns.svg';
+    case 'licence':
+      return 'assets/icons/licence.svg';
+    case 'tadipar':
+      return 'assets/icons/tadipar.svg';
+    case 'repeatoffender':
+      return 'assets/icons/repeatoffender.svg';
+    case 'dar':
+      return 'assets/icons/dar.svg';
+    case 'irad':
+    case 'irda':
+      return 'assets/icons/IRAD.svg';
+    case 'itsso':
+      return 'assets/icons/itsso.svg';
+    case 'murderattempttomurder':
+    case 'murder':
+    case 'attempttomurder':
+    case 'atttomurder':
+      return 'assets/icons/murder.svg';
+    case 'dacoityrobbery':
+    case 'dacoity':
+    case 'decoity':
+    case 'proofdacoity':
+    case 'proofdecoity':
+      return 'assets/icons/dacoity.svg';
+    case 'chainsnatching':
+    case 'snatching':
+      return 'assets/icons/chain_snatching.svg';
+    default:
+      if (clean.contains('passport')) return 'assets/icons/passport.svg';
+      if (clean.contains('murder')) return 'assets/icons/murder.svg';
+      if (clean.contains('dacoity') || clean.contains('decoity')) {
+        return 'assets/icons/dacoity.svg';
+      }
+      if (clean.contains('snatch')) {
+        return 'assets/icons/chain_snatching.svg';
+      }
+      return null;
+  }
+}
+
 Widget _buildGridIcon(
     String label, dynamic fallback, Color color, double size) {
   final labelTrim = label.replaceAll('\n', ' ').trim();
+  final svgPath = _getDashboardSvgPath(labelTrim);
+  if (svgPath != null) {
+    // Optical balancing:
+    // Solid filled badges (1-5, 6, NC, RTI, DAR, MPDA, ITSSO, IRAD) have heavy ink mass; scale to balance with line art
+    final isSolidBadge = svgPath.contains('1to5') ||
+        svgPath.contains('6.svg') ||
+        svgPath.contains('nc.svg') ||
+        svgPath.contains('rti.svg') ||
+        svgPath.contains('dar.svg') ||
+        svgPath.contains('mpda.svg') ||
+        svgPath.contains('itsso.svg') ||
+        svgPath.contains('IRAD.svg');
+    // Tall icons need a slight height factor to match square icon visual mass
+    final isTall = svgPath.contains('juvenile') ||
+        svgPath.contains('crimewomen') ||
+        svgPath.contains('victim') ||
+        svgPath.contains('passport') ||
+        svgPath.contains('mvact');
+    // Wide icons need a slight constraint so they don't crowd card borders
+    final isWide = svgPath.contains('2-4wheeler') ||
+        svgPath.contains('accident') ||
+        svgPath.contains('chain_snatching');
 
-  if (labelTrim == 'I to V') {
+    final double scale =
+        isSolidBadge ? 1.20 : (isTall ? 1.50 : (isWide ? 1.34 : 1.42));
+
     return SvgPicture.asset(
-      'assets/icons/1to5.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'VI') {
-    return SvgPicture.asset(
-      'assets/icons/6.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Pending') {
-    return SvgPicture.asset(
-      'assets/icons/pending.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Gambling') {
-    return SvgPicture.asset(
-      'assets/icons/gambling.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Juvenile') {
-    return SvgPicture.asset(
-      'assets/icons/juvenile.svg',
-      width: size * 2.2,
-      height: size * 2.2,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim.toLowerCase().replaceAll(' ', '') == 'sandtheft') {
-    return SvgPicture.asset(
-      'assets/icons/sandtheft.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Undetected') {
-    return SvgPicture.asset(
-      'assets/icons/undetected.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Hurt') {
-    return SvgPicture.asset(
-      'assets/icons/hurt.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Kidnapping/Missing') {
-    return SvgPicture.asset(
-      'assets/icons/kidnapping.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Missing') {
-    return SvgPicture.asset(
-      'assets/icons/missing.svg',
-      width: size * 2.1,
-      height: size * 2.1,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'N.C') {
-    return SvgPicture.asset(
-      'assets/icons/nc.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Arrested') {
-    return SvgPicture.asset(
-      'assets/icons/arrested.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'POCSO') {
-    return SvgPicture.asset(
-      'assets/icons/pocso.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Crime against Women') {
-    return SvgPicture.asset(
-      'assets/icons/crimewomen.svg',
-      width: size * 2.2,
-      height: size * 2.2,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Victim') {
-    return SvgPicture.asset(
-      'assets/icons/victim.svg',
-      width: size * 2.2,
-      height: size * 2.2,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'A.D') {
-    return SvgPicture.asset(
-      'assets/icons/ad.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Prohibition') {
-    return SvgPicture.asset(
-      'assets/icons/prohibiton.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Theft') {
-    return SvgPicture.asset(
-      'assets/icons/theft.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Two/Four Wheeler Theft') {
-    return SvgPicture.asset(
-      'assets/icons/2-4wheeler.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Sam/Warrant') {
-    return SvgPicture.asset(
-      'assets/icons/sam-warrants.svg',
-      width: size * 2.2,
-      height: size * 2.2,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Muddemal') {
-    return SvgPicture.asset(
-      'assets/icons/muddemal.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'RTI') {
-    return SvgPicture.asset(
-      'assets/icons/rti.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Passport/PVR' ||
-      labelTrim == 'Passport/PVR/Lic' ||
-      labelTrim.contains('Passport')) {
-    return SvgPicture.asset(
-      'assets/icons/passport.svg',
-      width: size * 2.2,
-      height: size * 2.2,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'NDPS') {
-    return SvgPicture.asset(
-      'assets/icons/ndps.svg',
-      width: size * 2.5,
-      height: size * 2.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Gowansh') {
-    return SvgPicture.asset(
-      'assets/icons/gowans.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'IT Act' || labelTrim == 'ITact') {
-    return SvgPicture.asset(
-      'assets/icons/itact.svg',
-      width: size * 2.1,
-      height: size * 2.1,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'MCOCA' || labelTrim == 'MACOCA') {
-    return SvgPicture.asset(
-      'assets/icons/macoca.svg',
-      width: size * 2.1,
-      height: size * 2.1,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'UAPA') {
-    return SvgPicture.asset(
-      'assets/icons/uapa.svg',
-      width: size * 2.1,
-      height: size * 2.1,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'MPDA') {
-    return SvgPicture.asset(
-      'assets/icons/mpda.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'COIN') {
-    return SvgPicture.asset(
-      'assets/icons/coin.svg',
-      width: size * 2.1,
-      height: size * 2.1,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'MV Act' ||
-      labelTrim == 'M V Act' ||
-      labelTrim == 'MVact' ||
-      labelTrim == 'M.V Act') {
-    return SvgPicture.asset(
-      'assets/icons/mvact.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Accident') {
-    return SvgPicture.asset(
-      'assets/icons/accident.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Detected') {
-    return SvgPicture.asset(
-      'assets/icons/detected.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Disposal') {
-    return SvgPicture.asset(
-      'assets/icons/disposal.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Monthly') {
-    return SvgPicture.asset(
-      'assets/icons/monthly.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Absconded') {
-    return SvgPicture.asset(
-      'assets/icons/absconded.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'CCTNS') {
-    return SvgPicture.asset(
-      'assets/icons/cctns.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Licence') {
-    return SvgPicture.asset(
-      'assets/icons/licence.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Tadipar') {
-    return SvgPicture.asset(
-      'assets/icons/tadipar.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Repeat Offender') {
-    return SvgPicture.asset(
-      'assets/icons/repeatoffender.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'DAR') {
-    return SvgPicture.asset(
-      'assets/icons/dar.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'IRDA') {
-    return SvgPicture.asset(
-      'assets/icons/IRDA.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'ITSSO') {
-    return SvgPicture.asset(
-      'assets/icons/itsso.svg',
-      width: size * 1.5,
-      height: size * 1.5,
+      svgPath,
+      width: size * scale,
+      height: size * scale,
+      fit: BoxFit.contain,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
   }
+
   for (final tool in ServiceData.dashboardTools) {
     if (labelTrim == tool.label) {
       return _buildServiceIcon(labelTrim, tool.icon, color, size);
     }
   }
+
+  // Optical parity: glyph icons (FontAwesome/Material) scale to match SVG visual weight
   final dynamic icon = _dashboardTileIcon(label, fallback);
-  if (icon is IconData) return Icon(icon, color: color, size: size);
-  return FaIcon(icon, color: color, size: size);
+  final glyphScale = (icon == FontAwesomeIcons.maskFace) ? 1.42 : 1.35;
+  final glyphSize = size * glyphScale;
+  if (icon is IconData) return Icon(icon, color: color, size: glyphSize);
+  return FaIcon(icon, color: color, size: glyphSize);
 }
 
 Widget _buildServiceIcon(
     String label, dynamic fallback, Color color, double size) {
   final labelTrim = label.replaceAll('\n', ' ').trim();
-  if (labelTrim == 'Tadipar') {
+  final svgPath = _getDashboardSvgPath(labelTrim);
+  if (svgPath != null) {
     return SvgPicture.asset(
-      'assets/icons/tadipar.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Licence') {
-    return SvgPicture.asset(
-      'assets/icons/licence.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'MPDA') {
-    return SvgPicture.asset(
-      'assets/icons/mpda.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Repeat Offender') {
-    return SvgPicture.asset(
-      'assets/icons/repeatoffender.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Property Recovery') {
-    return SvgPicture.asset(
-      'assets/icons/muddemal.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Passport/PVR') {
-    return SvgPicture.asset(
-      'assets/icons/passport.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'DAR') {
-    return SvgPicture.asset(
-      'assets/icons/dar.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'IRDA') {
-    return SvgPicture.asset(
-      'assets/icons/IRDA.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'ITSSO') {
-    return SvgPicture.asset(
-      'assets/icons/itsso.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'CCTNS') {
-    return SvgPicture.asset(
-      'assets/icons/cctns.svg',
+      svgPath,
       width: size * 1.5,
       height: size * 1.5,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
   }
-  if (fallback is IconData) return Icon(fallback, color: color, size: size);
-  return FaIcon(fallback, color: color, size: size);
+  final glyphSize = size * 1.42;
+  if (fallback is IconData)
+    // ignore: curly_braces
+    //
+    // _in_flow_control_structures
+    // ignore: curly_braces_in_flow_control_structures
+    return Icon(fallback, color: color, size: glyphSize);
+  return FaIcon(fallback, color: color, size: glyphSize);
 }
 
 class CardsIconPainter extends CustomPainter {
@@ -1277,6 +1098,16 @@ class ADIconPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
+/// Clears settings caches only when the user, state or active station changed
+/// or they are stale, instead of on every dashboard visit.
+void _ensureFreshCaches(AuthProvider auth) {
+  AppDataCache.ensureFresh(AppDataCache.scopeFor(
+    uid: auth.uid,
+    stateCode: auth.stateCode,
+    station: auth.activeStation,
+  ));
+}
+
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -1290,6 +1121,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
+    // Settings caches survive dashboard visits; they are cleared only for a
+    // different user/state/station or when stale (see AppDataCache).
+    _ensureFreshCaches(context.read<AuthProvider>());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<AuthProvider>().refreshProfileFromFirestore();
@@ -1886,21 +1720,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _showLanguageSheet() {
     final activeLang = context.read<SettingsProvider>().locale.languageCode;
     final langs = [
-      ('🇬🇧', 'English', 'Nagaland, Arunachal Pradesh, Meghalaya', 'en'),
+      ('English', 'Nagaland, Arunachal Pradesh, Meghalaya', 'en'),
       (
-        '🇮🇳',
         'Hindi (हिंदी)',
         'Uttar Pradesh, Bihar, Madhya Pradesh, Rajasthan, Haryana, Himachal, Jharkhand, Chhattisgarh, Uttarakhand',
         'hi'
       ),
-      ('🇮🇳', 'Marathi (मराठी)', 'Maharashtra', 'mr'),
-      ('🇮🇳', 'Gujarati (ગુજરાતી)', 'Gujarat', 'gu'),
-      ('🇮🇳', 'Bengali (বাংলা)', 'West Bengal, Tripura', 'bn'),
-      ('🇮🇳', 'Telugu (తెలుగు)', 'Andhra Pradesh, Telangana', 'te'),
-      ('🇮🇳', 'Tamil (தமிழ்)', 'Tamil Nadu, Puducherry', 'ta'),
-      ('🇮🇳', 'Kannada (ಕನ್ನಡ)', 'Karnataka', 'kn'),
-      ('🇮🇳', 'Malayalam (മലയാളം)', 'Kerala, Lakshadweep', 'ml'),
-      ('🇮🇳', 'Punjabi (ਪੰਜਾਬੀ)', 'Punjab', 'pa'),
+      ('Marathi (मराठी)', 'Maharashtra', 'mr'),
+      ('Gujarati (ગુજરાતી)', 'Gujarat', 'gu'),
+      ('Bengali (বাংলা)', 'West Bengal, Tripura', 'bn'),
+      ('Telugu (తెలుగు)', 'Andhra Pradesh, Telangana', 'te'),
+      ('Tamil (தமிழ்)', 'Tamil Nadu, Puducherry', 'ta'),
+      ('Kannada (ಕನ್ನಡ)', 'Karnataka', 'kn'),
+      ('Malayalam (മലയാളം)', 'Kerala, Lakshadweep', 'ml'),
+      ('Punjabi (ਪੰਜਾਬੀ)', 'Punjab', 'pa'),
     ];
 
     showModalBottomSheet(
@@ -1953,47 +1786,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 itemCount: langs.length,
                 itemBuilder: (ctx, i) {
                   final l = langs[i];
-                  final isSelected = activeLang == l.$4;
-                  return ListTile(
-                    leading: Text(l.$1, style: const TextStyle(fontSize: 20)),
-                    title: Text(
-                      l.$2,
-                      style: GoogleFonts.poppins(
-                        fontSize: 15,
-                        fontWeight:
-                            isSelected ? FontWeight.w700 : FontWeight.w500,
-                        color: isSelected
-                            ? AppColors.infoBlue
-                            : AppColors.navyDark,
-                      ),
-                    ),
-                    subtitle: Text(
-                      l.$3,
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        color: AppColors.lightSubText,
-                      ),
-                    ),
-                    trailing: isSelected
-                        ? const Icon(Icons.check_circle_rounded,
-                            color: AppColors.infoBlue, size: 22)
-                        : const Icon(Icons.chevron_right_rounded,
-                            color: AppColors.goldPrimary, size: 22),
-                    onTap: () {
-                      context.read<SettingsProvider>().setLanguage(l.$4);
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text(
-                          'Language set to ${l.$2}',
-                          style: GoogleFonts.poppins(color: Colors.white),
+                  final isSelected = activeLang == l.$3;
+                  return Material(
+                    color: Colors.transparent,
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 2),
+                      title: Text(
+                        l.$1,
+                        style: GoogleFonts.poppins(
+                          fontSize: 15,
+                          fontWeight:
+                              isSelected ? FontWeight.w700 : FontWeight.w500,
+                          color: isSelected
+                              ? AppColors.infoBlue
+                              : AppColors.navyDark,
                         ),
-                        backgroundColor: AppColors.infoBlue,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.md),
+                      ),
+                      subtitle: Text(
+                        l.$2,
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          color: AppColors.lightSubText,
                         ),
-                      ));
-                    },
+                      ),
+                      trailing: isSelected
+                          ? const Icon(Icons.check_circle_rounded,
+                              color: AppColors.infoBlue, size: 22)
+                          : const Icon(Icons.chevron_right_rounded,
+                              color: AppColors.goldPrimary, size: 22),
+                      onTap: () {
+                        context.read<SettingsProvider>().setLanguage(l.$3);
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text(
+                            'Language set to ${l.$1}',
+                            style: GoogleFonts.poppins(color: Colors.white),
+                          ),
+                          backgroundColor: AppColors.infoBlue,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppRadius.md),
+                          ),
+                        ));
+                      },
+                    ),
                   );
                 },
               ),
@@ -2103,65 +1940,68 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   // ── Switch Policestation (senior officers only) ──
                   if (SeniorOfficerRoles.canSwitchLocation(
                       auth.designation)) ...[
-                    ListTile(
-                      dense: true,
-                      visualDensity: const VisualDensity(vertical: -1),
-                      leading: Icon(
-                        Icons.swap_horiz_rounded,
-                        size: 20,
-                        color: auth.isViewingOtherStation
-                            ? AppColors.goldPrimary
-                            : AppColors.lightText,
-                      ),
-                      title: Text(
-                        MenuLocalizations.get(lang, 'switchStation'),
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
+                    Material(
+                      color: Colors.transparent,
+                      child: ListTile(
+                        dense: true,
+                        visualDensity: const VisualDensity(vertical: -1),
+                        leading: Icon(
+                          Icons.swap_horiz_rounded,
+                          size: 20,
                           color: auth.isViewingOtherStation
                               ? AppColors.goldPrimary
                               : AppColors.lightText,
                         ),
-                      ),
-                      subtitle: Text(
-                        auth.isViewingOtherStation
-                            ? 'Viewing: ${auth.stationName}'
-                            : auth.stationName,
-                        style: GoogleFonts.poppins(
-                          fontSize: 10,
-                          color: auth.isViewingOtherStation
-                              ? AppColors.goldPrimary.withValues(alpha: 0.8)
-                              : AppColors.lightSubText,
+                        title: Text(
+                          MenuLocalizations.get(lang, 'switchStation'),
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: auth.isViewingOtherStation
+                                ? AppColors.goldPrimary
+                                : AppColors.lightText,
+                          ),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      trailing: auth.isViewingOtherStation
-                          ? GestureDetector(
-                              onTap: () {
-                                auth.resetToHomeStation();
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: AppColors.dangerRed
-                                      .withValues(alpha: 0.1),
-                                  borderRadius:
-                                      BorderRadius.circular(AppRadius.sm),
-                                ),
-                                child: Text(
-                                  MenuLocalizations.get(lang, 'reset'),
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.dangerRed,
+                        subtitle: Text(
+                          auth.isViewingOtherStation
+                              ? 'Viewing: ${auth.stationName}'
+                              : auth.stationName,
+                          style: GoogleFonts.poppins(
+                            fontSize: 10,
+                            color: auth.isViewingOtherStation
+                                ? AppColors.goldPrimary.withValues(alpha: 0.8)
+                                : AppColors.lightSubText,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        trailing: auth.isViewingOtherStation
+                            ? GestureDetector(
+                                onTap: () {
+                                  auth.resetToHomeStation();
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.dangerRed
+                                        .withValues(alpha: 0.1),
+                                    borderRadius:
+                                        BorderRadius.circular(AppRadius.sm),
+                                  ),
+                                  child: Text(
+                                    MenuLocalizations.get(lang, 'reset'),
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.dangerRed,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            )
-                          : null,
-                      onTap: () => _showStationSwitcher(context, auth),
+                              )
+                            : null,
+                        onTap: () => _showStationSwitcher(context, auth),
+                      ),
                     ),
                     const Divider(height: 1),
                   ],
@@ -2301,15 +2141,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _drawerItem(IconData icon, String label, VoidCallback onTap,
       {Color? color}) {
     final c = color ?? AppColors.lightText;
-    return ListTile(
-      dense: true,
-      visualDensity: const VisualDensity(
-          vertical: -1), // RESPONSIVE FIX: tighter spacing for small screens
-      leading: Icon(icon, size: 20, color: c),
-      title: Text(label,
-          style: GoogleFonts.poppins(
-              fontSize: 13, fontWeight: FontWeight.w500, color: c)),
-      onTap: onTap, // Removed Navigator.pop to keep drawer open (Persistence)
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        dense: true,
+        visualDensity: const VisualDensity(
+            vertical: -1), // RESPONSIVE FIX: tighter spacing for small screens
+        leading: Icon(icon, size: 20, color: c),
+        title: Text(label,
+            style: GoogleFonts.poppins(
+                fontSize: 13, fontWeight: FontWeight.w500, color: c)),
+        onTap: onTap, // Removed Navigator.pop to keep drawer open (Persistence)
+      ),
     );
   }
 
@@ -2505,7 +2348,9 @@ class _HomeTabState extends State<_HomeTab> {
   int? _searchRecordsFingerprint;
   List<SearchResult>? _cachedLiveSearchResults;
 
-  int _carouselPage = 0;
+  // Current news slide; only the dots listen to it, so the carousel's
+  // auto-play does not rebuild the whole dashboard every few seconds
+  final ValueNotifier<int> _carouselPage = ValueNotifier<int>(0);
   final CarouselSliderController _carouselCtrl = CarouselSliderController();
 
   // Tracks the station the recent-cases stream is currently scoped to.
@@ -2515,10 +2360,49 @@ class _HomeTabState extends State<_HomeTab> {
   // real station switch and re-subscribe so dashboard data is strictly
   // for the currently selected station only.
   String? _subscribedStationName;
+  List<Map<String, dynamic>> _backendCategories = [];
 
   @override
   void initState() {
     super.initState();
+    // DashboardScreen already refreshed stale caches for this user/station.
+    _loadBackendCategories();
+    // MPDA detention end reminders of this station (bell badge + list)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      try {
+        final notifications =
+            Provider.of<NotificationProvider>(context, listen: false);
+        notifications.loadDetentionReminders();
+        notifications.loadRtiReminders();
+      } on ProviderNotFoundException {
+        // Screen used without the notification provider (tests)
+      }
+    });
+  }
+
+  /// Database tiles (MPDA, History Sheeter ...) come from this list, so a
+  /// failed or dropped request is retried instead of leaving them out.
+  Future<void> _loadBackendCategories({int attempt = 1}) async {
+    const maxAttempts = 4;
+    try {
+      final cats = await CaseService().fetchAllCategories();
+      if (!mounted) return;
+      if (cats.isNotEmpty) {
+        setState(() {
+          _backendCategories = cats;
+        });
+        return;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[_HomeTab] _loadBackendCategories error: $e');
+      }
+    }
+    if (attempt < maxAttempts && mounted) {
+      await Future.delayed(Duration(seconds: attempt * 2));
+      if (mounted) await _loadBackendCategories(attempt: attempt + 1);
+    }
   }
 
   @override
@@ -2538,6 +2422,7 @@ class _HomeTabState extends State<_HomeTab> {
     if (_subscribedStationName == activeStation) return;
     _clearSearchStateOnStationSwitch();
     _subscribedStationName = activeStation;
+    _ensureFreshCaches(widget.auth);
     _initRecentStream();
   }
 
@@ -2628,6 +2513,7 @@ class _HomeTabState extends State<_HomeTab> {
       ('Hurt', 'hurt', rec<HurtProvider>((p) => p.records)),
       ('POCSO', 'pocso', rec<PocsoProvider>((p) => p.records)),
       ('Passport/PVR', 'passport', rec<PassportProvider>((p) => p.records)),
+      ('Licence', 'licence', rec<LicenceProvider>((p) => p.records)),
       ('Monthly', 'monthly', rec<MonthlyProvider>((p) => p.records)),
       ('Pending', 'pending', rec<PendingProvider>((p) => p.records)),
       ('Detected', 'detected', rec<DetectedProvider>((p) => p.records)),
@@ -2757,6 +2643,7 @@ class _HomeTabState extends State<_HomeTab> {
   @override
   void dispose() {
     _recentSub?.cancel();
+    _carouselPage.dispose();
     _searchCtrl.dispose();
     _searchFocusNode.dispose();
     _debounce?.cancel();
@@ -2937,8 +2824,7 @@ class _HomeTabState extends State<_HomeTab> {
               autoPlayInterval: AppTimeouts.carouselInterval,
               autoPlayAnimationDuration: const Duration(milliseconds: 600),
               autoPlayCurve: Curves.easeInOut,
-              onPageChanged: (index, reason) =>
-                  setState(() => _carouselPage = index),
+              onPageChanged: (index, reason) => _carouselPage.value = index,
             ),
             itemBuilder: (context, i, _) {
               final item = news.items[i];
@@ -2948,14 +2834,17 @@ class _HomeTabState extends State<_HomeTab> {
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        AnimatedSmoothIndicator(
-          activeIndex: _carouselPage,
-          count: news.items.length,
-          effect: ExpandingDotsEffect(
-            dotHeight: 8,
-            dotWidth: 8,
-            activeDotColor: AppColors.navyMid,
-            dotColor: AppColors.navyMid.withValues(alpha: 0.25),
+        ValueListenableBuilder<int>(
+          valueListenable: _carouselPage,
+          builder: (context, page, _) => AnimatedSmoothIndicator(
+            activeIndex: page,
+            count: news.items.length,
+            effect: ExpandingDotsEffect(
+              dotHeight: 8,
+              dotWidth: 8,
+              activeDotColor: AppColors.navyMid,
+              dotColor: AppColors.navyMid.withValues(alpha: 0.25),
+            ),
           ),
         ),
       ],
@@ -3083,7 +2972,17 @@ class _HomeTabState extends State<_HomeTab> {
                 onPressed: () async {
                   final spoken = await VoiceSearchDialog.show(context);
                   if (spoken != null && spoken.trim().isNotEmpty) {
-                    final cleanSpoken = spoken.trim();
+                    var cleanSpoken = spoken.trim();
+                    while (cleanSpoken.endsWith('.') ||
+                        cleanSpoken.endsWith(',') ||
+                        cleanSpoken.endsWith('?') ||
+                        cleanSpoken.endsWith('!')) {
+                      cleanSpoken = cleanSpoken
+                          .substring(0, cleanSpoken.length - 1)
+                          .trim();
+                    }
+                    if (cleanSpoken.isEmpty) return;
+
                     final parsedDate =
                         UniversalSearch.tryParseNaturalDate(cleanSpoken);
                     if (parsedDate != null) {
@@ -3125,8 +3024,6 @@ class _HomeTabState extends State<_HomeTab> {
     Classification('Gambling', 'monetization_on', 'coin'),
     Classification('RTI', 'description', 'application'),
     Classification('M.V Act', 'traffic', 'traffic'),
-    Classification('Suicide', 'heart_broken', 'suicide'),
-    Classification('ST Drugs', 'medication', 'st_drugs'),
   ];
 
   List<({String title, String subtext, IconData icon, VoidCallback onTap})>
@@ -3323,8 +3220,16 @@ class _HomeTabState extends State<_HomeTab> {
 
   int _matchingModulesCount(String query) {
     if (query.trim().isEmpty) return 0;
-    final q = query.trim().toLowerCase();
-    final matchingFormIV = kFormIVCaseCategories
+    var q = query.trim().toLowerCase();
+    while (q.endsWith('.') ||
+        q.endsWith(',') ||
+        q.endsWith('?') ||
+        q.endsWith('!')) {
+      q = q.substring(0, q.length - 1).trim();
+    }
+    if (q.isEmpty) return 0;
+
+    final matchingFormIV = formIVCaseCategories
         .where((cat) => cat.toLowerCase().contains(q))
         .length;
     final allClasses = [...Classification.all, ..._extraSearchClassifications];
@@ -3337,9 +3242,16 @@ class _HomeTabState extends State<_HomeTab> {
 
   Widget _buildMatchingModuleTabs(String query) {
     if (query.trim().isEmpty) return const SizedBox.shrink();
-    final q = query.trim().toLowerCase();
+    var q = query.trim().toLowerCase();
+    while (q.endsWith('.') ||
+        q.endsWith(',') ||
+        q.endsWith('?') ||
+        q.endsWith('!')) {
+      q = q.substring(0, q.length - 1).trim();
+    }
+    if (q.isEmpty) return const SizedBox.shrink();
 
-    final matchingFormIV = kFormIVCaseCategories.where((cat) {
+    final matchingFormIV = formIVCaseCategories.where((cat) {
       return cat.toLowerCase().contains(q);
     }).toList();
 
@@ -3714,11 +3626,28 @@ class _HomeTabState extends State<_HomeTab> {
         return Icons.inventory_2_rounded;
       case 'two_wheeler':
         return Icons.two_wheeler_rounded;
+      case 'admin_panel':
+        return Icons.admin_panel_settings_rounded;
       case 'folder_special':
         return Icons.folder_special_rounded;
       default:
         return Icons.folder_rounded;
     }
+  }
+
+  String _iconNameForStandalone(String? name, String? code) {
+    final n = (name ?? '').toLowerCase();
+    final c = (code ?? '').toLowerCase();
+    if (n.contains('history') || c.contains('history')) {
+      return 'assignment';
+    }
+    if (n.contains('mpda') || c.contains('mpda')) {
+      return 'admin_panel';
+    }
+    if (n.contains('rti') || c.contains('rti')) {
+      return 'description';
+    }
+    return 'folder_special';
   }
 
   Widget _buildThreePartClassification(bool isWide) {
@@ -3734,18 +3663,22 @@ class _HomeTabState extends State<_HomeTab> {
     }
 
     final itemsPerGroup = cols * 3;
+    // Standalone categories from /api/categories/ (active rows with group == null && parent_category == null)
+    final List<Map<String, dynamic>> standaloneBackendRows =
+        _backendCategories.where((c) {
+      final isActive = c['is_active'] != false;
+      final isStandalone = c['group'] == null && c['parent_category'] == null;
+      return isActive && isStandalone;
+    }).toList();
+
     // Dashboard-only ordering/labels tweaks (do not modify global constants):
-    // - Insert Prohibition + Gambling after A.D
+    // - Add Prohibition + Gambling tiles (Part 6 categories)
     // - Display "Traffic" as "M.V Act" (dashboard only)
     // - Show RTI next to Sam/Warrant (dashboard only)
     final List<Classification> cases = [
-      for (final c in Classification.casesGroup) ...[
-        c,
-        if (c.name == 'A.D') ...[
-          const Classification('Prohibition', 'admin_panel', 'mpda'),
-          const Classification('Gambling', 'monetization_on', 'coin'),
-        ],
-      ],
+      ...Classification.casesGroup,
+      const Classification('Prohibition', 'admin_panel', 'prohibition'),
+      const Classification('Gambling', 'monetization_on', 'gambling'),
     ];
 
     final List<Classification> services = [
@@ -3753,7 +3686,23 @@ class _HomeTabState extends State<_HomeTab> {
         if (c.name == 'Traffic')
           const Classification('M.V Act', 'traffic', 'traffic')
         else if (c.name == 'Application')
-          const Classification('RTI', 'description', 'application')
+          () {
+            final rtiRow = standaloneBackendRows.firstWhere(
+              (r) =>
+                  (r['category_name']?.toString() ?? '').toUpperCase() ==
+                      'RTI' ||
+                  (r['category_code']?.toString() ?? '').toUpperCase() ==
+                      'STAND_RTI',
+              orElse: () => <String, dynamic>{},
+            );
+            return Classification(
+              'RTI',
+              'description',
+              'application',
+              categoryId: rtiRow['category_id'] ?? rtiRow['id'],
+              categoryCode: rtiRow['category_code']?.toString(),
+            );
+          }()
         else
           c,
     ];
@@ -3767,13 +3716,112 @@ class _HomeTabState extends State<_HomeTab> {
       services.insert(insertAt, rti);
     }
 
-    final List<Classification> displayItems = [
-      ...Classification.statsGroup,
-      ...cases,
-      ...services,
-      for (final tool in ServiceData.dashboardTools)
-        Classification(tool.label, 'service_tool', 'service_tool'),
+    // Labels already shown by the fixed tiles above. Backend standalone rows
+    // that match one of these (e.g. "A.D." vs "A.D", "Coin" vs "COIN",
+    // "Missing" inside "Kidnapping/Missing", "Sec 156(3)/175(3)(BNSS)" vs
+    // "CRPC 1563 / BNSS 1753") must not be added a second time.
+    String norm(String s) =>
+        s.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+    String digits(String s) => s.replaceAll(RegExp(r'[^0-9]'), '');
+    final shownLabels = [
+      ...Classification.statsGroup.map((c) => c.name),
+      ...cases.map((c) => c.name),
+      ...services.map((c) => c.name),
+      ...ServiceData.dashboardTools.map((t) => t.label),
     ];
+    final shownNorm = shownLabels.map(norm).toList();
+    final shownDigits = shownLabels.map(digits).toList();
+    bool alreadyShown(String name) {
+      final n = norm(name);
+      final d = digits(name);
+      for (var i = 0; i < shownNorm.length; i++) {
+        if (n == shownNorm[i]) return true;
+        if (n.length >= 4 && shownNorm[i].contains(n)) return true;
+        if (d.length >= 4 && d == shownDigits[i]) return true;
+      }
+      return false;
+    }
+
+    // Build standalone category tiles from /api/categories/ (active rows)
+    final List<Classification> standaloneTiles = [];
+    for (final cat in standaloneBackendRows) {
+      final name = cat['category_name']?.toString() ?? '';
+      final code = cat['category_code']?.toString();
+      final id = cat['category_id'] ?? cat['id'];
+
+      // RTI is integrated into the services RTI tile above
+      if (name.toUpperCase() == 'RTI' ||
+          (code != null && code.toUpperCase() == 'STAND_RTI')) {
+        continue;
+      }
+
+      // Already represented by a fixed dashboard tile
+      if (alreadyShown(name)) continue;
+
+      standaloneTiles.add(
+        Classification(
+          name,
+          _iconNameForStandalone(name, code),
+          (code ?? 'standalone').toLowerCase(),
+          categoryId: id,
+          categoryCode: code,
+        ),
+      );
+    }
+
+    // Place every case tile by its database category: tiles whose category is
+    // in "1 to 5" (group 1) sit with the case tiles, tiles whose category is in
+    // Part 6 (group 2) get their own section in Part 6 order, everything else
+    // (RTI, Sam/Warrant, Muddemal, hubs ...) stays with the services.
+    String tileLabel(Classification c) =>
+        c.name.split(RegExp(r'\s+')).join(' ');
+
+    int? groupOf(Classification c) {
+      final twin = CategoryNavigationHelper.findGroupTwin(
+          _backendCategories, tileLabel(c));
+      if (twin == null) return null;
+      final g = twin['group'] ?? twin['group_id'];
+      return g is Map ? int.tryParse('${g['group_id']}') : int.tryParse('$g');
+    }
+
+    int part6Order(Classification c) {
+      final twin = CategoryNavigationHelper.findGroupTwin(
+          _backendCategories, tileLabel(c));
+      return int.tryParse('${twin?['display_order']}') ?? 1 << 30;
+    }
+
+    final caseSection = <Classification>[];
+    final part6Section = <Classification>[];
+    final serviceSection = <Classification>[];
+    for (final c in cases) {
+      (groupOf(c) == 2 ? part6Section : caseSection).add(c);
+    }
+    for (final c in services) {
+      final g = groupOf(c);
+      if (g == 2) {
+        part6Section.add(c);
+      } else if (g == 1) {
+        caseSection.add(c);
+      } else {
+        serviceSection.add(c);
+      }
+    }
+    part6Section.sort((a, b) => part6Order(a).compareTo(part6Order(b)));
+    serviceSection.addAll(standaloneTiles);
+
+    final sections = <List<Classification>>[
+      Classification.statsGroup,
+      caseSection,
+      part6Section,
+      serviceSection,
+      [
+        for (final tool in ServiceData.dashboardTools)
+          Classification(tool.label, 'service_tool', 'service_tool'),
+      ],
+    ];
+    // Sections keep their order but flow on continuously, so no row is left
+    // half empty; the grid is split into blocks of three rows.
+    final displayItems = [for (final section in sections) ...section];
     final List<List<Classification>> groups = [];
     for (int i = 0; i < displayItems.length; i += itemsPerGroup) {
       groups.add(displayItems.sublist(
@@ -3939,12 +3987,91 @@ class _HomeTabState extends State<_HomeTab> {
           page: ArrestedHubScreen(stationName: auth.stationName),
         ),
       );
-    } else if (item.moduleKey == 'service_tool') {
+    } else if (item.name == 'Repeat Offender') {
+      final auth = context.read<AuthProvider>();
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
-          page: CaseFormScreen(categoryName: label),
+          page: RepeatOffenderSummaryScreen(stationName: auth.stationName),
         ),
+      );
+    } else if (item.name == 'NAFIS' || item.moduleKey == 'nafis') {
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: NAFISHubScreen(stationName: auth.stationName),
+        ),
+      );
+    } else if (item.name == 'E-Learning' ||
+        item.moduleKey == 'elearning' ||
+        item.name == 'E Learning') {
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: ELearningScreen(stationName: auth.stationName),
+        ),
+      );
+    } else if (label.toLowerCase() == 'licence' ||
+        label.toLowerCase() == 'license' ||
+        item.name.toLowerCase() == 'licence' ||
+        item.name.toLowerCase() == 'license' ||
+        item.moduleKey == 'licence') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: LicenceHubScreen(stationName: widget.auth.stationName),
+        ),
+      );
+    } else if (label.toLowerCase().contains('passport') ||
+        item.name.toLowerCase().contains('passport') ||
+        item.moduleKey == 'passport') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: PassportHubScreen(stationName: widget.auth.stationName),
+        ),
+      );
+    } else if (item.moduleKey == 'service_tool') {
+      final cleanLabel = label.trim().toLowerCase();
+      if (cleanLabel == 'history sheeter' ||
+          cleanLabel == 'history sheet' ||
+          item.categoryCode != null ||
+          item.categoryId != null) {
+        CategoryNavigationHelper.handleDashboardCategoryTap(
+          context: context,
+          categoryName: item.name,
+          moduleKey: item.moduleKey,
+          categoryId: item.categoryId,
+          categoryCode: item.categoryCode,
+          readOnly: false,
+        );
+      } else {
+        Navigator.push(
+          context,
+          AppTheme.fadeSlideRoute(
+            page: CaseFormScreen(categoryName: label),
+          ),
+        );
+      }
+    } else if (item.moduleKey == 'chain_snatching') {
+      // Same tab, case list and form as inside "1 to 5"
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const FormIVSelectionScreen(
+            openCategory: 'Chain Snatching',
+            customTitle: 'Chain Snatching',
+            mode: FormIVSelectionMode.browse,
+          ),
+        ),
+      );
+    } else if (CategorySubtabsScreen.forTile(item.moduleKey) != null) {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+            page: CategorySubtabsScreen.forTile(item.moduleKey)!),
       );
     } else if (item.moduleKey == 'hurt' || item.name == 'Hurt') {
       Navigator.push(
@@ -3958,6 +4085,13 @@ class _HomeTabState extends State<_HomeTab> {
         context,
         AppTheme.fadeSlideRoute(
           page: AbscondedHubScreen(stationName: widget.auth.stationName),
+        ),
+      );
+    } else if (item.moduleKey == 'juvenile' || item.name == 'Juvenile') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: JuvenileHubScreen(stationName: widget.auth.stationName),
         ),
       );
     } else {
@@ -3979,6 +4113,8 @@ class _HomeTabState extends State<_HomeTab> {
           context: context,
           categoryName: item.name,
           moduleKey: item.moduleKey,
+          categoryId: item.categoryId,
+          categoryCode: item.categoryCode,
           readOnly: false,
         );
       }
@@ -4007,25 +4143,42 @@ class _HomeTabState extends State<_HomeTab> {
                 borderRadius: BorderRadius.circular(AppRadius.md),
                 border: Border.all(color: AppColors.lightBorder),
               ),
-              child: Center(
-                child: _buildGridIcon(
-                    item.name,
-                    matchedTool?.icon ?? _classIcon(item.iconName),
-                    AppColors.navyMid,
-                    24),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final side = constraints.maxWidth < constraints.maxHeight
+                      ? constraints.maxWidth
+                      : constraints.maxHeight;
+                  final baseSize = (side * 0.44).clamp(18.0, 30.0);
+                  return Center(
+                    child: _buildGridIcon(
+                        item.name,
+                        matchedTool?.icon ?? _classIcon(item.iconName),
+                        AppColors.navyMid,
+                        baseSize),
+                  );
+                },
               ),
             ),
           ),
           const SizedBox(height: 5),
-          Text(
-            TranslationHelper.translate(context, item.name),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            style: GoogleFonts.poppins(
-                fontSize: 9.5,
-                fontWeight: FontWeight.w500,
-                height: 1.2,
-                color: AppColors.lightText),
+          // Fixed two-line label area: one- and two-line labels take the same
+          // height, so every icon box in a row has the same size and position.
+          SizedBox(
+            height: MediaQuery.textScalerOf(context).scale(9.5 * 1.2) * 2 + 2,
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: Text(
+                TranslationHelper.translate(context, item.name),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w500,
+                    height: 1.2,
+                    color: AppColors.lightText),
+              ),
+            ),
           ),
         ],
       ),
@@ -4326,33 +4479,68 @@ class _HomeTabState extends State<_HomeTab> {
             const Divider(height: 1),
             Expanded(
               child: FormIVCategoryButtonGrid(
-                labels: kFormIVCaseCategories,
+                labels: formIVCaseCategories,
                 scrollable: true,
                 padding: const EdgeInsets.all(24),
                 onLabelTap: (label) {
                   Navigator.pop(context);
                   if (isAdding) {
-                    Navigator.push(
-                      context,
-                      AppTheme.fadeSlideRoute(
-                        page: CommonFormScreen(
-                          moduleLabel: label,
-                          moduleKey: 'form_1_5',
-                          subCategory: label,
+                    if (label == 'A.D.') {
+                      // A.D. has sub-tabs (Suicide / Other): pick one first
+                      CategoryNavigationHelper.handleDashboardCategoryTap(
+                        context: context,
+                        categoryName: label,
+                        moduleKey: 'form_1_5',
+                        readOnly: false,
+                      );
+                    } else if (label == 'N.C.') {
+                      Navigator.push(
+                        context,
+                        AppTheme.fadeSlideRoute(
+                            page: NcFormScreen(moduleLabel: label)),
+                      );
+                    } else if (label == 'Missing') {
+                      Navigator.push(
+                        context,
+                        AppTheme.fadeSlideRoute(
+                            page: MissingFormScreen(moduleLabel: label)),
+                      );
+                    } else if (label == 'Preventive') {
+                      Navigator.push(
+                        context,
+                        AppTheme.fadeSlideRoute(
+                            page: PreventiveFormScreen(moduleLabel: label)),
+                      );
+                    } else if (isTabLinkedToCommonFormBaseline(
+                        moduleKey: 'form_1_5', categoryName: label)) {
+                      Navigator.push(
+                        context,
+                        AppTheme.fadeSlideRoute(
+                          page: CommonFormScreen(
+                            moduleLabel: label,
+                            moduleKey: 'form_1_5',
+                            subCategory: label,
+                          ),
                         ),
-                      ),
-                    );
+                      );
+                    } else {
+                      Navigator.push(
+                        context,
+                        AppTheme.fadeSlideRoute(
+                          page: DynamicFormScreen(
+                            moduleLabel: label,
+                            moduleKey: 'form_1_5',
+                            subCategory: label,
+                          ),
+                        ),
+                      );
+                    }
                   } else {
-                    Navigator.push(
-                      context,
-                      AppTheme.fadeSlideRoute(
-                        page: ModuleHubScreen(
-                          moduleLabel: label,
-                          moduleKey: 'form_1_5',
-                          subCategory: label,
-                          readOnly: false,
-                        ),
-                      ),
+                    CategoryNavigationHelper.handleDashboardCategoryTap(
+                      context: context,
+                      categoryName: label,
+                      moduleKey: 'form_1_5',
+                      readOnly: false,
                     );
                   }
                 },
@@ -4586,6 +4774,9 @@ class _ViewTabState extends State<_ViewTab> {
     super.dispose();
   }
 
+  Stream<List<ModuleRecord>>? _stream;
+  String? _streamKey;
+
   Stream<List<ModuleRecord>> _getStream(
       AuthProvider auth, CaseVisibilityMode mode) {
     if (_selectedTabIndex == 1) {
@@ -4636,8 +4827,17 @@ class _ViewTabState extends State<_ViewTab> {
     final auth = context.watch<AuthProvider>();
     final mode = CaseVisibility.resolveFor(auth);
 
+    // Same stream across rebuilds; a new one only when the tab, station,
+    // officer or visibility mode changes (a new stream flashes "loading")
+    final streamKey = '$_selectedTabIndex|${auth.activeStation}|${auth.uid}|'
+        '${auth.displayName}|$mode';
+    if (_stream == null || _streamKey != streamKey) {
+      _streamKey = streamKey;
+      _stream = _getStream(auth, mode);
+    }
+
     return StreamBuilder<List<ModuleRecord>>(
-      stream: _getStream(auth, mode),
+      stream: _stream,
       builder: (context, snapshot) {
         final allRecords = snapshot.data ?? [];
         final filtered = _filterRecords(allRecords);
@@ -5180,20 +5380,35 @@ class _ViewTabState extends State<_ViewTab> {
                                                         color:
                                                             AppColors.infoBlue,
                                                         onTap: () {
+                                                          final isLinked =
+                                                              isTabLinkedToCommonFormBaseline(
+                                                            moduleKey:
+                                                                c.moduleKey,
+                                                            categoryName: c
+                                                                .firestoreCategoryDisplayName,
+                                                          );
+                                                          final page = isLinked
+                                                              ? CommonFormScreen(
+                                                                  moduleKey: c
+                                                                      .moduleKey,
+                                                                  moduleLabel: c
+                                                                      .firestoreCategoryDisplayName,
+                                                                  existingRecord:
+                                                                      c,
+                                                                )
+                                                              : DynamicFormScreen(
+                                                                  moduleKey: c
+                                                                      .moduleKey,
+                                                                  moduleLabel: c
+                                                                      .firestoreCategoryDisplayName,
+                                                                  existingRecord:
+                                                                      c,
+                                                                );
                                                           Navigator.push(
                                                             context,
                                                             AppTheme
                                                                 .fadeSlideRoute(
-                                                              page:
-                                                                  CommonFormScreen(
-                                                                moduleKey:
-                                                                    c.moduleKey,
-                                                                moduleLabel: c
-                                                                    .firestoreCategoryDisplayName,
-                                                                existingRecord:
-                                                                    c,
-                                                              ),
-                                                            ),
+                                                                    page: page),
                                                           );
                                                         },
                                                       ),
@@ -5351,6 +5566,7 @@ class _CalendarTabState extends State<_CalendarTab> {
     records.addAll(context.watch<HurtProvider>().records);
     records.addAll(context.watch<PocsoProvider>().records);
     records.addAll(context.watch<PassportProvider>().records);
+    records.addAll(context.watch<LicenceProvider>().records);
     records.addAll(context.watch<TwoFourWheelerProvider>().records);
     records.addAll(context.watch<ArrestedProvider>().records);
     records.addAll(context.watch<AbscondedProvider>().records);
@@ -5777,7 +5993,7 @@ class _CalendarTabState extends State<_CalendarTab> {
                   ElevatedButton.icon(
                     onPressed: () => ModulePdfHelper.generateSummaryReportPdf(
                         countsForPdf, reportTitle, rangeLabel),
-                    icon: const Icon(Icons.download_rounded,
+                    icon: const Icon(Icons.assessment_outlined,
                         size: 16, color: Colors.white),
                     label: Text('Summary',
                         style: GoogleFonts.poppins(
@@ -5837,15 +6053,26 @@ class _CalendarTabState extends State<_CalendarTab> {
           );
           return;
         }
-        Navigator.push(
-            context,
-            AppTheme.fadeSlideRoute(
-                page: ModuleHubScreen(
-              moduleLabel: meta.label,
-              moduleKey: meta.moduleKey,
-              subCategory: meta.subCategory,
-              readOnly: true,
-            )));
+        // A tile for one sub-category opens that module's list filtered to it
+        final sub = meta.subCategory?.trim() ?? '';
+        if (sub.isNotEmpty) {
+          Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(
+                  page: ModuleHubScreen(
+                moduleLabel: meta.label,
+                moduleKey: meta.moduleKey,
+                subCategory: meta.subCategory,
+                readOnly: true,
+              )));
+          return;
+        }
+        CategoryNavigationHelper.handleDashboardCategoryTap(
+          context: context,
+          categoryName: meta.label,
+          moduleKey: meta.moduleKey,
+          readOnly: true,
+        );
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
@@ -6478,23 +6705,26 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
                   ),
                   if (canAdd) ...[
                     const SizedBox(height: 16),
-                    ListTile(
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                      leading: const Icon(
-                        Icons.add_location_alt_rounded,
-                        size: 20,
-                        color: AppColors.goldPrimary,
-                      ),
-                      title: Text(
-                        'Add Location',
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
+                    Material(
+                      color: Colors.transparent,
+                      child: ListTile(
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(
+                          Icons.add_location_alt_rounded,
+                          size: 20,
                           color: AppColors.goldPrimary,
                         ),
+                        title: Text(
+                          'Add Location',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.goldPrimary,
+                          ),
+                        ),
+                        onTap: _onAddLocation,
                       ),
-                      onTap: _onAddLocation,
                     ),
                   ],
                 ],
@@ -6529,22 +6759,25 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
                       ),
                   ],
                   if (canAdd)
-                    ListTile(
-                      dense: true,
-                      leading: const Icon(
-                        Icons.add_location_alt_rounded,
-                        size: 20,
-                        color: AppColors.goldPrimary,
-                      ),
-                      title: Text(
-                        'Add Location',
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
+                    Material(
+                      color: Colors.transparent,
+                      child: ListTile(
+                        dense: true,
+                        leading: const Icon(
+                          Icons.add_location_alt_rounded,
+                          size: 20,
                           color: AppColors.goldPrimary,
                         ),
+                        title: Text(
+                          'Add Location',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.goldPrimary,
+                          ),
+                        ),
+                        onTap: _onAddLocation,
                       ),
-                      onTap: _onAddLocation,
                     ),
                 ],
               ),
@@ -6565,61 +6798,64 @@ class _StationSwitcherSheetState extends State<_StationSwitcherSheet> {
     final isAddedLocation =
         widget.auth.additionalStations.contains(station) && !isHome;
 
-    return ListTile(
-      dense: true,
-      selected: isActive,
-      selectedTileColor: AppColors.navyMid.withValues(alpha: 0.08),
-      leading: Icon(
-        isActive
-            ? Icons.radio_button_checked_rounded
-            : Icons.radio_button_off_rounded,
-        size: 20,
-        color: isActive ? AppColors.navyMid : AppColors.lightSubText,
-      ),
-      title: Text(
-        station,
-        style: GoogleFonts.poppins(
-          fontSize: 13,
-          fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-          color: isActive ? AppColors.navyDark : AppColors.lightText,
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        dense: true,
+        selected: isActive,
+        selectedTileColor: AppColors.navyMid.withValues(alpha: 0.08),
+        leading: Icon(
+          isActive
+              ? Icons.radio_button_checked_rounded
+              : Icons.radio_button_off_rounded,
+          size: 20,
+          color: isActive ? AppColors.navyMid : AppColors.lightSubText,
         ),
-      ),
-      trailing: (isHome || isAddedLocation)
-          ? Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (isHome)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.goldPrimary.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(AppRadius.sm),
-                    ),
-                    child: Text(
-                      'Home',
-                      style: GoogleFonts.poppins(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.goldPrimary,
+        title: Text(
+          station,
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+            color: isActive ? AppColors.navyDark : AppColors.lightText,
+          ),
+        ),
+        trailing: (isHome || isAddedLocation)
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isHome)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.goldPrimary.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
+                      ),
+                      child: Text(
+                        'Home',
+                        style: GoogleFonts.poppins(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.goldPrimary,
+                        ),
                       ),
                     ),
-                  ),
-                if (isAddedLocation)
-                  IconButton(
-                    visualDensity: VisualDensity.compact,
-                    iconSize: 18,
-                    icon: const Icon(Icons.delete_outline_rounded),
-                    color: Colors.red,
-                    onPressed: () => _confirmDeleteLocation(station),
-                  ),
-              ],
-            )
-          : null,
-      onTap: () {
-        widget.auth.switchStation(station);
-        Navigator.pop(context);
-      },
+                  if (isAddedLocation)
+                    IconButton(
+                      visualDensity: VisualDensity.compact,
+                      iconSize: 18,
+                      icon: const Icon(Icons.delete_outline_rounded),
+                      color: Colors.red,
+                      onPressed: () => _confirmDeleteLocation(station),
+                    ),
+                ],
+              )
+            : null,
+        onTap: () {
+          widget.auth.switchStation(station);
+          Navigator.pop(context);
+        },
+      ),
     );
   }
 }
@@ -6916,19 +7152,19 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
                 mode: FormIVSelectionMode.add,
               )));
         } else if (item.moduleKey == 'ad') {
-          Navigator.push(
-              context,
-              AppTheme.fadeSlideRoute(
-                page: const ADFormScreen(),
-              ));
+          // A.D. has sub-tabs (Suicide / Other): pick one first
+          CategoryNavigationHelper.handleDashboardCategoryTap(
+            context: context,
+            categoryName: 'A.D.',
+            moduleKey: 'form_1_5',
+          );
         } else if (item.moduleKey == 'nc') {
-          Navigator.push(
-              context,
-              AppTheme.fadeSlideRoute(
-                page: NcFormScreen(
-                  moduleLabel: item.name,
-                ),
-              ));
+          // N.C. is an independent module: route through target_category_code
+          CategoryNavigationHelper.handleDashboardCategoryTap(
+            context: context,
+            categoryName: item.name,
+            moduleKey: item.moduleKey,
+          );
         } else if (item.moduleKey == 'missing') {
           Navigator.push(
               context,
@@ -6945,7 +7181,9 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
                   moduleLabel: item.name,
                 ),
               ));
-        } else if (moduleUsesCommonCrimeForm(item.moduleKey)) {
+        } else if (item.moduleKey == 'passport') {
+          PassportAddEditDialog.show(context);
+        } else if (moduleUsesCommonCrimeForm(item.moduleKey, item.name)) {
           Navigator.push(
               context,
               AppTheme.fadeSlideRoute(
@@ -7025,11 +7263,11 @@ class _SearchModuleGroup extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         GestureDetector(
-          onTap: () => Navigator.push(
-              context,
-              AppTheme.fadeSlideRoute(
-                  page: ModuleHubScreen(
-                      moduleLabel: moduleLabel, moduleKey: moduleKey))),
+          onTap: () => CategoryNavigationHelper.handleDashboardCategoryTap(
+            context: context,
+            categoryName: moduleLabel,
+            moduleKey: moduleKey,
+          ),
           child: Container(
             margin: const EdgeInsets.only(bottom: 8, top: 4),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -7064,11 +7302,11 @@ class _SearchModuleGroup extends StatelessWidget {
         ...shown.map((r) => _resultCard(context, r)),
         if (overflow > 0)
           GestureDetector(
-            onTap: () => Navigator.push(
-                context,
-                AppTheme.fadeSlideRoute(
-                    page: ModuleHubScreen(
-                        moduleLabel: moduleLabel, moduleKey: moduleKey))),
+            onTap: () => CategoryNavigationHelper.handleDashboardCategoryTap(
+              context: context,
+              categoryName: moduleLabel,
+              moduleKey: moduleKey,
+            ),
             child: Padding(
               padding: const EdgeInsets.only(bottom: 12, left: 4),
               child: Text('+ $overflow more in $moduleLabel →',

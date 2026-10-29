@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../services/app_version.dart';
 import '../theme/app_theme.dart';
 
 class HelpSupportScreen extends StatelessWidget {
@@ -208,7 +209,7 @@ class HelpSupportScreen extends StatelessWidget {
                                   ),
                                 ),
                                 child: Text(
-                                  'Version 2.4.0 • Build 2026.08',
+                                  AppVersion.label,
                                   style: GoogleFonts.poppins(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.w600,

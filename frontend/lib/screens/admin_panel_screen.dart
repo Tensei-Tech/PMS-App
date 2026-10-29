@@ -62,18 +62,20 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     final auth = context.watch<AuthProvider>();
     final role = (auth.roleId).toLowerCase();
 
-    final isStateAdmin = PoliceHierarchyHelper.isStateSuperAdmin(
+    // The role decides, as on the server: a city or district admin with
+    // designation DG gets their own panel, not the state one.
+    final isStateAdmin = PoliceHierarchyHelper.adminLevelOf(
           auth.designation,
           auth.roleId,
-        ) ||
-        role == 'state_admin' ||
-        role == 'state_super_admin' ||
-        role == 'master_admin';
+        ) ==
+        AdminLevel.stateAdmin;
 
     final isDivAdmin =
         !isStateAdmin && (role == 'division_admin' || role == 'supervisor');
-    final isDistrictAdmin =
-        !isStateAdmin && !isDivAdmin && (role == 'district_admin');
+    // A city (commissionerate) admin uses the district admin's panel.
+    final isDistrictAdmin = !isStateAdmin &&
+        !isDivAdmin &&
+        (role == 'district_admin' || role == 'city_admin');
     final isStationAdmin = !isStateAdmin &&
         !isDivAdmin &&
         !isDistrictAdmin &&
@@ -84,47 +86,54 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       return const StationAdminPanelScreen();
     }
 
+    // A district or city admin creates Division Admins (sub-divisions of
+    // their district or city) and Station Heads; a division admin creates
+    // Station Heads for its own sub-division.
+    final isCityAdmin = role == 'city_admin';
+    final unit = isCityAdmin ? 'city' : 'district';
+    final unitTitle = isCityAdmin ? 'City' : 'District';
+
     final headerTitle = isStateAdmin
         ? 'State Command & Control Center'
         : isDivAdmin
             ? 'Division Command & Control Center'
-            : 'District Command & Control Center';
+            : '$unitTitle Command & Control Center';
 
     final headerSubtitle = isStateAdmin
         ? 'Manage registration approvals, sub-admin creation, and state hierarchy directory.'
         : isDivAdmin
-            ? 'Manage officer approvals, station head creation, and districts/stations in your division.'
-            : 'Manage station head creation and police stations inside your district.';
+            ? 'Manage officer approvals, station head creation, and the police stations of your sub-division.'
+            : 'Manage Division Admins, Station Heads and police stations inside your $unit.';
 
     final createAdminTitle = isStateAdmin
-        ? 'Create Sub-Admin (District / Div / Station)'
+        ? 'Create Sub-Admin (District / City / Division / Station)'
         : isDivAdmin
-            ? 'Create Station Head / Sub-Admin'
-            : 'Create Station Head (SHO / PI)';
+            ? 'Create Station Head (SHO / PI)'
+            : 'Create Division Admin / Station Head';
 
     final createAdminSubtitle = isStateAdmin
-        ? 'Provision District Admins, Division Admins, or Station Heads with administrative grants.'
+        ? 'Provision District, City and Division Admins, or Station Heads with administrative grants.'
         : isDivAdmin
-            ? 'Provision Station Heads (SHO/PI) and sub-division admins inside your assigned division.'
-            : 'Provision Station Heads (SHO/PI) across police stations in your assigned district.';
+            ? 'Provision Station Heads (SHO/PI) for police stations in your sub-division.'
+            : 'Provision Division Admins (sub-divisions) and Station Heads (SHO/PI) in your $unit.';
 
     final hierarchyTitle = isStateAdmin
         ? 'State Admin Hierarchy & Directory'
         : isDivAdmin
             ? 'Division Hierarchy & Directory'
-            : 'District Stations & Directory';
+            : '$unitTitle Divisions & Stations';
 
     final hierarchySubtitle = isStateAdmin
-        ? 'View all 6 Divisions, Districts, and Station Heads across Maharashtra Police.'
+        ? 'View all Divisions, Districts, Cities and Station Heads across the state.'
         : isDivAdmin
-            ? 'View districts and police stations assigned under your division range.'
-            : 'View police stations and Station Heads (SHO) assigned under your district.';
+            ? 'View your sub-division and its police stations.'
+            : 'View the divisions, police stations and Station Heads in your $unit.';
 
     final panelTitle = isStateAdmin
         ? 'State Admin Panel'
         : isDivAdmin
             ? 'Division Admin Panel'
-            : 'District Admin Panel';
+            : '$unitTitle Admin Panel';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),

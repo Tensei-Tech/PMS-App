@@ -21,7 +21,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../modules/core/models/base_record.dart';
-import '../../screens/ad_form_screen.dart' show ACT_DATA;
 import '../../services/case_service.dart';
 import '../../services/backend_case_service.dart';
 import '../../utils/app_constants.dart';
@@ -143,20 +142,6 @@ const _kProceduralKeys = {
   'chkIdent': 'Identification Panchanama',
   'chkIdParade': 'Identification Parade Panchanama',
 };
-
-const _kPreventiveItems = [
-  '107 Crpc / 126 BNSS',
-  '109 Crpc / 128 BNSS',
-  '110 Crpc / 129 BNSS',
-  '151(3) Crpc / 170 BNSS',
-  '144 Crpc / 163 BNSS',
-  '149 Crpc / 168 BNSS',
-  '55 MPA',
-  '56 MPA',
-  '57 MPA',
-  '122 MPA',
-  '93 Prohibition Act',
-];
 
 // CommonForm widget
 // ─────────────────────────────────────────────────────────────────────────────
@@ -325,6 +310,7 @@ class CommonFormState extends State<CommonForm> {
   }
 
   // ── Live Voice Dictation State ──────────────────────────────────────────
+  bool _isGeneratingPdf = false;
   String _activeVoiceFieldLabel = 'CR Number';
   String _activeVoiceSectionName = '§1 Crime Registration';
   TextEditingController? _activeVoiceController;
@@ -609,6 +595,7 @@ class CommonFormState extends State<CommonForm> {
   final _fingerprintDate = TextEditingController();
   final _fingerprintReason = TextEditingController();
   String? _nafisFingerprint;
+  final _nafisDate = TextEditingController();
 
   final List<Map<String, dynamic>> _seizures = [];
 
@@ -678,18 +665,17 @@ class CommonFormState extends State<CommonForm> {
   // ── Dynamic Field Engine Data (Backend API) ──────────────────────────────
   Map<String, Map<String, dynamic>> _actsData = {};
   Map<String, String> _proceduralKeys = Map.from(_kProceduralKeys);
-  List<String> _preventiveItems = List.from(_kPreventiveItems);
+  // Preventive provisions come from the backend (public.option_values)
+  List<String> _preventiveItems = [];
   List<Map<String, dynamic>> _extraFields = [];
   final Map<String, TextEditingController> _dynamicControllers = {};
   final Map<String, dynamic> _dynamicValues = {};
   bool _isUsingFallback = false;
 
   Map<String, Map<String, dynamic>> get _activeActsData =>
-      _actsData.isNotEmpty ? _actsData : ACT_DATA;
+      _actsData.isNotEmpty ? _actsData : BackendCaseService.cachedActData;
   Map<String, String> get _activeProceduralKeys =>
       _proceduralKeys.isNotEmpty ? _proceduralKeys : _kProceduralKeys;
-  List<String> get _activePreventiveItems =>
-      _preventiveItems.isNotEmpty ? _preventiveItems : _kPreventiveItems;
 
   Future<void> _loadFormDefinition({List<dynamic>? chargedSections}) async {
     final catId = widget.categoryId ??
@@ -777,10 +763,20 @@ class CommonFormState extends State<CommonForm> {
   // ─── lifecycle ─────────────────────────────────────────────────────────────
   Future<void> _fetchGlobalActs() async {
     final acts = await BackendCaseService().fetchActDataMap();
-    if (acts != null && mounted) {
+    if (acts != null && acts.isNotEmpty && mounted) {
       setState(() {
         _actsData = acts;
       });
+    } else if (mounted &&
+        _actsData.isEmpty &&
+        BackendCaseService.cachedActData.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to load legal acts and sections from server.'),
+          backgroundColor: _kRed,
+          duration: Duration(seconds: 4),
+        ),
+      );
     }
   }
 
@@ -887,6 +883,7 @@ class CommonFormState extends State<CommonForm> {
       if (_injuredMedicalExam != null) _injMedicalExam,
       _fingerprintDate,
       _fingerprintReason,
+      _nafisDate,
     ]) {
       c.dispose();
     }
@@ -1440,7 +1437,11 @@ class CommonFormState extends State<CommonForm> {
     _cctvVal = null;
     _cctvChecked = false;
 
+    _fingerprintVal = null;
+    _fingerprintDate.clear();
+    _fingerprintReason.clear();
     _nafisFingerprint = null;
+    _nafisDate.clear();
     _finalSummary.clear();
     _discharge.clear();
     for (final c in _dischargeDates.values) {
@@ -1649,7 +1650,12 @@ class CommonFormState extends State<CommonForm> {
         'fingerprintDate': _fingerprintDate.text,
         'fingerprintReason': _fingerprintReason.text,
         'nafisFingerprint': _nafisFingerprint,
+        'nafisDate': _nafisDate.text,
       },
+      'fingerprintVal': _fingerprintVal,
+      'fingerprintDate': _fingerprintDate.text,
+      'nafisFingerprint': _nafisFingerprint,
+      'nafisDate': _nafisDate.text,
       'seizures': _seizures
           .map(
             (s) => {
@@ -2108,14 +2114,24 @@ class CommonFormState extends State<CommonForm> {
 
     final inv = m['investigationNotes'] as Map?;
     if (inv != null) {
-      _fingerprintVal = inv['fingerprintVal'] as String?;
-      _fingerprintDate.text = _s(inv['fingerprintDate']);
-      _fingerprintReason.text = _s(inv['fingerprintReason']);
-      _nafisFingerprint = inv['nafisFingerprint'] as String?;
+      _fingerprintVal =
+          inv['fingerprintVal'] as String? ?? m['fingerprintVal'] as String?;
+      _fingerprintDate.text =
+          _s(inv['fingerprintDate'] ?? m['fingerprintDate']);
+      _fingerprintReason.text =
+          _s(inv['fingerprintReason'] ?? m['fingerprintReason']);
+      _nafisFingerprint = inv['nafisFingerprint'] as String? ??
+          m['nafisFingerprint'] as String?;
+      _nafisDate.text = _s(inv['nafisDate'] ?? m['nafisDate']);
       if (_fingerprintVal == null && inv['fingerprint'] != null) {
         _fingerprintReason.text = _s(inv['fingerprint']);
         _fingerprintVal = 'no';
       }
+    } else {
+      _fingerprintVal = m['fingerprintVal'] as String?;
+      _fingerprintDate.text = _s(m['fingerprintDate']);
+      _nafisFingerprint = m['nafisFingerprint'] as String?;
+      _nafisDate.text = _s(m['nafisDate']);
     }
 
     for (final s0 in _safeList(m['seizures'])) {
@@ -3019,6 +3035,7 @@ class CommonFormState extends State<CommonForm> {
                     Icons.picture_as_pdf_outlined,
                     _generatePdf,
                     const Color(0xFF0284C7),
+                    isLoading: _isGeneratingPdf,
                   ),
                 ],
               ),
@@ -3170,7 +3187,7 @@ class CommonFormState extends State<CommonForm> {
                           ),
                           _card(
                             11,
-                            'Custody & Remand (PCR / MCR)',
+                            'Custody & Remand',
                             _s10(),
                           ),
                           _card(
@@ -3242,6 +3259,8 @@ class CommonFormState extends State<CommonForm> {
   }
 
   Future<void> _generatePdf() async {
+    if (_isGeneratingPdf) return;
+    setState(() => _isGeneratingPdf = true);
     try {
       final doc = buildDocumentMap();
       final label = widget.moduleLabel?.trim() ?? '';
@@ -3276,30 +3295,54 @@ class CommonFormState extends State<CommonForm> {
           backgroundColor: _kRed,
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() => _isGeneratingPdf = false);
+      }
     }
   }
 
-  Widget _barBtn(String label, IconData icon, VoidCallback onTap, Color color) {
+  Widget _barBtn(
+    String label,
+    IconData icon,
+    VoidCallback? onTap,
+    Color color, {
+    bool isLoading = false,
+  }) {
+    final effectiveColor = isLoading ? Colors.grey : color;
     return InkWell(
-      onTap: onTap,
+      onTap: isLoading ? null : onTap,
       borderRadius: BorderRadius.circular(6),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          border: Border.all(color: color.withValues(alpha: 0.5)),
+          border: Border.all(color: effectiveColor.withValues(alpha: 0.5)),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 13, color: color),
+            if (isLoading)
+              SizedBox(
+                width: 12,
+                height: 12,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: effectiveColor,
+                ),
+              )
+            else
+              Icon(icon, size: 13, color: color),
             const SizedBox(width: 4),
             Text(
-              TranslationHelper.translate(context, label),
+              TranslationHelper.translate(
+                context,
+                isLoading ? 'Generating...' : label,
+              ),
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: color,
+                color: effectiveColor,
               ),
             ),
           ],
@@ -3491,7 +3534,7 @@ class CommonFormState extends State<CommonForm> {
             _tf('Area', _spotArea),
           ]),
           _row([
-            _tf('Spot Address', _spotAddress),
+            _tf('Address', _spotAddress),
           ]),
           _dateTimeField(
             'Date & Time of Occurrence',
@@ -4848,19 +4891,37 @@ class CommonFormState extends State<CommonForm> {
               const SizedBox(width: 24),
               Expanded(
                 flex: 3,
-                child: _yesNo(
-                  'Fingerprint taken',
-                  _fingerprintVal,
-                  (v) => setState(() => _fingerprintVal = v),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _yesNo(
+                      'Fingerprint taken',
+                      _fingerprintVal,
+                      (v) => setState(() => _fingerprintVal = v),
+                    ),
+                    if (_fingerprintVal == 'yes') ...[
+                      const SizedBox(height: 6),
+                      _dateTimeField('Date', _fingerprintDate),
+                    ],
+                  ],
                 ),
               ),
               const SizedBox(width: 24),
               Expanded(
                 flex: 3,
-                child: _yesNo(
-                  'Nafis Fingerprint',
-                  _nafisFingerprint,
-                  (v) => setState(() => _nafisFingerprint = v),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _yesNo(
+                      'Nafis Fingerprint',
+                      _nafisFingerprint,
+                      (v) => setState(() => _nafisFingerprint = v),
+                    ),
+                    if (_nafisFingerprint == 'yes') ...[
+                      const SizedBox(height: 6),
+                      _dateTimeField('Date', _nafisDate),
+                    ],
+                  ],
                 ),
               ),
             ],
@@ -5014,13 +5075,13 @@ class CommonFormState extends State<CommonForm> {
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
                         initialValue:
-                            _kPreventiveItems.contains(action) ? action : null,
+                            _preventiveItems.contains(action) ? action : null,
                         dropdownColor: Colors.white,
                         isExpanded: true,
                         decoration: _d('Preventive Action'),
                         style: _tsBody,
                         icon: const Icon(Icons.arrow_drop_down, color: _kTeal),
-                        items: _kPreventiveItems.map((item) {
+                        items: _preventiveItems.map((item) {
                           return DropdownMenuItem<String>(
                             value: item,
                             child: Text(
@@ -5675,7 +5736,25 @@ class _SectionSearchPickerState extends State<_SectionSearchPicker> {
 
   @override
   Widget build(BuildContext context) {
-    final acts = widget.actsData ?? ACT_DATA;
+    final acts = widget.actsData ?? BackendCaseService.cachedActData;
+    if (acts.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            const Icon(Icons.error_outline, size: 16, color: _kRed),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                TranslationHelper.translate(context,
+                    'Error: Failed to load acts and sections from server.'),
+                style: const TextStyle(fontSize: 12, color: _kRed),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     final sections = (acts[widget.actKey]?['sections'] as List<dynamic>? ?? [])
         .map((r) => r as Map<String, dynamic>)
         .toList();

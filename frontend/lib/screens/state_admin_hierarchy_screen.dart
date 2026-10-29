@@ -4,9 +4,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../constants/app_constants.dart';
 import '../services/api_config.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/officer_details_dialog.dart';
 
 class StateAdminHierarchyScreen extends StatefulWidget {
   const StateAdminHierarchyScreen({super.key});
@@ -26,6 +28,7 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
 
   List<Map<String, dynamic>> _divisions = [];
   List<Map<String, dynamic>> _districts = [];
+  List<Map<String, dynamic>> _cities = [];
   List<Map<String, dynamic>> _stations = [];
   String _stationSearchQuery = '';
   final TextEditingController _searchController = TextEditingController();
@@ -33,7 +36,7 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _fetchHierarchyDirectory();
   }
 
@@ -51,7 +54,10 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
     });
 
     try {
-      final response = await _apiService.get(ApiConfig.hierarchyDirectory);
+      final response = await _apiService.get(
+        ApiConfig.hierarchyDirectory,
+        timeout: ApiConstants.longReceiveTimeout,
+      );
       if (!mounted) return;
 
       if (response.isSuccess && response.data is Map) {
@@ -61,6 +67,8 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
               (data['divisions'] as List?)?.cast<Map<String, dynamic>>() ?? [];
           _districts =
               (data['districts'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+          _cities =
+              (data['cities'] as List?)?.cast<Map<String, dynamic>>() ?? [];
           _stations =
               (data['stations'] as List?)?.cast<Map<String, dynamic>>() ?? [];
           _isLoading = false;
@@ -130,12 +138,14 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
             fontSize: 12.5,
             fontWeight: FontWeight.w500,
           ),
+          // Same order as the hierarchy: district, city, division, station.
           tabs: const [
+            Tab(icon: Icon(Icons.map_rounded, size: 18), text: 'Districts'),
+            Tab(icon: Icon(Icons.apartment_rounded, size: 18), text: 'Cities'),
             Tab(
               icon: Icon(Icons.location_city_rounded, size: 18),
               text: 'Divisions',
             ),
-            Tab(icon: Icon(Icons.map_rounded, size: 18), text: 'Districts'),
             Tab(
               icon: Icon(Icons.local_police_rounded, size: 18),
               text: 'Stations',
@@ -152,8 +162,9 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
               : TabBarView(
                   controller: _tabController,
                   children: [
-                    _buildDivisionsTab(),
                     _buildDistrictsTab(),
+                    _buildCitiesTab(),
+                    _buildDivisionsTab(),
                     _buildStationsTab(),
                   ],
                 ),
@@ -200,7 +211,8 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
   // ── 1. DIVISIONS TAB VIEW ──
   Widget _buildDivisionsTab() {
     if (_divisions.isEmpty) {
-      return _buildEmptyState('No Divisions found in system.');
+      return _buildEmptyState(
+          'No Division Admins yet. Create one from Admin Panel → Create Sub-Admin.');
     }
 
     return ListView.builder(
@@ -209,6 +221,10 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
       itemBuilder: (context, index) {
         final div = _divisions[index];
         final name = div['name'] ?? 'Division';
+        // A division is a sub-division inside one district or city.
+        final district = (div['district'] ?? '').toString();
+        // A division is a group of police stations.
+        final stations = (div['stations'] as List?)?.cast<String>() ?? [];
         final admins =
             (div['admins'] as List?)?.cast<Map<String, dynamic>>() ?? [];
 
@@ -238,7 +254,12 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
               ),
             ),
             subtitle: Text(
-              '${admins.length} Division Admin(s) assigned',
+              [
+                if (district.isNotEmpty) district,
+                '${admins.length} Division Admin(s) assigned',
+                if (stations.isNotEmpty)
+                  '${stations.length} station(s): ${stations.join(', ')}',
+              ].join(' • '),
               style: GoogleFonts.poppins(
                 fontSize: 11,
                 color: Colors.grey.shade600,
@@ -350,7 +371,73 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
     );
   }
 
-  // ── 3. STATIONS TAB VIEW ──
+  // ── 3. CITIES TAB VIEW ──
+  // A city (police commissionerate) is listed once it has a City Admin; cities
+  // have no master list yet.
+  Widget _buildCitiesTab() {
+    if (_cities.isEmpty) {
+      return _buildEmptyState(
+          'No City Admins yet. Create one from Admin Panel → Create Sub-Admin.');
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(12),
+      itemCount: _cities.length,
+      itemBuilder: (context, index) {
+        final city = _cities[index];
+        final name = city['name'] ?? 'City';
+        final admins =
+            (city['admins'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+
+        return Card(
+          elevation: 1,
+          margin: const EdgeInsets.only(bottom: 8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+            side: const BorderSide(color: Color(0xFFE2E8F0)),
+          ),
+          child: ExpansionTile(
+            leading: CircleAvatar(
+              radius: 16,
+              backgroundColor: Colors.teal.shade50,
+              child: Icon(
+                Icons.apartment_rounded,
+                color: Colors.teal.shade700,
+                size: 18,
+              ),
+            ),
+            title: Text(
+              name,
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppColors.navyDark,
+              ),
+            ),
+            subtitle: Text(
+              '${admins.length} City Admin(s) assigned',
+              style: GoogleFonts.poppins(
+                fontSize: 11,
+                color: Colors.grey.shade600,
+              ),
+            ),
+            children: [
+              Column(
+                children: admins
+                    .map(
+                      (admin) =>
+                          _buildAdminTile(admin, roleLabel: 'City Admin'),
+                    )
+                    .toList(),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // ── 4. STATIONS TAB VIEW ──
   Widget _buildStationsTab() {
     final filtered = _stations.where((st) {
       final name = (st['name'] ?? '').toString().toLowerCase();
@@ -441,6 +528,7 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
                         side: const BorderSide(color: Color(0xFFE2E8F0)),
                       ),
                       child: ListTile(
+                        onTap: head == null ? null : () => _showOfficer(head),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 4,
@@ -497,6 +585,11 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
     );
   }
 
+  /// Shows an officer's profile and assignment (read-only).
+  void _showOfficer(Map<String, dynamic> officer) {
+    OfficerDetailsDialog.show(context, officerData: officer);
+  }
+
   Widget _buildAdminTile(
     Map<String, dynamic> admin, {
     required String roleLabel,
@@ -511,48 +604,53 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
       decoration: const BoxDecoration(
         border: Border(top: BorderSide(color: Color(0xFFF1F5F9))),
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-        leading: CircleAvatar(
-          radius: 14,
-          backgroundColor: AppColors.navyDark.withValues(alpha: 0.1),
-          child: const Icon(
-            Icons.person_rounded,
-            size: 16,
-            color: AppColors.navyDark,
+      child: Material(
+        color: Colors.transparent,
+        child: ListTile(
+          onTap: () => _showOfficer(admin),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+          leading: CircleAvatar(
+            radius: 14,
+            backgroundColor: AppColors.navyDark.withValues(alpha: 0.1),
+            child: const Icon(
+              Icons.person_rounded,
+              size: 16,
+              color: AppColors.navyDark,
+            ),
           ),
-        ),
-        title: Text(
-          '$name ($desig)',
-          style: GoogleFonts.poppins(
-            fontSize: 12.5,
-            fontWeight: FontWeight.w600,
-            color: AppColors.navyDark,
-          ),
-        ),
-        subtitle: Text(
-          'Badge: ${badge.isNotEmpty ? badge : "N/A"} • Phone: ${phone.isNotEmpty ? phone : "N/A"}',
-          style: GoogleFonts.poppins(
-            fontSize: 10.5,
-            color: Colors.grey.shade600,
-          ),
-        ),
-        trailing: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          decoration: BoxDecoration(
-            color: status == 'active'
-                ? Colors.green.shade50
-                : Colors.orange.shade50,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(
-            status.toUpperCase(),
+          title: Text(
+            '$name ($desig)',
             style: GoogleFonts.poppins(
-              fontSize: 9.5,
-              fontWeight: FontWeight.w700,
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: AppColors.navyDark,
+            ),
+          ),
+          subtitle: Text(
+            'Badge: ${badge.isNotEmpty ? badge : "N/A"} • Phone: ${phone.isNotEmpty ? phone : "N/A"}',
+            style: GoogleFonts.poppins(
+              fontSize: 10.5,
+              color: Colors.grey.shade600,
+            ),
+          ),
+          trailing: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
               color: status == 'active'
-                  ? Colors.green.shade800
-                  : Colors.orange.shade800,
+                  ? Colors.green.shade50
+                  : Colors.orange.shade50,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              status.toUpperCase(),
+              style: GoogleFonts.poppins(
+                fontSize: 9.5,
+                fontWeight: FontWeight.w700,
+                color: status == 'active'
+                    ? Colors.green.shade800
+                    : Colors.orange.shade800,
+              ),
             ),
           ),
         ),

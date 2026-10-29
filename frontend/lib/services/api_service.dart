@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../constants/app_constants.dart';
 import 'api_config.dart';
+import 'connectivity/connectivity_service.dart';
 import 'secure_storage.dart';
 
 /// Response wrapper for API calls
@@ -49,6 +50,12 @@ class ApiService {
   /// Optional HTTP client for unit and widget testing
   @visibleForTesting
   static http.Client? clientForTesting;
+
+  /// Returns true if a test HTTP client has been set for testing
+  static bool get isTestEnvironment => clientForTesting != null;
+
+  /// Active HTTP client (test client if injected, otherwise default client)
+  static http.Client get activeHttpClient => clientForTesting ?? http.Client();
 
   /// Explicitly set the active JWT token in-memory and in secure storage
   Future<void> setAuthToken(String token) async {
@@ -211,6 +218,7 @@ class ApiService {
     Map<String, String>? headers,
     Map<String, dynamic>? queryParameters,
     bool isRetry = false,
+    Duration? timeout,
   }) async {
     Uri uri = Uri.parse(url);
     if (queryParameters != null && queryParameters.isNotEmpty) {
@@ -229,7 +237,7 @@ class ApiService {
         final response = await (client != null
                 ? client.get(uri, headers: requestHeaders)
                 : http.get(uri, headers: requestHeaders))
-            .timeout(ApiConstants.receiveTimeout);
+            .timeout(timeout ?? ApiConstants.receiveTimeout);
 
         final apiRes = _processResponse(response);
         if (apiRes.statusCode == 401 && !isRetry) {
@@ -240,6 +248,7 @@ class ApiService {
               headers: headers,
               queryParameters: queryParameters,
               isRetry: true,
+              timeout: timeout,
             );
           }
         }
@@ -248,6 +257,7 @@ class ApiService {
       } on SocketException {
         attempt++;
         if (attempt > 1) {
+          ConnectivityService().reportConnectionStatus(false);
           return ApiResponse.error(
             'No Internet connection or server unavailable.',
             statusCode: 503,
@@ -263,6 +273,11 @@ class ApiService {
           );
         }
         await Future.delayed(Duration(milliseconds: 300 * attempt));
+      } on TimeoutException {
+        return ApiResponse.error(
+          'The server is taking too long to respond. Please tap Retry.',
+          statusCode: 504,
+        );
       } catch (e) {
         return ApiResponse.error('Unexpected error: $e', statusCode: 500);
       }
@@ -310,6 +325,7 @@ class ApiService {
       } on SocketException {
         attempt++;
         if (attempt > 1) {
+          ConnectivityService().reportConnectionStatus(false);
           return ApiResponse.error(
             'No Internet connection or server unavailable.',
             statusCode: 503,
@@ -344,6 +360,7 @@ class ApiService {
 
       return _processResponse(response);
     } on SocketException {
+      ConnectivityService().reportConnectionStatus(false);
       return ApiResponse.error(
         'No Internet connection or server unavailable.',
         statusCode: 503,
@@ -461,6 +478,7 @@ class ApiService {
     }
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
+      ConnectivityService().reportApiSuccess();
       return ApiResponse.success(bodyData, statusCode: response.statusCode);
     } else {
       String message = 'HTTP Error ${response.statusCode}';

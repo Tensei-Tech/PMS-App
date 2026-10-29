@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../modules/core/models/base_record.dart';
-import '../../../screens/ad_form_screen.dart' show ACT_DATA;
+import '../../../services/backend_case_service.dart';
 import '../../../theme/app_theme.dart';
 import '../../../utils/module_pdf_helper.dart';
 import 'nc_form_screen.dart';
@@ -117,7 +117,8 @@ class NcViewDocumentView extends StatelessWidget {
   }
 
   String _secLabel(String actKey, String val) {
-    final secs = ACT_DATA[actKey]?['sections'] as List<dynamic>? ?? [];
+    final acts = BackendCaseService.cachedActData;
+    final secs = acts[actKey]?['sections'] as List<dynamic>? ?? [];
     for (final raw in secs) {
       if (raw is Map) {
         if (raw['val'] == val) return raw['label'] as String? ?? val;
@@ -348,7 +349,9 @@ class NcViewDocumentView extends StatelessWidget {
           final data = e.value;
           final actKey = data['act']?.toString() ?? '';
           final actLabel = actKey.isNotEmpty
-              ? (ACT_DATA[actKey]?['label'] as String? ?? actKey)
+              ? (BackendCaseService.cachedActData[actKey]?['label']
+                      as String? ??
+                  actKey)
               : 'N/A';
           final secs = data['sections'];
           final List<String> secList = [];
@@ -687,7 +690,9 @@ class NcViewDocumentView extends StatelessWidget {
           ...prevChargeList.map((data) {
             final actKey = data['act']?.toString() ?? '';
             final actLabel = actKey.isNotEmpty
-                ? (ACT_DATA[actKey]?['label'] as String? ?? actKey)
+                ? (BackendCaseService.cachedActData[actKey]?['label']
+                        as String? ??
+                    actKey)
                 : 'N/A';
             final secs = data['sections'];
             final List<String> secList = [];

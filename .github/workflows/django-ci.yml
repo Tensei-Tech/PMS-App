@@ -30,10 +30,15 @@ jobs:
           --health-retries 5
     env:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
+      DJANGO_SETTINGS_MODULE: config.settings
       DB_SSL_REQUIRE: "false"
       DB_SSLMODE: "disable"
       DJANGO_SECRET_KEY: test-secret-key
       DEBUG: "False"
+      # Tests must not read or write the shared Upstash cache (tests also force local memory)
+      UPSTASH_REDIS_REST_URL: ""
+      UPSTASH_REDIS_REST_TOKEN: ""
+      REDIS_URL: ""
     defaults:
       run:
         working-directory: ./backend
@@ -68,5 +73,7 @@ jobs:
       - name: Clear Python cache
         run: find . -name "__pycache__" -exec rm -rf {} +
 
+      - name: Print DB engine for verification
+        run: python -c "from django.conf import settings; print('DB ENGINE:', settings.DATABASES['default']['ENGINE'])"
       - name: Run tests
         run: python manage.py test --verbosity=2

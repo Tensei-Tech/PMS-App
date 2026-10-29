@@ -105,8 +105,10 @@ class Command(BaseCommand):
                 'case:view', 'case:create', 'case:edit', 'case:approve', 'case:assign',
                 'user:view', 'user:approve'
             ],
+            # Officers edit only their own cases (apps/crimetab/case_access.py),
+            # so no broad 'case:edit'.
             'officer': [
-                'station:view', 'case:view', 'case:create', 'case:edit'
+                'station:view', 'case:view', 'case:create'
             ],
         }
 
@@ -186,6 +188,10 @@ class Command(BaseCommand):
                     'is_active': True,
                 }
             )
+
+        # Admin-role eligibility comes from the Admin Role / Designation Matrix.
+        from apps.public_master.designation_matrix import apply_matrix
+        apply_matrix(Designation)
 
         self.stdout.write(self.style.SUCCESS("  Police Designations: Seeded dynamic DB matrix flags for all rank levels."))
         self.stdout.write(self.style.SUCCESS("\n[SUCCESS] 100% Dynamic Permissions & Hierarchy Seeding Completed!"))

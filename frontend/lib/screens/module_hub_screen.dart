@@ -53,7 +53,6 @@ import '../modules/preventive/screens/preventive_view_screen.dart';
 import '../modules/sam_warrant/providers/sam_warrant_provider.dart';
 import '../modules/sand_theft/providers/sand_theft_provider.dart';
 import '../modules/st_drugs/providers/st_drugs_provider.dart';
-import '../modules/suicide/providers/suicide_provider.dart';
 import '../modules/theft/providers/theft_provider.dart';
 import '../modules/traffic/providers/traffic_provider.dart';
 import '../modules/two_four_wheeler/providers/two_four_wheeler_provider.dart';
@@ -81,6 +80,7 @@ import 'form_vi_selection_screen.dart' hide FormIVEmptyCasesState;
 import 'hurt_cases_screen.dart';
 import 'module_form_screen.dart';
 import 'module_record_detail_screen.dart';
+import '../widgets/dynamic_form/dynamic_form_screen.dart';
 import 'filtered_pending_screen.dart';
 import 'pending_io_wise_screens.dart';
 import 'pending_summary_screen.dart';
@@ -126,6 +126,10 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   final TextEditingController _searchCtrl = TextEditingController();
   late int _reportMonth;
   late int _reportYear;
+  bool _showMonthlySummaryTable = false;
+  bool _showMonthlyClassVTable = true;
+  bool _showMonthlyClassVITable = false;
+  bool _showMonthlyPreventiveTable = false;
   DateTimeRange? _selectedDateRange;
   FormIVDateField _dateField = FormIVDateField.incidentDate;
   FormIVDateSortOrder _dateSortOrder = FormIVDateSortOrder.newestFirst;
@@ -258,8 +262,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         return context.watch<MpdaProvider>();
       case 'coin':
         return context.watch<CoinProvider>();
-      case 'suicide':
-        return context.watch<SuicideProvider>();
       case 'st_drugs':
         return context.watch<StDrugsProvider>();
       default:
@@ -342,8 +344,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         return context.read<MpdaProvider>();
       case 'coin':
         return context.read<CoinProvider>();
-      case 'suicide':
-        return context.read<SuicideProvider>();
       case 'st_drugs':
         return context.read<StDrugsProvider>();
       default:
@@ -477,7 +477,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         ),
       );
     } else {
-      final page = moduleUsesCommonCrimeForm(widget.moduleKey)
+      final page = moduleUsesCommonCrimeForm(
+              widget.moduleKey, widget.subCategory ?? widget.moduleLabel)
           ? CommonFormScreen(
               moduleLabel: widget.moduleLabel,
               moduleKey: widget.moduleKey,
@@ -689,7 +690,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       child: _buildSamWarrantModuleReportOnly(context)),
                 ] else if (widget.moduleKey == 'pending') ...[
                   SliverToBoxAdapter(
-                      child: _buildPendingModuleReportOnly(context)),
+                      child:
+                          _buildPendingModuleReportOnly(context)),
                 ] else if (widget.moduleLabel == 'Forms' &&
                     widget.moduleKey == 'form_1_5') ...[
                   SliverToBoxAdapter(
@@ -914,8 +916,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                           : 'Monthly Registration Report',
                   DateFormat('MMMM yyyy').format(now),
                 ),
-                icon: const Icon(Icons.download_rounded,
-                    size: 18, color: Colors.white),
+                icon: const Icon(Icons.assessment_outlined,
+                    size: 16, color: Colors.white),
                 label: Text('Summary',
                     style:
                         GoogleFonts.poppins(fontSize: 12, color: Colors.white)),
@@ -1244,17 +1246,16 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           '(${subSection.pageRange}, subCategory: $subCategory)',
         );
       }
+      final page = CommonFormScreen(
+        moduleLabel: moduleLabel,
+        moduleKey: 'form_1_5',
+        subCategory: subCategory,
+        formSection: subSection?.sectionId,
+        pageRange: subSection?.pageRange,
+      );
       Navigator.push(
         context,
-        AppTheme.fadeSlideRoute(
-          page: CommonFormScreen(
-            moduleLabel: moduleLabel,
-            moduleKey: 'form_1_5',
-            subCategory: subCategory,
-            formSection: subSection?.sectionId,
-            pageRange: subSection?.pageRange,
-          ),
-        ),
+        AppTheme.fadeSlideRoute(page: page),
       );
     }
 
@@ -1297,126 +1298,256 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     // We call into the same logic by generating a table locally and using the same PDF helper.
     // (intentionally unused) monthRecords was previously used for PDF export here.
 
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(color: AppColors.lightBorder),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 6),
+    final monthDropdown = Container(
+      height: 34,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.lightBorder),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int>(
+          value: _reportMonth,
+          isDense: true,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded,
+              size: 18, color: AppColors.navyMid),
+          items: List.generate(
+            12,
+            (i) => DropdownMenuItem(
+              value: i + 1,
+              child: Text(
+                TranslationHelper.translate(context, months[i]),
+                style: GoogleFonts.poppins(
+                    fontSize: 12, fontWeight: FontWeight.w600),
+              ),
             ),
-          ],
+          ),
+          onChanged: (val) =>
+              setState(() => _reportMonth = val ?? _reportMonth),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
+      ),
+    );
+
+    final yearDropdown = Container(
+      height: 34,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.lightBorder),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int>(
+          value: _reportYear,
+          isDense: true,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded,
+              size: 18, color: AppColors.navyMid),
+          items: List.generate(
+            5,
+            (i) => DropdownMenuItem(
+              value: DateTime.now().year - i,
+              child: Text(
+                '${DateTime.now().year - i}',
+                style: GoogleFonts.poppins(
+                    fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+          onChanged: (val) => setState(() => _reportYear = val ?? _reportYear),
+        ),
+      ),
+    );
+
+    final summaryButton = OutlinedButton.icon(
+      onPressed: () => setState(() {
+        _showMonthlySummaryTable = !_showMonthlySummaryTable;
+        if (_showMonthlySummaryTable) {
+          _showMonthlyClassVTable = false;
+          _showMonthlyClassVITable = false;
+          _showMonthlyPreventiveTable = false;
+        } else {
+          _showMonthlyClassVTable = true;
+        }
+      }),
+      icon: Icon(
+        Icons.assessment_outlined,
+        size: 15,
+        color: _showMonthlySummaryTable ? Colors.white : AppColors.navyMid,
+      ),
+      label: Text(
+        'Summary',
+        style: GoogleFonts.poppins(
+          fontSize: 11.5,
+          fontWeight: FontWeight.w600,
+          color: _showMonthlySummaryTable ? Colors.white : AppColors.navyDark,
+        ),
+      ),
+      style: OutlinedButton.styleFrom(
+        backgroundColor:
+            _showMonthlySummaryTable ? AppColors.navyMid : Colors.white,
+        side: BorderSide(
+          color: _showMonthlySummaryTable
+              ? AppColors.navyMid
+              : AppColors.lightBorder,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      ),
+    );
+
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              border: Border.all(color: AppColors.lightBorder),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                // Top row: Title/subtitle + Month/Year/Summary controls
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  alignment: WrapAlignment.spaceBetween,
                   children: [
-                    Text(
-                      TranslationHelper.translate(context, 'Monthly Reports'),
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          TranslationHelper.translate(
+                              context, 'Monthly Reports'),
+                          style: GoogleFonts.poppins(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.navyDark,
+                          ),
+                        ),
+                        Text(
+                          monthYearLabel,
+                          style: GoogleFonts.poppins(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.goldPrimary,
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      monthYearLabel,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.goldPrimary,
-                      ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        monthDropdown,
+                        const SizedBox(width: 8),
+                        yearDropdown,
+                        const SizedBox(width: 8),
+                        summaryButton,
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
 
-            // Month/Year selector (compact)
-            Row(
-              children: [
-                Expanded(
+                const SizedBox(height: 10),
+
+                // Report tabs (compact segmented pill bar)
+                Align(
+                  alignment: Alignment.centerLeft,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.all(3),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      border: Border.all(color: AppColors.lightBorder),
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
                     ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<int>(
-                        value: _reportMonth,
-                        isExpanded: true,
-                        icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                            color: AppColors.navyMid),
-                        items: List.generate(
-                          12,
-                          (i) => DropdownMenuItem(
-                            value: i + 1,
-                            child: Text(
-                              TranslationHelper.translate(context, months[i]),
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, fontWeight: FontWeight.w600),
-                            ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 102,
+                          child: _reportDownloadBtn(
+                            'Class V',
+                            () => setState(() {
+                              _showMonthlySummaryTable = false;
+                              _showMonthlyClassVTable = true;
+                              _showMonthlyClassVITable = false;
+                              _showMonthlyPreventiveTable = false;
+                            }),
+                            isSelected: _showMonthlyClassVTable,
                           ),
                         ),
-                        onChanged: (val) =>
-                            setState(() => _reportMonth = val ?? _reportMonth),
-                      ),
+                        const SizedBox(width: 3),
+                        SizedBox(
+                          width: 102,
+                          child: _reportDownloadBtn(
+                            'Class VI',
+                            () => setState(() {
+                              _showMonthlySummaryTable = false;
+                              _showMonthlyClassVTable = false;
+                              _showMonthlyClassVITable = true;
+                              _showMonthlyPreventiveTable = false;
+                            }),
+                            isSelected: _showMonthlyClassVITable,
+                          ),
+                        ),
+                        const SizedBox(width: 3),
+                        SizedBox(
+                          width: 102,
+                          child: _reportDownloadBtn(
+                            'Preventives',
+                            () => setState(() {
+                              _showMonthlySummaryTable = false;
+                              _showMonthlyClassVTable = false;
+                              _showMonthlyClassVITable = false;
+                              _showMonthlyPreventiveTable = true;
+                            }),
+                            isSelected: _showMonthlyPreventiveTable,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    border: Border.all(color: AppColors.lightBorder),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<int>(
-                      value: _reportYear,
-                      icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                          color: AppColors.navyMid),
-                      items: List.generate(
-                        5,
-                        (i) => DropdownMenuItem(
-                          value: DateTime.now().year - i,
-                          child: Text(
-                            '${DateTime.now().year - i}',
-                            style: GoogleFonts.poppins(
-                                fontSize: 13, fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                      ),
-                      onChanged: (val) =>
-                          setState(() => _reportYear = val ?? _reportYear),
-                    ),
-                  ),
+
+                const SizedBox(height: 12),
+
+                if (_showMonthlySummaryTable)
+                  _buildMonthlySummaryPhotoTable(
+                      context, allRecords, _reportMonth, _reportYear),
+                if (_showMonthlyClassVTable)
+                  _buildMonthlyRegistrationTable(
+                      context, allRecords, _reportMonth, _reportYear),
+                if (_showMonthlyClassVITable)
+                  _buildMonthlyRegistrationTableVI(
+                      context, allRecords, _reportMonth, _reportYear),
+                if (_showMonthlyPreventiveTable)
+                  _buildMonthlyRegistrationTablePreventive(
+                      context, allRecords, _reportMonth, _reportYear),
+                const SizedBox(height: 16),
+
+                // Dynamic Monthly Crime Comparative Table from database API
+                MonthlyCrimeComparativeTable(
+                  selectedYear: _reportYear,
+                  selectedMonth: _reportMonth,
                 ),
               ],
             ),
-
-            const SizedBox(height: 16),
-
-            // Dynamic Monthly Crime Comparative Table from database API
-            MonthlyCrimeComparativeTable(
-              selectedYear: _reportYear,
-              selectedMonth: _reportMonth,
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -1751,32 +1882,37 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             );
           },
         ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: () {
-              final label = DateFormat('MMMM yyyy')
-                  .format(DateTime(selectedYear, selectedMonth));
-              ModulePdfHelper.generateMonthlyTablePdf(label, tableRows);
-            },
-            icon: const Icon(Icons.picture_as_pdf_rounded,
-                color: Colors.white, size: 18),
-            label: Text(
-              'Export Table PDF',
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            ElevatedButton.icon(
+              onPressed: () {
+                final label = DateFormat('MMMM yyyy')
+                    .format(DateTime(selectedYear, selectedMonth));
+                ModulePdfHelper.generateMonthlyTablePdf(label, tableRows);
+              },
+              icon: const Icon(Icons.picture_as_pdf_rounded,
+                  color: Colors.white, size: 15),
+              label: Text(
+                'Export Table PDF',
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.dangerRed,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                elevation: 0,
               ),
             ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.dangerRed,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
+          ],
         ),
       ],
     );
@@ -2086,32 +2222,37 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             );
           },
         ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: () {
-              final label = DateFormat('MMMM yyyy')
-                  .format(DateTime(selectedYear, selectedMonth));
-              ModulePdfHelper.generateMonthlyTablePdf(label, tableRows);
-            },
-            icon: const Icon(Icons.picture_as_pdf_rounded,
-                color: Colors.white, size: 18),
-            label: Text(
-              'Export Table PDF',
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            ElevatedButton.icon(
+              onPressed: () {
+                final label = DateFormat('MMMM yyyy')
+                    .format(DateTime(selectedYear, selectedMonth));
+                ModulePdfHelper.generateMonthlyTablePdf(label, tableRows);
+              },
+              icon: const Icon(Icons.picture_as_pdf_rounded,
+                  color: Colors.white, size: 15),
+              label: Text(
+                'Export Table PDF',
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.dangerRed,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                elevation: 0,
               ),
             ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.dangerRed,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
+          ],
         ),
       ],
     );
@@ -2592,32 +2733,36 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               );
             },
           ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: exportPdf,
-              icon: const Icon(
-                Icons.picture_as_pdf_rounded,
-                color: Colors.white,
-                size: 18,
-              ),
-              label: Text(
-                'Export PDF',
-                style: GoogleFonts.poppins(
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              ElevatedButton.icon(
+                onPressed: exportPdf,
+                icon: const Icon(
+                  Icons.picture_as_pdf_rounded,
                   color: Colors.white,
-                  fontWeight: FontWeight.w700,
+                  size: 15,
+                ),
+                label: Text(
+                  'Export PDF',
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.dangerRed,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  elevation: 0,
                 ),
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.dangerRed,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                elevation: 0,
-              ),
-            ),
+            ],
           ),
         ],
       ),
@@ -2938,8 +3083,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       {'sr': '', 'label': 'Total', 'head': 'TOTAL', 'bold': true},
     ];
 
-    const classVBodyFontSize = 11.0;
-    const classVTitleFontSize = 12.0;
+    const classVBodyFontSize = 10.0;
+    const classVTitleFontSize = 11.0;
     const classVTightRowHeads = <String>{
       'Murder',
       'Att to Murder',
@@ -2979,9 +3124,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     EdgeInsets classVCellPad({
       required bool denseTop,
       required bool denseBottom,
-      double horizontal = 3,
+      double horizontal = 2.5,
     }) {
-      const v = 3.0; // minimal vertical padding (was 4)
+      const v = 2.0; // minimal vertical padding (was 3)
       return EdgeInsets.fromLTRB(
         horizontal,
         denseTop ? 0 : v,
@@ -2999,12 +3144,12 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
     int vInt(Map<String, dynamic> r, String k) => (r[k] as int?) ?? 0;
 
-    // Flex layout (totals to 20 across all rows so columns align):
-    // SrNo:2 | Crime:7 | Apr,2026:R(1) D(1) | Mar,2025:R(1) D(1) |
+    // Flex layout (totals to 19 across all rows so columns align):
+    // SrNo:1 | Crime:7 | Apr,2026:R(1) D(1) | Mar,2025:R(1) D(1) |
     // Apr,2025:R(1) D(1) | Year,2026:R(1) D(1) | Year,2025:R(1) D(1) | Var:1
-    const flexAll = 20;
-    const dataFlexes = <int>[2, 7, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
-    const headerGroupFlexes = <int>[2, 7, 2, 2, 2, 2, 2, 1];
+    const flexAll = 19;
+    const dataFlexes = <int>[1, 7, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+    const headerGroupFlexes = <int>[1, 7, 2, 2, 2, 2, 2, 1];
 
     Widget rowOfFlex(List<int> flexes, List<Widget> children) {
       assert(flexes.length == children.length);
@@ -3026,12 +3171,14 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       required Widget child,
       EdgeInsets? padding,
       AlignmentGeometry alignment = Alignment.center,
+      Color? backgroundColor,
     }) {
       return Container(
         padding:
-            padding ?? const EdgeInsets.symmetric(horizontal: 3, vertical: 3),
+            padding ?? const EdgeInsets.symmetric(horizontal: 2.5, vertical: 3),
         decoration: BoxDecoration(
-          border: Border.all(color: AppColors.lightBorder, width: 0.5),
+          color: backgroundColor,
+          border: Border.all(color: const Color(0xFFE2E8F0), width: 0.5),
         ),
         alignment: alignment,
         child: child,
@@ -3044,6 +3191,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       bool alignLeft = false,
       double indent = 0,
       double fontSize = classVBodyFontSize,
+      Color? color,
     }) {
       return Padding(
         padding: EdgeInsets.only(left: indent),
@@ -3054,7 +3202,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           style: GoogleFonts.poppins(
             fontSize: fontSize,
             fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-            color: AppColors.lightText,
+            color: color ?? (bold ? AppColors.navyDark : AppColors.lightText),
             height: 1.15,
           ),
         ),
@@ -3069,25 +3217,36 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       double fontSize = classVBodyFontSize,
     }) {
       final empty = recs.isEmpty;
+      if (empty) {
+        return Text(
+          '0',
+          textAlign: TextAlign.center,
+          style: GoogleFonts.poppins(
+            fontSize: fontSize,
+            fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
+            color: const Color(0xFF94A3B8),
+            height: 1.15,
+          ),
+        );
+      }
       return InkWell(
-        onTap: empty
-            ? null
-            : () {
-                Navigator.push(
-                  context,
-                  AppTheme.fadeSlideRoute(
-                    page: ReportCaseListScreen(title: title, records: recs),
-                  ),
-                );
-              },
+        onTap: () {
+          Navigator.push(
+            context,
+            AppTheme.fadeSlideRoute(
+              page: ReportCaseListScreen(title: title, records: recs),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(4),
+        hoverColor: AppColors.infoBlue.withValues(alpha: 0.08),
         child: Text(
           '$n',
           textAlign: TextAlign.center,
           style: GoogleFonts.poppins(
             fontSize: fontSize,
-            fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-            color: empty ? AppColors.lightSubText : AppColors.infoBlue,
-            decoration: empty ? null : TextDecoration.underline,
+            fontWeight: bold ? FontWeight.w700 : FontWeight.w600,
+            color: AppColors.infoBlue,
             height: 1.15,
           ),
         ),
@@ -3097,7 +3256,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     List<ModuleRecord> detRecs(List<ModuleRecord> r) =>
         r.where((x) => x.status.toLowerCase() != 'open').toList();
 
-    Widget buildScreenDataRow(Map<String, dynamic> def) {
+    Widget buildScreenDataRow(Map<String, dynamic> def, int rowIndex) {
       final headKey = def['head'] as String;
       final inTightBlock = classVTightRowHeads.contains(headKey);
       final denseTop = inTightBlock && headKey != 'Murder';
@@ -3105,6 +3264,14 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       final src = rowFor(headKey);
       final bold = (def['bold'] as bool?) ?? false;
       final indent = ((def['indent'] as int?) ?? 0) * 12.0;
+      final isTotal = headKey == 'TOTAL';
+      final isSubtotal = bold && !isTotal;
+      final Color rowBg = isTotal
+          ? AppColors.goldPrimary.withValues(alpha: 0.12)
+          : (isSubtotal
+              ? AppColors.navyMid.withValues(alpha: 0.04)
+              : (rowIndex.isOdd ? const Color(0xFFFBFDFF) : Colors.white));
+
       final cmR = vInt(src, 'cm_R');
       final cmD = vInt(src, 'cm_D');
       final pmR = vInt(src, 'pm_R');
@@ -3133,8 +3300,14 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         horizontal: 4,
       );
 
+      final varColor = varVal > 0
+          ? AppColors.dangerRed
+          : (varVal < 0 ? AppColors.successGreen : const Color(0xFF94A3B8));
+      final varString = varVal > 0 ? '+$varVal' : '$varVal';
+
       return rowOfFlex(dataFlexes, [
         cBox(
+          backgroundColor: rowBg,
           padding: classVCellPad(
             denseTop: denseTop,
             denseBottom: denseBottom,
@@ -3142,6 +3315,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           child: cText(def['sr'] as String, bold: bold),
         ),
         cBox(
+          backgroundColor: rowBg,
           alignment: Alignment.centerLeft,
           padding: labelPad,
           child: cText(
@@ -3152,6 +3326,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           ),
         ),
         cBox(
+          backgroundColor: rowBg,
           padding: classVCellPad(
             denseTop: denseTop,
             denseBottom: denseBottom,
@@ -3159,6 +3334,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           child: cLink(cmR, cmRecs, '$label • $cmDateLabel • R', bold: bold),
         ),
         cBox(
+          backgroundColor: rowBg,
           padding: classVCellPad(
             denseTop: denseTop,
             denseBottom: denseBottom,
@@ -3167,6 +3343,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               bold: bold),
         ),
         cBox(
+          backgroundColor: rowBg,
           padding: classVCellPad(
             denseTop: denseTop,
             denseBottom: denseBottom,
@@ -3174,6 +3351,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           child: cLink(pmR, pmRecs, '$label • $pmDateLabel • R', bold: bold),
         ),
         cBox(
+          backgroundColor: rowBg,
           padding: classVCellPad(
             denseTop: denseTop,
             denseBottom: denseBottom,
@@ -3182,6 +3360,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               bold: bold),
         ),
         cBox(
+          backgroundColor: rowBg,
           padding: classVCellPad(
             denseTop: denseTop,
             denseBottom: denseBottom,
@@ -3190,6 +3369,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               cLink(smlyR, smlyRecs, '$label • $smlyDateLabel • R', bold: bold),
         ),
         cBox(
+          backgroundColor: rowBg,
           padding: classVCellPad(
             denseTop: denseTop,
             denseBottom: denseBottom,
@@ -3198,6 +3378,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               bold: bold),
         ),
         cBox(
+          backgroundColor: rowBg,
           padding: classVCellPad(
             denseTop: denseTop,
             denseBottom: denseBottom,
@@ -3205,6 +3386,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           child: cLink(ycR, ycRecs, '$label • $ycDateLabel • R', bold: bold),
         ),
         cBox(
+          backgroundColor: rowBg,
           padding: classVCellPad(
             denseTop: denseTop,
             denseBottom: denseBottom,
@@ -3213,6 +3395,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               bold: bold),
         ),
         cBox(
+          backgroundColor: rowBg,
           padding: classVCellPad(
             denseTop: denseTop,
             denseBottom: denseBottom,
@@ -3220,6 +3403,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           child: cLink(ypR, ypRecs, '$label • $ypDateLabel • R', bold: bold),
         ),
         cBox(
+          backgroundColor: rowBg,
           padding: classVCellPad(
             denseTop: denseTop,
             denseBottom: denseBottom,
@@ -3228,11 +3412,12 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               bold: bold),
         ),
         cBox(
+          backgroundColor: rowBg,
           padding: classVCellPad(
             denseTop: denseTop,
             denseBottom: denseBottom,
           ),
-          child: cText('$varVal', bold: bold),
+          child: cText(varString, bold: bold, color: varColor),
         ),
       ]);
     }
@@ -3245,12 +3430,23 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   ? constraints.maxWidth
                   : MediaQuery.sizeOf(context).width;
 
+          const headerGroupBg = Color(0xFFF1F5F9);
+          const headerSubBg = Color(0xFFF8FAFC);
+
           return Container(
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.lightBorder),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFCBD5E1), width: 0.8),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
+            clipBehavior: Clip.antiAlias,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -3261,12 +3457,17 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                     children: [
                       Expanded(
                         child: cBox(
+                          backgroundColor: AppColors.navyDark,
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 3),
-                          child: cText(
+                              horizontal: 8, vertical: 5),
+                          child: Text(
                             'Name of the Police Station',
-                            bold: true,
-                            fontSize: classVTitleFontSize,
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 11.5,
+                              color: Colors.white,
+                              letterSpacing: 0.3,
+                            ),
                           ),
                         ),
                       ),
@@ -3275,77 +3476,135 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 ),
                 rowOfFlex(headerGroupFlexes, [
                   cBox(
+                      backgroundColor: headerGroupBg,
                       child: cText('Sr.No',
-                          bold: true, fontSize: classVBodyFontSize)),
+                          bold: true,
+                          fontSize: classVBodyFontSize,
+                          color: AppColors.navyDark)),
                   cBox(
+                      backgroundColor: headerGroupBg,
                       child: cText('Types of Crime',
-                          bold: true, fontSize: classVBodyFontSize)),
+                          bold: true,
+                          fontSize: classVBodyFontSize,
+                          color: AppColors.navyDark)),
                   cBox(
+                      backgroundColor: headerGroupBg,
                       child: Center(
                           child: cText(cmDateLabel,
-                              bold: true, fontSize: classVBodyFontSize))),
+                              bold: true,
+                              fontSize: classVBodyFontSize,
+                              color: AppColors.navyDark))),
                   cBox(
+                      backgroundColor: headerGroupBg,
                       child: Center(
                           child: cText(pmDateLabel,
-                              bold: true, fontSize: classVBodyFontSize))),
+                              bold: true,
+                              fontSize: classVBodyFontSize,
+                              color: AppColors.navyDark))),
                   cBox(
+                      backgroundColor: headerGroupBg,
                       child: Center(
                           child: cText(smlyDateLabel,
-                              bold: true, fontSize: classVBodyFontSize))),
+                              bold: true,
+                              fontSize: classVBodyFontSize,
+                              color: AppColors.navyDark))),
                   cBox(
+                      backgroundColor: headerGroupBg,
                       child: Center(
                           child: cText(ycDateLabel,
-                              bold: true, fontSize: classVBodyFontSize))),
+                              bold: true,
+                              fontSize: classVBodyFontSize,
+                              color: AppColors.navyDark))),
                   cBox(
+                      backgroundColor: headerGroupBg,
                       child: Center(
                           child: cText(ypDateLabel,
-                              bold: true, fontSize: classVBodyFontSize))),
+                              bold: true,
+                              fontSize: classVBodyFontSize,
+                              color: AppColors.navyDark))),
                   cBox(
+                      backgroundColor: headerGroupBg,
                       child: cText('Var.',
-                          bold: true, fontSize: classVBodyFontSize)),
+                          bold: true,
+                          fontSize: classVBodyFontSize,
+                          color: AppColors.navyDark)),
                 ]),
                 rowOfFlex(dataFlexes, [
                   cBox(
+                      backgroundColor: headerSubBg,
                       child:
                           cText('', bold: true, fontSize: classVBodyFontSize)),
                   cBox(
+                      backgroundColor: headerSubBg,
                       child:
                           cText('', bold: true, fontSize: classVBodyFontSize)),
                   cBox(
-                      child:
-                          cText('R', bold: true, fontSize: classVBodyFontSize)),
+                      backgroundColor: headerSubBg,
+                      child: cText('R',
+                          bold: true,
+                          fontSize: classVBodyFontSize,
+                          color: const Color(0xFF0284C7))),
                   cBox(
-                      child:
-                          cText('D', bold: true, fontSize: classVBodyFontSize)),
+                      backgroundColor: headerSubBg,
+                      child: cText('D',
+                          bold: true,
+                          fontSize: classVBodyFontSize,
+                          color: const Color(0xFF16A34A))),
                   cBox(
-                      child:
-                          cText('R', bold: true, fontSize: classVBodyFontSize)),
+                      backgroundColor: headerSubBg,
+                      child: cText('R',
+                          bold: true,
+                          fontSize: classVBodyFontSize,
+                          color: const Color(0xFF0284C7))),
                   cBox(
-                      child:
-                          cText('D', bold: true, fontSize: classVBodyFontSize)),
+                      backgroundColor: headerSubBg,
+                      child: cText('D',
+                          bold: true,
+                          fontSize: classVBodyFontSize,
+                          color: const Color(0xFF16A34A))),
                   cBox(
-                      child:
-                          cText('R', bold: true, fontSize: classVBodyFontSize)),
+                      backgroundColor: headerSubBg,
+                      child: cText('R',
+                          bold: true,
+                          fontSize: classVBodyFontSize,
+                          color: const Color(0xFF0284C7))),
                   cBox(
-                      child:
-                          cText('D', bold: true, fontSize: classVBodyFontSize)),
+                      backgroundColor: headerSubBg,
+                      child: cText('D',
+                          bold: true,
+                          fontSize: classVBodyFontSize,
+                          color: const Color(0xFF16A34A))),
                   cBox(
-                      child:
-                          cText('R', bold: true, fontSize: classVBodyFontSize)),
+                      backgroundColor: headerSubBg,
+                      child: cText('R',
+                          bold: true,
+                          fontSize: classVBodyFontSize,
+                          color: const Color(0xFF0284C7))),
                   cBox(
-                      child:
-                          cText('D', bold: true, fontSize: classVBodyFontSize)),
+                      backgroundColor: headerSubBg,
+                      child: cText('D',
+                          bold: true,
+                          fontSize: classVBodyFontSize,
+                          color: const Color(0xFF16A34A))),
                   cBox(
-                      child:
-                          cText('R', bold: true, fontSize: classVBodyFontSize)),
+                      backgroundColor: headerSubBg,
+                      child: cText('R',
+                          bold: true,
+                          fontSize: classVBodyFontSize,
+                          color: const Color(0xFF0284C7))),
                   cBox(
-                      child:
-                          cText('D', bold: true, fontSize: classVBodyFontSize)),
+                      backgroundColor: headerSubBg,
+                      child: cText('D',
+                          bold: true,
+                          fontSize: classVBodyFontSize,
+                          color: const Color(0xFF16A34A))),
                   cBox(
+                      backgroundColor: headerSubBg,
                       child:
                           cText('', bold: true, fontSize: classVBodyFontSize)),
                 ]),
-                for (final def in classVRowDefs) buildScreenDataRow(def),
+                for (var i = 0; i < classVRowDefs.length; i++)
+                  buildScreenDataRow(classVRowDefs[i], i),
               ],
             ),
           );
@@ -3490,7 +3749,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         LayoutBuilder(
           builder: (context, constraints) {
             final w = constraints.maxWidth;
-            const minW = 560.0;
+            const minW = 760.0;
             return SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: SizedBox(
@@ -3500,55 +3759,72 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             );
           },
         ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: exportPdf,
-            icon: const Icon(Icons.picture_as_pdf_rounded,
-                color: Colors.white, size: 18),
-            label: Text(
-              'Export Table PDF',
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            ElevatedButton.icon(
+              onPressed: exportPdf,
+              icon: const Icon(Icons.picture_as_pdf_rounded,
+                  color: Colors.white, size: 15),
+              label: Text(
+                'Export Table PDF',
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.dangerRed,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                elevation: 0,
               ),
             ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.dangerRed,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
+          ],
         ),
       ],
     );
   }
 
   Widget _reportDownloadBtn(String label, VoidCallback onTap,
-      {bool active = false}) {
+      {bool isSelected = false}) {
     return SizedBox(
-      height: 38,
-      child: ElevatedButton(
-        onPressed: onTap,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: active ? AppColors.navyMid : Colors.white,
-          foregroundColor: active ? Colors.white : AppColors.navyMid,
-          elevation: active ? 1 : 0,
-          side: BorderSide(
-            color: active ? AppColors.navyMid : AppColors.lightBorder,
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      height: 32,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.navyMid : Colors.transparent,
+          borderRadius: BorderRadius.circular(7),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.navyMid.withValues(alpha: 0.22),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1.5),
+                  ),
+                ]
+              : null,
         ),
-        child: Text(
-          TranslationHelper.translate(context, label),
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: active ? FontWeight.w700 : FontWeight.w600,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(7),
+            child: Center(
+              child: Text(
+                TranslationHelper.translate(context, label),
+                style: GoogleFonts.poppins(
+                  fontSize: 11.5,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                  color: isSelected ? Colors.white : AppColors.navyDark,
+                ),
+              ),
+            ),
           ),
         ),
       ),
@@ -3999,17 +4275,30 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       'View',
                       AppColors.goldPrimary,
                       () {
+                        final isLinked = isTabLinkedToCommonFormBaseline(
+                          moduleKey: widget.moduleKey,
+                          categoryName: record.subCategory,
+                        );
+                        final page = isLinked
+                            ? CommonFormScreen(
+                                moduleLabel:
+                                    record.firestoreCategoryDisplayName,
+                                moduleKey: widget.moduleKey,
+                                subCategory: record.subCategory,
+                                existingRecord: record,
+                                readOnly: true,
+                              )
+                            : DynamicFormScreen(
+                                moduleLabel:
+                                    record.firestoreCategoryDisplayName,
+                                moduleKey: widget.moduleKey,
+                                subCategory: record.subCategory,
+                                existingRecord: record,
+                                readOnly: true,
+                              );
                         Navigator.push(
                           ctx,
-                          AppTheme.fadeSlideRoute(
-                            page: CommonFormScreen(
-                              moduleLabel: record.firestoreCategoryDisplayName,
-                              moduleKey: widget.moduleKey,
-                              subCategory: record.subCategory,
-                              existingRecord: record,
-                              readOnly: true,
-                            ),
-                          ),
+                          AppTheme.fadeSlideRoute(page: page),
                         );
                       },
                     ),
@@ -4023,7 +4312,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       'PDF',
                       AppColors.dangerRed,
                       () {
-                        ModulePdfHelper.generatePdf(record);
+                        ModulePdfHelper.generatePdf(record, ctx);
                       },
                     ),
                   ],
@@ -4221,7 +4510,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 );
                 return;
               }
-              final page = moduleUsesCommonCrimeForm(widget.moduleKey)
+              final page = moduleUsesCommonCrimeForm(widget.moduleKey,
+                      record.subCategory ?? record.firestoreCategoryDisplayName)
                   ? CommonFormScreen(
                       moduleLabel: record.firestoreCategoryDisplayName,
                       moduleKey: widget.moduleKey,
@@ -4239,7 +4529,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             Container(width: 1, height: 24, color: AppColors.lightBorder),
             _actionBtn(Icons.picture_as_pdf_rounded, 'PDF', AppColors.dangerRed,
                 () {
-              ModulePdfHelper.generatePdf(record);
+              ModulePdfHelper.generatePdf(record, ctx);
             }),
             Container(width: 1, height: 24, color: AppColors.lightBorder),
             _actionBtn(Icons.visibility_rounded, 'View', AppColors.goldPrimary,
@@ -4437,7 +4727,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   void _handlePdf(BuildContext ctx, ModuleRecord record) {
     runWithPdfAuthGate(
       ctx,
-      () => ModulePdfHelper.generatePdf(record),
+      () => ModulePdfHelper.generatePdf(record, ctx),
     );
   }
 
@@ -6143,7 +6433,7 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
             icon: Icons.picture_as_pdf_outlined,
             label: 'PDF',
             color: AppColors.dangerRed,
-            onTap: () => ModulePdfHelper.generatePdf(record),
+            onTap: () => ModulePdfHelper.generatePdf(record, context),
           ),
         ],
       );

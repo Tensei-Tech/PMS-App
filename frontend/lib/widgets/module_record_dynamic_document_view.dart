@@ -35,6 +35,13 @@ const Map<String, String> kModuleHubFieldLabels = {
   'createdAt': 'Registered on',
   'createdBy': 'Created by (user id)',
   'stationName': 'Station',
+  'accused_name': 'Accused Name',
+  'cr': 'Cr. No.',
+  'sections': 'Sec/Act',
+  'head': 'Head',
+  'station': 'Police station',
+  'io': 'IO Name',
+  'nafis_status': 'Status',
 };
 
 /// Preferred display order: matches [ModuleFormScreen] (General → Incident → Parties →
@@ -486,7 +493,11 @@ class ModuleRecordDynamicDocumentView extends StatelessWidget {
     Map<String, dynamic>? commonFormMap;
     final extraSansCommon = Map<String, dynamic>.from(extra);
     final nested = extra[kCommonFormExtraFieldsKey] ?? extra['common_form'];
-    if (nested is Map) {
+    final isBaseline = isTabLinkedToCommonFormBaseline(
+      moduleKey: record.moduleKey,
+      categoryName: record.subCategory,
+    );
+    if ((isBaseline || nested != null) && nested is Map) {
       commonFormMap = Map<String, dynamic>.from(nested);
       extraSansCommon.remove(kCommonFormExtraFieldsKey);
       extraSansCommon.remove('common_form');

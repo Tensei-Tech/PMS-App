@@ -12,8 +12,8 @@ from apps.crimetab.models.dynamic_engine import (
     CategoryFieldTemplate,
     SectionFieldTemplate,
 )
+from apps.crimetab.act_names import get_act
 from apps.crimetab.models.common_form import (
-    Act,
     ActSection,
     ActSubsection,
 )
@@ -33,10 +33,8 @@ class Command(BaseCommand):
         # -------------------------------------------------------------
         self.stdout.write("Seeding Acts & Sections...")
 
-        bns_act, _ = Act.objects.get_or_create(
-            act_name="Bharatiya Nyaya Sanhita 2023",
-            defaults={"display_order": 1}
-        )
+        # The BNS act `import_acts` created (name resolved via data/acts/act_aliases.xlsx)
+        bns_act = get_act("BNS 2023")
 
         bns_json_path = Path(settings.BASE_DIR).parent / "backend" / "data" / "bns_2023_sections.json"
         if not bns_json_path.exists():
@@ -55,7 +53,8 @@ class Command(BaseCommand):
                 if not sec_num:
                     continue
 
-                act_sec, _ = ActSection.objects.update_or_create(
+                # Never overwrite a title the act import already filled
+                act_sec, _ = ActSection.objects.get_or_create(
                     act=bns_act,
                     section_number=sec_num,
                     defaults={"section_title": sec_title or f"Section {sec_num}"}
@@ -95,7 +94,7 @@ class Command(BaseCommand):
             # 2. Crime Spot
             ('Village / Town', 'village_town', 'common', 'text', False, 40),
             ('Area Name', 'area_name', 'common', 'text', False, 50),
-            ('Crime Spot Full Address', 'full_address', 'common', 'textarea', False, 60),
+            ('Address', 'full_address', 'common', 'textarea', False, 60),
             ('Occurrence Date & Time', 'occurrence_datetime', 'common', 'datetime', False, 70),
 
             # 3. Acts & Sections (Charges)
@@ -247,13 +246,13 @@ class Command(BaseCommand):
             )
         self.stdout.write(f"  Created CategoryFieldTemplate rows for all {target_cats.count()} sub-tabs.")
 
-        # Explicitly ensure Standalone categories (A.D., Suicide, N.C.) are NOT linked
+        # Explicitly ensure Standalone categories (A.D., N.C.) are NOT linked
         standalone_excluded = CaseCategory.objects.filter(
             group__isnull=True
         )
         standalone_excluded.update(template=None)
         CategoryFieldTemplate.objects.filter(category__in=standalone_excluded).delete()
-        self.stdout.write(f"  Confirmed {standalone_excluded.count()} standalone categories (A.D., Suicide, N.C., etc.) are UNLINKED.")
+        self.stdout.write(f"  Confirmed {standalone_excluded.count()} standalone categories (A.D., N.C., etc.) are UNLINKED.")
 
         # -------------------------------------------------------------
         # 4. Extra Templates (Trigger A extra & Trigger B dynamic)
@@ -265,14 +264,8 @@ class Command(BaseCommand):
             template_name='Murder Section Extra Fields'
         )
         FieldTemplateField.objects.filter(template=tmpl_murder_extra).delete()
-        murder_extra_fields = [
-            ('Deceased Name', 'deceased_name', 'custom', 'text', False, 1000),
-            ('Deceased Age', 'deceased_age', 'custom', 'number', False, 1010),
-            ('Deceased Gender', 'deceased_gender', 'custom', 'dropdown', False, 1020),
-            ('Inquest Panchanama Details', 'inquest_panchanama', 'custom', 'textarea', False, 1030),
-            ('Post-Mortem Report Date', 'pm_report_date', 'custom', 'date', False, 1040),
-            ('Cause of Death', 'cause_of_death', 'custom', 'textarea', False, 1050),
-        ]
+        # Murder extra fields removed; new Murder fields will be added separately
+        murder_extra_fields = []
         for label, key, src, ftype, req, order in murder_extra_fields:
             FieldTemplateField.objects.create(
                 template=tmpl_murder_extra,
@@ -305,6 +298,20 @@ class Command(BaseCommand):
                 is_required=req,
                 display_order=order,
             )
+
+        # Gowansh Extra Template: its fields come from migration 0112 (full
+        # checklist), so they are not deleted or recreated here
+        tmpl_gowansh_extra, _ = FieldTemplate.objects.get_or_create(
+            template_name='Gowansh Extra Fields'
+        )
+
+        # Trigger A fix: Link Gowansh categories (Part 6 and Standalone) to Gowansh Extra Template
+        for gowansh_cat in CaseCategory.objects.filter(category_name='Gowansh'):
+            CategoryFieldTemplate.objects.get_or_create(
+                category=gowansh_cat,
+                template=tmpl_gowansh_extra
+            )
+            self.stdout.write(f"  Linked Gowansh category ({gowansh_cat.category_id}) to Gowansh Extra Fields (Trigger A).")
 
         # Trigger A fix: Link Murder category to BOTH Baseline and Murder Extra Template
         murder_cat = CaseCategory.objects.filter(category_name='Murder', group_id__in=[1, 2]).first()

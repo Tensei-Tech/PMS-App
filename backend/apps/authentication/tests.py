@@ -4,6 +4,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from apps.public_master.models import MasterUser, StateRegistry, Role, Permission, RolePermission
 from apps.users.models import OfficerProfile
+from apps.authentication.testing_utils import activate_account
 
 
 class PrimaryAuthAndRBACBackendTests(TestCase):
@@ -28,7 +29,7 @@ class PrimaryAuthAndRBACBackendTests(TestCase):
         )
 
     def test_01_master_admin_registration_and_login(self):
-        """Test Master Admin registration & login via primary backend endpoint."""
+        """Public sign-up can't create a Master Admin; an existing one logs in."""
         email = f'master_{self.run_id}@pms.gov.in'
         reg_resp = self.client.post('/api/auth/register/', {
             'email': email,
@@ -36,10 +37,12 @@ class PrimaryAuthAndRBACBackendTests(TestCase):
             'full_name': 'Test Master Admin',
             'role_id': 'master_admin'
         }, format='json')
+        self.assertEqual(reg_resp.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertFalse(MasterUser.objects.filter(email=email).exists())
 
-        self.assertEqual(reg_resp.status_code, status.HTTP_201_CREATED)
-        self.assertIn('tokens', reg_resp.data)
-        self.assertIn('access_token', reg_resp.data['tokens'])
+        master = MasterUser(email=email, full_name='Test Master Admin')
+        master.set_password('MasterPassword123!')
+        master.save()
 
         # Perform Login
         login_resp = self.client.post('/api/auth/login/', {
@@ -65,7 +68,10 @@ class PrimaryAuthAndRBACBackendTests(TestCase):
             'account_status': 'active'
         }, format='json')
 
-        self.assertEqual(reg_resp.status_code, status.HTTP_201_CREATED)
+        self.assertIn(reg_resp.status_code, (status.HTTP_201_CREATED, status.HTTP_202_ACCEPTED))
+        # A client-sent account_status is ignored: the account waits for approval.
+        self.assertEqual(OfficerProfile.objects.get(email=email).account_status, 'pending_approval')
+        activate_account(email)
 
         # Login as Officer
         login_resp = self.client.post('/api/auth/login/', {
@@ -89,20 +95,23 @@ class PrimaryAuthAndRBACBackendTests(TestCase):
 
     def test_03_dynamic_rbac_live_update(self):
         """Test that updating public.role_permissions instantly grants new permissions to officer."""
+        from django.core.cache import cache
+        cache.clear()
         # Grant case:approve dynamically to officer role
-        RolePermission.objects.get_or_create(role=self.officer_role, permission=self.perm_case_approve, defaults={'is_granted': True})
+        RolePermission.objects.update_or_create(role=self.officer_role, permission=self.perm_case_approve, defaults={'is_granted': True})
 
         email = f'officer2_{self.run_id}@mhpolice.gov.in'
-        # Register officer
+        # Register officer with station
         reg_resp = self.client.post('/api/auth/register/', {
             'email': email,
             'password': 'OfficerPassword123!',
             'full_name': 'Constable Patil',
             'role_id': 'officer',
             'state_code': 'MH',
-            'account_status': 'active'
+            'station_name': 'Shivajinagar Police Station',
         }, format='json')
-        self.assertEqual(reg_resp.status_code, status.HTTP_201_CREATED)
+        self.assertIn(reg_resp.status_code, (status.HTTP_201_CREATED, status.HTTP_202_ACCEPTED))
+        activate_account(email)
 
         login_resp = self.client.post('/api/auth/login/', {
             'email': email,
@@ -112,8 +121,53 @@ class PrimaryAuthAndRBACBackendTests(TestCase):
 
         self.assertEqual(login_resp.status_code, status.HTTP_200_OK)
         access_token = login_resp.data['tokens']['access_token']
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}', HTTP_X_STATE_CODE='MH')
 
         perm_resp = self.client.get('/api/auth/me/permissions/')
         self.assertIn('case:approve', perm_resp.data['permissions'])
+
+    def test_04_registration_requires_unit_matching_role(self):
+        """Test that registering station, division, and district roles requires corresponding unit."""
+        # 1. Station role without station -> 400
+        res_st_fail = self.client.post('/api/auth/register/', {
+            'email': f'st_fail_{self.run_id}@mh.gov.in',
+            'password': 'Password123!',
+            'full_name': 'Station Officer No St',
+            'role_id': 'officer',
+            'state_code': 'MH',
+        }, format='json')
+        self.assertEqual(res_st_fail.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # 2. Division role without division -> 400
+        res_div_fail = self.client.post('/api/auth/register/', {
+            'email': f'div_fail_{self.run_id}@mh.gov.in',
+            'password': 'Password123!',
+            'full_name': 'Division Admin No Div',
+            'role_id': 'division_admin',
+            'state_code': 'MH',
+        }, format='json')
+        self.assertEqual(res_div_fail.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # 3. District role without district -> 400
+        res_dist_fail = self.client.post('/api/auth/register/', {
+            'email': f'dist_fail_{self.run_id}@mh.gov.in',
+            'password': 'Password123!',
+            'full_name': 'District Admin No Dist',
+            'role_id': 'district_admin',
+            'state_code': 'MH',
+        }, format='json')
+        self.assertEqual(res_dist_fail.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # 4. District role with district -> 201
+        res_dist_ok = self.client.post('/api/auth/register/', {
+            'email': f'dist_ok_{self.run_id}@mh.gov.in',
+            'password': 'Password123!',
+            'full_name': 'Valid District Admin',
+            'role_id': 'district_admin',
+            'district': 'Pune District',
+            'designation': 'SP',
+            'state_code': 'MH',
+        }, format='json')
+        self.assertIn(res_dist_ok.status_code, (status.HTTP_201_CREATED, status.HTTP_202_ACCEPTED))
+
 

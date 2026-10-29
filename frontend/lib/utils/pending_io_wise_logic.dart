@@ -1,8 +1,5 @@
 // lib/utils/pending_io_wise_logic.dart
 // Pending Cases → IO Wise: category filter + IO/CC field resolution (Firestore-shaped maps).
-
-import 'package:flutter/foundation.dart';
-
 import '../modules/core/models/base_record.dart';
 import 'common_form_module.dart';
 import 'ad_disposal_helper.dart';
@@ -120,9 +117,14 @@ bool pendingRecordMatchesDashboardCategory({
     case 'IT Act/Cyber':
       return r.moduleKey == 'it_act';
     default:
-      debugPrint(
-        'pendingRecordMatchesDashboardCategory: unknown "$dashboardCategory"',
-      );
+      final sub = (r.subCategory ?? '').trim().toLowerCase();
+      final mod = r.moduleKey.trim().toLowerCase();
+      final disp = r.firestoreCategoryDisplayName.trim().toLowerCase();
+      final title = r.title.trim().toLowerCase();
+      final target = dashboardCategory.trim().toLowerCase();
+      if (sub == target || mod == target || disp == target || title == target) {
+        return true;
+      }
       return false;
   }
 }

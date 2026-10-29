@@ -186,15 +186,19 @@ class _SearchSheetState extends State<_SearchSheet> {
                 itemBuilder: (context, index) {
                   final item = _filtered[index];
                   final isSelected = item == widget.initial;
-                  return ListTile(
-                    title: Text(item, style: GoogleFonts.poppins(fontSize: 14)),
-                    trailing: isSelected
-                        ? const Icon(
-                            Icons.check_circle_rounded,
-                            color: AppColors.successGreen,
-                          )
-                        : null,
-                    onTap: () => Navigator.pop(context, item),
+                  return Material(
+                    color: Colors.transparent,
+                    child: ListTile(
+                      title:
+                          Text(item, style: GoogleFonts.poppins(fontSize: 14)),
+                      trailing: isSelected
+                          ? const Icon(
+                              Icons.check_circle_rounded,
+                              color: AppColors.successGreen,
+                            )
+                          : null,
+                      onTap: () => Navigator.pop(context, item),
+                    ),
                   );
                 },
               ),

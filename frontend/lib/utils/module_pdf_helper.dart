@@ -3,10 +3,12 @@
 // Reuses the existing pdf/printing packages.
 
 import 'dart:typed_data';
+import 'package:flutter/material.dart' show BuildContext, debugPrint;
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'pdf_loading_helper.dart';
 import '../modules/core/models/base_record.dart';
 import '../modules/mpda/utils/mpda_form_pdf.dart';
 import '../modules/preventive/utils/preventive_form_pdf.dart';
@@ -21,18 +23,31 @@ import 'dynamic_map_pdf.dart';
 import 'pdf_layout_constants.dart';
 import 'pdf_unicode_fonts.dart';
 
+class PdfGeneratedResult {
+  final Uint8List bytes;
+  final String fileName;
+  final String title;
+
+  const PdfGeneratedResult({
+    required this.bytes,
+    required this.fileName,
+    required this.title,
+  });
+}
+
 class ModulePdfHelper {
   static const String _kNcFormExtraFieldsKey = 'ncForm';
   static const String _kMissingFormExtraFieldsKey = 'missingForm';
   static const String _kMpdaFormExtraFieldsKey = 'mpdaForm';
   static const String _kPreventiveFormExtraFieldsKey = 'preventiveForm';
 
-  /// When [_kNcFormExtraFieldsKey] is present — NC standalone form map + extraMap PDF.
-  static Future<bool> printNcFormStoredPdf(ModuleRecord record) async {
-    if (record.moduleKey != 'nc') return false;
+  /// When [_kNcFormExtraFieldsKey] is present — generates NC PDF bytes.
+  static Future<PdfGeneratedResult?> buildNcFormPdfResult(
+      ModuleRecord record) async {
+    if (record.moduleKey != 'nc') return null;
     final displayName = record.firestoreCategoryDisplayName;
     final nested = record.extraFields[_kNcFormExtraFieldsKey];
-    if (nested is! Map) return false;
+    if (nested is! Map) return null;
     final ncMap = Map<String, dynamic>.from(nested);
     final extra = Map<String, dynamic>.from(record.extraFields)
       ..remove(_kNcFormExtraFieldsKey);
@@ -40,27 +55,34 @@ class ModulePdfHelper {
     final formSubtitle = sub.isEmpty
         ? '$displayName — Khakhi Diary · Maharashtra Police'
         : '$sub · $displayName — Khakhi Diary · Maharashtra Police';
+    final formTitle = '${displayName.toUpperCase()} FORM';
     final bytes = await generateFormPdf(
       ncMap,
       extraMap: extra,
-      formTitle: '${displayName.toUpperCase()} FORM',
+      formTitle: formTitle,
       formSubtitle: formSubtitle,
     );
     final fileName =
         '${displayName.replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf';
-    await Printing.sharePdf(
-      bytes: bytes,
-      filename: fileName,
-    );
+    return PdfGeneratedResult(
+        bytes: bytes, fileName: fileName, title: formTitle);
+  }
+
+  /// When [_kNcFormExtraFieldsKey] is present — NC standalone form map + extraMap PDF.
+  static Future<bool> printNcFormStoredPdf(ModuleRecord record) async {
+    final result = await buildNcFormPdfResult(record);
+    if (result == null) return false;
+    await Printing.sharePdf(bytes: result.bytes, filename: result.fileName);
     return true;
   }
 
-  /// When [_kMissingFormExtraFieldsKey] is present — Missing standalone form map + extraMap PDF.
-  static Future<bool> printMissingFormStoredPdf(ModuleRecord record) async {
-    if (record.moduleKey != 'missing') return false;
+  /// When [_kMissingFormExtraFieldsKey] is present — generates Missing PDF bytes.
+  static Future<PdfGeneratedResult?> buildMissingFormPdfResult(
+      ModuleRecord record) async {
+    if (record.moduleKey != 'missing') return null;
     final displayName = record.firestoreCategoryDisplayName;
     final nested = record.extraFields[_kMissingFormExtraFieldsKey];
-    if (nested is! Map) return false;
+    if (nested is! Map) return null;
     final missingMap = Map<String, dynamic>.from(nested);
     final extra = Map<String, dynamic>.from(record.extraFields)
       ..remove(_kMissingFormExtraFieldsKey);
@@ -68,302 +90,437 @@ class ModulePdfHelper {
     final formSubtitle = sub.isEmpty
         ? '$displayName — Khakhi Diary · Maharashtra Police'
         : '$sub · $displayName — Khakhi Diary · Maharashtra Police';
+    final formTitle = '${displayName.toUpperCase()} FORM';
     final bytes = await generateFormPdf(
       missingMap,
       extraMap: extra,
-      formTitle: '${displayName.toUpperCase()} FORM',
+      formTitle: formTitle,
       formSubtitle: formSubtitle,
     );
     final fileName =
         '${displayName.replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf';
-    await Printing.sharePdf(
-      bytes: bytes,
-      filename: fileName,
-    );
+    return PdfGeneratedResult(
+        bytes: bytes, fileName: fileName, title: formTitle);
+  }
+
+  /// When [_kMissingFormExtraFieldsKey] is present — Missing standalone form map + extraMap PDF.
+  static Future<bool> printMissingFormStoredPdf(ModuleRecord record) async {
+    final result = await buildMissingFormPdfResult(record);
+    if (result == null) return false;
+    await Printing.sharePdf(bytes: result.bytes, filename: result.fileName);
     return true;
+  }
+
+  /// When [kCommonFormExtraFieldsKey] or standard common crime form fields are present — builds PDF bytes.
+  static Future<PdfGeneratedResult?> buildCommonFormPdfResult(
+      ModuleRecord record) async {
+    try {
+      final displayName = record.firestoreCategoryDisplayName;
+      Map<String, dynamic>? commonMap;
+      final nested = record.extraFields[kCommonFormExtraFieldsKey];
+      if (nested is Map && nested.isNotEmpty) {
+        commonMap = Map<String, dynamic>.from(nested);
+      } else if (record.extraFields.containsKey('crNo') ||
+          record.extraFields.containsKey('sections') ||
+          record.extraFields.containsKey('complainant') ||
+          record.extraFields.containsKey('victim') ||
+          record.extraFields.containsKey('accused') ||
+          moduleUsesCommonCrimeForm(record.moduleKey)) {
+        commonMap = <String, dynamic>{
+          'crNo': record.caseNumber,
+          'regDate': DateFormat('dd/MM/yyyy').format(record.incidentDate),
+          'incidentDate': DateFormat('dd/MM/yyyy').format(record.incidentDate),
+          'spotVillage': record.location,
+          'spotAddress': record.location,
+          'briefFact': record.description,
+          'description': record.description,
+          'accused':
+              record.accused.isNotEmpty ? {'name': record.accused} : null,
+          'complainant': record.complainant.isNotEmpty
+              ? {'name': record.complainant}
+              : null,
+          'ioName': record.assignedOfficer,
+          'status': record.status,
+          ...record.extraFields,
+        };
+      }
+
+      if (commonMap == null) return null;
+
+      // Inject top-level fallbacks from record into commonMap
+      commonMap.putIfAbsent('crNo', () => record.caseNumber);
+      commonMap.putIfAbsent('case_number', () => record.caseNumber);
+      commonMap.putIfAbsent('category', () => record.category);
+      commonMap.putIfAbsent('sub_category', () => record.subCategory);
+      commonMap.putIfAbsent('subCategory', () => record.subCategory);
+      commonMap.putIfAbsent('status', () => record.status);
+      commonMap.putIfAbsent('ioName', () => record.assignedOfficer);
+      commonMap.putIfAbsent('assignedOfficer', () => record.assignedOfficer);
+      commonMap.putIfAbsent('briefFact', () => record.description);
+      commonMap.putIfAbsent('description', () => record.description);
+      if (record.location.isNotEmpty) {
+        commonMap.putIfAbsent('spotVillage', () => record.location);
+        commonMap.putIfAbsent('spotAddress', () => record.location);
+      }
+      if (record.accused.isNotEmpty && commonMap['accused'] == null) {
+        commonMap['accused'] = {'name': record.accused};
+      }
+      if (record.complainant.isNotEmpty && commonMap['complainant'] == null) {
+        commonMap['complainant'] = {'name': record.complainant};
+      }
+      for (final entry in record.extraFields.entries) {
+        if (entry.key != kCommonFormExtraFieldsKey) {
+          commonMap.putIfAbsent(entry.key, () => entry.value);
+        }
+      }
+
+      Uint8List bytes;
+      final sub = record.subCategory?.trim() ?? '';
+      final isStandAloneCrimeDetail = (record.moduleKey == 'crime' ||
+              record.category.toLowerCase() == 'crime') &&
+          sub == 'Crime Detail Form';
+      final isStandAlonePropertySeizure = (record.moduleKey == 'property' ||
+              record.category.toLowerCase() == 'property') &&
+          sub == 'Property & Seizure Form';
+
+      String formTitle = '${displayName.toUpperCase()} FORM';
+      if (isStandAloneCrimeDetail) {
+        formTitle = 'CRIME DETAIL REPORT';
+        bytes = await generateCrimeDetailPdf(commonMap);
+      } else if (isStandAlonePropertySeizure) {
+        formTitle = 'PROPERTY & SEIZURE REPORT';
+        bytes = await generatePropertySeizurePdf(commonMap);
+      } else {
+        final extra = Map<String, dynamic>.from(record.extraFields)
+          ..remove(kCommonFormExtraFieldsKey);
+        final formSubtitle =
+            sub.isEmpty || sub.toLowerCase() == displayName.toLowerCase()
+                ? '$displayName — Khakhi Diary · Maharashtra Police'
+                : '$sub · $displayName — Khakhi Diary · Maharashtra Police';
+        bytes = await generateFormPdf(
+          commonMap,
+          extraMap: extra,
+          formTitle: formTitle,
+          formSubtitle: formSubtitle,
+        );
+      }
+
+      final fileName =
+          '${displayName.replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      return PdfGeneratedResult(
+        bytes: bytes,
+        fileName: fileName,
+        title: formTitle,
+      );
+    } catch (e, st) {
+      debugPrint(
+          '[ModulePdfHelper] Error in buildCommonFormPdfResult: $e\n$st');
+      return null;
+    }
   }
 
   /// When [kCommonFormExtraFieldsKey] is present — full CommonForm §1–§17 + extraMap PDF.
   /// Returns `true` if the share/print sheet was shown.
   static Future<bool> printCommonFormStoredPdf(ModuleRecord record) async {
-    final displayName = record.firestoreCategoryDisplayName;
-    Map<String, dynamic>? commonMap;
-    final nested = record.extraFields[kCommonFormExtraFieldsKey];
-    if (nested is Map && nested.isNotEmpty) {
-      commonMap = Map<String, dynamic>.from(nested);
-    } else if (record.extraFields.containsKey('crNo') ||
-        record.extraFields.containsKey('sections') ||
-        record.extraFields.containsKey('complainant') ||
-        record.extraFields.containsKey('victim') ||
-        record.extraFields.containsKey('accused') ||
-        moduleUsesCommonCrimeForm(record.moduleKey)) {
-      commonMap = <String, dynamic>{
-        'crNo': record.caseNumber,
-        'regDate': DateFormat('dd/MM/yyyy').format(record.incidentDate),
-        'incidentDate': DateFormat('dd/MM/yyyy').format(record.incidentDate),
-        'spotVillage': record.location,
-        'briefFact': record.description,
-        'accused': record.accused.isNotEmpty ? {'name': record.accused} : null,
-        'complainant':
-            record.complainant.isNotEmpty ? {'name': record.complainant} : null,
-        'ioName': record.assignedOfficer,
-        'status': record.status,
-        ...record.extraFields,
-      };
-    }
-
-    if (commonMap == null) return false;
-
-    Uint8List bytes;
-    final sub = record.subCategory?.trim() ?? '';
-    final isStandAloneCrimeDetail = (record.moduleKey == 'crime' ||
-            record.category.toLowerCase() == 'crime') &&
-        sub == 'Crime Detail Form';
-    final isStandAlonePropertySeizure = (record.moduleKey == 'property' ||
-            record.category.toLowerCase() == 'property') &&
-        sub == 'Property & Seizure Form';
-
-    if (isStandAloneCrimeDetail) {
-      bytes = await generateCrimeDetailPdf(commonMap);
-    } else if (isStandAlonePropertySeizure) {
-      bytes = await generatePropertySeizurePdf(commonMap);
-    } else {
-      final extra = Map<String, dynamic>.from(record.extraFields)
-        ..remove(kCommonFormExtraFieldsKey);
-      final formSubtitle =
-          sub.isEmpty || sub.toLowerCase() == displayName.toLowerCase()
-              ? '$displayName — Khakhi Diary · Maharashtra Police'
-              : '$sub · $displayName — Khakhi Diary · Maharashtra Police';
-      bytes = await generateFormPdf(
-        commonMap,
-        extraMap: extra,
-        formTitle: '${displayName.toUpperCase()} FORM',
-        formSubtitle: formSubtitle,
-      );
-    }
-
-    final fileName =
-        '${displayName.replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf';
-    await Printing.sharePdf(
-      bytes: bytes,
-      filename: fileName,
-    );
+    final result = await buildCommonFormPdfResult(record);
+    if (result == null) return false;
+    await Printing.sharePdf(bytes: result.bytes, filename: result.fileName);
     return true;
+  }
+
+  /// When [_kPreventiveFormExtraFieldsKey] is present — generates Preventive PDF bytes.
+  static Future<PdfGeneratedResult?> buildPreventiveFormPdfResult(
+      ModuleRecord record) async {
+    if (record.moduleKey != 'preventive') return null;
+    final nested = record.extraFields[_kPreventiveFormExtraFieldsKey];
+    if (nested is! Map && record.extraFields.isEmpty) return null;
+    final bytes = await PreventiveFormPdfHelper.generatePdf(
+      data: record.extraFields,
+      policeStation: record.stationName,
+    );
+    final title = record.caseNumber.isNotEmpty
+        ? 'Preventive Report - ${record.caseNumber}'
+        : 'Preventive Action Report';
+    final fileName = '${title.replaceAll(' ', '_')}.pdf';
+    return PdfGeneratedResult(bytes: bytes, fileName: fileName, title: title);
   }
 
   /// When [_kPreventiveFormExtraFieldsKey] is present — Preventive / Istegasha Form PDF.
   static Future<bool> printPreventiveFormStoredPdf(ModuleRecord record) async {
-    if (record.moduleKey != 'preventive') return false;
-    final nested = record.extraFields[_kPreventiveFormExtraFieldsKey];
-    if (nested is! Map && record.extraFields.isEmpty) return false;
-    await PreventiveFormPdfHelper.printPdf(
+    final result = await buildPreventiveFormPdfResult(record);
+    if (result == null) return false;
+    await Printing.sharePdf(bytes: result.bytes, filename: result.fileName);
+    return true;
+  }
+
+  /// When [_kMpdaFormExtraFieldsKey] is present — generates MPDA PDF bytes.
+  static Future<PdfGeneratedResult?> buildMpdaFormPdfResult(
+      ModuleRecord record) async {
+    if (record.moduleKey != 'mpda') return null;
+    final nested = record.extraFields[_kMpdaFormExtraFieldsKey];
+    if (nested is! Map && record.extraFields.isEmpty) return null;
+    final bytes = await MpdaFormPdfHelper.generatePdf(
       data: record.extraFields,
       policeStation: record.stationName,
     );
-    return true;
+    final title =
+        'MPDA Proposal Report - ${record.caseNumber.isEmpty ? "Case" : record.caseNumber}';
+    final fileName = '${title.replaceAll(' ', '_')}.pdf';
+    return PdfGeneratedResult(bytes: bytes, fileName: fileName, title: title);
   }
 
   /// When [_kMpdaFormExtraFieldsKey] is present — MPDA Form PDF.
   static Future<bool> printMpdaFormStoredPdf(ModuleRecord record) async {
-    if (record.moduleKey != 'mpda') return false;
-    final nested = record.extraFields[_kMpdaFormExtraFieldsKey];
-    if (nested is! Map) return false;
-    await MpdaFormPdfHelper.printPdf(
-      data: record.extraFields,
-      policeStation: record.stationName,
-    );
+    final result = await buildMpdaFormPdfResult(record);
+    if (result == null) return false;
+    await Printing.sharePdf(bytes: result.bytes, filename: result.fileName);
     return true;
   }
 
-  /// Generates and previews a PDF for any ModuleRecord.
-  /// Generates and previews a PDF for any ModuleRecord (titles use [ModuleRecord.firestoreCategoryDisplayName]).
-  static Future<void> generatePdf(ModuleRecord record) async {
+  /// Builds raw PDF result for any module record.
+  static Future<PdfGeneratedResult?> buildPdfResult(ModuleRecord record) async {
     try {
       if (record.id.trim().isNotEmpty) {
-        final pdfBackendData =
-            await CaseService().fetchCasePdfData(record.id.trim());
-        if (pdfBackendData != null && pdfBackendData['case_summary'] is Map) {
-          final summary =
-              Map<String, dynamic>.from(pdfBackendData['case_summary'] as Map);
-          record = record.copyWith(
-            caseNumber: summary['case_number']?.toString() ?? record.caseNumber,
-            title: summary['title']?.toString() ?? record.title,
-            description:
-                summary['description']?.toString() ?? record.description,
-            complainant:
-                summary['complainant']?.toString() ?? record.complainant,
-            accused: summary['accused']?.toString() ?? record.accused,
-            location: summary['location']?.toString() ?? record.location,
-            assignedOfficer: summary['assigned_officer']?.toString() ??
-                record.assignedOfficer,
-            status: summary['status']?.toString() ?? record.status,
-            priority: summary['priority']?.toString() ?? record.priority,
-            extraFields: summary['extra_fields'] is Map
-                ? Map<String, dynamic>.from(summary['extra_fields'])
-                : record.extraFields,
-          );
-        }
+        try {
+          final pdfBackendData = await CaseService()
+              .fetchCasePdfData(record.id.trim())
+              .timeout(const Duration(milliseconds: 1500),
+                  onTimeout: () => null);
+          if (pdfBackendData != null && pdfBackendData['case_summary'] is Map) {
+            final summary = Map<String, dynamic>.from(
+                pdfBackendData['case_summary'] as Map);
+            record = record.copyWith(
+              caseNumber:
+                  summary['case_number']?.toString() ?? record.caseNumber,
+              title: summary['title']?.toString() ?? record.title,
+              description:
+                  summary['description']?.toString() ?? record.description,
+              complainant:
+                  summary['complainant']?.toString() ?? record.complainant,
+              accused: summary['accused']?.toString() ?? record.accused,
+              location: summary['location']?.toString() ?? record.location,
+              assignedOfficer: summary['assigned_officer']?.toString() ??
+                  record.assignedOfficer,
+              status: summary['status']?.toString() ?? record.status,
+              priority: summary['priority']?.toString() ?? record.priority,
+              extraFields: summary['extra_fields'] is Map
+                  ? Map<String, dynamic>.from(summary['extra_fields'])
+                  : record.extraFields,
+            );
+          }
+        } catch (_) {}
       }
 
       final displayName = record.firestoreCategoryDisplayName;
-      if (await printNcFormStoredPdf(record)) return;
-      if (await printMissingFormStoredPdf(record)) return;
-      if (await printPreventiveFormStoredPdf(record)) return;
-      if (await printMpdaFormStoredPdf(record)) return;
-      if (await printCommonFormStoredPdf(record)) return;
+
+      final ncRes = await buildNcFormPdfResult(record);
+      if (ncRes != null) return ncRes;
+
+      final missingRes = await buildMissingFormPdfResult(record);
+      if (missingRes != null) return missingRes;
+
+      final prevRes = await buildPreventiveFormPdfResult(record);
+      if (prevRes != null) return prevRes;
+
+      final mpdaRes = await buildMpdaFormPdfResult(record);
+      if (mpdaRes != null) return mpdaRes;
+
+      final commonRes = await buildCommonFormPdfResult(record);
+      if (commonRes != null) return commonRes;
 
       if (record.moduleKey == 'ad') {
-        await _generateAdFullFormPdf(record, displayName);
-        return;
+        return await _generateAdFullFormPdfResult(record, displayName);
       }
 
+      return await _generateGenericReportPdfResult(record, displayName);
+    } catch (e, st) {
+      debugPrint('[ModulePdfHelper] Error generating PDF result: $e\n$st');
+      return await _emergencySafeGenerationResult(record);
+    }
+  }
+
+  /// Generates and shares a PDF for any ModuleRecord.
+  static Future<void> generatePdf(
+    ModuleRecord record, [
+    BuildContext? context,
+  ]) async {
+    await PdfLoadingHelper.runWithLoading(
+      context: context,
+      action: () async => _generatePdfInternal(record),
+    );
+  }
+
+  static Future<void> _generatePdfInternal(ModuleRecord record) async {
+    final result = await buildPdfResult(record);
+    if (result != null) {
+      await Printing.sharePdf(bytes: result.bytes, filename: result.fileName);
+    }
+  }
+
+  static Future<PdfGeneratedResult> _generateGenericReportPdfResult(
+    ModuleRecord record,
+    String displayName,
+  ) async {
+    final theme = await PdfUnicodeFonts.openSansTheme();
+    final doc = pw.Document();
+    final now = DateFormat('dd MMM yyyy, hh:mm a').format(DateTime.now());
+
+    doc.addPage(
+      pw.MultiPage(
+        maxPages: 200,
+        theme: theme,
+        pageFormat: PdfPageFormat.a4,
+        margin: PdfLayoutConstants.pageMargin,
+        build: (pw.Context ctx) {
+          return [
+            DynamicMapPdf.pmsNavyHeaderBand(
+              amberSubtitle: '$displayName - Official Case Report',
+            ),
+            pw.SizedBox(height: 20),
+            pw.Row(
+              children: [
+                pw.Expanded(
+                  child: DynamicMapPdf.summaryStatBox(
+                    'Case Number',
+                    record.caseNumber.isEmpty ? '—' : record.caseNumber,
+                  ),
+                ),
+                pw.SizedBox(width: 12),
+                pw.Expanded(
+                  child: DynamicMapPdf.summaryStatBox(
+                    'Status',
+                    record.status.isEmpty ? '—' : record.status,
+                  ),
+                ),
+                pw.SizedBox(width: 12),
+                pw.Expanded(
+                  child: DynamicMapPdf.summaryStatBox(
+                    'Priority',
+                    record.priority.isEmpty ? '—' : record.priority,
+                  ),
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 16),
+            ...DynamicMapPdf.buildModuleRecordPdfBody(record, displayName),
+            pw.SizedBox(height: 24),
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Column(
+                  children: [
+                    pw.Container(
+                      width: 120,
+                      decoration: const pw.BoxDecoration(
+                        border: pw.Border(
+                          bottom: pw.BorderSide(
+                            color: PdfColors.black,
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                    ),
+                    pw.SizedBox(height: 4),
+                    pw.Text(
+                      'Investigating Officer',
+                      style: const pw.TextStyle(fontSize: 10),
+                    ),
+                  ],
+                ),
+                pw.Column(
+                  children: [
+                    pw.Container(
+                      width: 120,
+                      decoration: const pw.BoxDecoration(
+                        border: pw.Border(
+                          bottom: pw.BorderSide(
+                            color: PdfColors.black,
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                    ),
+                    pw.SizedBox(height: 4),
+                    pw.Text(
+                      'Station Head / SHO',
+                      style: const pw.TextStyle(fontSize: 10),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 16),
+            DynamicMapPdf.confidentialFooterRow(
+              generatedText: 'Generated: $now',
+            ),
+          ];
+        },
+      ),
+    );
+
+    final fileName =
+        '${displayName.replaceAll(' ', '_')}_${record.caseNumber.replaceAll('/', '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+    final bytes = await doc.save();
+    return PdfGeneratedResult(
+      bytes: bytes,
+      fileName: fileName,
+      title: '$displayName - Official Case Report',
+    );
+  }
+
+  static Future<PdfGeneratedResult?> _emergencySafeGenerationResult(
+      ModuleRecord record) async {
+    try {
+      final displayName = record.firestoreCategoryDisplayName;
       final theme = await PdfUnicodeFonts.openSansTheme();
       final doc = pw.Document();
-      final now = DateFormat('dd MMM yyyy, hh:mm a').format(DateTime.now());
-
       doc.addPage(
-        pw.MultiPage(
-          maxPages: 200,
+        pw.Page(
           theme: theme,
           pageFormat: PdfPageFormat.a4,
           margin: PdfLayoutConstants.pageMargin,
           build: (pw.Context ctx) {
-            return [
-              DynamicMapPdf.pmsNavyHeaderBand(
-                amberSubtitle: '$displayName - Official Case Report',
-              ),
-              pw.SizedBox(height: 20),
-              pw.Row(
-                children: [
-                  pw.Expanded(
-                    child: DynamicMapPdf.summaryStatBox(
-                      'Case Number',
-                      record.caseNumber.isEmpty ? '—' : record.caseNumber,
-                    ),
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                DynamicMapPdf.pmsNavyHeaderBand(
+                  amberSubtitle: '$displayName - Official Case Report',
+                ),
+                pw.SizedBox(height: 20),
+                pw.Text(
+                  'Case No: ${record.caseNumber}',
+                  style: pw.TextStyle(
+                    fontSize: 14,
+                    fontWeight: pw.FontWeight.bold,
                   ),
-                  pw.SizedBox(width: 12),
-                  pw.Expanded(
-                    child: DynamicMapPdf.summaryStatBox(
-                      'Status',
-                      record.status.isEmpty ? '—' : record.status,
-                    ),
-                  ),
-                  pw.SizedBox(width: 12),
-                  pw.Expanded(
-                    child: DynamicMapPdf.summaryStatBox(
-                      'Priority',
-                      record.priority.isEmpty ? '—' : record.priority,
-                    ),
-                  ),
-                ],
-              ),
-              pw.SizedBox(height: 16),
-              ...DynamicMapPdf.buildModuleRecordPdfBody(record, displayName),
-              pw.SizedBox(height: 24),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Column(
-                    children: [
-                      pw.Container(
-                        width: 120,
-                        decoration: const pw.BoxDecoration(
-                          border: pw.Border(
-                            bottom: pw.BorderSide(
-                              color: PdfColors.black,
-                              width: 1,
-                            ),
-                          ),
-                        ),
-                      ),
-                      pw.SizedBox(height: 4),
-                      pw.Text(
-                        'Investigating Officer',
-                        style: const pw.TextStyle(fontSize: 10),
-                      ),
-                    ],
-                  ),
-                  pw.Column(
-                    children: [
-                      pw.Container(
-                        width: 120,
-                        decoration: const pw.BoxDecoration(
-                          border: pw.Border(
-                            bottom: pw.BorderSide(
-                              color: PdfColors.black,
-                              width: 1,
-                            ),
-                          ),
-                        ),
-                      ),
-                      pw.SizedBox(height: 4),
-                      pw.Text(
-                        'Station Head / SHO',
-                        style: const pw.TextStyle(fontSize: 10),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              pw.SizedBox(height: 16),
-              DynamicMapPdf.confidentialFooterRow(
-                generatedText: 'Generated: $now',
-              ),
-            ];
+                ),
+                pw.SizedBox(height: 8),
+                pw.Text('Title: ${record.title}'),
+                pw.Text('Status: ${record.status}'),
+                pw.Text('Priority: ${record.priority}'),
+                pw.Text('Officer: ${record.assignedOfficer}'),
+                pw.SizedBox(height: 12),
+                pw.Text('Description: ${record.description}'),
+              ],
+            );
           },
         ),
       );
-
       final fileName =
-          '${displayName.replaceAll(' ', '_')}_${record.caseNumber.replaceAll('/', '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf';
-      await Printing.sharePdf(bytes: await doc.save(), filename: fileName);
-    } catch (e) {
-      // Emergency safe generation
-      try {
-        final displayName = record.firestoreCategoryDisplayName;
-        final theme = await PdfUnicodeFonts.openSansTheme();
-        final doc = pw.Document();
-        doc.addPage(
-          pw.Page(
-            theme: theme,
-            pageFormat: PdfPageFormat.a4,
-            margin: PdfLayoutConstants.pageMargin,
-            build: (pw.Context ctx) {
-              return pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  DynamicMapPdf.pmsNavyHeaderBand(
-                    amberSubtitle: '$displayName - Official Case Report',
-                  ),
-                  pw.SizedBox(height: 20),
-                  pw.Text(
-                    'Case No: ${record.caseNumber}',
-                    style: pw.TextStyle(
-                      fontSize: 14,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                  pw.SizedBox(height: 8),
-                  pw.Text('Title: ${record.title}'),
-                  pw.Text('Status: ${record.status}'),
-                  pw.Text('Priority: ${record.priority}'),
-                  pw.Text('Officer: ${record.assignedOfficer}'),
-                  pw.SizedBox(height: 12),
-                  pw.Text('Description: ${record.description}'),
-                ],
-              );
-            },
-          ),
-        );
-        final fileName =
-            '${displayName.replaceAll(' ', '_')}_${record.caseNumber.replaceAll('/', '_')}.pdf';
-        await Printing.sharePdf(bytes: await doc.save(), filename: fileName);
-      } catch (_) {}
+          '${displayName.replaceAll(' ', '_')}_${record.caseNumber.replaceAll('/', '_')}.pdf';
+      final bytes = await doc.save();
+      return PdfGeneratedResult(
+        bytes: bytes,
+        fileName: fileName,
+        title: '$displayName - Case Report',
+      );
+    } catch (_) {
+      return null;
     }
   }
 
   /// A.D: load `ad_forms` / `ad_drafts` + hub merge, then emit every field dynamically.
-  static Future<void> _generateAdFullFormPdf(
+  static Future<PdfGeneratedResult> _generateAdFullFormPdfResult(
     ModuleRecord record,
     String moduleName,
   ) async {
@@ -458,7 +615,12 @@ class ModulePdfHelper {
 
     final fileName =
         'AD_${record.caseNumber.replaceAll('/', '_')}_${DateTime.now().millisecondsSinceEpoch}.pdf';
-    await Printing.sharePdf(bytes: await doc.save(), filename: fileName);
+    final bytes = await doc.save();
+    return PdfGeneratedResult(
+      bytes: bytes,
+      fileName: fileName,
+      title: '$moduleName — A.D Form',
+    );
   }
 
   static Future<void> generateSummaryReportPdf(

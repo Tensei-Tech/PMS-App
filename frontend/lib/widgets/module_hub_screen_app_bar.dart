@@ -31,7 +31,7 @@ class ModuleHubScreenAppBar extends StatelessWidget
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 500;
+    final isMobile = MediaQuery.of(context).size.width < 600;
     final bg = backgroundColor ?? Colors.white;
     final isDarkHeader = bg != Colors.white;
     final textColor = isDarkHeader ? Colors.white : AppColors.navyDark;
@@ -41,6 +41,29 @@ class ModuleHubScreenAppBar extends StatelessWidget
     final iconColor = isDarkHeader ? Colors.white : AppColors.navyDark;
     final btnBg = isDarkHeader ? AppColors.goldPrimary : AppColors.navyDark;
     final btnFg = isDarkHeader ? AppColors.navyDark : Colors.white;
+
+    final titleColumn = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: textColor,
+          ),
+        ),
+        Text(
+          subtitle,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.poppins(fontSize: 11, color: subTextColor),
+        ),
+      ],
+    );
 
     return AppBar(
       backgroundColor: bg,
@@ -53,37 +76,18 @@ class ModuleHubScreenAppBar extends StatelessWidget
           size: 20,
         ),
       ),
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      // On mobile, expand the title area so the add action shifts to the corner
+      title: Row(
         children: [
-          Text(
-            title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: textColor,
-            ),
-          ),
-          Text(
-            subtitle,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.poppins(fontSize: 11, color: subTextColor),
-          ),
-        ],
-      ),
-      actions: [
-        if (actionWidget != null)
-          Padding(
-            padding: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
-            child: actionWidget!,
-          )
-        else if (onAddPressed != null)
-          Padding(
-            padding: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
-            child: ElevatedButton.icon(
+          isMobile
+              ? Expanded(child: titleColumn)
+              : Flexible(child: titleColumn),
+          if (actionWidget != null) ...[
+            SizedBox(width: isMobile ? 8 : 16),
+            actionWidget!,
+          ] else if (onAddPressed != null) ...[
+            SizedBox(width: isMobile ? 8 : 16),
+            ElevatedButton.icon(
               onPressed: onAddPressed,
               icon: Icon(Icons.add_rounded, color: btnFg, size: 16),
               label: Text(
@@ -107,7 +111,10 @@ class ModuleHubScreenAppBar extends StatelessWidget
                 shadowColor: btnBg.withValues(alpha: 0.3),
               ),
             ),
-          ),
+          ],
+        ],
+      ),
+      actions: [
         if (badgeLabel != null &&
             (!isMobile || (actionWidget == null && onAddPressed == null)))
           ConstrainedBox(

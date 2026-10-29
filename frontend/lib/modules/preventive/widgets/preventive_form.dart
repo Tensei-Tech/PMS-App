@@ -6,8 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
-import '../../../screens/ad_form_screen.dart' show ACT_DATA;
+import '../../../services/backend_case_service.dart';
 import '../../../services/case_service.dart';
+import '../../../theme/app_theme.dart';
 import '../../../widgets/common_form/pocso_voice_banner.dart';
 import '../../../widgets/voice_dictation_button.dart';
 
@@ -108,11 +109,30 @@ class PreventiveFormState extends State<PreventiveForm> {
   List<String> _preventiveActsList = List.from(_kPreventiveSectionActs);
 
   Map<String, Map<String, dynamic>> get _activeActsData =>
-      _actsData.isNotEmpty ? _actsData : ACT_DATA;
+      _actsData.isNotEmpty ? _actsData : BackendCaseService.cachedActData;
   List<String> get _activePreventiveSectionActs =>
       _preventiveActsList.isNotEmpty
           ? _preventiveActsList
           : _kPreventiveSectionActs;
+
+  Future<void> _fetchGlobalActs() async {
+    final acts = await BackendCaseService().fetchActDataMap();
+    if (acts != null && acts.isNotEmpty && mounted) {
+      setState(() {
+        _actsData = acts;
+      });
+    } else if (mounted &&
+        _actsData.isEmpty &&
+        BackendCaseService.cachedActData.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to load legal acts and sections from server.'),
+          backgroundColor: AppColors.dangerRed,
+          duration: Duration(seconds: 4),
+        ),
+      );
+    }
+  }
 
   Future<void> _loadFormDefinition() async {
     final catId = widget.categoryId ?? 'Preventive';
@@ -221,6 +241,7 @@ class PreventiveFormState extends State<PreventiveForm> {
   void initState() {
     super.initState();
     _loadFormDefinition();
+    _fetchGlobalActs();
     _activeVoiceController = _crimeNoCtrl;
     _scroll.addListener(() {
       if (!_scroll.hasClients) return;
@@ -791,47 +812,67 @@ class PreventiveFormState extends State<PreventiveForm> {
                             // Act Selector Chips
                             _buildLabel('Select Act / कायदे निवडा'),
                             const SizedBox(height: 6),
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: _activeActsData.keys.map((actKey) {
-                                  final actInfo = _activeActsData[actKey];
-                                  final label = actInfo?['label'] ?? actKey;
-                                  final isSelected = _selectedAct == actKey;
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 8),
-                                    child: FilterChip(
-                                      label: Text(label),
-                                      selected: isSelected,
-                                      onSelected: widget.readOnly
-                                          ? null
-                                          : (val) {
-                                              if (val) {
-                                                setState(() {
-                                                  _selectedAct = actKey;
-                                                  _markUnsaved();
-                                                });
-                                              }
-                                            },
-                                      selectedColor:
-                                          _kTeal.withValues(alpha: 0.15),
-                                      backgroundColor: _kInputBg,
-                                      side: BorderSide(
-                                        color: isSelected ? _kTeal : _kBorder,
-                                        width: isSelected ? 1.5 : 1,
-                                      ),
-                                      labelStyle: GoogleFonts.inter(
-                                        fontSize: 11,
-                                        fontWeight: isSelected
-                                            ? FontWeight.w700
-                                            : FontWeight.w500,
-                                        color: isSelected ? _kTeal : _kDark,
-                                      ),
+                            if (_activeActsData.isEmpty)
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 4),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.error_outline,
+                                        size: 16, color: _kRed),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'Error: Failed to load acts and sections from server.',
+                                      style: GoogleFonts.inter(
+                                          fontSize: 12,
+                                          color: _kRed,
+                                          fontWeight: FontWeight.w500),
                                     ),
-                                  );
-                                }).toList(),
+                                  ],
+                                ),
+                              )
+                            else
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: _activeActsData.keys.map((actKey) {
+                                    final actInfo = _activeActsData[actKey];
+                                    final label = actInfo?['label'] ?? actKey;
+                                    final isSelected = _selectedAct == actKey;
+                                    return Padding(
+                                      padding: const EdgeInsets.only(right: 8),
+                                      child: FilterChip(
+                                        label: Text(label),
+                                        selected: isSelected,
+                                        onSelected: widget.readOnly
+                                            ? null
+                                            : (val) {
+                                                if (val) {
+                                                  setState(() {
+                                                    _selectedAct = actKey;
+                                                    _markUnsaved();
+                                                  });
+                                                }
+                                              },
+                                        selectedColor:
+                                            _kTeal.withValues(alpha: 0.15),
+                                        backgroundColor: _kInputBg,
+                                        side: BorderSide(
+                                          color: isSelected ? _kTeal : _kBorder,
+                                          width: isSelected ? 1.5 : 1,
+                                        ),
+                                        labelStyle: GoogleFonts.inter(
+                                          fontSize: 11,
+                                          fontWeight: isSelected
+                                              ? FontWeight.w700
+                                              : FontWeight.w500,
+                                          color: isSelected ? _kTeal : _kDark,
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
                               ),
-                            ),
                             const SizedBox(height: 12),
 
                             // Filter / Search section
@@ -1399,6 +1440,22 @@ class PreventiveFormState extends State<PreventiveForm> {
 
   // ── Section Picker Chips ───────────────────────────────────────────────────
   Widget _buildSectionPickerChips() {
+    if (_activeActsData.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            const Icon(Icons.error_outline, size: 16, color: _kRed),
+            const SizedBox(width: 6),
+            Text(
+              'Error: Failed to load acts and sections from server.',
+              style: GoogleFonts.inter(
+                  fontSize: 12, color: _kRed, fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
+      );
+    }
     final actInfo = _activeActsData[_selectedAct];
     final sections = (actInfo?['sections'] as List<dynamic>?) ?? const [];
     final filterQuery = _sectionSearchCtrl.text.trim().toLowerCase();

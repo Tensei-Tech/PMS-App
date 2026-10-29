@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import '../services/app_version.dart';
 import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
@@ -253,7 +254,7 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Version 2.4.0 • Build 2026.08',
+                  AppVersion.label,
                   style: GoogleFonts.poppins(
                     fontSize: 11,
                     color: AppColors.lightSubText,
@@ -382,47 +383,52 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                       width: isSelected ? 1.5 : 1,
                     ),
                   ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: 2,
-                    ),
-                    title: Text(
-                      _fontSizeLabel(fs),
-                      style: GoogleFonts.poppins(
-                        fontSize: previewSize,
-                        fontWeight:
-                            isSelected ? FontWeight.w700 : FontWeight.w500,
-                        color:
-                            isSelected ? AppColors.navyMid : AppColors.navyDark,
+                  child: Material(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: 2,
                       ),
-                    ),
-                    subtitle: Text(
-                      fs == FontSize.small
-                          ? 'Compact font for tighter layout'
-                          : (fs == FontSize.large
-                              ? 'Larger font for improved readability'
-                              : 'Default standard font scaling'),
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        color: AppColors.lightSubText,
+                      title: Text(
+                        _fontSizeLabel(fs),
+                        style: GoogleFonts.poppins(
+                          fontSize: previewSize,
+                          fontWeight:
+                              isSelected ? FontWeight.w700 : FontWeight.w500,
+                          color: isSelected
+                              ? AppColors.navyMid
+                              : AppColors.navyDark,
+                        ),
                       ),
+                      subtitle: Text(
+                        fs == FontSize.small
+                            ? 'Compact font for tighter layout'
+                            : (fs == FontSize.large
+                                ? 'Larger font for improved readability'
+                                : 'Default standard font scaling'),
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          color: AppColors.lightSubText,
+                        ),
+                      ),
+                      trailing: isSelected
+                          ? const Icon(
+                              Icons.check_circle_rounded,
+                              color: AppColors.navyMid,
+                              size: 22,
+                            )
+                          : const Icon(
+                              Icons.radio_button_unchecked_rounded,
+                              color: Colors.grey,
+                              size: 20,
+                            ),
+                      onTap: () {
+                        settings.setFontSize(fs);
+                        Navigator.pop(ctx);
+                      },
                     ),
-                    trailing: isSelected
-                        ? const Icon(
-                            Icons.check_circle_rounded,
-                            color: AppColors.navyMid,
-                            size: 22,
-                          )
-                        : const Icon(
-                            Icons.radio_button_unchecked_rounded,
-                            color: Colors.grey,
-                            size: 20,
-                          ),
-                    onTap: () {
-                      settings.setFontSize(fs);
-                      Navigator.pop(ctx);
-                    },
                   ),
                 );
               }),
@@ -506,30 +512,35 @@ class _AppSettingsScreenState extends State<AppSettingsScreen> {
                             ? Border.all(color: AppColors.cyanDark, width: 1.5)
                             : null,
                       ),
-                      child: ListTile(
-                        dense: true,
-                        title: Text(
-                          entry.value,
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight:
-                                isSelected ? FontWeight.w700 : FontWeight.w500,
-                            color: isSelected
-                                ? AppColors.cyanDark
-                                : AppColors.navyDark,
+                      child: Material(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                        child: ListTile(
+                          dense: true,
+                          title: Text(
+                            entry.value,
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: isSelected
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                              color: isSelected
+                                  ? AppColors.cyanDark
+                                  : AppColors.navyDark,
+                            ),
                           ),
+                          trailing: isSelected
+                              ? const Icon(
+                                  Icons.check_circle_rounded,
+                                  color: AppColors.cyanDark,
+                                  size: 20,
+                                )
+                              : null,
+                          onTap: () {
+                            settings.setLanguage(entry.key);
+                            Navigator.pop(ctx);
+                          },
                         ),
-                        trailing: isSelected
-                            ? const Icon(
-                                Icons.check_circle_rounded,
-                                color: AppColors.cyanDark,
-                                size: 20,
-                              )
-                            : null,
-                        onTap: () {
-                          settings.setLanguage(entry.key);
-                          Navigator.pop(ctx);
-                        },
                       ),
                     );
                   }).toList(),

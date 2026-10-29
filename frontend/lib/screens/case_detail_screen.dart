@@ -12,8 +12,10 @@ import '../theme/app_theme.dart';
 import '../utils/case_visibility.dart';
 import '../utils/police_rbac_helper.dart';
 import '../widgets/send_reminder_dialog.dart';
+import '../utils/common_form_module.dart';
 import '../utils/pdf_helper.dart';
 import '../widgets/access_denied_view.dart';
+import '../widgets/dynamic_form/dynamic_form_screen.dart';
 import '../widgets/module_record_dynamic_document_view.dart';
 import 'case_form_screen.dart';
 import 'transfer_case_form_screen.dart';
@@ -98,13 +100,32 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
     final canView = CaseVisibility.canViewRecord(record: _record, auth: auth);
     final showContent = !_recordDeleted && !_accessDenied && canView;
 
+    if (_accessDenied || !canView) {
+      return Scaffold(
+        backgroundColor: AppColors.lightBg,
+        body: _buildAccessDeniedBody(context),
+      );
+    }
+    if (_recordDeleted) {
+      return Scaffold(
+        backgroundColor: AppColors.lightBg,
+        body: _buildDeletedBody(),
+      );
+    }
+    if (moduleUsesCommonCrimeForm(_record.moduleKey)) {
+      return DynamicFormScreen(
+        categoryId: _record.extraFields['categoryId'],
+        moduleLabel: _record.firestoreCategoryDisplayName,
+        moduleKey: _record.moduleKey,
+        subCategory: _record.subCategory,
+        existingRecord: _record,
+        readOnly: true,
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.lightBg,
-      body: _accessDenied || !canView
-          ? _buildAccessDeniedBody(context)
-          : _recordDeleted
-              ? _buildDeletedBody()
-              : _buildLiveBody(context, showContent),
+      body: _buildLiveBody(context, showContent),
       bottomNavigationBar: widget.showFloatingActions
           ? _buildStickyBottomActions(context, showContent)
           : null,

@@ -19,12 +19,23 @@ from apps.cases.views import (
     TimeWiseDisposalView,
     DesignationWiseDisposalView,
     DisposalCrimeTypeWiseView,
+    CaseCountsView,
     AbscondedCasesView,
     AbscondedIOWiseView,
     AbscondedTimeWiseView,
     ArrestedCaseWiseView,
     TimeWiseArrestedView,
     IOWiseArrestedView,
+    RepeatOffenderCaseWiseView,
+    TimeWiseRepeatOffenderView,
+    IOWiseRepeatOffenderView,
+    JuvenileCaseWiseView,
+    TimeWiseJuvenileView,
+    IOWiseJuvenileView,
+    NAFISCaseWiseView,
+    TimeWiseNAFISView,
+    IOWiseNAFISView,
+    NafisActionView,
     VictimCaseWiseView,
     VictimStatsView,
     VictimTimeWiseView,
@@ -43,10 +54,12 @@ router = DefaultRouter()
 router.register(r'', CaseRecordViewSet, basename='cases')
 
 urlpatterns = [
+    # Case Counts Aggregation (Egress Reduction endpoint)
+    path('counts/', CaseCountsView.as_view(), name='case-counts'),
     # Crime Type & Raw SQL Case Endpoints (placed before router to avoid pk shadowing)
     path('crime-types/', CrimeTypeListView.as_view(), name='crime-type-list'),
-    path('crime-types/<str:crime_type>/cases/', CasesByCrimeTypeView.as_view(), name='cases-by-crime-type'),
-    path('crime-types/<str:crime_type>/sections/', SectionsByCrimeTypeView.as_view(), name='sections-by-crime-type'),
+    path('crime-types/<path:crime_type>/cases/', CasesByCrimeTypeView.as_view(), name='cases-by-crime-type'),
+    path('crime-types/<path:crime_type>/sections/', SectionsByCrimeTypeView.as_view(), name='sections-by-crime-type'),
     path('create/', CreateCaseView.as_view(), name='case-create'),
     path('pending/', PendingCasesView.as_view(), name='pending-cases'),
     path('pending/io-wise/', IOWisePendingView.as_view(), name='pending-io-wise'),
@@ -68,6 +81,19 @@ urlpatterns = [
     path('arrested/case-wise/', ArrestedCaseWiseView.as_view(), name='arrested-case-wise'),
     path('arrested/time-wise/', TimeWiseArrestedView.as_view(), name='arrested-time-wise'),
     path('arrested/io-wise/', IOWiseArrestedView.as_view(), name='arrested-io-wise'),
+    
+    path('repeat-offender/case-wise/', RepeatOffenderCaseWiseView.as_view(), name='repeat-offender-case-wise'),
+    path('repeat-offender/time-wise/', TimeWiseRepeatOffenderView.as_view(), name='repeat-offender-time-wise'),
+    path('repeat-offender/io-wise/', IOWiseRepeatOffenderView.as_view(), name='repeat-offender-io-wise'),
+
+    path('juvenile/case-wise/', JuvenileCaseWiseView.as_view(), name='juvenile-case-wise'),
+    path('juvenile/time-wise/', TimeWiseJuvenileView.as_view(), name='juvenile-time-wise'),
+    path('juvenile/io-wise/', IOWiseJuvenileView.as_view(), name='juvenile-io-wise'),
+
+    path('nafis/case-wise/', NAFISCaseWiseView.as_view(), name='nafis-case-wise'),
+    path('nafis/time-wise/', TimeWiseNAFISView.as_view(), name='nafis-time-wise'),
+    path('nafis/io-wise/', IOWiseNAFISView.as_view(), name='nafis-io-wise'),
+    path('nafis/cases/<str:pk>/action/', NafisActionView.as_view(), name='nafis-action'),
 
     path('victim/case-wise/', VictimCaseWiseView.as_view(), name='victim-case-wise'),
     path('victim/time-wise/', VictimTimeWiseView.as_view(), name='victim-time-wise'),

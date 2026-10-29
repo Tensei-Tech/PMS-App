@@ -6,6 +6,7 @@ import 'package:printing/printing.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'marathi_text_renderer.dart';
 import 'pdf_font_cache.dart';
+import 'pdf_loading_helper.dart';
 import 'form_io_terminology.dart';
 import '../widgets/form_section_utils.dart';
 
@@ -13,19 +14,25 @@ Future<void> previewPropertySeizurePdf(
   BuildContext context,
   Map<String, dynamic> doc,
 ) async {
-  final bytes = await generatePropertySeizurePdf(doc);
   if (!context.mounted) return;
-  final fileName =
-      'Property_Seizure_Form_${DateTime.now().millisecondsSinceEpoch}.pdf';
-  try {
-    if (kIsWeb) {
-      await Printing.sharePdf(bytes: bytes, filename: fileName);
-    } else {
-      await Printing.layoutPdf(onLayout: (_) async => bytes, name: fileName);
-    }
-  } catch (_) {
-    await Printing.sharePdf(bytes: bytes, filename: fileName);
-  }
+  await PdfLoadingHelper.runWithLoading(
+    context: context,
+    action: () async {
+      final bytes = await generatePropertySeizurePdf(doc);
+      final fileName =
+          'Property_Seizure_Form_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      try {
+        if (kIsWeb) {
+          await Printing.sharePdf(bytes: bytes, filename: fileName);
+        } else {
+          await Printing.layoutPdf(
+              onLayout: (_) async => bytes, name: fileName);
+        }
+      } catch (_) {
+        await Printing.sharePdf(bytes: bytes, filename: fileName);
+      }
+    },
+  );
 }
 
 Future<Uint8List> generatePropertySeizurePdf(Map<String, dynamic> doc) async {

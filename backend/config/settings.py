@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'apps.stations',
     'apps.cases',
     'apps.crimetab',
+    'apps.elearning',
 ]
 
 try:
@@ -53,6 +54,7 @@ except ImportError:
     dj_database_url = None
 
 MIDDLEWARE = [
+    'apps.core.timing_middleware.RequestTimingMiddleware',  # First, so it times everything below
     'corsheaders.middleware.CorsMiddleware',  # Top of middleware for CORS
     'apps.core.middleware.TenantMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -114,11 +116,12 @@ def is_ssl_required(db_url: str) -> bool:
 # 1. Primary Database (Writes & Critical Operations)
 is_local = os.getenv('DB_HOST', 'localhost') in ['localhost', '127.0.0.1']
 
-if 'test' in sys.argv:
+if 'test' in sys.argv and not os.getenv('DATABASE_URL'):
     DATABASES['default'] = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': ':memory:',
     }
+
 elif os.getenv('DATABASE_URL'):
     from urllib.parse import urlparse, unquote
     db_url = os.getenv('DATABASE_URL')
@@ -141,6 +144,7 @@ elif os.getenv('DATABASE_URL'):
             'keepalives_count': 5,
         },
     }
+
 elif os.getenv('DB_NAME') and os.getenv('DB_PASSWORD') and os.getenv('DB_PASSWORD') != 'YOUR_SUPABASE_DB_PASSWORD':
     DATABASES['default'] = {
         'ENGINE': 'django.db.backends.postgresql',
@@ -160,13 +164,23 @@ elif os.getenv('DB_NAME') and os.getenv('DB_PASSWORD') and os.getenv('DB_PASSWOR
             'keepalives_count': 5,
         },
     }
+
 else:
     from django.core.exceptions import ImproperlyConfigured
     raise ImproperlyConfigured(
         "No PostgreSQL database configured. Set DATABASE_URL (or DB_NAME and DB_PASSWORD) in backend/.env."
     )
 
-DATABASES['default'].setdefault('TEST', {})['MIGRATE'] = False
+# In CI (disposable test DB container already migrated), mirror default to avoid re-running migrations.
+if os.getenv('GITHUB_ACTIONS') or os.getenv('CI'):
+    DATABASES['default']['TEST'] = {
+        'MIRROR': 'default',
+        'MIGRATE': False,
+    }
+else:
+    DATABASES['default'].setdefault('TEST', {})['MIGRATE'] = False
+
+
 
 # 2. Read Replica 1 (Optional - High Load Read Offloading)
 is_rep1_local = os.getenv('DB_REPLICA_1_HOST', 'localhost') in ['localhost', '127.0.0.1']
@@ -217,6 +231,22 @@ elif os.getenv('DB_REPLICA_2_HOST'):
             'sslmode': os.getenv('DB_SSLMODE', 'disable' if is_rep2_local else 'require'),
         },
     }
+
+# Reuse connections between requests instead of reconnecting to Supabase each time
+# (off automatically on the transaction pooler, see config/db_connections.py).
+from config.db_connections import apply_conn_max_age
+apply_conn_max_age(DATABASES)
+
+# Request timing lines go to the server log (Render → Logs); other loggers keep
+# Django's defaults.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {'console': {'class': 'logging.StreamHandler'}},
+    'loggers': {
+        'apps.core.timing': {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+    },
+}
 
 # High-Availability Database Router (Primary Writes, Replica Reads)
 DATABASE_ROUTERS = ['apps.core.db_router.PrimaryReplicaRouter']
@@ -298,6 +328,20 @@ SIMPLE_JWT = {
 }
 
 # ------------------------------------------------------------------------------
+# IN-APP UPDATE CHECK (apps/core/app_version.py)
+# ------------------------------------------------------------------------------
+# Build numbers are GitHub Actions run numbers; each published APK is the
+# GitHub Release tagged build-<number>. Set these on Render after a build.
+APP_LATEST_BUILD = os.getenv('APP_LATEST_BUILD', '0')  # older builds see "update available"
+APP_MIN_BUILD = os.getenv('APP_MIN_BUILD', '0')  # older builds must update before use
+# Optional: send users here instead of the GitHub release (e.g. the Play Store page).
+APP_DOWNLOAD_URL = os.getenv('APP_DOWNLOAD_URL', '')
+APP_RELEASE_REPO = os.getenv('APP_RELEASE_REPO', 'Tensei-Tech/PMS-App')
+# Fine-grained GitHub token with read-only "Contents" access to APP_RELEASE_REPO.
+# It stays on the server; users download through /api/app-version/download/.
+APP_RELEASE_GITHUB_TOKEN = os.getenv('APP_RELEASE_GITHUB_TOKEN', '')
+
+# ------------------------------------------------------------------------------
 # SECURITY & TLS IN TRANSIT CONFIGURATION
 # ------------------------------------------------------------------------------
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -311,14 +355,35 @@ SECURE_HSTS_PRELOAD = True
 # ------------------------------------------------------------------------------
 # UPSTASH REDIS CACHE LAYER CONFIGURATION
 # ------------------------------------------------------------------------------
-UPSTASH_REDIS_REST_URL = os.getenv('UPSTASH_REDIS_REST_URL', 'https://mature-eel-202638.upstash.io')
-UPSTASH_REDIS_REST_TOKEN = os.getenv('UPSTASH_REDIS_REST_TOKEN', 'ggAAAAAAAxeOAAIgcDHNa0zn2Xyy2gpsLIRRDdqRI68u7SlPuCjzaUUXePSvkA')
-REDIS_URL = os.getenv('REDIS_URL', 'rediss://default:ggAAAAAAAxeOAAIgcDHNa0zn2Xyy2gpsLIRRDdqRI68u7SlPuCjzaUUXePSvkA@mature-eel-202638.upstash.io:6379')
+# Shared cache: Upstash Redis when REDIS_URL is set (Render), else per-process
+# memory (local dev, tests, CI). Secrets come only from the environment.
+UPSTASH_REDIS_REST_URL = os.getenv('UPSTASH_REDIS_REST_URL', '')
+UPSTASH_REDIS_REST_TOKEN = os.getenv('UPSTASH_REDIS_REST_TOKEN', '')
+REDIS_URL = os.getenv('REDIS_URL', '')
+CACHE_KEY_PREFIX = os.getenv('CACHE_KEY_PREFIX', 'pms')
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'pms-app-cache-layer',
-        'TIMEOUT': 300,  # Default 5 min TTL
+if REDIS_URL and 'test' not in sys.argv:
+    CACHES = {
+        'default': {
+            # Never raises: a slow or unreachable Redis behaves like an empty cache
+            # (see apps/core/cache_backends.py).
+            'BACKEND': 'apps.core.cache_backends.SafeRedisCache',
+            'LOCATION': REDIS_URL,
+            'KEY_PREFIX': CACHE_KEY_PREFIX,
+            'TIMEOUT': 300,
+            'OPTIONS': {
+                'socket_connect_timeout': float(os.getenv('REDIS_CONNECT_TIMEOUT', '2')),
+                'socket_timeout': float(os.getenv('REDIS_TIMEOUT', '2')),
+                'health_check_interval': 30,
+                'max_connections': int(os.getenv('REDIS_MAX_CONNECTIONS', '20')),
+            },
+        }
     }
-}
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'pms-app-cache-layer',
+            'TIMEOUT': 300,  # Default 5 min TTL
+        }
+    }

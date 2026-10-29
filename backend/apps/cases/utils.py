@@ -4,6 +4,85 @@ from django.db.models.fields.json import KeyTextTransform
 from django.db import models
 from apps.cases.models import CaseRecord
 from apps.cases.constants import DISPOSAL_KEYS
+IGNORED_ACCUSED_NAMES = {
+    'default accused', 'unknown', 'unknown accused', 'अज्ञात',
+    'unidentified', 'na', 'n/a', 'none', 'null', 'test accused',
+    'suspect', 'accused', 'passport verification', ''
+}
+
+def extract_accused_names_for_case(case):
+    names = set()
+    # 1. CasesPerson
+    if hasattr(case, 'persons'):
+        for p in case.persons.all():
+            if p.role in ['accused', 'suspected_accused', 'suspect'] and p.name:
+                names.add(p.name.strip())
+    # 2. CaseRecord.accused
+    if case.accused:
+        if isinstance(case.accused, str):
+            names.add(case.accused.strip())
+        elif isinstance(case.accused, list):
+            for x in case.accused:
+                if isinstance(x, dict) and x.get('name'):
+                    names.add(str(x['name']).strip())
+                elif isinstance(x, str):
+                    names.add(x.strip())
+    # 3. extra_fields & commonForm
+    ef = case.extra_fields if isinstance(case.extra_fields, dict) else {}
+    cf = ef.get('commonForm') if isinstance(ef, dict) and isinstance(ef.get('commonForm'), dict) else {}
+    for container in [ef, cf]:
+        for key in ['accused_list', 'accused', 'accused_name']:
+            val = container.get(key)
+            if isinstance(val, str) and val.strip():
+                names.add(val.strip())
+            elif isinstance(val, list):
+                for x in val:
+                    if isinstance(x, dict) and x.get('name'):
+                        names.add(str(x['name']).strip())
+                    elif isinstance(x, str) and x.strip():
+                        names.add(x.strip())
+    return {n for n in names if n.strip().lower() not in IGNORED_ACCUSED_NAMES and len(n.strip()) > 1}
+
+
+def get_repeat_offender_map(station_names=None):
+    from collections import defaultdict
+    qs = CaseRecord.objects.all()
+    if station_names:
+        qs = qs.filter(station_name__in=station_names)
+        
+    name_to_cases = defaultdict(dict)  # name_lower -> {case_id: cr_number}
+    name_display = {}
+
+    for c in qs.prefetch_related('persons'):
+        cr = (c.case_number or '').strip()
+        if not cr or cr in ['—', '-']:
+            continue
+        names = extract_accused_names_for_case(c)
+        for n in names:
+            nl = n.lower()
+            name_to_cases[nl][c.id] = cr
+            if nl not in name_display or (name_display[nl].islower() and not n.islower()):
+                name_display[nl] = n.title() if (n.islower() or n.isupper()) else n
+
+    repeat_accused = {nl: cdict for nl, cdict in name_to_cases.items() if len(set(cdict.values())) > 1}
+
+    repeat_case_ids = set()
+    case_to_info = {}
+
+    for nl, cdict in repeat_accused.items():
+        disp_name = name_display.get(nl, nl.title())
+        all_crs = set(cdict.values())
+        for cid, cr in cdict.items():
+            repeat_case_ids.add(cid)
+            other_crs = sorted([other for other in all_crs if other != cr])
+            case_to_info[cid] = {
+                'accused_name': disp_name,
+                'other_crs': other_crs,
+                'multiple_cr': ', '.join(other_crs) if other_crs else '-'
+            }
+
+    return repeat_case_ids, case_to_info
+
 
 def get_cases_by_status(tab: str):
     """
@@ -18,7 +97,11 @@ def get_cases_by_status(tab: str):
         # "Pending" includes anything that is not Disposal, Closed, or Resolved
         return queryset.exclude(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved'])
     elif tab.lower() == 'detected':
-        return queryset.filter(status__iexact='Detected')
+        # Exclude administrative service modules and missing reports (which are tracked as Traced/Untraced)
+        return queryset.filter(status__iexact='Detected').exclude(
+            Q(module_key__in=['passport', 'licence', 'application', 'missing']) |
+            Q(sub_category__iexact='missing')
+        )
     elif tab.lower() == 'arrested':
         return queryset.filter(
             Q(module_key__iexact='arrested') |
@@ -27,6 +110,122 @@ def get_cases_by_status(tab: str):
             (Q(extra_fields__has_key='arrest_datetime') & ~Q(extra_fields__arrest_datetime='') & ~Q(extra_fields__arrest_datetime=None)) |
             (Q(extra_fields__has_key='arrested_person_name') & ~Q(extra_fields__arrested_person_name='') & ~Q(extra_fields__arrested_person_name=None)) |
             (Q(extra_fields__has_key='arrests') & ~Q(extra_fields__arrests=[]) & ~Q(extra_fields__arrests=None))
+        ).distinct()
+    elif tab.lower() in ['repeat_offender', 'repeat offender']:
+        repeat_case_ids, _ = get_repeat_offender_map()
+        return queryset.filter(id__in=repeat_case_ids).distinct()
+    elif tab.lower() == 'juvenile':
+        from datetime import datetime
+        
+        def _is_juvenile_dob(dob_str: str) -> bool:
+            if not dob_str: return False
+            try:
+                dob_str = str(dob_str).strip()
+                if '/' in dob_str:
+                    parts = dob_str.split('/')
+                    if len(parts) != 3: return False
+                    if len(parts[0]) == 4:
+                        dt = datetime(int(parts[0]), int(parts[1]), int(parts[2]))
+                    else:
+                        dt = datetime(int(parts[2]), int(parts[1]), int(parts[0]))
+                elif '-' in dob_str:
+                    parts = dob_str.split('-')
+                    if len(parts) != 3: return False
+                    if len(parts[0]) == 4:
+                        dt = datetime(int(parts[0]), int(parts[1]), int(parts[2]))
+                    else:
+                        dt = datetime(int(parts[2]), int(parts[1]), int(parts[0]))
+                else:
+                    return False
+                
+                now = datetime.now()
+                try:
+                    eighteen_years_ago = now.replace(year=now.year - 18, hour=0, minute=0, second=0, microsecond=0)
+                except ValueError:
+                    # Handle Feb 29 leap year edge case
+                    eighteen_years_ago = now.replace(year=now.year - 18, month=2, day=28, hour=0, minute=0, second=0, microsecond=0)
+                
+                # If they were born *after* eighteen_years_ago, they are still under 18
+                return dt > eighteen_years_ago
+            except Exception:
+                return False
+
+        # 1. Base QuerySet based strictly on age < 18
+        base_qs = queryset.filter(
+            persons__role__in=['accused', 'suspected_accused', 'unidentified_accused', 'unknown_accused'],
+            persons__age__lt=18,
+            persons__age__gt=0
+        ).values_list('id', flat=True)
+        
+        juvenile_ids = set(base_qs)
+        
+        def _check_age_val(val):
+            if not val: return False
+            if str(val).isdigit() and 0 < int(val) < 18: return True
+            return _is_juvenile_dob(str(val))
+
+        # 2. Check JSON extra_fields for age/dob < 18 for remaining cases
+        for case in queryset.exclude(id__in=juvenile_ids).only('id', 'extra_fields'):
+            extra = case.extra_fields
+            if not isinstance(extra, dict): continue
+            
+            is_juv = False
+            
+            # top-level accused age fields
+            if any(_check_age_val(extra.get(k)) for k in ['accused_age', 'suspected_accused_age', 'juvenileAge', 'juvenile_age']):
+                is_juv = True
+            
+            if not is_juv:
+                lists_to_check = [
+                    extra.get('accusedDetails', []),
+                    extra.get('accused_list', []),
+                    extra.get('suspected_accused_list', []),
+                    extra.get('unidentified_accused_list', []),
+                ]
+                cf = extra.get('commonForm', {})
+                if isinstance(cf, dict):
+                    lists_to_check.append(cf.get('accusedDetails', []))
+                    lists_to_check.append(cf.get('accused_list', []))
+                    if any(_check_age_val(cf.get(k)) for k in ['accused_age', 'suspected_accused_age', 'juvenileAge', 'juvenile_age']):
+                        is_juv = True
+                    
+                if not is_juv:
+                    for lst in lists_to_check:
+                        if not isinstance(lst, list): continue
+                        for item in lst:
+                            if isinstance(item, dict):
+                                if (
+                                    _check_age_val(item.get('age')) or
+                                    _check_age_val(item.get('accused_age')) or
+                                    _check_age_val(item.get('ua_age')) or
+                                    _check_age_val(item.get('dob'))
+                                ):
+                                    is_juv = True
+                                    break
+                        if is_juv: break
+
+            if is_juv:
+                juvenile_ids.add(case.id)
+                
+        return CaseRecord.objects.filter(id__in=juvenile_ids).distinct()
+    elif tab.lower() in ['nafis', 'nafis_pending']:
+        return queryset.filter(
+            # Forensics relational table checks
+            Q(forensics__nafis_fingerprint__isnull=False) |
+            Q(forensics__fingerprint_taken__isnull=False) |
+            # Direct extra_fields keys
+            Q(extra_fields__has_key='nafis_fingerprint') |
+            Q(extra_fields__has_key='nafisFingerprint') |
+            Q(extra_fields__has_key='fingerprintVal') |
+            Q(extra_fields__has_key='fingerprint_taken') |
+            # Investigation notes nested keys
+            Q(extra_fields__investigationNotes__has_key='nafisFingerprint') |
+            Q(extra_fields__investigationNotes__has_key='fingerprintVal') |
+            Q(extra_fields__investigation_notes__has_key='nafis_fingerprint') |
+            Q(extra_fields__investigation_notes__has_key='fingerprint_taken') |
+            # Common form nested keys
+            Q(extra_fields__commonForm__investigationNotes__has_key='nafisFingerprint') |
+            Q(extra_fields__commonForm__investigationNotes__has_key='fingerprintVal')
         ).distinct()
         
     return queryset
