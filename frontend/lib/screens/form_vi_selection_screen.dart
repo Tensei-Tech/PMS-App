@@ -11,7 +11,7 @@ import '../services/case_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/category_navigation_helper.dart';
 import '../utils/common_form_module.dart';
-import '../utils/module_pdf_helper.dart';
+import '../utils/case_report_pdf_helper.dart';
 import '../utils/pdf_auth_gate.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/form_vi_category_button.dart';
@@ -1801,13 +1801,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                                   : record.title,
                               existingRecord: record,
                             ),
-                            onView: () => _openForm(
-                              record.subCategory?.isNotEmpty == true
-                                  ? record.subCategory!
-                                  : record.title,
-                              existingRecord: record,
-                              readOnly: true,
-                            ),
+                            onView: () => CaseReportPdfHelper.view(context, record),
                           );
                         },
                       ),
@@ -2779,8 +2773,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                                 label: 'PDF',
                                 onTap: () => runWithPdfAuthGate(
                                   context,
-                                  () => ModulePdfHelper.generatePdf(
-                                      record, context),
+                                  () => CaseReportPdfHelper.download(context, record),
                                 ),
                               ),
                             ],
@@ -3055,7 +3048,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                           OutlinedButton.icon(
                             onPressed: () => runWithPdfAuthGate(
                               context,
-                              () => ModulePdfHelper.generatePdf(record, context),
+                              () => CaseReportPdfHelper.download(context, record),
                             ),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: const Color(0xFFC53030),
@@ -3274,7 +3267,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
               label: 'PDF',
               onTap: () => runWithPdfAuthGate(
                 context,
-                () => ModulePdfHelper.generatePdf(record, context),
+                () => CaseReportPdfHelper.download(context, record),
               ),
             ),
           ],

@@ -2648,14 +2648,16 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         );
         Navigator.pop(context, record);
       } else {
-        throw Exception('Backend returned failure status.');
+        // The server's reason, e.g. a CR number already used in this tab
+        throw Exception(
+            _caseService.lastSaveError ?? 'Backend returned failure status.');
       }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Failed to save case: $e',
+            'Failed to save case: ${e.toString().replaceFirst('Exception: ', '')}',
             style: GoogleFonts.poppins(),
           ),
           backgroundColor: AppColors.dangerRed,

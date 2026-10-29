@@ -1788,9 +1788,16 @@ class CrimeCaseManageView(APIView):
         title = data.get('title') or f"Crime Incident {case_number}"
         station_name = data.get('station_name') or 'Default Station'
 
+        from apps.cases.cr_numbers import duplicate_cr_message
         from apps.core.tenancy import TenantContext
         try:
             with TenantContext(schema_name):
+                # A CR number is used only once per tab of a station (auto-generated ones are unique)
+                message = data.get('case_number') and duplicate_cr_message(
+                    case_number, data.get('sub_category'), data.get('module_key', 'crime'), station_name)
+                if message:
+                    return Response({'error': message, 'case_number': [message]},
+                                    status=status.HTTP_400_BAD_REQUEST)
                 with transaction.atomic():
                     extra_fields_val = data.get('extra_fields', {})
                     if not isinstance(extra_fields_val, dict):
@@ -1854,6 +1861,19 @@ class CrimeCaseManageView(APIView):
                     return Response({'error': f'Case {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
                 if not can_edit_case(request.user, case):
                     return Response({'error': 'You can edit only your own cases.'}, status=status.HTTP_403_FORBIDDEN)
+
+                # A CR number is used only once per tab of a station. Checked only when the
+                # edit changes the CR number or tab, so older duplicates stay editable.
+                from apps.cases.cr_numbers import case_tab, duplicate_cr_message, normalize_cr
+                new_cr = data.get('case_number', case.case_number)
+                new_sub = data.get('sub_category', case.sub_category)
+                if (normalize_cr(new_cr) != normalize_cr(case.case_number)
+                        or case_tab(new_sub, case.module_key) != case_tab(case.sub_category, case.module_key)):
+                    message = duplicate_cr_message(new_cr, new_sub, case.module_key, case.station_name,
+                                                   exclude_id=case.pk)
+                    if message:
+                        return Response({'error': message, 'case_number': [message]},
+                                        status=status.HTTP_400_BAD_REQUEST)
 
                 with transaction.atomic():
                     # 1. Update CaseRecord fields if provided
@@ -1966,6 +1986,75 @@ class CasePdfView(APIView):
             'title': f"Case Investigation Report - {case.case_number}",
         }
         return Response(pdf_data, status=status.HTTP_200_OK)
+
+
+class MyCasesView(APIView):
+    """
+    GET /api/cases/mine/?scope=all|pending|disposal - the cases the signed-in
+    officer created (CaseRecord.created_by is their uid), newest first. Used by
+    the app's My Cases screen.
+    """
+    permission_classes = [IsAuthenticated]
+    DISPOSED_STATUSES = ('Closed', 'Disposal', 'Resolved', 'Disposed')
+
+    def get(self, request):
+        from apps.cases.models import is_ad_case_disposed
+        from apps.cases.serializers import CaseRecordSerializer
+
+        schema_name, err_resp = CrimeCaseManageView._resolve_schema_and_validate(request)
+        if err_resp:
+            return err_resp
+        uid = str(getattr(request.user, 'uid', '') or '').strip()
+        if not uid:
+            return Response([])
+        scope = (request.query_params.get('scope') or 'all').strip().lower()
+        with TenantContext(schema_name):
+            cases = list(CaseRecord.objects.filter(created_by=uid).order_by('-created_at'))
+            if scope in ('pending', 'disposal'):
+                want_disposed = scope == 'disposal'
+                cases = [c for c in cases
+                         if (c.status in self.DISPOSED_STATUSES or is_ad_case_disposed(c)) == want_disposed]
+            return Response(CaseRecordSerializer(cases, many=True).data)
+
+
+class CaseReportPdfView(APIView):
+    """
+    GET /api/cases/<id>/report-pdf/ - the case as a PDF in the RTI report style
+    (title, tab and station, label / value table from the case's own form).
+    The app's View and PDF buttons of "1 to 5" / Part 6 tabs show this file.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None):
+        from django.http import HttpResponse
+        from apps.core.tenancy import TenantContext
+        from apps.crimetab.services.case_report_pdf import build_case_report_pdf
+
+        schema_name, err_resp = CrimeCaseManageView._resolve_schema_and_validate(request)
+        if err_resp:
+            return err_resp
+        with TenantContext(schema_name):
+            case = CaseRecord.objects.filter(pk=pk).first()
+            if not case or not can_access_station(request.user, case.station_name):
+                return Response({'error': f'Case {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
+            data = FullCaseDetailSerializer(case).data
+
+            state_code = getattr(request, 'state_code', None) or request.headers.get('X-State-Code') or 'MH'
+            with TenantContext('public'):
+                from apps.public_master.models import StateRegistry
+                state = StateRegistry.objects.filter(state_code__iexact=state_code).first()
+            if state and state.police_force_title:
+                force_title = f'{state.police_force_title.strip().upper()} DEPARTMENT'
+            elif state and state.state_name:
+                force_title = f'{state.state_name.strip().upper()} POLICE DEPARTMENT'
+            else:
+                force_title = 'POLICE DEPARTMENT'
+            pdf_bytes = build_case_report_pdf(case, data, force_title)
+
+        safe_cr = ''.join(ch if ch.isalnum() else '_' for ch in (case.case_number or str(case.pk)))
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="Case_{safe_cr}.pdf"'
+        return response
 
 
 # ==========================================

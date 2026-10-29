@@ -129,7 +129,25 @@ class CaseRecordSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         from apps.cases.constants import CC_ST_KEYS, REASON_KEYS, DISPOSAL_KEYS
-        
+        from apps.cases.cr_numbers import case_tab, duplicate_cr_message, normalize_cr
+
+        # A CR number is used only once per tab of a station. An edit is checked only
+        # when it changes the CR number, tab or station, so older duplicates stay editable.
+        inst = self.instance
+        case_number = attrs.get('case_number', getattr(inst, 'case_number', None))
+        sub_category = attrs.get('sub_category', getattr(inst, 'sub_category', None))
+        module_key = attrs.get('module_key', getattr(inst, 'module_key', None))
+        station_name = attrs.get('station_name', getattr(inst, 'station_name', None))
+        changed = inst is None or (
+            normalize_cr(case_number) != normalize_cr(inst.case_number)
+            or case_tab(sub_category, module_key) != case_tab(inst.sub_category, inst.module_key)
+            or (station_name or '').strip().lower() != (inst.station_name or '').strip().lower()
+        )
+        message = changed and duplicate_cr_message(case_number, sub_category, module_key, station_name,
+                                                   exclude_id=getattr(inst, 'pk', None))
+        if message:
+            raise serializers.ValidationError({'case_number': message})
+
         # Reject client status overrides
         if 'status' in attrs:
             attrs.pop('status')

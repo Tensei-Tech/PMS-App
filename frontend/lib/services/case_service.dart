@@ -175,6 +175,29 @@ class CaseService {
     });
   }
 
+  /// Cases the signed-in officer created: GET /api/cases/mine/?scope=
+  /// ([scope] is 'all', 'pending' or 'disposal').
+  Future<List<ModuleRecord>> fetchMyCases({String scope = 'all'}) async {
+    try {
+      final response = await _api.get(
+        '${ApiConfig.cases}mine/',
+        queryParameters: {'scope': scope},
+      );
+      final data = response.data;
+      if (response.isSuccess && data is List) {
+        return data
+            .map((item) => ModuleRecord.fromMap(
+                  Map<String, dynamic>.from(item as Map),
+                  item['id']?.toString(),
+                ))
+            .toList();
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('[CaseService] fetchMyCases exception: $e');
+    }
+    return [];
+  }
+
   /// Fetch cases assigned to the current officer from Django backend
   Future<List<ModuleRecord>> fetchAssignedCases({
     bool activeOnly = true,
@@ -233,7 +256,12 @@ class CaseService {
   void clearCache() => invalidateCache();
 
   /// Create a new case record in PostgreSQL backend
+  /// Why the last [saveCase] failed, as the server said it (e.g. "CR number 12
+  /// is already used in Murder. ..."); null after a successful save.
+  String? lastSaveError;
+
   Future<bool> saveCase(ModuleRecord record, {bool isCreate = true}) async {
+    lastSaveError = null;
     try {
       invalidateCache(record.moduleKey, record.stationName);
       final payload = record.toDjangoMap();
@@ -246,6 +274,8 @@ class CaseService {
       }
       if (response.isSuccess) {
         invalidateCache();
+      } else {
+        lastSaveError = response.errorMessage;
       }
       return response.isSuccess;
     } catch (e) {
@@ -328,6 +358,30 @@ class CaseService {
     } catch (e) {
       if (kDebugMode) {
         debugPrint('[CaseService] fetchCasePdfData exception: $e');
+      }
+    }
+    return null;
+  }
+
+  /// The case as a server-made PDF in the RTI report style:
+  /// GET /api/cases/{id}/report-pdf/
+  Future<Uint8List?> fetchCaseReportPdfBytes(String caseId) async {
+    if (caseId.trim().isEmpty) return null;
+    try {
+      final token = await _api.getAuthToken();
+      final headers = <String, String>{};
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+      final uri = Uri.parse('${ApiConfig.cases}$caseId/report-pdf/');
+      final response =
+          await ApiService.activeHttpClient.get(uri, headers: headers);
+      if (response.statusCode == 200) {
+        return response.bodyBytes;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchCaseReportPdfBytes exception: $e');
       }
     }
     return null;
