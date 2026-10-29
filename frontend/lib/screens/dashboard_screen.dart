@@ -92,6 +92,7 @@ import 'arrested_hub_screen.dart';
 import '../widgets/summons_warrant_report_table.dart';
 import '../widgets/monthly_crime_comparative_table.dart';
 import 'juvenile_hub_screen.dart';
+import 'victim_hub_screen.dart';
 import 'repeat_offender_summary_screen.dart';
 import 'elearning_screen.dart';
 import '../widgets/bell_icon_widget.dart';
@@ -4134,9 +4135,21 @@ class _HomeTabState extends State<_HomeTab> {
           page: JuvenileHubScreen(stationName: widget.auth.stationName),
         ),
       );
+    } else if (item.moduleKey == 'victim' || item.name == 'Victim') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: VictimHubScreen(stationName: widget.auth.stationName),
+        ),
+      );
     } else {
-      final isStatsItem =
-          ['Monthly', 'Pending', 'Disposal'].contains(item.name);
+      final isStatsItem = [
+        'Monthly',
+        'Pending',
+        'Disposal',
+        'Sam/Warrant',
+        'Sam Warrant'
+      ].contains(item.name);
       if (isStatsItem) {
         Navigator.push(
           context,
