@@ -203,7 +203,8 @@ class _MonthlyCrimeComparativeTableState
                         decoration:
                             const pw.BoxDecoration(color: PdfColors.blue50),
                         children: [
-                          _pdfSpanCell(title, isBold: true, color: PdfColors.blue900),
+                          _pdfSpanCell(title,
+                              isBold: true, color: PdfColors.blue900),
                           ...List.generate(13, (_) => pw.SizedBox.shrink()),
                         ],
                       );
@@ -219,8 +220,10 @@ class _MonthlyCrimeComparativeTableState
                     final head = row['head']?.toString() ?? '';
                     final cmR = row['current_month']?['rep']?.toString() ?? '0';
                     final cmD = row['current_month']?['det']?.toString() ?? '0';
-                    final pmR = row['previous_month']?['rep']?.toString() ?? '0';
-                    final pmD = row['previous_month']?['det']?.toString() ?? '0';
+                    final pmR =
+                        row['previous_month']?['rep']?.toString() ?? '0';
+                    final pmD =
+                        row['previous_month']?['det']?.toString() ?? '0';
                     final smlyR =
                         row['same_month_previous_year']?['rep']?.toString() ??
                             '0';
@@ -394,7 +397,8 @@ class _MonthlyCrimeComparativeTableState
       final fullCaseData = await BackendCaseService().fetchCaseById(caseId);
 
       if (!mounted) return;
-      Navigator.of(context, rootNavigator: true).pop(); // dismiss loading dialog
+      Navigator.of(context, rootNavigator: true)
+          .pop(); // dismiss loading dialog
 
       final recordMap = fullCaseData ?? preloadedData;
       if (recordMap != null) {
@@ -416,7 +420,8 @@ class _MonthlyCrimeComparativeTableState
       }
     } catch (e) {
       if (mounted) {
-        Navigator.of(context, rootNavigator: true).pop(); // dismiss loading dialog
+        Navigator.of(context, rootNavigator: true)
+            .pop(); // dismiss loading dialog
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error loading case detail: $e'),
@@ -878,7 +883,8 @@ class _MonthlyCrimeComparativeTableState
               ),
             ),
           ),
-          const Divider(height: 1, thickness: 0.8, color: AppColors.lightBorder),
+          const Divider(
+              height: 1, thickness: 0.8, color: AppColors.lightBorder),
           // Bottom Sub-columns
           Row(
             children: [
@@ -1319,8 +1325,9 @@ class _MonthlyCrimeComparativeTableState
             )
           : Row(
               mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment:
-                  alignLeft ? MainAxisAlignment.start : MainAxisAlignment.center,
+              mainAxisAlignment: alignLeft
+                  ? MainAxisAlignment.start
+                  : MainAxisAlignment.center,
               children: [
                 Flexible(
                   child: Text(
@@ -1494,7 +1501,9 @@ class _MonthlyCasesListDialogState extends State<_MonthlyCasesListDialog> {
         List<dynamic> items = [];
         if (raw is List) {
           items = raw;
-        } else if (raw is Map && raw.containsKey('results') && raw['results'] is List) {
+        } else if (raw is Map &&
+            raw.containsKey('results') &&
+            raw['results'] is List) {
           items = raw['results'] as List<dynamic>;
         }
         for (final item in items) {
@@ -1786,7 +1795,8 @@ class _MonthlyCasesListDialogState extends State<_MonthlyCasesListDialog> {
                                 selected: isSelected,
                                 onSelected: (sel) {
                                   if (sel) {
-                                    setState(() => _selectedStatusFilter = status);
+                                    setState(
+                                        () => _selectedStatusFilter = status);
                                   }
                                 },
                                 labelStyle: GoogleFonts.poppins(

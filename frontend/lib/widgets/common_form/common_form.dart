@@ -1817,7 +1817,9 @@ class CommonFormState extends State<CommonForm> {
         _s(m['occurrenceDateTime'] ?? m['occurrenceDate']);
 
     _stolenProperties.clear();
-    final spList = (m['stolenProperties'] is List) ? (m['stolenProperties'] as List) : null;
+    final spList = (m['stolenProperties'] is List)
+        ? (m['stolenProperties'] as List)
+        : null;
     if (spList != null && spList.isNotEmpty) {
       for (final sp in spList) {
         if (sp is Map) _stolenProperties.add(_createStolenPropRow(sp));
@@ -1866,7 +1868,9 @@ class CommonFormState extends State<CommonForm> {
     }
 
     _recoveredProperties.clear();
-    final rpList = (m['recoveredProperties'] is List) ? (m['recoveredProperties'] as List) : null;
+    final rpList = (m['recoveredProperties'] is List)
+        ? (m['recoveredProperties'] as List)
+        : null;
     if (rpList != null && rpList.isNotEmpty) {
       for (final rp in rpList) {
         if (rp is Map) _recoveredProperties.add(_createRecoveredPropRow(rp));
@@ -2194,7 +2198,8 @@ class CommonFormState extends State<CommonForm> {
       (row['suretyRel'] as TextEditingController).text = _s(c0['suretyRel']);
     }
 
-    final pRows = (m['preventiveRows'] is List) ? (m['preventiveRows'] as List) : null;
+    final pRows =
+        (m['preventiveRows'] is List) ? (m['preventiveRows'] as List) : null;
     if (pRows != null) {
       for (final r0 in pRows) {
         if (r0 is! Map) continue;
@@ -2250,7 +2255,9 @@ class CommonFormState extends State<CommonForm> {
       }
     }
 
-    final customDis = (m['customDischargeList'] is List) ? (m['customDischargeList'] as List) : null;
+    final customDis = (m['customDischargeList'] is List)
+        ? (m['customDischargeList'] as List)
+        : null;
     if (customDis != null) {
       for (final cd in customDis) {
         if (cd is Map) {

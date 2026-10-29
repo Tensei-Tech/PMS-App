@@ -5551,7 +5551,6 @@ class _CalendarTabState extends State<_CalendarTab> {
     _selectedYear = now.year;
   }
 
-
   List<ModuleRecord> _getConsolidatedRecords(BuildContext context) {
     final records = <ModuleRecord>[];
     records.addAll(context.watch<FormIVProvider>().records);

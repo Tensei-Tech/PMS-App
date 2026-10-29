@@ -29,15 +29,31 @@ String _sectionsLine(ModuleRecord r) {
         if (secs is List) {
           for (final s in secs) {
             final st = s?.toString().trim();
-            if (st != null && st.isNotEmpty && st != 'null' && st != 'None' && st != '—' && st != '-') {
+            if (st != null &&
+                st.isNotEmpty &&
+                st != 'null' &&
+                st != 'None' &&
+                st != '—' &&
+                st != '-') {
               sectionsList.add(st);
             }
           }
         }
         final secNum = (v['section_number'] ?? v['section'])?.toString().trim();
-        final sub = (v['subsection_code'] ?? v['subsection'])?.toString().trim();
-        if (secNum != null && secNum.isNotEmpty && secNum != 'null' && secNum != 'None' && secNum != '—' && secNum != '-') {
-          if (sub != null && sub.isNotEmpty && sub != 'null' && sub != 'None' && sub != '—' && sub != '-') {
+        final sub =
+            (v['subsection_code'] ?? v['subsection'])?.toString().trim();
+        if (secNum != null &&
+            secNum.isNotEmpty &&
+            secNum != 'null' &&
+            secNum != 'None' &&
+            secNum != '—' &&
+            secNum != '-') {
+          if (sub != null &&
+              sub.isNotEmpty &&
+              sub != 'null' &&
+              sub != 'None' &&
+              sub != '—' &&
+              sub != '-') {
             sectionsList.add('$secNum($sub)');
           } else {
             sectionsList.add(secNum);
@@ -54,15 +70,32 @@ String _sectionsLine(ModuleRecord r) {
         if (secs is List) {
           for (final s in secs) {
             final st = s?.toString().trim();
-            if (st != null && st.isNotEmpty && st != 'null' && st != 'None' && st != '—' && st != '-') {
+            if (st != null &&
+                st.isNotEmpty &&
+                st != 'null' &&
+                st != 'None' &&
+                st != '—' &&
+                st != '-') {
               sectionsList.add(st);
             }
           }
         }
-        final secNum = (item['section_number'] ?? item['section'])?.toString().trim();
-        final sub = (item['subsection_code'] ?? item['subsection'])?.toString().trim();
-        if (secNum != null && secNum.isNotEmpty && secNum != 'null' && secNum != 'None' && secNum != '—' && secNum != '-') {
-          if (sub != null && sub.isNotEmpty && sub != 'null' && sub != 'None' && sub != '—' && sub != '-') {
+        final secNum =
+            (item['section_number'] ?? item['section'])?.toString().trim();
+        final sub =
+            (item['subsection_code'] ?? item['subsection'])?.toString().trim();
+        if (secNum != null &&
+            secNum.isNotEmpty &&
+            secNum != 'null' &&
+            secNum != 'None' &&
+            secNum != '—' &&
+            secNum != '-') {
+          if (sub != null &&
+              sub.isNotEmpty &&
+              sub != 'null' &&
+              sub != 'None' &&
+              sub != '—' &&
+              sub != '-') {
             sectionsList.add('$secNum($sub)');
           } else {
             sectionsList.add(secNum);
@@ -72,7 +105,8 @@ String _sectionsLine(ModuleRecord r) {
     }
   }
 
-  final raw = r.extraFields[kCommonFormExtraFieldsKey] ?? r.extraFields['common_form'];
+  final raw =
+      r.extraFields[kCommonFormExtraFieldsKey] ?? r.extraFields['common_form'];
   if (raw is Map) {
     final ch = raw['charges'] ?? raw['acts_sections'];
     if (ch is Map) extractFromMap(ch);
@@ -83,17 +117,28 @@ String _sectionsLine(ModuleRecord r) {
   if (topCh is Map) extractFromMap(topCh);
   if (topCh is List) extractFromList(topCh);
 
-  final direct = r.extraFields['sections'] ?? r.extraFields['section_number'] ?? r.extraFields['section_id'];
+  final direct = r.extraFields['sections'] ??
+      r.extraFields['section_number'] ??
+      r.extraFields['section_id'];
   if (direct is List) {
     for (final s in direct) {
       final st = s?.toString().trim();
-      if (st != null && st.isNotEmpty && st != 'null' && st != 'None' && st != '—' && st != '-') {
+      if (st != null &&
+          st.isNotEmpty &&
+          st != 'null' &&
+          st != 'None' &&
+          st != '—' &&
+          st != '-') {
         sectionsList.add(st);
       }
     }
   } else if (direct != null) {
     final st = direct.toString().trim();
-    if (st.isNotEmpty && st != 'null' && st != 'None' && st != '—' && st != '-') {
+    if (st.isNotEmpty &&
+        st != 'null' &&
+        st != 'None' &&
+        st != '—' &&
+        st != '-') {
       sectionsList.add(st);
     }
   }

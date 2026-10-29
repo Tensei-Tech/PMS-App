@@ -63,9 +63,8 @@ class _AssignOfficerDialogState extends State<AssignOfficerDialog> {
                 .trim();
             final desig = item['designation']?.toString().trim();
             if (name != null && name.isNotEmpty) {
-              final label = (desig != null && desig.isNotEmpty)
-                  ? '$desig $name'
-                  : name;
+              final label =
+                  (desig != null && desig.isNotEmpty) ? '$desig $name' : name;
               if (!list.contains(label) && label != auth.displayName) {
                 list.add(label);
               }

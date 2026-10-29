@@ -234,7 +234,6 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
                 ],
               ),
             ),
-
       bottomNavigationBar:
           _buildStickyBottomActions(context, moduleLabel, showContent),
     );

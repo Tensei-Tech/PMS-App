@@ -108,8 +108,10 @@ class _AddWarrantCaseDialogState extends State<AddWarrantCaseDialog> {
 
     try {
       final auth = context.read<AuthProvider>();
-      final stationName = auth.stationName.isNotEmpty ? auth.stationName : 'ALL';
-      final officerName = auth.displayName.isNotEmpty ? auth.displayName : 'Officer';
+      final stationName =
+          auth.stationName.isNotEmpty ? auth.stationName : 'ALL';
+      final officerName =
+          auth.displayName.isNotEmpty ? auth.displayName : 'Officer';
       final officerUid = auth.uid;
 
       String subCatLabel;
@@ -207,7 +209,8 @@ class _AddWarrantCaseDialogState extends State<AddWarrantCaseDialog> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final currentStation = auth.stationName.isNotEmpty ? auth.stationName : 'ALL';
+    final currentStation =
+        auth.stationName.isNotEmpty ? auth.stationName : 'ALL';
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -262,8 +265,10 @@ class _AddWarrantCaseDialogState extends State<AddWarrantCaseDialog> {
                     ),
                   ),
                   IconButton(
-                    onPressed: _isSubmitting ? null : () => Navigator.pop(context),
-                    icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                    onPressed:
+                        _isSubmitting ? null : () => Navigator.pop(context),
+                    icon:
+                        const Icon(Icons.close_rounded, color: Colors.white70),
                   ),
                 ],
               ),
@@ -289,26 +294,30 @@ class _AddWarrantCaseDialogState extends State<AddWarrantCaseDialog> {
                             label: 'Summons (समंस)',
                             value: 'summons',
                             current: _processType,
-                            onSelected: (val) => setState(() => _processType = val),
+                            onSelected: (val) =>
+                                setState(() => _processType = val),
                           ),
                           _buildChoiceChip(
                             label: 'NBW (पकड वारंट)',
                             value: 'nbw',
                             current: _processType,
-                            onSelected: (val) => setState(() => _processType = val),
+                            onSelected: (val) =>
+                                setState(() => _processType = val),
                           ),
                           _buildChoiceChip(
                             label: 'BW (जमानती वारंट)',
                             value: 'bw',
                             current: _processType,
-                            onSelected: (val) => setState(() => _processType = val),
+                            onSelected: (val) =>
+                                setState(() => _processType = val),
                           ),
                         ],
                       ),
                       const SizedBox(height: 16),
 
                       // Case / Warrant Number
-                      _buildSectionLabel('2. Warrant / Case Number (वारंट / समंस क्र.) *'),
+                      _buildSectionLabel(
+                          '2. Warrant / Case Number (वारंट / समंस क्र.) *'),
                       const SizedBox(height: 6),
                       TextFormField(
                         controller: _caseNumberCtrl,
@@ -316,13 +325,15 @@ class _AddWarrantCaseDialogState extends State<AddWarrantCaseDialog> {
                           hint: 'e.g. SAM/2026/01 or WAR/89/2026',
                           icon: Icons.tag_rounded,
                         ),
-                        validator: (v) =>
-                            (v == null || v.trim().isEmpty) ? 'Case Number is required' : null,
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'Case Number is required'
+                            : null,
                       ),
                       const SizedBox(height: 16),
 
                       // Accused / Subject Name
-                      _buildSectionLabel('3. Accused / Subject Name (व्यक्ती / आरोपीचे नाव) *'),
+                      _buildSectionLabel(
+                          '3. Accused / Subject Name (व्यक्ती / आरोपीचे नाव) *'),
                       const SizedBox(height: 6),
                       TextFormField(
                         controller: _accusedNameCtrl,
@@ -330,8 +341,9 @@ class _AddWarrantCaseDialogState extends State<AddWarrantCaseDialog> {
                           hint: 'Enter full name of subject',
                           icon: Icons.person_outline_rounded,
                         ),
-                        validator: (v) =>
-                            (v == null || v.trim().isEmpty) ? 'Name is required' : null,
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'Name is required'
+                            : null,
                       ),
                       const SizedBox(height: 16),
 
@@ -343,7 +355,8 @@ class _AddWarrantCaseDialogState extends State<AddWarrantCaseDialog> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildSectionLabel('4. Court / Authority (न्यायालय)'),
+                                _buildSectionLabel(
+                                    '4. Court / Authority (न्यायालय)'),
                                 const SizedBox(height: 6),
                                 TextFormField(
                                   controller: _courtNameCtrl,
@@ -360,7 +373,8 @@ class _AddWarrantCaseDialogState extends State<AddWarrantCaseDialog> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildSectionLabel('5. Issue Date (जारी दिनांक) *'),
+                                _buildSectionLabel(
+                                    '5. Issue Date (जारी दिनांक) *'),
                                 const SizedBox(height: 6),
                                 InkWell(
                                   onTap: _pickDate,
@@ -369,7 +383,8 @@ class _AddWarrantCaseDialogState extends State<AddWarrantCaseDialog> {
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 12, vertical: 13),
                                     decoration: BoxDecoration(
-                                      border: Border.all(color: AppColors.lightBorder),
+                                      border: Border.all(
+                                          color: AppColors.lightBorder),
                                       borderRadius: BorderRadius.circular(8),
                                       color: const Color(0xFFF8FAFC),
                                     ),
@@ -380,7 +395,8 @@ class _AddWarrantCaseDialogState extends State<AddWarrantCaseDialog> {
                                         const SizedBox(width: 8),
                                         Expanded(
                                           child: Text(
-                                            DateFormat('dd MMM yyyy').format(_selectedDate),
+                                            DateFormat('dd MMM yyyy')
+                                                .format(_selectedDate),
                                             style: GoogleFonts.poppins(
                                               fontSize: 12.5,
                                               fontWeight: FontWeight.w600,
@@ -400,7 +416,8 @@ class _AddWarrantCaseDialogState extends State<AddWarrantCaseDialog> {
                       const SizedBox(height: 16),
 
                       // Execution Status
-                      _buildSectionLabel('6. Execution Status (तामील स्थिती) *'),
+                      _buildSectionLabel(
+                          '6. Execution Status (तामील स्थिती) *'),
                       const SizedBox(height: 6),
                       Wrap(
                         spacing: 8,
@@ -457,13 +474,15 @@ class _AddWarrantCaseDialogState extends State<AddWarrantCaseDialog> {
               decoration: const BoxDecoration(
                 color: Color(0xFFF8FAFC),
                 border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+                borderRadius:
+                    BorderRadius.vertical(bottom: Radius.circular(16)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: _isSubmitting ? null : () => Navigator.pop(context),
+                    onPressed:
+                        _isSubmitting ? null : () => Navigator.pop(context),
                     child: Text(
                       'Cancel',
                       style: GoogleFonts.poppins(
@@ -565,7 +584,8 @@ class _AddWarrantCaseDialogState extends State<AddWarrantCaseDialog> {
   }) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText),
+      hintStyle:
+          GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText),
       prefixIcon: Icon(icon, size: 18, color: AppColors.navyMid),
       isDense: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),

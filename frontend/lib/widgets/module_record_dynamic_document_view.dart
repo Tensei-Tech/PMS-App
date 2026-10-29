@@ -297,9 +297,20 @@ class ModuleRecordDynamicDocumentView extends StatelessWidget {
     }
     final keys = extra.keys.map((k) => k.toString()).where((k) {
       final val = extra[k];
-      if (val == null || val == false || val == '' || val == '—' || val == '-' || val == 'None') return false;
-      if (val is Map && val.isEmpty) return false;
-      if (val is List && val.isEmpty) return false;
+      if (val == null ||
+          val == false ||
+          val == '' ||
+          val == '—' ||
+          val == '-' ||
+          val == 'None') {
+        return false;
+      }
+      if (val is Map && val.isEmpty) {
+        return false;
+      }
+      if (val is List && val.isEmpty) {
+        return false;
+      }
       return true;
     }).toList();
     final blocks = <Widget>[];

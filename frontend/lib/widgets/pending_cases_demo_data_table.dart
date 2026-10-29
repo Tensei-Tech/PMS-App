@@ -171,8 +171,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
           if (isVictim) headerCell('Name'),
           if (isVictim) headerCell('Injured/Deceased'),
           headerCell('IO Name'),
-          if (!isUndetected && !isAbsconded)
-            headerCell('Police station name'),
+          if (!isUndetected && !isAbsconded) headerCell('Police station name'),
         ];
 
         TableRow rowFor(int idx, Map<String, String> r) {
@@ -276,9 +275,8 @@ class PendingCasesDemoDataTable extends StatelessWidget {
     // Build fallback ModuleRecord from populated table row
     final fallback = ModuleRecord(
       id: id.isNotEmpty ? id : cr,
-      moduleKey: row['module_key']?.isNotEmpty == true
-          ? row['module_key']!
-          : 'theft',
+      moduleKey:
+          row['module_key']?.isNotEmpty == true ? row['module_key']! : 'theft',
       title: row['title']?.isNotEmpty == true
           ? row['title']!
           : (row['head']?.isNotEmpty == true ? row['head']! : 'Case $cr'),
@@ -287,8 +285,8 @@ class PendingCasesDemoDataTable extends StatelessWidget {
       complainant: row['complainant'] ?? '',
       accused: row['accused'] ?? '',
       location: row['station'] ?? '',
-      incidentDate: DateTime.tryParse(row['incident_date'] ?? '') ??
-          DateTime.now(),
+      incidentDate:
+          DateTime.tryParse(row['incident_date'] ?? '') ?? DateTime.now(),
       priority: row['priority'] ?? 'Medium',
       status: row['status'] ?? 'Pending',
       assignedOfficer: row['io'] ?? '',
@@ -397,7 +395,8 @@ class PendingCasesDemoDataTable extends StatelessWidget {
   }
 
   /// Displays the case filled information modal with Edit Case button.
-  void _showCaseFilledInfoDialog(BuildContext context, Map<String, String> row) {
+  void _showCaseFilledInfoDialog(
+      BuildContext context, Map<String, String> row) {
     showDialog(
       context: context,
       builder: (dialogCtx) {
@@ -420,9 +419,8 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                 final accused =
                     row['accused']?.isNotEmpty == true ? row['accused']! : '—';
                 final io = row['io']?.isNotEmpty == true ? row['io']! : '—';
-                final station = row['station']?.isNotEmpty == true
-                    ? row['station']!
-                    : '—';
+                final station =
+                    row['station']?.isNotEmpty == true ? row['station']! : '—';
                 final period = row['period'] ?? '';
                 final complainant = row['complainant'];
 
@@ -604,7 +602,8 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                                   value: row['victim_name']!,
                                 ),
                               ],
-                              if (row['injured_deceased']?.isNotEmpty == true) ...[
+                              if (row['injured_deceased']?.isNotEmpty ==
+                                  true) ...[
                                 const SizedBox(height: 10),
                                 _infoRow(
                                   icon: Icons.healing_rounded,
@@ -630,8 +629,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                               _openCaseEditScreen(context, record);
                             }
                           },
-                          icon: const Icon(Icons.edit_note_rounded,
-                              size: 19),
+                          icon: const Icon(Icons.edit_note_rounded, size: 19),
                           label: Text(
                             'Edit Case',
                             style: GoogleFonts.poppins(
@@ -643,8 +641,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                             backgroundColor: AppColors.navyMid,
                             foregroundColor: Colors.white,
                             elevation: 0,
-                            padding:
-                                const EdgeInsets.symmetric(vertical: 12),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),

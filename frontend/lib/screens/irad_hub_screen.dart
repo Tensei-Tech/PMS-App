@@ -83,9 +83,11 @@ class _IradHubScreenState extends State<IradHubScreen> {
           int total = int.tryParse(stats['total_irad']?.toString() ?? '') ??
               (data['total_count'] is int ? data['total_count'] : 0);
           int filled = int.tryParse(stats['irad_filled']?.toString() ?? '') ??
-              int.tryParse(stats['irad_form_filled']?.toString() ?? '') ?? 0;
+              int.tryParse(stats['irad_form_filled']?.toString() ?? '') ??
+              0;
           int pending = int.tryParse(stats['irad_pending']?.toString() ?? '') ??
-              int.tryParse(stats['irad_form_pending']?.toString() ?? '') ?? 0;
+              int.tryParse(stats['irad_form_pending']?.toString() ?? '') ??
+              0;
 
           // Calculate from cases if summary is 0 but cases are loaded
           if (total == 0 && casesList.isNotEmpty) {
@@ -127,7 +129,8 @@ class _IradHubScreenState extends State<IradHubScreen> {
     }
   }
 
-  Future<void> _sendReminderToIO(String caseId, String crNo, String ioName) async {
+  Future<void> _sendReminderToIO(
+      String caseId, String crNo, String ioName) async {
     try {
       final url = '${ApiConfig.cases}irad/$caseId/remind/';
       final res = await _apiService.post(url, body: {});
@@ -214,18 +217,25 @@ class _IradHubScreenState extends State<IradHubScreen> {
             complainant: caseData['complainant']?.toString() ?? '',
             accused: caseData['accused']?.toString() ?? '',
             location: caseData['location']?.toString() ?? '',
-            incidentDate: DateTime.tryParse(caseData['incident_date']?.toString() ?? '') ?? DateTime.now(),
+            incidentDate: DateTime.tryParse(
+                    caseData['incident_date']?.toString() ?? '') ??
+                DateTime.now(),
             priority: 'Medium',
             assignedOfficer: caseData['io_name']?.toString() ?? '',
             assignedOfficerUid: caseData['io_uid']?.toString() ?? '',
             status: caseData['status']?.toString() ?? 'Pending',
-            createdAt: DateTime.tryParse(caseData['created_at']?.toString() ?? '') ?? DateTime.now(),
-            subCategory: (caseData['sub_category']?.toString().isNotEmpty == true)
-                ? caseData['sub_category'].toString()
-                : 'Road Accident',
+            createdAt:
+                DateTime.tryParse(caseData['created_at']?.toString() ?? '') ??
+                    DateTime.now(),
+            subCategory:
+                (caseData['sub_category']?.toString().isNotEmpty == true)
+                    ? caseData['sub_category'].toString()
+                    : 'Road Accident',
             extraFields: existingExtra,
             createdBy: '',
-            stationName: caseData['station_name']?.toString() ?? widget.stationName ?? '',
+            stationName: caseData['station_name']?.toString() ??
+                widget.stationName ??
+                '',
           ),
         ),
       ),
@@ -519,8 +529,8 @@ class _IradHubScreenState extends State<IradHubScreen> {
                   borderRadius: BorderRadius.circular(AppRadius.sm),
                   borderSide: const BorderSide(color: AppColors.lightBorder),
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 10),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
               ),
               onSubmitted: (val) {
                 setState(() => _searchQuery = val);
@@ -640,9 +650,8 @@ class _IradHubScreenState extends State<IradHubScreen> {
             ],
             rows: _cases.map((c) {
               final srNo = c['sr_no']?.toString() ?? '-';
-              final crNo = c['cr_no']?.toString() ??
-                  c['case_number']?.toString() ??
-                  '-';
+              final crNo =
+                  c['cr_no']?.toString() ?? c['case_number']?.toString() ?? '-';
               final actSec = c['act_and_section']?.toString() ?? '-';
               final ioName = c['io_name']?.toString() ?? '-';
               final status = c['status']?.toString() ?? 'Pending';

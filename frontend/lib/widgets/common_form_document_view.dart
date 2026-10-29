@@ -354,7 +354,8 @@ class CommonFormDocumentView extends StatelessWidget {
     Widget? headerAction,
   }) {
     final visibleBody = body.where((w) {
-      if (w is SizedBox && (w.height == 0 || w.height == null || w.width == 0)) {
+      if (w is SizedBox &&
+          (w.height == 0 || w.height == null || w.width == 0)) {
         return false;
       }
       return true;
@@ -387,7 +388,11 @@ class CommonFormDocumentView extends StatelessWidget {
     Map<String, dynamic> p,
   ) {
     final fields = _pairedSimpleFields(context, [
-      (label: 'Name', value: _v(p['name'] ?? p['person_name'] ?? p['accused_name']), fullWidth: false),
+      (
+        label: 'Name',
+        value: _v(p['name'] ?? p['person_name'] ?? p['accused_name']),
+        fullWidth: false
+      ),
       (label: 'Age', value: _v(p['age']), fullWidth: false),
       (label: 'Gender', value: _v(p['gender']), fullWidth: false),
       (label: 'Occupation', value: _v(p['occ']), fullWidth: false),
@@ -439,7 +444,8 @@ class CommonFormDocumentView extends StatelessWidget {
     final desktop = _CaseDetailLayoutScope.isDesktop(context);
     final activeEntries = _kProcLabels.entries.where((e) {
       final on = procChecks[e.key] == true || m[e.key] == true;
-      final d = (procDates[e.key] ?? m['${e.key}_date'])?.toString().trim() ?? '';
+      final d =
+          (procDates[e.key] ?? m['${e.key}_date'])?.toString().trim() ?? '';
       return on || d.isNotEmpty;
     }).toList();
 
@@ -448,12 +454,18 @@ class CommonFormDocumentView extends StatelessWidget {
     for (var i = 0; i < activeEntries.length; i += 2) {
       final e1 = activeEntries[i];
       final on1 = procChecks[e1.key] == true || m[e1.key] == true;
-      final d1 = (procDates[e1.key] ?? m['${e1.key}_date'])?.toString().trim() ?? '';
+      final d1 =
+          (procDates[e1.key] ?? m['${e1.key}_date'])?.toString().trim() ?? '';
 
       final hasSecond = i + 1 < activeEntries.length;
       final e2 = hasSecond ? activeEntries[i + 1] : null;
-      final on2 = hasSecond ? (procChecks[e2!.key] == true || m[e2.key] == true) : false;
-      final d2 = hasSecond ? ((procDates[e2!.key] ?? m['${e2.key}_date'])?.toString().trim() ?? '') : '';
+      final on2 = hasSecond
+          ? (procChecks[e2!.key] == true || m[e2.key] == true)
+          : false;
+      final d2 = hasSecond
+          ? ((procDates[e2!.key] ?? m['${e2.key}_date'])?.toString().trim() ??
+              '')
+          : '';
 
       if (items.isNotEmpty) {
         items.add(const SizedBox(height: 8));
@@ -484,7 +496,9 @@ class CommonFormDocumentView extends StatelessWidget {
 
     final eshDt = _v(m['eshakshDt']);
     final eshReason = _v(m['eshakshReason']);
-    final isEshYes = m['eshakshValue']?.toString().trim().toLowerCase() == 'yes' || m['e_shakshya'] == true;
+    final isEshYes =
+        m['eshakshValue']?.toString().trim().toLowerCase() == 'yes' ||
+            m['e_shakshya'] == true;
     final isEshNo = m['eshakshValue']?.toString().trim().toLowerCase() == 'no';
 
     final eshakshFields = <({String label, String value, bool fullWidth})>[
@@ -816,34 +830,101 @@ class CommonFormDocumentView extends StatelessWidget {
     if (mergedExtra.isEmpty) return [];
 
     const ignoredKeys = {
-      'commonForm', 'common_form', 'charges', 'acts_sections', 'seizures',
-      'object_name', 'seizure_description', 'seizure_person_name',
-      'proceduralChecks', 'proceduralDates', 'extra_field_values',
-      'dynamic_extra_fields', 'unidentifiedList', 'custodyInfo',
-      'custody_records', 'arrest_records', 'arrests', 'suspectedAccused',
-      'unknownAccused', 'dischargeDetails', 'dischargeByAccused',
-      'preventive_actions', 'discharges', 'custody', 'court', 'scrutiny',
-      'unidentified', 'complainant', 'accused', 'remand_custody',
-      'spotVillage', 'spotArea', 'spotAddress', 'crNo', 'regDate',
-      'firCopyPath', 'isUnknownUntraced', 'isUnknownAccused', 'isSexualOffence',
-      'village_town', 'area_name', 'full_address', 'cr_number',
-      'registered_datetime', 'occurrence_datetime', 'io_name', 'io_designation',
-      'registered_by_name', 'registered_by_designation', 'deceased_name',
-      'deceased_age', 'deceased_gender', 'cause_of_death', 'pm_report_date',
-      'witness_summons', 'witness_summons_date', 'charge_sheet_no',
-      'cc_st_number', 'a_final_number', 'b_final_number', 'c_final_number',
-      'nc_final_number', 'abeted_summary_no', 'stay_by_high_court_date',
-      'quashed_by_high_court_date', 'cctv_checked', 'cdr_sent_date',
-      'cdr_received_date', 'fingerprint_taken', 'nafis_fingerprint',
-      'e_shakshya', 'e_shakshya_date', 'stay_by_high_court', 'quashed_by_high_court',
+      'commonForm',
+      'common_form',
+      'charges',
+      'acts_sections',
+      'seizures',
+      'object_name',
+      'seizure_description',
+      'seizure_person_name',
+      'proceduralChecks',
+      'proceduralDates',
+      'extra_field_values',
+      'dynamic_extra_fields',
+      'unidentifiedList',
+      'custodyInfo',
+      'custody_records',
+      'arrest_records',
+      'arrests',
+      'suspectedAccused',
+      'unknownAccused',
+      'dischargeDetails',
+      'dischargeByAccused',
+      'preventive_actions',
+      'discharges',
+      'custody',
+      'court',
+      'scrutiny',
+      'unidentified',
+      'complainant',
+      'accused',
+      'remand_custody',
+      'spotVillage',
+      'spotArea',
+      'spotAddress',
+      'crNo',
+      'regDate',
+      'firCopyPath',
+      'isUnknownUntraced',
+      'isUnknownAccused',
+      'isSexualOffence',
+      'village_town',
+      'area_name',
+      'full_address',
+      'cr_number',
+      'registered_datetime',
+      'occurrence_datetime',
+      'io_name',
+      'io_designation',
+      'registered_by_name',
+      'registered_by_designation',
+      'deceased_name',
+      'deceased_age',
+      'deceased_gender',
+      'cause_of_death',
+      'pm_report_date',
+      'witness_summons',
+      'witness_summons_date',
+      'charge_sheet_no',
+      'cc_st_number',
+      'a_final_number',
+      'b_final_number',
+      'c_final_number',
+      'nc_final_number',
+      'abeted_summary_no',
+      'stay_by_high_court_date',
+      'quashed_by_high_court_date',
+      'cctv_checked',
+      'cdr_sent_date',
+      'cdr_received_date',
+      'fingerprint_taken',
+      'nafis_fingerprint',
+      'e_shakshya',
+      'e_shakshya_date',
+      'stay_by_high_court',
+      'quashed_by_high_court',
     };
 
     final flat = <({String label, String value, bool fullWidth})>[];
     for (final e in mergedExtra.entries) {
-      if (ignoredKeys.contains(e.key) || e.key.endsWith('_date') || e.key.endsWith('_datetime')) continue;
+      if (ignoredKeys.contains(e.key) ||
+          e.key.endsWith('_date') ||
+          e.key.endsWith('_datetime')) {
+        continue;
+      }
       final val = e.value;
-      if (val == null || val == false || val == '' || val == '—' || val == '-' || val == 'None') continue;
-      if (val is Map || val is List) continue;
+      if (val == null ||
+          val == false ||
+          val == '' ||
+          val == '—' ||
+          val == '-' ||
+          val == 'None') {
+        continue;
+      }
+      if (val is Map || val is List) {
+        continue;
+      }
       flat.add((
         label: _labelifyExtraKey(e.key),
         value: _disp(val),
@@ -881,22 +962,34 @@ class CommonFormDocumentView extends StatelessWidget {
   Widget _buildDetailColumn(BuildContext context) {
     final m = commonMap;
     final r = record;
-    final isUnknown = m['isUnknownUntraced'] == true || m['isUnknownAccused'] == true;
-    final chargesRaw = m['charges'] ?? m['acts_sections'] ?? r?.extraFields['charges'] ?? r?.extraFields['acts_sections'];
+    final isUnknown =
+        m['isUnknownUntraced'] == true || m['isUnknownAccused'] == true;
+    final chargesRaw = m['charges'] ??
+        m['acts_sections'] ??
+        r?.extraFields['charges'] ??
+        r?.extraFields['acts_sections'];
     final chargesMap = (chargesRaw is Map) ? chargesRaw : {};
     final chargesList = (chargesRaw is List) ? chargesRaw : [];
 
     final comp = (m['complainant'] is Map) ? (m['complainant'] as Map) : {};
     final u = (m['unidentified'] is Map) ? (m['unidentified'] as Map) : {};
-    final unidList = (m['unidentifiedList'] is List) ? (m['unidentifiedList'] as List) : [];
-    final cr8 = (m['caseResponsibility'] is Map) ? (m['caseResponsibility'] as Map) : {};
-    final procChecks = (m['proceduralChecks'] is Map) ? (m['proceduralChecks'] as Map) : {};
-    final procDates = (m['proceduralDates'] is Map) ? (m['proceduralDates'] as Map) : {};
+    final unidList =
+        (m['unidentifiedList'] is List) ? (m['unidentifiedList'] as List) : [];
+    final cr8 = (m['caseResponsibility'] is Map)
+        ? (m['caseResponsibility'] as Map)
+        : {};
+    final procChecks =
+        (m['proceduralChecks'] is Map) ? (m['proceduralChecks'] as Map) : {};
+    final procDates =
+        (m['proceduralDates'] is Map) ? (m['proceduralDates'] as Map) : {};
     final seizuresRaw = m['seizures'] ?? r?.extraFields['seizures'];
     final seizures = (seizuresRaw is List) ? seizuresRaw : [];
     final prev = (m['preventive'] is Map) ? (m['preventive'] as Map) : {};
-    final discharge = (m['dischargeByAccused'] is Map) ? (m['dischargeByAccused'] as Map) : {};
-    final disDetails = (m['dischargeDetails'] is Map) ? (m['dischargeDetails'] as Map) : {};
+    final discharge = (m['dischargeByAccused'] is Map)
+        ? (m['dischargeByAccused'] as Map)
+        : {};
+    final disDetails =
+        (m['dischargeDetails'] is Map) ? (m['dischargeDetails'] as Map) : {};
     final court = (m['court'] is Map)
         ? Map<String, dynamic>.from(m['court'] as Map)
         : <String, dynamic>{};
@@ -909,8 +1002,10 @@ class CommonFormDocumentView extends StatelessWidget {
         : <String>[];
     final sc = (m['scrutiny'] is Map) ? (m['scrutiny'] as Map) : {};
     final accusedList = (m['accused'] is List) ? (m['accused'] as List) : [];
-    final suspectedList = (m['suspectedAccused'] is List) ? (m['suspectedAccused'] as List) : [];
-    final arrests = (m['arrestRelease'] is List) ? (m['arrestRelease'] as List) : [];
+    final suspectedList =
+        (m['suspectedAccused'] is List) ? (m['suspectedAccused'] as List) : [];
+    final arrests =
+        (m['arrestRelease'] is List) ? (m['arrestRelease'] as List) : [];
 
     const accent = AppColors.infoBlue;
     int sIdx = 1;
@@ -933,12 +1028,16 @@ class CommonFormDocumentView extends StatelessWidget {
       ),
       (
         label: 'Crime Type',
-        value: _v(r?.title.isNotEmpty == true ? r!.title : (r?.subCategory ?? m['crimeType'])),
+        value: _v(r?.title.isNotEmpty == true
+            ? r!.title
+            : (r?.subCategory ?? m['crimeType'])),
         fullWidth: false,
       ),
       (
         label: 'Police Station',
-        value: _v(r?.stationName.isNotEmpty == true ? r!.stationName : m['station_name']),
+        value: _v(r?.stationName.isNotEmpty == true
+            ? r!.stationName
+            : m['station_name']),
         fullWidth: false,
       ),
       (
@@ -975,12 +1074,16 @@ class CommonFormDocumentView extends StatelessWidget {
       ),
       (
         label: 'Location / Spot',
-        value: _v(r?.location.isNotEmpty == true ? r!.location : (m['spotAddress'] ?? m['spotVillage'])),
+        value: _v(r?.location.isNotEmpty == true
+            ? r!.location
+            : (m['spotAddress'] ?? m['spotVillage'])),
         fullWidth: true,
       ),
       (
         label: 'Description',
-        value: _v(r?.description.isNotEmpty == true ? r!.description : m['description']),
+        value: _v(r?.description.isNotEmpty == true
+            ? r!.description
+            : m['description']),
         fullWidth: true,
       ),
     ]);
@@ -1013,7 +1116,8 @@ class CommonFormDocumentView extends StatelessWidget {
       ),
     ]);
     if (regFields.isNotEmpty) {
-      children.add(_sectionShell(sIdx++, 'CRIME REGISTRATION INFO', accent, regFields));
+      children.add(
+          _sectionShell(sIdx++, 'CRIME REGISTRATION INFO', accent, regFields));
     }
 
     // ── 3. Acts & Sections Filed ───────────────────────────────────────────
@@ -1021,7 +1125,9 @@ class CommonFormDocumentView extends StatelessWidget {
     if (chargesMap.isNotEmpty) {
       chargesMap.entries.toList().asMap().entries.forEach((e) {
         final i = e.key + 1;
-        final data = (e.value.value is Map) ? (e.value.value as Map) : <dynamic, dynamic>{};
+        final data = (e.value.value is Map)
+            ? (e.value.value as Map)
+            : <dynamic, dynamic>{};
         final card = _chargeCard(i, data);
         if (card is! SizedBox || (card.height != null && card.height! > 0)) {
           chargeWidgets.add(card);
@@ -1038,7 +1144,8 @@ class CommonFormDocumentView extends StatelessWidget {
       });
     }
     if (chargeWidgets.isNotEmpty) {
-      children.add(_sectionShell(sIdx++, 'ACTS & SECTIONS FILED', accent, chargeWidgets));
+      children.add(_sectionShell(
+          sIdx++, 'ACTS & SECTIONS FILED', accent, chargeWidgets));
     }
 
     // ── 4. Crime Spot ──────────────────────────────────────────────────────
@@ -1048,19 +1155,29 @@ class CommonFormDocumentView extends StatelessWidget {
         value: _v(m['spotVillage'] ?? m['village_town']),
         fullWidth: false,
       ),
-      (label: 'Area Name', value: _v(m['spotArea'] ?? m['area_name']), fullWidth: false),
-      (label: 'Full Address', value: _v(m['spotAddress'] ?? m['full_address']), fullWidth: true),
+      (
+        label: 'Area Name',
+        value: _v(m['spotArea'] ?? m['area_name']),
+        fullWidth: false
+      ),
+      (
+        label: 'Full Address',
+        value: _v(m['spotAddress'] ?? m['full_address']),
+        fullWidth: true
+      ),
     ]);
     if (spotFields.isNotEmpty) {
       children.add(_sectionShell(sIdx++, 'CRIME SPOT', accent, spotFields));
     }
 
     // ── 5. Complainant ─────────────────────────────────────────────────────
-    final compName = _v(comp['name'] ?? (r?.complainant.isNotEmpty == true ? r!.complainant : null));
+    final compName = _v(comp['name'] ??
+        (r?.complainant.isNotEmpty == true ? r!.complainant : null));
     final compFields = _pairedSimpleFields(context, [
       (
         label: 'Name',
-        value: (commonMap['isSexualOffence'] == true || compName.contains('Protected'))
+        value: (commonMap['isSexualOffence'] == true ||
+                compName.contains('Protected'))
             ? '⚠️ [Victim Identity Protected - Confidential]'
             : compName,
         fullWidth: false,
@@ -1083,13 +1200,18 @@ class CommonFormDocumentView extends StatelessWidget {
     if (accusedList.isNotEmpty) {
       for (var i = 0; i < accusedList.length; i++) {
         final item = accusedList[i];
-        final pMap = (item is Map) ? Map<String, dynamic>.from(item) : <String, dynamic>{'name': item.toString()};
+        final pMap = (item is Map)
+            ? Map<String, dynamic>.from(item)
+            : <String, dynamic>{'name': item.toString()};
         final card = _personCard(context, 'Accused #${i + 1}', pMap);
         if (card is! SizedBox || (card.height != null && card.height! > 0)) {
           accusedWidgets.add(card);
         }
       }
-    } else if (r != null && r.accused.isNotEmpty && r.accused != '—' && r.accused != 'None') {
+    } else if (r != null &&
+        r.accused.isNotEmpty &&
+        r.accused != '—' &&
+        r.accused != 'None') {
       final card = _personCard(context, 'Accused #1', {'name': r.accused});
       if (card is! SizedBox || (card.height != null && card.height! > 0)) {
         accusedWidgets.add(card);
@@ -1104,7 +1226,9 @@ class CommonFormDocumentView extends StatelessWidget {
     if (suspectedList.isNotEmpty) {
       for (var i = 0; i < suspectedList.length; i++) {
         final item = suspectedList[i];
-        final pMap = (item is Map) ? Map<String, dynamic>.from(item) : <String, dynamic>{'name': item.toString()};
+        final pMap = (item is Map)
+            ? Map<String, dynamic>.from(item)
+            : <String, dynamic>{'name': item.toString()};
         final card = _personCard(context, 'Suspected #${i + 1}', pMap);
         if (card is! SizedBox || (card.height != null && card.height! > 0)) {
           suspectedWidgets.add(card);
@@ -1112,23 +1236,45 @@ class CommonFormDocumentView extends StatelessWidget {
       }
     }
     if (suspectedWidgets.isNotEmpty) {
-      children.add(_sectionShell(sIdx++, 'SUSPECTED ACCUSED', accent, suspectedWidgets));
+      children.add(
+          _sectionShell(sIdx++, 'SUSPECTED ACCUSED', accent, suspectedWidgets));
     }
 
     // ── 8. Unidentified Accused ────────────────────────────────────────────
     final unidWidgets = <Widget>[];
     if (unidList.isNotEmpty) {
       for (var i = 0; i < unidList.length; i++) {
-        final row = (unidList[i] is Map) ? (unidList[i] as Map) : <dynamic, dynamic>{};
+        final row =
+            (unidList[i] is Map) ? (unidList[i] as Map) : <dynamic, dynamic>{};
         final fields = _pairedSimpleFields(context, [
-          (label: 'Approximate age', value: _v(row['approxAge']), fullWidth: false),
+          (
+            label: 'Approximate age',
+            value: _v(row['approxAge']),
+            fullWidth: false
+          ),
           (label: 'Gender', value: _v(row['gender']), fullWidth: false),
           (label: 'Skin colour', value: _v(row['skinColor']), fullWidth: false),
-          (label: 'Possible occupation', value: _v(row['occupation']), fullWidth: false),
-          (label: 'Identification mark', value: _v(row['otherPhysicalMarkers']), fullWidth: true),
+          (
+            label: 'Possible occupation',
+            value: _v(row['occupation']),
+            fullWidth: false
+          ),
+          (
+            label: 'Identification mark',
+            value: _v(row['otherPhysicalMarkers']),
+            fullWidth: true
+          ),
           (label: 'Height', value: _v(row['approxHeight']), fullWidth: false),
-          (label: 'Address', value: _v(row['lastKnownAddress']), fullWidth: true),
-          (label: 'Description', value: _v(row['description']), fullWidth: true),
+          (
+            label: 'Address',
+            value: _v(row['lastKnownAddress']),
+            fullWidth: true
+          ),
+          (
+            label: 'Description',
+            value: _v(row['description']),
+            fullWidth: true
+          ),
         ]);
         if (fields.isNotEmpty) {
           unidWidgets.add(
@@ -1164,8 +1310,16 @@ class CommonFormDocumentView extends StatelessWidget {
         (label: 'Approximate age', value: _v(u['approxAge']), fullWidth: false),
         (label: 'Gender', value: _v(u['gender']), fullWidth: false),
         (label: 'Skin colour', value: _v(u['skinColor']), fullWidth: false),
-        (label: 'Possible occupation', value: _v(u['occupation']), fullWidth: false),
-        (label: 'Identification mark', value: _v(u['otherPhysicalMarkers']), fullWidth: true),
+        (
+          label: 'Possible occupation',
+          value: _v(u['occupation']),
+          fullWidth: false
+        ),
+        (
+          label: 'Identification mark',
+          value: _v(u['otherPhysicalMarkers']),
+          fullWidth: true
+        ),
         (label: 'Height', value: _v(u['approxHeight']), fullWidth: false),
         (label: 'Address', value: _v(u['lastKnownAddress']), fullWidth: true),
         (label: 'Description', value: _v(u['description']), fullWidth: true),
@@ -1175,7 +1329,8 @@ class CommonFormDocumentView extends StatelessWidget {
       }
     }
     if (unidWidgets.isNotEmpty) {
-      children.add(_sectionShell(sIdx++, 'UNIDENTIFIED ACCUSED', accent, unidWidgets));
+      children.add(
+          _sectionShell(sIdx++, 'UNIDENTIFIED ACCUSED', accent, unidWidgets));
     }
 
     // ── 9. Unknown Accused ─────────────────────────────────────────────────
@@ -1200,7 +1355,11 @@ class CommonFormDocumentView extends StatelessWidget {
         value: _v(cr8['ioDesig'] ?? m['io_designation']),
         fullWidth: false,
       ),
-      (label: 'IO Name', value: _v(cr8['ioName'] ?? m['io_name']), fullWidth: false),
+      (
+        label: 'IO Name',
+        value: _v(cr8['ioName'] ?? m['io_name']),
+        fullWidth: false
+      ),
       (
         label: 'Reg. By Desig.',
         value: _v(cr8['regDesig'] ?? m['registered_by_designation']),
@@ -1213,7 +1372,8 @@ class CommonFormDocumentView extends StatelessWidget {
       ),
     ]);
     if (respFields.isNotEmpty) {
-      children.add(_sectionShell(sIdx++, 'CASE RESPONSIBILITY', accent, respFields));
+      children.add(
+          _sectionShell(sIdx++, 'CASE RESPONSIBILITY', accent, respFields));
     }
 
     // ── 11. Arrest ─────────────────────────────────────────────────────────
@@ -1454,24 +1614,31 @@ class CommonFormDocumentView extends StatelessWidget {
       ),
     ]);
     if (cctvFields.isNotEmpty) {
-      children.add(_sectionShell(sIdx++, 'CCTV & CDR INVESTIGATION', accent, cctvFields));
+      children.add(_sectionShell(
+          sIdx++, 'CCTV & CDR INVESTIGATION', accent, cctvFields));
     }
 
     // ── 14. All Panchanama ─────────────────────────────────────────────────
-    final panchanamaWidgets = _buildProceduralSection(context, procChecks, procDates, m);
+    final panchanamaWidgets =
+        _buildProceduralSection(context, procChecks, procDates, m);
     if (panchanamaWidgets.isNotEmpty) {
-      children.add(_sectionShell(sIdx++, 'ALL PANCHANAMA', accent, panchanamaWidgets));
+      children.add(
+          _sectionShell(sIdx++, 'ALL PANCHANAMA', accent, panchanamaWidgets));
     }
 
     // ── 15. Evidence & Seizure ─────────────────────────────────────────────
-    final flatObjectName = _v(m['object_name'] ?? r?.extraFields['object_name']);
-    final flatSeizureDesc = _v(m['seizure_description'] ?? r?.extraFields['seizure_description']);
-    final flatSeizurePerson = _v(m['seizure_person_name'] ?? r?.extraFields['seizure_person_name']);
+    final flatObjectName =
+        _v(m['object_name'] ?? r?.extraFields['object_name']);
+    final flatSeizureDesc =
+        _v(m['seizure_description'] ?? r?.extraFields['seizure_description']);
+    final flatSeizurePerson =
+        _v(m['seizure_person_name'] ?? r?.extraFields['seizure_person_name']);
 
     final seizureWidgets = <Widget>[];
     if (seizures.isNotEmpty) {
       for (var i = 0; i < seizures.length; i++) {
-        final s = (seizures[i] is Map) ? (seizures[i] as Map) : <dynamic, dynamic>{};
+        final s =
+            (seizures[i] is Map) ? (seizures[i] as Map) : <dynamic, dynamic>{};
         final fields = _pairedSimpleFields(context, [
           (
             label: 'Item #${i + 1}',
@@ -1524,11 +1691,25 @@ class CommonFormDocumentView extends StatelessWidget {
           );
         }
       }
-    } else if (flatObjectName.isNotEmpty || flatSeizureDesc.isNotEmpty || flatSeizurePerson.isNotEmpty) {
+    } else if (flatObjectName.isNotEmpty ||
+        flatSeizureDesc.isNotEmpty ||
+        flatSeizurePerson.isNotEmpty) {
       final fields = _pairedSimpleFields(context, [
-        (label: 'Seized Object / Property', value: flatObjectName, fullWidth: false),
-        (label: 'Seized From (Person)', value: flatSeizurePerson, fullWidth: false),
-        (label: 'Seizure Description / Details', value: flatSeizureDesc, fullWidth: true),
+        (
+          label: 'Seized Object / Property',
+          value: flatObjectName,
+          fullWidth: false
+        ),
+        (
+          label: 'Seized From (Person)',
+          value: flatSeizurePerson,
+          fullWidth: false
+        ),
+        (
+          label: 'Seizure Description / Details',
+          value: flatSeizureDesc,
+          fullWidth: true
+        ),
       ]);
       if (fields.isNotEmpty) {
         seizureWidgets.add(
@@ -1546,8 +1727,11 @@ class CommonFormDocumentView extends StatelessWidget {
       }
     }
 
-    final fpTaken = m['fingerprintTaken'] == true || m['fingerprintTaken'] == 'yes' || m['fingerprintVal'] == 'yes';
-    final nafisFp = m['nafisFingerprint'] == true || m['nafisFingerprint'] == 'yes';
+    final fpTaken = m['fingerprintTaken'] == true ||
+        m['fingerprintTaken'] == 'yes' ||
+        m['fingerprintVal'] == 'yes';
+    final nafisFp =
+        m['nafisFingerprint'] == true || m['nafisFingerprint'] == 'yes';
     final eshVal = m['eshakshValue']?.toString().trim().toLowerCase();
     final eshDt = _v(m['eshakshDt']);
     final eshReason = _v(m['eshakshReason']);
@@ -1608,13 +1792,19 @@ class CommonFormDocumentView extends StatelessWidget {
     }
 
     // ── 16. Preventive Action & Bonds ──────────────────────────────────────
-    final prevItems = ((prev['items'] is List) ? (prev['items'] as List) : null) ??
-        ((m['preventive_actions'] is List) ? (m['preventive_actions'] as List) : null);
+    final prevItems =
+        ((prev['items'] is List) ? (prev['items'] as List) : null) ??
+            ((m['preventive_actions'] is List)
+                ? (m['preventive_actions'] as List)
+                : null);
     final prevWidgets = <Widget>[];
     if (prevItems != null && prevItems.isNotEmpty) {
       for (final it in prevItems) {
         if (it is! Map) continue;
-        final pName = _v(it['person_name'] ?? it['name'] ?? it['accusedName'] ?? it['person']);
+        final pName = _v(it['person_name'] ??
+            it['name'] ??
+            it['accusedName'] ??
+            it['person']);
         final pAction = _v(it['action'] ?? it['action_type']);
         final pDate = _v(it['action_date'] ?? it['actionDate']);
         final pOut = _v(it['outward_number'] ?? it['outwardNumber']);
@@ -1727,7 +1917,8 @@ class CommonFormDocumentView extends StatelessWidget {
                 ),
                 if (det.isNotEmpty) ...[
                   const SizedBox(height: 6),
-                  if (det['date'] != null && det['date'].toString().trim().isNotEmpty)
+                  if (det['date'] != null &&
+                      det['date'].toString().trim().isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(left: 26, top: 2),
                       child: Text(
@@ -1739,7 +1930,8 @@ class CommonFormDocumentView extends StatelessWidget {
                         ),
                       ),
                     ),
-                  if (det['reason'] != null && det['reason'].toString().trim().isNotEmpty)
+                  if (det['reason'] != null &&
+                      det['reason'].toString().trim().isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(left: 26, top: 2),
                       child: Text(
@@ -1757,9 +1949,11 @@ class CommonFormDocumentView extends StatelessWidget {
         );
       }
     }
-    if (m['customDischargeList'] is List && (m['customDischargeList'] as List).isNotEmpty) {
+    if (m['customDischargeList'] is List &&
+        (m['customDischargeList'] as List).isNotEmpty) {
       for (final cd in (m['customDischargeList'] as List)) {
-        final cMap = (cd is Map) ? cd : <dynamic, dynamic>{'name': cd.toString()};
+        final cMap =
+            (cd is Map) ? cd : <dynamic, dynamic>{'name': cd.toString()};
         final fields = _pairedSimpleFields(context, [
           (
             label: 'Person Name',
@@ -1794,16 +1988,25 @@ class CommonFormDocumentView extends StatelessWidget {
       }
     }
     if (disWidgets.isNotEmpty) {
-      children.add(_sectionShell(sIdx++, 'DISCHARGE ACCUSED', accent, disWidgets));
+      children
+          .add(_sectionShell(sIdx++, 'DISCHARGE ACCUSED', accent, disWidgets));
     }
 
     // ── 18. Scrutiny ───────────────────────────────────────────────────────
     final hasScrutinyData = [
-      sc['sdpoSend'], sc['sdpoGrant'],
-      sc['dcpSend'], sc['dcpGrant'],
-      sc['addlCpSend'], sc['addlCpGrant'],
-      sc['appSend'], sc['appGrant']
-    ].any((x) => x != null && x.toString().trim().isNotEmpty && x.toString().trim() != '—' && x.toString().trim() != 'None');
+      sc['sdpoSend'],
+      sc['sdpoGrant'],
+      sc['dcpSend'],
+      sc['dcpGrant'],
+      sc['addlCpSend'],
+      sc['addlCpGrant'],
+      sc['appSend'],
+      sc['appGrant']
+    ].any((x) =>
+        x != null &&
+        x.toString().trim().isNotEmpty &&
+        x.toString().trim() != '—' &&
+        x.toString().trim() != 'None');
     if (hasScrutinyData) {
       children.add(
         _sectionShell(sIdx++, 'SCRUTINY', accent, [
@@ -1881,18 +2084,24 @@ class CommonFormDocumentView extends StatelessWidget {
         value: _v(court['quashedHighCourtDate'] ?? court['quashDate']),
         fullWidth: false,
       ),
-      if (court['finalClassification'] != null && court['finalClassification'].toString().trim().isNotEmpty && court['finalClassification'].toString().trim() != 'Pending')
+      if (court['finalClassification'] != null &&
+          court['finalClassification'].toString().trim().isNotEmpty &&
+          court['finalClassification'].toString().trim() != 'Pending')
         (
           label: 'Final Case Classification',
           value: _v(court['finalClassification']),
           fullWidth: false,
         ),
     ]);
-    final hasChargeSheetData = (court['chargeSheetNumber']?.toString().trim().isNotEmpty ?? false) ||
-        (court['chargeSheetDate']?.toString().trim().isNotEmpty ?? false) ||
-        (court['ccStNumber']?.toString().trim().isNotEmpty ?? false);
+    final hasChargeSheetData =
+        (court['chargeSheetNumber']?.toString().trim().isNotEmpty ?? false) ||
+            (court['chargeSheetDate']?.toString().trim().isNotEmpty ?? false) ||
+            (court['ccStNumber']?.toString().trim().isNotEmpty ?? false);
     final hasVerdict = acquitted.isNotEmpty || convicted.isNotEmpty;
-    if (!readOnly || hasChargeSheetData || courtFields.isNotEmpty || hasVerdict) {
+    if (!readOnly ||
+        hasChargeSheetData ||
+        courtFields.isNotEmpty ||
+        hasVerdict) {
       children.add(
         _sectionShell(sIdx++, 'COURT FILING & FINAL SUMMARY', accent, [
           _CourtFilingEditableSection(
@@ -1910,7 +2119,8 @@ class CommonFormDocumentView extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _verdictColumn('✓ ACQUITTED', acquitted, AppColors.successGreen),
+                _verdictColumn(
+                    '✓ ACQUITTED', acquitted, AppColors.successGreen),
                 const SizedBox(width: 10),
                 _verdictColumn('✗ CONVICTED', convicted, AppColors.dangerRed),
               ],
@@ -1965,7 +2175,6 @@ class CommonFormDocumentView extends StatelessWidget {
       children: children,
     );
   }
-
 }
 
 class _CourtFilingEditableSection extends StatefulWidget {

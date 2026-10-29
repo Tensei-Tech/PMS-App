@@ -229,11 +229,22 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
       final year = meta['year'] ?? widget.selectedYear;
       final station = meta['station_name'] ?? 'ALL';
       const months = [
-        'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
-        'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'
+        'JANUARY',
+        'FEBRUARY',
+        'MARCH',
+        'APRIL',
+        'MAY',
+        'JUNE',
+        'JULY',
+        'AUGUST',
+        'SEPTEMBER',
+        'OCTOBER',
+        'NOVEMBER',
+        'DECEMBER'
       ];
       final monthName = (month >= 1 && month <= 12) ? months[month - 1] : '';
-      final defaultTitle = 'SUMMONS & WARRANT MONTHLY REPORT $monthName $year'.trim();
+      final defaultTitle =
+          'SUMMONS & WARRANT MONTHLY REPORT $monthName $year'.trim();
       final title = meta['report_title_en'] ?? defaultTitle;
 
       doc.addPage(
@@ -256,8 +267,8 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
               pw.Center(
                 child: pw.Text(
                   'Month: $month/$year   |   Station: $station   |   Total Warrant Cases: ${meta['total_warrant_records_analyzed'] ?? 0}',
-                  style:
-                      const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+                  style: const pw.TextStyle(
+                      fontSize: 10, color: PdfColors.grey700),
                 ),
               ),
               pw.SizedBox(height: 12),
@@ -440,11 +451,22 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
     final month = meta['month'] ?? widget.selectedMonth;
     final year = meta['year'] ?? widget.selectedYear;
     const months = [
-      'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
-      'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'
+      'JANUARY',
+      'FEBRUARY',
+      'MARCH',
+      'APRIL',
+      'MAY',
+      'JUNE',
+      'JULY',
+      'AUGUST',
+      'SEPTEMBER',
+      'OCTOBER',
+      'NOVEMBER',
+      'DECEMBER'
     ];
     final monthName = (month >= 1 && month <= 12) ? months[month - 1] : '';
-    final defaultTitle = 'SUMMONS & WARRANT MONTHLY REPORT $monthName $year'.trim();
+    final defaultTitle =
+        'SUMMONS & WARRANT MONTHLY REPORT $monthName $year'.trim();
     final title = meta['report_title_en'] ?? defaultTitle;
     final totalAnalyzed = meta['total_warrant_records_analyzed'] ?? 0;
     final stName = meta['station_name'] ?? 'ALL';
@@ -491,7 +513,8 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
                   _fetchReport();
                 }
               },
-              icon: const Icon(Icons.add_rounded, size: 15, color: Colors.white),
+              icon:
+                  const Icon(Icons.add_rounded, size: 15, color: Colors.white),
               label: Text(
                 'Add Case',
                 style: GoogleFonts.poppins(
@@ -533,8 +556,8 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
             const SizedBox(width: 8),
             // Station-wise breakdown toggle
             OutlinedButton.icon(
-              onPressed: () => setState(() =>
-                  _showStationBreakdown = !_showStationBreakdown),
+              onPressed: () => setState(
+                  () => _showStationBreakdown = !_showStationBreakdown),
               icon: Icon(
                 _showStationBreakdown
                     ? Icons.table_chart_rounded
@@ -681,8 +704,8 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: _summaryCard('Pending (अखेर)', '$pending',
-              AppColors.dangerRed, const Color(0xFFFEF2F2)),
+          child: _summaryCard('Pending (अखेर)', '$pending', AppColors.dangerRed,
+              const Color(0xFFFEF2F2)),
         ),
       ],
     );
@@ -762,8 +785,8 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
               cells: [
                 DataCell(Center(
                     child: Text('$idx',
-                        style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600)))),
+                        style:
+                            GoogleFonts.poppins(fontWeight: FontWeight.w600)))),
                 DataCell(Text(title,
                     style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w600,
@@ -820,8 +843,7 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
                         color: AppColors.navyDark))),
                 _clickableCell(
                   '${grandTotal['previous_month'] ?? 0}',
-                  grandTotal['case_ids']?['previous_month']
-                          as List<dynamic>? ??
+                  grandTotal['case_ids']?['previous_month'] as List<dynamic>? ??
                       [],
                   'Grand Total Previous',
                   isBold: true,
@@ -898,11 +920,11 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: const BoxDecoration(
                   color: AppColors.navyDark,
-                  borderRadius:
-                      BorderRadius.vertical(top: Radius.circular(9)),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(9)),
                 ),
                 child: Text(
                   '$title — Station Breakdown',
@@ -946,10 +968,12 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
                         DataCell(Text(stName.toString(),
                             style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w600))),
-                        _clickableCell('${st['previous_month'] ?? 0}',
+                        _clickableCell(
+                            '${st['previous_month'] ?? 0}',
                             caseIds['previous_month'] as List<dynamic>? ?? [],
                             '$stName - Prev'),
-                        _clickableCell('${st['current_month'] ?? 0}',
+                        _clickableCell(
+                            '${st['current_month'] ?? 0}',
                             caseIds['current_month'] as List<dynamic>? ?? [],
                             '$stName - Curr'),
                         DataCell(Center(
@@ -963,8 +987,7 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
                           color: Colors.green.shade700,
                         ),
                         DataCell(Center(
-                            child: Text(
-                                '${st['executed_percent'] ?? "0%"}',
+                            child: Text('${st['executed_percent'] ?? "0%"}',
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: Colors.green.shade800)))),

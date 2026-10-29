@@ -355,8 +355,7 @@ class CategoryNavigationHelper {
       );
       return;
     }
-    if (cleanName.toUpperCase() == 'DAR' ||
-        moduleKey.toLowerCase() == 'dar') {
+    if (cleanName.toUpperCase() == 'DAR' || moduleKey.toLowerCase() == 'dar') {
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(

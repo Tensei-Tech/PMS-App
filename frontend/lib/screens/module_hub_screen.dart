@@ -690,8 +690,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       child: _buildSamWarrantModuleReportOnly(context)),
                 ] else if (widget.moduleKey == 'pending') ...[
                   SliverToBoxAdapter(
-                      child:
-                          _buildPendingModuleReportOnly(context)),
+                      child: _buildPendingModuleReportOnly(context)),
                 ] else if (widget.moduleLabel == 'Forms' &&
                     widget.moduleKey == 'form_1_5') ...[
                   SliverToBoxAdapter(
@@ -1060,8 +1059,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                               color: Colors.grey.shade200, width: 1.5),
                           boxShadow: [
                             BoxShadow(
-                              color:
-                                  AppColors.navyDark.withValues(alpha: 0.04),
+                              color: AppColors.navyDark.withValues(alpha: 0.04),
                               blurRadius: 8,
                               spreadRadius: 1,
                               offset: const Offset(0, 4),
@@ -1111,8 +1109,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: GoogleFonts.poppins(
-                                            fontSize:
-                                                isSmallScreen ? 12 : 14,
+                                            fontSize: isSmallScreen ? 12 : 14,
                                             fontWeight: FontWeight.w600,
                                             color: AppColors.navyDark,
                                             height: 1.2,
@@ -1174,13 +1171,13 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                                 } else if (val == 'Within 3 months') {
                                   startDate = DateFormat('yyyy-MM-dd').format(
                                       now.subtract(const Duration(days: 90)));
-                                  endDate = DateFormat('yyyy-MM-dd')
-                                      .format(now);
+                                  endDate =
+                                      DateFormat('yyyy-MM-dd').format(now);
                                 } else if (val == '1 month') {
                                   startDate = DateFormat('yyyy-MM-dd').format(
                                       now.subtract(const Duration(days: 30)));
-                                  endDate = DateFormat('yyyy-MM-dd')
-                                      .format(now);
+                                  endDate =
+                                      DateFormat('yyyy-MM-dd').format(now);
                                 }
                                 Navigator.push(
                                   context,
