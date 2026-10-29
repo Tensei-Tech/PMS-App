@@ -309,9 +309,10 @@ class ServiceData {
     ServiceData('Tadipar', Icons.gavel_rounded, 0xFF1ABC9C),
     ServiceData('Repeat Offender', Icons.warning_rounded, 0xFFF39C12),
     ServiceData('ITSSO', Icons.description_rounded, 0xFFE91E63),
-    ServiceData('NAFIS', Icons.fingerprint_rounded, 0xFF673AB7),
-    ServiceData('DAR', Icons.folder_rounded, 0xFF607D8B),
-    ServiceData('IRAD', Icons.analytics_rounded, 0xFF34495E),
+    // Opens two tabs: NAFIS and Fingerprint
+    ServiceData('NAFIS/Fingerprint', Icons.fingerprint_rounded, 0xFF673AB7),
+    // Opens two tabs: DAR and IRAD
+    ServiceData('DAR/IRAD', Icons.folder_rounded, 0xFF607D8B),
     ServiceData('E-Learning', Icons.school_rounded, 0xFF7F8C8D),
   ];
 }

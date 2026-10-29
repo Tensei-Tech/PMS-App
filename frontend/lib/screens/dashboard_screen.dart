@@ -242,8 +242,10 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
     case 'ITSSO':
       return Icons.description_rounded;
     case 'NAFIS':
+    case 'NAFIS/Fingerprint':
       return Icons.fingerprint_rounded;
     case 'DAR':
+    case 'DAR/IRAD':
       return Icons.folder_rounded;
     case 'IRAD':
     case 'IRDA':
@@ -350,6 +352,7 @@ String? _getDashboardSvgPath(String label) {
     case 'repeatoffender':
       return 'assets/icons/repeatoffender.svg';
     case 'dar':
+    case 'darirad':
       return 'assets/icons/dar.svg';
     case 'irad':
     case 'irda':
@@ -3736,6 +3739,8 @@ class _HomeTabState extends State<_HomeTab> {
       ...services.map((c) => c.name),
       ...ServiceData.dashboardTools.map((t) => t.label),
       PassportLicenceScreen.licenceLabel, // a tab inside Passport/PVR/Licence
+      'DAR', 'IRAD', // tabs inside DAR/IRAD
+      'NAFIS', // a tab inside NAFIS/Fingerprint
     ];
     final shownNorm = shownLabels.map(norm).toList();
     final shownDigits = shownLabels.map(digits).toList();
@@ -3903,6 +3908,17 @@ class _HomeTabState extends State<_HomeTab> {
       );
       return;
     }
+    if (label.toUpperCase() == DarIradScreen.title) {
+      // Two tabs: DAR and IRAD
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: DarIradScreen(stationName: auth.stationName),
+        ),
+      );
+      return;
+    }
     if (label.toUpperCase() == 'DAR' || item.moduleKey.toLowerCase() == 'dar') {
       final auth = context.read<AuthProvider>();
       Navigator.push(
@@ -4003,7 +4019,9 @@ class _HomeTabState extends State<_HomeTab> {
           page: RepeatOffenderSummaryScreen(stationName: auth.stationName),
         ),
       );
-    } else if (item.name == 'NAFIS' || item.moduleKey == 'nafis') {
+    } else if (item.name == 'NAFIS' ||
+        item.name == NafisFingerprintScreen.title ||
+        item.moduleKey == 'nafis') {
       // Two tabs: NAFIS and Fingerprint
       final auth = context.read<AuthProvider>();
       Navigator.push(

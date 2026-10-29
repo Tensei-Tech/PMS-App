@@ -7,8 +7,18 @@ import '../modules/passport/screens/passport_hub_screen.dart';
 import '../theme/app_theme.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
+import 'dar_hub_screen.dart';
 import 'form_i_v_selection_screen.dart';
+import 'irad_hub_screen.dart';
 import 'nafis_hub_screen.dart';
+
+/// Sub-tab cards per row: at least two, so a phone shows a tile's two
+/// sub-tabs side by side in one row.
+int subtabColumns(double width) => width > 1200 ? 4 : (width > 850 ? 3 : 2);
+
+/// Card height: a little taller on phones, where narrow cards wrap a long
+/// name (e.g. "Attempt to Murder") onto two lines.
+double subtabCardHeight(double width) => width > 550 ? 74 : 86;
 
 /// A dashboard tile that groups "1 to 5" categories as sub-tabs
 /// (e.g. Murder: Murder / Attempt to Murder), shown as the same compact cards
@@ -89,7 +99,7 @@ class _CategorySubtabsScreenState extends State<CategorySubtabsScreen> {
   Widget build(BuildContext context) {
     final records = context.watch<FormIVProvider>().records;
     final width = MediaQuery.of(context).size.width;
-    final cols = width > 1200 ? 4 : (width > 850 ? 3 : (width > 550 ? 2 : 1));
+    final cols = subtabColumns(width);
 
     return Scaffold(
       backgroundColor: AppColors.lightBg,
@@ -105,7 +115,7 @@ class _CategorySubtabsScreenState extends State<CategorySubtabsScreen> {
           crossAxisCount: cols,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
-          mainAxisExtent: 74,
+          mainAxisExtent: subtabCardHeight(width),
         ),
         itemBuilder: (context, i) {
           final (name, icon) = widget.subtabs[i];
@@ -140,7 +150,7 @@ class ModuleTabsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final cols = width > 1200 ? 4 : (width > 850 ? 3 : (width > 550 ? 2 : 1));
+    final cols = subtabColumns(width);
     return Scaffold(
       backgroundColor: AppColors.lightBg,
       appBar: ModuleHubScreenAppBar(
@@ -154,7 +164,7 @@ class ModuleTabsScreen extends StatelessWidget {
           crossAxisCount: cols,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
-          mainAxisExtent: 74,
+          mainAxisExtent: subtabCardHeight(width),
         ),
         itemBuilder: (context, i) {
           final (name, icon, open) = tabs[i];
@@ -213,16 +223,18 @@ class PassportLicenceScreen extends StatelessWidget {
   }
 }
 
-/// The dashboard's NAFIS tile: NAFIS and Fingerprint.
+/// The dashboard's NAFIS/Fingerprint tile: NAFIS and Fingerprint.
 class NafisFingerprintScreen extends StatelessWidget {
   final String stationName;
 
   const NafisFingerprintScreen({super.key, required this.stationName});
 
+  static const String title = 'NAFIS/Fingerprint';
+
   @override
   Widget build(BuildContext context) {
     return ModuleTabsScreen(
-      title: 'NAFIS',
+      title: title,
       tabs: [
         (
           'NAFIS',
@@ -291,6 +303,44 @@ class ComingSoonScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The dashboard's DAR/IRAD tile: DAR and IRAD, each opening its hub.
+class DarIradScreen extends StatelessWidget {
+  final String stationName;
+
+  const DarIradScreen({super.key, required this.stationName});
+
+  static const String title = 'DAR/IRAD';
+
+  @override
+  Widget build(BuildContext context) {
+    return ModuleTabsScreen(
+      title: title,
+      tabs: [
+        (
+          'DAR',
+          Icons.folder_rounded,
+          (context) => Navigator.push(
+                context,
+                AppTheme.fadeSlideRoute(
+                  page: DarHubScreen(stationName: stationName),
+                ),
+              ),
+        ),
+        (
+          'IRAD',
+          Icons.analytics_rounded,
+          (context) => Navigator.push(
+                context,
+                AppTheme.fadeSlideRoute(
+                  page: IradHubScreen(stationName: stationName),
+                ),
+              ),
+        ),
+      ],
     );
   }
 }
