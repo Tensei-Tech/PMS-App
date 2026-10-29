@@ -13,6 +13,8 @@ import 'package:khakhi_diary/widgets/dynamic_form/dynamic_field_model.dart';
 import 'package:khakhi_diary/widgets/dynamic_form/dynamic_form_screen.dart';
 import 'package:khakhi_diary/widgets/dynamic_form/dynamic_section_builder.dart';
 
+import 'package:khakhi_diary/modules/core/models/base_record.dart';
+
 const _formDefinition = '''{
   "category_id": 1,
   "category_name": "TEST Sum",
@@ -29,6 +31,34 @@ const _formDefinition = '''{
   ]
 }''';
 
+const _snatchFormDefinition = '''{
+  "category_id": 222,
+  "category_name": "Chain Snatching",
+  "sections": [
+    {"section_key": "stolen", "section_title": "Stolen Property List", "display_order": 1}
+  ],
+  "fields": [
+    {
+      "field_key": "snatch_stolen_total_value",
+      "field_label": "Total Value of Stolen Property (₹)",
+      "field_type": "number",
+      "section_key": "stolen",
+      "options_source": "sum:snatch_stolen_props.snatch_stolen_value"
+    },
+    {
+      "field_key": "snatch_stolen_props",
+      "field_label": "Stolen Property List",
+      "field_type": "repeating_group",
+      "section_key": "stolen",
+      "child_fields": [
+        {"field_key": "snatch_stolen_name", "field_label": "Name of Stolen Property", "field_type": "text"},
+        {"field_key": "snatch_stolen_desc", "field_label": "Description", "field_type": "text"},
+        {"field_key": "snatch_stolen_value", "field_label": "Value (₹)", "field_type": "number"}
+      ]
+    }
+  ]
+}''';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -38,7 +68,9 @@ void main() {
   });
   tearDown(() => ApiService.clientForTesting = null);
 
-  test('sumOf reads only sum: sources of number fields', () {
+  test(
+      'sumOf reads only sum: sources of number fields and supports group.child',
+      () {
     DynamicFieldDef def(String type, String? src) => DynamicFieldDef(
         fieldDefId: 1,
         fieldLabel: 'x',
@@ -51,6 +83,8 @@ void main() {
     expect(def('number', 'sum:a, b').sumOf, ['a', 'b']);
     expect(def('text', 'sum:a,b').sumOf, isEmpty);
     expect(def('number', '/api/options/x/').sumOf, isEmpty);
+    expect(def('number', 'sum:snatch_stolen_props.snatch_stolen_value').sumOf,
+        ['snatch_stolen_props.snatch_stolen_value']);
   });
 
   testWidgets('Total fills itself from Serious + Misc and is read-only',
@@ -100,6 +134,81 @@ void main() {
     await tester.enterText(fieldFor('TEST Misc'), '4');
     await tester.pump();
     expect(fieldAfter('TEST Total').controller!.text, '7');
+  });
+
+  testWidgets('Repeating group child sum fills total field on hydration',
+      (tester) async {
+    ApiService.clientForTesting = MockClient((req) async {
+      if (req.url.path.contains('/form-definition/')) {
+        return http.Response(_snatchFormDefinition, 200,
+            headers: {'content-type': 'application/json'});
+      }
+      return http.Response('{}', 200,
+          headers: {'content-type': 'application/json'});
+    });
+    tester.view.physicalSize = const Size(1200, 1200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final testRecord = ModuleRecord(
+      id: 'case_1',
+      moduleKey: 'form_1_5',
+      subCategory: 'Chain Snatching',
+      title: 'Chain Snatching Case',
+      caseNumber: 'CR/100/2026',
+      description: 'Chain Snatching incident description',
+      complainant: 'Rahul Sharma',
+      accused: 'Unknown Person',
+      location: 'MG Road, Near Bus Stop',
+      priority: 'High',
+      status: 'Investigation',
+      assignedOfficer: 'PI Patil',
+      stationName: 'Crime Branch',
+      incidentDate: DateTime(2026, 1, 1),
+      extraFields: {
+        'snatch_stolen_props': [
+          {
+            'snatch_stolen_name': 'Gold Chain',
+            'snatch_stolen_desc': '22K 15 grams',
+            'snatch_stolen_value': '80000',
+          },
+          {
+            'snatch_stolen_name': 'Smartphone',
+            'snatch_stolen_desc': 'Samsung Galaxy S24',
+            'snatch_stolen_value': '60000',
+          },
+        ],
+      },
+    );
+
+    await tester.pumpWidget(MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => FormIVProvider()),
+      ],
+      child: MaterialApp(
+        home: DynamicFormScreen(
+          moduleLabel: 'Chain Snatching',
+          moduleKey: 'form_1_5',
+          subCategory: 'Chain Snatching',
+          existingRecord: testRecord,
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await openFirstSection(tester);
+
+    TextField fieldAfter(String label) => tester.widget<TextField>(find
+        .descendant(
+            of: find
+                .ancestor(of: find.text(label), matching: find.byType(Column))
+                .first,
+            matching: find.byType(TextField))
+        .first);
+
+    // 80000 + 60000 = 140000
+    expect(fieldAfter('Total Value of Stolen Property (₹)').controller!.text,
+        '140000');
   });
 }
 

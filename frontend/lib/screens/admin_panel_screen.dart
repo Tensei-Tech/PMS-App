@@ -118,9 +118,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             : 'Provision Division Admins (sub-divisions) and Station Heads (SHO/PI) in your $unit.';
 
     final hierarchyTitle = isStateAdmin
-        ? 'State Admin Hierarchy & Directory'
+        ? 'State Admin Directory'
         : isDivAdmin
-            ? 'Division Hierarchy & Directory'
+            ? 'Division Directory'
             : '$unitTitle Divisions & Stations';
 
     final hierarchySubtitle = isStateAdmin

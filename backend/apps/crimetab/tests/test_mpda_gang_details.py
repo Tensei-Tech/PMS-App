@@ -51,7 +51,7 @@ class MpdaGangMemberDetailsTests(TestCase):
             self.assertEqual(edit_row[key], value)
 
     def test_member_without_name_but_with_details_is_kept_and_bad_values_dropped(self):
-        prop = self._create([{'mpda_gang_member_age': '300', 'mpda_gang_member_mobile': '123',
+        prop = self._create([{'mpda_gang_member_age': '1000', 'mpda_gang_member_mobile': '123',
                               'mpda_gang_member_occupation': 'TEST Only Occupation'}, {}])
         members = list(MpdaGangMember.objects.filter(proposal=prop))
         self.assertEqual(len(members), 1)

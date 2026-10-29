@@ -36,6 +36,7 @@ class FieldTemplateField(models.Model):
         ('number', 'Numeric Field'),
         ('date', 'Date Picker'),
         ('datetime', 'Date-Time Picker'),
+        ('time', 'Time Picker'),
         ('dropdown', 'Dropdown Select'),
         ('checkbox', 'Checkbox Toggle'),
         ('radio', 'Radio Button Group'),

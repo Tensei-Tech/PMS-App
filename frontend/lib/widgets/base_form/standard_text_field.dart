@@ -1,8 +1,10 @@
 // lib/widgets/base_form/standard_text_field.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'base_form_styles.dart';
+import '../age_digits_limit.dart';
 import '../../utils/translation_helper.dart';
 
 /// Unified text field for standalone data-entry forms.
@@ -20,6 +22,7 @@ class StandardTextField extends StatelessWidget {
     this.validator,
     this.prefixIcon,
     this.suffixIcon,
+    this.isAge = false,
   });
 
   final String label;
@@ -34,10 +37,26 @@ class StandardTextField extends StatelessWidget {
   final IconData? prefixIcon;
   final Widget? suffixIcon;
 
+  /// An age: digits only, at most [kAgeMaxDigits], with the shared message
+  final bool isAge;
+
   @override
   Widget build(BuildContext context) {
+    if (isAge) {
+      return AgeDigitsLimit(
+        label: label,
+        builder: (formatters, errorText) =>
+            _field(context, formatters, errorText),
+      );
+    }
+    return _field(context, null, null);
+  }
+
+  Widget _field(BuildContext context, List<TextInputFormatter>? formatters,
+      String? errorText) {
     return TextFormField(
       controller: controller,
+      inputFormatters: formatters,
       keyboardType: keyboardType,
       maxLines: maxLines,
       readOnly: readOnly,
@@ -55,6 +74,7 @@ class StandardTextField extends StatelessWidget {
         prefixIcon: prefixIcon != null
             ? Icon(prefixIcon, size: 20, color: BaseFormStyles.labelColor)
             : null,
+        errorText: errorText,
       ),
     );
   }

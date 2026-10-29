@@ -215,6 +215,9 @@ class CasesPerson(models.Model):
     religion = models.CharField(max_length=50, null=True, blank=True)
     caste = models.CharField(max_length=50, null=True, blank=True)
     address = models.TextField(null=True, blank=True)
+    # Medical done? (an option of the yes_no group) and its date
+    medical = models.CharField(max_length=10, null=True, blank=True)
+    medical_date = models.DateField(null=True, blank=True)
 
     # Unidentified Accused-specific fields
     approximate_age = models.CharField(max_length=20, null=True, blank=True)

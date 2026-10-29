@@ -95,7 +95,7 @@ class _StateAdminHierarchyScreenState extends State<StateAdminHierarchyScreen>
       backgroundColor: const Color(0xFFF4F6F9),
       appBar: AppBar(
         title: Text(
-          'State Admin Hierarchy',
+          'State Admin Directory',
           style: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w700,

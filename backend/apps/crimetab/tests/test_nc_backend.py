@@ -210,7 +210,7 @@ class NcBackendTests(TestCase):
     def test_field_rules(self):
         bad = [
             {'nc_complainants': [{'nc_cmp_name': 'TEST', 'nc_cmp_age': '0'}]},
-            {'nc_complainants': [{'nc_cmp_name': 'TEST', 'nc_cmp_age': '121'}]},
+            {'nc_complainants': [{'nc_cmp_name': 'TEST', 'nc_cmp_age': '1000'}]},
             {'nc_complainants': [{'nc_cmp_name': 'TEST', 'nc_cmp_mobile': '12345'}]},
             {'nc_complainants': [{'nc_cmp_name': 'TEST', 'nc_cmp_aadhaar': '1234'}]},
             {'nc_complainants': [{'nc_cmp_name': 'TEST', 'nc_cmp_gender': 'TEST_Unknown'}]},
@@ -222,7 +222,7 @@ class NcBackendTests(TestCase):
         for payload in bad:
             self.assertEqual(self.create(payload).status_code, 400, payload)
         good = {'nc_first_information': 'x' * 50, 'nc_io_mobile': '9876543210',
-                'nc_complainants': [{'nc_cmp_name': 'TEST', 'nc_cmp_age': '120', 'nc_cmp_mobile': '9876543210',
+                'nc_complainants': [{'nc_cmp_name': 'TEST', 'nc_cmp_age': '150', 'nc_cmp_mobile': '9876543210',
                                      'nc_cmp_aadhaar': '123456789012', 'nc_cmp_gender': 'Female'}]}
         self.assertEqual(self.create(good).status_code, 201)
 

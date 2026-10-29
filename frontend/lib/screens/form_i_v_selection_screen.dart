@@ -215,6 +215,9 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
       'm.v act',
       'mv act',
       'uapa',
+      // Have their own modules; not listed under 1 to 5.
+      'kidnapping',
+      'missing',
     };
     return excluded.contains(lower);
   }
@@ -1815,167 +1818,57 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                   border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
                 ),
                 width: double.infinity,
-                child: Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  alignment: WrapAlignment.spaceBetween,
+                // One line: the sub-tab's name and count, then the date filter
+                // and sort. The app bar's back arrow returns to the categories.
+                child: Row(
                   children: [
-                    Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        InkWell(
-                          onTap: _handleBackNavigation,
-                          borderRadius: BorderRadius.circular(8),
-                          child: Container(
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              TranslationHelper.translate(
+                                context,
+                                _selectedCategory!,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.navyDark,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
+                              horizontal: 8,
+                              vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(8),
-                              border:
-                                  Border.all(color: const Color(0xFFCBD5E1)),
+                              color: const Color(0xFFE8F1FC),
+                              borderRadius: BorderRadius.circular(
+                                AppRadius.full,
+                              ),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.arrow_back_rounded,
-                                  size: 14,
-                                  color: AppColors.navyDark,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  TranslationHelper.translate(
-                                    context,
-                                    _categoryBreadcrumb.isNotEmpty
-                                        ? _categoryBreadcrumb.last
-                                        : 'Categories',
-                                  ),
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.navyDark,
-                                  ),
-                                ),
-                              ],
+                            child: Text(
+                              '${visibleRecords.length}',
+                              style: GoogleFonts.poppins(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF1976D2),
+                              ),
                             ),
                           ),
-                        ),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    _categoryBreadcrumb.clear();
-                                    _selectedCategory = null;
-                                  });
-                                },
-                                child: Text(
-                                  TranslationHelper.translate(
-                                    context,
-                                    'Form I-V',
-                                  ),
-                                  style: GoogleFonts.poppins(
-                                    color: const Color(0xFF1976D2),
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                              for (int i = 0;
-                                  i < _categoryBreadcrumb.length;
-                                  i++) ...[
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 6),
-                                  child: Text(
-                                    '/',
-                                    style: GoogleFonts.poppins(
-                                      color: AppColors.lightSubText,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ),
-                                InkWell(
-                                  onTap: () {
-                                    setState(() {
-                                      _categoryBreadcrumb.removeRange(
-                                        i + 1,
-                                        _categoryBreadcrumb.length,
-                                      );
-                                      _selectedCategory = null;
-                                    });
-                                  },
-                                  child: Text(
-                                    TranslationHelper.translate(
-                                      context,
-                                      _categoryBreadcrumb[i],
-                                    ),
-                                    style: GoogleFonts.poppins(
-                                      color: const Color(0xFF1976D2),
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 6),
-                                child: Text(
-                                  '/',
-                                  style: GoogleFonts.poppins(
-                                    color: AppColors.lightSubText,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ),
-                              Text(
-                                TranslationHelper.translate(
-                                  context,
-                                  _selectedCategory!,
-                                ),
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.navyDark,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFE8F1FC),
-                                  borderRadius: BorderRadius.circular(
-                                    AppRadius.full,
-                                  ),
-                                ),
-                                child: Text(
-                                  '${visibleRecords.length}',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: const Color(0xFF1976D2),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                    _buildDateAndSortControls(),
+                    const SizedBox(width: 8),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: _buildDateAndSortControls(),
+                    ),
                   ],
                 ),
               ),
@@ -2281,6 +2174,7 @@ class CategoryGridCard extends StatefulWidget {
     required this.count,
     required this.isAll,
     required this.onTap,
+    this.showCount = true,
   });
 
   final String category;
@@ -2289,6 +2183,9 @@ class CategoryGridCard extends StatefulWidget {
   final int count;
   final bool isAll;
   final VoidCallback onTap;
+
+  /// False for a tab whose cases are not counted here (another module).
+  final bool showCount;
 
   @override
   State<CategoryGridCard> createState() => CategoryGridCardState();
@@ -2374,20 +2271,22 @@ class CategoryGridCardState extends State<CategoryGridCard> {
                             height: 1.18,
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          widget.count == 1
-                              ? '1 case'
-                              : '${widget.count} cases',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            color: hasCases
-                                ? const Color(0xFF1976D2)
-                                : AppColors.lightSubText,
-                            fontWeight:
-                                hasCases ? FontWeight.w600 : FontWeight.w400,
+                        if (widget.showCount) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            widget.count == 1
+                                ? '1 case'
+                                : '${widget.count} cases',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              color: hasCases
+                                  ? const Color(0xFF1976D2)
+                                  : AppColors.lightSubText,
+                              fontWeight:
+                                  hasCases ? FontWeight.w600 : FontWeight.w400,
+                            ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ),

@@ -12,8 +12,9 @@ Migration 0133: tenant module tables and id sequences (fresh databases)
 
 2. Several data migrations insert rows with explicit ids (e.g. case_categories),
    which leaves the id sequence behind and makes the next normal insert fail with
-   a duplicate key. Every sequence is moved up to the highest id in its table;
-   a sequence is never moved down.
+   a duplicate key. Every sequence of a table in public or a state schema is moved
+   up to the highest id in its table; a sequence is never moved down. Other
+   schemas (Supabase's auth, storage, ...) are not touched.
 
 3. field_templates.store_values_in_table (added by 0101 through Django) gets a
    database default of FALSE, so raw-SQL seeds that do not name it still work.
@@ -27,6 +28,8 @@ SYSTEM_SCHEMAS = (
     'extensions', 'cron', 'net', '_analytics', '_realtime', 'pgbouncer',
 )
 
+# Run with one parameter (%s): the schemas whose sequences are synced (public +
+# state schemas). format() placeholders are written %%I / %%L for that reason.
 SQL_SYNC_SEQUENCES = """
 DO $$
 DECLARE
@@ -43,12 +46,12 @@ BEGIN
         JOIN pg_namespace tbl_ns ON tbl_ns.oid = tbl.relnamespace
         JOIN pg_attribute att ON att.attrelid = tbl.oid AND att.attnum = dep.refobjsubid
         WHERE seq.relkind = 'S'
-          AND tbl_ns.nspname NOT IN ('information_schema', 'pg_catalog')
+          AND tbl_ns.nspname = ANY(%s)
     LOOP
-        EXECUTE format('SELECT MAX(%I) FROM %I.%I', r.col_name, r.tbl_schema, r.tbl_name) INTO max_id;
+        EXECUTE format('SELECT MAX(%%I) FROM %%I.%%I', r.col_name, r.tbl_schema, r.tbl_name) INTO max_id;
         IF max_id IS NOT NULL THEN
             EXECUTE format(
-                'SELECT setval(%L, GREATEST(%s, (SELECT last_value FROM %I.%I)))',
+                'SELECT setval(%%L, GREATEST(%%s, (SELECT last_value FROM %%I.%%I)))',
                 quote_ident(r.seq_schema) || '.' || quote_ident(r.seq_name), max_id, r.seq_schema, r.seq_name
             );
         END IF;
@@ -78,7 +81,7 @@ def forwards(apps, schema_editor):
         for schema in tenant_schemas(cursor):
             cursor.execute(f'CREATE SCHEMA IF NOT EXISTS "{schema}";')
             create_module_tables(cursor, schema)
-        cursor.execute(SQL_SYNC_SEQUENCES)
+        cursor.execute(SQL_SYNC_SEQUENCES, [['public'] + tenant_schemas(cursor)])
         cursor.execute(
             'ALTER TABLE public.field_templates ALTER COLUMN store_values_in_table SET DEFAULT FALSE'
         )

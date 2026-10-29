@@ -40,13 +40,11 @@ const _tsSection = TextStyle(
 const _tsMuted = TextStyle(fontSize: 11, color: _kMuted);
 const _tsBody = TextStyle(fontSize: 12, color: _kDark);
 
-const _kGenders = ['Male', 'Female', 'Other'];
-
 /// KYC Entry Model for Complainants & Non-Applicants (supports up to 3 entries)
 class NcPersonKycEntry {
   final TextEditingController name = TextEditingController();
   final TextEditingController age = TextEditingController();
-  String gender = 'Male';
+  String gender = '';
   final TextEditingController caste = TextEditingController();
   final TextEditingController profession = TextEditingController();
   final TextEditingController mobile = TextEditingController();
@@ -66,7 +64,7 @@ class NcPersonKycEntry {
   void clear() {
     name.clear();
     age.clear();
-    gender = 'Male';
+    gender = '';
     caste.clear();
     profession.clear();
     mobile.clear();
@@ -91,7 +89,7 @@ class NcPersonKycEntry {
     name.text = m['name']?.toString() ?? '';
     age.text = m['age']?.toString() ?? '';
     final g = m['gender']?.toString();
-    if (g != null && _kGenders.contains(g)) {
+    if (g != null && g.isNotEmpty) {
       gender = g;
     }
     caste.text = m['caste']?.toString() ?? '';
@@ -123,11 +121,12 @@ class NcFormState extends State<NcForm> {
   final _spotAddress = TextEditingController();
 
   Map<String, Map<String, dynamic>> _actsData = {};
-  List<String> _genders = List.from(_kGenders);
+  // Gender choices from the database (form definition 'genders')
+  List<String> _genders = [];
 
   Map<String, Map<String, dynamic>> get _activeActsData =>
       _actsData.isNotEmpty ? _actsData : BackendCaseService.cachedActData;
-  List<String> get _activeGenders => _genders.isNotEmpty ? _genders : _kGenders;
+  List<String> get _activeGenders => _genders;
 
   Future<void> _fetchGlobalActs() async {
     final acts = await BackendCaseService().fetchActDataMap();
@@ -830,9 +829,11 @@ class NcFormState extends State<NcForm> {
     void Function(String)? onChanged,
     VoidCallback? onTap,
     String? section,
+    bool isAge = false,
   }) {
     return StandardTextField(
       label: label,
+      isAge: isAge,
       controller: ctrl,
       maxLines: maxLines ?? 1,
       keyboardType: keyboardType,
@@ -871,8 +872,9 @@ class NcFormState extends State<NcForm> {
     required ValueChanged<String> onChanged,
   }) {
     return DropdownButtonFormField<String>(
-      initialValue:
-          _activeGenders.contains(selected) ? selected : _activeGenders.first,
+      // Rebuilt once the database list arrives, so a saved gender shows
+      key: ValueKey('gender_${selected}_${_activeGenders.length}'),
+      initialValue: _activeGenders.contains(selected) ? selected : null,
       decoration: _d('Gender'),
       style: _tsBody,
       dropdownColor: Colors.white,
@@ -1374,7 +1376,8 @@ class NcFormState extends State<NcForm> {
           const SizedBox(height: 10),
           _row([
             _tf('Name', person.name),
-            _tf('Age (Years)', person.age, keyboardType: TextInputType.number),
+            _tf('Age (Years)', person.age,
+                keyboardType: TextInputType.number, isAge: true),
           ]),
           _row([
             _genderDropdown(
