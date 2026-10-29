@@ -44,6 +44,7 @@ import '../modules/ndps/providers/ndps_provider.dart';
 import '../modules/passport/providers/passport_provider.dart';
 import '../widgets/summons_warrant_report_table.dart';
 import '../widgets/monthly_crime_comparative_table.dart';
+import '../widgets/add_warrant_case_dialog.dart';
 import '../modules/pending/providers/pending_provider.dart';
 import '../modules/pocso/providers/pocso_provider.dart';
 import '../modules/preventive/providers/preventive_provider.dart';
@@ -64,7 +65,6 @@ import '../theme/app_theme.dart';
 import '../utils/ad_disposal_helper.dart';
 import '../utils/common_form_module.dart';
 import '../utils/module_pdf_helper.dart';
-import '../utils/pending_io_wise_logic.dart';
 import '../utils/pdf_auth_gate.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/forms_accordion_list.dart';
@@ -85,6 +85,8 @@ import 'filtered_pending_screen.dart';
 import 'pending_io_wise_screens.dart';
 import 'pending_summary_screen.dart';
 import 'report_case_list_screen.dart';
+import '../services/backend_case_service.dart';
+import '../utils/pending_table_firestore_mapper.dart';
 
 class _CategoryMeta {
   final String label;
@@ -131,10 +133,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   String? _pendingCategory;
   String? _pendingTimeRange;
   String? _pendingViewMode;
-
-  static const List<String> _pendingHubCategories = [
-    ...kPendingDashboardCategoriesForIoWise,
-  ];
 
   static const List<String> _pendingHubTimeRanges = [
     'Select time range',
@@ -393,6 +391,18 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   }
 
   void _openNewEntryForm(BuildContext context) {
+    if (widget.moduleKey == 'sam_warrant') {
+      AddWarrantCaseDialog.show(
+        context,
+        initialYear: _reportYear,
+        initialMonth: _reportMonth,
+      ).then((added) {
+        if (added == true && mounted) {
+          setState(() {});
+        }
+      });
+      return;
+    }
     if (widget.moduleKey == 'ad') {
       Navigator.push(
         context,
@@ -757,8 +767,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     final bool showAddButton = !(widget.readOnly ||
         widget.moduleKey == 'detected' ||
         widget.moduleKey == 'undetected' ||
-        widget.moduleKey == 'disposal' ||
-        widget.moduleKey == 'sam_warrant');
+        widget.moduleKey == 'disposal');
 
     Widget? actionWidget;
     if (showAddButton) {
@@ -958,9 +967,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
   Widget _buildPendingModuleReportOnly(BuildContext context) {
     final auth = context.read<AuthProvider>();
-    final categoryValue = _pendingCategory ?? _pendingHubCategories.first;
-    final timeRangeValue = _pendingTimeRange ?? 'Select time range';
-    final viewModeValue = _pendingViewMode ?? 'Case Wise';
 
     return ModuleHubReportCard(
       title: TranslationHelper.translate(context, 'Pending Reports'),
@@ -978,144 +984,242 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       wrapCategoryButtonsInCard: false,
       categoryButtons: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final bool isSmallScreen = constraints.maxWidth < 600;
-            final double gap = isSmallScreen ? 12 : 16;
-            final int columns = constraints.maxWidth > 1000
-                ? 4
-                : (constraints.maxWidth > 600 ? 3 : 2);
-            double itemWidth =
-                (constraints.maxWidth - (gap * (columns - 1))) / columns;
-            if (itemWidth < 0) itemWidth = 0; // Prevent negative width crash
+        child: FutureBuilder<List<Map<String, dynamic>>?>(
+          future: BackendCaseService().fetchPendingCases(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: CircularProgressIndicator(color: AppColors.navyMid),
+                ),
+              );
+            }
 
-            return Wrap(
-              spacing: gap,
-              runSpacing: gap,
-              alignment: WrapAlignment.start,
-              children: _pendingHubCategories.map((cat) {
-                final transCategory = TranslationHelper.translate(context, cat);
-                return SizedBox(
-                  width: itemWidth,
-                  height: 64, // Keep full height on mobile
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border:
-                          Border.all(color: Colors.grey.shade200, width: 1.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.navyDark.withValues(alpha: 0.04),
-                          blurRadius: 8,
-                          spreadRadius: 1,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      borderRadius: BorderRadius.circular(12),
-                      child: PopupMenuButton<String>(
-                        offset: const Offset(0, 68),
-                        tooltip: transCategory,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side:
-                              BorderSide(color: Colors.grey.shade200, width: 1),
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: isSmallScreen ? 10 : 16),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
-                                decoration: BoxDecoration(
-                                  color:
-                                      AppColors.navyMid.withValues(alpha: 0.08),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Icon(
-                                  Icons.folder_open_rounded,
-                                  color: AppColors.navyMid,
-                                  size: isSmallScreen ? 16 : 18,
-                                ),
-                              ),
-                              SizedBox(width: isSmallScreen ? 8 : 12),
-                              Expanded(
-                                child: Text(
-                                  transCategory,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: isSmallScreen ? 12 : 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.navyDark,
-                                    height: 1.2,
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: isSmallScreen ? 4 : 8),
-                              Icon(
-                                Icons.keyboard_arrow_down_rounded,
-                                color:
-                                    AppColors.navyDark.withValues(alpha: 0.5),
-                                size: isSmallScreen ? 18 : 20,
-                              ),
-                            ],
-                          ),
-                        ),
-                        onSelected: (val) {
-                          setState(() {
-                            _pendingCategory = cat;
-                          });
-                          if (val == 'IO Wise') {
-                            Navigator.push(
-                              context,
-                              AppTheme.fadeSlideRoute(
-                                page: PendingIoWiseByCategoryScreen(
-                                    category: cat),
-                              ),
-                            );
-                          } else {
-                            setState(() {
-                              _pendingTimeRange = val;
-                            });
-                            Navigator.push(
-                              context,
-                              AppTheme.fadeSlideRoute(
-                                page: FilteredPendingScreen(
-                                  title: '$cat - $val',
-                                ),
-                              ),
-                            );
-                          }
-                        },
-                        itemBuilder: (BuildContext context) {
-                          final List<String> options = [
-                            ..._pendingHubTimeRanges
-                                .where((t) => t != 'Select time range'),
-                            'IO Wise',
-                          ];
-                          return options.map((String choice) {
-                            return PopupMenuItem<String>(
-                              value: choice,
-                              child: Text(
-                                TranslationHelper.translate(context, choice),
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            );
-                          }).toList();
-                        },
-                      ),
+            final data = snapshot.data ?? [];
+            final records = data.map((m) => ModuleRecord.fromMap(m)).toList();
+            final mappedRows =
+                pendingModuleRecordsToTableRows(records, DateTime.now());
+
+            final Map<String, int> categoryCounts = {};
+            for (final r in mappedRows) {
+              final head = r['head']?.trim().isNotEmpty == true
+                  ? r['head']!.trim()
+                  : 'Other';
+              categoryCounts[head] = (categoryCounts[head] ?? 0) + 1;
+            }
+
+            final categories = categoryCounts.keys.toList()..sort();
+
+            if (categories.isEmpty) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Text(
+                    TranslationHelper.translate(
+                        context, 'No pending categories found in database'),
+                    style: GoogleFonts.poppins(
+                      color: AppColors.lightSubText,
+                      fontSize: 13,
                     ),
                   ),
+                ),
+              );
+            }
+
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final bool isSmallScreen = constraints.maxWidth < 600;
+                final double gap = isSmallScreen ? 12 : 16;
+                final int columns = constraints.maxWidth > 1000
+                    ? 4
+                    : (constraints.maxWidth > 600 ? 3 : 2);
+                double itemWidth =
+                    (constraints.maxWidth - (gap * (columns - 1))) / columns;
+                if (itemWidth < 0) itemWidth = 0;
+
+                return Wrap(
+                  spacing: gap,
+                  runSpacing: gap,
+                  alignment: WrapAlignment.start,
+                  children: categories.map((cat) {
+                    final transCategory =
+                        TranslationHelper.translate(context, cat);
+                    final count = categoryCounts[cat] ?? 0;
+
+                    return SizedBox(
+                      width: itemWidth,
+                      height: 64,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                              color: Colors.grey.shade200, width: 1.5),
+                          boxShadow: [
+                            BoxShadow(
+                              color:
+                                  AppColors.navyDark.withValues(alpha: 0.04),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                          child: PopupMenuButton<String>(
+                            offset: const Offset(0, 68),
+                            tooltip: transCategory,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(
+                                  color: Colors.grey.shade200, width: 1),
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: isSmallScreen ? 10 : 16),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding:
+                                        EdgeInsets.all(isSmallScreen ? 6 : 8),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.navyMid
+                                          .withValues(alpha: 0.08),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Icon(
+                                      Icons.folder_open_rounded,
+                                      color: AppColors.navyMid,
+                                      size: isSmallScreen ? 16 : 18,
+                                    ),
+                                  ),
+                                  SizedBox(width: isSmallScreen ? 8 : 12),
+                                  Expanded(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          transCategory,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: GoogleFonts.poppins(
+                                            fontSize:
+                                                isSmallScreen ? 12 : 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.navyDark,
+                                            height: 1.2,
+                                          ),
+                                        ),
+                                        Text(
+                                          '$count ${count == 1 ? "case" : "cases"}',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w500,
+                                            color: AppColors.lightSubText,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(width: isSmallScreen ? 4 : 8),
+                                  Icon(
+                                    Icons.keyboard_arrow_down_rounded,
+                                    color: AppColors.navyDark
+                                        .withValues(alpha: 0.5),
+                                    size: isSmallScreen ? 18 : 20,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            onSelected: (val) {
+                              setState(() {
+                                _pendingCategory = cat;
+                              });
+                              if (val == 'IO Wise') {
+                                Navigator.push(
+                                  context,
+                                  AppTheme.fadeSlideRoute(
+                                    page: PendingIoWiseByCategoryScreen(
+                                        category: cat),
+                                  ),
+                                );
+                              } else {
+                                setState(() {
+                                  _pendingTimeRange = val;
+                                });
+                                String? startDate;
+                                String? endDate;
+                                final now = DateTime.now();
+                                if (val == 'More than 1 year') {
+                                  endDate = DateFormat('yyyy-MM-dd').format(
+                                      now.subtract(const Duration(days: 365)));
+                                } else if (val == '6 to 12 months') {
+                                  startDate = DateFormat('yyyy-MM-dd').format(
+                                      now.subtract(const Duration(days: 365)));
+                                  endDate = DateFormat('yyyy-MM-dd').format(
+                                      now.subtract(const Duration(days: 180)));
+                                } else if (val == '3 to 6 months') {
+                                  startDate = DateFormat('yyyy-MM-dd').format(
+                                      now.subtract(const Duration(days: 180)));
+                                  endDate = DateFormat('yyyy-MM-dd').format(
+                                      now.subtract(const Duration(days: 90)));
+                                } else if (val == 'Within 3 months') {
+                                  startDate = DateFormat('yyyy-MM-dd').format(
+                                      now.subtract(const Duration(days: 90)));
+                                  endDate = DateFormat('yyyy-MM-dd')
+                                      .format(now);
+                                } else if (val == '1 month') {
+                                  startDate = DateFormat('yyyy-MM-dd').format(
+                                      now.subtract(const Duration(days: 30)));
+                                  endDate = DateFormat('yyyy-MM-dd')
+                                      .format(now);
+                                }
+                                Navigator.push(
+                                  context,
+                                  AppTheme.fadeSlideRoute(
+                                    page: FilteredPendingScreen(
+                                      title: '$cat - $val',
+                                      category: cat,
+                                      startDate: startDate,
+                                      endDate: endDate,
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                            itemBuilder: (BuildContext context) {
+                              final List<String> options = [
+                                ..._pendingHubTimeRanges
+                                    .where((t) => t != 'Select time range'),
+                                'IO Wise',
+                              ];
+                              return options.map((String choice) {
+                                return PopupMenuItem<String>(
+                                  value: choice,
+                                  child: Text(
+                                    TranslationHelper.translate(
+                                        context, choice),
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                );
+                              }).toList();
+                            },
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 );
-              }).toList(),
+              },
             );
           },
         ),

@@ -271,12 +271,23 @@ class PendingCasesView(APIView):
             # Apply ?io filter
             io_name = request.query_params.get('io')
             if io_name:
-                queryset = queryset.filter(assigned_officer=io_name)
+                from django.db.models import Q
+                queryset = queryset.filter(
+                    Q(assigned_officer__iexact=io_name) | Q(assigned_officer_uid__iexact=io_name)
+                )
 
-            # Apply ?head filter (category)
-            head = request.query_params.get('head')
-            if head:
-                queryset = queryset.filter(head__iexact=head)
+            # Apply ?category / ?head filter
+            category = request.query_params.get('category') or request.query_params.get('head')
+            if category:
+                from django.db.models import Q
+                norm_cat = category.replace('_', ' ').strip()
+                queryset = queryset.filter(
+                    Q(module_key__iexact=category) |
+                    Q(sub_category__iexact=category) |
+                    Q(sub_category__iexact=norm_cat) |
+                    Q(category_links__category__category_name__iexact=norm_cat) |
+                    Q(category_links__category__category_code__iexact=category)
+                ).distinct()
 
             # Apply time range filter (start_date, end_date)
             start_date = request.query_params.get('start_date')
@@ -1043,6 +1054,27 @@ class DetectedCasesView(APIView):
             if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
                 stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                 queryset = queryset.filter(station_name__in=stations)
+
+            # Apply ?io filter
+            io_name = request.query_params.get('io')
+            if io_name:
+                from django.db.models import Q
+                queryset = queryset.filter(
+                    Q(assigned_officer__iexact=io_name) | Q(assigned_officer_uid__iexact=io_name)
+                )
+
+            # Apply ?category / ?head filter
+            category = request.query_params.get('category') or request.query_params.get('head')
+            if category:
+                from django.db.models import Q
+                norm_cat = category.replace('_', ' ').strip()
+                queryset = queryset.filter(
+                    Q(module_key__iexact=category) |
+                    Q(sub_category__iexact=category) |
+                    Q(sub_category__iexact=norm_cat) |
+                    Q(category_links__category__category_name__iexact=norm_cat) |
+                    Q(category_links__category__category_code__iexact=category)
+                ).distinct()
 
             # Optional time range filter
             start_date = request.query_params.get('start_date')

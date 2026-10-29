@@ -11,6 +11,7 @@ import '../services/api_config.dart';
 import '../services/api_service.dart';
 import '../services/backend_case_service.dart';
 import '../theme/app_theme.dart';
+import 'add_warrant_case_dialog.dart';
 
 /// Summons & Warrant dynamic report table widget.
 /// Fetches all data dynamically from backend database (/cases/summons-warrant/).
@@ -224,11 +225,16 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
       final grandTotal =
           _reportData!['grand_total'] as Map<String, dynamic>? ?? {};
 
-      final titleEn = meta['report_title_en'] ?? 'SUMMONS & WARRANT REPORT';
-      final titleMr = meta['report_title_mr'] ?? 'समंस / वॉरंट अहवाल';
       final month = meta['month'] ?? widget.selectedMonth;
       final year = meta['year'] ?? widget.selectedYear;
       final station = meta['station_name'] ?? 'ALL';
+      const months = [
+        'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
+        'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'
+      ];
+      final monthName = (month >= 1 && month <= 12) ? months[month - 1] : '';
+      final defaultTitle = 'SUMMONS & WARRANT MONTHLY REPORT $monthName $year'.trim();
+      final title = meta['report_title_en'] ?? defaultTitle;
 
       doc.addPage(
         pw.MultiPage(
@@ -238,7 +244,7 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
             return [
               pw.Center(
                 child: pw.Text(
-                  '$titleEn ($titleMr)',
+                  title,
                   style: pw.TextStyle(
                     fontSize: 14,
                     fontWeight: pw.FontWeight.bold,
@@ -431,10 +437,15 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
 
   Widget _buildHeader() {
     final meta = _reportData?['metadata'] as Map<String, dynamic>? ?? {};
-    final titleEn = meta['report_title_en'] ?? 'Summons / Warrant Report';
-    final titleMr = meta['report_title_mr'] ?? 'समंस / वॉरंट अहवाल';
     final month = meta['month'] ?? widget.selectedMonth;
     final year = meta['year'] ?? widget.selectedYear;
+    const months = [
+      'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
+      'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'
+    ];
+    final monthName = (month >= 1 && month <= 12) ? months[month - 1] : '';
+    final defaultTitle = 'SUMMONS & WARRANT MONTHLY REPORT $monthName $year'.trim();
+    final title = meta['report_title_en'] ?? defaultTitle;
     final totalAnalyzed = meta['total_warrant_records_analyzed'] ?? 0;
     final stName = meta['station_name'] ?? 'ALL';
 
@@ -448,7 +459,7 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '$titleEn ($titleMr)',
+              title,
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -469,6 +480,36 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            ElevatedButton.icon(
+              onPressed: () async {
+                final added = await AddWarrantCaseDialog.show(
+                  context,
+                  initialYear: widget.selectedYear,
+                  initialMonth: widget.selectedMonth,
+                );
+                if (added == true) {
+                  _fetchReport();
+                }
+              },
+              icon: const Icon(Icons.add_rounded, size: 15, color: Colors.white),
+              label: Text(
+                'Add Case',
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.navyMid,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
             OutlinedButton.icon(
               onPressed: _openAllAnalyzedCases,
               icon: const Icon(Icons.folder_shared_rounded,

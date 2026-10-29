@@ -470,12 +470,13 @@ class SummonsWarrantReportService:
                 grand_total_summary['case_ids'][k].extend(s_sum['case_ids'][k])
         _finalize_stats(grand_total_summary)
 
+        month_name = calendar.month_name[month].upper()
         return {
             'metadata': {
-                'report_title_en': 'SUMMONS & WARRANT MONTHLY REPORT',
+                'report_title_en': f'SUMMONS & WARRANT MONTHLY REPORT {month_name} {year}',
                 'report_title_mr': f'समंस वारंट माहीती माहे {month} सन {year}',
                 'month': month,
-                'month_name': calendar.month_name[month].upper(),
+                'month_name': month_name,
                 'year': year,
                 'station_name': self.station_name or 'ALL',
                 'district_name': self.district_name or 'ALL',

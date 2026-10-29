@@ -5605,7 +5605,7 @@ class _CalendarTabState extends State<_CalendarTab> {
         "November",
         "December"
       ][_selectedMonth - 1]} $_selectedYear';
-      reportTitle = 'SUMMONS & WARRANT REPORT';
+      reportTitle = 'SUMMONS & WARRANT MONTHLY REPORT';
     } else if (area == _CalendarTabArea.yearly) {
       filtered =
           allRecords.where((r) => r.incidentDate.year == now.year).toList();
