@@ -1732,7 +1732,8 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
         final success =
             await CaseService().saveCase(enriched, isCreate: !_isEdit);
         if (!success) {
-          throw Exception('Backend failed to save case record.');
+          throw Exception(CaseService().lastSaveError ??
+              'Backend failed to save case record.');
         }
       }
 
@@ -1757,7 +1758,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Failed to save record: $e',
+            'Failed to save record: ${e.toString().replaceFirst('Exception: ', '')}',
             style: GoogleFonts.poppins(),
           ),
           backgroundColor: AppColors.dangerRed,

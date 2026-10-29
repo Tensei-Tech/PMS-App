@@ -488,6 +488,14 @@ class ApiService {
         message = bodyData['error'].toString();
       } else if (bodyData is Map && bodyData.containsKey('message')) {
         message = bodyData['message'].toString();
+      } else if (bodyData is Map && bodyData.isNotEmpty) {
+        // Field errors, e.g. {"case_number": ["CR number 12 is already used
+        // in Murder. ..."]}: show the first message.
+        final first = bodyData['non_field_errors'] ?? bodyData.values.first;
+        final text = first is List && first.isNotEmpty ? first.first : first;
+        if (text != null && text.toString().trim().isNotEmpty) {
+          message = text.toString();
+        }
       } else if (bodyData is String && bodyData.isNotEmpty) {
         final trimmed = bodyData.trim();
         if (trimmed.startsWith('<') || trimmed.length > 250) {
