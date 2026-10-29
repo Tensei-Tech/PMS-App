@@ -13,6 +13,8 @@ import '../screens/rti/rti_hub_screen.dart';
 import '../services/ad_service.dart';
 import '../screens/juvenile_hub_screen.dart';
 import '../screens/itsso_hub_screen.dart';
+import '../screens/dar_hub_screen.dart';
+import '../screens/irad_hub_screen.dart';
 import '../modules/passport/screens/passport_hub_screen.dart';
 import '../modules/licence/screens/licence_hub_screen.dart';
 import '../services/case_service.dart';
@@ -349,6 +351,27 @@ class CategoryNavigationHelper {
         context,
         AppTheme.fadeSlideRoute(
           page: const ItssoHubScreen(stationName: 'All Stations'),
+        ),
+      );
+      return;
+    }
+    if (cleanName.toUpperCase() == 'DAR' || moduleKey.toLowerCase() == 'dar') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const DarHubScreen(stationName: 'All Stations'),
+        ),
+      );
+      return;
+    }
+    if (cleanName.toUpperCase() == 'IRAD' ||
+        cleanName.toUpperCase() == 'IRDA' ||
+        moduleKey.toLowerCase() == 'irad' ||
+        moduleKey.toLowerCase() == 'irda') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const IradHubScreen(stationName: 'All Stations'),
         ),
       );
       return;

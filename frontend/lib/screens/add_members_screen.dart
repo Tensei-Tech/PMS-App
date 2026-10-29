@@ -328,78 +328,7 @@ class _AssignOfficerScreenState extends State<AssignOfficerScreen> {
 
   String _selectedRankFilter = 'All';
 
-  static final List<UserModel> _dummyAvailableOfficers = [
-    UserModel(
-      uid: 'dummy_user_1',
-      name: 'API Rohit Deshmukh',
-      email: 'rohit.deshmukh@mahapolice.gov.in',
-      phone: '9822014589',
-      designation: 'API',
-      badgeNumber: 'MH-7821',
-      stationName: '',
-      stationAddress: 'Awaiting Station Posting',
-      stationLandline: '0712-2560100',
-      govtId: 'MH-POL-7821',
-      accountStatus: 'active',
-      role: 'officer',
-    ),
-    UserModel(
-      uid: 'dummy_user_2',
-      name: 'PSI Vikram Patil',
-      email: 'vikram.patil@mahapolice.gov.in',
-      phone: '9822031145',
-      designation: 'PSI',
-      badgeNumber: 'MH-4412',
-      stationName: '',
-      stationAddress: 'Awaiting Station Posting',
-      stationLandline: '0712-2560101',
-      govtId: 'MH-POL-4412',
-      accountStatus: 'active',
-      role: 'officer',
-    ),
-    UserModel(
-      uid: 'dummy_user_3',
-      name: 'ASI Anjali Kulkarni',
-      email: 'anjali.kulkarni@mahapolice.gov.in',
-      phone: '9822098451',
-      designation: 'ASI',
-      badgeNumber: 'MH-3382',
-      stationName: '',
-      stationAddress: 'Awaiting Station Posting',
-      stationLandline: '0712-2560102',
-      govtId: 'MH-POL-3382',
-      accountStatus: 'active',
-      role: 'officer',
-    ),
-    UserModel(
-      uid: 'dummy_user_4',
-      name: 'HC Sanjay Shinde',
-      email: 'sanjay.shinde@mahapolice.gov.in',
-      phone: '9822077612',
-      designation: 'HC',
-      badgeNumber: 'MH-9021',
-      stationName: '',
-      stationAddress: 'Awaiting Station Posting',
-      stationLandline: '0712-2560103',
-      govtId: 'MH-POL-9021',
-      accountStatus: 'active',
-      role: 'officer',
-    ),
-    UserModel(
-      uid: 'dummy_user_5',
-      name: 'PC Mahesh Pawar',
-      email: 'mahesh.pawar@mahapolice.gov.in',
-      phone: '9822045633',
-      designation: 'PC',
-      badgeNumber: 'MH-1109',
-      stationName: '',
-      stationAddress: 'Awaiting Station Posting',
-      stationLandline: '0712-2560104',
-      govtId: 'MH-POL-1109',
-      accountStatus: 'active',
-      role: 'officer',
-    ),
-  ];
+  static final List<UserModel> _dummyAvailableOfficers = [];
 
   @override
   Widget build(BuildContext context) {
@@ -595,16 +524,32 @@ class _AssignOfficerScreenState extends State<AssignOfficerScreen> {
                     const SizedBox(height: 14),
 
                     // ── Available Officers List ────────────────────────────
-                    ...filteredList.map((officer) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _UserResultCard(
-                          user: officer,
-                          assigning: _assigning,
-                          onAssign: () => _onAssign(officer, auth),
+                    if (filteredList.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 24),
+                        child: Center(
+                          child: Text(
+                            'No unassigned officers currently awaiting posting.\nUse the search above to find by mobile or email.',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.poppins(
+                              color: AppColors.lightSubText,
+                              fontSize: 13,
+                              height: 1.4,
+                            ),
+                          ),
                         ),
-                      );
-                    }),
+                      )
+                    else
+                      ...filteredList.map((officer) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _UserResultCard(
+                            user: officer,
+                            assigning: _assigning,
+                            onAssign: () => _onAssign(officer, auth),
+                          ),
+                        );
+                      }),
                   ],
                 ],
               ),

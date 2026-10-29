@@ -262,6 +262,23 @@ def _has_arrest_date(extra: dict) -> bool:
     return False
 
 
+def get_license_passport_excluded_q():
+    """
+    Returns Q expression to match License and Passport verification records.
+    """
+    return (
+        Q(module_key__in=['license', 'licence', 'arms_license', 'arms_licence', 'passport', 'passport_pvr_lic']) |
+        Q(sub_category__icontains='license') |
+        Q(sub_category__icontains='licence') |
+        Q(sub_category__icontains='passport') |
+        Q(category_links__category__category_code__in=['STAND_LICENSE', 'STAND_LICENCE', 'STAND_PASSPORT']) |
+        Q(category_links__category__category_name__in=['License', 'Licence', 'Passport/PVR/Lic', 'Arms License']) |
+        Q(title__icontains='passport') |
+        Q(title__icontains='license') |
+        Q(title__icontains='licence')
+    )
+
+
 def get_absconded_cases():
     """
     Returns absconded cases. 
@@ -269,6 +286,7 @@ def get_absconded_cases():
     Accused must be identified (not unknown/empty).
     Cases with CC ST Number are included (and will appear under Disposal as well).
     Cases without CC ST Number are included (and will appear under Pending as well).
+    License and Passport cases are excluded.
     """
     from apps.core.tenancy import get_active_tenant_schema, set_tenant_schema
     
@@ -285,7 +303,7 @@ def get_absconded_cases():
         ~Q(accused__iexact='unidentified')
     )
     
-    queryset = CaseRecord.objects.filter(detected_q)
+    queryset = CaseRecord.objects.filter(detected_q).exclude(get_license_passport_excluded_q())
     
     # Check arrest date: if arrested date is null/missing -> absconded
     absconded_ids = []
@@ -297,7 +315,7 @@ def get_absconded_cases():
     if schema and schema != 'public':
         set_tenant_schema(schema)
     
-    return CaseRecord.objects.filter(id__in=absconded_ids)
+    return CaseRecord.objects.filter(id__in=absconded_ids).exclude(get_license_passport_excluded_q())
 
 def get_victim_cases():
     """
@@ -330,3 +348,90 @@ def get_victim_cases():
         set_tenant_schema(schema)
         
     return queryset
+
+
+def get_undetected_excluded_crime_types_q():
+    """
+    Returns a Q query matching crime types that must NOT be displayed in the Undetected tab:
+    - DAR (Detailed Accident Report)
+    - Missing
+    - RTI
+    - Repeat Offender (History Sheeter)
+    - Tadipar (Externment)
+    - Victim
+    - License / Licence / Passport / Arms License
+    """
+    return (
+        # DAR
+        Q(module_key__iexact='dar') |
+        Q(sub_category__iexact='dar') |
+        Q(sub_category__icontains='detailed accident') |
+        Q(title__istartswith='dar ') |
+        Q(title__iexact='dar') |
+        # Missing
+        Q(module_key__iexact='missing') |
+        Q(sub_category__iexact='missing') |
+        Q(category_links__category__category_code__in=['STAND_MISSING', '124']) |
+        Q(category_links__category__category_name__iexact='Missing') |
+        # RTI
+        Q(module_key__iexact='rti') |
+        Q(sub_category__iexact='rti') |
+        Q(category_links__category__category_code__iexact='STAND_RTI') |
+        Q(category_links__category__category_name__iexact='RTI') |
+        Q(title__istartswith='rti ') |
+        Q(title__iexact='rti') |
+        # Repeat Offender / History Sheeter
+        Q(module_key__in=[
+            'repeat_offender', 'repeat-offender', 'repeat offender',
+            'history_sheeter', 'history-sheeter', 'history sheeter'
+        ]) |
+        Q(sub_category__iexact='repeat offender') |
+        Q(sub_category__iexact='repeat_offender') |
+        Q(sub_category__iexact='history sheeter') |
+        Q(sub_category__iexact='history_sheeter') |
+        Q(category_links__category__category_code__in=['STAND_REPEAT_OFFENDER', 'STAND_HISTORY_SHEETER']) |
+        Q(category_links__category__category_name__in=['Repeat Offender', 'History Sheeter']) |
+        # Tadipar
+        Q(module_key__iexact='tadipar') |
+        Q(sub_category__iexact='tadipar') |
+        Q(sub_category__icontains='externment') |
+        Q(category_links__category__category_code__in=['STAND_TADIPAR', 'tadipar']) |
+        Q(category_links__category__category_name__iexact='Tadipar') |
+        # Victim
+        Q(module_key__iexact='victim') |
+        Q(sub_category__iexact='victim') |
+        Q(category_links__category__category_code__iexact='STAND_VICTIM') |
+        Q(category_links__category__category_name__iexact='Victim') |
+        # License / Licence / Passport
+        Q(module_key__in=['license', 'licence', 'arms_license', 'arms_licence', 'passport', 'passport_pvr_lic']) |
+        Q(sub_category__icontains='license') |
+        Q(sub_category__icontains='licence') |
+        Q(sub_category__icontains='passport') |
+        Q(category_links__category__category_code__in=['STAND_LICENSE', 'STAND_LICENCE', 'STAND_PASSPORT']) |
+        Q(category_links__category__category_name__in=['License', 'Licence', 'Passport/PVR/Lic', 'Arms License'])
+    )
+
+
+def get_undetected_base_queryset(queryset=None):
+    """
+    Returns base queryset for Undetected cases:
+    - accused is null, empty, or unknown/unidentified
+    - excludes disposed/closed/resolved cases
+    - excludes DAR, missing, RTI, repeat offender, tadipar, victim, license
+    """
+    if queryset is None:
+        queryset = CaseRecord.objects.all()
+
+    undetected_q = (
+        Q(accused__isnull=True) |
+        Q(accused__exact='') |
+        Q(accused__iexact='unknown') |
+        Q(accused__iexact='अज्ञात') |
+        Q(accused__iexact='unidentified')
+    )
+    return queryset.filter(undetected_q).exclude(
+        status__in=['Disposal', 'Disposed', 'Closed', 'Resolved']
+    ).exclude(
+        get_undetected_excluded_crime_types_q()
+    ).distinct()
+

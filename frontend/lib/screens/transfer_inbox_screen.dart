@@ -14,26 +14,8 @@ class TransferInboxScreen extends StatefulWidget {
 }
 
 class _TransferInboxScreenState extends State<TransferInboxScreen> {
-  // Mock data for the inbox
-  final List<Map<String, String>> _mockInbox = [
-    {
-      'caseNumber': 'FIR 0042/2026',
-      'title': 'Vehicle Theft',
-      'fromStation': 'Dadar Police Station',
-      'transferredBy': 'PI Ramesh Singh',
-      'date': '2026-09-12',
-      'remark':
-          'Jurisdiction transfer as incident occurred near Bandra border.',
-    },
-    {
-      'caseNumber': 'NC 1102/2026',
-      'title': 'Public Disturbance',
-      'fromStation': 'Colaba Police Station',
-      'transferredBy': 'API Sanjay Gupta',
-      'date': '2026-09-11',
-      'remark': 'Suspects relocated to Bandra area, transferring file.',
-    }
-  ];
+  // Live transfer inbox cases (empty until cases transferred)
+  final List<Map<String, String>> _mockInbox = [];
 
   void _openAssignDialog(Map<String, String> caseItem) async {
     final assigned = await AssignOfficerDialog.show(
