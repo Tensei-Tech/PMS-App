@@ -13,11 +13,15 @@ class CaseReportPdfHelper {
   CaseReportPdfHelper._();
 
   static String _tabName(ModuleRecord record) =>
-      record.subCategory?.isNotEmpty == true ? record.subCategory! : record.title;
+      record.subCategory?.isNotEmpty == true
+          ? record.subCategory!
+          : record.title;
 
   static String _docTitle(ModuleRecord record) {
     final cr = record.caseNumber.trim();
-    return [_tabName(record), cr].where((x) => x.isNotEmpty && x != '-').join(' - ');
+    return [_tabName(record), cr]
+        .where((x) => x.isNotEmpty && x != '-')
+        .join(' - ');
   }
 
   static void _fail(BuildContext context, String message) {
@@ -37,7 +41,8 @@ class CaseReportPdfHelper {
         pdfBytes: bytes, moduleName: _tabName(record));
   }
 
-  static Future<void> download(BuildContext context, ModuleRecord record) async {
+  static Future<void> download(
+      BuildContext context, ModuleRecord record) async {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
           content: Text('Generating case PDF report...'),

@@ -1914,7 +1914,8 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                                   : record.title,
                               existingRecord: record,
                             ),
-                            onView: () => CaseReportPdfHelper.view(context, record),
+                            onView: () =>
+                                CaseReportPdfHelper.view(context, record),
                           );
                         },
                       ),
@@ -2915,7 +2916,8 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                                 label: 'PDF',
                                 onTap: () => runWithPdfAuthGate(
                                   context,
-                                  () => CaseReportPdfHelper.download(context, record),
+                                  () => CaseReportPdfHelper.download(
+                                      context, record),
                                 ),
                               ),
                             ],
