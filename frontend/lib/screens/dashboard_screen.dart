@@ -354,8 +354,6 @@ String? _getDashboardSvgPath(String label) {
       return 'assets/icons/cctns.svg';
     case 'licence':
       return 'assets/icons/licence.svg';
-    case 'tadipar':
-      return 'assets/icons/tadipar.svg';
     case 'repeatoffender':
       return 'assets/icons/repeatoffender.svg';
     case 'dar':
