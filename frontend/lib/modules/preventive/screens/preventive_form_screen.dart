@@ -16,6 +16,7 @@ import '../widgets/preventive_form.dart';
 const String kPreventiveFormExtraFieldsKey = 'preventiveForm';
 
 class PreventiveFormScreen extends StatefulWidget {
+  final dynamic categoryId;
   final String moduleLabel;
   final String? subCategory;
   final ModuleRecord? existingRecord;
@@ -23,6 +24,7 @@ class PreventiveFormScreen extends StatefulWidget {
 
   const PreventiveFormScreen({
     super.key,
+    this.categoryId,
     required this.moduleLabel,
     this.subCategory,
     this.existingRecord,
@@ -180,7 +182,19 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
                     ? auth.homeStationName
                     : provider.stationId.isNotEmpty
                         ? provider.stationId
-                        : 'Default Station';
+                        : '';
+
+    if (stationName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'No valid police station assigned to the current user or session. Please select or switch to a police station before saving.',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     final createdBy = _isEdit && widget.existingRecord!.createdBy.isNotEmpty
         ? widget.existingRecord!.createdBy
@@ -228,7 +242,9 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
       caseNumber: crimeNo.isNotEmpty ? crimeNo : preventiveNo,
       description:
           'Preventive / Istegasha: ${docMap['preventiveNo'] ?? '—'} | Category: ${docMap['caseRef']?['crimeCategory'] ?? '—'} | Action: ${docMap['actionStatus'] ?? '—'}',
-      complainant: docMap['caseRef']?['crimeCategory']?.toString() ?? 'State',
+      complainant: (docMap['caseRef']?['crimeCategory']?.toString().isNotEmpty ?? false)
+          ? docMap['caseRef']!['crimeCategory']!.toString()
+          : (auth.displayName.isNotEmpty ? auth.displayName : ''),
       accused: accusedNames,
       location: docMap['assignedOfficer']?.toString() ?? '',
       incidentDate:
@@ -322,6 +338,7 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
       ),
       body: PreventiveForm(
         key: _formKey,
+        categoryId: widget.categoryId ?? widget.subCategory ?? 'Preventive',
         onSave: _submit,
         onExportPdf: _downloadPdf,
         readOnly: widget.readOnly,

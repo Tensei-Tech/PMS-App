@@ -134,9 +134,16 @@ def get_category_counters(category_id: int, station_name: Optional[str] = None) 
         from django.db.models.fields.json import KeyTextTransform
         
         descendant_ids = get_descendant_category_ids(category_id)
-        queryset = CaseRecord.objects.filter(
-            category_links__category_id__in=descendant_ids
-        )
+        from apps.crimetab.models.groupings import CaseCategory
+        cat = CaseCategory.objects.filter(category_id=category_id).first()
+        is_prev = cat and (cat.category_code == 'STAND_PREVENTIVE' or (cat.category_name and cat.category_name.strip().lower() == 'preventive'))
+        if is_prev:
+            from apps.cases.group_filters import preventive_case_q
+            queryset = CaseRecord.objects.filter(preventive_case_q()).distinct()
+        else:
+            queryset = CaseRecord.objects.filter(
+                category_links__category_id__in=descendant_ids
+            )
         if station_name:
             queryset = queryset.filter(station_name=station_name)
 

@@ -156,7 +156,7 @@ class MuddemalPropertyItem {
     this.recoveryDate,
     required this.propertyStatus,
     required this.fslRequired,
-    this.currentCustodyLocation = 'Muddemal Room (मालखाना)',
+    this.currentCustodyLocation = '',
     this.fslStatus = 'Not Required',
     this.disposalStatus = 'In Custody',
     required this.remarks,
@@ -271,8 +271,7 @@ class MuddemalPropertyItem {
       recoveryDate: json['recovery_date']?.toString(),
       propertyStatus: json['property_status']?.toString() ?? 'Seized',
       fslRequired: json['fsl_required'] == true,
-      currentCustodyLocation: json['current_custody_location']?.toString() ??
-          'Muddemal Room (मालखाना)',
+      currentCustodyLocation: json['current_custody_location']?.toString() ?? '',
       fslStatus: json['fsl_status']?.toString() ??
           (json['fsl_required'] == true ? 'Pending' : 'Not Required'),
       disposalStatus: json['disposal_status']?.toString() ?? 'In Custody',
@@ -549,6 +548,93 @@ class DiscoveredSourceProperty {
       linkedPropertyUid: json['linked_property_uid']?.toString(),
       linkedPropertyId: json['linked_property_id'] as int?,
       rawSource: json['raw_source']?.toString() ?? '',
+    );
+  }
+}
+
+class MuddemalDashboardTab {
+  final String key;
+  final String label;
+  final String badgeColor;
+  final int displayOrder;
+  final List<String> applicableStatuses;
+
+  const MuddemalDashboardTab({
+    required this.key,
+    required this.label,
+    required this.badgeColor,
+    required this.displayOrder,
+    this.applicableStatuses = const [],
+  });
+
+  factory MuddemalDashboardTab.fromJson(Map<String, dynamic> json) {
+    return MuddemalDashboardTab(
+      key: json['key']?.toString() ?? '',
+      label: json['label']?.toString() ?? '',
+      badgeColor: json['badge_color']?.toString() ?? '#2563EB',
+      displayOrder: json['display_order'] as int? ?? 0,
+      applicableStatuses: (json['applicable_statuses'] is List)
+          ? (json['applicable_statuses'] as List)
+              .map((e) => e.toString())
+              .toList()
+          : const [],
+    );
+  }
+}
+
+class MuddemalDisposalAuthority {
+  final String code;
+  final String label;
+  final int displayOrder;
+
+  const MuddemalDisposalAuthority({
+    required this.code,
+    required this.label,
+    required this.displayOrder,
+  });
+
+  factory MuddemalDisposalAuthority.fromJson(Map<String, dynamic> json) {
+    return MuddemalDisposalAuthority(
+      code: json['code']?.toString() ?? '',
+      label: json['label']?.toString() ?? '',
+      displayOrder: json['display_order'] as int? ?? 0,
+    );
+  }
+}
+
+class MuddemalFslReportStatus {
+  final String code;
+  final String label;
+  final String color;
+
+  const MuddemalFslReportStatus({
+    required this.code,
+    required this.label,
+    required this.color,
+  });
+
+  factory MuddemalFslReportStatus.fromJson(Map<String, dynamic> json) {
+    return MuddemalFslReportStatus(
+      code: json['code']?.toString() ?? '',
+      label: json['label']?.toString() ?? '',
+      color: json['color']?.toString() ?? '#6B7280',
+    );
+  }
+}
+
+class MuddemalFslRegionalLab {
+  final String code;
+  final String name;
+
+  const MuddemalFslRegionalLab({
+    required this.code,
+    required this.name,
+  });
+
+  factory MuddemalFslRegionalLab.fromJson(Map<String, dynamic> json) {
+    return MuddemalFslRegionalLab(
+      code: json['code']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
     );
   }
 }

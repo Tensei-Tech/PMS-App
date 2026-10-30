@@ -96,6 +96,7 @@ import '../widgets/form_iv_category_button.dart';
 import '../widgets/searchable_picker_field.dart';
 import '../widgets/send_broadcast_alert_dialog.dart';
 import '../utils/app_data_cache.dart';
+import '../utils/category_icon_helper.dart';
 import '../utils/category_navigation_helper.dart';
 import '../services/case_service.dart';
 import '../widgets/send_reminder_dialog.dart';
@@ -160,8 +161,6 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
       return FontAwesomeIcons.link;
     case 'A.D':
       return FontAwesomeIcons.triangleExclamation;
-    case 'ST Drugs':
-      return FontAwesomeIcons.capsules;
     case 'Hurt':
       return FontAwesomeIcons.userInjured;
     case 'Theft':
@@ -224,8 +223,6 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
       return FontAwesomeIcons.coins;
     case 'Licence':
       return Icons.assignment_ind_rounded;
-    case 'Tadipar':
-      return Icons.gavel_rounded;
     case 'History Sheeter':
     case 'History Sheet':
       return Icons.assignment_rounded;
@@ -515,13 +512,7 @@ Widget _buildGridIcon(
       height: size * 1.5,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
-  } else if (labelTrim == 'Tadipar') {
-    return SvgPicture.asset(
-      'assets/icons/tadipar.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
+
   } else if (labelTrim == 'Repeat Offender') {
     return SvgPicture.asset(
       'assets/icons/repeatoffender.svg',
@@ -552,7 +543,24 @@ Widget _buildGridIcon(
     );
   }
   for (final tool in ServiceData.dashboardTools) {
-    if (labelTrim == tool.label) {
+    if (labelTrim.toLowerCase() == tool.label.toLowerCase()) {
+      if (tool.assetPath != null && tool.assetPath!.isNotEmpty) {
+        if (tool.assetPath!.endsWith('.svg')) {
+          return SvgPicture.asset(
+            tool.assetPath!,
+            width: size * 1.5,
+            height: size * 1.5,
+            colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+          );
+        } else {
+          return Image.asset(
+            tool.assetPath!,
+            width: size * 1.5,
+            height: size * 1.5,
+            color: color,
+          );
+        }
+      }
       return _buildServiceIcon(labelTrim, tool.icon, color, size);
     }
   }
@@ -564,14 +572,29 @@ Widget _buildGridIcon(
 Widget _buildServiceIcon(
     String label, dynamic fallback, Color color, double size) {
   final labelTrim = label.replaceAll('\n', ' ').trim();
-  if (labelTrim == 'Tadipar') {
-    return SvgPicture.asset(
-      'assets/icons/tadipar.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Licence') {
+  for (final tool in ServiceData.dashboardTools) {
+    if (labelTrim.toLowerCase() == tool.label.toLowerCase()) {
+      if (tool.assetPath != null && tool.assetPath!.isNotEmpty) {
+        if (tool.assetPath!.endsWith('.svg')) {
+          return SvgPicture.asset(
+            tool.assetPath!,
+            width: size * 1.5,
+            height: size * 1.5,
+            colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+          );
+        } else {
+          return Image.asset(
+            tool.assetPath!,
+            width: size * 1.5,
+            height: size * 1.5,
+            color: color,
+          );
+        }
+      }
+      break;
+    }
+  }
+  if (labelTrim == 'Licence') {
     return SvgPicture.asset(
       'assets/icons/licence.svg',
       width: size * 1.5,
@@ -2544,6 +2567,7 @@ class _HomeTabState extends State<_HomeTab> {
   void initState() {
     super.initState();
     // DashboardScreen already refreshed stale caches for this user/station.
+    _loadDashboardTools();
     _loadBackendCategories();
     // MPDA detention end reminders of this station (bell badge + list)
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -2561,9 +2585,46 @@ class _HomeTabState extends State<_HomeTab> {
 
   /// Database tiles (MPDA, History Sheeter ...) come from this list, so a
   /// failed or dropped request is retried instead of leaving them out.
+  Future<void> _loadDashboardTools() async {
+    try {
+      final toolsData = await CaseService().fetchDashboardTools();
+      if (toolsData.isNotEmpty) {
+        final dynamicTools = toolsData
+            .map((t) => ServiceData.fromJson(t))
+            .where((t) => t.isActive)
+            .toList();
+        if (dynamicTools.isNotEmpty) {
+          for (final tool in dynamicTools) {
+            if (tool.assetPath != null && tool.assetPath!.endsWith('.svg')) {
+              CategoryIconHelper.registerSvgPath(tool.label, tool.assetPath!);
+              if (tool.moduleKey != null) {
+                CategoryIconHelper.registerSvgPath(
+                    tool.moduleKey!, tool.assetPath!);
+              }
+              if (tool.categoryCode != null) {
+                CategoryIconHelper.registerSvgPath(
+                    tool.categoryCode!, tool.assetPath!);
+              }
+            }
+          }
+          if (mounted) {
+            setState(() {
+              ServiceData.dashboardTools = dynamicTools;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[_HomeTab] _loadDashboardTools error: $e');
+      }
+    }
+  }
+
   Future<void> _loadBackendCategories({int attempt = 1}) async {
     const maxAttempts = 4;
     try {
+      await _loadDashboardTools();
       final cats = await CaseService().fetchAllCategories();
       if (!mounted) return;
       if (cats.isNotEmpty) {
@@ -3968,7 +4029,13 @@ class _HomeTabState extends State<_HomeTab> {
       serviceSection,
       [
         for (final tool in ServiceData.dashboardTools)
-          Classification(tool.label, 'service_tool', 'service_tool'),
+          Classification(
+            tool.label,
+            tool.assetPath ?? 'service_tool',
+            tool.moduleKey ?? 'service_tool',
+            categoryCode: tool.categoryCode,
+            categoryId: tool.categoryId,
+          ),
       ],
     ];
     // Sections keep their order but flow on continuously, so no row is left
@@ -4142,12 +4209,13 @@ class _HomeTabState extends State<_HomeTab> {
           page: ELearningScreen(stationName: auth.stationName),
         ),
       );
-    } else if (item.moduleKey == 'service_tool') {
+    } else if (item.moduleKey == 'service_tool' ||
+        ServiceData.dashboardTools.any((t) =>
+            t.label.toLowerCase() == label.toLowerCase() ||
+            (t.moduleKey != null && t.moduleKey == item.moduleKey))) {
       final cleanLabel = label.trim().toLowerCase();
       if (cleanLabel == 'history sheeter' ||
-          cleanLabel == 'history sheet' ||
-          item.categoryCode != null ||
-          item.categoryId != null) {
+          cleanLabel == 'history sheet') {
         CategoryNavigationHelper.handleDashboardCategoryTap(
           context: context,
           categoryName: item.name,
@@ -4242,10 +4310,33 @@ class _HomeTabState extends State<_HomeTab> {
     final label = item.name.replaceAll('\n', ' ');
     ServiceData? matchedTool;
     for (final t in ServiceData.dashboardTools) {
-      if (t.label == label) {
+      if (t.label.toLowerCase() == label.toLowerCase() ||
+          (t.moduleKey != null && t.moduleKey == item.moduleKey)) {
         matchedTool = t;
         break;
       }
+    }
+
+    final itemColor = matchedTool != null
+        ? Color(matchedTool.color)
+        : AppColors.navyMid;
+
+    Widget iconWidget;
+    if (matchedTool?.assetPath != null &&
+        matchedTool!.assetPath!.endsWith('.svg')) {
+      iconWidget = SvgPicture.asset(
+        matchedTool.assetPath!,
+        width: 24,
+        height: 24,
+        colorFilter: ColorFilter.mode(itemColor, BlendMode.srcIn),
+      );
+    } else {
+      iconWidget = _buildGridIcon(
+        item.name,
+        matchedTool?.icon ?? _classIcon(item.iconName),
+        itemColor,
+        24,
+      );
     }
 
     return GestureDetector(
@@ -4260,11 +4351,7 @@ class _HomeTabState extends State<_HomeTab> {
                 border: Border.all(color: AppColors.lightBorder),
               ),
               child: Center(
-                child: _buildGridIcon(
-                    item.name,
-                    matchedTool?.icon ?? _classIcon(item.iconName),
-                    AppColors.navyMid,
-                    24),
+                child: iconWidget,
               ),
             ),
           ),
@@ -5805,7 +5892,11 @@ class _CalendarTabState extends State<_CalendarTab> {
     records.addAll(context.watch<UapaProvider>().records);
     records.addAll(context.watch<MpdaProvider>().records);
     records.addAll(context.watch<CoinProvider>().records);
-    return records;
+    final unique = <String, ModuleRecord>{};
+    for (final r in records) {
+      unique[r.id] = r;
+    }
+    return unique.values.toList();
   }
 
   @override

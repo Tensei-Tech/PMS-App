@@ -232,42 +232,20 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
   // TOP STATUS TABS ROW (Total Cases, Pending, Disposal)
   // ═════════════════════════════════════════════════════════════════════════════
   Widget _buildStatusTabs(MuddemalProvider provider) {
-    final totalCount = provider.properties.length;
-    final disposalCount = provider.properties.where((p) {
-      final s = p.propertyStatus.toLowerCase();
-      final d = p.disposalStatus.toLowerCase();
-      return s.contains('disposal') ||
-          s.contains('returned') ||
-          s.contains('released') ||
-          d.contains('disposed') ||
-          d.contains('returned') ||
-          d.contains('released');
-    }).length;
-    final pendingCount = totalCount - disposalCount;
-
-    final tabs = [
-      (
-        key: 'All',
-        label: 'Total Cases',
-        count: totalCount,
-        badgeBg: const Color(0xFFE8F1FC),
-        badgeFg: const Color(0xFF1976D2),
-      ),
-      (
-        key: 'Pending',
-        label: 'Pending',
-        count: pendingCount,
-        badgeBg: const Color(0xFFFFF3E0),
-        badgeFg: const Color(0xFFE65100),
-      ),
-      (
-        key: 'Disposal',
-        label: 'Disposal',
-        count: disposalCount,
-        badgeBg: const Color(0xFFE8F5E9),
-        badgeFg: const Color(0xFF2E7D32),
-      ),
-    ];
+    final tabs = provider.dashboardTabs.map((tab) {
+      final count = provider.properties
+          .where((p) => provider.propertyMatchesTab(tab.key, p))
+          .length;
+      final colorHex = tab.badgeColor.replaceAll('#', '');
+      final baseColor = Color(int.tryParse('0xFF$colorHex') ?? 0xFF1976D2);
+      return (
+        key: tab.key,
+        label: tab.label,
+        count: count,
+        badgeBg: baseColor.withValues(alpha: 0.12),
+        badgeFg: baseColor,
+      );
+    }).toList();
 
     return Container(
       decoration: const BoxDecoration(
@@ -457,27 +435,9 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
 
     // Filter properties client-side based on active filter dropdowns, tab & search
     final properties = provider.properties.where((p) {
-      // 1. Status Tab filter
-      if (_statusTab == 'Pending') {
-        final s = p.propertyStatus.toLowerCase();
-        final d = p.disposalStatus.toLowerCase();
-        final isDisposed = s.contains('disposal') ||
-            s.contains('returned') ||
-            s.contains('released') ||
-            d.contains('disposed') ||
-            d.contains('returned') ||
-            d.contains('released');
-        if (isDisposed) return false;
-      } else if (_statusTab == 'Disposal') {
-        final s = p.propertyStatus.toLowerCase();
-        final d = p.disposalStatus.toLowerCase();
-        final isDisposed = s.contains('disposal') ||
-            s.contains('returned') ||
-            s.contains('released') ||
-            d.contains('disposed') ||
-            d.contains('returned') ||
-            d.contains('released');
-        if (!isDisposed) return false;
+      // 1. Dynamic database-configured Status Tab filter
+      if (!provider.propertyMatchesTab(_statusTab, p)) {
+        return false;
       }
 
       // 2. Search query filter
@@ -1348,12 +1308,8 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
   // DEDICATED HORIZONTAL CASE CARD (Matching Preventive Module Layout in Image 3)
   // ═════════════════════════════════════════════════════════════════════════════
   Widget _buildPropertyCaseCard(MuddemalPropertyItem p, int index) {
-    final isDisposal = p.propertyStatus.toLowerCase().contains('disposal') ||
-        p.propertyStatus.toLowerCase().contains('returned') ||
-        p.propertyStatus.toLowerCase().contains('released') ||
-        p.disposalStatus.toLowerCase().contains('disposed') ||
-        p.disposalStatus.toLowerCase().contains('returned') ||
-        p.disposalStatus.toLowerCase().contains('released');
+    final isDisposal = context.read<MuddemalProvider>().isDisposalStatus(p.propertyStatus) ||
+        context.read<MuddemalProvider>().isDisposalStatus(p.disposalStatus);
     final Color statusColor =
         isDisposal ? const Color(0xFF2E7D32) : const Color(0xFFD32F2F);
     final Color statusBg =
@@ -2306,8 +2262,12 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
                 ),
               ),
               DropdownButton<int>(
-                value: provider.selectedYear,
-                items: [2024, 2025, 2026]
+                value: provider.availableYears.contains(provider.selectedYear)
+                    ? provider.selectedYear
+                    : (provider.availableYears.isNotEmpty
+                        ? provider.availableYears.first
+                        : DateTime.now().year),
+                items: provider.availableYears
                     .map((y) =>
                         DropdownMenuItem(value: y, child: Text('Year $y')))
                     .toList(),

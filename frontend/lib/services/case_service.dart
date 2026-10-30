@@ -386,12 +386,43 @@ class CaseService {
   }
 
   List<Map<String, dynamic>>? _allCategoriesCache;
+  List<Map<String, dynamic>>? _dashboardToolsCache;
 
   /// Clear in-memory categories cache, including cached category children
-  /// (otherwise a different account on the same device could see them).
+  /// and dynamic dashboard tools cache.
   void clearCategoryCache() {
     _allCategoriesCache = null;
+    _dashboardToolsCache = null;
     _childrenCache.clear();
+  }
+
+  /// Prime or mock dashboard tools cache
+  void setDashboardToolsCache(List<Map<String, dynamic>> tools) {
+    _dashboardToolsCache = tools;
+  }
+
+  /// Fetch dynamic dashboard tools: GET /api/categories/dashboard-tools/
+  Future<List<Map<String, dynamic>>> fetchDashboardTools({
+    bool forceRefresh = false,
+  }) async {
+    if (!forceRefresh && _dashboardToolsCache != null) {
+      return _dashboardToolsCache!;
+    }
+    try {
+      final url = '${ApiConfig.baseUrl}/categories/dashboard-tools/';
+      final response = await _api.get(url);
+      if (response.isSuccess && response.data is List) {
+        _dashboardToolsCache = (response.data as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+        return _dashboardToolsCache!;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchDashboardTools exception: $e');
+      }
+    }
+    return _dashboardToolsCache ?? [];
   }
 
   @visibleForTesting

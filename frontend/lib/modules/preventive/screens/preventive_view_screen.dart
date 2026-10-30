@@ -150,15 +150,12 @@ class PreventiveViewDocumentView extends StatelessWidget {
       caseRef['crimeCategory'] ??
           prevMap['crimeCategory'] ??
           record.subCategory,
-      fallback: 'Theft',
     );
     final caseStatus = _val(
       caseRef['caseStatus'] ?? prevMap['caseStatus'] ?? record.status,
-      fallback: 'Under Investigation',
     );
 
-    final selectedAct =
-        _val(sections['act'] ?? prevMap['act'], fallback: 'BNS');
+    final selectedAct = _val(sections['act'] ?? prevMap['act']);
     final List<String> selectedSectionsList = [];
     if (sections['selectedSections'] is List) {
       selectedSectionsList.addAll(
@@ -196,13 +193,11 @@ class PreventiveViewDocumentView extends StatelessWidget {
 
     final riskFlag = _val(
       riskAndStatus['riskFlag'] ?? prevMap['riskFlag'] ?? record.priority,
-      fallback: '🚨 High Priority',
     );
     final actionStatus = _val(
       riskAndStatus['actionStatus'] ??
           prevMap['actionStatus'] ??
           prevMap['status'],
-      fallback: '🟢 Preventive Action Completed',
     );
     final remarks = _val(
         riskAndStatus['remarks'] ?? prevMap['remarks'] ?? record.description);

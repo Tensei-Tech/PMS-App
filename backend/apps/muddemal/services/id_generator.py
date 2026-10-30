@@ -1,7 +1,7 @@
 import re
 from datetime import datetime
 from django.db import transaction
-from apps.muddemal.models import MuddemalRegister, MuddemalProperty
+from apps.muddemal.models import MuddemalRegister, MuddemalProperty, MuddemalConfig, MuddemalFSLRecord
 
 
 def _clean_code(text: str, max_len: int = 10) -> str:
@@ -81,3 +81,41 @@ def generate_unique_property_uid(register: MuddemalRegister) -> tuple[str, int]:
         candidate = f"CR-{cr_part}/{reg_year}/P-{serial_no:02d}"
 
     return candidate, serial_no
+
+
+@transaction.atomic
+def generate_unique_fsl_reference(property_item: MuddemalProperty, lab_code: str = None) -> str:
+    """
+    Generates a unique, atomic FSL reference number based on backend database configuration.
+    Uses MuddemalConfig ('fsl_reference_format') to ensure format and regional lab settings
+    are fully database-driven without hardcoding.
+    """
+    cfg_row = MuddemalConfig.objects.filter(config_key='fsl_reference_format').first()
+    cfg = cfg_row.config_value if cfg_row and isinstance(cfg_row.config_value, dict) else {}
+
+    prefix = cfg.get('prefix', 'FSL')
+    default_lab = cfg.get('default_lab', 'PUNE')
+    selected_lab = _clean_code(lab_code or default_lab, max_len=12)
+    year = datetime.now().year
+
+    clean_prop_uid = re.sub(r'[^A-Za-z0-9]', '-', str(property_item.property_uid)).strip('-')
+    fmt = cfg.get('format', '{prefix}/{lab}/{year}/{prop_uid}')
+
+    try:
+        base_ref = fmt.format(
+            prefix=prefix,
+            lab=selected_lab,
+            year=year,
+            prop_uid=clean_prop_uid
+        )
+    except Exception:
+        base_ref = f"{prefix}/{selected_lab}/{year}/{clean_prop_uid}"
+
+    candidate = base_ref
+    seq = 1
+    # Concurrency safe check against MuddemalFSLRecord
+    while MuddemalFSLRecord.objects.select_for_update().filter(fsl_reference_no=candidate).exists():
+        seq += 1
+        candidate = f"{base_ref}-{seq:02d}"
+
+    return candidate

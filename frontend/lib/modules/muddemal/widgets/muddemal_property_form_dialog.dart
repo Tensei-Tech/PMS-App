@@ -31,13 +31,13 @@ class _MuddemalPropertyFormDialogState
   String? _selectedCategoryCode;
   final _descriptionCtrl = TextEditingController();
   final _quantityCtrl = TextEditingController(text: '1');
-  String _selectedUnit = 'Numbers';
+  String? _selectedUnit;
   final _unitValueCtrl = TextEditingController(text: '0');
   final _totalItemValueCtrl = TextEditingController(text: '0');
   final _ownerNameCtrl = TextEditingController();
   final _seizedFromCtrl = TextEditingController();
   final _seizureDateCtrl = TextEditingController();
-  String _selectedStatus = 'Seized';
+  String? _selectedStatus;
   bool _fslRequired = false;
   final _remarksCtrl = TextEditingController();
 
@@ -180,14 +180,14 @@ class _MuddemalPropertyFormDialogState
       if (matchedCategory != null) 'property_category': matchedCategory.id,
       'description': _descriptionCtrl.text.trim(),
       'quantity': double.tryParse(_quantityCtrl.text.trim()) ?? 1.0,
-      'unit': _selectedUnit,
+      'unit': _selectedUnit ?? (provider.measurementUnits.isNotEmpty ? provider.measurementUnits.first : ''),
       'unit_value': double.tryParse(_unitValueCtrl.text.trim()) ?? 0.0,
       'total_item_value':
           double.tryParse(_totalItemValueCtrl.text.trim()) ?? 0.0,
       'owner_name': _ownerNameCtrl.text.trim(),
       'seized_from': _seizedFromCtrl.text.trim(),
       'seizure_date': seizureDateVal.isEmpty ? null : seizureDateVal,
-      'property_status': _selectedStatus,
+      'property_status': _selectedStatus ?? (provider.propertyStatuses.isNotEmpty ? provider.propertyStatuses.first : ''),
       'fsl_required': _fslRequired,
       'remarks': _remarksCtrl.text.trim(),
       'extra_fields': extraFields,
@@ -443,9 +443,7 @@ class _MuddemalPropertyFormDialogState
                               child: DropdownButtonFormField<String>(
                                 value: units.contains(_selectedUnit)
                                     ? _selectedUnit
-                                    : (units.isNotEmpty
-                                        ? units.first
-                                        : 'Numbers'),
+                                    : (units.isNotEmpty ? units.first : null),
                                 decoration: _inputDecoration(
                                   label: 'Unit *',
                                   icon: Icons.straighten_rounded,
@@ -545,9 +543,7 @@ class _MuddemalPropertyFormDialogState
                               child: DropdownButtonFormField<String>(
                                 value: statuses.contains(_selectedStatus)
                                     ? _selectedStatus
-                                    : (statuses.isNotEmpty
-                                        ? statuses.first
-                                        : 'Seized'),
+                                    : (statuses.isNotEmpty ? statuses.first : null),
                                 decoration: _inputDecoration(
                                   label: 'Property Status *',
                                   icon: Icons.shield_rounded,

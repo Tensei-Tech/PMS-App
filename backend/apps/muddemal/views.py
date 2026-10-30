@@ -92,6 +92,22 @@ class MuddemalConfigView(MuddemalTenantMixin, APIView):
         for c in configs:
             config_dict[c.config_key] = c.config_value
 
+        # Dynamically compute available years from DB records + current year
+        years = set()
+        years.add(timezone.now().year)
+        try:
+            reg_years = MuddemalRegister.objects.exclude(registration_date__isnull=True).values_list('registration_date__year', flat=True).distinct()
+            for y in reg_years:
+                if y:
+                    years.add(int(y))
+            prop_years = MuddemalProperty.objects.exclude(created_at__isnull=True).values_list('created_at__year', flat=True).distinct()
+            for y in prop_years:
+                if y:
+                    years.add(int(y))
+        except Exception as e:
+            pass
+        config_dict['available_years'] = sorted(list(years), reverse=True)
+
         # Always inject connected source modules metadata
         from apps.muddemal.services.auto_fetch_service import get_connected_source_modules_metadata
         config_dict['source_modules'] = get_connected_source_modules_metadata()
@@ -705,6 +721,19 @@ class MuddemalPropertyViewSet(MuddemalTenantMixin, viewsets.ModelViewSet):
             'property_status': prop.property_status,
         }, status=status.HTTP_201_CREATED)
 
+    @action(detail=True, methods=['get'], url_path='next-fsl-reference')
+    def next_fsl_reference(self, request, pk=None):
+        """Returns dynamically generated FSL reference number for a property."""
+        prop = self.get_object()
+        lab_code = request.query_params.get('lab_code')
+        from apps.muddemal.services.id_generator import generate_unique_fsl_reference
+        ref_no = generate_unique_fsl_reference(prop, lab_code=lab_code)
+        return Response({
+            'success': True,
+            'fsl_reference_no': ref_no,
+            'lab_code': lab_code,
+        })
+
     @action(detail=True, methods=['post'], url_path='fsl')
     @transaction.atomic
     def record_fsl(self, request, pk=None):
@@ -729,10 +758,15 @@ class MuddemalPropertyViewSet(MuddemalTenantMixin, viewsets.ModelViewSet):
 
             action_name = 'FSL_REPORT_RECEIVED'
         else:
-            # Create new dispatch
+            # Create new dispatch - ensure backend generated unique reference
+            fsl_ref = (data.get('fsl_reference_no') or '').strip()
+            if not fsl_ref:
+                from apps.muddemal.services.id_generator import generate_unique_fsl_reference
+                fsl_ref = generate_unique_fsl_reference(prop, lab_code=data.get('lab_code'))
+
             fsl = MuddemalFSLRecord.objects.create(
                 property=prop,
-                fsl_reference_no=data.get('fsl_reference_no', f"FSL/{prop.property_uid}"),
+                fsl_reference_no=fsl_ref,
                 dispatch_date=data.get('dispatch_date') or timezone.now().date(),
                 dispatch_details=data.get('dispatch_details', ''),
                 report_received_status='Pending',

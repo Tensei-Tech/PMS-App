@@ -82,10 +82,9 @@ VALUES
     (NULL, 'N.C.', 'STAND_NC', 41, TRUE),
 
     -- =====================================================================
-    -- E. TABS UNDER 'PART 6' THAT ALSO HAVE A SEPARATE TAB (9 items)
+    -- E. TABS UNDER 'PART 6' THAT ALSO HAVE A SEPARATE TAB (8 items)
     --    (Inside Part 6 group, group_id = 2)
     -- =====================================================================
-    (2, 'ST Drugs', '601', 42, TRUE),
     (2, 'Prohibition', '602', 43, TRUE),
     (2, 'Gambling', '603', 44, TRUE),
     (2, 'POCSO', '604', 45, TRUE),
@@ -98,7 +97,6 @@ VALUES
     -- =====================================================================
     -- F. STANDALONE TWINS FOR PART 6 DUAL-PRESENCE ITEMS (group_id = NULL)
     -- =====================================================================
-    (NULL, 'ST Drugs', 'STAND_ST_DRUGS', 51, TRUE),
     (NULL, 'Prohibition', 'STAND_PROHIBITION', 52, TRUE),
     (NULL, 'Gambling', 'STAND_GAMBLING', 53, TRUE),
     (NULL, 'POCSO', 'STAND_POCSO', 54, TRUE),

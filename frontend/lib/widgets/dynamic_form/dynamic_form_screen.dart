@@ -340,9 +340,19 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
 
           // Initialize controllers and values for any new fields
           for (final f in def.fields) {
-            _controllers.putIfAbsent(f.fieldKey, () => TextEditingController());
+            final ctrl = _controllers.putIfAbsent(
+                f.fieldKey, () => TextEditingController());
             if (f.fieldType == 'checkbox') {
               _values.putIfAbsent(f.fieldKey, () => false);
+            }
+            if (!isEdit &&
+                f.defaultValue != null &&
+                f.defaultValue!.isNotEmpty) {
+              if (_values[f.fieldKey] == null ||
+                  _values[f.fieldKey].toString().isEmpty) {
+                _values[f.fieldKey] = f.defaultValue;
+                ctrl.text = f.defaultValue!;
+              }
             }
           }
         });
@@ -1247,8 +1257,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         _preventiveActionsList.add({
           'name': safeAccused,
           'action_type': prevType.toString(),
-          'action_date': prevDate?.toString() ??
-              DateFormat('dd/MM/yyyy').format(DateTime.now()),
+          'action_date': prevDate?.toString() ?? '',
           'outward_number': prevOutward?.toString() ?? '',
         });
       }
@@ -2178,9 +2187,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       final actDate = item['action_date']?.toString().trim() ?? '';
       final outward = item['outward_number']?.toString().trim() ?? '';
       if (actType.isNotEmpty) {
-        final effectiveDate = actDate.isNotEmpty
-            ? actDate
-            : DateFormat('dd/MM/yyyy').format(DateTime.now());
+        final effectiveDate = actDate.isNotEmpty ? actDate : '';
         prevActionsToSubmit.add({
           'name': name,
           'accusedName': name,
@@ -2215,9 +2222,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           _values['preventive_outward_no']?.toString().trim() ??
           '';
       if (prevType.isNotEmpty) {
-        final effectiveDate = prevDate.isNotEmpty
-            ? prevDate
-            : DateFormat('dd/MM/yyyy').format(DateTime.now());
+        final effectiveDate = prevDate.isNotEmpty ? prevDate : '';
         prevActionsToSubmit.add({
           'name': accused,
           'accusedName': accused,
@@ -2511,8 +2516,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       subCategory: widget.subCategory ?? widget.moduleLabel,
       createdAt: isEdit ? widget.existingRecord!.createdAt : DateTime.now(),
       extraFields: extraFields,
-      stationName:
-          auth.stationName.isNotEmpty ? auth.stationName : 'Default Station',
+      stationName: auth.stationName,
       createdBy: auth.uid,
       assignedOfficerUid: auth.uid,
     );
@@ -3027,7 +3031,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         final curDate = _controllers['preventive_action_date']?.text.trim() ??
             _values['preventive_action_date']?.toString().trim() ??
             '';
-        if (curDate.isEmpty) {
+        if (curDate.isEmpty && (_formDef?.defaults['date_default'] == 'current_date')) {
           final nowStr = DateFormat('dd/MM/yyyy').format(DateTime.now());
           _values['preventive_action_date'] = nowStr;
           _controllers
@@ -6512,7 +6516,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Preventive Action',
+                      _formDef?.sectionTitles['preventive_action'] ??
+                          _formDef?.preventiveConfig?['section_title'] ??
+                          'Preventive Action',
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -9999,12 +10005,8 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
       'accusedName': widget.personName,
       'action_type': _selectedSection!,
       'action': _selectedSection!,
-      'action_date': _dateCtrl.text.trim().isNotEmpty
-          ? _dateCtrl.text.trim()
-          : DateFormat('dd/MM/yyyy').format(DateTime.now()),
-      'actionDate': _dateCtrl.text.trim().isNotEmpty
-          ? _dateCtrl.text.trim()
-          : DateFormat('dd/MM/yyyy').format(DateTime.now()),
+      'action_date': _dateCtrl.text.trim(),
+      'actionDate': _dateCtrl.text.trim(),
       'outward_number': _outwardCtrl.text.trim(),
       'outwardNumber': _outwardCtrl.text.trim(),
       'preventive_number': _numberCtrl.text.trim(),
@@ -10038,9 +10040,6 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
     } else {
       setState(() {
         _selectedSection = newSection;
-        if (_dateCtrl.text.trim().isEmpty) {
-          _dateCtrl.text = DateFormat('dd/MM/yyyy').format(DateTime.now());
-        }
       });
       _notifySave();
     }

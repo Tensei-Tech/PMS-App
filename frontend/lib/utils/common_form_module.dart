@@ -46,6 +46,7 @@ const Set<String> _kCommonFormBaselineModules = {
   'mv_act',
   'm_v_act',
   'uapa',
+  'tadipar',
   'absconded',
   'arrested',
   'juvenile',
@@ -92,7 +93,6 @@ const Set<String> _kCommonFormBaselineCategoryNames = {
   'sec 156(3)/175(3)(bnss)',
   'sec 156(3)/175 (3)(bnss)',
   'coin',
-  'st drugs',
   'prohibition',
   'gambling',
   'pocso',
@@ -103,6 +103,7 @@ const Set<String> _kCommonFormBaselineCategoryNames = {
   'm.v act',
   'mv act',
   'uapa',
+  'tadipar',
 };
 
 /// Checks if a module/category is linked to "Common Form Baseline Template".

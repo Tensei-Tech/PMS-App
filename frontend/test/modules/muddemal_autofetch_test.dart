@@ -115,19 +115,23 @@ void main() {
     });
 
     test(
-        'MuddemalProvider metadata getters are 100% dynamic from backend configs',
+        'MuddemalProvider metadata getters are 100% dynamic without static fallbacks',
         () {
       final provider = MuddemalProvider();
 
-      // Verify that sourceModules getter parses backend JSON
+      // Verify that uninitialized provider returns empty lists without hardcoded fallbacks
       expect(provider.sourceModules, isEmpty);
       expect(provider.categories, isEmpty);
-
-      // Verify that propertyStatuses has defaults and can dynamically load backend definitions
-      expect(provider.propertyStatuses, contains('Seized'));
-      expect(provider.propertyStatuses, contains('Recovered'));
-      expect(provider.measurementUnits, contains('Numbers'));
-      expect(provider.measurementUnits, contains('Litres'));
+      expect(provider.propertyStatuses, isEmpty);
+      expect(provider.measurementUnits, isEmpty);
+      expect(provider.movementLocations, isEmpty);
+      expect(provider.movementTypes, isEmpty);
+      expect(provider.disposalTypes, isEmpty);
+      expect(provider.disposalAuthorities, isEmpty);
+      expect(provider.fslDispatchReasons, isEmpty);
+      expect(provider.fslReportStatuses, isEmpty);
+      expect(provider.availableYears, isNotEmpty);
+      expect(provider.dashboardTabs, isNotEmpty);
     });
   });
 }

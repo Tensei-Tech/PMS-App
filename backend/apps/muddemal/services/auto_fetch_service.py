@@ -13,6 +13,7 @@ from apps.muddemal.models import (
     MuddemalPropertyCategory,
     MuddemalPropertyMovement,
     MuddemalAuditLog,
+    MuddemalConfig,
 )
 from apps.muddemal.services.id_generator import (
     generate_unique_property_uid,
@@ -36,6 +37,17 @@ def resolve_source_module_info(case: CaseRecord) -> Tuple[str, str]:
     sub_raw = str(getattr(case, 'sub_category', '') or '').strip()
     extra = case.extra_fields if isinstance(case.extra_fields, dict) else {}
     crime_cat = str(extra.get('crimeCategory') or extra.get('category') or sub_raw).strip()
+
+    # Dynamic lookup against MuddemalConfig connected_modules
+    try:
+        cfg = MuddemalConfig.objects.filter(config_key='connected_modules').first()
+        if cfg and isinstance(cfg.config_value, list):
+            for m in cfg.config_value:
+                m_code = str(m.get('code', '')).lower()
+                if m_code and m_code != 'all' and m_code == mod_raw:
+                    return m['code'], m.get('display_name', m['code'].title())
+    except Exception:
+        pass
 
     # 1. Prohibition
     if mod_raw == 'prohibition' or 'prohibition' in sub_raw.lower() or 'prohibition' in crime_cat.lower():
@@ -899,9 +911,16 @@ def sync_all_source_module_properties(
 
 def get_connected_source_modules_metadata() -> List[Dict[str, Any]]:
     """
-    Returns the backend-managed catalog of all connected PMS modules supporting seized property entries.
-    Zero hardcoding on frontend — the UI renders schemas and options returned by this catalog.
+    Returns the backend database-managed catalog of all connected PMS modules supporting seized property entries.
+    Loads dynamically from MuddemalConfig ('connected_modules') with zero hardcoding.
     """
+    try:
+        cfg = MuddemalConfig.objects.filter(config_key='connected_modules').first()
+        if cfg and isinstance(cfg.config_value, list) and len(cfg.config_value) > 0:
+            return [m for m in cfg.config_value if m.get('is_active', True)]
+    except Exception as e:
+        logger.warning(f"Failed to load connected_modules from MuddemalConfig: {e}")
+
     return [
         {
             'code': 'all',

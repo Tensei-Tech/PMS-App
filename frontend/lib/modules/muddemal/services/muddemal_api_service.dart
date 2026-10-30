@@ -330,6 +330,21 @@ class MuddemalApiService {
     return res.isSuccess;
   }
 
+  /// 11b. Fetch dynamically generated unique FSL reference from backend
+  Future<String?> fetchNextFslReference(int propertyId,
+      {String? labCode}) async {
+    final query =
+        (labCode != null && labCode.isNotEmpty) ? '?lab_code=$labCode' : '';
+    final res = await _api
+        .get('$_base/properties/$propertyId/next-fsl-reference/$query');
+    if (res.isSuccess &&
+        res.data is Map &&
+        res.data['fsl_reference_no'] != null) {
+      return res.data['fsl_reference_no'].toString();
+    }
+    return null;
+  }
+
   /// 12. Record FSL dispatch or received report
   Future<bool> recordFSL(int propertyId, Map<String, dynamic> data) async {
     final res =

@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 /// Form VI specific crime categories.
 const List<String> kFormVICaseCategories = [
-  'ST Drugs',
   'Prohibition',
   'Gambling',
   'POCSO',

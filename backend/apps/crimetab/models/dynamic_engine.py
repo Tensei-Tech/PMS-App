@@ -68,6 +68,7 @@ class FieldTemplateField(models.Model):
     depends_on_value = models.CharField(max_length=100, null=True, blank=True)
     options_source = models.CharField(max_length=255, null=True, blank=True)
     parent_field_key = models.CharField(max_length=50, null=True, blank=True)
+    field_config = models.JSONField(blank=True, null=True, default=dict)
 
     class Meta:
         db_table = 'field_template_fields'

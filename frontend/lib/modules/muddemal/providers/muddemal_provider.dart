@@ -101,7 +101,7 @@ class MuddemalProvider extends BaseModuleProvider {
   List<String> get measurementUnits {
     final raw = _configs['measurement_units'];
     if (raw is List) return raw.map((e) => e.toString()).toList();
-    return const ['Numbers', 'Bottles', 'Litres', 'Grams', 'Kg', 'Pieces'];
+    return const [];
   }
 
   List<String> get propertyStatuses {
@@ -117,13 +117,7 @@ class MuddemalProvider extends BaseModuleProvider {
           .where((s) => s.isNotEmpty)
           .toList();
     }
-    return const [
-      'Seized',
-      'Stolen – Not Recovered',
-      'Recovered',
-      'Sent to FSL',
-      'Disposed'
-    ];
+    return const [];
   }
 
   List<Map<String, String>> get propertyStatusOptions {
@@ -144,38 +138,141 @@ class MuddemalProvider extends BaseModuleProvider {
   List<String> get movementLocations {
     final raw = _configs['movement_locations'];
     if (raw is List) return raw.map((e) => e.toString()).toList();
-    return const [
-      'Muddemal Room (मालखाना)',
-      'Court (न्यायालय)',
-      'FSL Laboratory',
-      'Owner Custody'
-    ];
+    return const [];
   }
 
   List<String> get movementTypes {
     final raw = _configs['movement_types'];
     if (raw is List) return raw.map((e) => e.toString()).toList();
-    return const [
-      'Muddemal Room In',
-      'Sent to Court',
-      'Returned from Court',
-      'Sent to FSL',
-      'Received from FSL',
-      'Released on Supurdnama',
-      'Disposed'
-    ];
+    return const [];
   }
 
   List<String> get disposalTypes {
     final raw = _configs['disposal_types'];
     if (raw is List) return raw.map((e) => e.toString()).toList();
+    return const [];
+  }
+
+  /// Dynamic available years from database records + current year
+  List<int> get availableYears {
+    final raw = _configs['available_years'];
+    if (raw is List) {
+      final list = raw
+          .map((e) => int.tryParse(e.toString()))
+          .whereType<int>()
+          .toList();
+      if (list.isNotEmpty) return list;
+    }
+    return [DateTime.now().year];
+  }
+
+  /// Dynamic database-driven dashboard tabs
+  List<MuddemalDashboardTab> get dashboardTabs {
+    final raw = _configs['dashboard_tabs'];
+    if (raw is List) {
+      final list = raw
+          .whereType<Map>()
+          .map((m) => MuddemalDashboardTab.fromJson(Map<String, dynamic>.from(m)))
+          .toList();
+      if (list.isNotEmpty) {
+        list.sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
+        return list;
+      }
+    }
     return const [
-      'Released on Supurdnama',
-      'Returned to Owner',
-      'Disposed by Public Auction',
-      'Destroyed as per Court Order',
-      'Forfeited to State Government'
+      MuddemalDashboardTab(key: 'All', label: 'Total Cases', badgeColor: '#2563EB', displayOrder: 1),
+      MuddemalDashboardTab(key: 'Pending', label: 'Pending', badgeColor: '#EA580C', displayOrder: 2),
+      MuddemalDashboardTab(key: 'Disposal', label: 'Disposal', badgeColor: '#059669', displayOrder: 3),
     ];
+  }
+
+  /// Dynamic disposal authorities from database
+  List<MuddemalDisposalAuthority> get disposalAuthorities {
+    final raw = _configs['disposal_authorities'];
+    if (raw is List) {
+      final list = raw
+          .whereType<Map>()
+          .map((m) => MuddemalDisposalAuthority.fromJson(Map<String, dynamic>.from(m)))
+          .toList();
+      list.sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
+      return list;
+    }
+    return const [];
+  }
+
+  /// Dynamic FSL dispatch reasons from database
+  List<String> get fslDispatchReasons {
+    final raw = _configs['fsl_dispatch_reasons'];
+    if (raw is List) return raw.map((e) => e.toString()).toList();
+    return const [];
+  }
+
+  /// Dynamic FSL report statuses from database
+  List<MuddemalFslReportStatus> get fslReportStatuses {
+    final raw = _configs['fsl_report_statuses'];
+    if (raw is List) {
+      return raw
+          .whereType<Map>()
+          .map((m) => MuddemalFslReportStatus.fromJson(Map<String, dynamic>.from(m)))
+          .toList();
+    }
+    return const [];
+  }
+
+  /// Dynamic status categories from database
+  Map<String, dynamic> get statusCategories {
+    final raw = _configs['status_categories'];
+    if (raw is Map) return Map<String, dynamic>.from(raw);
+    return const {};
+  }
+
+  /// Check if a status string represents a disposal state
+  bool isDisposalStatus(String status) {
+    if (status.isEmpty) return false;
+    final cat = statusCategories['disposal'];
+    if (cat is List && cat.isNotEmpty) {
+      final clean = status.trim().toLowerCase();
+      return cat.any((c) => c.toString().trim().toLowerCase() == clean);
+    }
+    final s = status.toLowerCase();
+    return s.contains('dispos') || s.contains('returned') || s.contains('released');
+  }
+
+  /// Check if a status string represents a pending state
+  bool isPendingStatus(String status) {
+    if (status.isEmpty) return false;
+    final cat = statusCategories['pending'];
+    if (cat is List && cat.isNotEmpty) {
+      final clean = status.trim().toLowerCase();
+      return cat.any((c) => c.toString().trim().toLowerCase() == clean);
+    }
+    return !isDisposalStatus(status);
+  }
+
+  /// Checks if a property matches a configured tab
+  bool propertyMatchesTab(String tabKey, MuddemalPropertyItem property) {
+    if (tabKey == 'All' || tabKey == 'all' || tabKey.isEmpty) return true;
+    final tab = dashboardTabs.firstWhere(
+      (t) => t.key.toLowerCase() == tabKey.toLowerCase(),
+      orElse: () => MuddemalDashboardTab(key: tabKey, label: tabKey, badgeColor: '#2563EB', displayOrder: 0),
+    );
+    if (tab.applicableStatuses.isNotEmpty) {
+      return tab.applicableStatuses.any(
+        (s) => s.trim().toLowerCase() == property.propertyStatus.trim().toLowerCase(),
+      );
+    }
+    if (tabKey.toLowerCase() == 'disposal') {
+      return isDisposalStatus(property.propertyStatus) || isDisposalStatus(property.disposalStatus);
+    }
+    if (tabKey.toLowerCase() == 'pending') {
+      return !isDisposalStatus(property.propertyStatus) && !isDisposalStatus(property.disposalStatus);
+    }
+    return true;
+  }
+
+  /// Fetch next unique FSL reference number from backend API
+  Future<String?> getNextFslReference(int propertyId, {String? labCode}) async {
+    return await _muddemalApi.fetchNextFslReference(propertyId, labCode: labCode);
   }
 
   // Active Register and Properties State

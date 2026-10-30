@@ -1338,12 +1338,12 @@ class AccidentSubcategoriesMigrationTests(TestCase):
             is_active=True
         )
 
-        # Seed 22 Standalone tabs (19 standard + 3 exempt: A.D., Suicide, N.C.)
+        # Seed 21 Standalone tabs (18 standard + 3 exempt: A.D., Suicide, N.C.)
         standalone_names = [
             'Theft', 'Kidnapping', 'Hurt', 'Sand Theft', 'Two/Four Wheeler Theft',
             'Missing', 'Crime Against Women', 'Accident', 'Sec 156(3)/175(3)(BNSS)', 'Coin',
             'Suicide', 'A.D.', 'N.C.',
-            'ST Drugs', 'Prohibition', 'Gambling', 'POCSO', 'NDPS',
+            'Prohibition', 'Gambling', 'POCSO', 'NDPS',
             'Gowansh', 'IT Act', 'M.V Act', 'UAPA'
         ]
         self.standalone_categories = []
