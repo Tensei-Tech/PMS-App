@@ -632,6 +632,43 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
     final editLabel = _getConfigString(actionLabels, 'edit', fallback: 'Edit');
     final pdfLabel = _getConfigString(actionLabels, 'pdf', fallback: 'PDF');
 
+    Widget buildActionButtons() {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          if (viewLabel.isNotEmpty) ...[
+            _buildCompactActionButton(
+              icon: Icons.visibility_outlined,
+              label: viewLabel,
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: () => _openViewModal(id),
+            ),
+            const SizedBox(width: 6),
+          ],
+          if (editLabel.isNotEmpty) ...[
+            _buildCompactActionButton(
+              icon: Icons.edit_outlined,
+              label: editLabel,
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: () => _openEditModal(id),
+            ),
+            const SizedBox(width: 6),
+          ],
+          if (pdfLabel.isNotEmpty)
+            _buildCompactActionButton(
+              icon: Icons.picture_as_pdf_outlined,
+              label: pdfLabel,
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: () => _downloadPdf(id, name),
+            ),
+        ],
+      );
+    }
+
     Widget buildDetailsRow(bool isExpandedMode) {
       return Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -655,7 +692,7 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Sr. No.',
+                    _getConfigString(headers, 'sr_no', fallback: 'Sr. No.'),
                     style: GoogleFonts.poppins(
                       fontSize: 9,
                       fontWeight: FontWeight.w600,
@@ -706,8 +743,8 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
                   label: _getConfigString(headers, 'person',
                       fallback: 'Name, Age, Address, Mobile'),
                   value: person.isNotEmpty
-                        ? person
-                        : (name.isNotEmpty ? name : '—'),
+                      ? person
+                      : (name.isNotEmpty ? name : '—'),
                   icon: Icons.person_outline_rounded,
                 ),
 
@@ -744,7 +781,7 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
                     context: context,
                     label: _getConfigString(headers, 'associates',
                         fallback: 'Associates'),
-                    value: '',
+                    value: associatesCount.toString(),
                     icon: Icons.group_outlined,
                     iconColor: associatesCount > 0
                         ? AppColors.navyMid
@@ -762,17 +799,17 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
                   width: 95,
                   label: _getConfigString(headers, 'associates',
                       fallback: 'Associates'),
-                  value: '',
+                  value: associatesCount.toString(),
                   icon: Icons.group_outlined,
                   iconColor: associatesCount > 0
-                        ? AppColors.navyMid
-                        : const Color(0xFF64748B),
+                      ? AppColors.navyMid
+                      : const Color(0xFF64748B),
                   valueColor: associatesCount > 0
-                        ? AppColors.navyMid
-                        : const Color(0xFF64748B),
+                      ? AppColors.navyMid
+                      : const Color(0xFF64748B),
                   onTap: associatesCount > 0
-                        ? () => _showSummaryEntries(id, 'associates')
-                        : null,
+                      ? () => _showSummaryEntries(id, 'associates')
+                      : null,
                 ),
 
           _buildDivider(),
@@ -783,9 +820,9 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
                   flex: 2,
                   child: _buildFieldColumn(
                     context: context,
-                    label: _getConfigString(headers, 'rivals',
-                        fallback: 'Rivals'),
-                    value: '',
+                    label:
+                        _getConfigString(headers, 'rivals', fallback: 'Rivals'),
+                    value: rivalsCount.toString(),
                     icon: Icons.groups_rounded,
                     iconColor: rivalsCount > 0
                         ? AppColors.navyMid
@@ -801,19 +838,19 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
               : _buildFieldColumn(
                   context: context,
                   width: 95,
-                  label: _getConfigString(headers, 'rivals',
-                      fallback: 'Rivals'),
-                  value: '',
+                  label:
+                      _getConfigString(headers, 'rivals', fallback: 'Rivals'),
+                  value: rivalsCount.toString(),
                   icon: Icons.groups_rounded,
                   iconColor: rivalsCount > 0
-                        ? AppColors.navyMid
-                        : const Color(0xFF64748B),
+                      ? AppColors.navyMid
+                      : const Color(0xFF64748B),
                   valueColor: rivalsCount > 0
-                        ? AppColors.navyMid
-                        : const Color(0xFF64748B),
+                      ? AppColors.navyMid
+                      : const Color(0xFF64748B),
                   onTap: rivalsCount > 0
-                        ? () => _showSummaryEntries(id, 'rivals')
-                        : null,
+                      ? () => _showSummaryEntries(id, 'rivals')
+                      : null,
                 ),
 
           _buildDivider(),
@@ -826,7 +863,7 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
                     context: context,
                     label: _getConfigString(headers, 'preventive',
                         fallback: 'Preventive'),
-                    value: '',
+                    value: preventiveCount.toString(),
                     icon: Icons.shield_outlined,
                     iconColor: preventiveCount > 0
                         ? AppColors.navyMid
@@ -844,55 +881,23 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
                   width: 95,
                   label: _getConfigString(headers, 'preventive',
                       fallback: 'Preventive'),
-                  value: '',
+                  value: preventiveCount.toString(),
                   icon: Icons.shield_outlined,
                   iconColor: preventiveCount > 0
-                        ? AppColors.navyMid
-                        : const Color(0xFF64748B),
+                      ? AppColors.navyMid
+                      : const Color(0xFF64748B),
                   valueColor: preventiveCount > 0
-                        ? AppColors.navyMid
-                        : const Color(0xFF64748B),
+                      ? AppColors.navyMid
+                      : const Color(0xFF64748B),
                   onTap: preventiveCount > 0
-                        ? () => _showSummaryEntries(id, 'preventive')
-                        : null,
+                      ? () => _showSummaryEntries(id, 'preventive')
+                      : null,
                 ),
-        ],
-      );
-    }
 
-    Widget buildActionButtons() {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          if (viewLabel.isNotEmpty) ...[
-            _buildCompactActionButton(
-              icon: Icons.visibility_outlined,
-              label: viewLabel,
-              color: AppColors.navyDark,
-              width: 38,
-              onTap: () => _openViewModal(id),
-            ),
-            const SizedBox(width: 6),
-          ],
-          if (editLabel.isNotEmpty) ...[
-            _buildCompactActionButton(
-              icon: Icons.edit_outlined,
-              label: editLabel,
-              color: AppColors.navyDark,
-              width: 38,
-              onTap: () => _openEditModal(id),
-            ),
-            const SizedBox(width: 6),
-          ],
-          if (pdfLabel.isNotEmpty)
-            _buildCompactActionButton(
-              icon: Icons.picture_as_pdf_outlined,
-              label: pdfLabel,
-              color: AppColors.navyDark,
-              width: 38,
-              onTap: () => _downloadPdf(id, name),
-            ),
+          _buildDivider(),
+
+          // Action buttons scrollable with card at the end
+          buildActionButtons(),
         ],
       );
     }
@@ -914,30 +919,18 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
         ],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final isWide = constraints.maxWidth >= 820;
-                if (isWide) {
-                  return buildDetailsRow(true);
-                }
-                return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(minWidth: 780),
-                    child: buildDetailsRow(false),
-                  ),
-                );
-              },
-            ),
-          ),
-          _buildDivider(),
-          buildActionButtons(),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 1000;
+          if (isWide) {
+            return buildDetailsRow(true);
+          }
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: buildDetailsRow(false),
+          );
+        },
       ),
     );
   }
@@ -1101,7 +1094,8 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 11.5, color: iconColor ?? const Color(0xFF64748B)),
+              Icon(icon,
+                  size: 11.5, color: iconColor ?? const Color(0xFF64748B)),
               const SizedBox(width: 3.5),
             ],
             Flexible(
@@ -1215,7 +1209,8 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
     final openingDate = item['opening_date_display']?.toString() ?? '';
     final closureDate = item['closure_date_display']?.toString() ?? '';
     final categories =
-        (item['categories'] as List?)?.map((e) => e.toString()).join(', ') ?? '';
+        (item['categories'] as List?)?.map((e) => e.toString()).join(', ') ??
+            '';
 
     final actionLabels = (_config['action_labels'] as Map?) ?? {};
     final editLabel = _getConfigString(actionLabels, 'edit');
@@ -1243,12 +1238,14 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
       statusColor = const Color(0xFFD32F2F);
       statusBg = const Color(0xFFFFEBEE);
       statusBorder = const Color(0xFFFFCDD2);
-    } else if (item['is_in_jail'] == true || rawStatus.toLowerCase() == 'jail') {
+    } else if (item['is_in_jail'] == true ||
+        rawStatus.toLowerCase() == 'jail') {
       statusText = 'In Jail';
       statusColor = const Color(0xFF0284C7);
       statusBg = const Color(0xFFE0F2FE);
       statusBorder = const Color(0xFFBAE6FD);
-    } else if (item['is_on_bail'] == true || rawStatus.toLowerCase() == 'bail') {
+    } else if (item['is_on_bail'] == true ||
+        rawStatus.toLowerCase() == 'bail') {
       statusText = 'On Bail';
       statusColor = const Color(0xFFE65100);
       statusBg = const Color(0xFFFFF3E0);
@@ -1258,6 +1255,43 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
       statusColor = const Color(0xFF2E7D32);
       statusBg = const Color(0xFFE8F5E9);
       statusBorder = const Color(0xFFA5D6A7);
+    }
+
+    Widget buildActionButtons() {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          if (viewLabel.isNotEmpty) ...[
+            _buildCompactActionButton(
+              icon: Icons.visibility_outlined,
+              label: viewLabel,
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: () => _openViewModal(id),
+            ),
+            const SizedBox(width: 6),
+          ],
+          if (editLabel.isNotEmpty) ...[
+            _buildCompactActionButton(
+              icon: Icons.edit_outlined,
+              label: editLabel,
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: () => _openEditModal(id),
+            ),
+            const SizedBox(width: 6),
+          ],
+          if (pdfLabel.isNotEmpty)
+            _buildCompactActionButton(
+              icon: Icons.picture_as_pdf_outlined,
+              label: pdfLabel,
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: () => _downloadPdf(id, name),
+            ),
+        ],
+      );
     }
 
     Widget buildDetailsRow(bool isExpandedMode) {
@@ -1461,43 +1495,11 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
               ],
             ),
           ),
-        ],
-      );
-    }
 
-    Widget buildActionButtons() {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          if (viewLabel.isNotEmpty) ...[
-            _buildCompactActionButton(
-              icon: Icons.visibility_outlined,
-              label: viewLabel,
-              color: AppColors.navyDark,
-              width: 38,
-              onTap: () => _openViewModal(id),
-            ),
-            const SizedBox(width: 6),
-          ],
-          if (editLabel.isNotEmpty) ...[
-            _buildCompactActionButton(
-              icon: Icons.edit_outlined,
-              label: editLabel,
-              color: AppColors.navyDark,
-              width: 38,
-              onTap: () => _openEditModal(id),
-            ),
-            const SizedBox(width: 6),
-          ],
-          if (pdfLabel.isNotEmpty)
-            _buildCompactActionButton(
-              icon: Icons.picture_as_pdf_outlined,
-              label: pdfLabel,
-              color: AppColors.navyDark,
-              width: 38,
-              onTap: () => _downloadPdf(id, name),
-            ),
+          _buildDivider(),
+
+          // 6. Action buttons scrollable with card at the end
+          buildActionButtons(),
         ],
       );
     }
@@ -1519,33 +1521,19 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
         ],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // 1. Scrollable/adaptive inner card details
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final isWide = constraints.maxWidth >= 820;
-                if (isWide) {
-                  return buildDetailsRow(true);
-                }
-                return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  child: buildDetailsRow(false),
-                );
-              },
-            ),
-          ),
-
-          _buildDivider(),
-
-          // 2. Fixed right-side Action Buttons
-          buildActionButtons(),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 960;
+          if (isWide) {
+            return buildDetailsRow(true);
+          }
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: buildDetailsRow(false),
+          );
+        },
       ),
     );
   }
-
 }

@@ -736,6 +736,46 @@ class _RTIHubScreenState extends State<RTIHubScreen>
     final remindLabel =
         rowActionLabels['remind']?.toString() ?? 'Send Reminder';
 
+    Widget buildActionButtons() {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          if (remindLabel.isNotEmpty) ...[
+            _buildSendReminderButton(
+              context: context,
+              label: remindLabel,
+              onTap: () => _sendReminder(rtiId),
+            ),
+            const SizedBox(width: 6),
+          ],
+          _buildLabeledActionButton(
+            context: context,
+            icon: Icons.edit_outlined,
+            label: editLabel,
+            color: AppColors.navyDark,
+            onTap: () => _openEditModal(rtiId),
+          ),
+          const SizedBox(width: 6),
+          _buildLabeledActionButton(
+            context: context,
+            icon: Icons.visibility_outlined,
+            label: viewLabel,
+            color: AppColors.navyDark,
+            onTap: () => _openViewModal(rtiId),
+          ),
+          const SizedBox(width: 6),
+          _buildLabeledActionButton(
+            context: context,
+            icon: Icons.picture_as_pdf_outlined,
+            label: pdfLabel,
+            color: AppColors.navyDark,
+            onTap: () => _downloadPdf(rtiId, srNo),
+          ),
+        ],
+      );
+    }
+
     Widget buildDetailsRow(bool isExpandedMode) {
       return Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -1023,46 +1063,11 @@ class _RTIHubScreenState extends State<RTIHubScreen>
               ],
             ),
           ),
-        ],
-      );
-    }
 
-    Widget buildActionButtons() {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          if (remindLabel.isNotEmpty) ...[
-            _buildSendReminderButton(
-              context: context,
-              label: remindLabel,
-              onTap: () => _sendReminder(rtiId),
-            ),
-            const SizedBox(width: 6),
-          ],
-          _buildLabeledActionButton(
-            context: context,
-            icon: Icons.edit_outlined,
-            label: editLabel,
-            color: AppColors.navyDark,
-            onTap: () => _openEditModal(rtiId),
-          ),
-          const SizedBox(width: 6),
-          _buildLabeledActionButton(
-            context: context,
-            icon: Icons.visibility_outlined,
-            label: viewLabel,
-            color: AppColors.navyDark,
-            onTap: () => _openViewModal(rtiId),
-          ),
-          const SizedBox(width: 6),
-          _buildLabeledActionButton(
-            context: context,
-            icon: Icons.picture_as_pdf_outlined,
-            label: pdfLabel,
-            color: AppColors.navyDark,
-            onTap: () => _downloadPdf(rtiId, srNo),
-          ),
+          _buildDivider(),
+
+          // 8. Action buttons scrollable with card at the end
+          buildActionButtons(),
         ],
       );
     }
@@ -1084,32 +1089,18 @@ class _RTIHubScreenState extends State<RTIHubScreen>
         ],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // 1. Scrollable/adaptive inner card details
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final isWide = constraints.maxWidth >= 1050;
-                if (isWide) {
-                  return buildDetailsRow(true);
-                }
-                return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  child: buildDetailsRow(false),
-                );
-              },
-            ),
-          ),
-
-          // Divider between scrollable details and fixed actions
-          _buildDivider(),
-
-          // 2. Fixed action buttons
-          buildActionButtons(),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 1200;
+          if (isWide) {
+            return buildDetailsRow(true);
+          }
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: buildDetailsRow(false),
+          );
+        },
       ),
     );
   }
@@ -1138,6 +1129,38 @@ class _RTIHubScreenState extends State<RTIHubScreen>
         isDisposal ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE);
     final Color statusBorder =
         isDisposal ? const Color(0xFFA5D6A7) : const Color(0xFFFFCDD2);
+
+    Widget buildActionButtons() {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _buildLabeledActionButton(
+            context: context,
+            icon: Icons.edit_outlined,
+            label: editLabel,
+            color: AppColors.navyDark,
+            onTap: () => _openEditModal(rtiId),
+          ),
+          const SizedBox(width: 6),
+          _buildLabeledActionButton(
+            context: context,
+            icon: Icons.visibility_outlined,
+            label: viewLabel,
+            color: AppColors.navyDark,
+            onTap: () => _openViewModal(rtiId),
+          ),
+          const SizedBox(width: 6),
+          _buildLabeledActionButton(
+            context: context,
+            icon: Icons.picture_as_pdf_outlined,
+            label: pdfLabel,
+            color: AppColors.navyDark,
+            onTap: () => _downloadPdf(rtiId, serialDisplay),
+          ),
+        ],
+      );
+    }
 
     Widget buildDetailsRow(bool isExpandedMode) {
       return Row(
@@ -1369,38 +1392,11 @@ class _RTIHubScreenState extends State<RTIHubScreen>
               ],
             ),
           ),
-        ],
-      );
-    }
 
-    Widget buildActionButtons() {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          _buildLabeledActionButton(
-            context: context,
-            icon: Icons.edit_outlined,
-            label: editLabel,
-            color: AppColors.navyDark,
-            onTap: () => _openEditModal(rtiId),
-          ),
-          const SizedBox(width: 6),
-          _buildLabeledActionButton(
-            context: context,
-            icon: Icons.visibility_outlined,
-            label: viewLabel,
-            color: AppColors.navyDark,
-            onTap: () => _openViewModal(rtiId),
-          ),
-          const SizedBox(width: 6),
-          _buildLabeledActionButton(
-            context: context,
-            icon: Icons.picture_as_pdf_outlined,
-            label: pdfLabel,
-            color: AppColors.navyDark,
-            onTap: () => _downloadPdf(rtiId, serialDisplay),
-          ),
+          _buildDivider(),
+
+          // 7. Action buttons scrollable with card at the end
+          buildActionButtons(),
         ],
       );
     }
@@ -1422,32 +1418,18 @@ class _RTIHubScreenState extends State<RTIHubScreen>
         ],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // 1. Scrollable/adaptive inner card details
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final isWide = constraints.maxWidth >= 860;
-                if (isWide) {
-                  return buildDetailsRow(true);
-                }
-                return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  child: buildDetailsRow(false),
-                );
-              },
-            ),
-          ),
-
-          // Divider between scrollable details and fixed actions
-          _buildDivider(),
-
-          // 2. Fixed 3 Action Buttons (Edit, View, PDF)
-          buildActionButtons(),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 1040;
+          if (isWide) {
+            return buildDetailsRow(true);
+          }
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: buildDetailsRow(false),
+          );
+        },
       ),
     );
   }

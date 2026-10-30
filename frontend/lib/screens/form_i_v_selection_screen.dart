@@ -2610,6 +2610,59 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
             record.firestoreCategoryDisplayName,
           );
 
+    final double actionsWidth = widget.readOnly ? 82.0 : 176.0;
+
+    Widget buildActionButtons() {
+      return SizedBox(
+        width: actionsWidth,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (!widget.readOnly && !isDisposal) ...[
+              _buildCompactActionButton(
+                icon: Icons.fact_check_outlined,
+                label: 'Dispose',
+                color: AppColors.successGreen,
+                width: 44,
+                onTap: () => _showQuickDisposeDialog(context, record),
+              ),
+              const SizedBox(width: 6),
+            ],
+            if (!widget.readOnly) ...[
+              _buildCompactActionButton(
+                icon: Icons.edit_outlined,
+                label: 'Edit',
+                color: AppColors.navyDark,
+                width: 38,
+                onTap: widget.onEdit,
+              ),
+              const SizedBox(width: 6),
+            ],
+            _buildCompactActionButton(
+              icon: Icons.visibility_outlined,
+              label: 'View',
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: widget.onView,
+            ),
+            const SizedBox(width: 6),
+            _buildCompactActionButton(
+              icon: Icons.picture_as_pdf_outlined,
+              label: 'PDF',
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: () => runWithPdfAuthGate(
+                context,
+                () => CaseReportPdfHelper.download(context, record),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     Widget buildDetailsRow(bool isExpandedMode) {
       return Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -2656,52 +2709,50 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
               ],
             ),
           ),
-          if (categoryLabel.isNotEmpty) ...[
-            const SizedBox(width: 8),
-            Container(
-              height: 38,
-              width: 90,
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.goldPrimary.withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: AppColors.goldPrimary.withValues(alpha: 0.35),
-                ),
+          const SizedBox(width: 8),
+          Container(
+            height: 38,
+            width: 90,
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: AppColors.goldPrimary.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: AppColors.goldPrimary.withValues(alpha: 0.35),
               ),
-              alignment: Alignment.center,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Category',
+            ),
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Category',
+                  style: GoogleFonts.poppins(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.goldPrimary,
+                    height: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Tooltip(
+                  message: categoryLabel.isNotEmpty ? categoryLabel : '—',
+                  child: Text(
+                    categoryLabel.isNotEmpty ? categoryLabel : '—',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
                       color: AppColors.goldPrimary,
                       height: 1.0,
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Tooltip(
-                    message: categoryLabel,
-                    child: Text(
-                      categoryLabel,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.goldPrimary,
-                        height: 1.0,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
 
           _buildDivider(),
 
@@ -2772,9 +2823,8 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                   context: context,
                   width: 110,
                   label: 'Crime Date',
-                  value: (crimeDate.isEmpty || crimeDate == '-')
-                      ? '—'
-                      : crimeDate,
+                  value:
+                      (crimeDate.isEmpty || crimeDate == '-') ? '—' : crimeDate,
                   icon: Icons.calendar_today_outlined,
                 ),
 
@@ -2823,53 +2873,11 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
               ],
             ),
           ),
-        ],
-      );
-    }
 
-    Widget buildActionButtons() {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          if (!widget.readOnly && !isDisposal) ...[
-            _buildCompactActionButton(
-              icon: Icons.fact_check_outlined,
-              label: 'Dispose',
-              color: AppColors.successGreen,
-              width: 44,
-              onTap: () => _showQuickDisposeDialog(context, record),
-            ),
-            const SizedBox(width: 6),
-          ],
-          if (!widget.readOnly) ...[
-            _buildCompactActionButton(
-              icon: Icons.edit_outlined,
-              label: 'Edit',
-              color: AppColors.navyDark,
-              width: 38,
-              onTap: widget.onEdit,
-            ),
-            const SizedBox(width: 6),
-          ],
-          _buildCompactActionButton(
-            icon: Icons.visibility_outlined,
-            label: 'View',
-            color: AppColors.navyDark,
-            width: 38,
-            onTap: widget.onView,
-          ),
-          const SizedBox(width: 6),
-          _buildCompactActionButton(
-            icon: Icons.picture_as_pdf_outlined,
-            label: 'PDF',
-            color: AppColors.navyDark,
-            width: 38,
-            onTap: () => runWithPdfAuthGate(
-              context,
-              () => CaseReportPdfHelper.download(context, record),
-            ),
-          ),
+          _buildDivider(),
+
+          // 6. Action buttons scrollable with the card at the end
+          buildActionButtons(),
         ],
       );
     }
@@ -2894,37 +2902,28 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header Row: Scrollable/adaptive inner card details + Fixed action buttons
+          // Header Row: Fully scrollable with action buttons at the end on compact screens
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 10,
               vertical: 8,
             ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isWide = constraints.maxWidth >= 820;
-                      if (isWide) {
-                        return buildDetailsRow(true);
-                      }
-                      return SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        physics: const BouncingScrollPhysics(),
-                        child: buildDetailsRow(false),
-                      );
-                    },
-                  ),
-                ),
-                _buildDivider(),
-                buildActionButtons(),
-              ],
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth >= 1020;
+                if (isWide) {
+                  return buildDetailsRow(true);
+                }
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: buildDetailsRow(false),
+                );
+              },
             ),
           ),
-              // Expanded details drawer showing all form fields & highlights
-              /* if (_expanded) ...[
+          // Expanded details drawer showing all form fields & highlights
+          /* if (_expanded) ...[
                 const Divider(height: 1, color: Color(0xFFE2E8F0)),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
@@ -3220,8 +3219,8 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                   ),
                 ),
               ], */
-            ],
-          ),
+        ],
+      ),
     );
   }
 

@@ -1533,7 +1533,8 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 11.5, color: iconColor ?? const Color(0xFF64748B)),
+              Icon(icon,
+                  size: 11.5, color: iconColor ?? const Color(0xFF64748B)),
               const SizedBox(width: 3.5),
             ],
             Flexible(
@@ -1688,6 +1689,43 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
       statusBorder = const Color(0xFFBAE6FD);
     }
     final statusText = outcome.isNotEmpty ? outcome : 'Pending';
+
+    Widget buildActionButtons() {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          if (viewLabel.isNotEmpty) ...[
+            _buildCompactActionButton(
+              icon: Icons.visibility_outlined,
+              label: viewLabel,
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: () => _openViewModal(id),
+            ),
+            const SizedBox(width: 6),
+          ],
+          if (editLabel.isNotEmpty) ...[
+            _buildCompactActionButton(
+              icon: Icons.edit_outlined,
+              label: editLabel,
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: () => _openEditModal(id),
+            ),
+            const SizedBox(width: 6),
+          ],
+          if (pdfLabel.isNotEmpty)
+            _buildCompactActionButton(
+              icon: Icons.picture_as_pdf_outlined,
+              label: pdfLabel,
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: () => _downloadPdf(id, proposalNo),
+            ),
+        ],
+      );
+    }
 
     Widget buildDetailsRow(bool isExpandedMode) {
       return Row(
@@ -1890,43 +1928,11 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
               ],
             ),
           ),
-        ],
-      );
-    }
 
-    Widget buildActionButtons() {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          if (viewLabel.isNotEmpty) ...[
-            _buildCompactActionButton(
-              icon: Icons.visibility_outlined,
-              label: viewLabel,
-              color: AppColors.navyDark,
-              width: 38,
-              onTap: () => _openViewModal(id),
-            ),
-            const SizedBox(width: 6),
-          ],
-          if (editLabel.isNotEmpty) ...[
-            _buildCompactActionButton(
-              icon: Icons.edit_outlined,
-              label: editLabel,
-              color: AppColors.navyDark,
-              width: 38,
-              onTap: () => _openEditModal(id),
-            ),
-            const SizedBox(width: 6),
-          ],
-          if (pdfLabel.isNotEmpty)
-            _buildCompactActionButton(
-              icon: Icons.picture_as_pdf_outlined,
-              label: pdfLabel,
-              color: AppColors.navyDark,
-              width: 38,
-              onTap: () => _downloadPdf(id, proposalNo),
-            ),
+          _buildDivider(),
+
+          // 6. Action buttons scrollable with card at the end
+          buildActionButtons(),
         ],
       );
     }
@@ -1948,33 +1954,19 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
         ],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // 1. Scrollable/adaptive inner card details
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final isWide = constraints.maxWidth >= 820;
-                if (isWide) {
-                  return buildDetailsRow(true);
-                }
-                return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  child: buildDetailsRow(false),
-                );
-              },
-            ),
-          ),
-
-          _buildDivider(),
-
-          // 2. Fixed right-side Action Buttons
-          buildActionButtons(),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 920;
+          if (isWide) {
+            return buildDetailsRow(true);
+          }
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: buildDetailsRow(false),
+          );
+        },
       ),
     );
   }
-
 }

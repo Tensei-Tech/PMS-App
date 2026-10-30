@@ -112,7 +112,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(chartCalls, isNotEmpty);
-    expect(find.byType(Table), findsOneWidget);
     for (final h in [
       'TEST Sr',
       'TEST Person',
@@ -124,8 +123,8 @@ void main() {
       expect(find.text(h), findsOneWidget);
     }
     expect(find.text('TEST Ravi, 30 Yrs, Male'), findsOneWidget);
-    // View column: header + one button per row
-    expect(find.widgetWithText(OutlinedButton, 'TEST View'), findsOneWidget);
+    // View action button
+    expect(find.text('TEST View'), findsOneWidget);
   });
 
   testWidgets('Summary: tapping the associates count lists the gang members',
