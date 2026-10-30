@@ -439,7 +439,7 @@ void main() {
       expect(find.text('Rejected'), findsWidgets);
 
       // Tap View button
-      final viewBtn = find.widgetWithText(OutlinedButton, 'View');
+      final viewBtn = find.text('View');
       expect(viewBtn, findsOneWidget);
       await tester.tap(viewBtn);
       await tester.pump();
@@ -459,7 +459,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Now tap Edit button
-      final editBtn = find.widgetWithText(OutlinedButton, 'Edit');
+      final editBtn = find.text('Edit');
       expect(editBtn, findsOneWidget);
       await tester.tap(editBtn);
       await tester.pumpAndSettle();
