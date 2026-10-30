@@ -125,92 +125,129 @@ class StatePoliceBannerDialog extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
 
-                      // ── LINE 2: Khakhi Diary Logo + State Name (Medium Text) + State Police Logo ──
-                      ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxWidth: MediaQuery.of(context).size.width > 500
-                              ? 460
-                              : MediaQuery.of(context).size.width - 40,
-                        ),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              // Khakhi Diary Logo (Bigger)
-                              AppLogo(
-                                  size: 50, logoUrl: user?.departmentLogoUrl),
-                              const SizedBox(width: 12),
-                              // State Name (Medium Text)
-                              Text(
-                                branding.policeForceTitle.toUpperCase(),
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 0.6,
-                                  color: Colors.white,
+                      // ── LINE 2: Symmetrical Balanced Row: Khakhi Diary Badge (52px) + Centered Title + State Police Badge (52px) ──
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Khakhi Diary Logo (52x52 circular badge with gold border & glow)
+                          Container(
+                            width: 52,
+                            height: 52,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withValues(alpha: 0.12),
+                              border: Border.all(
+                                color: branding.accentColor,
+                                width: 2.0,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: branding.accentColor.withValues(
+                                    alpha: 0.4,
+                                  ),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: ClipOval(
+                              child: Center(
+                                child: AppLogo(
+                                  size: 40,
+                                  logoUrl: user?.departmentLogoUrl,
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              // State Police Emblem Logo Badge (Bigger)
-                              if (branding.logoAssetPath != null)
-                                Container(
+                            ),
+                          ),
+
+                          // State Name / Force Title: Centered across the card between equal 52px badges
+                          Expanded(
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 10),
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.center,
+                                child: Text(
+                                  branding.policeForceTitle.toUpperCase(),
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.6,
+                                    color: Colors.white,
+                                    height: 1.2,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          // State Police Emblem Logo Badge (52x52 matching circular badge)
+                          if (branding.logoAssetPath != null)
+                            Container(
+                              width: 52,
+                              height: 52,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: branding.accentColor,
+                                  width: 2.0,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: branding.accentColor.withValues(
+                                      alpha: 0.4,
+                                    ),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: ClipOval(
+                                child: Image.asset(
+                                  branding.logoAssetPath!,
                                   width: 52,
                                   height: 52,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: branding.accentColor,
-                                      width: 2.0,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: branding.accentColor.withValues(
-                                          alpha: 0.4,
-                                        ),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: ClipOval(
-                                    child: Image.asset(
-                                      branding.logoAssetPath!,
-                                      width: 52,
-                                      height: 52,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Icon(
-                                        branding.emblemIcon,
-                                        color: branding.accentColor,
-                                        size: 28,
-                                      ),
-                                    ),
-                                  ),
-                                )
-                              else
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: branding.accentColor.withValues(
-                                      alpha: 0.25,
-                                    ),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: branding.accentColor,
-                                      width: 2.0,
-                                    ),
-                                  ),
-                                  child: Icon(
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Icon(
                                     branding.emblemIcon,
                                     color: branding.accentColor,
                                     size: 28,
                                   ),
                                 ),
-                            ],
-                          ),
-                        ),
+                              ),
+                            )
+                          else
+                            Container(
+                              width: 52,
+                              height: 52,
+                              decoration: BoxDecoration(
+                                color: branding.accentColor.withValues(
+                                  alpha: 0.25,
+                                ),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: branding.accentColor,
+                                  width: 2.0,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: branding.accentColor.withValues(
+                                      alpha: 0.4,
+                                    ),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                branding.emblemIcon,
+                                color: branding.accentColor,
+                                size: 28,
+                              ),
+                            ),
+                        ],
                       ),
                       const SizedBox(height: 6),
                       Container(

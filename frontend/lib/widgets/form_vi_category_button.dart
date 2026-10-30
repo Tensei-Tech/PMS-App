@@ -13,6 +13,18 @@ const List<String> kFormVICaseCategories = [
   'UAPA',
 ];
 
+List<String>? _dynamicFormVICaseCategories;
+
+/// Form VI specific crime categories (dynamic from backend or fallback)
+List<String> get formVICaseCategories =>
+    _dynamicFormVICaseCategories ?? kFormVICaseCategories;
+
+void updateDynamicFormVICategories(List<String> categories) {
+  if (categories.isNotEmpty) {
+    _dynamicFormVICaseCategories = categories;
+  }
+}
+
 /// Purple/Indigo gradient category button for Form VI case-type grids.
 class FormVICategoryButton extends StatelessWidget {
   static const double height = 54;

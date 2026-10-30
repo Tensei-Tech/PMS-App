@@ -6,9 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+import '../../../services/backend_case_service.dart';
 import '../../../services/case_service.dart';
 import '../../../services/dynamic_options_service.dart';
 import '../../../services/preventive_service.dart';
+import '../../../theme/app_theme.dart';
 import '../../../widgets/common_form/pocso_voice_banner.dart';
 import '../../../widgets/dynamic_form/dynamic_field_model.dart';
 import '../../../widgets/voice_dictation_button.dart';
@@ -151,7 +153,8 @@ class PreventiveFormState extends State<PreventiveForm> {
   final _sectionSearchCtrl = TextEditingController();
   final _otherSectionsCtrl = TextEditingController();
 
-  Map<String, Map<String, dynamic>> get _activeActsData => _actsData;
+  Map<String, Map<String, dynamic>> get _activeActsData =>
+      _actsData.isNotEmpty ? _actsData : BackendCaseService.cachedActData;
   List<String> get _activePreventiveSectionActs => _preventiveActsList;
 
   // 3. Accused list
@@ -193,6 +196,7 @@ class PreventiveFormState extends State<PreventiveForm> {
   @override
   void initState() {
     super.initState();
+
     _activeVoiceController = _crimeNoCtrl;
     _scroll.addListener(() {
       if (!_scroll.hasClients) return;
@@ -1221,47 +1225,67 @@ class PreventiveFormState extends State<PreventiveForm> {
                             // Act Selector Chips from backend DB
                             _buildLabel('Select Act / कायदे निवडा'),
                             const SizedBox(height: 6),
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: _activeActsData.keys.map((actKey) {
-                                  final actInfo = _activeActsData[actKey];
-                                  final label = actInfo?['label'] ?? actKey;
-                                  final isSelected = _selectedAct == actKey;
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 8),
-                                    child: FilterChip(
-                                      label: Text(label),
-                                      selected: isSelected,
-                                      onSelected: widget.readOnly
-                                          ? null
-                                          : (val) {
-                                              if (val) {
-                                                setState(() {
-                                                  _selectedAct = actKey;
-                                                  _markUnsaved();
-                                                });
-                                              }
-                                            },
-                                      selectedColor:
-                                          _kTeal.withValues(alpha: 0.15),
-                                      backgroundColor: _kInputBg,
-                                      side: BorderSide(
-                                        color: isSelected ? _kTeal : _kBorder,
-                                        width: isSelected ? 1.5 : 1,
-                                      ),
-                                      labelStyle: GoogleFonts.inter(
-                                        fontSize: 11,
-                                        fontWeight: isSelected
-                                            ? FontWeight.w700
-                                            : FontWeight.w500,
-                                        color: isSelected ? _kTeal : _kDark,
-                                      ),
+                            if (_activeActsData.isEmpty)
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 4),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.error_outline,
+                                        size: 16, color: _kRed),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'Error: Failed to load acts and sections from server.',
+                                      style: GoogleFonts.inter(
+                                          fontSize: 12,
+                                          color: _kRed,
+                                          fontWeight: FontWeight.w500),
                                     ),
-                                  );
-                                }).toList(),
+                                  ],
+                                ),
+                              )
+                            else
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: _activeActsData.keys.map((actKey) {
+                                    final actInfo = _activeActsData[actKey];
+                                    final label = actInfo?['label'] ?? actKey;
+                                    final isSelected = _selectedAct == actKey;
+                                    return Padding(
+                                      padding: const EdgeInsets.only(right: 8),
+                                      child: FilterChip(
+                                        label: Text(label),
+                                        selected: isSelected,
+                                        onSelected: widget.readOnly
+                                            ? null
+                                            : (val) {
+                                                if (val) {
+                                                  setState(() {
+                                                    _selectedAct = actKey;
+                                                    _markUnsaved();
+                                                  });
+                                                }
+                                              },
+                                        selectedColor:
+                                            _kTeal.withValues(alpha: 0.15),
+                                        backgroundColor: _kInputBg,
+                                        side: BorderSide(
+                                          color: isSelected ? _kTeal : _kBorder,
+                                          width: isSelected ? 1.5 : 1,
+                                        ),
+                                        labelStyle: GoogleFonts.inter(
+                                          fontSize: 11,
+                                          fontWeight: isSelected
+                                              ? FontWeight.w700
+                                              : FontWeight.w500,
+                                          color: isSelected ? _kTeal : _kDark,
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
                               ),
-                            ),
                             const SizedBox(height: 12),
 
                             // Filter / Search section
@@ -1851,6 +1875,22 @@ class PreventiveFormState extends State<PreventiveForm> {
 
   // ── Section Picker Chips ───────────────────────────────────────────────────
   Widget _buildSectionPickerChips() {
+    if (_activeActsData.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            const Icon(Icons.error_outline, size: 16, color: _kRed),
+            const SizedBox(width: 6),
+            Text(
+              'Error: Failed to load acts and sections from server.',
+              style: GoogleFonts.inter(
+                  fontSize: 12, color: _kRed, fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
+      );
+    }
     final actInfo = _activeActsData[_selectedAct];
     final sections = (actInfo?['sections'] as List<dynamic>?) ?? const [];
     final filterQuery = _sectionSearchCtrl.text.trim().toLowerCase();

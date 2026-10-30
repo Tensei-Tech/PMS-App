@@ -84,20 +84,31 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
     2: [],
     3: [],
     4: [],
-    5: []
+    5: [],
+    6: [],
   };
-  final Map<int, int> _pageMap = {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1};
-  final Map<int, int> _totalCountMap = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
+  final Map<int, int> _pageMap = {0: 1, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1};
+  final Map<int, int> _totalCountMap = {
+    0: 0,
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0,
+    6: 0,
+  };
   final Map<int, bool> _loadingMap = {
     0: true,
     1: true,
     2: true,
     3: true,
     4: true,
-    5: true
+    5: true,
+    6: true,
   };
 
   final TextEditingController _searchCtrl = TextEditingController();
+  final ScrollController _cardsScrollController = ScrollController();
   String _searchQuery = '';
   Timer? _searchDebounce;
 
@@ -114,6 +125,7 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
     _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     _searchCtrl.dispose();
+    _cardsScrollController.dispose();
     _searchDebounce?.cancel();
     super.dispose();
   }
@@ -122,6 +134,22 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
     if (_tabController.indexIsChanging) return;
     setState(() {}); // Updates active card highlight
     _fetchItemsForTab(_tabController.index);
+    _scrollToCard(_tabController.index);
+  }
+
+  void _scrollToCard(int index) {
+    if (!_cardsScrollController.hasClients) return;
+    const cardWidthWithMargin = 104.0;
+    final targetOffset = (index * cardWidthWithMargin) - 16;
+    final clampedOffset = targetOffset.clamp(
+      0.0,
+      _cardsScrollController.position.maxScrollExtent,
+    );
+    _cardsScrollController.animateTo(
+      clampedOffset,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeInOut,
+    );
   }
 
   Future<void> _initializeData() async {
@@ -264,7 +292,7 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
       return const SizedBox.shrink();
     }
     return Padding(
-      padding: const EdgeInsets.only(top: 6),
+      padding: const EdgeInsets.only(top: 4),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: options.map((d) {
@@ -282,7 +310,7 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
             },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
               decoration: BoxDecoration(
                 color: active
                     ? AppColors.navyMid
@@ -299,14 +327,14 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
                 children: [
                   if (active) ...[
                     const Icon(Icons.check_rounded,
-                        size: 11, color: Colors.white),
-                    const SizedBox(width: 3),
+                        size: 10, color: Colors.white),
+                    const SizedBox(width: 2),
                   ],
                   Text(
                     TranslationHelper.translate(
                         context, labelTemplate.replaceAll('{days}', '$d')),
                     style: GoogleFonts.poppins(
-                      fontSize: 9.5,
+                      fontSize: 9.0,
                       height: 1.2,
                       fontWeight: FontWeight.w600,
                       color: active ? Colors.white : AppColors.navyMid,
@@ -317,7 +345,7 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
             ),
           );
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 3),
+            padding: const EdgeInsets.symmetric(horizontal: 2.5),
             child: chip,
           );
         }).toList(),
@@ -508,6 +536,7 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
         fallback: _config['add_button_label']?.toString() ?? '');
     final searchPlaceholder = _config['search_placeholder']?.toString() ?? '';
 
+    final isMobile = MediaQuery.of(context).size.width < 500;
     Widget? actionWidget;
     if (addLabel.isNotEmpty) {
       actionWidget = ElevatedButton.icon(
@@ -516,16 +545,19 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
           backgroundColor: AppColors.navyMid,
           foregroundColor: Colors.white,
           elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          padding: EdgeInsets.symmetric(
+            horizontal: isMobile ? 10 : 14,
+            vertical: isMobile ? 6 : 8,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
         ),
-        icon: const Icon(Icons.add_rounded, size: 16),
+        icon: Icon(Icons.add_rounded, size: isMobile ? 14 : 16),
         label: Text(
           TranslationHelper.translate(context, addLabel),
           style: GoogleFonts.poppins(
-            fontSize: 12,
+            fontSize: isMobile ? 11 : 12,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -536,117 +568,105 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
       backgroundColor: AppColors.lightBg,
       appBar: ModuleHubScreenAppBar(
         title: TranslationHelper.translate(context, widget.categoryName),
-        subtitle: '${_counts['total'] ?? 0}',
+        subtitle:
+            '${_counts['total'] ?? 0} ${TranslationHelper.translate(context, 'Total Proposals')}',
         actionWidget: actionWidget,
         onBackPressed: () => Navigator.pop(context),
       ),
       body: Column(
         children: [
           _buildReminderBanner(),
-          // 6 CARDS (which are also tabs; clicking selects tab; counts agree)
+          // CARDS (2 rows on mobile without scrolling, single row on wide screens)
           Container(
             color: Colors.white,
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final isWide = constraints.maxWidth > 700;
-                final crossAxisCount = isWide ? _tabKeys.length : 3;
+                final isCompact = constraints.maxWidth < 600;
 
-                return GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _tabKeys.length,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                    childAspectRatio: isWide ? 2.2 : 1.2,
-                  ),
-                  itemBuilder: (context, idx) {
-                    final k = _tabKeys[idx];
-                    final label = _getConfigString(cardLabels, k);
-                    final count = k == _releasedTab
-                        ? _releasedCount()
-                        : (_counts[k] ?? 0);
-                    final isSelected = _tabController.index == idx;
+                if (isCompact) {
+                  // Mobile: 2 rows without scrolling (Row 1: 4 cards, Row 2: 3 cards)
+                  const row1Indices = [0, 1, 2, 3];
+                  const row2Indices = [4, 5, 6];
+                  const colSpacing = 5.0;
+                  const rowSpacing = 6.0;
+                  const cardHeight = 50.0;
 
-                    return InkWell(
-                      onTap: () {
-                        _tabController.animateTo(idx);
-                      },
-                      borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? AppColors.navyMid.withValues(alpha: 0.1)
-                              : const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: isSelected
-                                ? AppColors.navyMid
-                                : const Color(0xFFE2E8F0),
-                            width: isSelected ? 1.5 : 1,
-                          ),
-                        ),
-                        child: Center(
-                          // Shrink to fit instead of clipping / scrolling
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                // The Summary card has no count, only an icon
-                                if (k == _summaryTab)
-                                  Icon(
-                                    Icons.table_chart_rounded,
-                                    size: 20,
-                                    color: isSelected
-                                        ? AppColors.navyDark
-                                        : AppColors.lightText,
-                                  )
-                                else
-                                  Text(
-                                    '$count',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: isSelected
-                                          ? AppColors.navyDark
-                                          : AppColors.lightText,
-                                    ),
-                                  ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  TranslationHelper.translate(context, label),
-                                  textAlign: TextAlign.center,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 10,
-                                    fontWeight: isSelected
-                                        ? FontWeight.w600
-                                        : FontWeight.w500,
-                                    color: isSelected
-                                        ? AppColors.navyDark
-                                        : AppColors.lightSubText,
-                                  ),
-                                ),
-                                if (k == _releasedTab)
-                                  _buildReleasedDayChips(idx),
-                              ],
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: row1Indices.map((idx) {
+                          return Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                right: idx != row1Indices.last ? colSpacing : 0,
+                              ),
+                              child: SizedBox(
+                                height: cardHeight,
+                                child: _buildCardItem(idx, cardLabels,
+                                    isCompact: true),
+                              ),
                             ),
-                          ),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: rowSpacing),
+                      Row(
+                        children: row2Indices.map((idx) {
+                          return Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                right: idx != row2Indices.last ? colSpacing : 0,
+                              ),
+                              child: SizedBox(
+                                height: cardHeight,
+                                child: _buildCardItem(idx, cardLabels,
+                                    isCompact: true),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  );
+                }
+
+                return Row(
+                  children: List.generate(_tabKeys.length, (idx) {
+                    return Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          right: idx < _tabKeys.length - 1 ? 8.0 : 0,
+                        ),
+                        child: SizedBox(
+                          height: 72,
+                          child:
+                              _buildCardItem(idx, cardLabels, isCompact: false),
                         ),
                       ),
                     );
-                  },
+                  }),
                 );
               },
             ),
           ),
+          // Day filter chips for Released tab when compact on mobile
+          Builder(builder: (context) {
+            final isCompact = MediaQuery.of(context).size.width < 600;
+            final releasedIdx = _tabKeys.indexOf(_releasedTab);
+            if (isCompact && _tabController.index == releasedIdx) {
+              final chips = _buildReleasedDayChips(releasedIdx);
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(14, 2, 14, 4),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: chips,
+                ),
+              );
+            }
+            return const SizedBox.shrink();
+          }),
 
           // Search Bar
           Padding(
@@ -655,8 +675,12 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
               controller: _searchCtrl,
               onChanged: _onSearchChanged,
               decoration: InputDecoration(
-                hintText:
-                    TranslationHelper.translate(context, searchPlaceholder),
+                hintText: TranslationHelper.translate(
+                  context,
+                  searchPlaceholder.isNotEmpty
+                      ? searchPlaceholder
+                      : 'Search MPDA Proposals...',
+                ),
                 prefixIcon:
                     const Icon(Icons.search_rounded, color: AppColors.navyMid),
                 suffixIcon: _searchQuery.isNotEmpty
@@ -704,6 +728,139 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
     );
   }
 
+  Widget _buildCardItem(int idx, Map cardLabels, {bool isCompact = false}) {
+    final k = _tabKeys[idx];
+    final label = _getConfigString(cardLabels, k);
+    final count = k == _releasedTab ? _releasedCount() : (_counts[k] ?? 0);
+    final isSelected = _tabController.index == idx;
+
+    return InkWell(
+      onTap: () {
+        _tabController.animateTo(idx);
+        _scrollToCard(idx);
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: isCompact ? 6 : 6,
+          vertical: isCompact ? 4 : 4,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.navyMid.withValues(alpha: 0.08)
+              : Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? AppColors.navyMid : const Color(0xFFE2E8F0),
+            width: isSelected ? 1.6 : 1,
+          ),
+        ),
+        child: isCompact
+            ? Center(
+                child: Row(
+                  children: [
+                    Container(
+                      constraints:
+                          const BoxConstraints(minWidth: 22, minHeight: 22),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.navyMid
+                            : AppColors.navyMid.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Center(
+                        child: k == _summaryTab
+                            ? Icon(
+                                Icons.table_chart_rounded,
+                                size: 14,
+                                color: isSelected
+                                    ? Colors.white
+                                    : AppColors.navyDark,
+                              )
+                            : Text(
+                                '$count',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : AppColors.navyDark,
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Expanded(
+                      child: Text(
+                        TranslationHelper.translate(context, label),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          fontSize: 9.2,
+                          height: 1.18,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.w500,
+                          color: isSelected
+                              ? AppColors.navyDark
+                              : AppColors.lightSubText,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : Center(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (k == _summaryTab)
+                        Icon(
+                          Icons.table_chart_rounded,
+                          size: 22,
+                          color: isSelected
+                              ? AppColors.navyDark
+                              : AppColors.lightText,
+                        )
+                      else
+                        Text(
+                          '$count',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isSelected
+                                ? AppColors.navyDark
+                                : AppColors.lightText,
+                          ),
+                        ),
+                      const SizedBox(height: 2),
+                      Text(
+                        TranslationHelper.translate(context, label),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          fontSize: 10,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.w500,
+                          color: isSelected
+                              ? AppColors.navyDark
+                              : AppColors.lightSubText,
+                        ),
+                      ),
+                      if (k == _releasedTab) _buildReleasedDayChips(idx),
+                    ],
+                  ),
+                ),
+              ),
+      ),
+    );
+  }
+
   Widget _buildTabListContent(int tabIndex) {
     final isLoading = _loadingMap[tabIndex] ?? true;
     final items = _itemsMap[tabIndex] ?? [];
@@ -720,22 +877,101 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
     }
 
     if (items.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+      final tabKey = _tabKeys[tabIndex];
+      String defaultTitle = 'No MPDA Proposals';
+      String defaultSubtitle =
+          'Proposals will appear here once submitted or updated';
+      if (_searchQuery.isNotEmpty) {
+        defaultTitle = 'No Matching Proposals';
+        defaultSubtitle = 'No MPDA proposals match "$_searchQuery"';
+      } else if (tabKey == 'approved') {
+        defaultTitle = 'No Approved MPDA Proposals';
+      } else if (tabKey == 'rejected') {
+        defaultTitle = 'No Rejected MPDA Proposals';
+      } else if (tabKey == 'proposal_revoked') {
+        defaultTitle = 'No Revoked MPDA Proposals';
+      } else if (tabKey == 'jail') {
+        defaultTitle = 'No Persons in Jail under MPDA';
+      } else if (tabKey == 'released_next_month') {
+        defaultTitle = 'No Persons Scheduled for Release';
+      } else if (tabKey == _summaryTab) {
+        defaultTitle = 'No MPDA Summary Records';
+      }
+
+      final displayMsg = emptyMsg.isNotEmpty
+          ? TranslationHelper.translate(context, emptyMsg)
+          : TranslationHelper.translate(context, defaultTitle);
+
+      return RefreshIndicator(
+        onRefresh: () => _fetchItemsForTab(tabIndex, page: 1),
+        color: AppColors.navyMid,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            Icon(Icons.folder_off_rounded,
-                size: 52, color: Colors.grey.shade400),
-            const SizedBox(height: 12),
-            if (emptyMsg.isNotEmpty)
-              Text(
-                TranslationHelper.translate(context, emptyMsg),
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.lightSubText,
-                ),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.15),
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppColors.navyMid.withValues(alpha: 0.06),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      _searchQuery.isNotEmpty
+                          ? Icons.search_off_rounded
+                          : Icons.folder_off_rounded,
+                      size: 44,
+                      color: AppColors.navyMid.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    displayMsg,
+                    style: GoogleFonts.poppins(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.navyDark,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    TranslationHelper.translate(context, defaultSubtitle),
+                    style: GoogleFonts.poppins(
+                      fontSize: 12.5,
+                      color: AppColors.lightSubText,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    onPressed: () => _fetchItemsForTab(tabIndex, page: 1),
+                    icon: const Icon(Icons.refresh_rounded, size: 16),
+                    label: Text(
+                      TranslationHelper.translate(context, 'Refresh'),
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.navyMid,
+                      side: BorderSide(
+                        color: AppColors.navyMid.withValues(alpha: 0.3),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                    ),
+                  ),
+                ],
               ),
+            ),
           ],
         ),
       );
@@ -745,15 +981,25 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
       children: [
         Expanded(
           child: _tabKeys[tabIndex] == _summaryTab
-              ? _buildSummaryTable(items)
-              : ListView.separated(
-                  padding: const EdgeInsets.all(14),
-                  itemCount: items.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
-                  itemBuilder: (context, i) {
-                    final item = items[i] as Map<String, dynamic>;
-                    return _buildMpdaCard(item);
-                  },
+              ? RefreshIndicator(
+                  onRefresh: () =>
+                      _fetchItemsForTab(tabIndex, page: currentPage),
+                  color: AppColors.navyMid,
+                  child: _buildSummaryTable(items),
+                )
+              : RefreshIndicator(
+                  onRefresh: () =>
+                      _fetchItemsForTab(tabIndex, page: currentPage),
+                  color: AppColors.navyMid,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.all(14),
+                    itemCount: items.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    itemBuilder: (context, i) {
+                      final item = items[i] as Map<String, dynamic>;
+                      return _buildMpdaCard(item);
+                    },
+                  ),
                 ),
         ),
 
@@ -1259,6 +1505,138 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
     );
   }
 
+  Widget _buildDivider() {
+    return Container(
+      width: 1,
+      height: 26,
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      color: const Color(0xFFE2E8F0),
+    );
+  }
+
+  Widget _buildFieldColumn({
+    required BuildContext context,
+    required String label,
+    required String value,
+    IconData? icon,
+    Color? iconColor,
+    Color? valueColor,
+    VoidCallback? onTap,
+    double? width,
+  }) {
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon,
+                  size: 11.5, color: iconColor ?? const Color(0xFF64748B)),
+              const SizedBox(width: 3.5),
+            ],
+            Flexible(
+              child: Text(
+                TranslationHelper.translate(context, label),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF64748B),
+                  height: 1.1,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Tooltip(
+          message: value,
+          child: Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: valueColor ?? const Color(0xFF0F172A),
+              height: 1.1,
+            ),
+          ),
+        ),
+      ],
+    );
+
+    final wrapped =
+        width != null ? SizedBox(width: width, child: content) : content;
+
+    if (onTap != null) {
+      return InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(4),
+        child: wrapped,
+      );
+    }
+    return wrapped;
+  }
+
+  Widget _buildCompactActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    Color? color,
+    double? width,
+  }) {
+    final fg = color ?? AppColors.navyDark;
+    return Tooltip(
+      message: TranslationHelper.translate(context, label),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          height: 38,
+          width: width ?? 38,
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: const Color(0xFFCBD5E1), width: 1.1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 2,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 14, color: fg),
+              const SizedBox(height: 1.5),
+              Text(
+                TranslationHelper.translate(context, label),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 8.0,
+                  fontWeight: FontWeight.w600,
+                  color: fg,
+                  height: 1.0,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildMpdaCard(Map<String, dynamic> item) {
     final id = item['id'];
     final proposalNo = item['proposal_no_and_year']?.toString() ?? '';
@@ -1275,170 +1653,319 @@ class _MpdaHubScreenState extends State<MpdaHubScreen>
     final viewLabel = _getConfigString(actionLabels, 'view');
     final pdfLabel = _getConfigString(actionLabels, 'pdf');
 
-    return Card(
-      elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: const BorderSide(color: Color(0xFFE2E8F0)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    final String detentionPeriod;
+    if (detentionDate.isNotEmpty && completionDate.isNotEmpty) {
+      detentionPeriod = ' - ';
+    } else if (detentionDate.isNotEmpty) {
+      detentionPeriod = detentionDate;
+    } else if (completionDate.isNotEmpty) {
+      detentionPeriod = completionDate;
+    } else {
+      detentionPeriod = '—';
+    }
+
+    final o = outcome.toLowerCase();
+    final isApproved = o.contains('approved') || o.contains('granted');
+    final isRejected = o.contains('rejected');
+    final isRevoked = o.contains('revoked');
+    final Color statusColor;
+    final Color statusBg;
+    final Color statusBorder;
+    if (isApproved) {
+      statusColor = const Color(0xFF2E7D32);
+      statusBg = const Color(0xFFE8F5E9);
+      statusBorder = const Color(0xFFA5D6A7);
+    } else if (isRejected) {
+      statusColor = const Color(0xFFD32F2F);
+      statusBg = const Color(0xFFFFEBEE);
+      statusBorder = const Color(0xFFFFCDD2);
+    } else if (isRevoked) {
+      statusColor = const Color(0xFFE65100);
+      statusBg = const Color(0xFFFFF3E0);
+      statusBorder = const Color(0xFFFFCC80);
+    } else {
+      statusColor = const Color(0xFF0284C7);
+      statusBg = const Color(0xFFE0F2FE);
+      statusBorder = const Color(0xFFBAE6FD);
+    }
+    final statusText = outcome.isNotEmpty ? outcome : 'Pending';
+
+    Widget buildActionButtons() {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          if (viewLabel.isNotEmpty) ...[
+            _buildCompactActionButton(
+              icon: Icons.visibility_outlined,
+              label: viewLabel,
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: () => _openViewModal(id),
+            ),
+            const SizedBox(width: 6),
+          ],
+          if (editLabel.isNotEmpty) ...[
+            _buildCompactActionButton(
+              icon: Icons.edit_outlined,
+              label: editLabel,
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: () => _openEditModal(id),
+            ),
+            const SizedBox(width: 6),
+          ],
+          if (pdfLabel.isNotEmpty)
+            _buildCompactActionButton(
+              icon: Icons.picture_as_pdf_outlined,
+              label: pdfLabel,
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: () => _downloadPdf(id, proposalNo),
+            ),
+        ],
+      );
+    }
+
+    Widget buildDetailsRow(bool isExpandedMode) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 1. Identification: Proposal No. Badge
+          Container(
+            height: 38,
+            width: 110,
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: const Color(0xFFCBD5E1)),
+            ),
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (proposalNo.isNotEmpty)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.navyDark.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      proposalNo,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.navyDark,
-                      ),
+                Text(
+                  'Proposal No.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF64748B),
+                    height: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Tooltip(
+                  message: proposalNo,
+                  child: Text(
+                    proposalNo.isNotEmpty ? proposalNo : '—',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyDark,
+                      height: 1.0,
                     ),
                   ),
-                const Spacer(),
-                if (outcome.isNotEmpty)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.navyMid.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      outcome,
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyMid,
-                      ),
-                    ),
-                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 8),
-            Text(
-              accusedName,
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.navyDark,
-              ),
-            ),
-            if (category.isNotEmpty) ...[
-              const SizedBox(height: 2),
-              Text(
-                category,
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontStyle: FontStyle.italic,
-                  color: AppColors.lightSubText,
+          ),
+          if (category.isNotEmpty) ...[
+            const SizedBox(width: 8),
+            Container(
+              height: 38,
+              width: 90,
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.goldPrimary.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: AppColors.goldPrimary.withValues(alpha: 0.35),
                 ),
               ),
-            ],
-            if (jailName.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(
-                jailName,
-                style: GoogleFonts.poppins(
-                  fontSize: 11.5,
-                  color: AppColors.navyDark,
-                ),
-              ),
-            ],
-            if (detentionDate.isNotEmpty || completionDate.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Row(
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  if (detentionDate.isNotEmpty)
-                    Text(
-                      detentionDate,
+                  Text(
+                    'Category',
+                    style: GoogleFonts.poppins(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.goldPrimary,
+                      height: 1.0,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Tooltip(
+                    message: category,
+                    child: Text(
+                      category,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        color: AppColors.lightSubText,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.goldPrimary,
+                        height: 1.0,
                       ),
                     ),
-                  if (detentionDate.isNotEmpty && completionDate.isNotEmpty)
-                    const Text('  -  '),
-                  if (completionDate.isNotEmpty)
-                    Text(
-                      completionDate,
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        color: AppColors.lightSubText,
-                      ),
-                    ),
+                  ),
                 ],
               ),
-            ],
-            const Divider(height: 16, color: Color(0xFFF1F5F9)),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                if (viewLabel.isNotEmpty)
-                  OutlinedButton.icon(
-                    onPressed: () => _openViewModal(id),
-                    icon: const Icon(Icons.visibility_rounded, size: 14),
-                    label: Text(
-                      TranslationHelper.translate(context, viewLabel),
-                      style: GoogleFonts.poppins(fontSize: 11),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                  ),
-                if (editLabel.isNotEmpty) ...[
-                  const SizedBox(width: 8),
-                  OutlinedButton.icon(
-                    onPressed: () => _openEditModal(id),
-                    icon: const Icon(Icons.edit_rounded, size: 14),
-                    label: Text(
-                      TranslationHelper.translate(context, editLabel),
-                      style: GoogleFonts.poppins(fontSize: 11),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                  ),
-                ],
-                if (pdfLabel.isNotEmpty) ...[
-                  const SizedBox(width: 8),
-                  ElevatedButton.icon(
-                    onPressed: () => _downloadPdf(id, proposalNo),
-                    icon: const Icon(Icons.picture_as_pdf_rounded, size: 14),
-                    label: Text(
-                      TranslationHelper.translate(context, pdfLabel),
-                      style: GoogleFonts.poppins(fontSize: 11),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.navyMid,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                  ),
-                ],
-              ],
             ),
           ],
+
+          _buildDivider(),
+
+          // 2. Accused Name (flex: 4, width: 180)
+          isExpandedMode
+              ? Expanded(
+                  flex: 4,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Accused Name',
+                    value: accusedName.isNotEmpty ? accusedName : '—',
+                    icon: Icons.person_outline_rounded,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 180,
+                  label: 'Accused Name',
+                  value: accusedName.isNotEmpty ? accusedName : '—',
+                  icon: Icons.person_outline_rounded,
+                ),
+
+          _buildDivider(),
+
+          // 3. Jail Name (flex: 3, width: 140)
+          isExpandedMode
+              ? Expanded(
+                  flex: 3,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Jail Name',
+                    value: jailName.isNotEmpty ? jailName : '—',
+                    icon: Icons.location_city_outlined,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 140,
+                  label: 'Jail Name',
+                  value: jailName.isNotEmpty ? jailName : '—',
+                  icon: Icons.location_city_outlined,
+                ),
+
+          _buildDivider(),
+
+          // 4. Detention Period (flex: 3, width: 160)
+          isExpandedMode
+              ? Expanded(
+                  flex: 3,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Detention Period',
+                    value: detentionPeriod,
+                    icon: Icons.calendar_today_outlined,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 160,
+                  label: 'Detention Period',
+                  value: detentionPeriod,
+                  icon: Icons.calendar_today_outlined,
+                ),
+
+          _buildDivider(),
+
+          // 5. Status Badge (Fixed width 110 matching RTI)
+          Container(
+            height: 34,
+            width: 110,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: statusBg,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: statusBorder),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Tooltip(
+                    message: statusText,
+                    child: Text(
+                      TranslationHelper.translate(context, statusText),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: statusColor,
+                        height: 1.0,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          _buildDivider(),
+
+          // 6. Action buttons scrollable with card at the end
+          buildActionButtons(),
+        ],
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: const Color(0xFFCBD5E1),
+          width: 1.1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 920;
+          if (isWide) {
+            return buildDetailsRow(true);
+          }
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: buildDetailsRow(false),
+          );
+        },
       ),
     );
   }

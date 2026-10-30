@@ -130,8 +130,8 @@ class Classification {
     Classification('Application', 'description', 'application'),
     Classification('Sam/Warrant', 'assignment', 'sam_warrant'),
     Classification('Muddemal', 'inventory', 'muddemal'),
-    Classification('CRPC 1563 /\nBNSS 1753', 'balance', 'bnss'),
-    Classification('Passport/\nPVR/Lic', 'badge', 'passport'),
+    Classification('CRPC 156(3)/\nBNSS 175(3)', 'balance', 'bnss'),
+    Classification('Passport/\nPVR/Licence', 'badge', 'passport'),
     Classification('NDPS', 'medication', 'ndps'),
     Classification('Gowansh', 'home_work', 'gowans'),
     Classification('IT Act', 'computer', 'it_act'),
@@ -175,8 +175,8 @@ class Classification {
     Classification('Application', 'description', 'application'),
     Classification('Sam (Summons) / Warrant', 'assignment', 'sam_warrant'),
     Classification('Muddemal', 'inventory', 'muddemal'),
-    Classification('CRPC 1563 / BNSS 1753', 'balance', 'bnss'),
-    Classification('Passport /PVR / License', 'badge', 'passport'),
+    Classification('CRPC 156(3)/BNSS 175(3)', 'balance', 'bnss'),
+    Classification('Passport/PVR/Licence', 'badge', 'passport'),
     Classification('NDPS', 'medication', 'ndps'),
     Classification('Gowansh', 'home_work', 'gowans'),
     Classification('IT Act', 'computer', 'it_act'),
@@ -427,9 +427,9 @@ class ServiceData {
         moduleKey: 'repeat_offender', assetPath: 'assets/icons/repeatoffender.svg', displayOrder: 3),
     const ServiceData('ITSSO', Icons.description_rounded, 0xFFE91E63,
         moduleKey: 'itsso', assetPath: 'assets/icons/itsso.svg', displayOrder: 4),
-    const ServiceData('NAFIS', Icons.fingerprint_rounded, 0xFF673AB7,
+    const ServiceData('NAFIS/Fingerprint', Icons.fingerprint_rounded, 0xFF673AB7,
         moduleKey: 'nafis', displayOrder: 5),
-    const ServiceData('DAR', Icons.folder_rounded, 0xFF607D8B,
+    const ServiceData('DAR/IRAD', Icons.folder_rounded, 0xFF607D8B,
         moduleKey: 'dar', assetPath: 'assets/icons/dar.svg', displayOrder: 6),
     const ServiceData('IRAD', Icons.analytics_rounded, 0xFF34495E,
         moduleKey: 'irad', assetPath: 'assets/icons/IRAD.svg', displayOrder: 7),
@@ -455,8 +455,27 @@ class PoliceDesignationEntry {
 class PoliceDesignations {
   PoliceDesignations._();
 
+  static List<String>? _dynamicIoDesignations;
+  static List<String>? _dynamicFormIoAndReg;
+
+  /// Update active designations directly from backend API master (`public.designations`)
+  static void updateFromBackend(List<Map<String, dynamic>> designations) {
+    if (designations.isEmpty) return;
+    final codes = designations
+        .map((d) => (d['code'] ?? d['abbreviation'] ?? '').toString().trim())
+        .where((c) => c.isNotEmpty)
+        .toList();
+    if (codes.isNotEmpty) {
+      _dynamicFormIoAndReg = codes;
+      _dynamicIoDesignations = codes;
+    }
+  }
+
   /// Canonical IO Designations (from HC up to Addl. SP / Addl. CP).
-  static const List<String> ioDesignations = [
+  static List<String> get ioDesignations =>
+      _dynamicIoDesignations ?? _fallbackIoDesignations;
+
+  static const List<String> _fallbackIoDesignations = [
     'HC',
     'ASI',
     'SI',
@@ -475,7 +494,10 @@ class PoliceDesignations {
   ];
 
   /// Form IO / Reg dropdowns (common form, NC, missing).
-  static const List<String> formIoAndReg = [
+  static List<String> get formIoAndReg =>
+      _dynamicFormIoAndReg ?? _fallbackFormIoAndReg;
+
+  static const List<String> _fallbackFormIoAndReg = [
     'HC',
     'PN',
     'PC',

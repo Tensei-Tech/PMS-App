@@ -32,51 +32,48 @@ class PdfLoadingHelper {
       // Show clean, non-intrusive modal loading dialog
       showDialog<void>(
         context: context,
-        barrierDismissible: false,
+        barrierDismissible: true,
         barrierColor: Colors.black26,
         builder: (ctx) {
           dialogContext = ctx;
-          return PopScope(
-            canPop: false,
-            child: Center(
-              child: Material(
-                color: Colors.transparent,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 16,
-                        offset: Offset(0, 4),
+          return Center(
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 16,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Color(0xFF0284C7),
                       ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: Color(0xFF0284C7),
-                        ),
+                    ),
+                    const SizedBox(width: 14),
+                    Text(
+                      loadingMessage,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF0F172A),
                       ),
-                      const SizedBox(width: 14),
-                      Text(
-                        loadingMessage,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF0F172A),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -120,13 +117,17 @@ class PdfLoadingHelper {
 
     // Yield to the event loop so the Flutter engine can paint the frame with
     // the active modal dialog or SnackBar before CPU-heavy PDF layout begins.
-    await Future.delayed(const Duration(milliseconds: 120));
+    await Future.delayed(const Duration(milliseconds: 100));
 
     try {
       final result = await action();
 
-      if (dialogShown && dialogContext != null && dialogContext!.mounted) {
-        Navigator.of(dialogContext!).pop();
+      if (dialogShown) {
+        if (dialogContext != null && dialogContext!.mounted) {
+          Navigator.of(dialogContext!).pop();
+        } else if (context != null && context.mounted) {
+          Navigator.of(context, rootNavigator: true).maybePop();
+        }
       }
 
       messenger?.hideCurrentSnackBar();
@@ -161,8 +162,12 @@ class PdfLoadingHelper {
       }
       return result;
     } catch (e) {
-      if (dialogShown && dialogContext != null && dialogContext!.mounted) {
-        Navigator.of(dialogContext!).pop();
+      if (dialogShown) {
+        if (dialogContext != null && dialogContext!.mounted) {
+          Navigator.of(dialogContext!).pop();
+        } else if (context != null && context.mounted) {
+          Navigator.of(context, rootNavigator: true).maybePop();
+        }
       }
       messenger?.hideCurrentSnackBar();
       rethrow;

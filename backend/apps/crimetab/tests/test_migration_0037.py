@@ -30,7 +30,9 @@ class Migration0037ScratchDatabaseTest(TestCase):
         )
         self.tenant_ctx = TenantContext('maharashtra')
         self.tenant_ctx.__enter__()
-        self.client = self.client_class(HTTP_X_STATE_CODE='MH')
+        # Case endpoints need a login, as in the app
+        from apps.crimetab.tests.auth_helpers import district_officer_headers
+        self.client = self.client_class(**district_officer_headers())
 
         # 1. Simulate the exact user STATE:
         # A FieldTemplate with a non-1 ID to prove matching is by template_name, never by id.
@@ -300,7 +302,9 @@ class Migration0037ScratchDatabaseTest(TestCase):
         # 5. Verify option_values seeded for 'gender'
         gender_options = list(OptionValue.objects.filter(option_group='gender', is_active=True)
                               .order_by('display_order').values_list('option_value', flat=True))
-        self.assertEqual(gender_options, ['Male', 'Female', 'Other'])
+        # 0037's three, in order (later migrations may add more, e.g. 0135 Transgender)
+        self.assertEqual([g for g in gender_options if g in ('Male', 'Female', 'Other')],
+                         ['Male', 'Female', 'Other'])
 
         # Verify options_source set on the 4 gender fields and None on others
         expected_gender_keys = {

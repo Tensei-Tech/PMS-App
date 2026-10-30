@@ -57,7 +57,7 @@ NC_TENANT_DDL = [
         person_type VARCHAR(20) NOT NULL CHECK (person_type IN ('complainant', 'non_applicant')),
         display_order SMALLINT NOT NULL DEFAULT 0,
         name VARCHAR(255),
-        age SMALLINT CHECK (age IS NULL OR (age >= 1 AND age <= 120)),
+        age SMALLINT CHECK (age IS NULL OR (age >= 1 AND age <= 999)),
         gender VARCHAR(50),
         caste VARCHAR(255),
         profession VARCHAR(255),

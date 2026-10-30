@@ -16,6 +16,7 @@ def health_check(request):
 urlpatterns = [
     # Root Health Check for Render & Load Balancers
     path('', health_check, name='root-health-check'),
+    path('api/', health_check, name='api-root-health-check'),
 
     # Enterprise Django Admin Console
     path('admin/', admin.site.urls),

@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
+import '../services/app_version.dart';
 import '../widgets/app_logo.dart';
 
 class AboutAppScreen extends StatelessWidget {
@@ -246,7 +247,7 @@ class AboutAppScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(AppRadius.full),
                   ),
                   child: Text(
-                    'Version 2.4.0 • Build 2026.08',
+                    AppVersion.label,
                     style: GoogleFonts.poppins(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -418,7 +419,7 @@ class AboutAppScreen extends StatelessWidget {
         _buildInteractiveTile(
           icon: Icons.calendar_today_rounded,
           title: 'Release Version',
-          value: 'Version 2.4.0 (Build 2026.08)',
+          value: AppVersion.label,
           badgeText: 'Latest',
           color: AppColors.navyDark,
           onTap: () {
@@ -426,7 +427,7 @@ class AboutAppScreen extends StatelessWidget {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  'Your application is up to date (v2.4.0)',
+                  'Installed: ${AppVersion.label}',
                   style: GoogleFonts.poppins(
                     color: Colors.white,
                     fontSize: 12.5,

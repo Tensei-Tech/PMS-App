@@ -14,6 +14,7 @@ import '../theme/app_theme.dart';
 import '../utils/dynamic_map_pdf.dart';
 import '../utils/pdf_unicode_fonts.dart';
 import '../utils/arrested_table_firestore_mapper.dart';
+import '../utils/excel_export_helper.dart';
 import '../utils/case_visibility.dart';
 import '../widgets/arrested_cases_demo_data_table.dart';
 
@@ -70,6 +71,14 @@ class ArrestedSummaryScreen extends StatelessWidget {
       theme: theme,
       title: 'Arrested Cases — Summary (all periods)',
       rows: flat.map((e) => Map<String, dynamic>.from(e)).toList(),
+      columnOrder: [
+        'cr',
+        'sections',
+        'head',
+        'accused_name',
+        'arrest_date',
+        'io',
+      ],
     );
     await Printing.sharePdf(
       bytes: await doc.save(),
@@ -144,26 +153,100 @@ class ArrestedSummaryScreen extends StatelessWidget {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: AppColors.lightBorder),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: const Icon(Icons.arrow_back_rounded,
-                          color: AppColors.navyMid, size: 20),
+                          color: AppColors.navyDark, size: 20),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Text(
-                      title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
-                        height: 1.15,
-                      ),
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.navyDark,
+                              height: 1.15,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.navyMid.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '${dataset.length} Total',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.navyMid,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(width: 10),
+                  GestureDetector(
+                    onTap: !anyRows
+                        ? null
+                        : () {
+                            ExcelExportHelper.exportArrestedToExcel(
+                              dataset: dataset,
+                              filename: 'Arrested_Summary_All_Periods.csv',
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'Arrested Summary exported to Excel successfully.'),
+                                backgroundColor: Color(0xFF107C41),
+                              ),
+                            );
+                          },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: !anyRows
+                            ? Colors.grey.shade400
+                            : const Color(0xFF107C41),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.table_chart_rounded,
+                              color: Colors.white, size: 18),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Excel',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              height: 1.15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   GestureDetector(
                     onTap: !anyRows ? null : () => _exportPdf(context, dataset),
                     child: Container(
@@ -179,7 +262,7 @@ class ArrestedSummaryScreen extends StatelessWidget {
                               color: Colors.white, size: 18),
                           const SizedBox(width: 6),
                           Text(
-                            'Export',
+                            'PDF',
                             style: GoogleFonts.poppins(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
@@ -200,19 +283,6 @@ class ArrestedSummaryScreen extends StatelessWidget {
                 children: [
                   for (final label in _getUniqueCategories(dataset))
                     sectionBlock(label),
-                  if (showDemoNote)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 12),
-                      child: Text(
-                        '* Demo Data — Will be replaced with live data',
-                        style: GoogleFonts.poppins(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.lightSubText,
-                          height: 1.15,
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ),

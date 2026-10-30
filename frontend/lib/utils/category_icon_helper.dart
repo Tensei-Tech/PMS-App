@@ -24,8 +24,18 @@ class CategoryIconHelper {
       case 'theft':
       case 'thefts':
       case 'robbery':
-      case 'chain snatching':
         return 'assets/icons/theft.svg';
+      case 'chain snatching':
+      case 'chainsnatching':
+      case 'chain snatch':
+      case 'chain robbery':
+      case 'chain robery':
+        return 'assets/icons/chain_snatching.svg';
+      case 'murder':
+      case 'attempt to murder':
+      case 'att to murder':
+      case 'murder/attempt to murder':
+        return 'assets/icons/murder.svg';
       case 'hurt':
       case 'hurts':
         return 'assets/icons/hurt.svg';
@@ -45,6 +55,8 @@ class CategoryIconHelper {
       case 'crime against women':
       case 'crime against woman':
       case 'crimes against women':
+      case 'rape':
+      case 'molestation':
       case '498 (a) ipc':
       case '498a':
       case '498 (a)':
@@ -73,6 +85,11 @@ class CategoryIconHelper {
       case 'nc':
         return 'assets/icons/nc.svg';
       case 'dacoity':
+      case 'decoity':
+      case 'pro of dacoity':
+      case 'pro of decoity':
+      case 'dacoity/robbery':
+        return 'assets/icons/dacoity.svg';
       case 'arrested':
         return 'assets/icons/arrested.svg';
       case 'absconded':
@@ -127,10 +144,31 @@ class CategoryIconHelper {
         return 'assets/icons/repeatoffender.svg';
       case 'dar':
         return 'assets/icons/dar.svg';
+      case 'irad':
+        return 'assets/icons/IRAD.svg';
       case 'irda':
         return 'assets/icons/IRDA.svg';
       case 'itsso':
         return 'assets/icons/itsso.svg';
+      case '1 to 5':
+      case 'i to v':
+      case 'form 1 to 5':
+      case 'form_1_5':
+        return 'assets/icons/1to5.svg';
+      case '6':
+      case 'part 6':
+      case 'class vi':
+      case 'form 6':
+      case 'form_6':
+        return 'assets/icons/6.svg';
+      case 'warrant':
+      case 'warrants':
+      case 'sam warrants':
+        return 'assets/icons/sam-warrants.svg';
+    }
+
+    if (k.contains('rape') || k.contains('molest')) {
+      return 'assets/icons/crimewomen.svg';
     }
 
     if (k.contains('accident')) {
@@ -144,6 +182,15 @@ class CategoryIconHelper {
     }
     if (k.contains('women') || k.contains('woman')) {
       return 'assets/icons/crimewomen.svg';
+    }
+    if (k.contains('murder')) {
+      return 'assets/icons/murder.svg';
+    }
+    if (k.contains('dacoity') || k.contains('decoity')) {
+      return 'assets/icons/dacoity.svg';
+    }
+    if (k.contains('snatch')) {
+      return 'assets/icons/chain_snatching.svg';
     }
     if (k.contains('theft')) {
       return 'assets/icons/theft.svg';
@@ -184,10 +231,7 @@ class CategoryIconHelper {
     if (k.contains('304')) {
       return 'assets/icons/ad.svg';
     }
-    if (k.contains('dacoity')) {
-      return 'assets/icons/arrested.svg';
-    }
-    if (k.contains('robbery') || k.contains('snatch')) {
+    if (k.contains('robbery')) {
       return 'assets/icons/theft.svg';
     }
 

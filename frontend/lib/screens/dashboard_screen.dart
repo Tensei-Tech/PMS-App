@@ -13,9 +13,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:khakhi_diary/providers/settings_provider.dart';
 import 'package:khakhi_diary/providers/notification_provider.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
+
 import 'package:provider/provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
@@ -52,6 +50,9 @@ import '../modules/nc/providers/nc_provider.dart';
 import '../modules/nc/screens/nc_form_screen.dart';
 import '../modules/ndps/providers/ndps_provider.dart';
 import '../modules/passport/providers/passport_provider.dart';
+import '../modules/passport/widgets/passport_add_edit_dialog.dart';
+import '../modules/licence/providers/licence_provider.dart';
+import '../modules/licence/screens/licence_hub_screen.dart';
 import '../modules/pending/providers/pending_provider.dart';
 import '../modules/pocso/providers/pocso_provider.dart';
 import '../modules/preventive/providers/preventive_provider.dart';
@@ -83,13 +84,17 @@ import '../utils/universal_search.dart';
 import '../widgets/app_logo.dart';
 import 'pending_hub_screen.dart';
 import 'itsso_hub_screen.dart';
+import 'dar_hub_screen.dart';
+import 'irad_hub_screen.dart';
 import 'undetected_hub_screen.dart';
 import 'detected_hub_screen.dart';
 import 'disposal_hub_screen.dart';
 import 'arrested_hub_screen.dart';
+import '../widgets/summons_warrant_report_table.dart';
+import '../widgets/monthly_crime_comparative_table.dart';
 import 'juvenile_hub_screen.dart';
+import 'victim_hub_screen.dart';
 import 'repeat_offender_summary_screen.dart';
-import 'nafis_hub_screen.dart';
 import 'elearning_screen.dart';
 import '../widgets/bell_icon_widget.dart';
 import '../widgets/form_iv_category_button.dart';
@@ -125,13 +130,13 @@ import 'module_record_detail_screen.dart';
 import 'my_cases_screen.dart';
 import 'pending_transfers_screen.dart';
 import '../widgets/dynamic_form/dynamic_form_screen.dart';
+import '../widgets/logout_confirm_dialog.dart';
 // Navigation targets for Hamburger Menu
 import 'profile_screen.dart';
-import 'report_case_list_screen.dart';
 import 'station_access_grants_screen.dart';
 
 dynamic _dashboardTileIcon(String label, dynamic fallback) {
-  final k = label.replaceAll('\n', ' ').trim();
+  final k = label.replaceAll(RegExp(r'\s+'), ' ').trim();
   switch (k) {
     case 'Monthly':
       return FontAwesomeIcons.calendarDay;
@@ -202,10 +207,15 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
     case 'CRPC 1563 / BNSS 1753':
     case 'CRPC 1563 / 1753 (BNSS)':
     case 'CRPC 156(3) / BNSS 175(3)':
+    case 'CRPC 156(3)/BNSS 175(3)':
+    case 'CRPC 156(3)/ BNSS 175(3)':
     case 'Sec 186/175 (BNSS)':
       return FontAwesomeIcons.scaleBalanced;
     case 'Passport/PVR/Lic':
     case 'Passport/ PVR/Lic':
+    case 'Passport/PVR/Licence':
+    case 'Passport/ PVR/Licence':
+    case 'Passport/PVR':
       return FontAwesomeIcons.idCard;
     case 'NDPS':
       return FontAwesomeIcons.pills;
@@ -231,8 +241,10 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
     case 'ITSSO':
       return Icons.description_rounded;
     case 'NAFIS':
+    case 'NAFIS/Fingerprint':
       return Icons.fingerprint_rounded;
     case 'DAR':
+    case 'DAR/IRAD':
       return Icons.folder_rounded;
     case 'IRAD':
     case 'IRDA':
@@ -244,415 +256,188 @@ dynamic _dashboardTileIcon(String label, dynamic fallback) {
   }
 }
 
+String? _getDashboardSvgPath(String label) {
+  final clean = label.toLowerCase().replaceAll(RegExp(r'[\s/._\\]+'), '');
+  for (final tool in ServiceData.dashboardTools) {
+    if (label.toLowerCase() == tool.label.toLowerCase() ||
+        (tool.moduleKey != null && clean == tool.moduleKey!.toLowerCase())) {
+      if (tool.assetPath != null && tool.assetPath!.isNotEmpty) {
+        return tool.assetPath;
+      }
+    }
+  }
+  switch (clean) {
+    case 'itov':
+    case '1to5':
+      return 'assets/icons/1to5.svg';
+    case 'vi':
+    case '6':
+      return 'assets/icons/6.svg';
+    case 'pending':
+      return 'assets/icons/pending.svg';
+    case 'gambling':
+      return 'assets/icons/gambling.svg';
+    case 'juvenile':
+      return 'assets/icons/juvenile.svg';
+    case 'sandtheft':
+      return 'assets/icons/sandtheft.svg';
+    case 'undetected':
+      return 'assets/icons/undetected.svg';
+    case 'hurt':
+      return 'assets/icons/hurt.svg';
+    case 'kidnappingmissing':
+    case 'kidnapping':
+      return 'assets/icons/kidnapping.svg';
+    case 'missing':
+      return 'assets/icons/missing.svg';
+    case 'nc':
+      return 'assets/icons/nc.svg';
+    case 'arrested':
+      return 'assets/icons/arrested.svg';
+    case 'pocso':
+      return 'assets/icons/pocso.svg';
+    case 'crimeagainstwomen':
+      return 'assets/icons/crimewomen.svg';
+    case 'victim':
+      return 'assets/icons/victim.svg';
+    case 'ad':
+      return 'assets/icons/ad.svg';
+    case 'prohibition':
+      return 'assets/icons/prohibiton.svg';
+    case 'theft':
+      return 'assets/icons/theft.svg';
+    case 'twofourwheelertheft':
+    case 'twofourwheelerstolen':
+    case '24wheeler':
+      return 'assets/icons/2-4wheeler.svg';
+    case 'samwarrant':
+    case 'samwarrants':
+      return 'assets/icons/sam-warrants.svg';
+    case 'muddemal':
+    case 'propertyrecovery':
+      return 'assets/icons/muddemal.svg';
+    case 'rti':
+      return 'assets/icons/rti.svg';
+    case 'passportpvr':
+    case 'passportpvrlic':
+    case 'passport':
+      return 'assets/icons/passport.svg';
+    case 'ndps':
+      return 'assets/icons/ndps.svg';
+    case 'gowansh':
+    case 'gowans':
+      return 'assets/icons/gowans.svg';
+    case 'itact':
+      return 'assets/icons/itact.svg';
+    case 'mcoca':
+    case 'macoca':
+      return 'assets/icons/macoca.svg';
+    case 'uapa':
+      return 'assets/icons/uapa.svg';
+    case 'mpda':
+      return 'assets/icons/mpda.svg';
+    case 'coin':
+      return 'assets/icons/coin.svg';
+    case 'mvact':
+      return 'assets/icons/mvact.svg';
+    case 'accident':
+      return 'assets/icons/accident.svg';
+    case 'detected':
+      return 'assets/icons/detected.svg';
+    case 'disposal':
+      return 'assets/icons/disposal.svg';
+    case 'monthly':
+      return 'assets/icons/monthly.svg';
+    case 'absconded':
+      return 'assets/icons/absconded.svg';
+    case 'cctns':
+      return 'assets/icons/cctns.svg';
+    case 'licence':
+      return 'assets/icons/licence.svg';
+    case 'tadipar':
+      return 'assets/icons/tadipar.svg';
+    case 'repeatoffender':
+      return 'assets/icons/repeatoffender.svg';
+    case 'dar':
+    case 'darirad':
+      return 'assets/icons/dar.svg';
+    case 'irad':
+    case 'irda':
+      return 'assets/icons/IRAD.svg';
+    case 'itsso':
+      return 'assets/icons/itsso.svg';
+    case 'murderattempttomurder':
+    case 'murder':
+    case 'attempttomurder':
+    case 'atttomurder':
+      return 'assets/icons/murder.svg';
+    case 'dacoityrobbery':
+    case 'dacoity':
+    case 'decoity':
+    case 'proofdacoity':
+    case 'proofdecoity':
+      return 'assets/icons/dacoity.svg';
+    case 'chainsnatching':
+    case 'snatching':
+      return 'assets/icons/chain_snatching.svg';
+    default:
+      if (clean.contains('passport')) return 'assets/icons/passport.svg';
+      if (clean.contains('murder')) return 'assets/icons/murder.svg';
+      if (clean.contains('dacoity') || clean.contains('decoity')) {
+        return 'assets/icons/dacoity.svg';
+      }
+      if (clean.contains('snatch')) {
+        return 'assets/icons/chain_snatching.svg';
+      }
+      return null;
+  }
+}
+
 Widget _buildGridIcon(
     String label, dynamic fallback, Color color, double size) {
   final labelTrim = label.replaceAll('\n', ' ').trim();
+  final svgPath = _getDashboardSvgPath(labelTrim);
+  if (svgPath != null) {
+    // Optical balancing:
+    // Solid filled badges (1-5, 6, NC, RTI, DAR, MPDA, ITSSO, IRAD) have heavy ink mass; scale to balance with line art
+    final isSolidBadge = svgPath.contains('1to5') ||
+        svgPath.contains('6.svg') ||
+        svgPath.contains('nc.svg') ||
+        svgPath.contains('rti.svg') ||
+        svgPath.contains('dar.svg') ||
+        svgPath.contains('mpda.svg') ||
+        svgPath.contains('itsso.svg') ||
+        svgPath.contains('IRAD.svg');
+    // Tall icons need a slight height factor to match square icon visual mass
+    final isTall = svgPath.contains('juvenile') ||
+        svgPath.contains('crimewomen') ||
+        svgPath.contains('victim') ||
+        svgPath.contains('passport') ||
+        svgPath.contains('mvact');
+    // Wide icons need a slight constraint so they don't crowd card borders
+    final isWide = svgPath.contains('2-4wheeler') ||
+        svgPath.contains('accident') ||
+        svgPath.contains('chain_snatching');
 
-  if (labelTrim == 'I to V') {
-    return SvgPicture.asset(
-      'assets/icons/1to5.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'VI') {
-    return SvgPicture.asset(
-      'assets/icons/6.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Pending') {
-    return SvgPicture.asset(
-      'assets/icons/pending.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Gambling') {
-    return SvgPicture.asset(
-      'assets/icons/gambling.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Juvenile') {
-    return SvgPicture.asset(
-      'assets/icons/juvenile.svg',
-      width: size * 2.2,
-      height: size * 2.2,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim.toLowerCase().replaceAll(' ', '') == 'sandtheft') {
-    return SvgPicture.asset(
-      'assets/icons/sandtheft.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Undetected') {
-    return SvgPicture.asset(
-      'assets/icons/undetected.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Hurt') {
-    return SvgPicture.asset(
-      'assets/icons/hurt.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Kidnapping/Missing') {
-    return SvgPicture.asset(
-      'assets/icons/kidnapping.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Missing') {
-    return SvgPicture.asset(
-      'assets/icons/missing.svg',
-      width: size * 2.1,
-      height: size * 2.1,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'N.C') {
-    return SvgPicture.asset(
-      'assets/icons/nc.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Arrested') {
-    return SvgPicture.asset(
-      'assets/icons/arrested.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'POCSO') {
-    return SvgPicture.asset(
-      'assets/icons/pocso.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Crime against Women') {
-    return SvgPicture.asset(
-      'assets/icons/crimewomen.svg',
-      width: size * 2.2,
-      height: size * 2.2,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Victim') {
-    return SvgPicture.asset(
-      'assets/icons/victim.svg',
-      width: size * 2.2,
-      height: size * 2.2,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'A.D') {
-    return SvgPicture.asset(
-      'assets/icons/ad.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Prohibition') {
-    return SvgPicture.asset(
-      'assets/icons/prohibiton.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Theft') {
-    return SvgPicture.asset(
-      'assets/icons/theft.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Two/Four Wheeler Theft') {
-    return SvgPicture.asset(
-      'assets/icons/2-4wheeler.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Sam/Warrant') {
-    return SvgPicture.asset(
-      'assets/icons/sam-warrants.svg',
-      width: size * 2.2,
-      height: size * 2.2,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Muddemal') {
-    return SvgPicture.asset(
-      'assets/icons/muddemal.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'RTI') {
-    return SvgPicture.asset(
-      'assets/icons/rti.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Passport/PVR' ||
-      labelTrim == 'Passport/PVR/Lic' ||
-      labelTrim.contains('Passport')) {
-    return SvgPicture.asset(
-      'assets/icons/passport.svg',
-      width: size * 2.2,
-      height: size * 2.2,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'NDPS') {
-    return SvgPicture.asset(
-      'assets/icons/ndps.svg',
-      width: size * 2.5,
-      height: size * 2.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Gowansh') {
-    return SvgPicture.asset(
-      'assets/icons/gowans.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'IT Act' || labelTrim == 'ITact') {
-    return SvgPicture.asset(
-      'assets/icons/itact.svg',
-      width: size * 2.1,
-      height: size * 2.1,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'MCOCA' || labelTrim == 'MACOCA') {
-    return SvgPicture.asset(
-      'assets/icons/macoca.svg',
-      width: size * 2.1,
-      height: size * 2.1,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'UAPA') {
-    return SvgPicture.asset(
-      'assets/icons/uapa.svg',
-      width: size * 2.1,
-      height: size * 2.1,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'MPDA') {
-    return SvgPicture.asset(
-      'assets/icons/mpda.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'COIN') {
-    return SvgPicture.asset(
-      'assets/icons/coin.svg',
-      width: size * 2.1,
-      height: size * 2.1,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'MV Act' ||
-      labelTrim == 'M V Act' ||
-      labelTrim == 'MVact' ||
-      labelTrim == 'M.V Act') {
-    return SvgPicture.asset(
-      'assets/icons/mvact.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Accident') {
-    return SvgPicture.asset(
-      'assets/icons/accident.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Detected') {
-    return SvgPicture.asset(
-      'assets/icons/detected.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Disposal') {
-    return SvgPicture.asset(
-      'assets/icons/disposal.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Monthly') {
-    return SvgPicture.asset(
-      'assets/icons/monthly.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Absconded') {
-    return SvgPicture.asset(
-      'assets/icons/absconded.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Licence') {
-    return SvgPicture.asset(
-      'assets/icons/licence.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
+    final double scale =
+        isSolidBadge ? 1.20 : (isTall ? 1.50 : (isWide ? 1.34 : 1.42));
 
-  } else if (labelTrim == 'Repeat Offender') {
     return SvgPicture.asset(
-      'assets/icons/repeatoffender.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'DAR') {
-    return SvgPicture.asset(
-      'assets/icons/dar.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'IRAD' || labelTrim == 'IRDA') {
-    return SvgPicture.asset(
-      'assets/icons/IRAD.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'ITSSO') {
-    return SvgPicture.asset(
-      'assets/icons/itsso.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  }
-  for (final tool in ServiceData.dashboardTools) {
-    if (labelTrim.toLowerCase() == tool.label.toLowerCase()) {
-      if (tool.assetPath != null && tool.assetPath!.isNotEmpty) {
-        if (tool.assetPath!.endsWith('.svg')) {
-          return SvgPicture.asset(
-            tool.assetPath!,
-            width: size * 1.5,
-            height: size * 1.5,
-            colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-          );
-        } else {
-          return Image.asset(
-            tool.assetPath!,
-            width: size * 1.5,
-            height: size * 1.5,
-            color: color,
-          );
-        }
-      }
-      return _buildServiceIcon(labelTrim, tool.icon, color, size);
-    }
-  }
-  final dynamic icon = _dashboardTileIcon(label, fallback);
-  if (icon is IconData) return Icon(icon, color: color, size: size);
-  return FaIcon(icon, color: color, size: size);
-}
+      svgPath,
 
-Widget _buildServiceIcon(
-    String label, dynamic fallback, Color color, double size) {
-  final labelTrim = label.replaceAll('\n', ' ').trim();
-  for (final tool in ServiceData.dashboardTools) {
-    if (labelTrim.toLowerCase() == tool.label.toLowerCase()) {
-      if (tool.assetPath != null && tool.assetPath!.isNotEmpty) {
-        if (tool.assetPath!.endsWith('.svg')) {
-          return SvgPicture.asset(
-            tool.assetPath!,
-            width: size * 1.5,
-            height: size * 1.5,
-            colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-          );
-        } else {
-          return Image.asset(
-            tool.assetPath!,
-            width: size * 1.5,
-            height: size * 1.5,
-            color: color,
-          );
-        }
-      }
-      break;
-    }
-  }
-  if (labelTrim == 'Licence') {
-    return SvgPicture.asset(
-      'assets/icons/licence.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'MPDA') {
-    return SvgPicture.asset(
-      'assets/icons/mpda.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Repeat Offender') {
-    return SvgPicture.asset(
-      'assets/icons/repeatoffender.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Property Recovery') {
-    return SvgPicture.asset(
-      'assets/icons/muddemal.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'Passport/PVR') {
-    return SvgPicture.asset(
-      'assets/icons/passport.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'DAR') {
-    return SvgPicture.asset(
-      'assets/icons/dar.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'IRAD' || labelTrim == 'IRDA') {
-    return SvgPicture.asset(
-      'assets/icons/IRAD.svg',
-      width: size * 1.5,
-      height: size * 1.5,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  } else if (labelTrim == 'ITSSO') {
-    return SvgPicture.asset(
-      'assets/icons/itsso.svg',
       width: size * 1.5,
       height: size * 1.5,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
   }
-  if (fallback is IconData) return Icon(fallback, color: color, size: size);
-  return FaIcon(fallback, color: color, size: size);
+  final glyphSize = size * 1.42;
+  if (fallback is IconData)
+    // ignore: curly_braces
+    //
+    // _in_flow_control_structures
+    // ignore: curly_braces_in_flow_control_structures
+    return Icon(fallback, color: color, size: glyphSize);
+  return FaIcon(fallback, color: color, size: glyphSize);
 }
 
 class CardsIconPainter extends CustomPainter {
@@ -1921,21 +1706,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _showLanguageSheet() {
     final activeLang = context.read<SettingsProvider>().locale.languageCode;
     final langs = [
-      ('🇬🇧', 'English', 'Nagaland, Arunachal Pradesh, Meghalaya', 'en'),
+      ('English', 'Nagaland, Arunachal Pradesh, Meghalaya', 'en'),
       (
-        '🇮🇳',
         'Hindi (हिंदी)',
         'Uttar Pradesh, Bihar, Madhya Pradesh, Rajasthan, Haryana, Himachal, Jharkhand, Chhattisgarh, Uttarakhand',
         'hi'
       ),
-      ('🇮🇳', 'Marathi (मराठी)', 'Maharashtra', 'mr'),
-      ('🇮🇳', 'Gujarati (ગુજરાતી)', 'Gujarat', 'gu'),
-      ('🇮🇳', 'Bengali (বাংলা)', 'West Bengal, Tripura', 'bn'),
-      ('🇮🇳', 'Telugu (తెలుగు)', 'Andhra Pradesh, Telangana', 'te'),
-      ('🇮🇳', 'Tamil (தமிழ்)', 'Tamil Nadu, Puducherry', 'ta'),
-      ('🇮🇳', 'Kannada (ಕನ್ನಡ)', 'Karnataka', 'kn'),
-      ('🇮🇳', 'Malayalam (മലയാളം)', 'Kerala, Lakshadweep', 'ml'),
-      ('🇮🇳', 'Punjabi (ਪੰਜਾਬੀ)', 'Punjab', 'pa'),
+      ('Marathi (मराठी)', 'Maharashtra', 'mr'),
+      ('Gujarati (ગુજરાતી)', 'Gujarat', 'gu'),
+      ('Bengali (বাংলা)', 'West Bengal, Tripura', 'bn'),
+      ('Telugu (తెలుగు)', 'Andhra Pradesh, Telangana', 'te'),
+      ('Tamil (தமிழ்)', 'Tamil Nadu, Puducherry', 'ta'),
+      ('Kannada (ಕನ್ನಡ)', 'Karnataka', 'kn'),
+      ('Malayalam (മലയാളം)', 'Kerala, Lakshadweep', 'ml'),
+      ('Punjabi (ਪੰਜਾਬੀ)', 'Punjab', 'pa'),
     ];
 
     showModalBottomSheet(
@@ -1988,13 +1772,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 itemCount: langs.length,
                 itemBuilder: (ctx, i) {
                   final l = langs[i];
-                  final isSelected = activeLang == l.$4;
+                  final isSelected = activeLang == l.$3;
                   return Material(
                     color: Colors.transparent,
                     child: ListTile(
-                      leading: Text(l.$1, style: const TextStyle(fontSize: 20)),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 2),
                       title: Text(
-                        l.$2,
+                        l.$1,
                         style: GoogleFonts.poppins(
                           fontSize: 15,
                           fontWeight:
@@ -2005,7 +1790,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
                       subtitle: Text(
-                        l.$3,
+                        l.$2,
                         style: GoogleFonts.poppins(
                           fontSize: 11,
                           color: AppColors.lightSubText,
@@ -2017,11 +1802,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           : const Icon(Icons.chevron_right_rounded,
                               color: AppColors.goldPrimary, size: 22),
                       onTap: () {
-                        context.read<SettingsProvider>().setLanguage(l.$4);
+                        context.read<SettingsProvider>().setLanguage(l.$3);
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                           content: Text(
-                            'Language set to ${l.$2}',
+                            'Language set to ${l.$1}',
                             style: GoogleFonts.poppins(color: Colors.white),
                           ),
                           backgroundColor: AppColors.infoBlue,
@@ -2110,14 +1895,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     _drawerItem(
                       Icons.admin_panel_settings_rounded,
                       MenuLocalizations.get(lang, 'adminPanel'),
-                      () {
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const AdminPanelScreen()),
-                        );
-                      },
+                      // Like the other items: the menu stays open, so Back
+                      // returns to it.
+                      () => Navigator.push(
+                        context,
+                        AppTheme.fadeSlideRoute(page: const AdminPanelScreen()),
+                      ),
                     ),
                   ],
                   if (PoliceHierarchyHelper.canSendAlerts(
@@ -2321,7 +2104,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _drawerItem(
                     Icons.logout_rounded,
                     l10n.logout,
-                    () {
+                    () async {
+                      // Ask first; nothing happens on Cancel.
+                      if (!await confirmLogout(context, label: l10n.logout) ||
+                          !context.mounted) {
+                        return;
+                      }
                       context
                           .read<SettingsProvider>()
                           .setSkipBiometricAutoTrigger(
@@ -2752,6 +2540,7 @@ class _HomeTabState extends State<_HomeTab> {
       ('Hurt', 'hurt', rec<HurtProvider>((p) => p.records)),
       ('POCSO', 'pocso', rec<PocsoProvider>((p) => p.records)),
       ('Passport/PVR', 'passport', rec<PassportProvider>((p) => p.records)),
+      ('Licence', 'licence', rec<LicenceProvider>((p) => p.records)),
       ('Monthly', 'monthly', rec<MonthlyProvider>((p) => p.records)),
       ('Pending', 'pending', rec<PendingProvider>((p) => p.records)),
       ('Detected', 'detected', rec<DetectedProvider>((p) => p.records)),
@@ -3210,7 +2999,17 @@ class _HomeTabState extends State<_HomeTab> {
                 onPressed: () async {
                   final spoken = await VoiceSearchDialog.show(context);
                   if (spoken != null && spoken.trim().isNotEmpty) {
-                    final cleanSpoken = spoken.trim();
+                    var cleanSpoken = spoken.trim();
+                    while (cleanSpoken.endsWith('.') ||
+                        cleanSpoken.endsWith(',') ||
+                        cleanSpoken.endsWith('?') ||
+                        cleanSpoken.endsWith('!')) {
+                      cleanSpoken = cleanSpoken
+                          .substring(0, cleanSpoken.length - 1)
+                          .trim();
+                    }
+                    if (cleanSpoken.isEmpty) return;
+
                     final parsedDate =
                         UniversalSearch.tryParseNaturalDate(cleanSpoken);
                     if (parsedDate != null) {
@@ -3448,8 +3247,16 @@ class _HomeTabState extends State<_HomeTab> {
 
   int _matchingModulesCount(String query) {
     if (query.trim().isEmpty) return 0;
-    final q = query.trim().toLowerCase();
-    final matchingFormIV = kFormIVCaseCategories
+    var q = query.trim().toLowerCase();
+    while (q.endsWith('.') ||
+        q.endsWith(',') ||
+        q.endsWith('?') ||
+        q.endsWith('!')) {
+      q = q.substring(0, q.length - 1).trim();
+    }
+    if (q.isEmpty) return 0;
+
+    final matchingFormIV = formIVCaseCategories
         .where((cat) => cat.toLowerCase().contains(q))
         .length;
     final allClasses = [...Classification.all, ..._extraSearchClassifications];
@@ -3462,9 +3269,16 @@ class _HomeTabState extends State<_HomeTab> {
 
   Widget _buildMatchingModuleTabs(String query) {
     if (query.trim().isEmpty) return const SizedBox.shrink();
-    final q = query.trim().toLowerCase();
+    var q = query.trim().toLowerCase();
+    while (q.endsWith('.') ||
+        q.endsWith(',') ||
+        q.endsWith('?') ||
+        q.endsWith('!')) {
+      q = q.substring(0, q.length - 1).trim();
+    }
+    if (q.isEmpty) return const SizedBox.shrink();
 
-    final matchingFormIV = kFormIVCaseCategories.where((cat) {
+    final matchingFormIV = formIVCaseCategories.where((cat) {
       return cat.toLowerCase().contains(q);
     }).toList();
 
@@ -3698,7 +3512,8 @@ class _HomeTabState extends State<_HomeTab> {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            item.name.replaceAll('\n', ' '),
+                            TranslationHelper.translate(
+                                context, item.name.replaceAll('\n', ' ')),
                             style: GoogleFonts.poppins(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -3932,7 +3747,7 @@ class _HomeTabState extends State<_HomeTab> {
     // Labels already shown by the fixed tiles above. Backend standalone rows
     // that match one of these (e.g. "A.D." vs "A.D", "Coin" vs "COIN",
     // "Missing" inside "Kidnapping/Missing", "Sec 156(3)/175(3)(BNSS)" vs
-    // "CRPC 1563 / BNSS 1753") must not be added a second time.
+    // "CRPC 156(3)/BNSS 175(3)") must not be added a second time.
     String norm(String s) =>
         s.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
     String digits(String s) => s.replaceAll(RegExp(r'[^0-9]'), '');
@@ -3941,6 +3756,9 @@ class _HomeTabState extends State<_HomeTab> {
       ...cases.map((c) => c.name),
       ...services.map((c) => c.name),
       ...ServiceData.dashboardTools.map((t) => t.label),
+      PassportLicenceScreen.licenceLabel, // a tab inside Passport/PVR/Licence
+      'DAR', 'IRAD', // tabs inside DAR/IRAD
+      'NAFIS', // a tab inside NAFIS/Fingerprint
     ];
     final shownNorm = shownLabels.map(norm).toList();
     final shownDigits = shownLabels.map(digits).toList();
@@ -4114,6 +3932,40 @@ class _HomeTabState extends State<_HomeTab> {
       );
       return;
     }
+    if (label.toUpperCase() == DarIradScreen.title) {
+      // Two tabs: DAR and IRAD
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: DarIradScreen(stationName: auth.stationName),
+        ),
+      );
+      return;
+    }
+    if (label.toUpperCase() == 'DAR' || item.moduleKey.toLowerCase() == 'dar') {
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: DarHubScreen(stationName: auth.stationName),
+        ),
+      );
+      return;
+    }
+    if (label.toUpperCase() == 'IRAD' ||
+        label.toUpperCase() == 'IRDA' ||
+        item.moduleKey.toLowerCase() == 'irad' ||
+        item.moduleKey.toLowerCase() == 'irda') {
+      final auth = context.read<AuthProvider>();
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: IradHubScreen(stationName: auth.stationName),
+        ),
+      );
+      return;
+    }
     if (item.name == 'I to V') {
       Navigator.push(
         context,
@@ -4191,12 +4043,15 @@ class _HomeTabState extends State<_HomeTab> {
           page: RepeatOffenderSummaryScreen(stationName: auth.stationName),
         ),
       );
-    } else if (item.name == 'NAFIS' || item.moduleKey == 'nafis') {
+    } else if (item.name == 'NAFIS' ||
+        item.name == NafisFingerprintScreen.title ||
+        item.moduleKey == 'nafis') {
+      // Two tabs: NAFIS and Fingerprint
       final auth = context.read<AuthProvider>();
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
-          page: NAFISHubScreen(stationName: auth.stationName),
+          page: NafisFingerprintScreen(stationName: auth.stationName),
         ),
       );
     } else if (item.name == 'E-Learning' ||
@@ -4207,6 +4062,26 @@ class _HomeTabState extends State<_HomeTab> {
         context,
         AppTheme.fadeSlideRoute(
           page: ELearningScreen(stationName: auth.stationName),
+        ),
+      );
+    } else if (label.toLowerCase() == 'licence' ||
+        label.toLowerCase() == 'license' ||
+        item.name.toLowerCase() == 'licence' ||
+        item.name.toLowerCase() == 'license' ||
+        item.moduleKey == 'licence') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: LicenceHubScreen(stationName: widget.auth.stationName),
+        ),
+      );
+    } else if (label.toLowerCase().contains('passport') ||
+        item.name.toLowerCase().contains('passport') ||
+        item.moduleKey == 'passport') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: PassportLicenceScreen(stationName: widget.auth.stationName),
         ),
       );
     } else if (item.moduleKey == 'service_tool' ||
@@ -4244,6 +4119,18 @@ class _HomeTabState extends State<_HomeTab> {
           ),
         ),
       );
+    } else if (item.moduleKey == 'kidnapping') {
+      // The combined "Kidnapping/Missing" tab of "1 to 5"
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const FormIVSelectionScreen(
+            openCategory: 'Kidnapping/Missing',
+            customTitle: 'Kidnapping/Missing',
+            mode: FormIVSelectionMode.browse,
+          ),
+        ),
+      );
     } else if (CategorySubtabsScreen.forTile(item.moduleKey) != null) {
       Navigator.push(
         context,
@@ -4271,6 +4158,13 @@ class _HomeTabState extends State<_HomeTab> {
           page: JuvenileHubScreen(stationName: widget.auth.stationName),
         ),
       );
+    } else if (item.moduleKey == 'victim' || item.name == 'Victim') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: VictimHubScreen(stationName: widget.auth.stationName),
+        ),
+      );
     } else if (item.moduleKey == 'muddemal' || item.name == 'Muddemal') {
       Navigator.push(
         context,
@@ -4279,8 +4173,13 @@ class _HomeTabState extends State<_HomeTab> {
         ),
       );
     } else {
-      final isStatsItem =
-          ['Monthly', 'Pending', 'Disposal'].contains(item.name);
+      final isStatsItem = [
+        'Monthly',
+        'Pending',
+        'Disposal',
+        'Sam/Warrant',
+        'Sam Warrant'
+      ].contains(item.name);
       if (isStatsItem) {
         Navigator.push(
           context,
@@ -4350,8 +4249,20 @@ class _HomeTabState extends State<_HomeTab> {
                 borderRadius: BorderRadius.circular(AppRadius.md),
                 border: Border.all(color: AppColors.lightBorder),
               ),
-              child: Center(
-                child: iconWidget,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final side = constraints.maxWidth < constraints.maxHeight
+                      ? constraints.maxWidth
+                      : constraints.maxHeight;
+                  final baseSize = (side * 0.44).clamp(18.0, 30.0);
+                  return Center(
+                    child: _buildGridIcon(
+                        item.name,
+                        matchedTool?.icon ?? _classIcon(item.iconName),
+                        AppColors.navyMid,
+                        baseSize),
+                  );
+                },
               ),
             ),
           ),
@@ -4674,7 +4585,7 @@ class _HomeTabState extends State<_HomeTab> {
             const Divider(height: 1),
             Expanded(
               child: FormIVCategoryButtonGrid(
-                labels: kFormIVCaseCategories,
+                labels: formIVCaseCategories,
                 scrollable: true,
                 padding: const EdgeInsets.all(24),
                 onLabelTap: (label) {
@@ -5730,17 +5641,13 @@ class _CalendarTab extends StatefulWidget {
   State<_CalendarTab> createState() => _CalendarTabState();
 }
 
-enum _CalendarTabArea { weekly, monthly, yearly, custom }
+enum _CalendarTabArea { weekly, monthly, samWarrant, yearly, custom }
 
 class _CalendarTabState extends State<_CalendarTab> {
   _CalendarTabArea _activeArea = _CalendarTabArea.weekly;
   DateTimeRange? _customRange;
   late int _selectedMonth;
   late int _selectedYear;
-  bool _showMonthlySummaryTable = false;
-  bool _showMonthlyClassVTable = false;
-  bool _showMonthlyClassVITable = false;
-  bool _showMonthlyPreventiveTable = false;
 
   @override
   void initState() {
@@ -5748,115 +5655,6 @@ class _CalendarTabState extends State<_CalendarTab> {
     final now = DateTime.now();
     _selectedMonth = now.month;
     _selectedYear = now.year;
-  }
-
-  static const _heads = [
-    'Murder',
-    'Att to Murder',
-    'Dacoity',
-    'Pro Of Dacoity',
-    'Total Robery',
-    'Chain Robery',
-    'Other Robery',
-    'Total H B Ts',
-    'H B Ts (Day)',
-    'H B Ts (Night)',
-    'Total Theft',
-    'Total M VThefts',
-    'SAND THEFT',
-    'Chain Snaching',
-    'Mobile Thefts',
-    'Cattel Theft',
-    'Other Thefts',
-    'Extcrtion',
-    'Cheating',
-    'Cr Br of Trust',
-    'Mischief',
-    'Rioting',
-    'Unlawful Assembly',
-    'Attempt to suicide',
-    'Hurt',
-    'Kidnapping/Missing',
-    'Rape',
-    'Assault on Govt-',
-    'Molestation (354)',
-    '304 (A) I P C',
-    '498 (A) I P C',
-    '509 I P C',
-    'Othar I P C',
-    'Miscellaneous',
-  ];
-
-  static String _getHead(ModuleRecord r) {
-    final sub = (r.subCategory ?? '').toLowerCase();
-    final key = r.moduleKey.toLowerCase();
-
-    if (key.contains('murder') || sub.contains('murder')) {
-      return sub.contains('attempt') || sub.contains('att')
-          ? 'Att to Murder'
-          : 'Murder';
-    }
-    if (key.contains('dacoity') || sub.contains('dacoity')) {
-      return sub.contains('preparation') || sub.contains('pro')
-          ? 'Pro Of Dacoity'
-          : 'Dacoity';
-    }
-    if (key.contains('robbery') || sub.contains('robery')) {
-      if (sub.contains('chain')) return 'Chain Robery';
-      return 'Total Robery'; // Logic can be expanded to return 'Other Robery' if needed
-    }
-    if (key.contains('house') || sub.contains('h b t') || sub.contains('hbt')) {
-      if (sub.contains('day')) return 'H B Ts (Day)';
-      if (sub.contains('night')) return 'H B Ts (Night)';
-      return 'Total H B Ts';
-    }
-    if (key.contains('theft') || sub.contains('theft')) {
-      if (key.contains('sand') || sub.contains('sand')) return 'SAND THEFT';
-      if (key.contains('two_four') ||
-          sub.contains('wheeler') ||
-          sub.contains('vehicle')) {
-        return 'Total M VThefts';
-      }
-      if (sub.contains('chain')) return 'Chain Snaching';
-      if (sub.contains('mobile')) return 'Mobile Thefts';
-      if (sub.contains('cattle') || sub.contains('cattel')) {
-        return 'Cattel Theft';
-      }
-      if (sub.contains('other')) return 'Other Thefts';
-      return 'Total Theft';
-    }
-    if (key.contains('extortion') || sub.contains('extcrtion')) {
-      return 'Extcrtion';
-    }
-    if (key.contains('cheating') || sub.contains('cheating')) return 'Cheating';
-    if (sub.contains('trust') || sub.contains('br of trust')) {
-      return 'Cr Br of Trust';
-    }
-    if (key.contains('mischief') || sub.contains('mischief')) return 'Mischief';
-    if (key.contains('rioting') || sub.contains('rioting')) return 'Rioting';
-    if (sub.contains('unlawful') || sub.contains('assembly')) {
-      return 'Unlawful Assembly';
-    }
-    if (sub.contains('suicide')) return 'Attempt to suicide';
-    if (key.contains('hurt') || sub.contains('hurt')) return 'Hurt';
-    if (key.contains('kidnapping') || sub.contains('kidnap')) {
-      return 'Kidnapping/Missing';
-    }
-    if (key.contains('rape') || sub.contains('rape')) return 'Rape';
-    if (sub.contains('assault') && sub.contains('govt')) {
-      return 'Assault on Govt-';
-    }
-    if (sub.contains('molestation') || sub.contains('354')) {
-      return 'Molestation (354)';
-    }
-    if (sub.contains('304')) return '304 (A) I P C';
-    if (sub.contains('498')) return '498 (A) I P C';
-    if (sub.contains('509')) return '509 I P C';
-    if (sub.contains('other ipc') || sub.contains('othar')) {
-      return 'Othar I P C';
-    }
-
-    return 'Miscellaneous';
   }
 
   List<ModuleRecord> _getConsolidatedRecords(BuildContext context) {
@@ -5873,6 +5671,7 @@ class _CalendarTabState extends State<_CalendarTab> {
     records.addAll(context.watch<HurtProvider>().records);
     records.addAll(context.watch<PocsoProvider>().records);
     records.addAll(context.watch<PassportProvider>().records);
+    records.addAll(context.watch<LicenceProvider>().records);
     records.addAll(context.watch<TwoFourWheelerProvider>().records);
     records.addAll(context.watch<ArrestedProvider>().records);
     records.addAll(context.watch<AbscondedProvider>().records);
@@ -5928,6 +5727,7 @@ class _CalendarTabState extends State<_CalendarTab> {
               children: [
                 _tabBtn('Weekly', _CalendarTabArea.weekly),
                 _tabBtn('Monthly', _CalendarTabArea.monthly),
+                _tabBtn('Sam/Warrant', _CalendarTabArea.samWarrant),
                 _tabBtn('Yearly', _CalendarTabArea.yearly),
                 _tabBtn('Custom', _CalendarTabArea.custom),
               ],
@@ -6114,6 +5914,23 @@ class _CalendarTabState extends State<_CalendarTab> {
         "December"
       ][_selectedMonth - 1]} $_selectedYear';
       reportTitle = 'MONTHLY REPORT';
+    } else if (area == _CalendarTabArea.samWarrant) {
+      filtered = allRecords;
+      rangeLabel = '${[
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+      ][_selectedMonth - 1]} $_selectedYear';
+      reportTitle = 'SUMMONS & WARRANT MONTHLY REPORT';
     } else if (area == _CalendarTabArea.yearly) {
       filtered =
           allRecords.where((r) => r.incidentDate.year == now.year).toList();
@@ -6248,51 +6065,23 @@ class _CalendarTabState extends State<_CalendarTab> {
               ),
             ),
             if (area == _CalendarTabArea.monthly) ...[
-              // Month/Year selector moved below the Monthly navbar (tabs).
+              // Month/Year selector
               _buildMonthSelector(),
               const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Statistics Summary',
-                          style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.navyDark)),
-                      Text('${filtered.length} cases registered in total',
-                          style: GoogleFonts.poppins(
-                              fontSize: 11, color: AppColors.lightSubText)),
-                    ],
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        _showMonthlySummaryTable = !_showMonthlySummaryTable;
-                        if (_showMonthlySummaryTable) {
-                          _showMonthlyClassVTable = false;
-                          _showMonthlyClassVITable = false;
-                          _showMonthlyPreventiveTable = false;
-                        }
-                      });
-                    },
-                    icon: const Icon(Icons.download_rounded,
-                        size: 16, color: Colors.white),
-                    label: Text('Summary',
-                        style: GoogleFonts.poppins(
-                            fontSize: 11, color: Colors.white)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.navyMid,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.md)),
-                    ),
-                  ),
-                ],
+              // Dynamic Monthly Crime Comparative Table from database backend
+              MonthlyCrimeComparativeTable(
+                selectedYear: _selectedYear,
+                selectedMonth: _selectedMonth,
               ),
-              const SizedBox(height: 20),
+            ] else if (area == _CalendarTabArea.samWarrant) ...[
+              // Month/Year selector
+              _buildMonthSelector(),
+              const SizedBox(height: 16),
+              // Dynamic Summons & Warrant Report Table from database backend
+              SummonsWarrantReportTable(
+                selectedYear: _selectedYear,
+                selectedMonth: _selectedMonth,
+              ),
             ] else ...[
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -6313,7 +6102,7 @@ class _CalendarTabState extends State<_CalendarTab> {
                   ElevatedButton.icon(
                     onPressed: () => ModulePdfHelper.generateSummaryReportPdf(
                         countsForPdf, reportTitle, rangeLabel),
-                    icon: const Icon(Icons.download_rounded,
+                    icon: const Icon(Icons.assessment_outlined,
                         size: 16, color: Colors.white),
                     label: Text('Summary',
                         style: GoogleFonts.poppins(
@@ -6328,62 +6117,6 @@ class _CalendarTabState extends State<_CalendarTab> {
                 ],
               ),
               const SizedBox(height: 20),
-            ],
-            if (area == _CalendarTabArea.monthly) ...[
-              // Keep the Class V / VI / Preventives buttons always visible.
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(AppRadius.lg),
-                  border: Border.all(color: AppColors.lightBorder),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
-                      blurRadius: 10,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _monthlyReportButtons(filtered, reportTitle, rangeLabel),
-                    const SizedBox(height: 14),
-                    if (sortedItems.isEmpty)
-                      _buildEmptyReport()
-                    else if (_showMonthlySummaryTable)
-                      _buildMonthlySummaryPhotoTable(
-                        context,
-                        allRecords,
-                        _selectedMonth,
-                        _selectedYear,
-                      )
-                    else if (_showMonthlyClassVTable)
-                      _buildMonthlyReportTableInternal(
-                        context,
-                        allRecords,
-                        _selectedMonth,
-                        _selectedYear,
-                      ),
-                    if (sortedItems.isNotEmpty && _showMonthlyClassVITable)
-                      _buildMonthlyReportTableInternalVI(
-                        context,
-                        allRecords,
-                        _selectedMonth,
-                        _selectedYear,
-                      ),
-                    if (sortedItems.isNotEmpty && _showMonthlyPreventiveTable)
-                      _buildMonthlyReportTableInternalPreventive(
-                        context,
-                        allRecords,
-                        _selectedMonth,
-                        _selectedYear,
-                      ),
-                  ],
-                ),
-              ),
-            ] else ...[
               if (sortedItems.isEmpty)
                 _buildEmptyReport()
               else
@@ -6395,2193 +6128,6 @@ class _CalendarTabState extends State<_CalendarTab> {
     );
   }
 
-  static Widget _buildMonthlyReportTableInternal(
-    BuildContext context,
-    List<ModuleRecord> allRecords,
-    int selectedMonth,
-    int selectedYear,
-  ) {
-    final List<Map<String, dynamic>> tableRows = [];
-
-    List<ModuleRecord> filter(int m, int y,
-        {bool isYearCurrent = false, bool isYearPrevious = false}) {
-      return allRecords.where((r) {
-        if (isYearCurrent) {
-          return r.incidentDate.year == y && r.incidentDate.month <= m;
-        }
-        if (isYearPrevious) {
-          return r.incidentDate.year == y && r.incidentDate.month <= m;
-        }
-        return r.incidentDate.month == m && r.incidentDate.year == y;
-      }).toList();
-    }
-
-    final currentMonthRecords = filter(selectedMonth, selectedYear);
-    final previousMonth = selectedMonth == 1 ? 12 : selectedMonth - 1;
-    final previousMonthYear =
-        selectedMonth == 1 ? selectedYear - 1 : selectedYear;
-    final previousMonthRecords = filter(previousMonth, previousMonthYear);
-    final sameMonthLastYearRecords = filter(selectedMonth, selectedYear - 1);
-    final yearCurrentRecords =
-        filter(selectedMonth, selectedYear, isYearCurrent: true);
-    final yearPreviousRecords =
-        filter(selectedMonth, selectedYear - 1, isYearPrevious: true);
-
-    int totalcmR = 0, totalcmD = 0;
-    int totalpmR = 0, totalpmD = 0;
-    int totalsmlyR = 0, totalsmlyD = 0;
-    int totalycR = 0, totalycD = 0;
-    int totalypR = 0, totalypD = 0;
-
-    for (int i = 0; i < _heads.length; i++) {
-      final head = _heads[i];
-      List<ModuleRecord> getByHead(List<ModuleRecord> recs) =>
-          recs.where((r) => _getHead(r) == head).toList();
-
-      final cm = getByHead(currentMonthRecords);
-      final pm = getByHead(previousMonthRecords);
-      final smly = getByHead(sameMonthLastYearRecords);
-      final yc = getByHead(yearCurrentRecords);
-      final yp = getByHead(yearPreviousRecords);
-
-      int detected(List<ModuleRecord> recs) =>
-          recs.where((r) => r.status.toLowerCase() != 'open').length;
-
-      final cmR = cm.length;
-      final cmD = detected(cm);
-      final pmR = pm.length;
-      final pmD = detected(pm);
-      final smlyR = smly.length;
-      final smlyD = detected(smly);
-      final ycR = yc.length;
-      final ycD = detected(yc);
-      final ypR = yp.length;
-      final ypD = detected(yp);
-
-      final variation = ycR - ypR;
-
-      tableRows.add({
-        'N': i + 1,
-        'Heads': head,
-        'cm_R': cmR,
-        'cm_D': cmD,
-        'pm_R': pmR,
-        'pm_D': pmD,
-        'smly_R': smlyR,
-        'smly_D': smlyD,
-        'yc_R': ycR,
-        'yc_D': ycD,
-        'yp_R': ypR,
-        'yp_D': ypD,
-        'variation': variation,
-        'cmRecords': cm,
-        'pmRecords': pm,
-        'smlyRecords': smly,
-        'ycRecords': yc,
-        'ypRecords': yp,
-      });
-
-      totalcmR += cmR;
-      totalcmD += cmD;
-      totalpmR += pmR;
-      totalpmD += pmD;
-      totalsmlyR += smlyR;
-      totalsmlyD += smlyD;
-      totalycR += ycR;
-      totalycD += ycD;
-      totalypR += ypR;
-      totalypD += ypD;
-    }
-
-    tableRows.add({
-      'N': '',
-      'Heads': 'TOTAL',
-      'cm_R': totalcmR,
-      'cm_D': totalcmD,
-      'pm_R': totalpmR,
-      'pm_D': totalpmD,
-      'smly_R': totalsmlyR,
-      'smly_D': totalsmlyD,
-      'yc_R': totalycR,
-      'yc_D': totalycD,
-      'yp_R': totalypR,
-      'yp_D': totalypD,
-      'variation': totalycR - totalypR,
-      'cmRecords': const <ModuleRecord>[],
-      'pmRecords': const <ModuleRecord>[],
-      'smlyRecords': const <ModuleRecord>[],
-      'ycRecords': const <ModuleRecord>[],
-      'ypRecords': const <ModuleRecord>[],
-    });
-
-    final prevMonth = selectedMonth == 1 ? 12 : selectedMonth - 1;
-    final prevMonthYear = selectedMonth == 1 ? selectedYear - 1 : selectedYear;
-    final cmDateLabel =
-        DateFormat('MMMM,yyyy').format(DateTime(selectedYear, selectedMonth));
-    final pmDateLabel =
-        DateFormat('MMMM,yyyy').format(DateTime(prevMonthYear, prevMonth));
-    final smlyDateLabel = DateFormat('MMMM,yyyy')
-        .format(DateTime(selectedYear - 1, selectedMonth));
-    final ycDateLabel = 'Year,$selectedYear';
-    final ypDateLabel = 'Year,${selectedYear - 1}';
-
-    final classVRowDefs = <Map<String, dynamic>>[
-      {'sr': '1', 'label': 'Murder', 'head': 'Murder'},
-      {'sr': '2', 'label': 'Attempt to murder', 'head': 'Att to Murder'},
-      {'sr': '3', 'label': 'Dacoity', 'head': 'Dacoity'},
-      {'sr': '4', 'label': 'Pro of Decoity', 'head': 'Pro Of Dacoity'},
-      {
-        'sr': '5',
-        'label': 'Total Robery',
-        'head': 'Total Robery',
-        'bold': true
-      },
-      {'sr': 'a', 'label': 'Chain Robery', 'head': 'Chain Robery', 'indent': 1},
-      {'sr': 'b', 'label': 'Other Robery', 'head': 'Other Robery', 'indent': 1},
-      {
-        'sr': '6',
-        'label': 'Total H.B.Ts',
-        'head': 'Total H B Ts',
-        'bold': true
-      },
-      {'sr': 'a', 'label': 'H.B.Ts (Day)', 'head': 'H B Ts (Day)', 'indent': 1},
-      {
-        'sr': 'b',
-        'label': 'H.B.Ts (Night)',
-        'head': 'H B Ts (Night)',
-        'indent': 1,
-      },
-      {'sr': '7', 'label': 'Total thefts', 'head': 'Total Theft', 'bold': true},
-      {
-        'sr': 'a',
-        'label': 'Total MV Thefts',
-        'head': 'Total M VThefts',
-        'indent': 1,
-      },
-      {'sr': 'b', 'label': 'Sand Theft', 'head': 'SAND THEFT', 'indent': 1},
-      {
-        'sr': 'c',
-        'label': 'Chain Snaching',
-        'head': 'Chain Snaching',
-        'indent': 1,
-      },
-      {
-        'sr': 'd',
-        'label': 'Mobile Thefts',
-        'head': 'Mobile Thefts',
-        'indent': 1
-      },
-      {
-        'sr': 'e',
-        'label': 'Cattle Thefts',
-        'head': 'Cattel Theft',
-        'indent': 1
-      },
-      {'sr': 'f', 'label': 'Other Thefts', 'head': 'Other Thefts', 'indent': 1},
-      {'sr': '8', 'label': 'Extortion', 'head': 'Extcrtion'},
-      {'sr': '9', 'label': 'Cheating', 'head': 'Cheating', 'bold': true},
-      {'sr': '10', 'label': 'Cr Br of Trust', 'head': 'Cr Br of Trust'},
-      {'sr': '11', 'label': 'Mischief', 'head': 'Mischief'},
-      {'sr': '12', 'label': 'Rioting', 'head': 'Rioting'},
-      {'sr': '13', 'label': 'Unlawful assembly', 'head': 'Unlawful Assembly'},
-      {'sr': '14', 'label': 'Attempt to Suicide', 'head': 'Attempt to suicide'},
-      {'sr': '15', 'label': 'Hurt', 'head': 'Hurt', 'bold': true},
-      {
-        'sr': '16',
-        'label': 'Kidnapping/Missing',
-        'head': 'Kidnapping/Missing',
-        'bold': true
-      },
-      {'sr': '17', 'label': 'Rape', 'head': 'Rape', 'bold': true},
-      {
-        'sr': '18',
-        'label': 'Assault on Govt.',
-        'head': 'Assault on Govt-',
-        'bold': true,
-      },
-      {'sr': '19', 'label': 'Molestation (354)', 'head': 'Molestation (354)'},
-      {'sr': '20', 'label': '304 (A) IPC', 'head': '304 (A) I P C'},
-      {'sr': '21', 'label': '498 (A) IPC', 'head': '498 (A) I P C'},
-      {'sr': '22', 'label': '509 IPC', 'head': '509 I P C'},
-      {'sr': '23', 'label': 'Other IPC', 'head': 'Othar I P C'},
-      {'sr': '', 'label': 'Total', 'head': 'TOTAL', 'bold': true},
-    ];
-
-    // Class V screen: slightly larger type; Murder–Other IPC share vertical padding
-    // so adjacent rows do not stack default top+bottom cell padding (extra gap).
-    const classVBodyFontSize = 11.0;
-    const classVTitleFontSize = 12.0;
-    const classVTightRowHeads = <String>{
-      'Murder',
-      'Att to Murder',
-      'Dacoity',
-      'Pro Of Dacoity',
-      'Total Robery',
-      'Chain Robery',
-      'Other Robery',
-      'Total H B Ts',
-      'H B Ts (Day)',
-      'H B Ts (Night)',
-      'Total Theft',
-      'Total M VThefts',
-      'SAND THEFT',
-      'Chain Snaching',
-      'Mobile Thefts',
-      'Cattel Theft',
-      'Other Thefts',
-      'Extcrtion',
-      'Cheating',
-      'Cr Br of Trust',
-      'Mischief',
-      'Rioting',
-      'Unlawful Assembly',
-      'Attempt to suicide',
-      'Hurt',
-      'Kidnapping/Missing',
-      'Rape',
-      'Assault on Govt-',
-      'Molestation (354)',
-      '304 (A) I P C',
-      '498 (A) I P C',
-      '509 I P C',
-      'Othar I P C',
-    };
-
-    EdgeInsets classVCellPad({
-      required bool denseTop,
-      required bool denseBottom,
-      double horizontal = 3,
-    }) {
-      const v = 3.0; // minimal vertical padding (was 4)
-      return EdgeInsets.fromLTRB(
-        horizontal,
-        denseTop ? 0 : v,
-        horizontal,
-        denseBottom ? 0 : v,
-      );
-    }
-
-    Map<String, dynamic> rowFor(String head) {
-      for (final r in tableRows) {
-        if (r['Heads'] == head) return r;
-      }
-      return <String, dynamic>{};
-    }
-
-    int vInt(Map<String, dynamic> r, String k) => (r[k] as int?) ?? 0;
-
-    const flexAll = 20;
-    const dataFlexes = <int>[2, 7, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
-    const headerGroupFlexes = <int>[2, 7, 2, 2, 2, 2, 2, 1];
-
-    Widget rowOfFlex(List<int> flexes, List<Widget> children) {
-      assert(flexes.length == children.length);
-      return IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (var i = 0; i < flexes.length; i++)
-              Expanded(
-                flex: flexes[i],
-                child: children[i],
-              ),
-          ],
-        ),
-      );
-    }
-
-    Widget cBox({
-      required Widget child,
-      EdgeInsets? padding,
-      AlignmentGeometry alignment = Alignment.center,
-    }) {
-      return Container(
-        padding:
-            padding ?? const EdgeInsets.symmetric(horizontal: 3, vertical: 3),
-        decoration: BoxDecoration(
-          border: Border.all(color: AppColors.lightBorder, width: 0.5),
-        ),
-        alignment: alignment,
-        child: child,
-      );
-    }
-
-    Widget cText(
-      String s, {
-      bool bold = false,
-      bool alignLeft = false,
-      double indent = 0,
-      double fontSize = classVBodyFontSize,
-    }) {
-      return Padding(
-        padding: EdgeInsets.only(left: indent),
-        child: Text(
-          s,
-          textAlign: alignLeft ? TextAlign.left : TextAlign.center,
-          softWrap: true,
-          style: GoogleFonts.poppins(
-            fontSize: fontSize,
-            fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-            color: AppColors.lightText,
-            height: 1.15,
-          ),
-        ),
-      );
-    }
-
-    Widget cLink(
-      int n,
-      List<ModuleRecord> recs,
-      String title, {
-      bool bold = false,
-      double fontSize = classVBodyFontSize,
-    }) {
-      final empty = recs.isEmpty;
-      return InkWell(
-        onTap: empty
-            ? null
-            : () {
-                Navigator.push(
-                  context,
-                  AppTheme.fadeSlideRoute(
-                    page: ReportCaseListScreen(title: title, records: recs),
-                  ),
-                );
-              },
-        child: Text(
-          '$n',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(
-            fontSize: fontSize,
-            fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-            color: empty ? AppColors.lightSubText : AppColors.infoBlue,
-            decoration: empty ? null : TextDecoration.underline,
-            height: 1.15,
-          ),
-        ),
-      );
-    }
-
-    List<ModuleRecord> detRecs(List<ModuleRecord> r) =>
-        r.where((x) => x.status.toLowerCase() != 'open').toList();
-
-    Widget buildScreenDataRow(Map<String, dynamic> def) {
-      final headKey = def['head'] as String;
-      final inTightBlock = classVTightRowHeads.contains(headKey);
-      final denseTop = inTightBlock && headKey != 'Murder';
-      final denseBottom = inTightBlock && headKey != 'Othar I P C';
-      final src = rowFor(headKey);
-      final bold = (def['bold'] as bool?) ?? false;
-      final indent = ((def['indent'] as int?) ?? 0) * 12.0;
-      final cmR = vInt(src, 'cm_R');
-      final cmD = vInt(src, 'cm_D');
-      final pmR = vInt(src, 'pm_R');
-      final pmD = vInt(src, 'pm_D');
-      final smlyR = vInt(src, 'smly_R');
-      final smlyD = vInt(src, 'smly_D');
-      final ycR = vInt(src, 'yc_R');
-      final ycD = vInt(src, 'yc_D');
-      final ypR = vInt(src, 'yp_R');
-      final ypD = vInt(src, 'yp_D');
-      final varVal = vInt(src, 'variation');
-      final cmRecs =
-          (src['cmRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
-      final pmRecs =
-          (src['pmRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
-      final smlyRecs =
-          (src['smlyRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
-      final ycRecs =
-          (src['ycRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
-      final ypRecs =
-          (src['ypRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
-      final label = def['label'] as String;
-      final labelPad = classVCellPad(
-        denseTop: denseTop,
-        denseBottom: denseBottom,
-        horizontal: 4,
-      );
-
-      return rowOfFlex(dataFlexes, [
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cText(def['sr'] as String, bold: bold),
-        ),
-        cBox(
-          alignment: Alignment.centerLeft,
-          padding: labelPad,
-          child: cText(
-            label,
-            bold: bold,
-            alignLeft: true,
-            indent: indent,
-          ),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(cmR, cmRecs, '$label • $cmDateLabel • R', bold: bold),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(
-            cmD,
-            detRecs(cmRecs),
-            '$label • $cmDateLabel • D',
-            bold: bold,
-          ),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(pmR, pmRecs, '$label • $pmDateLabel • R', bold: bold),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(
-            pmD,
-            detRecs(pmRecs),
-            '$label • $pmDateLabel • D',
-            bold: bold,
-          ),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child:
-              cLink(smlyR, smlyRecs, '$label • $smlyDateLabel • R', bold: bold),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(
-            smlyD,
-            detRecs(smlyRecs),
-            '$label • $smlyDateLabel • D',
-            bold: bold,
-          ),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(ycR, ycRecs, '$label • $ycDateLabel • R', bold: bold),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(
-            ycD,
-            detRecs(ycRecs),
-            '$label • $ycDateLabel • D',
-            bold: bold,
-          ),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(ypR, ypRecs, '$label • $ypDateLabel • R', bold: bold),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(
-            ypD,
-            detRecs(ypRecs),
-            '$label • $ypDateLabel • D',
-            bold: bold,
-          ),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cText('$varVal', bold: bold),
-        ),
-      ]);
-    }
-
-    Widget buildScreenTable() {
-      return LayoutBuilder(
-        builder: (context, constraints) {
-          final barW =
-              constraints.hasBoundedWidth && constraints.maxWidth.isFinite
-                  ? constraints.maxWidth
-                  : MediaQuery.sizeOf(context).width;
-
-          return Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.lightBorder),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  width: barW,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: cBox(
-                          child: cText(
-                            'Name of the Police Station',
-                            bold: true,
-                            fontSize: classVTitleFontSize,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                rowOfFlex(headerGroupFlexes, [
-                  cBox(
-                      child: cText('Sr.No',
-                          bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child: cText('Types of Crime',
-                          bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child: Center(
-                          child: cText(cmDateLabel,
-                              bold: true, fontSize: classVBodyFontSize))),
-                  cBox(
-                      child: Center(
-                          child: cText(pmDateLabel,
-                              bold: true, fontSize: classVBodyFontSize))),
-                  cBox(
-                      child: Center(
-                          child: cText(smlyDateLabel,
-                              bold: true, fontSize: classVBodyFontSize))),
-                  cBox(
-                      child: Center(
-                          child: cText(ycDateLabel,
-                              bold: true, fontSize: classVBodyFontSize))),
-                  cBox(
-                      child: Center(
-                          child: cText(ypDateLabel,
-                              bold: true, fontSize: classVBodyFontSize))),
-                  cBox(
-                      child: cText('Var.',
-                          bold: true, fontSize: classVBodyFontSize)),
-                ]),
-                rowOfFlex(dataFlexes, [
-                  cBox(
-                      child:
-                          cText('', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child:
-                          cText('', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child:
-                          cText('R', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child:
-                          cText('D', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child:
-                          cText('R', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child:
-                          cText('D', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child:
-                          cText('R', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child:
-                          cText('D', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child:
-                          cText('R', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child:
-                          cText('D', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child:
-                          cText('R', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child:
-                          cText('D', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child:
-                          cText('', bold: true, fontSize: classVBodyFontSize)),
-                ]),
-                for (final def in classVRowDefs) buildScreenDataRow(def),
-              ],
-            ),
-          );
-        },
-      );
-    }
-
-    pw.Widget pCellBox(
-      String text, {
-      bool bold = false,
-      bool alignLeft = false,
-      int indentLevel = 0,
-      double fontSize = 7,
-    }) {
-      return pw.Container(
-        padding: pw.EdgeInsets.fromLTRB(
-          2.0 + indentLevel * 6.0,
-          2,
-          2,
-          2,
-        ),
-        alignment: alignLeft ? pw.Alignment.centerLeft : pw.Alignment.center,
-        child: pw.Text(
-          text,
-          textAlign: alignLeft ? pw.TextAlign.left : pw.TextAlign.center,
-          style: pw.TextStyle(
-            fontSize: fontSize,
-            fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
-          ),
-        ),
-      );
-    }
-
-    pw.Widget pTableRow(List<int> flexes, List<pw.Widget> cells) {
-      return pw.Table(
-        border: pw.TableBorder.all(color: PdfColors.grey600, width: 0.4),
-        columnWidths: {
-          for (var i = 0; i < flexes.length; i++)
-            i: pw.FlexColumnWidth(flexes[i].toDouble()),
-        },
-        children: [pw.TableRow(children: cells)],
-      );
-    }
-
-    pw.Widget buildPdfDataRow(Map<String, dynamic> def) {
-      final src = rowFor(def['head'] as String);
-      final bold = (def['bold'] as bool?) ?? false;
-      final indent = (def['indent'] as int?) ?? 0;
-      final cmR = vInt(src, 'cm_R');
-      final cmD = vInt(src, 'cm_D');
-      final pmR = vInt(src, 'pm_R');
-      final pmD = vInt(src, 'pm_D');
-      final smlyR = vInt(src, 'smly_R');
-      final smlyD = vInt(src, 'smly_D');
-      final ycR = vInt(src, 'yc_R');
-      final ycD = vInt(src, 'yc_D');
-      final ypR = vInt(src, 'yp_R');
-      final ypD = vInt(src, 'yp_D');
-      final varVal = vInt(src, 'variation');
-      String s(int n) => '$n';
-      return pTableRow(dataFlexes, [
-        pCellBox(def['sr'] as String, bold: bold),
-        pCellBox(
-          def['label'] as String,
-          bold: bold,
-          alignLeft: true,
-          indentLevel: indent,
-        ),
-        pCellBox(s(cmR), bold: bold),
-        pCellBox(s(cmD), bold: bold),
-        pCellBox(s(pmR), bold: bold),
-        pCellBox(s(pmD), bold: bold),
-        pCellBox(s(smlyR), bold: bold),
-        pCellBox(s(smlyD), bold: bold),
-        pCellBox(s(ycR), bold: bold),
-        pCellBox(s(ycD), bold: bold),
-        pCellBox(s(ypR), bold: bold),
-        pCellBox(s(ypD), bold: bold),
-        pCellBox(s(varVal), bold: bold),
-      ]);
-    }
-
-    Future<void> exportPdf() async {
-      final doc = pw.Document();
-      final body = <pw.Widget>[
-        pTableRow([
-          flexAll
-        ], [
-          pCellBox('Name of the Police Station', bold: true, fontSize: 9),
-        ]),
-        pTableRow(headerGroupFlexes, [
-          pCellBox('Sr.No', bold: true),
-          pCellBox('Types of Crime', bold: true),
-          pCellBox(cmDateLabel, bold: true),
-          pCellBox(pmDateLabel, bold: true),
-          pCellBox(smlyDateLabel, bold: true),
-          pCellBox(ycDateLabel, bold: true),
-          pCellBox(ypDateLabel, bold: true),
-          pCellBox('Var.', bold: true),
-        ]),
-        pTableRow(dataFlexes, [
-          pCellBox('', bold: true),
-          pCellBox('', bold: true),
-          pCellBox('R', bold: true),
-          pCellBox('D', bold: true),
-          pCellBox('R', bold: true),
-          pCellBox('D', bold: true),
-          pCellBox('R', bold: true),
-          pCellBox('D', bold: true),
-          pCellBox('R', bold: true),
-          pCellBox('D', bold: true),
-          pCellBox('R', bold: true),
-          pCellBox('D', bold: true),
-          pCellBox('', bold: true),
-        ]),
-        for (final def in classVRowDefs) buildPdfDataRow(def),
-      ];
-      doc.addPage(
-        pw.Page(
-          pageFormat: PdfPageFormat.a4.landscape.copyWith(
-            marginTop: 12,
-            marginBottom: 12,
-            marginLeft: 14,
-            marginRight: 14,
-          ),
-          build: (ctx) => pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-            children: body,
-          ),
-        ),
-      );
-      final fileName =
-          'Station_Report_${DateTime.now().millisecondsSinceEpoch}.pdf';
-      await Printing.sharePdf(bytes: await doc.save(), filename: fileName);
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final w = constraints.maxWidth;
-            const minW = 560.0;
-            return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: SizedBox(
-                width: w < minW ? minW : w,
-                child: buildScreenTable(),
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 20),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: exportPdf,
-            icon: const Icon(
-              Icons.picture_as_pdf_rounded,
-              color: Colors.white,
-              size: 18,
-            ),
-            label: Text(
-              'Export Table PDF',
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.dangerRed,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  static Widget _buildMonthlySummaryPhotoTable(
-    BuildContext context,
-    List<ModuleRecord> allRecords,
-    int selectedMonth,
-    int selectedYear,
-  ) {
-    bool isInMonth(ModuleRecord r) =>
-        r.incidentDate.year == selectedYear &&
-        r.incidentDate.month == selectedMonth;
-    bool isInYear(ModuleRecord r) => r.incidentDate.year == selectedYear;
-
-    bool isDetected(ModuleRecord r) =>
-        r.status == 'Resolved' ||
-        r.status == 'Closed' ||
-        r.moduleKey == 'detected';
-
-    List<ModuleRecord> monthRecsWhere(bool Function(ModuleRecord) test) =>
-        allRecords.where((r) => isInMonth(r) && test(r)).toList();
-    List<ModuleRecord> yearRecsWhere(bool Function(ModuleRecord) test) =>
-        allRecords.where((r) => isInYear(r) && test(r)).toList();
-    List<ModuleRecord> monthDetRecsWhere(bool Function(ModuleRecord) test) =>
-        allRecords
-            .where((r) => isInMonth(r) && test(r) && isDetected(r))
-            .toList();
-    List<ModuleRecord> yearDetRecsWhere(bool Function(ModuleRecord) test) =>
-        allRecords
-            .where((r) => isInYear(r) && test(r) && isDetected(r))
-            .toList();
-
-    Widget cellBox(Widget child, {int flex = 1, bool alignLeft = false}) {
-      return Expanded(
-        flex: flex,
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: AppColors.lightBorder, width: 0.5),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-          alignment: alignLeft ? Alignment.centerLeft : Alignment.center,
-          constraints: const BoxConstraints(minHeight: 26),
-          child: child,
-        ),
-      );
-    }
-
-    Widget headText(String s) => Text(
-          s,
-          textAlign: TextAlign.center,
-          softWrap: true,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.poppins(
-            fontSize: 9.5,
-            fontWeight: FontWeight.w800,
-            color: AppColors.navyDark,
-          ),
-        );
-
-    Widget labelText(String s, {bool bold = false}) => Text(
-          s,
-          textAlign: TextAlign.left,
-          softWrap: true,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.poppins(
-            fontSize: 9.5,
-            fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-            color: bold ? AppColors.navyDark : AppColors.lightText,
-          ),
-        );
-
-    Widget linkText(int n, List<ModuleRecord> recs, String title,
-        {bool bold = false}) {
-      return InkWell(
-        onTap: recs.isEmpty
-            ? null
-            : () {
-                Navigator.push(
-                  context,
-                  AppTheme.fadeSlideRoute(
-                    page: ReportCaseListScreen(title: title, records: recs),
-                  ),
-                );
-              },
-        child: Text(
-          '$n',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(
-            fontSize: 9.5,
-            fontWeight: bold ? FontWeight.w700 : FontWeight.w600,
-            color: recs.isEmpty ? AppColors.lightSubText : AppColors.infoBlue,
-            decoration: recs.isEmpty ? null : TextDecoration.underline,
-          ),
-        ),
-      );
-    }
-
-    Widget rowOf(List<Widget> cells) => IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: cells,
-          ),
-        );
-
-    Widget dataRow5(String label, bool Function(ModuleRecord) test,
-        {bool bold = false, String detLabel = 'Detected'}) {
-      final cmReg = monthRecsWhere(test);
-      final cmDet = monthDetRecsWhere(test);
-      final cyReg = yearRecsWhere(test);
-      final cyDet = yearDetRecsWhere(test);
-      return rowOf([
-        cellBox(labelText(label, bold: bold), flex: 5, alignLeft: true),
-        cellBox(linkText(
-            cmReg.length, cmReg, '$label • Current Month • Registered',
-            bold: bold)),
-        cellBox(linkText(
-            cmDet.length, cmDet, '$label • Current Month • $detLabel',
-            bold: bold)),
-        cellBox(linkText(
-            cyReg.length, cyReg, '$label • Current Year • Registered',
-            bold: bold)),
-        cellBox(linkText(
-            cyDet.length, cyDet, '$label • Current Year • $detLabel',
-            bold: bold)),
-      ]);
-    }
-
-    Widget dataRow3(String label, bool Function(ModuleRecord) test,
-        {bool bold = false}) {
-      final cmReg = monthRecsWhere(test);
-      final cyReg = yearRecsWhere(test);
-      return rowOf([
-        cellBox(labelText(label, bold: bold), flex: 5, alignLeft: true),
-        cellBox(
-            linkText(cmReg.length, cmReg, '$label • Current Month • Registered',
-                bold: bold),
-            flex: 2),
-        cellBox(
-            linkText(cyReg.length, cyReg, '$label • Current Year • Registered',
-                bold: bold),
-            flex: 2),
-      ]);
-    }
-
-    Widget groupHeader(String label) => rowOf([
-          cellBox(headText(label), flex: 5),
-          cellBox(headText('Current Month'), flex: 2),
-          cellBox(headText('Current Year'), flex: 2),
-        ]);
-
-    Widget groupSubHeader(String regLabel, String detLabel) => rowOf([
-          cellBox(headText(''), flex: 5),
-          cellBox(headText(regLabel)),
-          cellBox(headText(detLabel)),
-          cellBox(headText(regLabel)),
-          cellBox(headText(detLabel)),
-        ]);
-
-    bool isBnss(ModuleRecord r) =>
-        r.moduleKey == 'bnss' || r.title.toLowerCase().contains('bnss');
-    bool isOtherSection(ModuleRecord r) => r.moduleKey == 'it_act';
-    bool isGambling(ModuleRecord r) =>
-        r.moduleKey == 'coin' || r.title.toLowerCase().contains('gambl');
-    bool isProhibition(ModuleRecord r) =>
-        r.moduleKey == 'mpda' || r.title.toLowerCase().contains('prohibit');
-
-    bool isAd(ModuleRecord r) => r.moduleKey == 'ad';
-    bool isAccident(ModuleRecord r) => r.moduleKey == 'accident';
-    bool isNc(ModuleRecord r) => r.moduleKey == 'nc';
-
-    bool isSec186175Bnss(ModuleRecord r) => r.moduleKey == 'bnss';
-    bool isSec128Bnss(ModuleRecord r) => r.moduleKey == 'bnss';
-    bool isSec129Bnss(ModuleRecord r) => r.moduleKey == 'bnss';
-    bool isSec93Ndps(ModuleRecord r) => r.moduleKey == 'ndps';
-    bool isSec144Crpc(ModuleRecord r) =>
-        r.moduleKey == 'gowans' || r.moduleKey == 'it_act';
-    bool isSec55_57Police(ModuleRecord r) =>
-        r.moduleKey == 'mpda' || r.moduleKey == 'coin';
-    bool isCotpa(ModuleRecord r) => r.moduleKey == 'it_act';
-    bool isSec122Police(ModuleRecord r) => r.moduleKey == 'mpda';
-    bool isMpda(ModuleRecord r) => r.moduleKey == 'mpda';
-
-    bool isMotorVehicleAct(ModuleRecord r) => r.moduleKey == 'traffic';
-    bool isOtherMvAct(ModuleRecord r) => false;
-
-    bool g1Total(ModuleRecord r) =>
-        isBnss(r) || isOtherSection(r) || isGambling(r) || isProhibition(r);
-    bool g1NcTotal(ModuleRecord r) => isAd(r) || isAccident(r) || isNc(r);
-    bool g2Total(ModuleRecord r) =>
-        isSec186175Bnss(r) ||
-        isSec128Bnss(r) ||
-        isSec129Bnss(r) ||
-        isSec93Ndps(r) ||
-        isSec144Crpc(r) ||
-        isSec55_57Police(r) ||
-        isCotpa(r) ||
-        isSec122Police(r) ||
-        isMpda(r);
-    bool g3Total(ModuleRecord r) => isMotorVehicleAct(r) || isOtherMvAct(r);
-
-    final monthYearLabel =
-        DateFormat('MMMM yyyy').format(DateTime(selectedYear, selectedMonth));
-
-    // SINGLE SOURCE OF TRUTH for the Monthly Summary table.
-    // Both the on-screen table and the PDF export iterate this exact list,
-    // so they cannot drift apart. Each entry kind:
-    //   'h'  : group header   (label spans col 1; "Current Month" / "Current Year" span 2/2)
-    //   's'  : group sub-head (empty col 1; reg/det reg/det)
-    //   'd5' : 5-column data row (label + cmReg + cmDet + cyReg + cyDet)
-    //   'd3' : 3-column data row (label + cmReg(span2) + cyReg(span2)) — col 3 & 5 merged
-    //   'b'  : blank row separator
-    final rowDefs = <Map<String, dynamic>>[
-      {'k': 'h', 'l': 'Category'},
-      {'k': 's', 'r': 'Registered', 'd': 'Detected'},
-      {'k': 'd5', 'l': 'IPC/BNS', 't': isBnss, 'bold': true, 'dl': 'Detected'},
-      {'k': 'd5', 'l': 'Section 6', 't': isOtherSection, 'dl': 'Detected'},
-      {'k': 'd5', 'l': 'Gambling', 't': isGambling, 'dl': 'Detected'},
-      {'k': 'd5', 'l': 'Prohibition', 't': isProhibition, 'dl': 'Detected'},
-      {'k': 'd5', 'l': 'Total', 't': g1Total, 'bold': true, 'dl': 'Detected'},
-      {'k': 'd5', 'l': 'AD', 't': isAd, 'dl': 'Detected'},
-      {'k': 'd5', 'l': 'N.C Injury', 't': isAccident, 'dl': 'Detected'},
-      {'k': 'd5', 'l': 'N.C others', 't': isNc, 'dl': 'Detected'},
-      {
-        'k': 'd5',
-        'l': 'N.C Total',
-        't': g1NcTotal,
-        'bold': true,
-        'dl': 'Detected'
-      },
-      {'k': 'b'},
-      {'k': 'h', 'l': 'Preventive'},
-      {'k': 'd3', 'l': 'Sec. 126, 135(2) BNSS', 't': isSec186175Bnss},
-      {'k': 'd3', 'l': 'Sec. 128 BNSS', 't': isSec128Bnss},
-      {'k': 'd3', 'l': 'Sec. 129 BNSS', 't': isSec129Bnss},
-      {'k': 'd3', 'l': 'Sec. 93 Prohibition Act', 't': isSec93Ndps},
-      {'k': 'd3', 'l': 'Sec 144(1) BNSS act', 't': isSec144Crpc},
-      {'k': 'd3', 'l': 'Sec. 55-57 MAH Police act', 't': isSec55_57Police},
-      {'k': 'd3', 'l': 'COTPA', 't': isCotpa},
-      {'k': 'd3', 'l': 'Sec 122 MAH Police act', 't': isSec122Police},
-      {'k': 'd3', 'l': 'MPDA', 't': isMpda},
-      {'k': 'd3', 'l': 'Total', 't': g2Total, 'bold': true},
-      {'k': 'b'},
-      {'k': 'h', 'l': 'MV Act'},
-      {'k': 's', 'r': 'Registered', 'd': 'Fine'},
-      {
-        'k': 'd5',
-        'l': 'Sec. 66/192 MV Act',
-        't': isMotorVehicleAct,
-        'dl': 'Fine'
-      },
-      {'k': 'd5', 'l': 'Other MV Act', 't': isOtherMvAct, 'dl': 'Fine'},
-      {
-        'k': 'd5',
-        'l': 'Total MV Act',
-        't': g3Total,
-        'bold': true,
-        'dl': 'Fine'
-      },
-      // {'k': 'b'},
-      // {'k': 'h', 'l': 'Missing'},
-      // {'k': 's', 'r': 'Registered', 'd': 'Found'},
-      // {'k': 'd5', 'l': 'Male', 't': isMissingMale, 'dl': 'Found'},
-      // {'k': 'd5', 'l': 'Female', 't': isMissingFemale, 'dl': 'Found'},
-      // {
-      //   'k': 'd5',
-      //   'l': 'Total missing',
-      //   't': isMissingTotal,
-      //   'bold': true,
-      //   'dl': 'Found'
-      // },
-    ];
-
-    Widget buildScreenRow(Map<String, dynamic> r) {
-      switch (r['k'] as String) {
-        case 'b':
-          return const SizedBox(height: 8);
-        case 'h':
-          return groupHeader(r['l'] as String);
-        case 's':
-          return groupSubHeader(r['r'] as String, r['d'] as String);
-        case 'd5':
-          return dataRow5(
-            r['l'] as String,
-            r['t'] as bool Function(ModuleRecord),
-            bold: (r['bold'] as bool?) ?? false,
-            detLabel: (r['dl'] as String?) ?? 'Detected',
-          );
-        case 'd3':
-          return dataRow3(
-            r['l'] as String,
-            r['t'] as bool Function(ModuleRecord),
-            bold: (r['bold'] as bool?) ?? false,
-          );
-      }
-      return const SizedBox.shrink();
-    }
-
-    final tableWidget = Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: rowDefs.map(buildScreenRow).toList(),
-    );
-
-    Future<void> exportPdf() async {
-      final doc = pw.Document();
-
-      pw.Widget pCellBox(String text,
-          {bool bold = false, bool alignLeft = false}) {
-        return pw.Container(
-          padding: const pw.EdgeInsets.symmetric(horizontal: 3, vertical: 2),
-          alignment: alignLeft ? pw.Alignment.centerLeft : pw.Alignment.center,
-          constraints: const pw.BoxConstraints(minHeight: 11),
-          child: pw.Text(
-            text,
-            textAlign: alignLeft ? pw.TextAlign.left : pw.TextAlign.center,
-            style: pw.TextStyle(
-              fontSize: 7,
-              fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
-            ),
-          ),
-        );
-      }
-
-      // A single-row pw.Table whose columnWidths sum to the same total flex
-      // (9 units) for every row kind — this guarantees column boundaries
-      // line up vertically across the whole table even though some rows
-      // use merged (colspan) cells.
-      //   d5/s : widths 5, 1, 1, 1, 1   (5-col rows: label + 4 numbers)
-      //   d3/h : widths 5, 2, 2         (3-col rows: label + 2 spans)
-      pw.Widget pTableRow(List<int> flexes, List<pw.Widget> cells) {
-        return pw.Table(
-          border: pw.TableBorder.all(color: PdfColors.grey500, width: 0.4),
-          columnWidths: {
-            for (var i = 0; i < flexes.length; i++)
-              i: pw.FlexColumnWidth(flexes[i].toDouble()),
-          },
-          children: [pw.TableRow(children: cells)],
-        );
-      }
-
-      pw.Widget buildPdfRow(Map<String, dynamic> r) {
-        switch (r['k'] as String) {
-          case 'b':
-            return pw.SizedBox(height: 4);
-          case 'h':
-            return pTableRow([
-              5,
-              2,
-              2
-            ], [
-              pCellBox(r['l'] as String, bold: true),
-              pCellBox('Current Month', bold: true),
-              pCellBox('Current Year', bold: true),
-            ]);
-          case 's':
-            return pTableRow([
-              5,
-              1,
-              1,
-              1,
-              1
-            ], [
-              pCellBox(''),
-              pCellBox(r['r'] as String, bold: true),
-              pCellBox(r['d'] as String, bold: true),
-              pCellBox(r['r'] as String, bold: true),
-              pCellBox(r['d'] as String, bold: true),
-            ]);
-          case 'd5':
-            final test = r['t'] as bool Function(ModuleRecord);
-            final bold = (r['bold'] as bool?) ?? false;
-            return pTableRow([
-              5,
-              1,
-              1,
-              1,
-              1
-            ], [
-              pCellBox(r['l'] as String, bold: bold, alignLeft: true),
-              pCellBox('${monthRecsWhere(test).length}', bold: bold),
-              pCellBox('${monthDetRecsWhere(test).length}', bold: bold),
-              pCellBox('${yearRecsWhere(test).length}', bold: bold),
-              pCellBox('${yearDetRecsWhere(test).length}', bold: bold),
-            ]);
-          case 'd3':
-            final test = r['t'] as bool Function(ModuleRecord);
-            final bold = (r['bold'] as bool?) ?? false;
-            return pTableRow([
-              5,
-              2,
-              2
-            ], [
-              pCellBox(r['l'] as String, bold: bold, alignLeft: true),
-              pCellBox('${monthRecsWhere(test).length}', bold: bold),
-              pCellBox('${yearRecsWhere(test).length}', bold: bold),
-            ]);
-        }
-        return pw.SizedBox.shrink();
-      }
-
-      doc.addPage(
-        pw.Page(
-          pageFormat: PdfPageFormat.a4,
-          margin: const pw.EdgeInsets.all(16),
-          build: (ctx) => pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-            mainAxisSize: pw.MainAxisSize.min,
-            children: [
-              pw.Container(
-                width: double.infinity,
-                padding: const pw.EdgeInsets.all(8),
-                decoration: const pw.BoxDecoration(
-                  color: PdfColor.fromInt(0xFF1A2A4A),
-                ),
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text(
-                      'MONTHLY SUMMARY REPORT',
-                      style: pw.TextStyle(
-                        color: PdfColors.white,
-                        fontSize: 12,
-                        fontWeight: pw.FontWeight.bold,
-                      ),
-                    ),
-                    pw.SizedBox(height: 2),
-                    pw.Text(
-                      monthYearLabel,
-                      style: const pw.TextStyle(
-                        color: PdfColor.fromInt(0xFFFFC107),
-                        fontSize: 9,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              pw.SizedBox(height: 6),
-              ...rowDefs.map(buildPdfRow),
-            ],
-          ),
-        ),
-      );
-
-      final fileName =
-          'Monthly_Summary_${monthYearLabel.replaceAll(' ', '_')}.pdf';
-      await Printing.sharePdf(
-        bytes: await doc.save(),
-        filename: fileName,
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.lightBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final w = constraints.maxWidth;
-              const minW = 560.0;
-              return SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: SizedBox(
-                  width: w < minW ? minW : w,
-                  child: tableWidget,
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: exportPdf,
-              icon: const Icon(
-                Icons.picture_as_pdf_rounded,
-                color: Colors.white,
-                size: 18,
-              ),
-              label: Text(
-                'Export PDF',
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.dangerRed,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                elevation: 0,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static Widget _buildMonthlyReportTableInternalVI(
-    BuildContext context,
-    List<ModuleRecord> allRecords,
-    int selectedMonth,
-    int selectedYear,
-  ) {
-    const heads = [
-      'Arms Act',
-      'Gambling Act',
-      'Prohibition',
-      'NDPS Act',
-      '135 B Pact',
-      '142 B Pact',
-      '122 B Pact',
-      'M V Act',
-      'Miscellaneous',
-    ];
-
-    String getHead(ModuleRecord r) {
-      final sub = (r.subCategory ?? '').toLowerCase();
-      final key = r.moduleKey.toLowerCase();
-
-      if (key != 'form_6') return 'Miscellaneous';
-
-      if (sub.contains('arms')) return 'Arms Act';
-      if (sub.contains('gambl')) return 'Gambling Act';
-      if (sub.contains('prohib')) return 'Prohibition';
-      if (sub.contains('ndps')) return 'NDPS Act';
-      if (sub.contains('135')) return '135 B Pact';
-      if (sub.contains('142')) return '142 B Pact';
-      if (sub.contains('122')) return '122 B Pact';
-      if (sub.contains('m v') || sub.contains('mv') || sub.contains('motor')) {
-        return 'M V Act';
-      }
-
-      return 'Miscellaneous';
-    }
-
-    List<ModuleRecord> filterMonth(int m, int y) => allRecords
-        .where((r) =>
-            r.moduleKey == 'form_6' &&
-            r.incidentDate.year == y &&
-            r.incidentDate.month == m)
-        .toList();
-
-    List<ModuleRecord> filterYearToMonth(int m, int y) => allRecords
-        .where((r) =>
-            r.moduleKey == 'form_6' &&
-            r.incidentDate.year == y &&
-            r.incidentDate.month <= m)
-        .toList();
-
-    final currentMonthRecords = filterMonth(selectedMonth, selectedYear);
-    final prevMonth = selectedMonth == 1 ? 12 : selectedMonth - 1;
-    final prevYear = selectedMonth == 1 ? selectedYear - 1 : selectedYear;
-    final previousMonthRecords = filterMonth(prevMonth, prevYear);
-    final sameMonthLastYearRecords =
-        filterMonth(selectedMonth, selectedYear - 1);
-    final yearCurrentRecords = filterYearToMonth(selectedMonth, selectedYear);
-    final yearPreviousRecords =
-        filterYearToMonth(selectedMonth, selectedYear - 1);
-
-    final tableRows = <Map<String, dynamic>>[];
-    int totalcmR = 0;
-    int totalpmR = 0;
-    int totalsmlyR = 0;
-    int totalycR = 0;
-    int totalypR = 0;
-
-    for (int i = 0; i < heads.length; i++) {
-      final head = heads[i];
-      List<ModuleRecord> byHead(List<ModuleRecord> list) =>
-          list.where((r) => getHead(r) == head).toList();
-
-      final cm = byHead(currentMonthRecords);
-      final pm = byHead(previousMonthRecords);
-      final smly = byHead(sameMonthLastYearRecords);
-      final yc = byHead(yearCurrentRecords);
-      final yp = byHead(yearPreviousRecords);
-
-      final cmR = cm.length;
-      final pmR = pm.length;
-      final smlyR = smly.length;
-      final ycR = yc.length;
-      final ypR = yp.length;
-      final variation = ycR - ypR;
-
-      tableRows.add({
-        'N': i + 1,
-        'Heads': head,
-        'cm_R': cmR,
-        'pm_R': pmR,
-        'smly_R': smlyR,
-        'yc_R': ycR,
-        'yp_R': ypR,
-        'variation': variation,
-        'cmRecords': cm,
-        'pmRecords': pm,
-        'smlyRecords': smly,
-        'ycRecords': yc,
-        'ypRecords': yp,
-      });
-
-      totalcmR += cmR;
-      totalpmR += pmR;
-      totalsmlyR += smlyR;
-      totalycR += ycR;
-      totalypR += ypR;
-    }
-
-    tableRows.add({
-      'N': '',
-      'Heads': 'TOTAL',
-      'cm_R': totalcmR,
-      'pm_R': totalpmR,
-      'smly_R': totalsmlyR,
-      'yc_R': totalycR,
-      'yp_R': totalypR,
-      'variation': totalycR - totalypR,
-      'cmRecords': currentMonthRecords,
-      'pmRecords': previousMonthRecords,
-      'smlyRecords': sameMonthLastYearRecords,
-      'ycRecords': yearCurrentRecords,
-      'ypRecords': yearPreviousRecords,
-    });
-
-    final prevMonth2 = selectedMonth == 1 ? 12 : selectedMonth - 1;
-    final prevMonthYear = selectedMonth == 1 ? selectedYear - 1 : selectedYear;
-    String mLabel(DateTime d) {
-      final m = DateFormat('MMM').format(d).toUpperCase();
-      return '$m\n${d.year}';
-    }
-
-    final cmLabel = mLabel(DateTime(selectedYear, selectedMonth));
-    final pmLabel = mLabel(DateTime(prevMonthYear, prevMonth2));
-    final smlyLabel = mLabel(DateTime(selectedYear - 1, selectedMonth));
-    final ycLabel = 'Year\n$selectedYear';
-    final ypLabel = 'Year\n${selectedYear - 1}';
-
-    DataColumn col(String label, {bool alignLeft = false}) => DataColumn(
-          label: Text(
-            label,
-            textAlign: alignLeft ? TextAlign.left : TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: 9,
-              fontWeight: FontWeight.w800,
-              color: AppColors.navyDark,
-            ),
-          ),
-        );
-
-    DataCell cell(String text,
-            {bool alignLeft = false, bool isBold = false, Color? color}) =>
-        DataCell(
-          Align(
-            alignment: alignLeft ? Alignment.centerLeft : Alignment.center,
-            child: Text(
-              text,
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
-                color: color ??
-                    (isBold ? AppColors.navyDark : AppColors.lightText),
-              ),
-            ),
-          ),
-        );
-
-    DataCell clickableCell(
-      String text,
-      List<ModuleRecord> recs,
-      String title, {
-      bool alignLeft = false,
-      bool isBold = false,
-      Color? color,
-    }) {
-      return DataCell(
-        Align(
-          alignment: alignLeft ? Alignment.centerLeft : Alignment.center,
-          child: Text(
-            text,
-            style: GoogleFonts.poppins(
-              fontSize: 10,
-              fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
-              color:
-                  color ?? (isBold ? AppColors.navyDark : AppColors.lightText),
-            ),
-          ),
-        ),
-        onTap: recs.isEmpty
-            ? null
-            : () {
-                Navigator.push(
-                  context,
-                  AppTheme.fadeSlideRoute(
-                    page: ReportCaseListScreen(title: title, records: recs),
-                  ),
-                );
-              },
-      );
-    }
-
-    DataCell navCell(String text, List<ModuleRecord> recs, String title,
-        {bool isBold = false}) {
-      return DataCell(
-        InkWell(
-          onTap: recs.isEmpty
-              ? null
-              : () {
-                  Navigator.push(
-                    context,
-                    AppTheme.fadeSlideRoute(
-                      page: ReportCaseListScreen(title: title, records: recs),
-                    ),
-                  );
-                },
-          child: Align(
-            alignment: Alignment.center,
-            child: Text(
-              text,
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
-                color:
-                    recs.isEmpty ? AppColors.lightSubText : AppColors.infoBlue,
-                decoration: recs.isEmpty ? null : TextDecoration.underline,
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final w = constraints.maxWidth;
-            // Keep the monthly report table compact like a standard data table.
-            final colSpace =
-                w < 360 ? 6.0 : (w < 600 ? 8.0 : (w < 1000 ? 12.0 : 16.0));
-            final margin = w < 360 ? 6.0 : (w < 1000 ? 8.0 : 12.0);
-            final headingH = w < 360 ? 40.0 : (w < 1000 ? 44.0 : 48.0);
-            final rowH = w < 360 ? 32.0 : (w < 1000 ? 34.0 : 38.0);
-            return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minWidth: w, // fill available width on PC
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.lightBorder),
-                  ),
-                  child: DataTable(
-                    headingRowColor: WidgetStateProperty.all(
-                      AppColors.navyMid.withValues(alpha: 0.05),
-                    ),
-                    dataRowMinHeight: rowH,
-                    dataRowMaxHeight: rowH,
-                    headingRowHeight: headingH,
-                    horizontalMargin: margin,
-                    columnSpacing: colSpace,
-                    border: TableBorder.all(
-                      color: AppColors.lightBorder,
-                      width: 0.5,
-                    ),
-                    columns: [
-                      col('N'),
-                      col('Heads', alignLeft: true),
-                      col(cmLabel),
-                      col(pmLabel),
-                      col(smlyLabel),
-                      col(ycLabel),
-                      col(ypLabel),
-                      col('var.'),
-                    ],
-                    rows: tableRows.map((row) {
-                      final isTotal = row['Heads'] == 'TOTAL';
-                      return DataRow(
-                        color: isTotal
-                            ? WidgetStateProperty.all(
-                                AppColors.goldPrimary.withValues(alpha: 0.1),
-                              )
-                            : null,
-                        cells: [
-                          cell(row['N'].toString(), isBold: isTotal),
-                          cell(row['Heads'].toString(),
-                              alignLeft: true, isBold: true),
-                          navCell(
-                            '${row['cm_R']}',
-                            (row['cmRecords'] as List<ModuleRecord>?) ??
-                                const <ModuleRecord>[],
-                            '${row['Heads']} • $cmLabel',
-                            isBold: isTotal,
-                          ),
-                          navCell(
-                            '${row['pm_R']}',
-                            (row['pmRecords'] as List<ModuleRecord>?) ??
-                                const <ModuleRecord>[],
-                            '${row['Heads']} • $pmLabel',
-                            isBold: isTotal,
-                          ),
-                          navCell(
-                            '${row['smly_R']}',
-                            (row['smlyRecords'] as List<ModuleRecord>?) ??
-                                const <ModuleRecord>[],
-                            '${row['Heads']} • $smlyLabel',
-                            isBold: isTotal,
-                          ),
-                          navCell(
-                            '${row['yc_R']}',
-                            (row['ycRecords'] as List<ModuleRecord>?) ??
-                                const <ModuleRecord>[],
-                            '${row['Heads']} • $ycLabel',
-                            isBold: isTotal,
-                          ),
-                          navCell(
-                            '${row['yp_R']}',
-                            (row['ypRecords'] as List<ModuleRecord>?) ??
-                                const <ModuleRecord>[],
-                            '${row['Heads']} • $ypLabel',
-                            isBold: isTotal,
-                          ),
-                          clickableCell(
-                            row['variation'].toString(),
-                            (row['ycRecords'] as List<ModuleRecord>?) ??
-                                const <ModuleRecord>[],
-                            '${row['Heads']} • $ycLabel • Variation',
-                            isBold: isTotal,
-                            color: (row['variation'] as int) > 0
-                                ? AppColors.dangerRed
-                                : ((row['variation'] as int) < 0
-                                    ? AppColors.successGreen
-                                    : null),
-                          ),
-                        ],
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: () {
-              final label = DateFormat('MMMM yyyy')
-                  .format(DateTime(selectedYear, selectedMonth));
-              ModulePdfHelper.generateMonthlyTablePdf(label, tableRows);
-            },
-            icon: const Icon(Icons.picture_as_pdf_rounded,
-                color: Colors.white, size: 18),
-            label: Text(
-              'Export Table PDF',
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.dangerRed,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  static Widget _buildMonthlyReportTableInternalPreventive(
-    BuildContext context,
-    List<ModuleRecord> allRecords,
-    int selectedMonth,
-    int selectedYear,
-  ) {
-    const heads = [
-      '107 Crpc/126 BNSS',
-      '109 Crpc/128 BNSS',
-      '110 Crpc/129 BNSS',
-      '151 (3) Crpc/170(3) BNSS',
-      '55 to 57 B P Act',
-      'U/s 122  B P Act',
-      'U/s 124  B P Act',
-      '142 B P Act',
-      'M H O R',
-      '93 Pro Act',
-      'N S A',
-      'M P D A',
-      'M.C.O.C.A.',
-    ];
-
-    String getHead(ModuleRecord r) {
-      final key = r.moduleKey.toLowerCase();
-      final sub = (r.subCategory ?? '').toLowerCase();
-      if (key != 'preventive') return 'M H O R';
-
-      if (sub.contains('107') || sub.contains('126')) {
-        return '107 Crpc/126 BNSS';
-      }
-      if (sub.contains('109') || sub.contains('128')) {
-        return '109 Crpc/128 BNSS';
-      }
-      if (sub.contains('110') || sub.contains('129')) {
-        return '110 Crpc/129 BNSS';
-      }
-      if (sub.contains('151') || sub.contains('170')) {
-        return '151 (3) Crpc/170(3) BNSS';
-      }
-      if (sub.contains('55') || sub.contains('56') || sub.contains('57')) {
-        return '55 to 57 B P Act';
-      }
-      if (sub.contains('122')) return 'U/s 122  B P Act';
-      if (sub.contains('124')) return 'U/s 124  B P Act';
-      if (sub.contains('142')) return '142 B P Act';
-      if (sub.contains('mhor') || sub.contains('m h o r')) return 'M H O R';
-      if (sub.contains('93') || sub.contains('pro act')) return '93 Pro Act';
-      if (sub.contains('nsa') || sub.contains('n s a')) return 'N S A';
-      if (sub.contains('mpda') || sub.contains('m p d a')) return 'M P D A';
-      if (sub.contains('mcoca') || sub.contains('m.c.o.c.a')) {
-        return 'M.C.O.C.A.';
-      }
-
-      return 'M H O R';
-    }
-
-    List<ModuleRecord> filterMonth(int m, int y) => allRecords
-        .where((r) =>
-            r.moduleKey == 'preventive' &&
-            r.incidentDate.year == y &&
-            r.incidentDate.month == m)
-        .toList();
-
-    List<ModuleRecord> filterYearToMonth(int m, int y) => allRecords
-        .where((r) =>
-            r.moduleKey == 'preventive' &&
-            r.incidentDate.year == y &&
-            r.incidentDate.month <= m)
-        .toList();
-
-    final currentMonthRecords = filterMonth(selectedMonth, selectedYear);
-    final prevMonth = selectedMonth == 1 ? 12 : selectedMonth - 1;
-    final prevYear = selectedMonth == 1 ? selectedYear - 1 : selectedYear;
-    final previousMonthRecords = filterMonth(prevMonth, prevYear);
-    final sameMonthLastYearRecords =
-        filterMonth(selectedMonth, selectedYear - 1);
-    final yearCurrentRecords = filterYearToMonth(selectedMonth, selectedYear);
-    final yearPreviousRecords =
-        filterYearToMonth(selectedMonth, selectedYear - 1);
-
-    final tableRows = <Map<String, dynamic>>[];
-    int totalcm = 0, totalpm = 0, totalsmly = 0, totalyc = 0, totalyp = 0;
-
-    for (int i = 0; i < heads.length; i++) {
-      final head = heads[i];
-      List<ModuleRecord> byHead(List<ModuleRecord> list) =>
-          list.where((r) => getHead(r) == head).toList();
-
-      final cmRecs = byHead(currentMonthRecords);
-      final pmRecs = byHead(previousMonthRecords);
-      final smlyRecs = byHead(sameMonthLastYearRecords);
-      final ycRecs = byHead(yearCurrentRecords);
-      final ypRecs = byHead(yearPreviousRecords);
-
-      final cm = cmRecs.length;
-      final pm = pmRecs.length;
-      final smly = smlyRecs.length;
-      final yc = ycRecs.length;
-      final yp = ypRecs.length;
-      final variation = yc - yp;
-
-      tableRows.add({
-        'N': i + 1,
-        'Heads': head,
-        'cm_R': cm,
-        'pm_R': pm,
-        'smly_R': smly,
-        'yc_R': yc,
-        'yp_R': yp,
-        'variation': variation,
-        'cmRecords': cmRecs,
-        'pmRecords': pmRecs,
-        'smlyRecords': smlyRecs,
-        'ycRecords': ycRecs,
-        'ypRecords': ypRecs,
-      });
-
-      totalcm += cm;
-      totalpm += pm;
-      totalsmly += smly;
-      totalyc += yc;
-      totalyp += yp;
-    }
-
-    tableRows.add({
-      'N': '',
-      'Heads': 'TOTAL',
-      'cm_R': totalcm,
-      'pm_R': totalpm,
-      'smly_R': totalsmly,
-      'yc_R': totalyc,
-      'yp_R': totalyp,
-      'variation': totalyc - totalyp,
-      'cmRecords': currentMonthRecords,
-      'pmRecords': previousMonthRecords,
-      'smlyRecords': sameMonthLastYearRecords,
-      'ycRecords': yearCurrentRecords,
-      'ypRecords': yearPreviousRecords,
-    });
-
-    String mLabel(DateTime d) {
-      final m = DateFormat('MMM').format(d).toUpperCase();
-      return '$m\n${d.year}';
-    }
-
-    final prevMonthYear = prevYear;
-    final cmLabel = mLabel(DateTime(selectedYear, selectedMonth));
-    final pmLabel = mLabel(DateTime(prevMonthYear, prevMonth));
-    final smlyLabel = mLabel(DateTime(selectedYear - 1, selectedMonth));
-    final ycLabel = 'Year\n$selectedYear';
-    final ypLabel = 'Year\n${selectedYear - 1}';
-
-    DataColumn col(String label, {bool alignLeft = false}) => DataColumn(
-          label: Text(
-            label,
-            textAlign: alignLeft ? TextAlign.left : TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: 9,
-              fontWeight: FontWeight.w800,
-              color: AppColors.navyDark,
-            ),
-          ),
-        );
-
-    DataCell cell(String text, {bool alignLeft = false, bool isBold = false}) =>
-        DataCell(
-          Align(
-            alignment: alignLeft ? Alignment.centerLeft : Alignment.center,
-            child: Text(
-              text,
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
-                color: isBold ? AppColors.navyDark : AppColors.lightText,
-              ),
-            ),
-          ),
-        );
-
-    DataCell navCell(String text, List<ModuleRecord> recs, String title,
-        {bool isBold = false}) {
-      return DataCell(
-        InkWell(
-          onTap: recs.isEmpty
-              ? null
-              : () {
-                  Navigator.push(
-                    context,
-                    AppTheme.fadeSlideRoute(
-                      page: ReportCaseListScreen(title: title, records: recs),
-                    ),
-                  );
-                },
-          child: Align(
-            alignment: Alignment.center,
-            child: Text(
-              text,
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
-                color:
-                    recs.isEmpty ? AppColors.lightSubText : AppColors.infoBlue,
-                decoration: recs.isEmpty ? null : TextDecoration.underline,
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    String varText(dynamic v) {
-      final n = (v as int?) ?? 0;
-      if (n == 0) return '=';
-      return n > 0 ? '+$n' : '$n';
-    }
-
-    DataCell clickableCell(
-      String text,
-      List<ModuleRecord> recs,
-      String title, {
-      bool isBold = false,
-    }) {
-      return DataCell(
-        Align(
-          alignment: Alignment.center,
-          child: Text(
-            text,
-            style: GoogleFonts.poppins(
-              fontSize: 10,
-              fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
-              color: isBold ? AppColors.navyDark : AppColors.lightText,
-            ),
-          ),
-        ),
-        onTap: recs.isEmpty
-            ? null
-            : () {
-                Navigator.push(
-                  context,
-                  AppTheme.fadeSlideRoute(
-                    page: ReportCaseListScreen(title: title, records: recs),
-                  ),
-                );
-              },
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final w = constraints.maxWidth;
-            // Keep the monthly report table compact like a standard data table.
-            final colSpace =
-                w < 360 ? 6.0 : (w < 600 ? 8.0 : (w < 1000 ? 12.0 : 16.0));
-            final margin = w < 360 ? 6.0 : (w < 1000 ? 8.0 : 12.0);
-            final headingH = w < 360 ? 40.0 : (w < 1000 ? 44.0 : 48.0);
-            final rowH = w < 360 ? 32.0 : (w < 1000 ? 34.0 : 38.0);
-            return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minWidth: w, // fill available width on PC
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.lightBorder),
-                  ),
-                  child: SizedBox(
-                    width: w,
-                    child: DataTable(
-                      headingRowColor: WidgetStateProperty.all(
-                        AppColors.navyMid.withValues(alpha: 0.05),
-                      ),
-                      dataRowMinHeight: rowH,
-                      dataRowMaxHeight: rowH,
-                      headingRowHeight: headingH,
-                      horizontalMargin: margin,
-                      columnSpacing: colSpace,
-                      border: TableBorder.all(
-                        color: AppColors.lightBorder,
-                        width: 0.5,
-                      ),
-                      columns: [
-                        col('SR'),
-                        col('Heads', alignLeft: true),
-                        col(cmLabel),
-                        col(pmLabel),
-                        col(smlyLabel),
-                        col(ycLabel),
-                        col(ypLabel),
-                        col('var.'),
-                      ],
-                      rows: tableRows.map((row) {
-                        final isTotal = row['Heads'] == 'TOTAL';
-                        return DataRow(
-                          color: isTotal
-                              ? WidgetStateProperty.all(
-                                  AppColors.goldPrimary.withValues(alpha: 0.1),
-                                )
-                              : null,
-                          cells: [
-                            cell(row['N'].toString(), isBold: isTotal),
-                            cell(row['Heads'].toString(),
-                                alignLeft: true, isBold: true),
-                            navCell(
-                              '${row['cm_R']}',
-                              (row['cmRecords'] as List<ModuleRecord>?) ??
-                                  const <ModuleRecord>[],
-                              '${row['Heads']} • $cmLabel',
-                              isBold: isTotal,
-                            ),
-                            navCell(
-                              '${row['pm_R']}',
-                              (row['pmRecords'] as List<ModuleRecord>?) ??
-                                  const <ModuleRecord>[],
-                              '${row['Heads']} • $pmLabel',
-                              isBold: isTotal,
-                            ),
-                            navCell(
-                              '${row['smly_R']}',
-                              (row['smlyRecords'] as List<ModuleRecord>?) ??
-                                  const <ModuleRecord>[],
-                              '${row['Heads']} • $smlyLabel',
-                              isBold: isTotal,
-                            ),
-                            navCell(
-                              '${row['yc_R']}',
-                              (row['ycRecords'] as List<ModuleRecord>?) ??
-                                  const <ModuleRecord>[],
-                              '${row['Heads']} • $ycLabel',
-                              isBold: isTotal,
-                            ),
-                            navCell(
-                              '${row['yp_R']}',
-                              (row['ypRecords'] as List<ModuleRecord>?) ??
-                                  const <ModuleRecord>[],
-                              '${row['Heads']} • $ypLabel',
-                              isBold: isTotal,
-                            ),
-                            clickableCell(
-                              varText(row['variation']),
-                              (row['ycRecords'] as List<ModuleRecord>?) ??
-                                  const <ModuleRecord>[],
-                              '${row['Heads']} • $ycLabel • Variation',
-                              isBold: isTotal,
-                            ),
-                          ],
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: () {
-              final label = DateFormat('MMMM yyyy')
-                  .format(DateTime(selectedYear, selectedMonth));
-              ModulePdfHelper.generateMonthlyTablePdf(label, tableRows);
-            },
-            icon: const Icon(Icons.picture_as_pdf_rounded,
-                color: Colors.white, size: 18),
-            label: Text(
-              'Export Table PDF',
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.dangerRed,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _monthlyReportButtons(
-      List<ModuleRecord> records, String title, String range) {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: AppColors.navyMid.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.lightBorder),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _reportBtn(
-              'Class V',
-              () {
-                setState(() {
-                  _showMonthlySummaryTable = false;
-                  _showMonthlyClassVTable = !_showMonthlyClassVTable;
-                  if (_showMonthlyClassVTable) {
-                    _showMonthlyClassVITable = false;
-                    _showMonthlyPreventiveTable = false;
-                  }
-                });
-              },
-            ),
-          ),
-          const SizedBox(width: 6),
-          Expanded(
-            child: _reportBtn(
-              'Class VI',
-              () {
-                setState(() {
-                  _showMonthlySummaryTable = false;
-                  _showMonthlyClassVITable = !_showMonthlyClassVITable;
-                  if (_showMonthlyClassVITable) {
-                    _showMonthlyClassVTable = false;
-                    _showMonthlyPreventiveTable = false;
-                  }
-                });
-              },
-            ),
-          ),
-          const SizedBox(width: 6),
-          Expanded(
-            child: _reportBtn(
-              'Preventives',
-              () {
-                setState(() {
-                  _showMonthlySummaryTable = false;
-                  _showMonthlyPreventiveTable = !_showMonthlyPreventiveTable;
-                  if (_showMonthlyPreventiveTable) {
-                    _showMonthlyClassVTable = false;
-                    _showMonthlyClassVITable = false;
-                  }
-                });
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _reportBtn(String label, VoidCallback? onTap) {
-    return SizedBox(
-      height: 38,
-      child: ElevatedButton(
-        onPressed: onTap,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.navyMid,
-          disabledBackgroundColor: AppColors.lightBorder,
-          foregroundColor: Colors.white,
-          disabledForegroundColor: AppColors.lightSubText,
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 0,
-        ),
-        child: Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // (intentionally removed) Monthly preview dialog: monthly screen is now table-driven.
-
   Widget _buildReportTile(_CalCategoryMeta meta) {
     return GestureDetector(
       onTap: () {
@@ -8591,6 +6137,28 @@ class _CalendarTabState extends State<_CalendarTab> {
             context,
             AppTheme.fadeSlideRoute(
                 page: const ItssoHubScreen(stationName: 'All Stations')),
+          );
+          return;
+        }
+        if (meta.moduleKey.toLowerCase() == 'dar' ||
+            meta.label.toUpperCase() == 'DAR') {
+          final auth = context.read<AuthProvider>();
+          Navigator.push(
+            context,
+            AppTheme.fadeSlideRoute(
+                page: DarHubScreen(stationName: auth.stationName)),
+          );
+          return;
+        }
+        if (meta.moduleKey.toLowerCase() == 'irad' ||
+            meta.moduleKey.toLowerCase() == 'irda' ||
+            meta.label.toUpperCase() == 'IRAD' ||
+            meta.label.toUpperCase() == 'IRDA') {
+          final auth = context.read<AuthProvider>();
+          Navigator.push(
+            context,
+            AppTheme.fadeSlideRoute(
+                page: IradHubScreen(stationName: auth.stationName)),
           );
           return;
         }
@@ -9706,6 +7274,17 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
             categoryName: item.name,
             moduleKey: item.moduleKey,
           );
+        } else if (item.moduleKey == 'kidnapping') {
+          // The combined "Kidnapping/Missing" tab of "1 to 5"
+          Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(
+                page: const FormIVSelectionScreen(
+                  openCategory: 'Kidnapping/Missing',
+                  customTitle: 'Kidnapping/Missing',
+                  mode: FormIVSelectionMode.add,
+                ),
+              ));
         } else if (item.moduleKey == 'missing') {
           Navigator.push(
               context,
@@ -9722,6 +7301,8 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
                   moduleLabel: item.name,
                 ),
               ));
+        } else if (item.moduleKey == 'passport') {
+          PassportAddEditDialog.show(context);
         } else if (item.moduleKey == 'muddemal' || item.name == 'Muddemal') {
           Navigator.push(
               context,

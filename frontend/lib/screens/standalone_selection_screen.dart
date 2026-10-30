@@ -373,7 +373,7 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
               itemCount: categories.length,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: cols,
-                childAspectRatio: 2.2,
+                childAspectRatio: width <= 600 ? 1.85 : 2.2,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
               ),
@@ -431,10 +431,11 @@ class _StandaloneSelectionScreenState extends State<StandaloneSelectionScreen> {
                 Expanded(
                   child: Text(
                     TranslationHelper.translate(context, name),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                    maxLines: 3,
+                    softWrap: true,
+                    overflow: TextOverflow.visible,
                     style: GoogleFonts.poppins(
-                      fontSize: 12.5,
+                      fontSize: 12.0,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
                       height: 1.2,

@@ -226,6 +226,18 @@ void main() {
           isTabLinkedToCommonFormBaseline(
               moduleKey: 'form_1_5', categoryName: 'Theft'),
           isTrue);
+      expect(
+          isTabLinkedToCommonFormBaseline(
+              moduleKey: 'form_1_5', categoryName: 'Property & Seizure Form'),
+          isTrue);
+      expect(
+          isTabLinkedToCommonFormBaseline(
+              moduleKey: 'form_1_5', categoryName: '376 Medical Form'),
+          isTrue);
+      expect(
+          isTabLinkedToCommonFormBaseline(
+              moduleKey: 'form_1_5', categoryName: 'Crime Detail Form'),
+          isTrue);
       expect(moduleUsesCommonCrimeForm('theft'), isTrue);
 
       // 3. Suicide is now an unlinked tab

@@ -20,6 +20,7 @@ from apps.users.models import OfficerProfile
 from apps.crimetab.models import RTIApplication, OptionValue, ModuleSetting, FieldTemplateField
 from apps.crimetab import settings_cache
 from apps.crimetab.serializers_rti import RTIApplicationSerializer, RTIApplicationListSerializer, format_rti_serial
+from apps.crimetab.age_limits import MAX_AGE, MIN_AGE
 
 logger = logging.getLogger(__name__)
 
@@ -544,8 +545,9 @@ class RTIListCreateView(APIView):
         if applicant_age is not None and str(applicant_age).strip() != '':
             try:
                 age_int = int(applicant_age)
-                if not (1 <= age_int <= 120):
-                    return Response({'error': 'applicant_age must be between 1 and 120.'}, status=status.HTTP_400_BAD_REQUEST)
+                if not (MIN_AGE <= age_int <= MAX_AGE):
+                    return Response({'error': f'applicant_age must be between {MIN_AGE} and {MAX_AGE}.'},
+                                    status=status.HTTP_400_BAD_REQUEST)
                 applicant_age = age_int
             except ValueError:
                 return Response({'error': 'applicant_age must be an integer.'}, status=status.HTTP_400_BAD_REQUEST)

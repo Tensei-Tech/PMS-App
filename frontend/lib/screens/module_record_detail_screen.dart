@@ -77,6 +77,7 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
   void _subscribeToRecord() {
     final id = _record.id;
     if (id.isEmpty) return;
+    _fetchFreshRecord();
     _subscription?.cancel();
     _subscription = _firestore.watchCaseById(id).listen(
       (next) {
@@ -105,6 +106,21 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
         });
       }
     });
+  }
+
+  Future<void> _fetchFreshRecord() async {
+    final id = _record.id;
+    if (id.isEmpty) return;
+    try {
+      final fresh = await CaseService().fetchCaseById(id);
+      if (fresh != null && mounted) {
+        setState(() {
+          _recordDeleted = false;
+          _accessDenied = false;
+          _record = fresh;
+        });
+      }
+    } catch (_) {}
   }
 
   @override
@@ -164,66 +180,74 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.lightBg,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          _buildAppBar(context, isDark, statusColor, moduleLabel),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (_record.status == 'Transferred Out') ...[
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.red.shade50,
-                        border: Border.all(color: Colors.red.shade200),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+      body: _recordDeleted
+          ? _buildDeletedBody(context, isDark, statusColor, moduleLabel)
+          : RefreshIndicator(
+              onRefresh: _fetchFreshRecord,
+              color: AppColors.goldPrimary,
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                slivers: [
+                  _buildAppBar(context, isDark, statusColor, moduleLabel),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.lg),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Icon(Icons.lock_outline_rounded,
-                                  color: Colors.red.shade700, size: 20),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Transferred Out (Read-Only)',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.red.shade700,
-                                ),
+                          if (_record.status == 'Transferred Out') ...[
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.red.shade50,
+                                border: Border.all(color: Colors.red.shade200),
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Transferred to Bandra Police Station by PI John Doe on ${DateTime.now().toLocal().toString().split(' ')[0]}.\nRemark: Handing over case jurisdiction as per order 1234.',
-                            style: GoogleFonts.poppins(
-                              fontSize: 13,
-                              color: Colors.red.shade900,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(Icons.lock_outline_rounded,
+                                          color: Colors.red.shade700, size: 20),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Transferred Out (Read-Only)',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.red.shade700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Transferred to Bandra Police Station by PI John Doe.\nRemark: Handing over case jurisdiction as per order 1234.',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 13,
+                                      color: Colors.red.shade900,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
+                            const SizedBox(height: 16),
+                          ],
+                          ModuleRecordDynamicDocumentView(
+                            record: _record,
+                            moduleLabel: moduleLabel,
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                  ],
-                  ModuleRecordDynamicDocumentView(
-                    record: _record,
-                    moduleLabel: moduleLabel,
                   ),
                 ],
               ),
             ),
-          ),
-        ],
-      ),
       bottomNavigationBar:
           _buildStickyBottomActions(context, moduleLabel, showContent),
     );
@@ -281,9 +305,9 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
     );
   }
 
-  void _openEdit(BuildContext context, String moduleLabel) {
+  Future<void> _openEdit(BuildContext context, String moduleLabel) async {
     if (_record.moduleKey == 'ad') {
-      Navigator.push(
+      await Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
           page: ADFormScreen(
@@ -292,10 +316,11 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
           ),
         ),
       );
+      _fetchFreshRecord();
       return;
     }
     if (_record.moduleKey == 'nc') {
-      Navigator.push(
+      await Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
           page: NcFormScreen(
@@ -305,10 +330,11 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
           ),
         ),
       );
+      _fetchFreshRecord();
       return;
     }
     if (_record.moduleKey == 'missing') {
-      Navigator.push(
+      await Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
           page: MissingFormScreen(
@@ -318,10 +344,11 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
           ),
         ),
       );
+      _fetchFreshRecord();
       return;
     }
     if (_record.moduleKey == 'preventive') {
-      Navigator.push(
+      await Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
           page: PreventiveFormScreen(
@@ -331,10 +358,11 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
           ),
         ),
       );
+      _fetchFreshRecord();
       return;
     }
     if (_record.moduleKey == 'mpda') {
-      Navigator.push(
+      await Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
           page: MpdaFormScreen(
@@ -344,10 +372,11 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
           ),
         ),
       );
+      _fetchFreshRecord();
       return;
     }
     if (moduleUsesCommonCrimeForm(_record.moduleKey, _record.subCategory)) {
-      Navigator.push(
+      await Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
           page: CommonFormScreen(
@@ -357,9 +386,10 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
           ),
         ),
       );
+      _fetchFreshRecord();
       return;
     }
-    Navigator.push(
+    await Navigator.push(
       context,
       AppTheme.fadeSlideRoute(
         page: ModuleFormScreen(
@@ -369,6 +399,7 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
         ),
       ),
     );
+    _fetchFreshRecord();
   }
 
   Widget _buildDeletedBody(

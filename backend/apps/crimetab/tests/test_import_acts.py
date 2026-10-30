@@ -89,11 +89,16 @@ class ImportActsTests(TestCase):
 
     def test_every_file_in_the_data_folder_imports(self):
         out = _run(DATA)
-        self.assertIn('Added 5 act(s)', out)
+        self.assertIn('Added 6 act(s)', out)
         names = set(Act.objects.values_list('act_name', flat=True))
+        pocso = 'THE PROTECTION OF CHILDREN FROM SEXUAL OFFENCES (POCSO) ACT, 2012'
         self.assertEqual(names, {BNS, 'THE MOTOR VEHICLES ACT, 1988', 'THE MAHARASHTRA POLICE ACT, 1951',
                                  'THE MAHARASHTRA PROHIBITION ACT, 1949',
-                                 'THE MAHARASHTRA PREVENTION OF GAMBLING ACT, 1887'})
+                                 'THE MAHARASHTRA PREVENTION OF GAMBLING ACT, 1887', pocso})
+        sec19 = ActSection.objects.get(act__act_name=pocso, section_number='19')
+        self.assertEqual(sorted(sec19.subsections.values_list('subsection_code', flat=True)),
+                         ['1', '2(a)', '2(b)', '2(c)', '3', '4', '5', '6', '7'])
+        self.assertEqual(ActSection.objects.filter(act__act_name=pocso).count(), 31)
         gambling = ActSection.objects.get(act__act_name__startswith='THE MAHARASHTRA PREVENTION',
                                           section_number='4')
         self.assertEqual(sorted(gambling.subsections.values_list('subsection_code', flat=True)),

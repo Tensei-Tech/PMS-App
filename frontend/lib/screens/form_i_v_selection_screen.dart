@@ -13,7 +13,7 @@ import '../theme/app_theme.dart';
 import '../utils/category_navigation_helper.dart';
 import '../utils/common_form_module.dart';
 import '../utils/ad_disposal_helper.dart';
-import '../utils/module_pdf_helper.dart';
+import '../utils/case_report_pdf_helper.dart';
 import '../utils/pdf_auth_gate.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/form_iv_category_button.dart';
@@ -215,6 +215,9 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
       'm.v act',
       'mv act',
       'uapa',
+      // Have their own modules; not listed under 1 to 5.
+      'kidnapping',
+      'missing',
     };
     return excluded.contains(lower);
   }
@@ -1815,167 +1818,57 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                   border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
                 ),
                 width: double.infinity,
-                child: Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  alignment: WrapAlignment.spaceBetween,
+                // One line: the sub-tab's name and count, then the date filter
+                // and sort. The app bar's back arrow returns to the categories.
+                child: Row(
                   children: [
-                    Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        InkWell(
-                          onTap: _handleBackNavigation,
-                          borderRadius: BorderRadius.circular(8),
-                          child: Container(
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              TranslationHelper.translate(
+                                context,
+                                _selectedCategory!,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.navyDark,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
+                              horizontal: 8,
+                              vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(8),
-                              border:
-                                  Border.all(color: const Color(0xFFCBD5E1)),
+                              color: const Color(0xFFE8F1FC),
+                              borderRadius: BorderRadius.circular(
+                                AppRadius.full,
+                              ),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.arrow_back_rounded,
-                                  size: 14,
-                                  color: AppColors.navyDark,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  TranslationHelper.translate(
-                                    context,
-                                    _categoryBreadcrumb.isNotEmpty
-                                        ? _categoryBreadcrumb.last
-                                        : 'Categories',
-                                  ),
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.navyDark,
-                                  ),
-                                ),
-                              ],
+                            child: Text(
+                              '${visibleRecords.length}',
+                              style: GoogleFonts.poppins(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF1976D2),
+                              ),
                             ),
                           ),
-                        ),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    _categoryBreadcrumb.clear();
-                                    _selectedCategory = null;
-                                  });
-                                },
-                                child: Text(
-                                  TranslationHelper.translate(
-                                    context,
-                                    'Form I-V',
-                                  ),
-                                  style: GoogleFonts.poppins(
-                                    color: const Color(0xFF1976D2),
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                              for (int i = 0;
-                                  i < _categoryBreadcrumb.length;
-                                  i++) ...[
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 6),
-                                  child: Text(
-                                    '/',
-                                    style: GoogleFonts.poppins(
-                                      color: AppColors.lightSubText,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ),
-                                InkWell(
-                                  onTap: () {
-                                    setState(() {
-                                      _categoryBreadcrumb.removeRange(
-                                        i + 1,
-                                        _categoryBreadcrumb.length,
-                                      );
-                                      _selectedCategory = null;
-                                    });
-                                  },
-                                  child: Text(
-                                    TranslationHelper.translate(
-                                      context,
-                                      _categoryBreadcrumb[i],
-                                    ),
-                                    style: GoogleFonts.poppins(
-                                      color: const Color(0xFF1976D2),
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 6),
-                                child: Text(
-                                  '/',
-                                  style: GoogleFonts.poppins(
-                                    color: AppColors.lightSubText,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ),
-                              Text(
-                                TranslationHelper.translate(
-                                  context,
-                                  _selectedCategory!,
-                                ),
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.navyDark,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFE8F1FC),
-                                  borderRadius: BorderRadius.circular(
-                                    AppRadius.full,
-                                  ),
-                                ),
-                                child: Text(
-                                  '${visibleRecords.length}',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: const Color(0xFF1976D2),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                    _buildDateAndSortControls(),
+                    const SizedBox(width: 8),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: _buildDateAndSortControls(),
+                    ),
                   ],
                 ),
               ),
@@ -2021,13 +1914,8 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                                   : record.title,
                               existingRecord: record,
                             ),
-                            onView: () => _openForm(
-                              record.subCategory?.isNotEmpty == true
-                                  ? record.subCategory!
-                                  : record.title,
-                              existingRecord: record,
-                              readOnly: true,
-                            ),
+                            onView: () =>
+                                CaseReportPdfHelper.view(context, record),
                           );
                         },
                       ),
@@ -2246,7 +2134,7 @@ class _CategoryGridView extends StatelessWidget {
             crossAxisCount: cols,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            mainAxisExtent: 74,
+            mainAxisExtent: availableWidth < 480 ? 84 : 74,
           ),
           itemBuilder: (context, index) {
             final category = categories[index];
@@ -2281,6 +2169,7 @@ class CategoryGridCard extends StatefulWidget {
     required this.count,
     required this.isAll,
     required this.onTap,
+    this.showCount = true,
   });
 
   final String category;
@@ -2289,6 +2178,9 @@ class CategoryGridCard extends StatefulWidget {
   final int count;
   final bool isAll;
   final VoidCallback onTap;
+
+  /// False for a tab whose cases are not counted here (another module).
+  final bool showCount;
 
   @override
   State<CategoryGridCard> createState() => CategoryGridCardState();
@@ -2364,29 +2256,32 @@ class CategoryGridCardState extends State<CategoryGridCard> {
                       children: [
                         Text(
                           widget.category,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                          maxLines: 3,
+                          softWrap: true,
+                          overflow: TextOverflow.visible,
                           style: GoogleFonts.poppins(
-                            fontSize: 12.5,
+                            fontSize: 12.0,
                             fontWeight: FontWeight.w600,
                             color: AppColors.navyDark,
-                            height: 1.15,
+                            height: 1.18,
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          widget.count == 1
-                              ? '1 case'
-                              : '${widget.count} cases',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            color: hasCases
-                                ? const Color(0xFF1976D2)
-                                : AppColors.lightSubText,
-                            fontWeight:
-                                hasCases ? FontWeight.w600 : FontWeight.w400,
+                        if (widget.showCount) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            widget.count == 1
+                                ? '1 case'
+                                : '${widget.count} cases',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              color: hasCases
+                                  ? const Color(0xFF1976D2)
+                                  : AppColors.lightSubText,
+                              fontWeight:
+                                  hasCases ? FontWeight.w600 : FontWeight.w400,
+                            ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ),
@@ -2692,7 +2587,22 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
     final accusedName = _getNameOfAccused(record, doc);
     final crimeDate = _getCrimeDate(record, doc);
 
-    final statusColor = _statusColor(record.status);
+    final isDisposal = record.status.toLowerCase() == 'disposal' ||
+        record.status.toLowerCase() == 'closed' ||
+        record.status.toLowerCase() == 'resolved';
+    final isPending = record.status.toLowerCase() == 'pending' ||
+        record.status.toLowerCase() == 'open' ||
+        record.status.toLowerCase() == 'active';
+    final Color statusColor = isDisposal
+        ? const Color(0xFF2E7D32)
+        : (isPending ? const Color(0xFFE65100) : const Color(0xFFD32F2F));
+    final Color statusBg = isDisposal
+        ? const Color(0xFFE8F5E9)
+        : (isPending ? const Color(0xFFFFF3E0) : const Color(0xFFFFEBEE));
+    final Color statusBorder = isDisposal
+        ? const Color(0xFFA5D6A7)
+        : (isPending ? const Color(0xFFFFCC80) : const Color(0xFFFFCDD2));
+
     final categoryLabel = record.subCategory?.trim().isNotEmpty == true
         ? TranslationHelper.translate(context, record.subCategory!.trim())
         : TranslationHelper.translate(
@@ -2700,342 +2610,320 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
             record.firestoreCategoryDisplayName,
           );
 
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1100),
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: const Color(0xFFE2E8F0),
-              width: 1.1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
+    final double actionsWidth = widget.readOnly ? 82.0 : 176.0;
+
+    Widget buildActionButtons() {
+      return SizedBox(
+        width: actionsWidth,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (!widget.readOnly && !isDisposal) ...[
+              _buildCompactActionButton(
+                icon: Icons.fact_check_outlined,
+                label: 'Dispose',
+                color: AppColors.successGreen,
+                width: 44,
+                onTap: () => _showQuickDisposeDialog(context, record),
               ),
+              const SizedBox(width: 6),
             ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header Row: All fields in one clean line
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final isWide = constraints.maxWidth >= 820;
-
-                    if (!isWide) {
-                      return _buildMobileCompactHeader(
-                        crNo: crNo,
-                        categoryLabel: categoryLabel,
-                        sectionAct: sectionAct,
-                        accusedName: accusedName,
-                        crimeDate: crimeDate,
-                        statusColor: statusColor,
-                        record: record,
-                      );
-                    }
-
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // 1. Identification: CR No. Pill + Category Badge (Fixed widths so all columns across cards align)
-                        SizedBox(
-                          width: 82,
-                          child: Container(
-                            height: 28,
-                            padding: const EdgeInsets.symmetric(horizontal: 6),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(6),
-                              border:
-                                  Border.all(color: const Color(0xFFCBD5E1)),
-                            ),
-                            alignment: Alignment.center,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'CR ',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 9.5,
-                                    fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF64748B),
-                                  ),
-                                ),
-                                Flexible(
-                                  child: Text(
-                                    crNo,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 11.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: const Color(0xFF0F172A),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        if (categoryLabel.isNotEmpty) ...[
-                          const SizedBox(width: 6),
-                          SizedBox(
-                            width: 86,
-                            child: Container(
-                              height: 28,
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 6),
-                              decoration: BoxDecoration(
-                                color: AppColors.goldPrimary.withValues(
-                                  alpha: 0.12,
-                                ),
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(
-                                  color: AppColors.goldPrimary.withValues(
-                                    alpha: 0.35,
-                                  ),
-                                ),
-                              ),
-                              alignment: Alignment.center,
-                              child: Text(
-                                categoryLabel,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.goldPrimary,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-
-                        // Vertical Divider
-                        const SizedBox(width: 8),
-                        Container(
-                          width: 1,
-                          height: 18,
-                          color: const Color(0xFFE2E8F0),
-                        ),
-                        const SizedBox(width: 8),
-
-                        // 2. Section / Act (Fixed slot so Accused always starts at the exact same X)
-                        SizedBox(
-                          width: 140,
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.gavel_rounded,
-                                size: 13,
-                                color: Color(0xFF64748B),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Sec: ',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
-                                  color: const Color(0xFF64748B),
-                                ),
-                              ),
-                              Expanded(
-                                child: Tooltip(
-                                  message: sectionAct,
-                                  child: Text(
-                                    sectionAct,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF1E293B),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Vertical Divider
-                        const SizedBox(width: 8),
-                        Container(
-                          width: 1,
-                          height: 18,
-                          color: const Color(0xFFE2E8F0),
-                        ),
-                        const SizedBox(width: 8),
-
-                        // 3. Name of Accused (Expands flexibly in the middle)
-                        Expanded(
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.person_outline_rounded,
-                                size: 14,
-                                color: Color(0xFF64748B),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Accused: ',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
-                                  color: const Color(0xFF64748B),
-                                ),
-                              ),
-                              Expanded(
-                                child: Tooltip(
-                                  message: accusedName,
-                                  child: Text(
-                                    accusedName,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF0F172A),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Vertical Divider
-                        const SizedBox(width: 8),
-                        Container(
-                          width: 1,
-                          height: 18,
-                          color: const Color(0xFFE2E8F0),
-                        ),
-                        const SizedBox(width: 8),
-
-                        // 4. Crime Date (Fixed slot)
-                        SizedBox(
-                          width: 106,
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.calendar_today_outlined,
-                                size: 12.5,
-                                color: Color(0xFF64748B),
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  crimeDate,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w500,
-                                    color: const Color(0xFF334155),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Vertical Divider
-                        const SizedBox(width: 8),
-                        Container(
-                          width: 1,
-                          height: 18,
-                          color: const Color(0xFFE2E8F0),
-                        ),
-                        const SizedBox(width: 8),
-
-                        // 5. Status Badge (Uniform height and fixed width)
-                        Container(
-                          width: 74,
-                          height: 28,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: statusColor.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                              color: statusColor.withValues(alpha: 0.35),
-                            ),
-                          ),
-                          child: Text(
-                            TranslationHelper.translate(
-                              context,
-                              record.status,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.poppins(
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w700,
-                              color: statusColor,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-
-                        // 6. Action Buttons: Edit, View, PDF & Chevron
-                        SizedBox(
-                          width: widget.readOnly ? 70 : 146,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              if (!widget.readOnly &&
-                                  record.status != 'Disposal') ...[
-                                _buildCompactActionButton(
-                                  icon: Icons.fact_check_outlined,
-                                  label: 'Dispose',
-                                  onTap: () =>
-                                      _showQuickDisposeDialog(context, record),
-                                ),
-                                const SizedBox(width: 6),
-                              ],
-                              if (!widget.readOnly) ...[
-                                _buildCompactActionButton(
-                                  icon: Icons.edit_outlined,
-                                  label: 'Edit',
-                                  onTap: widget.onEdit,
-                                ),
-                                const SizedBox(width: 6),
-                              ],
-                              _buildCompactActionButton(
-                                icon: Icons.visibility_outlined,
-                                label: 'View',
-                                onTap: widget.onView,
-                              ),
-                              const SizedBox(width: 6),
-                              _buildCompactActionButton(
-                                icon: Icons.picture_as_pdf_outlined,
-                                label: 'PDF',
-                                onTap: () => runWithPdfAuthGate(
-                                  context,
-                                  () => ModulePdfHelper.generatePdf(
-                                      record, context),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
+            if (!widget.readOnly) ...[
+              _buildCompactActionButton(
+                icon: Icons.edit_outlined,
+                label: 'Edit',
+                color: AppColors.navyDark,
+                width: 38,
+                onTap: widget.onEdit,
               ),
+              const SizedBox(width: 6),
+            ],
+            _buildCompactActionButton(
+              icon: Icons.visibility_outlined,
+              label: 'View',
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: widget.onView,
+            ),
+            const SizedBox(width: 6),
+            _buildCompactActionButton(
+              icon: Icons.picture_as_pdf_outlined,
+              label: 'PDF',
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: () => runWithPdfAuthGate(
+                context,
+                () => CaseReportPdfHelper.download(context, record),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
-              // Expanded details drawer showing all form fields & highlights
-              /* if (_expanded) ...[
+    Widget buildDetailsRow(bool isExpandedMode) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 1. Identification: CR No. Badge + Category Badge
+          Container(
+            height: 38,
+            width: 120,
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: const Color(0xFFCBD5E1)),
+            ),
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'CR No.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF64748B),
+                    height: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Tooltip(
+                  message: crNo,
+                  child: Text(
+                    crNo,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyDark,
+                      height: 1.0,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            height: 38,
+            width: 90,
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: AppColors.goldPrimary.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: AppColors.goldPrimary.withValues(alpha: 0.35),
+              ),
+            ),
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Category',
+                  style: GoogleFonts.poppins(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.goldPrimary,
+                    height: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Tooltip(
+                  message: categoryLabel.isNotEmpty ? categoryLabel : '—',
+                  child: Text(
+                    categoryLabel.isNotEmpty ? categoryLabel : '—',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.goldPrimary,
+                      height: 1.0,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          _buildDivider(),
+
+          // 2. Section / Act (flex: 3)
+          isExpandedMode
+              ? Expanded(
+                  flex: 3,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Section / Act',
+                    value: (sectionAct.isEmpty || sectionAct == '-')
+                        ? '—'
+                        : sectionAct,
+                    icon: Icons.gavel_rounded,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 140,
+                  label: 'Section / Act',
+                  value: (sectionAct.isEmpty || sectionAct == '-')
+                      ? '—'
+                      : sectionAct,
+                  icon: Icons.gavel_rounded,
+                ),
+
+          _buildDivider(),
+
+          // 3. Name of Accused (flex: 4)
+          isExpandedMode
+              ? Expanded(
+                  flex: 4,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Accused Name',
+                    value: (accusedName.isEmpty || accusedName == '-')
+                        ? '—'
+                        : accusedName,
+                    icon: Icons.person_outline_rounded,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 180,
+                  label: 'Accused Name',
+                  value: (accusedName.isEmpty || accusedName == '-')
+                      ? '—'
+                      : accusedName,
+                  icon: Icons.person_outline_rounded,
+                ),
+
+          _buildDivider(),
+
+          // 4. Crime Date (flex: 2)
+          isExpandedMode
+              ? Expanded(
+                  flex: 2,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Crime Date',
+                    value: (crimeDate.isEmpty || crimeDate == '-')
+                        ? '—'
+                        : crimeDate,
+                    icon: Icons.calendar_today_outlined,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 110,
+                  label: 'Crime Date',
+                  value:
+                      (crimeDate.isEmpty || crimeDate == '-') ? '—' : crimeDate,
+                  icon: Icons.calendar_today_outlined,
+                ),
+
+          _buildDivider(),
+
+          // 5. Status Badge (Fixed width 110 matching RTI)
+          Container(
+            height: 34,
+            width: 110,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: statusBg,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: statusBorder),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Tooltip(
+                    message: record.status,
+                    child: Text(
+                      TranslationHelper.translate(context, record.status),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: statusColor,
+                        height: 1.0,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          _buildDivider(),
+
+          // 6. Action buttons scrollable with the card at the end
+          buildActionButtons(),
+        ],
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: const Color(0xFFCBD5E1),
+          width: 1.1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header Row: Fully scrollable with action buttons at the end on compact screens
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 8,
+            ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth >= 1020;
+                if (isWide) {
+                  return buildDetailsRow(true);
+                }
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: buildDetailsRow(false),
+                );
+              },
+            ),
+          ),
+          // Expanded details drawer showing all form fields & highlights
+          /* if (_expanded) ...[
                 const Divider(height: 1, color: Color(0xFFE2E8F0)),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
@@ -3297,7 +3185,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                           OutlinedButton.icon(
                             onPressed: () => runWithPdfAuthGate(
                               context,
-                              () => ModulePdfHelper.generatePdf(record, context),
+                              () => CaseReportPdfHelper.download(context, record),
                             ),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: const Color(0xFFC53030),
@@ -3331,11 +3219,87 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                   ),
                 ),
               ], */
-            ],
-          ),
-        ),
+        ],
       ),
     );
+  }
+
+  Widget _buildDivider() {
+    return Container(
+      width: 1,
+      height: 26,
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      color: const Color(0xFFE2E8F0),
+    );
+  }
+
+  Widget _buildFieldColumn({
+    required BuildContext context,
+    required String label,
+    required String value,
+    IconData? icon,
+    Color? iconColor,
+    Color? valueColor,
+    VoidCallback? onTap,
+    double? width,
+  }) {
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon,
+                  size: 11.5, color: iconColor ?? const Color(0xFF64748B)),
+              const SizedBox(width: 3.5),
+            ],
+            Flexible(
+              child: Text(
+                TranslationHelper.translate(context, label),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF64748B),
+                  height: 1.1,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Tooltip(
+          message: value,
+          child: Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: valueColor ?? const Color(0xFF0F172A),
+              height: 1.1,
+            ),
+          ),
+        ),
+      ],
+    );
+
+    final wrapped =
+        width != null ? SizedBox(width: width, child: content) : content;
+
+    if (onTap != null) {
+      return InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(4),
+        child: wrapped,
+      );
+    }
+    return wrapped;
   }
 
   Widget _buildCompactActionButton({
@@ -3343,30 +3307,50 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
     required String label,
     required VoidCallback onTap,
     Color? color,
+    double? width,
   }) {
-    final fg = color ?? const Color(0xFF1E293B);
+    final fg = color ?? AppColors.navyDark;
     return Tooltip(
       message: TranslationHelper.translate(context, label),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(6),
         child: Container(
-          height: 28,
-          width: 32, // Fixed width for square buttons
+          height: 38,
+          width: width ?? 38,
+          padding: const EdgeInsets.symmetric(horizontal: 2),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(6),
             border: Border.all(color: const Color(0xFFCBD5E1), width: 1.1),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
+                color: Colors.black.withValues(alpha: 0.03),
                 blurRadius: 2,
                 offset: const Offset(0, 1),
               ),
             ],
           ),
           alignment: Alignment.center,
-          child: Icon(icon, size: 15, color: fg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 14, color: fg),
+              const SizedBox(height: 1.5),
+              Text(
+                TranslationHelper.translate(context, label),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 8.0,
+                  fontWeight: FontWeight.w600,
+                  color: fg,
+                  height: 1.0,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -3516,7 +3500,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
               label: 'PDF',
               onTap: () => runWithPdfAuthGate(
                 context,
-                () => ModulePdfHelper.generatePdf(record, context),
+                () => CaseReportPdfHelper.download(context, record),
               ),
             ),
           ],

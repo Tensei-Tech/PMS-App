@@ -21,6 +21,7 @@ from apps.crimetab.models.dynamic_engine import (
 )
 from apps.core.tenancy import TenantContext, get_active_tenant_schema
 from apps.core.cache_decorators import cache_response
+from apps.crimetab.case_access import can_access_station, can_delete_case, can_edit_case, scope_by_station
 from apps.crimetab.models.common_form import (
     CrimeRegistrationInfo,
     Act,
@@ -45,13 +46,14 @@ from apps.crimetab.models.common_form import (
 from apps.crimetab.serializers import (
     CaseCategoryGroupSerializer,
     CaseCategorySerializer,
-    CaseListSerializer,
     FullCaseDetailSerializer,
     ActSerializer,
     ActSectionSerializer,
+    serialize_case_list,
 )
 from apps.crimetab.services.dynamic_form_service import get_form_definition, get_preventive_action_types
 from apps.crimetab.services.counter_service import (
+    CategoryIndex,
     get_group_counters,
     get_category_counters,
     get_twin_category_ids,
@@ -128,10 +130,23 @@ class FormSchemaView(APIView):
 # ==========================================
 # 1. Group & Category ViewSets
 # ==========================================
+def _login_required_for(view, protected_actions):
+    """Group/category structure stays public; case counts and lists need login.
+
+    Decided by action name so it also holds for routes registered by hand with
+    as_view({'get': 'cases'}), where @action(permission_classes=...) is ignored.
+    """
+    if getattr(view, 'action', None) in protected_actions:
+        return [IsAuthenticated()]
+    return [AllowAny()]
+
+
 class CaseCategoryGroupViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CaseCategoryGroup.objects.all().order_by('display_order', 'group_id')
     serializer_class = CaseCategoryGroupSerializer
-    permission_classes = [AllowAny]
+
+    def get_permissions(self):
+        return _login_required_for(self, {'counters'})
 
     @action(detail=True, methods=['get'])
     def counters(self, request, pk=None):
@@ -154,9 +169,11 @@ class CaseCategoryGroupViewSet(viewsets.ReadOnlyModelViewSet):
 
 class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CaseCategorySerializer
-    permission_classes = [AllowAny]
     pagination_class = None
     lookup_value_regex = r'[^/]+'
+
+    def get_permissions(self):
+        return _login_required_for(self, {'counters', 'cases'})
 
     def get_queryset(self):
         qs = CaseCategory.objects.filter(is_active=True).order_by('display_order', 'category_id')
@@ -391,7 +408,9 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
                 return Response([], status=status.HTTP_200_OK)
 
             station_name = request.query_params.get('station_name') or getattr(request, 'station_name', None)
-            twin_ids = get_twin_category_ids(cat_id)
+            # All categories in one query; twins, sub-trees and counts use it
+            index = CategoryIndex()
+            twin_ids = get_twin_category_ids(cat_id, index)
             direct_children = list(CaseCategory.objects.filter(parent_category_id=cat_id, is_active=True).order_by('display_order', 'category_id'))
             seen_names = {c.category_name.strip().lower() for c in direct_children}
             twin_children = list(CaseCategory.objects.filter(parent_category_id__in=twin_ids, is_active=True).order_by('display_order', 'category_id'))
@@ -406,9 +425,8 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
             results = []
             for c in combined_children:
                 c_data = CaseCategorySerializer(c).data
-                c_data['counters'] = get_category_counters(c.category_id, station_name=station_name)
-                child_twin_ids = get_twin_category_ids(c.category_id)
-                c_data['has_children'] = CaseCategory.objects.filter(parent_category_id__in=child_twin_ids, is_active=True).exists()
+                c_data['counters'] = get_category_counters(c.category_id, station_name=station_name, index=index)
+                c_data['has_children'] = any(index.active_children(t) for t in index.twins(c.category_id))
                 results.append(c_data)
             return Response(results)
 
@@ -540,7 +558,7 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
                 from apps.cases.group_filters import preventive_case_q
                 q_filter = preventive_case_q()
 
-            qs = CaseRecord.objects.filter(q_filter).distinct()
+            qs = scope_by_station(CaseRecord.objects.filter(q_filter).distinct(), request.user)
 
             if station_name:
                 qs = qs.filter(station_name__iexact=station_name)
@@ -554,12 +572,11 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
                     Q(accused__icontains=search)
                 )
 
-            serializer = CaseListSerializer(qs.order_by('-created_at')[:50], many=True)
             return Response({
                 'category_id': category_id,
                 'category_name': category.category_name,
                 'total_cases': qs.count(),
-                'cases': serializer.data,
+                'cases': serialize_case_list(qs.order_by('-created_at')[:50]),
             })
 
 
@@ -758,6 +775,8 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
                 religion=p.get('religion'),
                 caste=p.get('caste'),
                 address=p.get('address'),
+                medical=p.get('medical') or None,
+                medical_date=_parse_d(p.get('medical_date')),
                 approximate_age=p.get('approximate_age'),
                 skin_colour=p.get('skin_colour'),
                 possible_occupation=p.get('possible_occupation'),
@@ -774,7 +793,13 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
                 return
             cleaned = str(nm).strip()
             existing = CasesPerson.objects.filter(case=case, name__iexact=cleaned, role=role).first()
-            if not existing:
+            if existing:
+                # Edits of an already saved person: keep Medical / Medical Date current
+                if 'medical' in p_map or 'medical_date' in p_map:
+                    existing.medical = p_map.get('medical') or None
+                    existing.medical_date = _parse_d(p_map.get('medical_date'))
+                    existing.save(update_fields=['medical', 'medical_date'])
+            else:
                 CasesPerson.objects.create(
                     case=case,
                     role=role,
@@ -788,6 +813,8 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
                     religion=p_map.get('religion'),
                     caste=p_map.get('caste'),
                     address=p_map.get('address'),
+                    medical=p_map.get('medical') or None,
+                    medical_date=_parse_d(p_map.get('medical_date')),
                 )
 
         _add_person('complainant', m.get('complainant'))
@@ -1042,11 +1069,24 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
         is_jail = is_mcr and bool(m.get('jail'))
         jail_dt = _parse_d(m.get('jail_date')) if is_jail else None
 
+        accused_name = case.accused or ''
+        if not accused_name and isinstance(case.extra_fields, dict):
+            acc_list = case.extra_fields.get('accused_list') or []
+            if isinstance(acc_list, list) and acc_list and isinstance(acc_list[0], dict):
+                accused_name = acc_list[0].get('name') or ''
+            if not accused_name:
+                acc_raw = case.extra_fields.get('accused') or case.extra_fields.get('accused_name') or ''
+                if isinstance(acc_raw, str):
+                    accused_name = acc_raw
+
+        cleaned_acc = accused_name.strip() if isinstance(accused_name, str) else ''
+        invalid_names = {'default accused', 'unknown', 'unknown accused', 'अज्ञात', 'none', 'null', 'unidentified', 'test accused', ''}
+
         p_obj = CasesPerson.objects.filter(case=case, role__in=['accused', 'suspect', 'suspected_accused']).first()
-        if not p_obj and (case.accused or 'Default Accused'):
+        if not p_obj and cleaned_acc and cleaned_acc.lower() not in invalid_names:
             p_id = get_or_create_person_for_case(
                 case_id=case.id,
-                typed_name=case.accused or 'Default Accused',
+                typed_name=cleaned_acc,
                 role='accused'
             )
         elif p_obj:
@@ -1648,7 +1688,9 @@ def _save_road_accident_child_entities(case: CaseRecord, data: dict):
 # 3. Case CRUD Endpoints (Rebuilt)
 # ==========================================
 class CrimeCaseManageView(APIView):
-    permission_classes = [AllowAny]
+    # Case records are police data: login required, and users see only the
+    # stations they may access (see apps/crimetab/case_access.py).
+    permission_classes = [IsAuthenticated]
 
     @staticmethod
     def _resolve_schema_and_validate(request):
@@ -1670,8 +1712,6 @@ class CrimeCaseManageView(APIView):
                 schema_name = _STATE_SCHEMA_CACHE.get(str(state_code).upper(), str(state_code).lower())
 
         if not schema_name or schema_name == 'public':
-            if not getattr(request.user, 'is_authenticated', False) and not auth_header and not request.headers.get('X-State-Code') and not request.GET.get('state_code'):
-                return None, Response({'error': 'Authentication credentials were not provided.'}, status=status.HTTP_401_UNAUTHORIZED)
             return None, Response({'error': 'Valid tenant state is required to manage cases.'}, status=status.HTTP_400_BAD_REQUEST)
 
         return schema_name, None
@@ -1711,7 +1751,8 @@ class CrimeCaseManageView(APIView):
             with TenantContext(schema_name):
                 if pk:
                     case = self._optimize_queryset(CaseRecord.objects.filter(pk=pk)).first()
-                    if not case:
+                    # A case of a station the user may not see is reported as missing
+                    if not case or not can_access_station(request.user, case.station_name):
                         return Response({'error': f'Case {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
                     serializer = FullCaseDetailSerializer(case)
                     return Response(serializer.data)
@@ -1721,18 +1762,12 @@ class CrimeCaseManageView(APIView):
                     status_filter = request.query_params.get('status')
                     search = request.query_params.get('search')
 
-                    qs = CaseRecord.objects.all()
+                    qs = scope_by_station(CaseRecord.objects.all(), request.user)
                     if module_key and module_key.lower() not in ['all', '']:
                         mod_lower = module_key.lower().strip()
                         if mod_lower == 'undetected':
-                            undetected_q = (
-                                Q(accused__isnull=True) |
-                                Q(accused__exact='') |
-                                Q(accused__iexact='unknown') |
-                                Q(accused__iexact='अज्ञात') |
-                                Q(accused__iexact='unidentified')
-                            )
-                            qs = qs.filter(undetected_q).exclude(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved'])
+                            from apps.cases.utils import get_undetected_base_queryset
+                            qs = get_undetected_base_queryset(qs)
                         elif mod_lower == 'detected':
                             detected_q = (
                                 Q(accused__isnull=False) &
@@ -1796,19 +1831,18 @@ class CrimeCaseManageView(APIView):
 
                     try:
                         total_count = qs.count()
-                        records = qs.order_by('-created_at')[:limit]
-                        serializer = CaseListSerializer(records, many=True)
+                        rows = serialize_case_list(qs.order_by('-created_at')[:limit])
                     except OperationalError:
                         from django.db import connection
                         connection.close()
                         total_count = qs.count()
-                        records = qs.order_by('-created_at')[:limit]
-                        serializer = CaseListSerializer(records, many=True)
+                        rows = serialize_case_list(qs.order_by('-created_at')[:limit])
 
+                    # The app reads 'results' (falling back to 'cases'); sending
+                    # the same rows under both keys doubled the download.
                     return Response({
                         'count': total_count,
-                        'results': serializer.data,
-                        'cases': serializer.data
+                        'results': rows,
                     })
         except Exception as e:
             logger.error(f"Error in CrimeCaseManageView.get: {str(e)}")
@@ -1825,9 +1859,16 @@ class CrimeCaseManageView(APIView):
         title = data.get('title') or f"Crime Incident {case_number}"
         station_name = data.get('station_name') or 'Default Station'
 
+        from apps.cases.cr_numbers import duplicate_cr_message
         from apps.core.tenancy import TenantContext
         try:
             with TenantContext(schema_name):
+                # A CR number is used only once per tab of a station (auto-generated ones are unique)
+                message = data.get('case_number') and duplicate_cr_message(
+                    case_number, data.get('sub_category'), data.get('module_key', 'crime'), station_name)
+                if message:
+                    return Response({'error': message, 'case_number': [message]},
+                                    status=status.HTTP_400_BAD_REQUEST)
                 with transaction.atomic():
                     extra_fields_val = data.get('extra_fields', {})
                     if not isinstance(extra_fields_val, dict):
@@ -1857,7 +1898,8 @@ class CrimeCaseManageView(APIView):
                         assigned_officer=data.get('assigned_officer', ''),
                         assigned_officer_uid=data.get('assigned_officer_uid'),
                         sub_category=data.get('sub_category'),
-                        created_by=data.get('created_by', ''),
+                        # The creator is whoever is logged in, never a client-sent value.
+                        created_by=str(getattr(request.user, 'uid', '') or getattr(request.user, 'id', '') or ''),
                         station_name=station_name,
                         extra_fields=extra_fields_val,
                     )
@@ -1886,8 +1928,23 @@ class CrimeCaseManageView(APIView):
         try:
             with TenantContext(schema_name):
                 case = CaseRecord.objects.filter(pk=pk).first()
-                if not case:
+                if not case or not can_access_station(request.user, case.station_name):
                     return Response({'error': f'Case {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
+                if not can_edit_case(request.user, case):
+                    return Response({'error': 'You can edit only your own cases.'}, status=status.HTTP_403_FORBIDDEN)
+
+                # A CR number is used only once per tab of a station. Checked only when the
+                # edit changes the CR number or tab, so older duplicates stay editable.
+                from apps.cases.cr_numbers import case_tab, duplicate_cr_message, normalize_cr
+                new_cr = data.get('case_number', case.case_number)
+                new_sub = data.get('sub_category', case.sub_category)
+                if (normalize_cr(new_cr) != normalize_cr(case.case_number)
+                        or case_tab(new_sub, case.module_key) != case_tab(case.sub_category, case.module_key)):
+                    message = duplicate_cr_message(new_cr, new_sub, case.module_key, case.station_name,
+                                                   exclude_id=case.pk)
+                    if message:
+                        return Response({'error': message, 'case_number': [message]},
+                                        status=status.HTTP_400_BAD_REQUEST)
 
                 with transaction.atomic():
                     # 1. Update CaseRecord fields if provided
@@ -1947,6 +2004,29 @@ class CrimeCaseManageView(APIView):
             logger.exception(f"Unexpected error updating case {pk}: {str(e)}")
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    def delete(self, request, pk=None):
+        schema_name, err_resp = self._resolve_schema_and_validate(request)
+        if err_resp:
+            return err_resp
+
+        from apps.core.tenancy import TenantContext
+        from apps.core.cache import upstash_cache
+        from apps.crimetab.models.accident import RoadAccidentRecord
+        with TenantContext(schema_name):
+            case = CaseRecord.objects.filter(pk=pk).first()
+            if not case or not can_access_station(request.user, case.station_name):
+                return Response({'error': f'Case {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
+            if not can_delete_case(request.user, case):
+                return Response({'error': 'You can delete only cases you created.'}, status=status.HTTP_403_FORBIDDEN)
+
+            with transaction.atomic():
+                # Accident rows point at the case by id text, not a foreign key.
+                RoadAccidentRecord.objects.filter(case_id=str(case.pk)).delete()
+                case.delete()  # persons, charges, seizures, ... cascade
+        upstash_cache.delete_pattern("pms:cache:*:cases:*")
+        logger.info(f"[CaseDelete] case {pk} deleted by {getattr(request.user, 'uid', '')}")
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class CaseCountsView(APIView):
     """
@@ -1954,7 +2034,7 @@ class CaseCountsView(APIView):
     Avoids fetching entire case record lists on login / dashboard load.
     Enforces strict state tenant resolution to prevent cross-tenant data exposure.
     """
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
         from apps.cases.views import CaseCountsView as NewCaseCountsView
@@ -1962,11 +2042,11 @@ class CaseCountsView(APIView):
 
 
 class CasePdfView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None):
         case = CaseRecord.objects.filter(pk=pk).first()
-        if not case:
+        if not case or not can_access_station(request.user, case.station_name):
             return Response({'error': f'Case {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = FullCaseDetailSerializer(case)
@@ -1979,11 +2059,80 @@ class CasePdfView(APIView):
         return Response(pdf_data, status=status.HTTP_200_OK)
 
 
+class MyCasesView(APIView):
+    """
+    GET /api/cases/mine/?scope=all|pending|disposal - the cases the signed-in
+    officer created (CaseRecord.created_by is their uid), newest first. Used by
+    the app's My Cases screen.
+    """
+    permission_classes = [IsAuthenticated]
+    DISPOSED_STATUSES = ('Closed', 'Disposal', 'Resolved', 'Disposed')
+
+    def get(self, request):
+        from apps.cases.models import is_ad_case_disposed
+        from apps.cases.serializers import CaseRecordSerializer
+
+        schema_name, err_resp = CrimeCaseManageView._resolve_schema_and_validate(request)
+        if err_resp:
+            return err_resp
+        uid = str(getattr(request.user, 'uid', '') or '').strip()
+        if not uid:
+            return Response([])
+        scope = (request.query_params.get('scope') or 'all').strip().lower()
+        with TenantContext(schema_name):
+            cases = list(CaseRecord.objects.filter(created_by=uid).order_by('-created_at'))
+            if scope in ('pending', 'disposal'):
+                want_disposed = scope == 'disposal'
+                cases = [c for c in cases
+                         if (c.status in self.DISPOSED_STATUSES or is_ad_case_disposed(c)) == want_disposed]
+            return Response(CaseRecordSerializer(cases, many=True).data)
+
+
+class CaseReportPdfView(APIView):
+    """
+    GET /api/cases/<id>/report-pdf/ - the case as a PDF in the RTI report style
+    (title, tab and station, label / value table from the case's own form).
+    The app's View and PDF buttons of "1 to 5" / Part 6 tabs show this file.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None):
+        from django.http import HttpResponse
+        from apps.core.tenancy import TenantContext
+        from apps.crimetab.services.case_report_pdf import build_case_report_pdf
+
+        schema_name, err_resp = CrimeCaseManageView._resolve_schema_and_validate(request)
+        if err_resp:
+            return err_resp
+        with TenantContext(schema_name):
+            case = CaseRecord.objects.filter(pk=pk).first()
+            if not case or not can_access_station(request.user, case.station_name):
+                return Response({'error': f'Case {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
+            data = FullCaseDetailSerializer(case).data
+
+            state_code = getattr(request, 'state_code', None) or request.headers.get('X-State-Code') or 'MH'
+            with TenantContext('public'):
+                from apps.public_master.models import StateRegistry
+                state = StateRegistry.objects.filter(state_code__iexact=state_code).first()
+            if state and state.police_force_title:
+                force_title = f'{state.police_force_title.strip().upper()} DEPARTMENT'
+            elif state and state.state_name:
+                force_title = f'{state.state_name.strip().upper()} POLICE DEPARTMENT'
+            else:
+                force_title = 'POLICE DEPARTMENT'
+            pdf_bytes = build_case_report_pdf(case, data, force_title)
+
+        safe_cr = ''.join(ch if ch.isalnum() else '_' for ch in (case.case_number or str(case.pk)))
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="Case_{safe_cr}.pdf"'
+        return response
+
+
 # ==========================================
 # 4. Transfer Workflow Endpoints (Phase 2 Stub)
 # ==========================================
 class CaseTransferView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, pk=None):
         return Response(
@@ -1993,7 +2142,7 @@ class CaseTransferView(APIView):
 
 
 class TransferredInInboxView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         return Response(
@@ -2003,7 +2152,7 @@ class TransferredInInboxView(APIView):
 
 
 class AssignTransferredCaseView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, pk=None):
         return Response(
@@ -2247,7 +2396,7 @@ class OptionValuesView(APIView):
     """
     permission_classes = [AllowAny]
 
-    @cache_response(ttl=60, key_prefix="options")
+    @cache_response(ttl=60, key_prefix="options", per_user=False)
     def get(self, request, group):
         try:
             group_clean = str(group or '').strip()

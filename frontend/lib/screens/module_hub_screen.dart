@@ -6,9 +6,6 @@ import 'package:flutter/material.dart';
 import 'itsso_hub_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 
 import '../constants/case_status_constants.dart';
@@ -42,6 +39,9 @@ import '../modules/nc/providers/nc_provider.dart';
 import '../modules/nc/screens/nc_form_screen.dart';
 import '../modules/ndps/providers/ndps_provider.dart';
 import '../modules/passport/providers/passport_provider.dart';
+import '../widgets/summons_warrant_report_table.dart';
+import '../widgets/monthly_crime_comparative_table.dart';
+import '../widgets/add_warrant_case_dialog.dart';
 import '../modules/pending/providers/pending_provider.dart';
 import '../modules/pocso/providers/pocso_provider.dart';
 import '../modules/preventive/providers/preventive_provider.dart';
@@ -61,7 +61,6 @@ import '../theme/app_theme.dart';
 import '../utils/ad_disposal_helper.dart';
 import '../utils/common_form_module.dart';
 import '../utils/module_pdf_helper.dart';
-import '../utils/pending_io_wise_logic.dart';
 import '../utils/pdf_auth_gate.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/forms_accordion_list.dart';
@@ -82,7 +81,8 @@ import '../widgets/dynamic_form/dynamic_form_screen.dart';
 import 'filtered_pending_screen.dart';
 import 'pending_io_wise_screens.dart';
 import 'pending_summary_screen.dart';
-import 'report_case_list_screen.dart';
+import '../services/backend_case_service.dart';
+import '../utils/pending_table_firestore_mapper.dart';
 
 class _CategoryMeta {
   final String label;
@@ -122,10 +122,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   final TextEditingController _searchCtrl = TextEditingController();
   late int _reportMonth;
   late int _reportYear;
-  bool _showMonthlySummaryTable = false;
-  bool _showMonthlyClassVTable = false;
-  bool _showMonthlyClassVITable = false;
-  bool _showMonthlyPreventiveTable = false;
   DateTimeRange? _selectedDateRange;
   FormIVDateField _dateField = FormIVDateField.incidentDate;
   FormIVDateSortOrder _dateSortOrder = FormIVDateSortOrder.newestFirst;
@@ -133,10 +129,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   String? _pendingCategory;
   String? _pendingTimeRange;
   String? _pendingViewMode;
-
-  static const List<String> _pendingHubCategories = [
-    ...kPendingDashboardCategoriesForIoWise,
-  ];
 
   static const List<String> _pendingHubTimeRanges = [
     'Select time range',
@@ -395,6 +387,18 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   }
 
   void _openNewEntryForm(BuildContext context) {
+    if (widget.moduleKey == 'sam_warrant') {
+      AddWarrantCaseDialog.show(
+        context,
+        initialYear: _reportYear,
+        initialMonth: _reportMonth,
+      ).then((added) {
+        if (added == true && mounted) {
+          setState(() {});
+        }
+      });
+      return;
+    }
     if (widget.moduleKey == 'ad') {
       Navigator.push(
         context,
@@ -664,6 +668,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           if (widget.moduleKey != 'form_1_5' &&
               widget.moduleKey != 'disposal' &&
               widget.moduleKey != 'monthly' &&
+              widget.moduleKey != 'sam_warrant' &&
               widget.moduleKey != 'pending')
             _buildStatsRow(totalCount, disposalCount, pendingCount),
           if (isTheftOrFormIVStyle) _buildToolbar(displayRecords.length),
@@ -675,6 +680,10 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   // Monthly module is report-only (no records section).
                   SliverToBoxAdapter(
                       child: _buildMonthlyReport(context, allRecords)),
+                ] else if (widget.moduleKey == 'sam_warrant') ...[
+                  // Sam/Warrant module is report-only (fetching dynamically from database).
+                  SliverToBoxAdapter(
+                      child: _buildSamWarrantModuleReportOnly(context)),
                 ] else if (widget.moduleKey == 'pending') ...[
                   SliverToBoxAdapter(
                       child: _buildPendingModuleReportOnly(context)),
@@ -748,7 +757,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     final transCase = TranslationHelper.translate(context, caseWord);
     final subtitle = isTheftOrFormIVStyle
         ? '$categoryName · $total $transCase'
-        : '$total $transRecord $transReg';
+        : (widget.moduleKey == 'sam_warrant'
+            ? TranslationHelper.translate(context, 'Summons & Warrant Report')
+            : '$total $transRecord $transReg');
 
     final bool showAddButton = !(widget.readOnly ||
         widget.moduleKey == 'detected' ||
@@ -900,8 +911,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                           : 'Monthly Registration Report',
                   DateFormat('MMMM yyyy').format(now),
                 ),
-                icon: const Icon(Icons.download_rounded,
-                    size: 18, color: Colors.white),
+                icon: const Icon(Icons.assessment_outlined,
+                    size: 16, color: Colors.white),
                 label: Text('Summary',
                     style:
                         GoogleFonts.poppins(fontSize: 12, color: Colors.white)),
@@ -930,8 +941,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                         readOnly: true,
                       )));
                 })),
-          const SizedBox(height: 24),
-          _buildDemoReportSection(),
         ],
       ),
     );
@@ -955,9 +964,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
   Widget _buildPendingModuleReportOnly(BuildContext context) {
     final auth = context.read<AuthProvider>();
-    final categoryValue = _pendingCategory ?? _pendingHubCategories.first;
-    final timeRangeValue = _pendingTimeRange ?? 'Select time range';
-    final viewModeValue = _pendingViewMode ?? 'Case Wise';
 
     return ModuleHubReportCard(
       title: TranslationHelper.translate(context, 'Pending Reports'),
@@ -975,144 +981,240 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
       wrapCategoryButtonsInCard: false,
       categoryButtons: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final bool isSmallScreen = constraints.maxWidth < 600;
-            final double gap = isSmallScreen ? 12 : 16;
-            final int columns = constraints.maxWidth > 1000
-                ? 4
-                : (constraints.maxWidth > 600 ? 3 : 2);
-            double itemWidth =
-                (constraints.maxWidth - (gap * (columns - 1))) / columns;
-            if (itemWidth < 0) itemWidth = 0; // Prevent negative width crash
+        child: FutureBuilder<List<Map<String, dynamic>>?>(
+          future: BackendCaseService().fetchPendingCases(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: CircularProgressIndicator(color: AppColors.navyMid),
+                ),
+              );
+            }
 
-            return Wrap(
-              spacing: gap,
-              runSpacing: gap,
-              alignment: WrapAlignment.start,
-              children: _pendingHubCategories.map((cat) {
-                final transCategory = TranslationHelper.translate(context, cat);
-                return SizedBox(
-                  width: itemWidth,
-                  height: 64, // Keep full height on mobile
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border:
-                          Border.all(color: Colors.grey.shade200, width: 1.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.navyDark.withValues(alpha: 0.04),
-                          blurRadius: 8,
-                          spreadRadius: 1,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      borderRadius: BorderRadius.circular(12),
-                      child: PopupMenuButton<String>(
-                        offset: const Offset(0, 68),
-                        tooltip: transCategory,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side:
-                              BorderSide(color: Colors.grey.shade200, width: 1),
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: isSmallScreen ? 10 : 16),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
-                                decoration: BoxDecoration(
-                                  color:
-                                      AppColors.navyMid.withValues(alpha: 0.08),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Icon(
-                                  Icons.folder_open_rounded,
-                                  color: AppColors.navyMid,
-                                  size: isSmallScreen ? 16 : 18,
-                                ),
-                              ),
-                              SizedBox(width: isSmallScreen ? 8 : 12),
-                              Expanded(
-                                child: Text(
-                                  transCategory,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: isSmallScreen ? 12 : 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.navyDark,
-                                    height: 1.2,
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: isSmallScreen ? 4 : 8),
-                              Icon(
-                                Icons.keyboard_arrow_down_rounded,
-                                color:
-                                    AppColors.navyDark.withValues(alpha: 0.5),
-                                size: isSmallScreen ? 18 : 20,
-                              ),
-                            ],
-                          ),
-                        ),
-                        onSelected: (val) {
-                          setState(() {
-                            _pendingCategory = cat;
-                          });
-                          if (val == 'IO Wise') {
-                            Navigator.push(
-                              context,
-                              AppTheme.fadeSlideRoute(
-                                page: PendingIoWiseByCategoryScreen(
-                                    category: cat),
-                              ),
-                            );
-                          } else {
-                            setState(() {
-                              _pendingTimeRange = val;
-                            });
-                            Navigator.push(
-                              context,
-                              AppTheme.fadeSlideRoute(
-                                page: FilteredPendingScreen(
-                                  title: '$cat - $val',
-                                ),
-                              ),
-                            );
-                          }
-                        },
-                        itemBuilder: (BuildContext context) {
-                          final List<String> options = [
-                            ..._pendingHubTimeRanges
-                                .where((t) => t != 'Select time range'),
-                            'IO Wise',
-                          ];
-                          return options.map((String choice) {
-                            return PopupMenuItem<String>(
-                              value: choice,
-                              child: Text(
-                                TranslationHelper.translate(context, choice),
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            );
-                          }).toList();
-                        },
-                      ),
+            final data = snapshot.data ?? [];
+            final records = data.map((m) => ModuleRecord.fromMap(m)).toList();
+            final mappedRows =
+                pendingModuleRecordsToTableRows(records, DateTime.now());
+
+            final Map<String, int> categoryCounts = {};
+            for (final r in mappedRows) {
+              final head = r['head']?.trim().isNotEmpty == true
+                  ? r['head']!.trim()
+                  : 'Other';
+              categoryCounts[head] = (categoryCounts[head] ?? 0) + 1;
+            }
+
+            final categories = categoryCounts.keys.toList()..sort();
+
+            if (categories.isEmpty) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Text(
+                    TranslationHelper.translate(
+                        context, 'No pending categories found in database'),
+                    style: GoogleFonts.poppins(
+                      color: AppColors.lightSubText,
+                      fontSize: 13,
                     ),
                   ),
+                ),
+              );
+            }
+
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final bool isSmallScreen = constraints.maxWidth < 600;
+                final double gap = isSmallScreen ? 12 : 16;
+                final int columns = constraints.maxWidth > 1000
+                    ? 4
+                    : (constraints.maxWidth > 600 ? 3 : 2);
+                double itemWidth =
+                    (constraints.maxWidth - (gap * (columns - 1))) / columns;
+                if (itemWidth < 0) itemWidth = 0;
+
+                return Wrap(
+                  spacing: gap,
+                  runSpacing: gap,
+                  alignment: WrapAlignment.start,
+                  children: categories.map((cat) {
+                    final transCategory =
+                        TranslationHelper.translate(context, cat);
+                    final count = categoryCounts[cat] ?? 0;
+
+                    return SizedBox(
+                      width: itemWidth,
+                      height: 64,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                              color: Colors.grey.shade200, width: 1.5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.navyDark.withValues(alpha: 0.04),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                          child: PopupMenuButton<String>(
+                            offset: const Offset(0, 68),
+                            tooltip: transCategory,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(
+                                  color: Colors.grey.shade200, width: 1),
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: isSmallScreen ? 10 : 16),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding:
+                                        EdgeInsets.all(isSmallScreen ? 6 : 8),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.navyMid
+                                          .withValues(alpha: 0.08),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Icon(
+                                      Icons.folder_open_rounded,
+                                      color: AppColors.navyMid,
+                                      size: isSmallScreen ? 16 : 18,
+                                    ),
+                                  ),
+                                  SizedBox(width: isSmallScreen ? 8 : 12),
+                                  Expanded(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          transCategory,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: GoogleFonts.poppins(
+                                            fontSize: isSmallScreen ? 12 : 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.navyDark,
+                                            height: 1.2,
+                                          ),
+                                        ),
+                                        Text(
+                                          '$count ${count == 1 ? "case" : "cases"}',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w500,
+                                            color: AppColors.lightSubText,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(width: isSmallScreen ? 4 : 8),
+                                  Icon(
+                                    Icons.keyboard_arrow_down_rounded,
+                                    color: AppColors.navyDark
+                                        .withValues(alpha: 0.5),
+                                    size: isSmallScreen ? 18 : 20,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            onSelected: (val) {
+                              setState(() {
+                                _pendingCategory = cat;
+                              });
+                              if (val == 'IO Wise') {
+                                Navigator.push(
+                                  context,
+                                  AppTheme.fadeSlideRoute(
+                                    page: PendingIoWiseByCategoryScreen(
+                                        category: cat),
+                                  ),
+                                );
+                              } else {
+                                setState(() {
+                                  _pendingTimeRange = val;
+                                });
+                                String? startDate;
+                                String? endDate;
+                                final now = DateTime.now();
+                                if (val == 'More than 1 year') {
+                                  endDate = DateFormat('yyyy-MM-dd').format(
+                                      now.subtract(const Duration(days: 365)));
+                                } else if (val == '6 to 12 months') {
+                                  startDate = DateFormat('yyyy-MM-dd').format(
+                                      now.subtract(const Duration(days: 365)));
+                                  endDate = DateFormat('yyyy-MM-dd').format(
+                                      now.subtract(const Duration(days: 180)));
+                                } else if (val == '3 to 6 months') {
+                                  startDate = DateFormat('yyyy-MM-dd').format(
+                                      now.subtract(const Duration(days: 180)));
+                                  endDate = DateFormat('yyyy-MM-dd').format(
+                                      now.subtract(const Duration(days: 90)));
+                                } else if (val == 'Within 3 months') {
+                                  startDate = DateFormat('yyyy-MM-dd').format(
+                                      now.subtract(const Duration(days: 90)));
+                                  endDate =
+                                      DateFormat('yyyy-MM-dd').format(now);
+                                } else if (val == '1 month') {
+                                  startDate = DateFormat('yyyy-MM-dd').format(
+                                      now.subtract(const Duration(days: 30)));
+                                  endDate =
+                                      DateFormat('yyyy-MM-dd').format(now);
+                                }
+                                Navigator.push(
+                                  context,
+                                  AppTheme.fadeSlideRoute(
+                                    page: FilteredPendingScreen(
+                                      title: '$cat - $val',
+                                      category: cat,
+                                      startDate: startDate,
+                                      endDate: endDate,
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                            itemBuilder: (BuildContext context) {
+                              final List<String> options = [
+                                ..._pendingHubTimeRanges
+                                    .where((t) => t != 'Select time range'),
+                                'IO Wise',
+                              ];
+                              return options.map((String choice) {
+                                return PopupMenuItem<String>(
+                                  value: choice,
+                                  child: Text(
+                                    TranslationHelper.translate(
+                                        context, choice),
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                );
+                              }).toList();
+                            },
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 );
-              }).toList(),
+              },
             );
           },
         ),
@@ -1137,23 +1239,13 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           '(${subSection.pageRange}, subCategory: $subCategory)',
         );
       }
-      final isLinked = isTabLinkedToCommonFormBaseline(
+      final page = CommonFormScreen(
+        moduleLabel: moduleLabel,
         moduleKey: 'form_1_5',
-        categoryName: subCategory,
+        subCategory: subCategory,
+        formSection: subSection?.sectionId,
+        pageRange: subSection?.pageRange,
       );
-      final page = isLinked
-          ? CommonFormScreen(
-              moduleLabel: moduleLabel,
-              moduleKey: 'form_1_5',
-              subCategory: subCategory,
-              formSection: subSection?.sectionId,
-              pageRange: subSection?.pageRange,
-            )
-          : DynamicFormScreen(
-              moduleLabel: moduleLabel,
-              moduleKey: 'form_1_5',
-              subCategory: subCategory,
-            );
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(page: page),
@@ -1199,2341 +1291,146 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     // We call into the same logic by generating a table locally and using the same PDF helper.
     // (intentionally unused) monthRecords was previously used for PDF export here.
 
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(color: AppColors.lightBorder),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      TranslationHelper.translate(context, 'Monthly Reports'),
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
-                      ),
-                    ),
-                    Text(
-                      monthYearLabel,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.goldPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                ElevatedButton.icon(
-                  onPressed: () => setState(() {
-                    _showMonthlySummaryTable = !_showMonthlySummaryTable;
-                    if (_showMonthlySummaryTable) {
-                      _showMonthlyClassVTable = false;
-                      _showMonthlyClassVITable = false;
-                      _showMonthlyPreventiveTable = false;
-                    }
-                  }),
-                  icon: const Icon(Icons.download_rounded,
-                      size: 16, color: Colors.white),
-                  label: Text(
-                    'Summary',
-                    style:
-                        GoogleFonts.poppins(fontSize: 11, color: Colors.white),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.navyMid,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // Month/Year selector (compact)
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      border: Border.all(color: AppColors.lightBorder),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<int>(
-                        value: _reportMonth,
-                        isExpanded: true,
-                        icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                            color: AppColors.navyMid),
-                        items: List.generate(
-                          12,
-                          (i) => DropdownMenuItem(
-                            value: i + 1,
-                            child: Text(
-                              TranslationHelper.translate(context, months[i]),
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                        ),
-                        onChanged: (val) =>
-                            setState(() => _reportMonth = val ?? _reportMonth),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    border: Border.all(color: AppColors.lightBorder),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<int>(
-                      value: _reportYear,
-                      icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                          color: AppColors.navyMid),
-                      items: List.generate(
-                        5,
-                        (i) => DropdownMenuItem(
-                          value: DateTime.now().year - i,
-                          child: Text(
-                            '${DateTime.now().year - i}',
-                            style: GoogleFonts.poppins(
-                                fontSize: 13, fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                      ),
-                      onChanged: (val) =>
-                          setState(() => _reportYear = val ?? _reportYear),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 14),
-
-            // Report buttons (report-only; no records list)
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: AppColors.navyMid.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.lightBorder),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _reportDownloadBtn(
-                      'Class V',
-                      () => setState(() {
-                        _showMonthlySummaryTable = false;
-                        _showMonthlyClassVTable = !_showMonthlyClassVTable;
-                        if (_showMonthlyClassVTable) {
-                          _showMonthlyClassVITable = false;
-                          _showMonthlyPreventiveTable = false;
-                        }
-                      }),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: _reportDownloadBtn(
-                      'Class VI',
-                      () => setState(() {
-                        _showMonthlySummaryTable = false;
-                        _showMonthlyClassVITable = !_showMonthlyClassVITable;
-                        if (_showMonthlyClassVITable) {
-                          _showMonthlyClassVTable = false;
-                          _showMonthlyPreventiveTable = false;
-                        }
-                      }),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: _reportDownloadBtn(
-                      'Preventives',
-                      () => setState(() {
-                        _showMonthlySummaryTable = false;
-                        _showMonthlyPreventiveTable =
-                            !_showMonthlyPreventiveTable;
-                        if (_showMonthlyPreventiveTable) {
-                          _showMonthlyClassVTable = false;
-                          _showMonthlyClassVITable = false;
-                        }
-                      }),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 14),
-
-            if (_showMonthlySummaryTable)
-              _buildMonthlySummaryPhotoTable(
-                  context, allRecords, _reportMonth, _reportYear),
-            if (_showMonthlyClassVTable)
-              _buildMonthlyRegistrationTable(
-                  context, allRecords, _reportMonth, _reportYear),
-            if (_showMonthlyClassVITable)
-              _buildMonthlyRegistrationTableVI(
-                  context, allRecords, _reportMonth, _reportYear),
-            if (_showMonthlyPreventiveTable)
-              _buildMonthlyRegistrationTablePreventive(
-                  context, allRecords, _reportMonth, _reportYear),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMonthlyRegistrationTablePreventive(
-    BuildContext context,
-    List<ModuleRecord> allRecords,
-    int selectedMonth,
-    int selectedYear,
-  ) {
-    const heads = [
-      '107 Crpc/126 BNSS',
-      '109 Crpc/128 BNSS',
-      '110 Crpc/129 BNSS',
-      '151 (3) Crpc/170(3) BNSS',
-      '55 to 57 B P Act',
-      'U/s 122  B P Act',
-      'U/s 124  B P Act',
-      '142 B P Act',
-      'M H O R',
-      '93 Pro Act',
-      'N S A',
-      'M P D A',
-      'M.C.O.C.A.',
-    ];
-
-    String getHead(ModuleRecord r) {
-      final key = r.moduleKey.toLowerCase();
-      final sub = (r.subCategory ?? '').toLowerCase();
-      if (key != 'preventive') return 'M H O R';
-
-      if (sub.contains('107') || sub.contains('126')) {
-        return '107 Crpc/126 BNSS';
-      }
-      if (sub.contains('109') || sub.contains('128')) {
-        return '109 Crpc/128 BNSS';
-      }
-      if (sub.contains('110') || sub.contains('129')) {
-        return '110 Crpc/129 BNSS';
-      }
-      if (sub.contains('151') || sub.contains('170')) {
-        return '151 (3) Crpc/170(3) BNSS';
-      }
-      if (sub.contains('55') || sub.contains('56') || sub.contains('57')) {
-        return '55 to 57 B P Act';
-      }
-      if (sub.contains('122')) return 'U/s 122  B P Act';
-      if (sub.contains('124')) return 'U/s 124  B P Act';
-      if (sub.contains('142')) return '142 B P Act';
-      if (sub.contains('mhor') || sub.contains('m h o r')) return 'M H O R';
-      if (sub.contains('93') || sub.contains('pro act')) return '93 Pro Act';
-      if (sub.contains('nsa') || sub.contains('n s a')) return 'N S A';
-      if (sub.contains('mpda') || sub.contains('m p d a')) return 'M P D A';
-      if (sub.contains('mcoca') || sub.contains('m.c.o.c.a')) {
-        return 'M.C.O.C.A.';
-      }
-
-      return 'M H O R';
-    }
-
-    List<ModuleRecord> filterMonth(int m, int y) => allRecords
-        .where((r) =>
-            r.moduleKey == 'preventive' &&
-            r.incidentDate.year == y &&
-            r.incidentDate.month == m)
-        .toList();
-
-    List<ModuleRecord> filterYearToMonth(int m, int y) => allRecords
-        .where((r) =>
-            r.moduleKey == 'preventive' &&
-            r.incidentDate.year == y &&
-            r.incidentDate.month <= m)
-        .toList();
-
-    final currentMonthRecords = filterMonth(selectedMonth, selectedYear);
-    final prevMonth = selectedMonth == 1 ? 12 : selectedMonth - 1;
-    final prevYear = selectedMonth == 1 ? selectedYear - 1 : selectedYear;
-    final previousMonthRecords = filterMonth(prevMonth, prevYear);
-    final sameMonthLastYearRecords =
-        filterMonth(selectedMonth, selectedYear - 1);
-    final yearCurrentRecords = filterYearToMonth(selectedMonth, selectedYear);
-    final yearPreviousRecords =
-        filterYearToMonth(selectedMonth, selectedYear - 1);
-
-    final tableRows = <Map<String, dynamic>>[];
-    int totalcm = 0, totalpm = 0, totalsmly = 0, totalyc = 0, totalyp = 0;
-
-    for (int i = 0; i < heads.length; i++) {
-      final head = heads[i];
-      List<ModuleRecord> byHead(List<ModuleRecord> list) =>
-          list.where((r) => getHead(r) == head).toList();
-
-      final cmRecs = byHead(currentMonthRecords);
-      final pmRecs = byHead(previousMonthRecords);
-      final smlyRecs = byHead(sameMonthLastYearRecords);
-      final ycRecs = byHead(yearCurrentRecords);
-      final ypRecs = byHead(yearPreviousRecords);
-
-      final cm = cmRecs.length;
-      final pm = pmRecs.length;
-      final smly = smlyRecs.length;
-      final yc = ycRecs.length;
-      final yp = ypRecs.length;
-      final variation = yc - yp;
-
-      tableRows.add({
-        'N': i + 1,
-        'Heads': head,
-        'cm_R': cm,
-        'pm_R': pm,
-        'smly_R': smly,
-        'yc_R': yc,
-        'yp_R': yp,
-        'variation': variation,
-        'cmRecords': cmRecs,
-        'pmRecords': pmRecs,
-        'smlyRecords': smlyRecs,
-        'ycRecords': ycRecs,
-        'ypRecords': ypRecs,
-      });
-
-      totalcm += cm;
-      totalpm += pm;
-      totalsmly += smly;
-      totalyc += yc;
-      totalyp += yp;
-    }
-
-    tableRows.add({
-      'N': '',
-      'Heads': 'TOTAL',
-      'cm_R': totalcm,
-      'pm_R': totalpm,
-      'smly_R': totalsmly,
-      'yc_R': totalyc,
-      'yp_R': totalyp,
-      'variation': totalyc - totalyp,
-      'cmRecords': currentMonthRecords,
-      'pmRecords': previousMonthRecords,
-      'smlyRecords': sameMonthLastYearRecords,
-      'ycRecords': yearCurrentRecords,
-      'ypRecords': yearPreviousRecords,
-    });
-
-    String mLabel(DateTime d) {
-      final m = DateFormat('MMM').format(d).toUpperCase();
-      return '$m\n${d.year}';
-    }
-
-    final cmLabel = mLabel(DateTime(selectedYear, selectedMonth));
-    final pmLabel = mLabel(DateTime(prevYear, prevMonth));
-    final smlyLabel = mLabel(DateTime(selectedYear - 1, selectedMonth));
-    final ycLabel = 'Year\n$selectedYear';
-    final ypLabel = 'Year\n${selectedYear - 1}';
-
-    DataColumn col(String label, {bool alignLeft = false}) => DataColumn(
-          label: Text(
-            label,
-            textAlign: alignLeft ? TextAlign.left : TextAlign.center,
-            softWrap: true,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.poppins(
-              fontSize: 9,
-              fontWeight: FontWeight.w800,
-              color: AppColors.navyDark,
-            ),
-          ),
-        );
-
-    DataCell cell(String text, {bool alignLeft = false, bool isBold = false}) =>
-        DataCell(
-          Align(
-            alignment: alignLeft ? Alignment.centerLeft : Alignment.center,
-            child: Text(
-              text,
-              softWrap: true,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
-                color: isBold ? AppColors.navyDark : AppColors.lightText,
-              ),
-            ),
-          ),
-        );
-
-    DataCell navCell(String text, List<ModuleRecord> recs, String title,
-        {bool isBold = false}) {
-      return DataCell(
-        InkWell(
-          onTap: recs.isEmpty
-              ? null
-              : () {
-                  Navigator.push(
-                    context,
-                    AppTheme.fadeSlideRoute(
-                      page: ReportCaseListScreen(title: title, records: recs),
-                    ),
-                  );
-                },
-          child: Align(
-            alignment: Alignment.center,
-            child: Text(
-              text,
-              softWrap: false,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
-                color:
-                    recs.isEmpty ? AppColors.lightSubText : AppColors.infoBlue,
-                decoration: recs.isEmpty ? null : TextDecoration.underline,
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    String varText(dynamic v) {
-      final n = (v as int?) ?? 0;
-      if (n == 0) return '=';
-      return n > 0 ? '+$n' : '$n';
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final w = constraints.maxWidth;
-            final colSpace =
-                w < 360 ? 10.0 : (w < 600 ? 15.0 : (w < 1000 ? 20.0 : 36.0));
-            final margin = w < 360 ? 8.0 : (w < 1000 ? 12.0 : 20.0);
-            final headingH = w < 360 ? 52.0 : (w < 1000 ? 56.0 : 60.0);
-            final rowH = w < 360 ? 44.0 : (w < 1000 ? 48.0 : 52.0);
-            return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minWidth: w, // fill available width on PC
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.lightBorder),
-                  ),
-                  child: SizedBox(
-                    width: w,
-                    child: DataTable(
-                      headingRowColor: WidgetStateProperty.all(
-                        AppColors.navyMid.withValues(alpha: 0.05),
-                      ),
-                      dataRowMinHeight: rowH,
-                      dataRowMaxHeight: rowH,
-                      headingRowHeight: headingH,
-                      horizontalMargin: margin,
-                      columnSpacing: colSpace,
-                      border: TableBorder.all(
-                          color: AppColors.lightBorder, width: 0.5),
-                      columns: [
-                        col('SR'),
-                        col('Heads', alignLeft: true),
-                        col(cmLabel),
-                        col(pmLabel),
-                        col(smlyLabel),
-                        col(ycLabel),
-                        col(ypLabel),
-                        col('var.'),
-                      ],
-                      rows: tableRows.map((row) {
-                        final isTotal = row['Heads'] == 'TOTAL';
-                        return DataRow(
-                          color: isTotal
-                              ? WidgetStateProperty.all(
-                                  AppColors.goldPrimary.withValues(alpha: 0.1),
-                                )
-                              : null,
-                          cells: [
-                            cell(row['N'].toString(), isBold: isTotal),
-                            cell(row['Heads'].toString(),
-                                alignLeft: true, isBold: true),
-                            navCell(
-                              '${row['cm_R']}',
-                              (row['cmRecords'] as List<ModuleRecord>?) ??
-                                  const <ModuleRecord>[],
-                              '${row['Heads']} • $cmLabel',
-                              isBold: isTotal,
-                            ),
-                            navCell(
-                              '${row['pm_R']}',
-                              (row['pmRecords'] as List<ModuleRecord>?) ??
-                                  const <ModuleRecord>[],
-                              '${row['Heads']} • $pmLabel',
-                              isBold: isTotal,
-                            ),
-                            navCell(
-                              '${row['smly_R']}',
-                              (row['smlyRecords'] as List<ModuleRecord>?) ??
-                                  const <ModuleRecord>[],
-                              '${row['Heads']} • $smlyLabel',
-                              isBold: isTotal,
-                            ),
-                            navCell(
-                              '${row['yc_R']}',
-                              (row['ycRecords'] as List<ModuleRecord>?) ??
-                                  const <ModuleRecord>[],
-                              '${row['Heads']} • $ycLabel',
-                              isBold: isTotal,
-                            ),
-                            navCell(
-                              '${row['yp_R']}',
-                              (row['ypRecords'] as List<ModuleRecord>?) ??
-                                  const <ModuleRecord>[],
-                              '${row['Heads']} • $ypLabel',
-                              isBold: isTotal,
-                            ),
-                            cell(varText(row['variation']), isBold: isTotal),
-                          ],
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: () {
-              final label = DateFormat('MMMM yyyy')
-                  .format(DateTime(selectedYear, selectedMonth));
-              ModulePdfHelper.generateMonthlyTablePdf(label, tableRows);
-            },
-            icon: const Icon(Icons.picture_as_pdf_rounded,
-                color: Colors.white, size: 18),
-            label: Text(
-              'Export Table PDF',
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.dangerRed,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMonthlyRegistrationTableVI(
-    BuildContext context,
-    List<ModuleRecord> allRecords,
-    int selectedMonth,
-    int selectedYear,
-  ) {
-    const heads = [
-      'Arms Act',
-      'Gambling Act',
-      'Prohibition',
-      'NDPS Act',
-      '135 B Pact',
-      '142 B Pact',
-      '122 B Pact',
-      'M V Act',
-      'Miscellaneous',
-    ];
-
-    String getHead(ModuleRecord r) {
-      final sub = (r.subCategory ?? '').toLowerCase();
-      final key = r.moduleKey.toLowerCase();
-
-      if (key != 'form_6') return 'Miscellaneous';
-
-      if (sub.contains('arms')) return 'Arms Act';
-      if (sub.contains('gambl')) return 'Gambling Act';
-      if (sub.contains('prohib')) return 'Prohibition';
-      if (sub.contains('ndps')) return 'NDPS Act';
-      if (sub.contains('135')) return '135 B Pact';
-      if (sub.contains('142')) return '142 B Pact';
-      if (sub.contains('122')) return '122 B Pact';
-      if (sub.contains('m v') || sub.contains('mv') || sub.contains('motor')) {
-        return 'M V Act';
-      }
-
-      return 'Miscellaneous';
-    }
-
-    List<ModuleRecord> filterMonth(int m, int y) => allRecords
-        .where((r) =>
-            r.moduleKey == 'form_6' &&
-            r.incidentDate.year == y &&
-            r.incidentDate.month == m)
-        .toList();
-
-    List<ModuleRecord> filterYearToMonth(int m, int y) => allRecords
-        .where((r) =>
-            r.moduleKey == 'form_6' &&
-            r.incidentDate.year == y &&
-            r.incidentDate.month <= m)
-        .toList();
-
-    final currentMonthRecords = filterMonth(selectedMonth, selectedYear);
-    final prevMonth = selectedMonth == 1 ? 12 : selectedMonth - 1;
-    final prevYear = selectedMonth == 1 ? selectedYear - 1 : selectedYear;
-    final previousMonthRecords = filterMonth(prevMonth, prevYear);
-    final sameMonthLastYearRecords =
-        filterMonth(selectedMonth, selectedYear - 1);
-    final yearCurrentRecords = filterYearToMonth(selectedMonth, selectedYear);
-    final yearPreviousRecords =
-        filterYearToMonth(selectedMonth, selectedYear - 1);
-
-    final tableRows = <Map<String, dynamic>>[];
-    int totalcmR = 0;
-    int totalpmR = 0;
-    int totalsmlyR = 0;
-    int totalycR = 0;
-    int totalypR = 0;
-
-    for (int i = 0; i < heads.length; i++) {
-      final head = heads[i];
-      List<ModuleRecord> byHead(List<ModuleRecord> list) =>
-          list.where((r) => getHead(r) == head).toList();
-
-      final cm = byHead(currentMonthRecords);
-      final pm = byHead(previousMonthRecords);
-      final smly = byHead(sameMonthLastYearRecords);
-      final yc = byHead(yearCurrentRecords);
-      final yp = byHead(yearPreviousRecords);
-
-      final cmR = cm.length;
-      final pmR = pm.length;
-      final smlyR = smly.length;
-      final ycR = yc.length;
-      final ypR = yp.length;
-      final variation = ycR - ypR;
-
-      tableRows.add({
-        'N': i + 1,
-        'Heads': head,
-        'cm_R': cmR,
-        'pm_R': pmR,
-        'smly_R': smlyR,
-        'yc_R': ycR,
-        'yp_R': ypR,
-        'variation': variation,
-        'cmRecords': cm,
-        'pmRecords': pm,
-        'smlyRecords': smly,
-        'ycRecords': yc,
-        'ypRecords': yp,
-      });
-
-      totalcmR += cmR;
-      totalpmR += pmR;
-      totalsmlyR += smlyR;
-      totalycR += ycR;
-      totalypR += ypR;
-    }
-
-    tableRows.add({
-      'N': '',
-      'Heads': 'TOTAL',
-      'cm_R': totalcmR,
-      'pm_R': totalpmR,
-      'smly_R': totalsmlyR,
-      'yc_R': totalycR,
-      'yp_R': totalypR,
-      'variation': totalycR - totalypR,
-      'cmRecords': currentMonthRecords,
-      'pmRecords': previousMonthRecords,
-      'smlyRecords': sameMonthLastYearRecords,
-      'ycRecords': yearCurrentRecords,
-      'ypRecords': yearPreviousRecords,
-    });
-
-    DataColumn col(String label, {bool alignLeft = false}) => DataColumn(
-          label: Text(
-            label,
-            textAlign: alignLeft ? TextAlign.left : TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: 9,
-              fontWeight: FontWeight.w800,
-              color: AppColors.navyDark,
-            ),
-          ),
-        );
-
-    DataCell cell(String text,
-            {bool alignLeft = false, bool isBold = false, Color? color}) =>
-        DataCell(
-          Align(
-            alignment: alignLeft ? Alignment.centerLeft : Alignment.center,
-            child: Text(
-              text,
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
-                color: color ??
-                    (isBold ? AppColors.navyDark : AppColors.lightText),
-              ),
-            ),
-          ),
-        );
-
-    DataCell navCell(String text, List<ModuleRecord> recs, String title,
-        {bool isBold = false}) {
-      return DataCell(
-        InkWell(
-          onTap: recs.isEmpty
-              ? null
-              : () {
-                  Navigator.push(
-                    context,
-                    AppTheme.fadeSlideRoute(
-                      page: ReportCaseListScreen(title: title, records: recs),
-                    ),
-                  );
-                },
-          child: Align(
-            alignment: Alignment.center,
-            child: Text(
-              text,
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
-                color:
-                    recs.isEmpty ? AppColors.lightSubText : AppColors.infoBlue,
-                decoration: recs.isEmpty ? null : TextDecoration.underline,
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    String mLabel(DateTime d) {
-      final m = DateFormat('MMM').format(d).toUpperCase();
-      return '$m\n${d.year}';
-    }
-
-    final cmLabel = mLabel(DateTime(selectedYear, selectedMonth));
-    final pmLabel = mLabel(DateTime(prevYear, prevMonth));
-    final smlyLabel = mLabel(DateTime(selectedYear - 1, selectedMonth));
-    final ycLabel = 'Year\n$selectedYear';
-    final ypLabel = 'Year\n${selectedYear - 1}';
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final w = constraints.maxWidth;
-            return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              child: ConstrainedBox(
-                constraints:
-                    BoxConstraints(minWidth: w), // fill available width on PC
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.lightBorder),
-                  ),
-                  child: SizedBox(
-                    width: w,
-                    child: DataTable(
-                      headingRowColor: WidgetStateProperty.all(
-                        AppColors.navyMid.withValues(alpha: 0.05),
-                      ),
-                      dataRowMinHeight: 48,
-                      dataRowMaxHeight: 48,
-                      headingRowHeight: 56,
-                      horizontalMargin: 12,
-                      columnSpacing: 15,
-                      border: TableBorder.all(
-                          color: AppColors.lightBorder, width: 0.5),
-                      columns: [
-                        col('N'),
-                        col('Heads', alignLeft: true),
-                        col(cmLabel),
-                        col(pmLabel),
-                        col(smlyLabel),
-                        col(ycLabel),
-                        col(ypLabel),
-                        col('var.'),
-                      ],
-                      rows: tableRows.map((row) {
-                        final isTotal = row['Heads'] == 'TOTAL';
-                        return DataRow(
-                          color: isTotal
-                              ? WidgetStateProperty.all(
-                                  AppColors.goldPrimary.withValues(alpha: 0.1),
-                                )
-                              : null,
-                          cells: [
-                            cell(row['N'].toString(), isBold: isTotal),
-                            cell(row['Heads'].toString(),
-                                alignLeft: true, isBold: true),
-                            navCell(
-                              '${row['cm_R']}',
-                              (row['cmRecords'] as List<ModuleRecord>?) ??
-                                  const <ModuleRecord>[],
-                              '${row['Heads']} • $cmLabel',
-                              isBold: isTotal,
-                            ),
-                            navCell(
-                              '${row['pm_R']}',
-                              (row['pmRecords'] as List<ModuleRecord>?) ??
-                                  const <ModuleRecord>[],
-                              '${row['Heads']} • $pmLabel',
-                              isBold: isTotal,
-                            ),
-                            navCell(
-                              '${row['smly_R']}',
-                              (row['smlyRecords'] as List<ModuleRecord>?) ??
-                                  const <ModuleRecord>[],
-                              '${row['Heads']} • $smlyLabel',
-                              isBold: isTotal,
-                            ),
-                            navCell(
-                              '${row['yc_R']}',
-                              (row['ycRecords'] as List<ModuleRecord>?) ??
-                                  const <ModuleRecord>[],
-                              '${row['Heads']} • $ycLabel',
-                              isBold: isTotal,
-                            ),
-                            navCell(
-                              '${row['yp_R']}',
-                              (row['ypRecords'] as List<ModuleRecord>?) ??
-                                  const <ModuleRecord>[],
-                              '${row['Heads']} • $ypLabel',
-                              isBold: isTotal,
-                            ),
-                            cell(
-                              row['variation'].toString(),
-                              isBold: isTotal,
-                              color: (row['variation'] as int) > 0
-                                  ? AppColors.dangerRed
-                                  : ((row['variation'] as int) < 0
-                                      ? AppColors.successGreen
-                                      : null),
-                            ),
-                          ],
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: () {
-              final label = DateFormat('MMMM yyyy')
-                  .format(DateTime(selectedYear, selectedMonth));
-              ModulePdfHelper.generateMonthlyTablePdf(label, tableRows);
-            },
-            icon: const Icon(Icons.picture_as_pdf_rounded,
-                color: Colors.white, size: 18),
-            label: Text(
-              'Export Table PDF',
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.dangerRed,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMonthlySummaryPhotoTable(
-    BuildContext context,
-    List<ModuleRecord> allRecords,
-    int selectedMonth,
-    int selectedYear,
-  ) {
-    bool isInMonth(ModuleRecord r) =>
-        r.incidentDate.year == selectedYear &&
-        r.incidentDate.month == selectedMonth;
-    bool isInYear(ModuleRecord r) => r.incidentDate.year == selectedYear;
-
-    bool isDetected(ModuleRecord r) =>
-        r.status == 'Resolved' ||
-        r.status == 'Closed' ||
-        r.moduleKey == 'detected';
-
-    List<ModuleRecord> monthRecsWhere(bool Function(ModuleRecord) test) =>
-        allRecords.where((r) => isInMonth(r) && test(r)).toList();
-    List<ModuleRecord> yearRecsWhere(bool Function(ModuleRecord) test) =>
-        allRecords.where((r) => isInYear(r) && test(r)).toList();
-    List<ModuleRecord> monthDetRecsWhere(bool Function(ModuleRecord) test) =>
-        allRecords
-            .where((r) => isInMonth(r) && test(r) && isDetected(r))
-            .toList();
-    List<ModuleRecord> yearDetRecsWhere(bool Function(ModuleRecord) test) =>
-        allRecords
-            .where((r) => isInYear(r) && test(r) && isDetected(r))
-            .toList();
-
-    Widget cellBox(Widget child, {int flex = 1, bool alignLeft = false}) {
-      return Expanded(
-        flex: flex,
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: AppColors.lightBorder, width: 0.5),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-          alignment: alignLeft ? Alignment.centerLeft : Alignment.center,
-          constraints: const BoxConstraints(minHeight: 26),
-          child: child,
-        ),
-      );
-    }
-
-    Widget headText(String s) => Text(
-          s,
-          textAlign: TextAlign.center,
-          softWrap: true,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.poppins(
-            fontSize: 9.5,
-            fontWeight: FontWeight.w800,
-            color: AppColors.navyDark,
-          ),
-        );
-
-    Widget labelText(String s, {bool bold = false}) => Text(
-          s,
-          textAlign: TextAlign.left,
-          softWrap: true,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.poppins(
-            fontSize: 9.5,
-            fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-            color: bold ? AppColors.navyDark : AppColors.lightText,
-          ),
-        );
-
-    Widget linkText(int n, List<ModuleRecord> recs, String title,
-        {bool bold = false}) {
-      return InkWell(
-        onTap: recs.isEmpty
-            ? null
-            : () {
-                Navigator.push(
-                  context,
-                  AppTheme.fadeSlideRoute(
-                    page: ReportCaseListScreen(title: title, records: recs),
-                  ),
-                );
-              },
-        child: Text(
-          '$n',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(
-            fontSize: 9.5,
-            fontWeight: bold ? FontWeight.w700 : FontWeight.w600,
-            color: recs.isEmpty ? AppColors.lightSubText : AppColors.infoBlue,
-            decoration: recs.isEmpty ? null : TextDecoration.underline,
-          ),
-        ),
-      );
-    }
-
-    Widget rowOf(List<Widget> cells) => IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: cells,
-          ),
-        );
-
-    Widget dataRow5(String label, bool Function(ModuleRecord) test,
-        {bool bold = false, String detLabel = 'Detected'}) {
-      final cmReg = monthRecsWhere(test);
-      final cmDet = monthDetRecsWhere(test);
-      final cyReg = yearRecsWhere(test);
-      final cyDet = yearDetRecsWhere(test);
-      return rowOf([
-        cellBox(labelText(label, bold: bold), flex: 5, alignLeft: true),
-        cellBox(linkText(
-            cmReg.length, cmReg, '$label • Current Month • Registered',
-            bold: bold)),
-        cellBox(linkText(
-            cmDet.length, cmDet, '$label • Current Month • $detLabel',
-            bold: bold)),
-        cellBox(linkText(
-            cyReg.length, cyReg, '$label • Current Year • Registered',
-            bold: bold)),
-        cellBox(linkText(
-            cyDet.length, cyDet, '$label • Current Year • $detLabel',
-            bold: bold)),
-      ]);
-    }
-
-    Widget dataRow3(String label, bool Function(ModuleRecord) test,
-        {bool bold = false}) {
-      final cmReg = monthRecsWhere(test);
-      final cyReg = yearRecsWhere(test);
-      return rowOf([
-        cellBox(labelText(label, bold: bold), flex: 5, alignLeft: true),
-        cellBox(
-            linkText(cmReg.length, cmReg, '$label • Current Month • Registered',
-                bold: bold),
-            flex: 2),
-        cellBox(
-            linkText(cyReg.length, cyReg, '$label • Current Year • Registered',
-                bold: bold),
-            flex: 2),
-      ]);
-    }
-
-    Widget groupHeader(String label) => rowOf([
-          cellBox(headText(label), flex: 5),
-          cellBox(headText('Current Month'), flex: 2),
-          cellBox(headText('Current Year'), flex: 2),
-        ]);
-
-    Widget groupSubHeader(String regLabel, String detLabel) => rowOf([
-          cellBox(headText(''), flex: 5),
-          cellBox(headText(regLabel)),
-          cellBox(headText(detLabel)),
-          cellBox(headText(regLabel)),
-          cellBox(headText(detLabel)),
-        ]);
-
-    // Heuristic mapping (same as dashboard summary).
-    bool isBnss(ModuleRecord r) =>
-        r.moduleKey == 'bnss' || r.title.toLowerCase().contains('bnss');
-    bool isOtherSection(ModuleRecord r) => r.moduleKey == 'it_act';
-    bool isGambling(ModuleRecord r) =>
-        r.moduleKey == 'coin' || r.title.toLowerCase().contains('gambl');
-    bool isProhibition(ModuleRecord r) =>
-        r.moduleKey == 'mpda' || r.title.toLowerCase().contains('prohibit');
-
-    bool isAd(ModuleRecord r) => r.moduleKey == 'ad';
-    bool isAccident(ModuleRecord r) => r.moduleKey == 'accident';
-    bool isNc(ModuleRecord r) => r.moduleKey == 'nc';
-
-    bool isSec186175Bnss(ModuleRecord r) => r.moduleKey == 'bnss';
-    bool isSec128Bnss(ModuleRecord r) => r.moduleKey == 'bnss';
-    bool isSec129Bnss(ModuleRecord r) => r.moduleKey == 'bnss';
-    bool isSec93Ndps(ModuleRecord r) => r.moduleKey == 'ndps';
-    bool isSec144Crpc(ModuleRecord r) =>
-        r.moduleKey == 'gowans' || r.moduleKey == 'it_act';
-    bool isSec55_57Police(ModuleRecord r) =>
-        r.moduleKey == 'mpda' || r.moduleKey == 'coin';
-    bool isCotpa(ModuleRecord r) => r.moduleKey == 'it_act';
-    bool isSec122Police(ModuleRecord r) => r.moduleKey == 'mpda';
-    bool isMpda(ModuleRecord r) => r.moduleKey == 'mpda';
-
-    bool isMotorVehicleAct(ModuleRecord r) => r.moduleKey == 'traffic';
-    bool isOtherMvAct(ModuleRecord r) => false;
-
-    bool g1Total(ModuleRecord r) =>
-        isBnss(r) || isOtherSection(r) || isGambling(r) || isProhibition(r);
-    bool g1NcTotal(ModuleRecord r) => isAd(r) || isAccident(r) || isNc(r);
-    bool g2Total(ModuleRecord r) =>
-        isSec186175Bnss(r) ||
-        isSec128Bnss(r) ||
-        isSec129Bnss(r) ||
-        isSec93Ndps(r) ||
-        isSec144Crpc(r) ||
-        isSec55_57Police(r) ||
-        isCotpa(r) ||
-        isSec122Police(r) ||
-        isMpda(r);
-    bool g3Total(ModuleRecord r) => isMotorVehicleAct(r) || isOtherMvAct(r);
-
-    final monthYearLabel =
-        DateFormat('MMMM yyyy').format(DateTime(selectedYear, selectedMonth));
-
-    // SINGLE SOURCE OF TRUTH for the Monthly Summary table.
-    // Both the on-screen table and the PDF export iterate this exact list,
-    // so they cannot drift apart. Each entry kind:
-    //   'h'  : group header   (label spans col 1; "Current Month" / "Current Year" span 2/2)
-    //   's'  : group sub-head (empty col 1; reg/det reg/det)
-    //   'd5' : 5-column data row (label + cmReg + cmDet + cyReg + cyDet)
-    //   'd3' : 3-column data row (label + cmReg(span2) + cyReg(span2)) — col 3 & 5 merged
-    //   'b'  : blank row separator
-    final rowDefs = <Map<String, dynamic>>[
-      {'k': 'h', 'l': 'Category'},
-      {'k': 's', 'r': 'Registered', 'd': 'Detected'},
-      {'k': 'd5', 'l': 'IPC/BNS', 't': isBnss, 'bold': true, 'dl': 'Detected'},
-      {'k': 'd5', 'l': 'Section 6', 't': isOtherSection, 'dl': 'Detected'},
-      {'k': 'd5', 'l': 'Gambling', 't': isGambling, 'dl': 'Detected'},
-      {'k': 'd5', 'l': 'Prohibition', 't': isProhibition, 'dl': 'Detected'},
-      {'k': 'd5', 'l': 'Total', 't': g1Total, 'bold': true, 'dl': 'Detected'},
-      {'k': 'd5', 'l': 'AD', 't': isAd, 'dl': 'Detected'},
-      {'k': 'd5', 'l': 'N.C Injury', 't': isAccident, 'dl': 'Detected'},
-      {'k': 'd5', 'l': 'N.C others', 't': isNc, 'dl': 'Detected'},
-      {
-        'k': 'd5',
-        'l': 'N.C Total',
-        't': g1NcTotal,
-        'bold': true,
-        'dl': 'Detected'
-      },
-      {'k': 'b'},
-      {'k': 'h', 'l': 'Preventive'},
-      {'k': 'd3', 'l': 'Sec. 126, 135(2) BNSS', 't': isSec186175Bnss},
-      {'k': 'd3', 'l': 'Sec. 128 BNSS', 't': isSec128Bnss},
-      {'k': 'd3', 'l': 'Sec. 129 BNSS', 't': isSec129Bnss},
-      {'k': 'd3', 'l': 'Sec. 93 Prohibition Act', 't': isSec93Ndps},
-      {'k': 'd3', 'l': 'Sec 144(1) BNSS act', 't': isSec144Crpc},
-      {'k': 'd3', 'l': 'Sec. 55-57 MAH Police act', 't': isSec55_57Police},
-      {'k': 'd3', 'l': 'COTPA', 't': isCotpa},
-      {'k': 'd3', 'l': 'Sec 122 MAH Police act', 't': isSec122Police},
-      {'k': 'd3', 'l': 'MPDA', 't': isMpda},
-      {'k': 'd3', 'l': 'Total', 't': g2Total, 'bold': true},
-      {'k': 'b'},
-      {'k': 'h', 'l': 'MV Act'},
-      {'k': 's', 'r': 'Registered', 'd': 'Fine'},
-      {
-        'k': 'd5',
-        'l': 'Sec. 66/192 MV Act',
-        't': isMotorVehicleAct,
-        'dl': 'Fine'
-      },
-      {'k': 'd5', 'l': 'Other MV Act', 't': isOtherMvAct, 'dl': 'Fine'},
-      {
-        'k': 'd5',
-        'l': 'Total MV Act',
-        't': g3Total,
-        'bold': true,
-        'dl': 'Fine'
-      },
-      // {'k': 'b'},
-      // {'k': 'h', 'l': 'Missing'},
-      // {'k': 's', 'r': 'Registered', 'd': 'Found'},
-      // {'k': 'd5', 'l': 'Male', 't': isMissingMale, 'dl': 'Found'},
-      // {'k': 'd5', 'l': 'Female', 't': isMissingFemale, 'dl': 'Found'},
-      // {
-      //   'k': 'd5',
-      //   'l': 'Total missing',
-      //   't': isMissingTotal,
-      //   'bold': true,
-      //   'dl': 'Found'
-      // },
-    ];
-
-    // Renders one rowDef as a Flutter widget (on-screen).
-    Widget buildScreenRow(Map<String, dynamic> r) {
-      switch (r['k'] as String) {
-        case 'b':
-          return const SizedBox(height: 8);
-        case 'h':
-          return groupHeader(r['l'] as String);
-        case 's':
-          return groupSubHeader(r['r'] as String, r['d'] as String);
-        case 'd5':
-          return dataRow5(
-            r['l'] as String,
-            r['t'] as bool Function(ModuleRecord),
-            bold: (r['bold'] as bool?) ?? false,
-            detLabel: (r['dl'] as String?) ?? 'Detected',
-          );
-        case 'd3':
-          return dataRow3(
-            r['l'] as String,
-            r['t'] as bool Function(ModuleRecord),
-            bold: (r['bold'] as bool?) ?? false,
-          );
-      }
-      return const SizedBox.shrink();
-    }
-
-    final tableWidget = Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: rowDefs.map(buildScreenRow).toList(),
-    );
-
-    Future<void> exportPdf() async {
-      final doc = pw.Document();
-
-      pw.Widget pCellBox(String text,
-          {bool bold = false, bool alignLeft = false}) {
-        return pw.Container(
-          padding: const pw.EdgeInsets.symmetric(horizontal: 3, vertical: 2),
-          alignment: alignLeft ? pw.Alignment.centerLeft : pw.Alignment.center,
-          constraints: const pw.BoxConstraints(minHeight: 11),
-          child: pw.Text(
-            text,
-            textAlign: alignLeft ? pw.TextAlign.left : pw.TextAlign.center,
-            style: pw.TextStyle(
-              fontSize: 7,
-              fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
-            ),
-          ),
-        );
-      }
-
-      // A single-row pw.Table whose columnWidths sum to the same total flex
-      // (9 units) for every row kind — this guarantees column boundaries
-      // line up vertically across the whole table even though some rows
-      // use merged (colspan) cells.
-      //   d5/s : widths 5, 1, 1, 1, 1   (5-col rows: label + 4 numbers)
-      //   d3/h : widths 5, 2, 2         (3-col rows: label + 2 spans)
-      pw.Widget pTableRow(List<int> flexes, List<pw.Widget> cells) {
-        return pw.Table(
-          border: pw.TableBorder.all(color: PdfColors.grey500, width: 0.4),
-          columnWidths: {
-            for (var i = 0; i < flexes.length; i++)
-              i: pw.FlexColumnWidth(flexes[i].toDouble()),
-          },
-          children: [pw.TableRow(children: cells)],
-        );
-      }
-
-      // Renders one rowDef as a pw widget (PDF). Mirrors buildScreenRow.
-      pw.Widget buildPdfRow(Map<String, dynamic> r) {
-        switch (r['k'] as String) {
-          case 'b':
-            return pw.SizedBox(height: 4);
-          case 'h':
-            return pTableRow([
-              5,
-              2,
-              2
-            ], [
-              pCellBox(r['l'] as String, bold: true),
-              pCellBox('Current Month', bold: true),
-              pCellBox('Current Year', bold: true),
-            ]);
-          case 's':
-            return pTableRow([
-              5,
-              1,
-              1,
-              1,
-              1
-            ], [
-              pCellBox(''),
-              pCellBox(r['r'] as String, bold: true),
-              pCellBox(r['d'] as String, bold: true),
-              pCellBox(r['r'] as String, bold: true),
-              pCellBox(r['d'] as String, bold: true),
-            ]);
-          case 'd5':
-            final test = r['t'] as bool Function(ModuleRecord);
-            final bold = (r['bold'] as bool?) ?? false;
-            return pTableRow([
-              5,
-              1,
-              1,
-              1,
-              1
-            ], [
-              pCellBox(r['l'] as String, bold: bold, alignLeft: true),
-              pCellBox('${monthRecsWhere(test).length}', bold: bold),
-              pCellBox('${monthDetRecsWhere(test).length}', bold: bold),
-              pCellBox('${yearRecsWhere(test).length}', bold: bold),
-              pCellBox('${yearDetRecsWhere(test).length}', bold: bold),
-            ]);
-          case 'd3':
-            final test = r['t'] as bool Function(ModuleRecord);
-            final bold = (r['bold'] as bool?) ?? false;
-            return pTableRow([
-              5,
-              2,
-              2
-            ], [
-              pCellBox(r['l'] as String, bold: bold, alignLeft: true),
-              pCellBox('${monthRecsWhere(test).length}', bold: bold),
-              pCellBox('${yearRecsWhere(test).length}', bold: bold),
-            ]);
-        }
-        return pw.SizedBox.shrink();
-      }
-
-      doc.addPage(
-        pw.Page(
-          pageFormat: PdfPageFormat.a4,
-          margin: const pw.EdgeInsets.all(16),
-          build: (ctx) => pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-            mainAxisSize: pw.MainAxisSize.min,
-            children: [
-              pw.Container(
-                width: double.infinity,
-                padding: const pw.EdgeInsets.all(8),
-                decoration: const pw.BoxDecoration(
-                  color: PdfColor.fromInt(0xFF1A2A4A),
-                ),
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text(
-                      'MONTHLY SUMMARY REPORT',
-                      style: pw.TextStyle(
-                        color: PdfColors.white,
-                        fontSize: 12,
-                        fontWeight: pw.FontWeight.bold,
-                      ),
-                    ),
-                    pw.SizedBox(height: 2),
-                    pw.Text(
-                      monthYearLabel,
-                      style: const pw.TextStyle(
-                        color: PdfColor.fromInt(0xFFFFC107),
-                        fontSize: 9,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              pw.SizedBox(height: 6),
-              ...rowDefs.map(buildPdfRow),
-            ],
-          ),
-        ),
-      );
-
-      final fileName =
-          'Monthly_Summary_${monthYearLabel.replaceAll(' ', '_')}.pdf';
-      await Printing.sharePdf(
-        bytes: await doc.save(),
-        filename: fileName,
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(10),
+    final monthDropdown = Container(
+      height: 34,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.md),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: AppColors.lightBorder),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final w = constraints.maxWidth;
-              const minW = 560.0;
-              return SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: SizedBox(
-                  width: w < minW ? minW : w,
-                  child: tableWidget,
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: exportPdf,
-              icon: const Icon(
-                Icons.picture_as_pdf_rounded,
-                color: Colors.white,
-                size: 18,
-              ),
-              label: Text(
-                'Export PDF',
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int>(
+          value: _reportMonth,
+          isDense: true,
+          menuMaxHeight: 260,
+          borderRadius: BorderRadius.circular(10),
+          alignment: AlignmentDirectional.centerStart,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded,
+              size: 18, color: AppColors.navyMid),
+          items: List.generate(
+            12,
+            (i) => DropdownMenuItem(
+              value: i + 1,
+              child: Text(
+                TranslationHelper.translate(context, months[i]),
                 style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.dangerRed,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                elevation: 0,
+                    fontSize: 12, fontWeight: FontWeight.w600),
               ),
             ),
           ),
-        ],
+          onChanged: (val) =>
+              setState(() => _reportMonth = val ?? _reportMonth),
+        ),
       ),
     );
-  }
 
-  // Local copy of the Calendar "Monthly" table builder (keeps monthly module report UI consistent
-  // without depending on a private class from dashboard_screen.dart).
-  Widget _buildMonthlyRegistrationTable(
-    BuildContext context,
-    List<ModuleRecord> allRecords,
-    int selectedMonth,
-    int selectedYear,
-  ) {
-    const heads = [
-      'Murder',
-      'Att to Murder',
-      'Dacoity',
-      'Pro Of Dacoity',
-      'Total Robery',
-      'Chain Robery',
-      'Other Robery',
-      'Total H B Ts',
-      'H B Ts (Day)',
-      'H B Ts (Night)',
-      'Total Theft',
-      'Total M VThefts',
-      'SAND THEFT',
-      'Chain Snaching',
-      'Mobile Thefts',
-      'Cattel Theft',
-      'Other Thefts',
-      'Extcrtion',
-      'Cheating',
-      'Cr Br of Trust',
-      'Mischief',
-      'Rioting',
-      'Unlawful Assembly',
-      'Attempt to suicide',
-      'Hurt',
-      'Kidnapping/Missing',
-      'Rape',
-      'Assault on Govt-',
-      'Molestation (354)',
-      '304 (A) I P C',
-      '498 (A) I P C',
-      '509 I P C',
-      'Othar I P C',
-      'Miscellaneous',
-    ];
-
-    String getHead(ModuleRecord r) {
-      final sub = (r.subCategory ?? '').toLowerCase();
-      final key = r.moduleKey.toLowerCase();
-
-      if (key.contains('murder') || sub.contains('murder')) {
-        return sub.contains('attempt') || sub.contains('att')
-            ? 'Att to Murder'
-            : 'Murder';
-      }
-      if (key.contains('dacoity') || sub.contains('dacoity')) {
-        return sub.contains('preparation') || sub.contains('pro')
-            ? 'Pro Of Dacoity'
-            : 'Dacoity';
-      }
-      if (key.contains('robbery') || sub.contains('robery')) {
-        if (sub.contains('chain')) return 'Chain Robery';
-        return 'Total Robery';
-      }
-      if (key.contains('house') ||
-          sub.contains('h b t') ||
-          sub.contains('hbt')) {
-        if (sub.contains('day')) return 'H B Ts (Day)';
-        if (sub.contains('night')) return 'H B Ts (Night)';
-        return 'Total H B Ts';
-      }
-      if (key.contains('theft') || sub.contains('theft')) {
-        if (key.contains('sand') || sub.contains('sand')) return 'SAND THEFT';
-        if (key.contains('two_four') ||
-            sub.contains('wheeler') ||
-            sub.contains('vehicle')) {
-          return 'Total M VThefts';
-        }
-        if (sub.contains('chain')) return 'Chain Snaching';
-        if (sub.contains('mobile')) return 'Mobile Thefts';
-        if (sub.contains('cattle') || sub.contains('cattel')) {
-          return 'Cattel Theft';
-        }
-        if (sub.contains('other')) return 'Other Thefts';
-        return 'Total Theft';
-      }
-      if (key.contains('extortion') || sub.contains('extcrtion')) {
-        return 'Extcrtion';
-      }
-      if (key.contains('cheating') || sub.contains('cheating')) {
-        return 'Cheating';
-      }
-      if (key.contains('trust') || sub.contains('trust')) {
-        return 'Cr Br of Trust';
-      }
-      if (key.contains('mischief') || sub.contains('mischief')) {
-        return 'Mischief';
-      }
-      if (key.contains('rioting') || sub.contains('rioting')) return 'Rioting';
-      if (key.contains('unlawful') || sub.contains('unlawful')) {
-        return 'Unlawful Assembly';
-      }
-      if (key.contains('suicide') || sub.contains('suicide')) {
-        return 'Attempt to suicide';
-      }
-      if (key.contains('hurt') || sub.contains('hurt')) return 'Hurt';
-      if (key.contains('kidnap') || sub.contains('kidnap'))
-        // ignore: curly_braces_in_flow_control_structures
-        return 'Kidnapping/Missing';
-      if (key.contains('rape') || sub.contains('rape')) return 'Rape';
-      if (key.contains('assault') || sub.contains('assault')) {
-        return 'Assault on Govt-';
-      }
-      if (key.contains('molest') || sub.contains('354')) {
-        return 'Molestation (354)';
-      }
-      if (sub.contains('304') || key.contains('304')) return '304 (A) I P C';
-      if (sub.contains('498') || key.contains('498')) return '498 (A) I P C';
-      if (sub.contains('509') || key.contains('509')) return '509 I P C';
-      if (key.contains('ipc') || sub.contains('ipc')) return 'Othar I P C';
-
-      return 'Miscellaneous';
-    }
-
-    List<ModuleRecord> filterMonth(int m, int y) => allRecords
-        .where((r) => r.incidentDate.year == y && r.incidentDate.month == m)
-        .toList();
-
-    List<ModuleRecord> filterYearToMonth(int m, int y) => allRecords
-        .where((r) => r.incidentDate.year == y && r.incidentDate.month <= m)
-        .toList();
-
-    final currentMonthRecords = filterMonth(selectedMonth, selectedYear);
-    final prevMonth = selectedMonth == 1 ? 12 : selectedMonth - 1;
-    final prevYear = selectedMonth == 1 ? selectedYear - 1 : selectedYear;
-    final previousMonthRecords = filterMonth(prevMonth, prevYear);
-    final sameMonthLastYearRecords =
-        filterMonth(selectedMonth, selectedYear - 1);
-    final yearCurrentRecords = filterYearToMonth(selectedMonth, selectedYear);
-    final yearPreviousRecords =
-        filterYearToMonth(selectedMonth, selectedYear - 1);
-
-    int detected(List<ModuleRecord> recs) =>
-        recs.where((r) => r.status.toLowerCase() != 'open').length;
-
-    final tableRows = <Map<String, dynamic>>[];
-    int totalcmR = 0, totalcmD = 0;
-    int totalpmR = 0, totalpmD = 0;
-    int totalsmlyR = 0, totalsmlyD = 0;
-    int totalycR = 0, totalycD = 0;
-    int totalypR = 0, totalypD = 0;
-
-    for (int i = 0; i < heads.length; i++) {
-      final head = heads[i];
-      List<ModuleRecord> byHead(List<ModuleRecord> list) =>
-          list.where((r) => getHead(r) == head).toList();
-
-      final cm = byHead(currentMonthRecords);
-      final pm = byHead(previousMonthRecords);
-      final smly = byHead(sameMonthLastYearRecords);
-      final yc = byHead(yearCurrentRecords);
-      final yp = byHead(yearPreviousRecords);
-
-      final cmR = cm.length, cmD = detected(cm);
-      final pmR = pm.length, pmD = detected(pm);
-      final smlyR = smly.length, smlyD = detected(smly);
-      final ycR = yc.length, ycD = detected(yc);
-      final ypR = yp.length, ypD = detected(yp);
-      final variation = ycR - ypR;
-
-      tableRows.add({
-        'N': i + 1,
-        'Heads': head,
-        'cm_R': cmR,
-        'cm_D': cmD,
-        'pm_R': pmR,
-        'pm_D': pmD,
-        'smly_R': smlyR,
-        'smly_D': smlyD,
-        'yc_R': ycR,
-        'yc_D': ycD,
-        'yp_R': ypR,
-        'yp_D': ypD,
-        'variation': variation,
-        'cmRecords': cm,
-        'pmRecords': pm,
-        'smlyRecords': smly,
-        'ycRecords': yc,
-        'ypRecords': yp,
-      });
-
-      totalcmR += cmR;
-      totalcmD += cmD;
-      totalpmR += pmR;
-      totalpmD += pmD;
-      totalsmlyR += smlyR;
-      totalsmlyD += smlyD;
-      totalycR += ycR;
-      totalycD += ycD;
-      totalypR += ypR;
-      totalypD += ypD;
-    }
-
-    tableRows.add({
-      'N': '',
-      'Heads': 'TOTAL',
-      'cm_R': totalcmR,
-      'cm_D': totalcmD,
-      'pm_R': totalpmR,
-      'pm_D': totalpmD,
-      'smly_R': totalsmlyR,
-      'smly_D': totalsmlyD,
-      'yc_R': totalycR,
-      'yc_D': totalycD,
-      'yp_R': totalypR,
-      'yp_D': totalypD,
-      'variation': totalycR - totalypR,
-      'cmRecords': currentMonthRecords,
-      'pmRecords': previousMonthRecords,
-      'smlyRecords': sameMonthLastYearRecords,
-      'ycRecords': yearCurrentRecords,
-      'ypRecords': yearPreviousRecords,
-    });
-
-    final cmDateLabel =
-        DateFormat('MMMM,yyyy').format(DateTime(selectedYear, selectedMonth));
-    final pmDateLabel =
-        DateFormat('MMMM,yyyy').format(DateTime(prevYear, prevMonth));
-    final smlyDateLabel = DateFormat('MMMM,yyyy')
-        .format(DateTime(selectedYear - 1, selectedMonth));
-    final ycDateLabel = 'Year,$selectedYear';
-    final ypDateLabel = 'Year,${selectedYear - 1}';
-
-    final classVRowDefs = <Map<String, dynamic>>[
-      {'sr': '1', 'label': 'Murder', 'head': 'Murder'},
-      {'sr': '2', 'label': 'Attempt to murder', 'head': 'Att to Murder'},
-      {'sr': '3', 'label': 'Dacoity', 'head': 'Dacoity'},
-      {'sr': '4', 'label': 'Pro of Decoity', 'head': 'Pro Of Dacoity'},
-      {
-        'sr': '5',
-        'label': 'Total Robery',
-        'head': 'Total Robery',
-        'bold': true
-      },
-      {'sr': 'a', 'label': 'Chain Robery', 'head': 'Chain Robery', 'indent': 1},
-      {'sr': 'b', 'label': 'Other Robery', 'head': 'Other Robery', 'indent': 1},
-      {
-        'sr': '6',
-        'label': 'Total H.B.Ts',
-        'head': 'Total H B Ts',
-        'bold': true
-      },
-      {'sr': 'a', 'label': 'H.B.Ts (Day)', 'head': 'H B Ts (Day)', 'indent': 1},
-      {
-        'sr': 'b',
-        'label': 'H.B.Ts (Night)',
-        'head': 'H B Ts (Night)',
-        'indent': 1,
-      },
-      {'sr': '7', 'label': 'Total thefts', 'head': 'Total Theft', 'bold': true},
-      {
-        'sr': 'a',
-        'label': 'Total MV Thefts',
-        'head': 'Total M VThefts',
-        'indent': 1,
-      },
-      {'sr': 'b', 'label': 'Sand Theft', 'head': 'SAND THEFT', 'indent': 1},
-      {
-        'sr': 'c',
-        'label': 'Chain Snaching',
-        'head': 'Chain Snaching',
-        'indent': 1,
-      },
-      {
-        'sr': 'd',
-        'label': 'Mobile Thefts',
-        'head': 'Mobile Thefts',
-        'indent': 1
-      },
-      {
-        'sr': 'e',
-        'label': 'Cattle Thefts',
-        'head': 'Cattel Theft',
-        'indent': 1
-      },
-      {'sr': 'f', 'label': 'Other Thefts', 'head': 'Other Thefts', 'indent': 1},
-      {'sr': '8', 'label': 'Extortion', 'head': 'Extcrtion'},
-      {'sr': '9', 'label': 'Cheating', 'head': 'Cheating', 'bold': true},
-      {'sr': '10', 'label': 'Cr Br of Trust', 'head': 'Cr Br of Trust'},
-      {'sr': '11', 'label': 'Mischief', 'head': 'Mischief'},
-      {'sr': '12', 'label': 'Rioting', 'head': 'Rioting'},
-      {'sr': '13', 'label': 'Unlawful assembly', 'head': 'Unlawful Assembly'},
-      {'sr': '14', 'label': 'Attempt to Suicide', 'head': 'Attempt to suicide'},
-      {'sr': '15', 'label': 'Hurt', 'head': 'Hurt', 'bold': true},
-      {
-        'sr': '16',
-        'label': 'Kidnapping/Missing',
-        'head': 'Kidnapping/Missing',
-        'bold': true
-      },
-      {'sr': '17', 'label': 'Rape', 'head': 'Rape', 'bold': true},
-      {
-        'sr': '18',
-        'label': 'Assault on Govt.',
-        'head': 'Assault on Govt-',
-        'bold': true,
-      },
-      {'sr': '19', 'label': 'Molestation (354)', 'head': 'Molestation (354)'},
-      {'sr': '20', 'label': '304 (A) IPC', 'head': '304 (A) I P C'},
-      {'sr': '21', 'label': '498 (A) IPC', 'head': '498 (A) I P C'},
-      {'sr': '22', 'label': '509 IPC', 'head': '509 I P C'},
-      {'sr': '23', 'label': 'Other IPC', 'head': 'Othar I P C'},
-      {'sr': '', 'label': 'Total', 'head': 'TOTAL', 'bold': true},
-    ];
-
-    const classVBodyFontSize = 11.0;
-    const classVTitleFontSize = 12.0;
-    const classVTightRowHeads = <String>{
-      'Murder',
-      'Att to Murder',
-      'Dacoity',
-      'Pro Of Dacoity',
-      'Total Robery',
-      'Chain Robery',
-      'Other Robery',
-      'Total H B Ts',
-      'H B Ts (Day)',
-      'H B Ts (Night)',
-      'Total Theft',
-      'Total M VThefts',
-      'SAND THEFT',
-      'Chain Snaching',
-      'Mobile Thefts',
-      'Cattel Theft',
-      'Other Thefts',
-      'Extcrtion',
-      'Cheating',
-      'Cr Br of Trust',
-      'Mischief',
-      'Rioting',
-      'Unlawful Assembly',
-      'Attempt to suicide',
-      'Hurt',
-      'Kidnapping/Missing',
-      'Rape',
-      'Assault on Govt-',
-      'Molestation (354)',
-      '304 (A) I P C',
-      '498 (A) I P C',
-      '509 I P C',
-      'Othar I P C',
-    };
-
-    EdgeInsets classVCellPad({
-      required bool denseTop,
-      required bool denseBottom,
-      double horizontal = 3,
-    }) {
-      const v = 3.0; // minimal vertical padding (was 4)
-      return EdgeInsets.fromLTRB(
-        horizontal,
-        denseTop ? 0 : v,
-        horizontal,
-        denseBottom ? 0 : v,
-      );
-    }
-
-    Map<String, dynamic> rowFor(String head) {
-      for (final r in tableRows) {
-        if (r['Heads'] == head) return r;
-      }
-      return <String, dynamic>{};
-    }
-
-    int vInt(Map<String, dynamic> r, String k) => (r[k] as int?) ?? 0;
-
-    // Flex layout (totals to 20 across all rows so columns align):
-    // SrNo:2 | Crime:7 | Apr,2026:R(1) D(1) | Mar,2025:R(1) D(1) |
-    // Apr,2025:R(1) D(1) | Year,2026:R(1) D(1) | Year,2025:R(1) D(1) | Var:1
-    const flexAll = 20;
-    const dataFlexes = <int>[2, 7, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
-    const headerGroupFlexes = <int>[2, 7, 2, 2, 2, 2, 2, 1];
-
-    Widget rowOfFlex(List<int> flexes, List<Widget> children) {
-      assert(flexes.length == children.length);
-      return IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (var i = 0; i < flexes.length; i++)
-              Expanded(
-                flex: flexes[i],
-                child: children[i],
+    final yearDropdown = Container(
+      height: 34,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.lightBorder),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int>(
+          value: _reportYear,
+          isDense: true,
+          menuMaxHeight: 260,
+          borderRadius: BorderRadius.circular(10),
+          alignment: AlignmentDirectional.centerStart,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded,
+              size: 18, color: AppColors.navyMid),
+          items: List.generate(
+            5,
+            (i) => DropdownMenuItem(
+              value: DateTime.now().year - i,
+              child: Text(
+                '${DateTime.now().year - i}',
+                style: GoogleFonts.poppins(
+                    fontSize: 12, fontWeight: FontWeight.w600),
               ),
-          ],
+            ),
+          ),
+          onChanged: (val) => setState(() => _reportYear = val ?? _reportYear),
         ),
-      );
-    }
+      ),
+    );
 
-    Widget cBox({
-      required Widget child,
-      EdgeInsets? padding,
-      AlignmentGeometry alignment = Alignment.center,
-    }) {
-      return Container(
-        padding:
-            padding ?? const EdgeInsets.symmetric(horizontal: 3, vertical: 3),
-        decoration: BoxDecoration(
-          border: Border.all(color: AppColors.lightBorder, width: 0.5),
-        ),
-        alignment: alignment,
-        child: child,
-      );
-    }
-
-    Widget cText(
-      String s, {
-      bool bold = false,
-      bool alignLeft = false,
-      double indent = 0,
-      double fontSize = classVBodyFontSize,
-    }) {
-      return Padding(
-        padding: EdgeInsets.only(left: indent),
-        child: Text(
-          s,
-          textAlign: alignLeft ? TextAlign.left : TextAlign.center,
-          softWrap: true,
-          style: GoogleFonts.poppins(
-            fontSize: fontSize,
-            fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-            color: AppColors.lightText,
-            height: 1.15,
-          ),
-        ),
-      );
-    }
-
-    Widget cLink(
-      int n,
-      List<ModuleRecord> recs,
-      String title, {
-      bool bold = false,
-      double fontSize = classVBodyFontSize,
-    }) {
-      final empty = recs.isEmpty;
-      return InkWell(
-        onTap: empty
-            ? null
-            : () {
-                Navigator.push(
-                  context,
-                  AppTheme.fadeSlideRoute(
-                    page: ReportCaseListScreen(title: title, records: recs),
-                  ),
-                );
-              },
-        child: Text(
-          '$n',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(
-            fontSize: fontSize,
-            fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-            color: empty ? AppColors.lightSubText : AppColors.infoBlue,
-            decoration: empty ? null : TextDecoration.underline,
-            height: 1.15,
-          ),
-        ),
-      );
-    }
-
-    List<ModuleRecord> detRecs(List<ModuleRecord> r) =>
-        r.where((x) => x.status.toLowerCase() != 'open').toList();
-
-    Widget buildScreenDataRow(Map<String, dynamic> def) {
-      final headKey = def['head'] as String;
-      final inTightBlock = classVTightRowHeads.contains(headKey);
-      final denseTop = inTightBlock && headKey != 'Murder';
-      final denseBottom = inTightBlock && headKey != 'Othar I P C';
-      final src = rowFor(headKey);
-      final bold = (def['bold'] as bool?) ?? false;
-      final indent = ((def['indent'] as int?) ?? 0) * 12.0;
-      final cmR = vInt(src, 'cm_R');
-      final cmD = vInt(src, 'cm_D');
-      final pmR = vInt(src, 'pm_R');
-      final pmD = vInt(src, 'pm_D');
-      final smlyR = vInt(src, 'smly_R');
-      final smlyD = vInt(src, 'smly_D');
-      final ycR = vInt(src, 'yc_R');
-      final ycD = vInt(src, 'yc_D');
-      final ypR = vInt(src, 'yp_R');
-      final ypD = vInt(src, 'yp_D');
-      final varVal = vInt(src, 'variation');
-      final cmRecs =
-          (src['cmRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
-      final pmRecs =
-          (src['pmRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
-      final smlyRecs =
-          (src['smlyRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
-      final ycRecs =
-          (src['ycRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
-      final ypRecs =
-          (src['ypRecords'] as List<ModuleRecord>?) ?? const <ModuleRecord>[];
-      final label = def['label'] as String;
-      final labelPad = classVCellPad(
-        denseTop: denseTop,
-        denseBottom: denseBottom,
-        horizontal: 4,
-      );
-
-      return rowOfFlex(dataFlexes, [
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cText(def['sr'] as String, bold: bold),
-        ),
-        cBox(
-          alignment: Alignment.centerLeft,
-          padding: labelPad,
-          child: cText(
-            label,
-            bold: bold,
-            alignLeft: true,
-            indent: indent,
-          ),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(cmR, cmRecs, '$label • $cmDateLabel • R', bold: bold),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(cmD, detRecs(cmRecs), '$label • $cmDateLabel • D',
-              bold: bold),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(pmR, pmRecs, '$label • $pmDateLabel • R', bold: bold),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(pmD, detRecs(pmRecs), '$label • $pmDateLabel • D',
-              bold: bold),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child:
-              cLink(smlyR, smlyRecs, '$label • $smlyDateLabel • R', bold: bold),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(smlyD, detRecs(smlyRecs), '$label • $smlyDateLabel • D',
-              bold: bold),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(ycR, ycRecs, '$label • $ycDateLabel • R', bold: bold),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(ycD, detRecs(ycRecs), '$label • $ycDateLabel • D',
-              bold: bold),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(ypR, ypRecs, '$label • $ypDateLabel • R', bold: bold),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cLink(ypD, detRecs(ypRecs), '$label • $ypDateLabel • D',
-              bold: bold),
-        ),
-        cBox(
-          padding: classVCellPad(
-            denseTop: denseTop,
-            denseBottom: denseBottom,
-          ),
-          child: cText('$varVal', bold: bold),
-        ),
-      ]);
-    }
-
-    Widget buildScreenTable() {
-      return LayoutBuilder(
-        builder: (context, constraints) {
-          final barW =
-              constraints.hasBoundedWidth && constraints.maxWidth.isFinite
-                  ? constraints.maxWidth
-                  : MediaQuery.sizeOf(context).width;
-
-          return Container(
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Container(
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
               border: Border.all(color: AppColors.lightBorder),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  width: barW,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: cBox(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 3),
-                          child: cText(
-                            'Name of the Police Station',
-                            bold: true,
-                            fontSize: classVTitleFontSize,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 6),
                 ),
-                rowOfFlex(headerGroupFlexes, [
-                  cBox(
-                      child: cText('Sr.No',
-                          bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child: cText('Types of Crime',
-                          bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child: Center(
-                          child: cText(cmDateLabel,
-                              bold: true, fontSize: classVBodyFontSize))),
-                  cBox(
-                      child: Center(
-                          child: cText(pmDateLabel,
-                              bold: true, fontSize: classVBodyFontSize))),
-                  cBox(
-                      child: Center(
-                          child: cText(smlyDateLabel,
-                              bold: true, fontSize: classVBodyFontSize))),
-                  cBox(
-                      child: Center(
-                          child: cText(ycDateLabel,
-                              bold: true, fontSize: classVBodyFontSize))),
-                  cBox(
-                      child: Center(
-                          child: cText(ypDateLabel,
-                              bold: true, fontSize: classVBodyFontSize))),
-                  cBox(
-                      child: cText('Var.',
-                          bold: true, fontSize: classVBodyFontSize)),
-                ]),
-                rowOfFlex(dataFlexes, [
-                  cBox(
-                      child:
-                          cText('', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child:
-                          cText('', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child:
-                          cText('R', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child:
-                          cText('D', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child:
-                          cText('R', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child:
-                          cText('D', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child:
-                          cText('R', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child:
-                          cText('D', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child:
-                          cText('R', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child:
-                          cText('D', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child:
-                          cText('R', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child:
-                          cText('D', bold: true, fontSize: classVBodyFontSize)),
-                  cBox(
-                      child:
-                          cText('', bold: true, fontSize: classVBodyFontSize)),
-                ]),
-                for (final def in classVRowDefs) buildScreenDataRow(def),
               ],
             ),
-          );
-        },
-      );
-    }
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Top row: Title/subtitle + Month/Year controls
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  alignment: WrapAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          TranslationHelper.translate(
+                              context, 'Monthly Reports'),
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.navyDark,
+                          ),
+                        ),
+                        Text(
+                          monthYearLabel,
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.goldPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        monthDropdown,
+                        const SizedBox(width: 8),
+                        yearDropdown,
+                      ],
+                    ),
+                  ],
+                ),
 
-    // ---------- PDF builders (mirror screen exactly) ----------
+                const SizedBox(height: 16),
 
-    pw.Widget pCellBox(
-      String text, {
-      bool bold = false,
-      bool alignLeft = false,
-      int indentLevel = 0,
-      double fontSize = 7,
-    }) {
-      return pw.Container(
-        padding: pw.EdgeInsets.fromLTRB(
-          2.0 + indentLevel * 6.0,
-          2,
-          2,
-          2,
-        ),
-        alignment: alignLeft ? pw.Alignment.centerLeft : pw.Alignment.center,
-        child: pw.Text(
-          text,
-          textAlign: alignLeft ? pw.TextAlign.left : pw.TextAlign.center,
-          style: pw.TextStyle(
-            fontSize: fontSize,
-            fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
-          ),
-        ),
-      );
-    }
-
-    pw.Widget pTableRow(List<int> flexes, List<pw.Widget> cells) {
-      return pw.Table(
-        border: pw.TableBorder.all(color: PdfColors.grey600, width: 0.4),
-        columnWidths: {
-          for (var i = 0; i < flexes.length; i++)
-            i: pw.FlexColumnWidth(flexes[i].toDouble()),
-        },
-        children: [pw.TableRow(children: cells)],
-      );
-    }
-
-    pw.Widget buildPdfDataRow(Map<String, dynamic> def) {
-      final src = rowFor(def['head'] as String);
-      final bold = (def['bold'] as bool?) ?? false;
-      final indent = (def['indent'] as int?) ?? 0;
-      final cmR = vInt(src, 'cm_R');
-      final cmD = vInt(src, 'cm_D');
-      final pmR = vInt(src, 'pm_R');
-      final pmD = vInt(src, 'pm_D');
-      final smlyR = vInt(src, 'smly_R');
-      final smlyD = vInt(src, 'smly_D');
-      final ycR = vInt(src, 'yc_R');
-      final ycD = vInt(src, 'yc_D');
-      final ypR = vInt(src, 'yp_R');
-      final ypD = vInt(src, 'yp_D');
-      final varVal = vInt(src, 'variation');
-      String s(int n) => '$n';
-      return pTableRow(dataFlexes, [
-        pCellBox(def['sr'] as String, bold: bold),
-        pCellBox(
-          def['label'] as String,
-          bold: bold,
-          alignLeft: true,
-          indentLevel: indent,
-        ),
-        pCellBox(s(cmR), bold: bold),
-        pCellBox(s(cmD), bold: bold),
-        pCellBox(s(pmR), bold: bold),
-        pCellBox(s(pmD), bold: bold),
-        pCellBox(s(smlyR), bold: bold),
-        pCellBox(s(smlyD), bold: bold),
-        pCellBox(s(ycR), bold: bold),
-        pCellBox(s(ycD), bold: bold),
-        pCellBox(s(ypR), bold: bold),
-        pCellBox(s(ypD), bold: bold),
-        pCellBox(s(varVal), bold: bold),
-      ]);
-    }
-
-    Future<void> exportPdf() async {
-      final doc = pw.Document();
-      final body = <pw.Widget>[
-        pTableRow([
-          flexAll
-        ], [
-          pCellBox('Name of the Police Station', bold: true, fontSize: 9),
-        ]),
-        pTableRow(headerGroupFlexes, [
-          pCellBox('Sr.No', bold: true),
-          pCellBox('Types of Crime', bold: true),
-          pCellBox(cmDateLabel, bold: true),
-          pCellBox(pmDateLabel, bold: true),
-          pCellBox(smlyDateLabel, bold: true),
-          pCellBox(ycDateLabel, bold: true),
-          pCellBox(ypDateLabel, bold: true),
-          pCellBox('Var.', bold: true),
-        ]),
-        pTableRow(dataFlexes, [
-          pCellBox('', bold: true),
-          pCellBox('', bold: true),
-          pCellBox('R', bold: true),
-          pCellBox('D', bold: true),
-          pCellBox('R', bold: true),
-          pCellBox('D', bold: true),
-          pCellBox('R', bold: true),
-          pCellBox('D', bold: true),
-          pCellBox('R', bold: true),
-          pCellBox('D', bold: true),
-          pCellBox('R', bold: true),
-          pCellBox('D', bold: true),
-          pCellBox('', bold: true),
-        ]),
-        for (final def in classVRowDefs) buildPdfDataRow(def),
-      ];
-      doc.addPage(
-        pw.Page(
-          pageFormat: PdfPageFormat.a4.landscape.copyWith(
-            marginTop: 12,
-            marginBottom: 12,
-            marginLeft: 14,
-            marginRight: 14,
-          ),
-          build: (ctx) => pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-            children: body,
-          ),
-        ),
-      );
-      final fileName =
-          'Station_Report_${DateTime.now().millisecondsSinceEpoch}.pdf';
-      await Printing.sharePdf(bytes: await doc.save(), filename: fileName);
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final w = constraints.maxWidth;
-            const minW = 560.0;
-            return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: SizedBox(
-                width: w < minW ? minW : w,
-                child: buildScreenTable(),
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: exportPdf,
-            icon: const Icon(Icons.picture_as_pdf_rounded,
-                color: Colors.white, size: 18),
-            label: Text(
-              'Export Table PDF',
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.dangerRed,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+                // Dynamic Monthly Crime Comparative Table from database API
+                MonthlyCrimeComparativeTable(
+                  selectedYear: _reportYear,
+                  selectedMonth: _reportMonth,
+                ),
+              ],
             ),
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _reportDownloadBtn(String label, VoidCallback onTap) {
-    return SizedBox(
-      height: 38,
-      child: ElevatedButton(
-        onPressed: onTap,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.navyMid,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          elevation: 0,
-        ),
-        child: Text(
-          TranslationHelper.translate(context, label),
-          style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700),
         ),
       ),
     );
@@ -3618,6 +1515,161 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     );
   }
 
+  Widget _buildSamWarrantModuleReportOnly(BuildContext context) {
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+
+    final transMonth =
+        TranslationHelper.translate(context, months[_reportMonth - 1]);
+    final monthYearLabel = '$transMonth $_reportYear';
+
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(color: AppColors.lightBorder),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      TranslationHelper.translate(
+                          context, 'Summons & Warrant Report'),
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.navyDark,
+                      ),
+                    ),
+                    Text(
+                      monthYearLabel,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.goldPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Month/Year selector (compact)
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      border: Border.all(color: AppColors.lightBorder),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<int>(
+                        value: _reportMonth,
+                        isExpanded: true,
+                        icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                            color: AppColors.navyMid),
+                        items: List.generate(
+                          12,
+                          (i) => DropdownMenuItem(
+                            value: i + 1,
+                            child: Text(
+                              TranslationHelper.translate(context, months[i]),
+                              style: GoogleFonts.poppins(
+                                  fontSize: 13, fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ),
+                        onChanged: (v) {
+                          if (v != null) {
+                            setState(() => _reportMonth = v);
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    border: Border.all(color: AppColors.lightBorder),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<int>(
+                      value: _reportYear,
+                      icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                          color: AppColors.navyMid),
+                      items: List.generate(
+                        5,
+                        (i) {
+                          final y = DateTime.now().year - i;
+                          return DropdownMenuItem(
+                            value: y,
+                            child: Text(
+                              '$y',
+                              style: GoogleFonts.poppins(
+                                  fontSize: 13, fontWeight: FontWeight.w600),
+                            ),
+                          );
+                        },
+                      ),
+                      onChanged: (v) {
+                        if (v != null) {
+                          setState(() => _reportYear = v);
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // Dynamic Summons & Warrant Report Table from database API
+            SummonsWarrantReportTable(
+              selectedYear: _reportYear,
+              selectedMonth: _reportMonth,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildEmptyReport() {
     return Center(
       child: Padding(
@@ -3632,34 +1684,6 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildDemoReportSection() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.infoBlue.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: AppColors.infoBlue.withValues(alpha: 0.2)),
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          const Icon(Icons.info_outline_rounded,
-              size: 18, color: AppColors.infoBlue),
-          const SizedBox(width: 8),
-          Text('Demo Statistics',
-              style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.infoBlue)),
-        ]),
-        const SizedBox(height: 8),
-        Text(
-            'The counts above reflect all cases registered across all modules for the current month. You can add new cases from the dashboard to see them reflected here instantly.',
-            style: GoogleFonts.poppins(
-                fontSize: 11, color: AppColors.lightSubText)),
-      ]),
     );
   }
 

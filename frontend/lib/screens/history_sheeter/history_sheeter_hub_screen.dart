@@ -98,6 +98,7 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
 
   void _onTabChanged() {
     if (_tabController.indexIsChanging) return;
+    setState(() {});
     _fetchItemsForTab(_tabController.index);
   }
 
@@ -343,41 +344,101 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
         onBackPressed: () => Navigator.pop(context),
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 3 Tabs Bar (NO number cards)
+          // Form I-V style Tabs Bar
           Container(
-            color: Colors.white,
-            child: TabBar(
-              controller: _tabController,
-              isScrollable: true,
-              tabAlignment: TabAlignment.start,
-              indicatorColor: AppColors.navyMid,
-              indicatorWeight: 3,
-              labelColor: AppColors.navyDark,
-              unselectedLabelColor: AppColors.lightSubText,
-              labelStyle: GoogleFonts.poppins(
-                fontWeight: FontWeight.w700,
-                fontSize: 13,
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              border: Border(
+                bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
               ),
-              unselectedLabelStyle: GoogleFonts.poppins(
-                fontWeight: FontWeight.w500,
-                fontSize: 13,
-              ),
-              tabs: _tabKeys.map((k) {
-                final tabLabel = _getConfigString(subTabLabels, k);
-                // The summary tab lists every sheet, so it shows the total
-                final count = _counts[k == _chartTab ? 'total' : k] ?? 0;
-                return Tab(
+            ),
+            child: AnimatedBuilder(
+              animation: _tabController,
+              builder: (context, _) {
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(TranslationHelper.translate(context, tabLabel)),
-                      const SizedBox(width: 6),
-                      _buildCountBadge(count, AppColors.navyDark),
-                    ],
+                    children: _tabKeys.asMap().entries.map((entry) {
+                      final idx = entry.key;
+                      final k = entry.value;
+                      final isSelected = _tabController.index == idx;
+                      final tabLabel = _getConfigString(subTabLabels, k);
+                      final count = _counts[k == _chartTab ? 'total' : k] ?? 0;
+                      final (badgeBg, badgeFg) = _getTabBadgeColors(k);
+
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          right: idx == _tabKeys.length - 1 ? 0 : 20,
+                        ),
+                        child: InkWell(
+                          onTap: () {
+                            _tabController.animateTo(idx);
+                            setState(() {});
+                          },
+                          hoverColor: Colors.transparent,
+                          splashColor:
+                              AppColors.navyMid.withValues(alpha: 0.08),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 11),
+                            decoration: BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: isSelected
+                                      ? const Color(0xFF1976D2)
+                                      : Colors.transparent,
+                                  width: 2.5,
+                                ),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  TranslationHelper.translate(
+                                      context, tabLabel),
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 13,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                    color: isSelected
+                                        ? AppColors.navyDark
+                                        : AppColors.lightSubText,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 7,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: badgeBg,
+                                    borderRadius:
+                                        BorderRadius.circular(AppRadius.full),
+                                  ),
+                                  child: Text(
+                                    '$count',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: badgeFg,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
                   ),
                 );
-              }).toList(),
+              },
             ),
           ),
 
@@ -437,22 +498,22 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
     );
   }
 
-  Widget _buildCountBadge(int count, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        '$count',
-        style: GoogleFonts.poppins(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: color,
-        ),
-      ),
-    );
+  (Color, Color) _getTabBadgeColors(String key) {
+    switch (key) {
+      case 'active':
+        return (const Color(0xFFE8F5E9), const Color(0xFF2E7D32));
+      case 'open':
+        return (const Color(0xFFFFF3E0), const Color(0xFFE65100));
+      case 'closed':
+        return (const Color(0xFFF1F5F9), const Color(0xFF475569));
+      case 'jail':
+        return (const Color(0xFFFFEBEE), const Color(0xFFC62828));
+      case 'bail':
+        return (const Color(0xFFEDE7F6), const Color(0xFF6A1B9A));
+      case 'chart':
+      default:
+        return (const Color(0xFFE8F1FC), const Color(0xFF1976D2));
+    }
   }
 
   Widget _buildTabListContent(int tabIndex) {
@@ -495,17 +556,17 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
     return Column(
       children: [
         Expanded(
-          child: _tabKeys[tabIndex] == _chartTab
-              ? _buildChartTable(items)
-              : ListView.separated(
-                  padding: const EdgeInsets.all(14),
-                  itemCount: items.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
-                  itemBuilder: (context, i) {
-                    final item = items[i] as Map<String, dynamic>;
-                    return _buildHistorySheeterCard(item);
-                  },
-                ),
+          child: ListView.separated(
+            padding: const EdgeInsets.all(14),
+            itemCount: items.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            itemBuilder: (context, i) {
+              final item = items[i] as Map<String, dynamic>;
+              return _tabKeys[tabIndex] == _chartTab
+                  ? _buildHistorySheeterSummaryCard(item)
+                  : _buildHistorySheeterCard(item);
+            },
+          ),
         ),
 
         // Pagination Bar
@@ -541,239 +602,337 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
     );
   }
 
-  /// Summary tab: one row per history sheet (open and closed). Headers come
-  /// from config (chart_headers), the combined person text is rendered by the
-  /// backend, and each row has View / Edit / PDF actions.
-  Widget _buildChartTable(List<dynamic> items) {
-    const numericColumns = [
-      'total_cases',
-      'associates',
-      'rivals',
-      'preventive'
-    ];
+  /// Summary card for tab 0 (Chart / Summary of History Sheeters).
+  /// Displays Sr. No. Badge, Person details (Name, Age, Address, Mobile),
+  /// Total Criminal Cases, and clickable counts for Associates, Rivals, and Preventive actions,
+  /// matching the RTI responsive single-row card layout.
+  Widget _buildHistorySheeterSummaryCard(Map<String, dynamic> item) {
+    final id = item['id'];
+    final srNo = item['sr_no']?.toString() ?? '';
+    final name = item['name']?.toString() ?? '';
+    final person = item['person']?.toString() ?? '';
+    final totalCasesStr = (item['total_cases'] == null ||
+            item['total_cases'].toString().trim().isEmpty)
+        ? '-'
+        : item['total_cases'].toString().trim();
+
+    final associatesCount = (item['associates'] as num?)?.toInt() ??
+        int.tryParse(item['associates']?.toString() ?? '0') ??
+        0;
+    final rivalsCount = (item['rivals'] as num?)?.toInt() ??
+        int.tryParse(item['rivals']?.toString() ?? '0') ??
+        0;
+    final preventiveCount = (item['preventive'] as num?)?.toInt() ??
+        int.tryParse(item['preventive']?.toString() ?? '0') ??
+        0;
+
     final headers = (_config['chart_headers'] as Map?) ?? {};
     final actionLabels = (_config['action_labels'] as Map?) ?? {};
-    final viewLabel = _getConfigString(actionLabels, 'view');
-    final editLabel = _getConfigString(actionLabels, 'edit');
-    final pdfLabel = _getConfigString(actionLabels, 'pdf');
+    final viewLabel = _getConfigString(actionLabels, 'view', fallback: 'View');
+    final editLabel = _getConfigString(actionLabels, 'edit', fallback: 'Edit');
+    final pdfLabel = _getConfigString(actionLabels, 'pdf', fallback: 'PDF');
 
-    final headStyle = GoogleFonts.poppins(
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        color: Colors.white,
-        height: 1.25);
-    final textStyle = GoogleFonts.poppins(
-        fontSize: 12.5, color: AppColors.navyDark, height: 1.35);
-    const border = Color(0xFFE2E8F0);
-
-    String text(Map<String, dynamic> row, String key) {
-      final v = row[key];
-      final s = v == null ? '' : v.toString().trim();
-      return s.isEmpty ? '-' : s;
-    }
-
-    Widget header(String key, {TextAlign align = TextAlign.center}) => Text(
-          TranslationHelper.translate(context, _getConfigString(headers, key)),
-          style: headStyle,
-          textAlign: align,
-        );
-
-    Widget countPill(String value, {VoidCallback? onTap}) {
-      final muted = value == '0' || value == '-';
-      final clickable = onTap != null && !muted;
-      final pill = Container(
-        constraints: const BoxConstraints(minWidth: 34),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: muted
-              ? const Color(0xFFF1F5F9)
-              : AppColors.navyMid.withValues(alpha: 0.10),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Text(
-          value,
-          textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(
-            fontSize: 12.5,
-            fontWeight: FontWeight.w600,
-            color: muted ? AppColors.lightSubText : AppColors.navyDark,
-            decoration:
-                clickable ? TextDecoration.underline : TextDecoration.none,
-          ),
-        ),
-      );
-      return Center(
-        child: clickable
-            ? MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: GestureDetector(
-                  onTap: onTap,
-                  child: Tooltip(
-                    message: TranslationHelper.translate(
-                        context, 'Click to see info'),
-                    child: pill,
-                  ),
-                ),
-              )
-            : pill,
-      );
-    }
-
-    Widget pad(Widget child, {Alignment align = Alignment.center}) => Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          child: Align(alignment: align, child: child),
-        );
-
-    Widget actionButton(IconData icon, String label, VoidCallback onPressed,
-        {bool filled = false}) {
-      final style = ButtonStyle(
-        padding: WidgetStateProperty.all(
-            const EdgeInsets.symmetric(horizontal: 10, vertical: 6)),
-        minimumSize: WidgetStateProperty.all(Size.zero),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        shape: WidgetStateProperty.all(
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-      );
-      final text = Text(
-        TranslationHelper.translate(context, label),
-        style: GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w600),
-      );
-      return filled
-          ? ElevatedButton.icon(
-              onPressed: onPressed,
-              icon: Icon(icon, size: 14),
-              label: text,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.navyMid,
-                foregroundColor: Colors.white,
-                elevation: 0,
-              ).merge(style),
-            )
-          : OutlinedButton.icon(
-              onPressed: onPressed,
-              icon: Icon(icon, size: 14),
-              label: text,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.navyMid,
-                side: const BorderSide(color: AppColors.navyMid),
-              ).merge(style),
-            );
-    }
-
-    TableRow dataRow(int i) {
-      final row = Map<String, dynamic>.from(items[i] as Map);
-      return TableRow(
-        decoration: BoxDecoration(
-          color: i.isOdd ? const Color(0xFFF8FAFC) : Colors.white,
-          border: const Border(top: BorderSide(color: border)),
-        ),
+    Widget buildActionButtons() {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          pad(MouseRegion(
-            cursor: SystemMouseCursors.click,
-            child: GestureDetector(
-              onTap: () => _openViewModal(row['id']),
-              child: Tooltip(
-                message:
-                    TranslationHelper.translate(context, 'Click to see info'),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: AppColors.navyMid.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(text(row, 'sr_no'),
-                      style: textStyle.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.navyMid,
-                          decoration: TextDecoration.underline)),
-                ),
-              ),
+          if (viewLabel.isNotEmpty) ...[
+            _buildCompactActionButton(
+              icon: Icons.visibility_outlined,
+              label: viewLabel,
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: () => _openViewModal(id),
             ),
-          )),
-          pad(Text(text(row, 'person'), style: textStyle, softWrap: true),
-              align: Alignment.centerLeft),
-          for (final k in numericColumns)
-            pad(countPill(
-              text(row, k),
-              onTap: _summaryListSections.containsKey(k)
-                  ? () =>
-                      _showSummaryEntries(row['id'], _summaryListSections[k]!)
-                  : null,
-            )),
-          pad(Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              if (viewLabel.isNotEmpty)
-                actionButton(Icons.visibility_rounded, viewLabel,
-                    () => _openViewModal(row['id'])),
-              if (editLabel.isNotEmpty)
-                actionButton(Icons.edit_rounded, editLabel,
-                    () => _openEditModal(row['id'])),
-              if (pdfLabel.isNotEmpty)
-                actionButton(Icons.picture_as_pdf_rounded, pdfLabel,
-                    () => _downloadPdf(row['id'], row['name']?.toString()),
-                    filled: true),
-            ],
-          )),
+            const SizedBox(width: 6),
+          ],
+          if (editLabel.isNotEmpty) ...[
+            _buildCompactActionButton(
+              icon: Icons.edit_outlined,
+              label: editLabel,
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: () => _openEditModal(id),
+            ),
+            const SizedBox(width: 6),
+          ],
+          if (pdfLabel.isNotEmpty)
+            _buildCompactActionButton(
+              icon: Icons.picture_as_pdf_outlined,
+              label: pdfLabel,
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: () => _downloadPdf(id, name),
+            ),
         ],
       );
     }
 
-    return LayoutBuilder(builder: (context, constraints) {
-      // Fill the available width; scroll sideways only on narrow screens
-      final available = constraints.maxWidth - 28;
-      final tableWidth = available < 1040 ? 1040.0 : available;
-      return SingleChildScrollView(
-        padding: const EdgeInsets.all(14),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Container(
-            width: tableWidth,
+    Widget buildDetailsRow(bool isExpandedMode) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 1. Sr. No. Badge (Fixed width 72)
+          Container(
+            height: 38,
+            width: 72,
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: border),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.navyDark.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
-                ),
-              ],
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: const Color(0xFFCBD5E1)),
             ),
-            clipBehavior: Clip.antiAlias,
-            child: Table(
-              columnWidths: const {
-                0: FixedColumnWidth(72),
-                1: FlexColumnWidth(3.2),
-                2: FlexColumnWidth(1.2),
-                3: FlexColumnWidth(1.5),
-                4: FlexColumnWidth(1.3),
-                5: FlexColumnWidth(1.2),
-                6: FixedColumnWidth(250),
-              },
-              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-              children: [
-                TableRow(
-                  decoration: const BoxDecoration(color: AppColors.navyMid),
-                  children: [
-                    pad(header('sr_no')),
-                    pad(header('person', align: TextAlign.left),
-                        align: Alignment.centerLeft),
-                    for (final k in numericColumns) pad(header(k)),
-                    pad(header('actions')),
-                  ],
-                ),
-                for (var i = 0; i < items.length; i++) dataRow(i),
-              ],
+            alignment: Alignment.center,
+            child: InkWell(
+              onTap: () => _openViewModal(id),
+              borderRadius: BorderRadius.circular(6),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    _getConfigString(headers, 'sr_no', fallback: 'Sr. No.'),
+                    style: GoogleFonts.poppins(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF64748B),
+                      height: 1.0,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Tooltip(
+                    message: srNo,
+                    child: Text(
+                      srNo.isNotEmpty ? srNo : '—',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.navyDark,
+                        height: 1.0,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
+
+          _buildDivider(),
+
+          // 2. Person Details (flex: 4, width: 220)
+          isExpandedMode
+              ? Expanded(
+                  flex: 4,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: _getConfigString(headers, 'person',
+                        fallback: 'Name, Age, Address, Mobile'),
+                    value: person.isNotEmpty
+                        ? person
+                        : (name.isNotEmpty ? name : '—'),
+                    icon: Icons.person_outline_rounded,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 220,
+                  label: _getConfigString(headers, 'person',
+                      fallback: 'Name, Age, Address, Mobile'),
+                  value: person.isNotEmpty
+                      ? person
+                      : (name.isNotEmpty ? name : '—'),
+                  icon: Icons.person_outline_rounded,
+                ),
+
+          _buildDivider(),
+
+          // 3. Total Criminal Cases (flex: 2, width: 95)
+          isExpandedMode
+              ? Expanded(
+                  flex: 2,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: _getConfigString(headers, 'total_cases',
+                        fallback: 'Total Cases'),
+                    value: totalCasesStr,
+                    icon: Icons.gavel_rounded,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 95,
+                  label: _getConfigString(headers, 'total_cases',
+                      fallback: 'Total Cases'),
+                  value: totalCasesStr,
+                  icon: Icons.gavel_rounded,
+                ),
+
+          _buildDivider(),
+
+          // 4. Known Associates (flex: 2, width: 95)
+          isExpandedMode
+              ? Expanded(
+                  flex: 2,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: _getConfigString(headers, 'associates',
+                        fallback: 'Associates'),
+                    value: associatesCount.toString(),
+                    icon: Icons.group_outlined,
+                    iconColor: associatesCount > 0
+                        ? AppColors.navyMid
+                        : const Color(0xFF64748B),
+                    valueColor: associatesCount > 0
+                        ? AppColors.navyMid
+                        : const Color(0xFF64748B),
+                    onTap: associatesCount > 0
+                        ? () => _showSummaryEntries(id, 'associates')
+                        : null,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 95,
+                  label: _getConfigString(headers, 'associates',
+                      fallback: 'Associates'),
+                  value: associatesCount.toString(),
+                  icon: Icons.group_outlined,
+                  iconColor: associatesCount > 0
+                      ? AppColors.navyMid
+                      : const Color(0xFF64748B),
+                  valueColor: associatesCount > 0
+                      ? AppColors.navyMid
+                      : const Color(0xFF64748B),
+                  onTap: associatesCount > 0
+                      ? () => _showSummaryEntries(id, 'associates')
+                      : null,
+                ),
+
+          _buildDivider(),
+
+          // 5. Rival Persons (flex: 2, width: 95)
+          isExpandedMode
+              ? Expanded(
+                  flex: 2,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label:
+                        _getConfigString(headers, 'rivals', fallback: 'Rivals'),
+                    value: rivalsCount.toString(),
+                    icon: Icons.groups_rounded,
+                    iconColor: rivalsCount > 0
+                        ? AppColors.navyMid
+                        : const Color(0xFF64748B),
+                    valueColor: rivalsCount > 0
+                        ? AppColors.navyMid
+                        : const Color(0xFF64748B),
+                    onTap: rivalsCount > 0
+                        ? () => _showSummaryEntries(id, 'rivals')
+                        : null,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 95,
+                  label:
+                      _getConfigString(headers, 'rivals', fallback: 'Rivals'),
+                  value: rivalsCount.toString(),
+                  icon: Icons.groups_rounded,
+                  iconColor: rivalsCount > 0
+                      ? AppColors.navyMid
+                      : const Color(0xFF64748B),
+                  valueColor: rivalsCount > 0
+                      ? AppColors.navyMid
+                      : const Color(0xFF64748B),
+                  onTap: rivalsCount > 0
+                      ? () => _showSummaryEntries(id, 'rivals')
+                      : null,
+                ),
+
+          _buildDivider(),
+
+          // 6. Preventive Action (flex: 2, width: 95)
+          isExpandedMode
+              ? Expanded(
+                  flex: 2,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: _getConfigString(headers, 'preventive',
+                        fallback: 'Preventive'),
+                    value: preventiveCount.toString(),
+                    icon: Icons.shield_outlined,
+                    iconColor: preventiveCount > 0
+                        ? AppColors.navyMid
+                        : const Color(0xFF64748B),
+                    valueColor: preventiveCount > 0
+                        ? AppColors.navyMid
+                        : const Color(0xFF64748B),
+                    onTap: preventiveCount > 0
+                        ? () => _showSummaryEntries(id, 'preventive')
+                        : null,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 95,
+                  label: _getConfigString(headers, 'preventive',
+                      fallback: 'Preventive'),
+                  value: preventiveCount.toString(),
+                  icon: Icons.shield_outlined,
+                  iconColor: preventiveCount > 0
+                      ? AppColors.navyMid
+                      : const Color(0xFF64748B),
+                  valueColor: preventiveCount > 0
+                      ? AppColors.navyMid
+                      : const Color(0xFF64748B),
+                  onTap: preventiveCount > 0
+                      ? () => _showSummaryEntries(id, 'preventive')
+                      : null,
+                ),
+
+          _buildDivider(),
+
+          // Action buttons scrollable with card at the end
+          buildActionButtons(),
+        ],
       );
-    });
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: const Color(0xFFCBD5E1),
+          width: 1.1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 1000;
+          if (isWide) {
+            return buildDetailsRow(true);
+          }
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: buildDetailsRow(false),
+          );
+        },
+      ),
+    );
   }
 
   /// Summary column -> repeating group of the History Sheeter form whose
@@ -790,8 +949,9 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
     final detail = await _hsService.fetchHistorySheeterDetail(id);
     if (!mounted || detail == null) return;
     final sections = (detail['repeating_sections'] as List?) ?? const [];
+    final sectionKey = _summaryListSections[fieldKey] ?? fieldKey;
     final section = sections.whereType<Map>().firstWhere(
-          (s) => s['field_key'] == fieldKey,
+          (s) => s['field_key'] == sectionKey || s['field_key'] == fieldKey,
           orElse: () => const {},
         );
     if (section.isEmpty) return;
@@ -906,6 +1066,141 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
     );
   }
 
+  Widget _buildDivider() {
+    return Container(
+      width: 1,
+      height: 26,
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      color: const Color(0xFFE2E8F0),
+    );
+  }
+
+  Widget _buildFieldColumn({
+    required BuildContext context,
+    required String label,
+    required String value,
+    IconData? icon,
+    Color? iconColor,
+    Color? valueColor,
+    VoidCallback? onTap,
+    double? width,
+  }) {
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon,
+                  size: 11.5, color: iconColor ?? const Color(0xFF64748B)),
+              const SizedBox(width: 3.5),
+            ],
+            Flexible(
+              child: Text(
+                TranslationHelper.translate(context, label),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF64748B),
+                  height: 1.1,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Tooltip(
+          message: value,
+          child: Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: valueColor ?? const Color(0xFF0F172A),
+              height: 1.1,
+              decoration: onTap != null
+                  ? TextDecoration.underline
+                  : TextDecoration.none,
+            ),
+          ),
+        ),
+      ],
+    );
+
+    final wrapped =
+        width != null ? SizedBox(width: width, child: content) : content;
+
+    if (onTap != null) {
+      return InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(4),
+        child: wrapped,
+      );
+    }
+    return wrapped;
+  }
+
+  Widget _buildCompactActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    Color? color,
+    double? width,
+  }) {
+    final fg = color ?? AppColors.navyDark;
+    return Tooltip(
+      message: TranslationHelper.translate(context, label),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          height: 38,
+          width: width ?? 38,
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: const Color(0xFFCBD5E1), width: 1.1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 2,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 14, color: fg),
+              const SizedBox(height: 1.5),
+              Text(
+                TranslationHelper.translate(context, label),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 8.0,
+                  fontWeight: FontWeight.w600,
+                  color: fg,
+                  height: 1.0,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildHistorySheeterCard(Map<String, dynamic> item) {
     final id = item['id'];
     final srNo = item['sr_no']?.toString() ?? '';
@@ -922,146 +1217,322 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
     final viewLabel = _getConfigString(actionLabels, 'view');
     final pdfLabel = _getConfigString(actionLabels, 'pdf');
 
-    return Card(
-      elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: const BorderSide(color: Color(0xFFE2E8F0)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    final String datePeriod;
+    if (openingDate.isNotEmpty && closureDate.isNotEmpty) {
+      datePeriod = ' - ';
+    } else if (openingDate.isNotEmpty) {
+      datePeriod = openingDate;
+    } else if (closureDate.isNotEmpty) {
+      datePeriod = closureDate;
+    } else {
+      datePeriod = '—';
+    }
+
+    final rawStatus = item['status']?.toString().trim() ?? '';
+    final String statusText;
+    final Color statusColor;
+    final Color statusBg;
+    final Color statusBorder;
+    if (closureDate.isNotEmpty || rawStatus.toLowerCase() == 'closed') {
+      statusText = 'Closed';
+      statusColor = const Color(0xFFD32F2F);
+      statusBg = const Color(0xFFFFEBEE);
+      statusBorder = const Color(0xFFFFCDD2);
+    } else if (item['is_in_jail'] == true ||
+        rawStatus.toLowerCase() == 'jail') {
+      statusText = 'In Jail';
+      statusColor = const Color(0xFF0284C7);
+      statusBg = const Color(0xFFE0F2FE);
+      statusBorder = const Color(0xFFBAE6FD);
+    } else if (item['is_on_bail'] == true ||
+        rawStatus.toLowerCase() == 'bail') {
+      statusText = 'On Bail';
+      statusColor = const Color(0xFFE65100);
+      statusBg = const Color(0xFFFFF3E0);
+      statusBorder = const Color(0xFFFFCC80);
+    } else {
+      statusText = rawStatus.isNotEmpty ? rawStatus : 'Active';
+      statusColor = const Color(0xFF2E7D32);
+      statusBg = const Color(0xFFE8F5E9);
+      statusBorder = const Color(0xFFA5D6A7);
+    }
+
+    Widget buildActionButtons() {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          if (viewLabel.isNotEmpty) ...[
+            _buildCompactActionButton(
+              icon: Icons.visibility_outlined,
+              label: viewLabel,
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: () => _openViewModal(id),
+            ),
+            const SizedBox(width: 6),
+          ],
+          if (editLabel.isNotEmpty) ...[
+            _buildCompactActionButton(
+              icon: Icons.edit_outlined,
+              label: editLabel,
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: () => _openEditModal(id),
+            ),
+            const SizedBox(width: 6),
+          ],
+          if (pdfLabel.isNotEmpty)
+            _buildCompactActionButton(
+              icon: Icons.picture_as_pdf_outlined,
+              label: pdfLabel,
+              color: AppColors.navyDark,
+              width: 38,
+              onTap: () => _downloadPdf(id, name),
+            ),
+        ],
+      );
+    }
+
+    Widget buildDetailsRow(bool isExpandedMode) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 1. Identification: Sr. No. Badge
+          Container(
+            height: 38,
+            width: 100,
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: const Color(0xFFCBD5E1)),
+            ),
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (srNo.isNotEmpty)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.navyDark.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(6),
+                Text(
+                  'Sr. No.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF64748B),
+                    height: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Tooltip(
+                  message: srNo,
+                  child: Text(
+                    srNo.isNotEmpty ? srNo : '—',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyDark,
+                      height: 1.0,
                     ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (categories.isNotEmpty) ...[
+            const SizedBox(width: 8),
+            Container(
+              height: 38,
+              width: 90,
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.goldPrimary.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: AppColors.goldPrimary.withValues(alpha: 0.35),
+                ),
+              ),
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Category',
+                    style: GoogleFonts.poppins(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.goldPrimary,
+                      height: 1.0,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Tooltip(
+                    message: categories,
                     child: Text(
-                      srNo,
+                      categories,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.navyDark,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.goldPrimary,
+                        height: 1.0,
                       ),
                     ),
                   ),
-                const Spacer(),
-                if (openingDate.isNotEmpty)
-                  Text(
-                    openingDate,
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      color: AppColors.lightSubText,
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              name,
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.navyDark,
-              ),
-            ),
-            if (alias.isNotEmpty) ...[
-              const SizedBox(height: 2),
-              Text(
-                alias,
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontStyle: FontStyle.italic,
-                  color: AppColors.lightSubText,
-                ),
-              ),
-            ],
-            if (categories.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(
-                categories,
-                style: GoogleFonts.poppins(
-                  fontSize: 11.5,
-                  color: AppColors.navyMid,
-                ),
-              ),
-            ],
-            if (closureDate.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(
-                closureDate,
-                style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  color: AppColors.dangerRed,
-                ),
-              ),
-            ],
-            const Divider(height: 16, color: Color(0xFFF1F5F9)),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                if (viewLabel.isNotEmpty)
-                  OutlinedButton.icon(
-                    onPressed: () => _openViewModal(id),
-                    icon: const Icon(Icons.visibility_rounded, size: 14),
-                    label: Text(
-                      TranslationHelper.translate(context, viewLabel),
-                      style: GoogleFonts.poppins(fontSize: 11),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                  ),
-                if (editLabel.isNotEmpty) ...[
-                  const SizedBox(width: 8),
-                  OutlinedButton.icon(
-                    onPressed: () => _openEditModal(id),
-                    icon: const Icon(Icons.edit_rounded, size: 14),
-                    label: Text(
-                      TranslationHelper.translate(context, editLabel),
-                      style: GoogleFonts.poppins(fontSize: 11),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                  ),
                 ],
-                if (pdfLabel.isNotEmpty) ...[
-                  const SizedBox(width: 8),
-                  ElevatedButton.icon(
-                    onPressed: () => _downloadPdf(id, name),
-                    icon: const Icon(Icons.picture_as_pdf_rounded, size: 14),
-                    label: Text(
-                      TranslationHelper.translate(context, pdfLabel),
-                      style: GoogleFonts.poppins(fontSize: 11),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.navyMid,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                  ),
-                ],
-              ],
+              ),
             ),
           ],
+
+          _buildDivider(),
+
+          // 2. Name (flex: 4, width: 180)
+          isExpandedMode
+              ? Expanded(
+                  flex: 4,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Name',
+                    value: name.isNotEmpty ? name : '—',
+                    icon: Icons.person_outline_rounded,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 180,
+                  label: 'Name',
+                  value: name.isNotEmpty ? name : '—',
+                  icon: Icons.person_outline_rounded,
+                ),
+
+          _buildDivider(),
+
+          // 3. Alias (flex: 3, width: 140)
+          isExpandedMode
+              ? Expanded(
+                  flex: 3,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Alias',
+                    value: alias.isNotEmpty ? alias : '—',
+                    icon: Icons.badge_outlined,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 140,
+                  label: 'Alias',
+                  value: alias.isNotEmpty ? alias : '—',
+                  icon: Icons.badge_outlined,
+                ),
+
+          _buildDivider(),
+
+          // 4. Period / Dates (flex: 3, width: 160)
+          isExpandedMode
+              ? Expanded(
+                  flex: 3,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Period',
+                    value: datePeriod,
+                    icon: Icons.calendar_today_outlined,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 160,
+                  label: 'Period',
+                  value: datePeriod,
+                  icon: Icons.calendar_today_outlined,
+                ),
+
+          _buildDivider(),
+
+          // 5. Status Badge (Fixed width 110 matching RTI)
+          Container(
+            height: 34,
+            width: 110,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: statusBg,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: statusBorder),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Tooltip(
+                    message: statusText,
+                    child: Text(
+                      TranslationHelper.translate(context, statusText),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: statusColor,
+                        height: 1.0,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          _buildDivider(),
+
+          // 6. Action buttons scrollable with card at the end
+          buildActionButtons(),
+        ],
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: const Color(0xFFCBD5E1),
+          width: 1.1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 960;
+          if (isWide) {
+            return buildDetailsRow(true);
+          }
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: buildDetailsRow(false),
+          );
+        },
       ),
     );
   }

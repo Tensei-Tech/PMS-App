@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../modules/core/models/base_record.dart';
 import '../providers/auth_provider.dart';
-import '../services/firestore_service.dart';
+import '../services/case_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/case_visibility.dart';
 import 'ad_record_detail_screen.dart';
@@ -35,7 +35,13 @@ class MyCasesScreen extends StatefulWidget {
 }
 
 class _MyCasesScreenState extends State<MyCasesScreen> {
-  final _firestore = FirestoreService();
+  // Only the cases the signed-in officer created, fetched once per screen.
+  final Stream<List<ModuleRecord>> _activeCases =
+      Stream.fromFuture(CaseService().fetchMyCases());
+  final Stream<List<ModuleRecord>> _pendingCases =
+      Stream.fromFuture(CaseService().fetchMyCases(scope: 'pending'));
+  final Stream<List<ModuleRecord>> _disposalCases =
+      Stream.fromFuture(CaseService().fetchMyCases(scope: 'disposal'));
   late int _selectedTabIndex;
 
   @override
@@ -50,9 +56,9 @@ class _MyCasesScreenState extends State<MyCasesScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final mode = CaseVisibility.resolveFor(auth);
-    final stationWide = mode == CaseVisibilityMode.stationWide;
-    final title = stationWide ? 'Station Cases' : 'My Assigned Cases';
+    const mode = CaseVisibilityMode.ownCasesOnly;
+    const stationWide = false;
+    const title = 'My Cases';
 
     return Scaffold(
       backgroundColor: AppColors.lightBg,
@@ -87,29 +93,21 @@ class _MyCasesScreenState extends State<MyCasesScreen> {
               index: _selectedTabIndex,
               children: [
                 _VisibilityCasesTab(
-                  stream: _activeStream(auth, mode),
-                  emptyMessage: stationWide
-                      ? 'No active cases for this station.'
-                      : 'No active cases assigned to you.',
-                  emptyHint: stationWide
-                      ? 'Active station cases will appear here automatically.'
-                      : 'Cases assigned to you by a senior officer will show up here.',
+                  stream: _activeCases,
+                  emptyMessage: 'You have not created any cases yet.',
+                  emptyHint: 'Cases you add in any tab will show up here.',
                   listKind: _CaseListKind.active,
                 ),
                 _VisibilityCasesTab(
-                  stream: _pendingStream(auth, mode),
-                  emptyMessage: stationWide
-                      ? 'No pending cases for this station.'
-                      : 'No pending cases assigned to you.',
+                  stream: _pendingCases,
+                  emptyMessage: 'You have no pending cases.',
                   emptyHint:
                       'Pending investigations and follow-ups appear in this tab.',
                   listKind: _CaseListKind.pending,
                 ),
                 _VisibilityCasesTab(
-                  stream: _closedStream(auth, mode),
-                  emptyMessage: stationWide
-                      ? 'No disposal cases for this station.'
-                      : 'No disposal cases assigned to you.',
+                  stream: _disposalCases,
+                  emptyMessage: 'You have no disposal cases.',
                   emptyHint: 'Disposed cases are archived here for reference.',
                   listKind: _CaseListKind.closed,
                 ),
@@ -273,48 +271,6 @@ class _MyCasesScreenState extends State<MyCasesScreen> {
         ),
       ),
     );
-  }
-
-  Stream<List<ModuleRecord>> _activeStream(
-    AuthProvider auth,
-    CaseVisibilityMode mode,
-  ) {
-    return _firestore.getStationCasesStream(auth.activeStation).map(
-          (records) => CaseVisibility.filterRecords(
-            records,
-            uid: auth.uid,
-            officerName: auth.displayName,
-            mode: mode,
-          ),
-        );
-  }
-
-  Stream<List<ModuleRecord>> _pendingStream(
-    AuthProvider auth,
-    CaseVisibilityMode mode,
-  ) {
-    return _firestore.getPendingCasesStream(auth.activeStation).map(
-          (records) => CaseVisibility.filterRecords(
-            records,
-            uid: auth.uid,
-            officerName: auth.displayName,
-            mode: mode,
-          ),
-        );
-  }
-
-  Stream<List<ModuleRecord>> _closedStream(
-    AuthProvider auth,
-    CaseVisibilityMode mode,
-  ) {
-    return _firestore.getDisposalCasesStream(auth.activeStation).map(
-          (records) => CaseVisibility.filterRecords(
-            records,
-            uid: auth.uid,
-            officerName: auth.displayName,
-            mode: mode,
-          ),
-        );
   }
 }
 

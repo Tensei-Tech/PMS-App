@@ -60,6 +60,11 @@ const Set<String> _kCommonFormBaselineModules = {
 /// Standalone category display names linked to "Common Form Baseline Template"
 /// in public.category_field_templates.
 const Set<String> _kCommonFormBaselineCategoryNames = {
+  'sam/warrant',
+  'sam warrant',
+  'summons/warrant',
+  'summons & warrant',
+  'victim',
   'murder',
   'attempt to murder',
   'dacoity',
@@ -85,7 +90,8 @@ const Set<String> _kCommonFormBaselineCategoryNames = {
   'ipc (a) 304',
   '498 (a) ipc',
   'other ipc',
-  'chain snatching',
+  // 'chain snatching' opens the dynamic form (database template): its extra
+  // questions come from "Chain Snatching Extra Fields" in the database
   'crime against women',
   'accident',
   'normal accident',
@@ -104,6 +110,40 @@ const Set<String> _kCommonFormBaselineCategoryNames = {
   'mv act',
   'uapa',
   'tadipar',
+  // Forms tab & dedicated form subcategories
+  'crime detail form',
+  'property & seizure form',
+  'crimespot seizure panchanama',
+  'house/property search & seizure',
+  'form e',
+  'arrest/court surrender form',
+  'inquest panchanama',
+  'vinanti arj — pm opinion request',
+  'vinanti arj',
+  'accused memorandum form',
+  '376 medical form',
+  'interrogation form',
+  'draft ground of arrest',
+  'ground of arrest',
+  'reason of arrest form',
+  'transit remand',
+  'order section 47 & 48',
+  'ab form',
+  'panchanama, forms & notices (bnss)',
+  'panchanama continuation',
+  'injury certificate',
+  'bnss panch notice',
+  'notice to accused',
+  'muddemal pavti',
+  'witness notice',
+  'nil house search panchanama',
+  'medical exam section 51',
+  'chehare patti',
+  'notice section 35',
+  'mobile seal label',
+  'accused interrogation / memorandum',
+  'juvenile social background report',
+  'final report form',
 };
 
 /// Checks if a module/category is linked to "Common Form Baseline Template".

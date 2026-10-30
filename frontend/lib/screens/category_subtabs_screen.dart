@@ -2,10 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../modules/form_iv/providers/form_iv_provider.dart';
+import '../modules/licence/screens/licence_hub_screen.dart';
+import '../modules/passport/screens/passport_hub_screen.dart';
 import '../theme/app_theme.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
+import 'dar_hub_screen.dart';
 import 'form_i_v_selection_screen.dart';
+import 'irad_hub_screen.dart';
+import 'nafis_hub_screen.dart';
+
+/// Sub-tab cards per row: at least two, so a phone shows a tile's two
+/// sub-tabs side by side in one row.
+int subtabColumns(double width) => width > 1200 ? 4 : (width > 850 ? 3 : 2);
+
+/// Card height: a little taller on phones, where narrow cards wrap a long
+/// name (e.g. "Attempt to Murder") onto two lines.
+double subtabCardHeight(double width) => width > 550 ? 74 : 86;
 
 /// A dashboard tile that groups "1 to 5" categories as sub-tabs
 /// (e.g. Murder: Murder / Attempt to Murder), shown as the same compact cards
@@ -86,7 +99,7 @@ class _CategorySubtabsScreenState extends State<CategorySubtabsScreen> {
   Widget build(BuildContext context) {
     final records = context.watch<FormIVProvider>().records;
     final width = MediaQuery.of(context).size.width;
-    final cols = width > 1200 ? 4 : (width > 850 ? 3 : (width > 550 ? 2 : 1));
+    final cols = subtabColumns(width);
 
     return Scaffold(
       backgroundColor: AppColors.lightBg,
@@ -102,12 +115,13 @@ class _CategorySubtabsScreenState extends State<CategorySubtabsScreen> {
           crossAxisCount: cols,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
-          mainAxisExtent: 74,
+          mainAxisExtent: subtabCardHeight(width),
         ),
         itemBuilder: (context, i) {
           final (name, icon) = widget.subtabs[i];
           return CategoryGridCard(
             category: TranslationHelper.translate(context, name),
+            rawCategory: name,
             icon: icon,
             count: records
                 .where(
@@ -118,6 +132,215 @@ class _CategorySubtabsScreenState extends State<CategorySubtabsScreen> {
           );
         },
       ),
+    );
+  }
+}
+
+/// A dashboard tile whose sub-tabs are separate modules (not "1 to 5"
+/// categories), laid out like the Murder tile's sub-tabs. Each card opens its
+/// own module's screen, so no case counts are shown here.
+class ModuleTabsScreen extends StatelessWidget {
+  final String title;
+
+  /// (label, icon, open)
+  final List<(String, IconData, void Function(BuildContext))> tabs;
+
+  const ModuleTabsScreen({super.key, required this.title, required this.tabs});
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final cols = subtabColumns(width);
+    return Scaffold(
+      backgroundColor: AppColors.lightBg,
+      appBar: ModuleHubScreenAppBar(
+        title: TranslationHelper.translate(context, title),
+        subtitle: '${tabs.length} types',
+      ),
+      body: GridView.builder(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        itemCount: tabs.length,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: cols,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          mainAxisExtent: subtabCardHeight(width),
+        ),
+        itemBuilder: (context, i) {
+          final (name, icon, open) = tabs[i];
+          return CategoryGridCard(
+            category: TranslationHelper.translate(context, name),
+            icon: icon,
+            count: 0,
+            showCount: false,
+            isAll: false,
+            onTap: () => open(context),
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// The dashboard's Passport/PVR/Licence tile: Passport/PVR/Licence and Licence,
+/// each opening its module's hub.
+class PassportLicenceScreen extends StatelessWidget {
+  final String stationName;
+
+  const PassportLicenceScreen({super.key, required this.stationName});
+
+  static const String passportLabel = 'Passport/PVR/Licence';
+  static const String passportTabLabel = 'Passport/PVR';
+  static const String licenceLabel = 'Licence';
+
+  @override
+  Widget build(BuildContext context) {
+    return ModuleTabsScreen(
+      title: passportLabel,
+      tabs: [
+        (
+          passportTabLabel,
+          Icons.badge_rounded,
+          (context) => Navigator.push(
+                context,
+                AppTheme.fadeSlideRoute(
+                  page: PassportHubScreen(stationName: stationName),
+                ),
+              ),
+        ),
+        (
+          licenceLabel,
+          Icons.assignment_ind_rounded,
+          (context) => Navigator.push(
+                context,
+                AppTheme.fadeSlideRoute(
+                  page: LicenceHubScreen(stationName: stationName),
+                ),
+              ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The dashboard's NAFIS/Fingerprint tile: NAFIS and Fingerprint.
+class NafisFingerprintScreen extends StatelessWidget {
+  final String stationName;
+
+  const NafisFingerprintScreen({super.key, required this.stationName});
+
+  static const String title = 'NAFIS/Fingerprint';
+
+  @override
+  Widget build(BuildContext context) {
+    return ModuleTabsScreen(
+      title: title,
+      tabs: [
+        (
+          'NAFIS',
+          Icons.fingerprint_rounded,
+          (context) => Navigator.push(
+                context,
+                AppTheme.fadeSlideRoute(
+                  page: NAFISHubScreen(stationName: stationName),
+                ),
+              ),
+        ),
+        (
+          'Fingerprint',
+          Icons.touch_app_rounded,
+          (context) => Navigator.push(
+                context,
+                AppTheme.fadeSlideRoute(
+                  page: const ComingSoonScreen(title: 'Fingerprint'),
+                ),
+              ),
+        ),
+      ],
+    );
+  }
+}
+
+/// A tab whose screen is not built yet.
+class ComingSoonScreen extends StatelessWidget {
+  final String title;
+
+  const ComingSoonScreen({super.key, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.lightBg,
+      appBar: ModuleHubScreenAppBar(
+        title: TranslationHelper.translate(context, title),
+        subtitle: TranslationHelper.translate(context, 'Coming soon'),
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.construction_rounded,
+                  size: 48, color: Colors.grey.shade400),
+              const SizedBox(height: 12),
+              Text(
+                TranslationHelper.translate(context, 'Coming soon'),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.navyDark,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '${TranslationHelper.translate(context, title)} will be available here.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 13, color: AppColors.lightSubText),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The dashboard's DAR/IRAD tile: DAR and IRAD, each opening its hub.
+class DarIradScreen extends StatelessWidget {
+  final String stationName;
+
+  const DarIradScreen({super.key, required this.stationName});
+
+  static const String title = 'DAR/IRAD';
+
+  @override
+  Widget build(BuildContext context) {
+    return ModuleTabsScreen(
+      title: title,
+      tabs: [
+        (
+          'DAR',
+          Icons.folder_rounded,
+          (context) => Navigator.push(
+                context,
+                AppTheme.fadeSlideRoute(
+                  page: DarHubScreen(stationName: stationName),
+                ),
+              ),
+        ),
+        (
+          'IRAD',
+          Icons.analytics_rounded,
+          (context) => Navigator.push(
+                context,
+                AppTheme.fadeSlideRoute(
+                  page: IradHubScreen(stationName: stationName),
+                ),
+              ),
+        ),
+      ],
     );
   }
 }

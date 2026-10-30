@@ -4,6 +4,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../services/gender_options.dart';
+import '../../../widgets/age_digits_limit.dart';
 import '../../../utils/app_constants.dart';
 import '../../../utils/common_form_pdf.dart';
 import '../../../widgets/base_form/base_form.dart';
@@ -44,15 +46,13 @@ const _tsSection = TextStyle(
 );
 const _tsMuted = TextStyle(fontSize: 11, color: _kMuted);
 
-const _kGenders = ['Male', 'Female', 'Other'];
-
 const String _kAgeMinorErr =
     'Person below 18 years cannot be registered as Missing. Please register under Kidnapping.';
 
 class _SuspectedRow {
   final name = TextEditingController();
   final age = TextEditingController();
-  String gender = 'Male';
+  String gender = '';
   final mobile = TextEditingController();
   final aadhaar = TextEditingController();
   final address = TextEditingController();
@@ -78,7 +78,7 @@ class _SuspectedRow {
     name.text = _str(m['name']);
     age.text = _str(m['age']);
     final g = m['gender']?.toString();
-    if (g != null && _kGenders.contains(g)) gender = g;
+    if (g != null && g.isNotEmpty) gender = g;
     mobile.text = _str(m['mobile']);
     aadhaar.text = _str(m['aadhaar']);
     address.text = _str(m['address']);
@@ -106,7 +106,7 @@ class MissingFormState extends State<MissingForm> {
   // §2 Missing person
   final _mpName = TextEditingController();
   final _mpAge = TextEditingController();
-  String _mpGender = 'Male';
+  String _mpGender = '';
   final _mpOcc = TextEditingController();
   final _mpMobile = TextEditingController();
   final _mpAadhaar = TextEditingController();
@@ -126,7 +126,7 @@ class MissingFormState extends State<MissingForm> {
   // §5 Complainant
   final _compName = TextEditingController();
   final _compAge = TextEditingController();
-  String _compGender = 'Male';
+  String _compGender = '';
   final _compOcc = TextEditingController();
   final _compMobile = TextEditingController();
   final _compAadhaar = TextEditingController();
@@ -212,10 +212,16 @@ class MissingFormState extends State<MissingForm> {
     }
   }
 
+  /// Gender choices from the database
+  List<String> _genders = GenderOptions.cached;
+
   @override
   void initState() {
     super.initState();
     _activeVoiceController = _missingNumber;
+    GenderOptions.load().then((g) {
+      if (mounted && g.isNotEmpty) setState(() => _genders = g);
+    });
   }
 
   @override
@@ -304,7 +310,7 @@ class MissingFormState extends State<MissingForm> {
     _missingNumber.clear();
     _mpName.clear();
     _mpAge.clear();
-    _mpGender = 'Male';
+    _mpGender = '';
     _mpOcc.clear();
     _mpMobile.clear();
     _mpAadhaar.clear();
@@ -321,7 +327,7 @@ class MissingFormState extends State<MissingForm> {
     _reasonWords = 0;
     _compName.clear();
     _compAge.clear();
-    _compGender = 'Male';
+    _compGender = '';
     _compOcc.clear();
     _compMobile.clear();
     _compAadhaar.clear();
@@ -665,9 +671,11 @@ class MissingFormState extends State<MissingForm> {
     String? Function(String?)? validator,
     VoidCallback? onTap,
     String? section,
+    bool isAge = false,
   }) {
     return StandardTextField(
       label: label,
+      isAge: isAge,
       controller: ctrl,
       maxLines: maxLines ?? 1,
       keyboardType: keyboardType,
@@ -922,11 +930,11 @@ class MissingFormState extends State<MissingForm> {
           const SizedBox(height: 6),
           _row([
             _tf('Name', r.name),
-            _tf('Age', r.age, keyboardType: TextInputType.number),
+            _tf('Age', r.age, keyboardType: TextInputType.number, isAge: true),
           ]),
           _chipSelector(
             label: 'Gender',
-            items: _kGenders,
+            items: _genders,
             selected: r.gender,
             onSelect: (v) => setState(() => r.gender = v),
           ),
@@ -1043,7 +1051,7 @@ class MissingFormState extends State<MissingForm> {
       _mpName.text = _str(mp['name']);
       _mpAge.text = _str(mp['age']);
       final g = mp['gender']?.toString();
-      if (g != null && _kGenders.contains(g)) _mpGender = g;
+      if (g != null && g.isNotEmpty) _mpGender = g;
       _mpOcc.text = _str(mp['occupation']);
       _mpMobile.text = _str(mp['mobile']);
       _mpAadhaar.text = _str(mp['aadhaar']);
@@ -1077,7 +1085,7 @@ class MissingFormState extends State<MissingForm> {
       _compName.text = _str(comp['name']);
       _compAge.text = _str(comp['age']);
       final g = comp['gender']?.toString();
-      if (g != null && _kGenders.contains(g)) _compGender = g;
+      if (g != null && g.isNotEmpty) _compGender = g;
       _compOcc.text = _str(comp['occ']);
       _compMobile.text = _str(comp['mobile']);
       _compAadhaar.text = _str(comp['aadhaar']);
@@ -1180,6 +1188,7 @@ class MissingFormState extends State<MissingForm> {
               'Age',
               _mpAge,
               keyboardType: TextInputType.number,
+              isAge: true,
               validator: (v) {
                 final n = int.tryParse(v?.trim() ?? '');
                 if (n != null && n < 18) return _kAgeMinorErr;
@@ -1189,7 +1198,7 @@ class MissingFormState extends State<MissingForm> {
           ]),
           _chipSelector(
             label: 'Gender',
-            items: _kGenders,
+            items: _genders,
             selected: _mpGender,
             onSelect: (v) => setState(() => _mpGender = v),
           ),
@@ -1214,11 +1223,12 @@ class MissingFormState extends State<MissingForm> {
         children: [
           _row([
             _tf('Name', _compName),
-            _tf('Age', _compAge, keyboardType: TextInputType.number),
+            _tf('Age', _compAge,
+                keyboardType: TextInputType.number, isAge: true),
           ]),
           _chipSelector(
             label: 'Gender',
-            items: _kGenders,
+            items: _genders,
             selected: _compGender,
             onSelect: (v) => setState(() => _compGender = v),
           ),
@@ -1288,25 +1298,32 @@ class MissingFormState extends State<MissingForm> {
                           'Custody Name', _custodyName,
                           section: 'Custody'),
                     ),
-                    second: TextFormField(
-                      controller: _custodyAge,
-                      keyboardType: TextInputType.number,
-                      style: GoogleFonts.poppins(),
-                      decoration: _kidInputDecoration('Age'),
-                      onTap: () => _setActiveVoiceField(
-                          'Custody Age', _custodyAge,
-                          section: 'Custody'),
+                    second: AgeDigitsLimit(
+                      label: 'Age',
+                      builder: (formatters, errorText) => TextFormField(
+                        controller: _custodyAge,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: formatters,
+                        style: GoogleFonts.poppins(),
+                        decoration: _kidInputDecoration('Age')
+                            .copyWith(errorText: errorText),
+                        onTap: () => _setActiveVoiceField(
+                            'Custody Age', _custodyAge,
+                            section: 'Custody'),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),
                   _kidResponsiveTwoFieldRow(
                     context: ctx,
                     first: DropdownButtonFormField<String>(
-                      key: ValueKey('custodyGender_${_custodyGender ?? ''}'),
-                      initialValue: _custodyGender,
+                      key: ValueKey(
+                          'custodyGender_${_custodyGender ?? ''}_${_genders.length}'),
+                      initialValue:
+                          GenderOptions.pick(_custodyGender, _genders),
                       decoration: _kidInputDecoration('Gender'),
                       style: GoogleFonts.poppins(color: _kKidDark),
-                      items: const ['Male', 'Female', 'Other']
+                      items: _genders
                           .map(
                             (e) => DropdownMenuItem<String>(
                               value: e,
