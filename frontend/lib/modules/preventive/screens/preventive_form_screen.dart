@@ -242,9 +242,10 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
       caseNumber: crimeNo.isNotEmpty ? crimeNo : preventiveNo,
       description:
           'Preventive / Istegasha: ${docMap['preventiveNo'] ?? '—'} | Category: ${docMap['caseRef']?['crimeCategory'] ?? '—'} | Action: ${docMap['actionStatus'] ?? '—'}',
-      complainant: (docMap['caseRef']?['crimeCategory']?.toString().isNotEmpty ?? false)
-          ? docMap['caseRef']!['crimeCategory']!.toString()
-          : (auth.displayName.isNotEmpty ? auth.displayName : ''),
+      complainant:
+          (docMap['caseRef']?['crimeCategory']?.toString().isNotEmpty ?? false)
+              ? docMap['caseRef']!['crimeCategory']!.toString()
+              : (auth.displayName.isNotEmpty ? auth.displayName : ''),
       accused: accusedNames,
       location: docMap['assignedOfficer']?.toString() ?? '',
       incidentDate:

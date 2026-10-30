@@ -422,12 +422,19 @@ class ServiceData {
   /// Default baseline excludes dynamic/database-driven modules (e.g. Tadipar).
   static List<ServiceData> dashboardTools = [
     const ServiceData('Licence', Icons.assignment_ind_rounded, 0xFF9B59B6,
-        moduleKey: 'licence', assetPath: 'assets/icons/licence.svg', displayOrder: 1),
+        moduleKey: 'licence',
+        assetPath: 'assets/icons/licence.svg',
+        displayOrder: 1),
     const ServiceData('Repeat Offender', Icons.warning_rounded, 0xFFF39C12,
-        moduleKey: 'repeat_offender', assetPath: 'assets/icons/repeatoffender.svg', displayOrder: 3),
+        moduleKey: 'repeat_offender',
+        assetPath: 'assets/icons/repeatoffender.svg',
+        displayOrder: 3),
     const ServiceData('ITSSO', Icons.description_rounded, 0xFFE91E63,
-        moduleKey: 'itsso', assetPath: 'assets/icons/itsso.svg', displayOrder: 4),
-    const ServiceData('NAFIS/Fingerprint', Icons.fingerprint_rounded, 0xFF673AB7,
+        moduleKey: 'itsso',
+        assetPath: 'assets/icons/itsso.svg',
+        displayOrder: 4),
+    const ServiceData(
+        'NAFIS/Fingerprint', Icons.fingerprint_rounded, 0xFF673AB7,
         moduleKey: 'nafis', displayOrder: 5),
     const ServiceData('DAR/IRAD', Icons.folder_rounded, 0xFF607D8B,
         moduleKey: 'dar', assetPath: 'assets/icons/dar.svg', displayOrder: 6),

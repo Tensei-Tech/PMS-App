@@ -314,20 +314,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.SeparateDatabaseAndState(
-            state_operations=[
-                migrations.AddField(
-                    model_name='fieldtemplatefield',
-                    name='field_config',
-                    field=models.JSONField(blank=True, default=dict, null=True),
-                ),
-            ],
-            database_operations=[
-                migrations.RunSQL(
-                    sql="ALTER TABLE field_template_fields ADD COLUMN IF NOT EXISTS field_config jsonb DEFAULT '{}'::jsonb;",
-                    reverse_sql="ALTER TABLE field_template_fields DROP COLUMN IF EXISTS field_config;",
-                ),
-            ],
-        ),
         migrations.RunPython(forwards, reverse_code=backwards),
     ]

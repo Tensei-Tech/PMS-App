@@ -1,12 +1,13 @@
-from django.db import migrations
+from django.db import migrations, models
 
 """
 Migration 0135: Tadipar Sr. No. auto-generation and sequence configuration.
-1. Configures FieldTemplateField for 'sr_no' in Tadipar Base Template:
+1. Ensures 'field_config' JSONB column exists on field_template_fields table and model state.
+2. Configures FieldTemplateField for 'sr_no' in Tadipar Base Template:
    - options_source = 'auto:sequence'
    - field_config = {'auto_generate': True, 'read_only': True, 'sequence_type': 'sr_no'}
-2. Backfills existing Tadipar CaseRecords with sequential 'sr_no' values (1..N).
-3. Sets the initial last sequence counter in ModuleSetting.
+3. Backfills existing Tadipar CaseRecords with sequential 'sr_no' values (1..N).
+4. Sets the initial last sequence counter in ModuleSetting.
 """
 
 
@@ -69,5 +70,20 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                migrations.AddField(
+                    model_name='fieldtemplatefield',
+                    name='field_config',
+                    field=models.JSONField(blank=True, default=dict, null=True),
+                ),
+            ],
+            database_operations=[
+                migrations.RunSQL(
+                    sql="ALTER TABLE field_template_fields ADD COLUMN IF NOT EXISTS field_config jsonb DEFAULT '{}'::jsonb;",
+                    reverse_sql="ALTER TABLE field_template_fields DROP COLUMN IF EXISTS field_config;",
+                ),
+            ],
+        ),
         migrations.RunPython(configure_tadipar_auto_sr_no, noop_reverse),
     ]

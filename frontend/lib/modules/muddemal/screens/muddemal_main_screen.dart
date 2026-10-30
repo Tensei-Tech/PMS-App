@@ -1308,8 +1308,9 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
   // DEDICATED HORIZONTAL CASE CARD (Matching Preventive Module Layout in Image 3)
   // ═════════════════════════════════════════════════════════════════════════════
   Widget _buildPropertyCaseCard(MuddemalPropertyItem p, int index) {
-    final isDisposal = context.read<MuddemalProvider>().isDisposalStatus(p.propertyStatus) ||
-        context.read<MuddemalProvider>().isDisposalStatus(p.disposalStatus);
+    final isDisposal =
+        context.read<MuddemalProvider>().isDisposalStatus(p.propertyStatus) ||
+            context.read<MuddemalProvider>().isDisposalStatus(p.disposalStatus);
     final Color statusColor =
         isDisposal ? const Color(0xFF2E7D32) : const Color(0xFFD32F2F);
     final Color statusBg =

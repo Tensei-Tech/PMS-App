@@ -271,7 +271,8 @@ class MuddemalPropertyItem {
       recoveryDate: json['recovery_date']?.toString(),
       propertyStatus: json['property_status']?.toString() ?? 'Seized',
       fslRequired: json['fsl_required'] == true,
-      currentCustodyLocation: json['current_custody_location']?.toString() ?? '',
+      currentCustodyLocation:
+          json['current_custody_location']?.toString() ?? '',
       fslStatus: json['fsl_status']?.toString() ??
           (json['fsl_required'] == true ? 'Pending' : 'Not Required'),
       disposalStatus: json['disposal_status']?.toString() ?? 'In Custody',

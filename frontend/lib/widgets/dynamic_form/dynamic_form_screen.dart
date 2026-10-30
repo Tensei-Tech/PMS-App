@@ -3176,7 +3176,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         final curDate = _controllers['preventive_action_date']?.text.trim() ??
             _values['preventive_action_date']?.toString().trim() ??
             '';
-        if (curDate.isEmpty && (_formDef?.defaults['date_default'] == 'current_date')) {
+        if (curDate.isEmpty &&
+            (_formDef?.defaults['date_default'] == 'current_date')) {
           final nowStr = DateFormat('dd/MM/yyyy').format(DateTime.now());
           _values['preventive_action_date'] = nowStr;
           _controllers

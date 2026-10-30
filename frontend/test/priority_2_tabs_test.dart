@@ -62,15 +62,8 @@ void main() {
       final g2Cats = await service.fetchGroupCategories(2);
       expect(g2Cats.length, equals(9));
       final g2Names = g2Cats.map((c) => c['category_name']).toList();
-      expect(
-          g2Names,
-          containsAll([
-            'Prohibition',
-            'Gambling',
-            'POCSO',
-            'NDPS',
-            'UAPA'
-          ]));
+      expect(g2Names,
+          containsAll(['Prohibition', 'Gambling', 'POCSO', 'NDPS', 'UAPA']));
       debugPrint('Live Group 2 categories: ${g2Cats.length}');
 
       // 3. Standalone: ALL categories (group_id IS NULL)

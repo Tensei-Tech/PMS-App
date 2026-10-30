@@ -301,7 +301,6 @@ Widget _buildGridIcon(
 
     return SvgPicture.asset(
       svgPath,
-
       width: size * scale,
       height: size * scale,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
@@ -3966,8 +3965,7 @@ class _HomeTabState extends State<_HomeTab> {
             t.label.toLowerCase() == label.toLowerCase() ||
             (t.moduleKey != null && t.moduleKey == item.moduleKey))) {
       final cleanLabel = label.trim().toLowerCase();
-      if (cleanLabel == 'history sheeter' ||
-          cleanLabel == 'history sheet') {
+      if (cleanLabel == 'history sheeter' || cleanLabel == 'history sheet') {
         CategoryNavigationHelper.handleDashboardCategoryTap(
           context: context,
           categoryName: item.name,
@@ -4093,11 +4091,8 @@ class _HomeTabState extends State<_HomeTab> {
       }
     }
 
-    final itemColor = matchedTool != null
-        ? Color(matchedTool.color)
-        : AppColors.navyMid;
-
-
+    final itemColor =
+        matchedTool != null ? Color(matchedTool.color) : AppColors.navyMid;
 
     return GestureDetector(
       onTap: () => _openClassificationItem(context, item),

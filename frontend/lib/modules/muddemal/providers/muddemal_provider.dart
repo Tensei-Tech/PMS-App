@@ -157,10 +157,8 @@ class MuddemalProvider extends BaseModuleProvider {
   List<int> get availableYears {
     final raw = _configs['available_years'];
     if (raw is List) {
-      final list = raw
-          .map((e) => int.tryParse(e.toString()))
-          .whereType<int>()
-          .toList();
+      final list =
+          raw.map((e) => int.tryParse(e.toString())).whereType<int>().toList();
       if (list.isNotEmpty) return list;
     }
     return [DateTime.now().year];
@@ -172,7 +170,8 @@ class MuddemalProvider extends BaseModuleProvider {
     if (raw is List) {
       final list = raw
           .whereType<Map>()
-          .map((m) => MuddemalDashboardTab.fromJson(Map<String, dynamic>.from(m)))
+          .map((m) =>
+              MuddemalDashboardTab.fromJson(Map<String, dynamic>.from(m)))
           .toList();
       if (list.isNotEmpty) {
         list.sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
@@ -180,9 +179,21 @@ class MuddemalProvider extends BaseModuleProvider {
       }
     }
     return const [
-      MuddemalDashboardTab(key: 'All', label: 'Total Cases', badgeColor: '#2563EB', displayOrder: 1),
-      MuddemalDashboardTab(key: 'Pending', label: 'Pending', badgeColor: '#EA580C', displayOrder: 2),
-      MuddemalDashboardTab(key: 'Disposal', label: 'Disposal', badgeColor: '#059669', displayOrder: 3),
+      MuddemalDashboardTab(
+          key: 'All',
+          label: 'Total Cases',
+          badgeColor: '#2563EB',
+          displayOrder: 1),
+      MuddemalDashboardTab(
+          key: 'Pending',
+          label: 'Pending',
+          badgeColor: '#EA580C',
+          displayOrder: 2),
+      MuddemalDashboardTab(
+          key: 'Disposal',
+          label: 'Disposal',
+          badgeColor: '#059669',
+          displayOrder: 3),
     ];
   }
 
@@ -192,7 +203,8 @@ class MuddemalProvider extends BaseModuleProvider {
     if (raw is List) {
       final list = raw
           .whereType<Map>()
-          .map((m) => MuddemalDisposalAuthority.fromJson(Map<String, dynamic>.from(m)))
+          .map((m) =>
+              MuddemalDisposalAuthority.fromJson(Map<String, dynamic>.from(m)))
           .toList();
       list.sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
       return list;
@@ -213,7 +225,8 @@ class MuddemalProvider extends BaseModuleProvider {
     if (raw is List) {
       return raw
           .whereType<Map>()
-          .map((m) => MuddemalFslReportStatus.fromJson(Map<String, dynamic>.from(m)))
+          .map((m) =>
+              MuddemalFslReportStatus.fromJson(Map<String, dynamic>.from(m)))
           .toList();
     }
     return const [];
@@ -235,7 +248,9 @@ class MuddemalProvider extends BaseModuleProvider {
       return cat.any((c) => c.toString().trim().toLowerCase() == clean);
     }
     final s = status.toLowerCase();
-    return s.contains('dispos') || s.contains('returned') || s.contains('released');
+    return s.contains('dispos') ||
+        s.contains('returned') ||
+        s.contains('released');
   }
 
   /// Check if a status string represents a pending state
@@ -254,25 +269,31 @@ class MuddemalProvider extends BaseModuleProvider {
     if (tabKey == 'All' || tabKey == 'all' || tabKey.isEmpty) return true;
     final tab = dashboardTabs.firstWhere(
       (t) => t.key.toLowerCase() == tabKey.toLowerCase(),
-      orElse: () => MuddemalDashboardTab(key: tabKey, label: tabKey, badgeColor: '#2563EB', displayOrder: 0),
+      orElse: () => MuddemalDashboardTab(
+          key: tabKey, label: tabKey, badgeColor: '#2563EB', displayOrder: 0),
     );
     if (tab.applicableStatuses.isNotEmpty) {
       return tab.applicableStatuses.any(
-        (s) => s.trim().toLowerCase() == property.propertyStatus.trim().toLowerCase(),
+        (s) =>
+            s.trim().toLowerCase() ==
+            property.propertyStatus.trim().toLowerCase(),
       );
     }
     if (tabKey.toLowerCase() == 'disposal') {
-      return isDisposalStatus(property.propertyStatus) || isDisposalStatus(property.disposalStatus);
+      return isDisposalStatus(property.propertyStatus) ||
+          isDisposalStatus(property.disposalStatus);
     }
     if (tabKey.toLowerCase() == 'pending') {
-      return !isDisposalStatus(property.propertyStatus) && !isDisposalStatus(property.disposalStatus);
+      return !isDisposalStatus(property.propertyStatus) &&
+          !isDisposalStatus(property.disposalStatus);
     }
     return true;
   }
 
   /// Fetch next unique FSL reference number from backend API
   Future<String?> getNextFslReference(int propertyId, {String? labCode}) async {
-    return await _muddemalApi.fetchNextFslReference(propertyId, labCode: labCode);
+    return await _muddemalApi.fetchNextFslReference(propertyId,
+        labCode: labCode);
   }
 
   // Active Register and Properties State

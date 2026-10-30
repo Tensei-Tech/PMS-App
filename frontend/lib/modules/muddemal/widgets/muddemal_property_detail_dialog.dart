@@ -1044,8 +1044,7 @@ class _MuddemalPropertyDetailDialogState
                       .map((r) => DropdownMenuItem(
                           value: r,
                           child: Text(r,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis)))
+                              maxLines: 1, overflow: TextOverflow.ellipsis)))
                       .toList(),
                   onChanged: (v) {
                     if (v != null) {
@@ -1064,7 +1063,8 @@ class _MuddemalPropertyDetailDialogState
           ),
           actions: [
             TextButton(
-                onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF7C3AED),
@@ -1111,50 +1111,50 @@ class _MuddemalPropertyDetailDialogState
                     : (statuses.isNotEmpty ? statuses.first.code : null),
                 decoration: const InputDecoration(labelText: 'Report Status *'),
                 items: statuses
-                    .map((s) => DropdownMenuItem(
-                        value: s.code,
-                        child: Text(s.label)))
+                    .map((s) =>
+                        DropdownMenuItem(value: s.code, child: Text(s.label)))
                     .toList(),
                 onChanged: (v) =>
                     setStateDialog(() => reportStatus = v ?? reportStatus),
               ),
-            const SizedBox(height: 10),
-            TextFormField(
-                controller: repRefCtrl,
-                decoration: const InputDecoration(
-                    labelText: 'Lab Report Reference Number *')),
-            const SizedBox(height: 10),
-            TextFormField(
-                controller: remarksCtrl,
-                decoration:
-                    const InputDecoration(labelText: 'Findings / Remarks')),
+              const SizedBox(height: 10),
+              TextFormField(
+                  controller: repRefCtrl,
+                  decoration: const InputDecoration(
+                      labelText: 'Lab Report Reference Number *')),
+              const SizedBox(height: 10),
+              TextFormField(
+                  controller: remarksCtrl,
+                  decoration:
+                      const InputDecoration(labelText: 'Findings / Remarks')),
+            ],
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel')),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.successGreen,
+                  foregroundColor: Colors.white),
+              onPressed: () async {
+                Navigator.pop(ctx);
+                final ok = await provider.recordFSL(_property.id, {
+                  'fsl_record_id': fslRecordId,
+                  'report_received_status': reportStatus,
+                  'report_reference': repRefCtrl.text.trim(),
+                  'remarks': remarksCtrl.text.trim(),
+                });
+                if (ok && mounted) {
+                  _loadAuditTrail();
+                }
+              },
+              child: const Text('Save Report'),
+            ),
           ],
         ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.successGreen,
-                foregroundColor: Colors.white),
-            onPressed: () async {
-              Navigator.pop(ctx);
-              final ok = await provider.recordFSL(_property.id, {
-                'fsl_record_id': fslRecordId,
-                'report_received_status': reportStatus,
-                'report_reference': repRefCtrl.text.trim(),
-                'remarks': remarksCtrl.text.trim(),
-              });
-              if (ok && mounted) {
-                _loadAuditTrail();
-              }
-            },
-            child: const Text('Save Report'),
-          ),
-        ],
       ),
-    ),
-  );
+    );
   }
 
   // Dialog to record Disposal / Supurdnama
@@ -1171,8 +1171,7 @@ class _MuddemalPropertyDetailDialogState
         text: _property.totalItemValue > 0
             ? _property.totalItemValue.toStringAsFixed(0)
             : '');
-    final defaultAuth =
-        authorities.isNotEmpty ? authorities.first.label : '';
+    final defaultAuth = authorities.isNotEmpty ? authorities.first.label : '';
     final authCtrl = TextEditingController(text: defaultAuth);
 
     showDialog(

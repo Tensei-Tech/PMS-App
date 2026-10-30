@@ -180,14 +180,20 @@ class _MuddemalPropertyFormDialogState
       if (matchedCategory != null) 'property_category': matchedCategory.id,
       'description': _descriptionCtrl.text.trim(),
       'quantity': double.tryParse(_quantityCtrl.text.trim()) ?? 1.0,
-      'unit': _selectedUnit ?? (provider.measurementUnits.isNotEmpty ? provider.measurementUnits.first : ''),
+      'unit': _selectedUnit ??
+          (provider.measurementUnits.isNotEmpty
+              ? provider.measurementUnits.first
+              : ''),
       'unit_value': double.tryParse(_unitValueCtrl.text.trim()) ?? 0.0,
       'total_item_value':
           double.tryParse(_totalItemValueCtrl.text.trim()) ?? 0.0,
       'owner_name': _ownerNameCtrl.text.trim(),
       'seized_from': _seizedFromCtrl.text.trim(),
       'seizure_date': seizureDateVal.isEmpty ? null : seizureDateVal,
-      'property_status': _selectedStatus ?? (provider.propertyStatuses.isNotEmpty ? provider.propertyStatuses.first : ''),
+      'property_status': _selectedStatus ??
+          (provider.propertyStatuses.isNotEmpty
+              ? provider.propertyStatuses.first
+              : ''),
       'fsl_required': _fslRequired,
       'remarks': _remarksCtrl.text.trim(),
       'extra_fields': extraFields,
@@ -543,7 +549,9 @@ class _MuddemalPropertyFormDialogState
                               child: DropdownButtonFormField<String>(
                                 value: statuses.contains(_selectedStatus)
                                     ? _selectedStatus
-                                    : (statuses.isNotEmpty ? statuses.first : null),
+                                    : (statuses.isNotEmpty
+                                        ? statuses.first
+                                        : null),
                                 decoration: _inputDecoration(
                                   label: 'Property Status *',
                                   icon: Icons.shield_rounded,

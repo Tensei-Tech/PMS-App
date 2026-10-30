@@ -522,8 +522,9 @@ class DynamicControlFactory extends StatelessWidget {
             color: effectiveReadOnly
                 ? AppColors.navyDark.withValues(alpha: 0.7)
                 : AppColors.lightText,
-            fontWeight:
-                (isTotal || effectiveReadOnly) ? FontWeight.w600 : FontWeight.normal),
+            fontWeight: (isTotal || effectiveReadOnly)
+                ? FontWeight.w600
+                : FontWeight.normal),
         decoration: (isTotal || effectiveReadOnly)
             ? _inputDecoration().copyWith(fillColor: const Color(0xFFF8FAFC))
             : _inputDecoration(),
