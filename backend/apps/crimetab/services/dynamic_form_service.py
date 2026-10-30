@@ -39,6 +39,11 @@ def get_option_values_by_group(option_group: str) -> List[str]:
         return []
     return list(
         OptionValue.objects.filter(option_group=option_group, is_active=True)
+        .order_by('display_order', 'id')
+        .values_list('option_value', flat=True)
+    )
+
+
 def get_gender_choices() -> List[str]:
     """Active genders from public.option_values ('gender' group), in display order."""
     return list(
