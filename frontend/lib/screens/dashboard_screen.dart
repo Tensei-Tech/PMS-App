@@ -135,127 +135,6 @@ import '../widgets/logout_confirm_dialog.dart';
 import 'profile_screen.dart';
 import 'station_access_grants_screen.dart';
 
-dynamic _dashboardTileIcon(String label, dynamic fallback) {
-  final k = label.replaceAll(RegExp(r'\s+'), ' ').trim();
-  switch (k) {
-    case 'Monthly':
-      return FontAwesomeIcons.calendarDay;
-    case 'Pending':
-      return FontAwesomeIcons.solidClock;
-    case 'Detected':
-      return FontAwesomeIcons.certificate;
-    case 'Undetected':
-      return FontAwesomeIcons.magnifyingGlassMinus;
-    case 'Disposal':
-      return FontAwesomeIcons.clipboardCheck;
-    case 'I to V':
-      return FontAwesomeIcons.fileLines;
-    case 'VI':
-      return FontAwesomeIcons.fileLines;
-    case 'Prohibition':
-      return FontAwesomeIcons.bottleDroplet;
-    case 'Gambling':
-      return FontAwesomeIcons.dice;
-    case 'Murder/Attempt to Murder':
-      return FontAwesomeIcons.skull;
-    case 'Dacoity/Robbery':
-      return FontAwesomeIcons.peopleGroup;
-    case 'Cheating/CBT':
-      return FontAwesomeIcons.maskFace;
-    case 'Chain Snatching':
-      return FontAwesomeIcons.link;
-    case 'A.D':
-      return FontAwesomeIcons.triangleExclamation;
-    case 'Hurt':
-      return FontAwesomeIcons.userInjured;
-    case 'Theft':
-      return FontAwesomeIcons.userSecret;
-    case 'Sand Theft':
-      return FontAwesomeIcons.truck;
-    case 'Two/Four Wheeler Theft':
-      return FontAwesomeIcons.motorcycle;
-    case 'Kidnapping/Missing':
-      return FontAwesomeIcons.userMinus;
-    case 'Missing':
-      return FontAwesomeIcons.magnifyingGlass;
-    case 'N.C':
-      return FontAwesomeIcons.penToSquare;
-    case 'Preventive':
-      return FontAwesomeIcons.ban;
-    case 'Arrested':
-      return FontAwesomeIcons.handcuffs;
-    case 'Absconded':
-      return FontAwesomeIcons.personRunning;
-    case 'POCSO':
-      return FontAwesomeIcons.child;
-    case 'Crime against Women':
-      return FontAwesomeIcons.personDress;
-    case 'Juvenile':
-      return FontAwesomeIcons.child;
-    case 'Victim':
-      return FontAwesomeIcons.bandage;
-    case 'Accident':
-      return FontAwesomeIcons.carBurst;
-    case 'Traffic':
-      return FontAwesomeIcons.trafficLight;
-    case 'Application':
-      return FontAwesomeIcons.fileInvoice;
-    case 'Sam/Warrant':
-      return FontAwesomeIcons.clipboardList;
-    case 'Muddemal':
-      return FontAwesomeIcons.folderOpen;
-    case 'CRPC 1563 / BNSS 1753':
-    case 'CRPC 1563 / 1753 (BNSS)':
-    case 'CRPC 156(3) / BNSS 175(3)':
-    case 'CRPC 156(3)/BNSS 175(3)':
-    case 'CRPC 156(3)/ BNSS 175(3)':
-    case 'Sec 186/175 (BNSS)':
-      return FontAwesomeIcons.scaleBalanced;
-    case 'Passport/PVR/Lic':
-    case 'Passport/ PVR/Lic':
-    case 'Passport/PVR/Licence':
-    case 'Passport/ PVR/Licence':
-    case 'Passport/PVR':
-      return FontAwesomeIcons.idCard;
-    case 'NDPS':
-      return FontAwesomeIcons.pills;
-    case 'Gowansh':
-      return FontAwesomeIcons.cow;
-    case 'IT Act':
-      return FontAwesomeIcons.laptop;
-    case 'MCOCA':
-      return FontAwesomeIcons.userShield;
-    case 'UAPA':
-      return FontAwesomeIcons.buildingColumns;
-    case 'MPDA':
-      return FontAwesomeIcons.shieldHalved;
-    case 'COIN':
-      return FontAwesomeIcons.coins;
-    case 'Licence':
-      return Icons.assignment_ind_rounded;
-    case 'History Sheeter':
-    case 'History Sheet':
-      return Icons.assignment_rounded;
-    case 'Repeat Offender':
-      return Icons.warning_rounded;
-    case 'ITSSO':
-      return Icons.description_rounded;
-    case 'NAFIS':
-    case 'NAFIS/Fingerprint':
-      return Icons.fingerprint_rounded;
-    case 'DAR':
-    case 'DAR/IRAD':
-      return Icons.folder_rounded;
-    case 'IRAD':
-    case 'IRDA':
-      return Icons.analytics_rounded;
-    case 'E-Learning':
-      return Icons.school_rounded;
-    default:
-      return fallback;
-  }
-}
-
 String? _getDashboardSvgPath(String label) {
   final clean = label.toLowerCase().replaceAll(RegExp(r'[\s/._\\]+'), '');
   for (final tool in ServiceData.dashboardTools) {
@@ -423,8 +302,8 @@ Widget _buildGridIcon(
     return SvgPicture.asset(
       svgPath,
 
-      width: size * 1.5,
-      height: size * 1.5,
+      width: size * scale,
+      height: size * scale,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
   }
@@ -4218,23 +4097,7 @@ class _HomeTabState extends State<_HomeTab> {
         ? Color(matchedTool.color)
         : AppColors.navyMid;
 
-    Widget iconWidget;
-    if (matchedTool?.assetPath != null &&
-        matchedTool!.assetPath!.endsWith('.svg')) {
-      iconWidget = SvgPicture.asset(
-        matchedTool.assetPath!,
-        width: 24,
-        height: 24,
-        colorFilter: ColorFilter.mode(itemColor, BlendMode.srcIn),
-      );
-    } else {
-      iconWidget = _buildGridIcon(
-        item.name,
-        matchedTool?.icon ?? _classIcon(item.iconName),
-        itemColor,
-        24,
-      );
-    }
+
 
     return GestureDetector(
       onTap: () => _openClassificationItem(context, item),
@@ -4257,7 +4120,7 @@ class _HomeTabState extends State<_HomeTab> {
                     child: _buildGridIcon(
                         item.name,
                         matchedTool?.icon ?? _classIcon(item.iconName),
-                        AppColors.navyMid,
+                        itemColor,
                         baseSize),
                   );
                 },

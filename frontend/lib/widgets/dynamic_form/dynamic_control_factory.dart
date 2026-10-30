@@ -508,30 +508,6 @@ class DynamicControlFactory extends StatelessWidget {
         ),
       );
     }
-    final numField = TextFormField(
-      controller: controller,
-      readOnly: readOnly || isTotal,
-      canRequestFocus: !isTotal,
-      keyboardType: TextInputType.number,
-      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-      onChanged: onChanged,
-      style: GoogleFonts.poppins(
-          fontSize: 13,
-          color: AppColors.lightText,
-          fontWeight: isTotal ? FontWeight.w600 : FontWeight.normal),
-      decoration: isTotal
-          ? _inputDecoration().copyWith(fillColor: const Color(0xFFF8FAFC))
-          : _inputDecoration(),
-      validator: (v) {
-        final value = v?.trim() ?? '';
-        if (value.isEmpty) {
-          return fieldDef.isRequired
-              ? '${fieldDef.fieldLabel} is required'
-              : null;
-        }
-        return null;
-      },
-    );
     return _buildFieldLayout(
       context,
       TextFormField(
