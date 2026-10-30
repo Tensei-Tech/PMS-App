@@ -14,6 +14,7 @@ from apps.crimetab.views import (
     ActSectionsView,
     ActSubsectionsView,
     CasePdfView,
+    CaseReportPdfView, MyCasesView,
     FormSchemaView,
     OptionValuesView,
 )
@@ -212,10 +213,12 @@ urlpatterns = [
 
     # Explicit Action Endpoints for Cases
     path('cases/counts/', CaseCountsView.as_view(), name='case-counts'),
+    path('cases/mine/', MyCasesView.as_view(), name='cases-mine'),
     path('cases/transferred-in/', TransferredInInboxView.as_view(), name='cases-transferred-in'),
     path('cases/<str:pk>/transfer/', CaseTransferView.as_view(), name='case-transfer'),
     path('cases/<str:pk>/assign-io/', AssignTransferredCaseView.as_view(), name='case-assign-io'),
     path('cases/<str:pk>/pdf/', CasePdfView.as_view(), name='case-pdf'),
+    path('cases/<str:pk>/report-pdf/', CaseReportPdfView.as_view(), name='case-report-pdf'),
     path('cases/<str:pk>/', CrimeCaseManageView.as_view(), name='case-detail-manage'),
     path('cases/', CrimeCaseManageView.as_view(), name='case-create-list'),
 
