@@ -421,27 +421,21 @@ class ServiceData {
   /// Tools shown directly on the dashboard grid. Loaded dynamically from the backend (/api/categories/dashboard-tools/).
   /// Default baseline excludes dynamic/database-driven modules (e.g. Tadipar).
   static List<ServiceData> dashboardTools = [
-    const ServiceData('Licence', Icons.assignment_ind_rounded, 0xFF9B59B6,
-        moduleKey: 'licence',
-        assetPath: 'assets/icons/licence.svg',
-        displayOrder: 1),
     const ServiceData('Repeat Offender', Icons.warning_rounded, 0xFFF39C12,
         moduleKey: 'repeat_offender',
         assetPath: 'assets/icons/repeatoffender.svg',
-        displayOrder: 3),
+        displayOrder: 1),
     const ServiceData('ITSSO', Icons.description_rounded, 0xFFE91E63,
         moduleKey: 'itsso',
         assetPath: 'assets/icons/itsso.svg',
-        displayOrder: 4),
+        displayOrder: 2),
     const ServiceData(
         'NAFIS/Fingerprint', Icons.fingerprint_rounded, 0xFF673AB7,
-        moduleKey: 'nafis', displayOrder: 5),
+        moduleKey: 'nafis', displayOrder: 3),
     const ServiceData('DAR/IRAD', Icons.folder_rounded, 0xFF607D8B,
-        moduleKey: 'dar', assetPath: 'assets/icons/dar.svg', displayOrder: 6),
-    const ServiceData('IRAD', Icons.analytics_rounded, 0xFF34495E,
-        moduleKey: 'irad', assetPath: 'assets/icons/IRAD.svg', displayOrder: 7),
+        moduleKey: 'dar', assetPath: 'assets/icons/dar.svg', displayOrder: 4),
     const ServiceData('E-Learning', Icons.school_rounded, 0xFF7F8C8D,
-        moduleKey: 'elearning', displayOrder: 8),
+        moduleKey: 'elearning', displayOrder: 5),
   ];
 }
 

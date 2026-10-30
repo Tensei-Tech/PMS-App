@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from django.db import connection, transaction
+from django.db.models import Q
 from apps.cases.group_filters import group_case_q, preventive_case_q
 from apps.cases.models import CaseRecord, is_ad_case_disposed
 from apps.cases.serializers import CaseRecordSerializer, CreateCaseSerializer, CaseRecordListSerializer
