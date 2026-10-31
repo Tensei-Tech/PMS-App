@@ -12,7 +12,7 @@ class AppLocalizationsTe extends AppLocalizations {
   String get appTitle => 'పోలీస్ మేనేజ్మెంట్ సిస్టమ్';
 
   @override
-  String get khakhiDiary => 'ఖాకీ డైరీ';
+  String get khakhiDiary => 'PMS';
 
   @override
   String get safeSwiftSecure => 'సురక్షితం • వేగవంతం • భద్రం';

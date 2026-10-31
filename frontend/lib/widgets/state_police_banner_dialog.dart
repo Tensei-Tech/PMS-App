@@ -57,7 +57,7 @@ class StatePoliceBannerDialog extends StatelessWidget {
     );
 
     final servingMsg =
-        '${TranslationHelper.translate(context, 'Serving')} ${branding.stateName} ${TranslationHelper.translate(context, 'State with Honor, Integrity, and Excellence. Integrated via Khakhi Diary Enterprise Portal.')}';
+        '${TranslationHelper.translate(context, 'Serving')} ${branding.stateName} ${TranslationHelper.translate(context, 'State with Honor, Integrity, and Excellence. Integrated via PMS Enterprise Portal.')}';
 
     return Center(
       child: ConstrainedBox(
@@ -113,9 +113,9 @@ class StatePoliceBannerDialog extends StatelessWidget {
                   ),
                   child: Column(
                     children: [
-                      // ── LINE 1: Small Text "KHAKHI DIARY" ──
+                      // ── LINE 1: Small Text "PMS" ──
                       Text(
-                        'KHAKHI DIARY',
+                        'PMS',
                         style: GoogleFonts.poppins(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
@@ -125,11 +125,11 @@ class StatePoliceBannerDialog extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
 
-                      // ── LINE 2: Symmetrical Balanced Row: Khakhi Diary Badge (52px) + Centered Title + State Police Badge (52px) ──
+                      // ── LINE 2: Symmetrical Balanced Row: PMS Badge (52px) + Centered Title + State Police Badge (52px) ──
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          // Khakhi Diary Logo (52x52 circular badge with gold border & glow)
+                          // PMS Logo (52x52 circular badge with gold border & glow)
                           Container(
                             width: 52,
                             height: 52,

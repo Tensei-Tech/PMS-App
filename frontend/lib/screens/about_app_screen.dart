@@ -88,7 +88,7 @@ class AboutAppScreen extends StatelessWidget {
         scrolledUnderElevation: 0,
         backgroundColor: Colors.white,
         title: Text(
-          'About Khakhi Diary',
+          'About PMS',
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -227,7 +227,7 @@ class AboutAppScreen extends StatelessWidget {
                 const AppLogo(size: 64),
                 const SizedBox(height: 8),
                 Text(
-                  'Khakhi Diary',
+                  'PMS',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
                     fontSize: 20,
@@ -665,7 +665,7 @@ class AboutAppScreen extends StatelessWidget {
         ),
         const SizedBox(height: 3),
         Text(
-          '© 2026 Khakhi Diary. All Rights Reserved.',
+          '© 2026 PMS. All Rights Reserved.',
           style: GoogleFonts.poppins(
             fontSize: 11,
             color: AppColors.lightSubText,

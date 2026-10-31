@@ -12,7 +12,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get appTitle => 'পুলিশ ম্যানেজমেন্ট সিস্টেম';
 
   @override
-  String get khakhiDiary => 'খাকি ডায়েরি';
+  String get khakhiDiary => 'PMS';
 
   @override
   String get safeSwiftSecure => 'নিরাপদ • দ্রুত • সুরক্ষিত';

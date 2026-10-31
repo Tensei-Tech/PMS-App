@@ -12,7 +12,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get appTitle => 'காவல் மேலாண்மை அமைப்பு';
 
   @override
-  String get khakhiDiary => 'காக்கி டைரி';
+  String get khakhiDiary => 'PMS';
 
   @override
   String get safeSwiftSecure => 'பாதுகாப்பானது • விரைவானது • உறுதியானது';
