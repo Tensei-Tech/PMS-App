@@ -684,8 +684,8 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
 
         final sub = widget.subCategory?.trim() ?? '';
         final formSubtitle = sub.isEmpty
-            ? '${widget.moduleLabel} — Khakhi Diary · Maharashtra Police'
-            : '$sub · ${widget.moduleLabel} — Khakhi Diary · Maharashtra Police';
+            ? '${widget.moduleLabel} — PMS · Maharashtra Police'
+            : '$sub · ${widget.moduleLabel} — PMS · Maharashtra Police';
 
         await previewFormPdf(
           context,

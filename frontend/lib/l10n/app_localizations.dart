@@ -123,7 +123,7 @@ abstract class AppLocalizations {
   /// No description provided for @khakhiDiary.
   ///
   /// In en, this message translates to:
-  /// **'Khakhi Diary'**
+  /// **'PMS'**
   String get khakhiDiary;
 
   /// No description provided for @safeSwiftSecure.

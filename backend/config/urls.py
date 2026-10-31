@@ -35,4 +35,5 @@ urlpatterns = [
     path('api/cases/', include('apps.cases.urls')),
     path('api/core/', include('apps.core.urls')),
     path('api/elearning/', include('apps.elearning.urls')),
+    path('api/muddemal/', include('apps.muddemal.urls')),
 ]

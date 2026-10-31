@@ -59,7 +59,7 @@ class _FilteredJuvenileScreenState extends State<FilteredJuvenileScreen> {
         });
       } else {
         setState(() {
-          _error = "Failed to load juvenile cases.";
+          _error = "Failed to load CiCL cases.";
           _isLoading = false;
         });
       }
@@ -77,13 +77,13 @@ class _FilteredJuvenileScreenState extends State<FilteredJuvenileScreen> {
     final theme = await PdfUnicodeFonts.openSansTheme();
     final doc = DynamicMapPdf.buildLandscapeDataTableDocument(
       theme: theme,
-      title: 'Juvenile — ${widget.title}',
+      title: 'CiCL — ${widget.title}',
       rows: _tableRows
           .map((e) => {
                 'Cr. No.': e['cr'] ?? '—',
                 'Sec/Act': e['sections'] ?? '—',
                 'Head': e['head'] ?? '—',
-                'Name of juvenile': e['accused_name'] ?? '—',
+                'Name of CiCL': e['accused_name'] ?? '—',
                 'Age': e['age'] ?? '—',
                 'IO name': e['io'] ?? '—',
               })
@@ -92,7 +92,7 @@ class _FilteredJuvenileScreenState extends State<FilteredJuvenileScreen> {
     await Printing.sharePdf(
       bytes: await doc.save(),
       filename:
-          'Juvenile_${widget.title.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}.pdf',
+          'CiCL_${widget.title.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}.pdf',
     );
   }
 

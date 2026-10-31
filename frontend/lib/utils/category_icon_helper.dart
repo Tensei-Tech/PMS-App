@@ -6,9 +6,19 @@ import 'package:flutter_svg/flutter_svg.dart';
 class CategoryIconHelper {
   const CategoryIconHelper._();
 
+  static final Map<String, String> _dynamicSvgPaths = {};
+
+  /// Register dynamic backend-provided SVG assets (e.g. from /api/categories/dashboard-tools/)
+  static void registerSvgPath(String categoryKey, String svgPath) {
+    _dynamicSvgPaths[categoryKey.trim().toLowerCase()] = svgPath;
+  }
+
   /// Resolves matching dashboard SVG path from assets/icons/ if available.
   static String? getSvgPath(String category) {
     final k = category.trim().toLowerCase();
+    if (_dynamicSvgPaths.containsKey(k)) {
+      return _dynamicSvgPaths[k];
+    }
 
     switch (k) {
       case 'theft':
@@ -84,7 +94,6 @@ class CategoryIconHelper {
         return 'assets/icons/arrested.svg';
       case 'absconded':
         return 'assets/icons/absconded.svg';
-      case 'st drugs':
       case 'ndps':
         return 'assets/icons/ndps.svg';
       case 'prohibition':
@@ -127,8 +136,6 @@ class CategoryIconHelper {
         return 'assets/icons/muddemal.svg';
       case 'rti':
         return 'assets/icons/rti.svg';
-      case 'tadipar':
-        return 'assets/icons/tadipar.svg';
       case 'cctns':
         return 'assets/icons/cctns.svg';
       case 'licence':

@@ -45,6 +45,7 @@ import '../modules/missing/screens/missing_form_screen.dart';
 import '../modules/monthly/providers/monthly_provider.dart';
 import '../modules/mpda/providers/mpda_provider.dart';
 import '../modules/muddemal/providers/muddemal_provider.dart';
+import '../modules/muddemal/screens/muddemal_main_screen.dart';
 import '../modules/nc/providers/nc_provider.dart';
 import '../modules/nc/screens/nc_form_screen.dart';
 import '../modules/ndps/providers/ndps_provider.dart';
@@ -69,6 +70,8 @@ import '../providers/news_provider.dart';
 import '../providers/theme_provider.dart';
 import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
+import '../services/backend_case_service.dart';
+import '../widgets/pending_time_wise_card.dart';
 import '../utils/app_constants.dart';
 import '../utils/case_visibility_ui.dart';
 import '../utils/common_form_module.dart';
@@ -89,8 +92,6 @@ import 'undetected_hub_screen.dart';
 import 'detected_hub_screen.dart';
 import 'disposal_hub_screen.dart';
 import 'arrested_hub_screen.dart';
-import '../widgets/summons_warrant_report_table.dart';
-import '../widgets/monthly_crime_comparative_table.dart';
 import 'juvenile_hub_screen.dart';
 import 'victim_hub_screen.dart';
 import 'repeat_offender_summary_screen.dart';
@@ -133,133 +134,16 @@ import '../widgets/logout_confirm_dialog.dart';
 import 'profile_screen.dart';
 import 'station_access_grants_screen.dart';
 
-dynamic _dashboardTileIcon(String label, dynamic fallback) {
-  final k = label.replaceAll(RegExp(r'\s+'), ' ').trim();
-  switch (k) {
-    case 'Monthly':
-      return FontAwesomeIcons.calendarDay;
-    case 'Pending':
-      return FontAwesomeIcons.solidClock;
-    case 'Detected':
-      return FontAwesomeIcons.certificate;
-    case 'Undetected':
-      return FontAwesomeIcons.magnifyingGlassMinus;
-    case 'Disposal':
-      return FontAwesomeIcons.clipboardCheck;
-    case 'I to V':
-      return FontAwesomeIcons.fileLines;
-    case 'VI':
-      return FontAwesomeIcons.fileLines;
-    case 'Prohibition':
-      return FontAwesomeIcons.bottleDroplet;
-    case 'Gambling':
-      return FontAwesomeIcons.dice;
-    case 'Murder/Attempt to Murder':
-      return FontAwesomeIcons.skull;
-    case 'Dacoity/Robbery':
-      return FontAwesomeIcons.peopleGroup;
-    case 'Cheating/CBT':
-      return FontAwesomeIcons.maskFace;
-    case 'Chain Snatching':
-      return FontAwesomeIcons.link;
-    case 'A.D':
-      return FontAwesomeIcons.triangleExclamation;
-    case 'ST Drugs':
-      return FontAwesomeIcons.capsules;
-    case 'Hurt':
-      return FontAwesomeIcons.userInjured;
-    case 'Theft':
-      return FontAwesomeIcons.userSecret;
-    case 'Sand Theft':
-      return FontAwesomeIcons.truck;
-    case 'Two/Four Wheeler Theft':
-      return FontAwesomeIcons.motorcycle;
-    case 'Kidnapping/Missing':
-      return FontAwesomeIcons.userMinus;
-    case 'Missing':
-      return FontAwesomeIcons.magnifyingGlass;
-    case 'N.C':
-      return FontAwesomeIcons.penToSquare;
-    case 'Preventive':
-      return FontAwesomeIcons.ban;
-    case 'Arrested':
-      return FontAwesomeIcons.handcuffs;
-    case 'Absconded':
-      return FontAwesomeIcons.personRunning;
-    case 'POCSO':
-      return FontAwesomeIcons.child;
-    case 'Crime against Women':
-      return FontAwesomeIcons.personDress;
-    case 'Juvenile':
-      return FontAwesomeIcons.child;
-    case 'Victim':
-      return FontAwesomeIcons.bandage;
-    case 'Accident':
-      return FontAwesomeIcons.carBurst;
-    case 'Traffic':
-      return FontAwesomeIcons.trafficLight;
-    case 'Application':
-      return FontAwesomeIcons.fileInvoice;
-    case 'Sam/Warrant':
-      return FontAwesomeIcons.clipboardList;
-    case 'Muddemal':
-      return FontAwesomeIcons.folderOpen;
-    case 'CRPC 1563 / BNSS 1753':
-    case 'CRPC 1563 / 1753 (BNSS)':
-    case 'CRPC 156(3) / BNSS 175(3)':
-    case 'CRPC 156(3)/BNSS 175(3)':
-    case 'CRPC 156(3)/ BNSS 175(3)':
-    case 'Sec 186/175 (BNSS)':
-      return FontAwesomeIcons.scaleBalanced;
-    case 'Passport/PVR/Lic':
-    case 'Passport/ PVR/Lic':
-    case 'Passport/PVR/Licence':
-    case 'Passport/ PVR/Licence':
-    case 'Passport/PVR':
-      return FontAwesomeIcons.idCard;
-    case 'NDPS':
-      return FontAwesomeIcons.pills;
-    case 'Gowansh':
-      return FontAwesomeIcons.cow;
-    case 'IT Act':
-      return FontAwesomeIcons.laptop;
-    case 'MCOCA':
-      return FontAwesomeIcons.userShield;
-    case 'UAPA':
-      return FontAwesomeIcons.buildingColumns;
-    case 'MPDA':
-      return FontAwesomeIcons.shieldHalved;
-    case 'COIN':
-      return FontAwesomeIcons.coins;
-    case 'Licence':
-      return Icons.assignment_ind_rounded;
-    case 'Tadipar':
-      return Icons.gavel_rounded;
-    case 'History Sheeter':
-    case 'History Sheet':
-      return Icons.assignment_rounded;
-    case 'Repeat Offender':
-      return Icons.warning_rounded;
-    case 'ITSSO':
-      return Icons.description_rounded;
-    case 'NAFIS':
-    case 'NAFIS/Fingerprint':
-      return Icons.fingerprint_rounded;
-    case 'DAR':
-    case 'DAR/IRAD':
-      return Icons.folder_rounded;
-    case 'IRAD':
-    case 'IRDA':
-      return Icons.analytics_rounded;
-    case 'E-Learning':
-      return Icons.school_rounded;
-    default:
-      return fallback;
-  }
-}
-
 String? _getDashboardSvgPath(String label) {
   final clean = label.toLowerCase().replaceAll(RegExp(r'[\s/._\\]+'), '');
+  for (final tool in ServiceData.dashboardTools) {
+    if (label.toLowerCase() == tool.label.toLowerCase() ||
+        (tool.moduleKey != null && clean == tool.moduleKey!.toLowerCase())) {
+      if (tool.assetPath != null && tool.assetPath!.isNotEmpty) {
+        return tool.assetPath;
+      }
+    }
+  }
   switch (clean) {
     case 'itov':
     case '1to5':
@@ -348,8 +232,6 @@ String? _getDashboardSvgPath(String label) {
       return 'assets/icons/cctns.svg';
     case 'licence':
       return 'assets/icons/licence.svg';
-    case 'tadipar':
-      return 'assets/icons/tadipar.svg';
     case 'repeatoffender':
       return 'assets/icons/repeatoffender.svg';
     case 'dar':
@@ -420,34 +302,6 @@ Widget _buildGridIcon(
       svgPath,
       width: size * scale,
       height: size * scale,
-      fit: BoxFit.contain,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  }
-
-  for (final tool in ServiceData.dashboardTools) {
-    if (labelTrim == tool.label) {
-      return _buildServiceIcon(labelTrim, tool.icon, color, size);
-    }
-  }
-
-  // Optical parity: glyph icons (FontAwesome/Material) scale to match SVG visual weight
-  final dynamic icon = _dashboardTileIcon(label, fallback);
-  final glyphScale = (icon == FontAwesomeIcons.maskFace) ? 1.42 : 1.35;
-  final glyphSize = size * glyphScale;
-  if (icon is IconData) return Icon(icon, color: color, size: glyphSize);
-  return FaIcon(icon, color: color, size: glyphSize);
-}
-
-Widget _buildServiceIcon(
-    String label, dynamic fallback, Color color, double size) {
-  final labelTrim = label.replaceAll('\n', ' ').trim();
-  final svgPath = _getDashboardSvgPath(labelTrim);
-  if (svgPath != null) {
-    return SvgPicture.asset(
-      svgPath,
-      width: size * 1.5,
-      height: size * 1.5,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
   }
@@ -2372,6 +2226,7 @@ class _HomeTabState extends State<_HomeTab> {
   void initState() {
     super.initState();
     // DashboardScreen already refreshed stale caches for this user/station.
+    _loadDashboardTools();
     _loadBackendCategories();
     // MPDA detention end reminders of this station (bell badge + list)
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -2389,9 +2244,46 @@ class _HomeTabState extends State<_HomeTab> {
 
   /// Database tiles (MPDA, History Sheeter ...) come from this list, so a
   /// failed or dropped request is retried instead of leaving them out.
+  Future<void> _loadDashboardTools() async {
+    try {
+      final toolsData = await CaseService().fetchDashboardTools();
+      if (toolsData.isNotEmpty) {
+        final dynamicTools = toolsData
+            .map((t) => ServiceData.fromJson(t))
+            .where((t) => t.isActive)
+            .toList();
+        if (dynamicTools.isNotEmpty) {
+          for (final tool in dynamicTools) {
+            if (tool.assetPath != null && tool.assetPath!.endsWith('.svg')) {
+              CategoryIconHelper.registerSvgPath(tool.label, tool.assetPath!);
+              if (tool.moduleKey != null) {
+                CategoryIconHelper.registerSvgPath(
+                    tool.moduleKey!, tool.assetPath!);
+              }
+              if (tool.categoryCode != null) {
+                CategoryIconHelper.registerSvgPath(
+                    tool.categoryCode!, tool.assetPath!);
+              }
+            }
+          }
+          if (mounted) {
+            setState(() {
+              ServiceData.dashboardTools = dynamicTools;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[_HomeTab] _loadDashboardTools error: $e');
+      }
+    }
+  }
+
   Future<void> _loadBackendCategories({int attempt = 1}) async {
     const maxAttempts = 4;
     try {
+      await _loadDashboardTools();
       final cats = await CaseService().fetchAllCategories();
       if (!mounted) return;
       if (cats.isNotEmpty) {
@@ -3179,7 +3071,7 @@ class _HomeTabState extends State<_HomeTab> {
       (
         title: 'About App',
         subtext: 'App Info',
-        keywords: ['about app', 'about', 'about khakhi diary', 'tensei tech'],
+        keywords: ['about app', 'about', 'about pms', 'tensei tech'],
         icon: Icons.info_rounded,
         onTap: () => Navigator.push(
             context, AppTheme.fadeSlideRoute(page: const AboutAppScreen())),
@@ -3826,7 +3718,13 @@ class _HomeTabState extends State<_HomeTab> {
       serviceSection,
       [
         for (final tool in ServiceData.dashboardTools)
-          Classification(tool.label, 'service_tool', 'service_tool'),
+          Classification(
+            tool.label,
+            tool.assetPath ?? 'service_tool',
+            tool.moduleKey ?? 'service_tool',
+            categoryCode: tool.categoryCode,
+            categoryId: tool.categoryId,
+          ),
       ],
     ];
     // Sections keep their order but flow on continuously, so no row is left
@@ -4051,19 +3949,18 @@ class _HomeTabState extends State<_HomeTab> {
     } else if (label.toLowerCase().contains('passport') ||
         item.name.toLowerCase().contains('passport') ||
         item.moduleKey == 'passport') {
-      // Two tabs: Passport/PVR/Licence and Licence
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
           page: PassportLicenceScreen(stationName: widget.auth.stationName),
         ),
       );
-    } else if (item.moduleKey == 'service_tool') {
+    } else if (item.moduleKey == 'service_tool' ||
+        ServiceData.dashboardTools.any((t) =>
+            t.label.toLowerCase() == label.toLowerCase() ||
+            (t.moduleKey != null && t.moduleKey == item.moduleKey))) {
       final cleanLabel = label.trim().toLowerCase();
-      if (cleanLabel == 'history sheeter' ||
-          cleanLabel == 'history sheet' ||
-          item.categoryCode != null ||
-          item.categoryId != null) {
+      if (cleanLabel == 'history sheeter' || cleanLabel == 'history sheet') {
         CategoryNavigationHelper.handleDashboardCategoryTap(
           context: context,
           categoryName: item.name,
@@ -4138,6 +4035,13 @@ class _HomeTabState extends State<_HomeTab> {
           page: VictimHubScreen(stationName: widget.auth.stationName),
         ),
       );
+    } else if (item.moduleKey == 'muddemal' || item.name == 'Muddemal') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const MuddemalMainScreen(),
+        ),
+      );
     } else {
       final isStatsItem = [
         'Monthly',
@@ -4175,7 +4079,8 @@ class _HomeTabState extends State<_HomeTab> {
     final label = item.name.replaceAll('\n', ' ');
     ServiceData? matchedTool;
     for (final t in ServiceData.dashboardTools) {
-      if (t.label == label) {
+      if (t.label.toLowerCase() == label.toLowerCase() ||
+          (t.moduleKey != null && t.moduleKey == item.moduleKey)) {
         matchedTool = t;
         break;
       }
@@ -5863,20 +5768,7 @@ class _ViewEmptyState extends StatelessWidget {
 }
 
 // ── CALENDAR TAB ─────────────────────────────────────────────────────────────
-class _CalCategoryMeta {
-  final String label;
-  final String moduleKey;
-  final String? subCategory;
-  int count;
-
-  _CalCategoryMeta({
-    required this.label,
-    required this.moduleKey,
-    this.subCategory,
-    required this.count,
-  });
-}
-
+// Shows the same Time Wise breakdown as the Pending hub.
 class _CalendarTab extends StatefulWidget {
   final bool isDark;
   const _CalendarTab({required this.isDark});
@@ -5885,891 +5777,109 @@ class _CalendarTab extends StatefulWidget {
   State<_CalendarTab> createState() => _CalendarTabState();
 }
 
-enum _CalendarTabArea { weekly, monthly, samWarrant, yearly, custom }
-
 class _CalendarTabState extends State<_CalendarTab> {
-  _CalendarTabArea _activeArea = _CalendarTabArea.weekly;
-  DateTimeRange? _customRange;
-  late int _selectedMonth;
-  late int _selectedYear;
+  final BackendCaseService _backend = BackendCaseService();
+  List<Map<String, dynamic>>? _timeWiseData;
+  bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
-    _selectedMonth = now.month;
-    _selectedYear = now.year;
+    _load();
   }
 
-  List<ModuleRecord> _getConsolidatedRecords(BuildContext context) {
-    final records = <ModuleRecord>[];
-    records.addAll(context.watch<FormIVProvider>().records);
-    records.addAll(context.watch<FormVIProvider>().records);
-    records.addAll(context.watch<NcProvider>().records);
-    records.addAll(context.watch<PreventiveProvider>().records);
-    records.addAll(context.watch<AdProvider>().records);
-    records.addAll(context.watch<MissingProvider>().records);
-    records.addAll(context.watch<KidnappingProvider>().records);
-    records.addAll(context.watch<TheftProvider>().records);
-    records.addAll(context.watch<SandTheftProvider>().records);
-    records.addAll(context.watch<HurtProvider>().records);
-    records.addAll(context.watch<PocsoProvider>().records);
-    records.addAll(context.watch<PassportProvider>().records);
-    records.addAll(context.watch<LicenceProvider>().records);
-    records.addAll(context.watch<TwoFourWheelerProvider>().records);
-    records.addAll(context.watch<ArrestedProvider>().records);
-    records.addAll(context.watch<AbscondedProvider>().records);
-    records.addAll(context.watch<CrimeWomenProvider>().records);
-    records.addAll(context.watch<JuvenileProvider>().records);
-    records.addAll(context.watch<VictimProvider>().records);
-    records.addAll(context.watch<AccidentProvider>().records);
-    records.addAll(context.watch<TrafficProvider>().records);
-    records.addAll(context.watch<ApplicationProvider>().records);
-    records.addAll(context.watch<SamWarrantProvider>().records);
-    records.addAll(context.watch<MuddemalProvider>().records);
-    records.addAll(context.watch<BnssProvider>().records);
-    records.addAll(context.watch<NdpsProvider>().records);
-    records.addAll(context.watch<GowansProvider>().records);
-    records.addAll(context.watch<ItActProvider>().records);
-    records.addAll(context.watch<McocaProvider>().records);
-    records.addAll(context.watch<UapaProvider>().records);
-    records.addAll(context.watch<MpdaProvider>().records);
-    records.addAll(context.watch<CoinProvider>().records);
-    return records;
+  Future<void> _load() async {
+    try {
+      final data = await _backend.fetchPendingTimeWise();
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        if (data != null) {
+          _timeWiseData = data;
+          _error = null;
+        } else if (_timeWiseData == null) {
+          _error = 'Failed to load time-wise pending data.';
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _error = e.toString();
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      physics: const BouncingScrollPhysics(),
-      slivers: [
-        SliverToBoxAdapter(child: _buildReportTabs()),
-        _buildRegistrationSummary(context, _activeArea),
-        const SliverToBoxAdapter(child: SizedBox(height: 100)),
-      ],
-    );
-  }
-
-  Widget _buildReportTabs() {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 8),
-          child: Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-              border: Border.all(color: const Color(0xFFCBD5E1), width: 1.1),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 4,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                _tabBtn('Weekly', _CalendarTabArea.weekly),
-                _tabBtn('Monthly', _CalendarTabArea.monthly),
-                _tabBtn('Sam/Warrant', _CalendarTabArea.samWarrant),
-                _tabBtn('Yearly', _CalendarTabArea.yearly),
-                _tabBtn('Custom', _CalendarTabArea.custom),
-              ],
-            ),
-          ),
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.navyMid),
+      );
+    }
+    if (_error != null) {
+      return Center(
+        child: Text(
+          _error!,
+          style: GoogleFonts.poppins(color: AppColors.dangerRed),
         ),
-      ],
-    );
-  }
+      );
+    }
 
-  Widget _buildMonthSelector() {
-    final months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December'
-    ];
-
-    return Padding(
-      padding:
-          const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 8),
-      child: Row(
+    // The "(Total)" row only repeats the first two periods added together.
+    final items = (_timeWiseData ?? const <Map<String, dynamic>>[])
+        .where((item) => item['period']?.toString() != 'Under 3 months (Total)')
+        .toList();
+    return RefreshIndicator(
+      onRefresh: _load,
+      color: AppColors.navyMid,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 100),
         children: [
-          Expanded(
-            child: Container(
-              height: 44,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(color: const Color(0xFFCBD5E1)),
-              ),
-              child: Row(
+          // All cards in one row. Cards share the width equally, and
+          // scroll sideways once they would be narrower than minCardWidth
+          // (small phones).
+          LayoutBuilder(
+            builder: (context, constraints) {
+              const gap = 10.0;
+              const minCardWidth = 112.0;
+              final cards = <Widget>[
+                for (final item in items)
+                  PendingTimeWiseCard(
+                    period: item['period']?.toString() ?? '',
+                    count: (item['count'] as num?)?.toInt() ?? 0,
+                    vertical: true,
+                    showTitlePrefix: false,
+                  ),
+                // Pick any date range and list the pending cases in it.
+                const PendingTimeWiseCard.custom(showTitlePrefix: false),
+              ];
+              final count = cards.length;
+              final fitWidth =
+                  (constraints.maxWidth - gap * (count - 1)) / count;
+              final cardWidth =
+                  fitWidth < minCardWidth ? minCardWidth : fitWidth;
+              final row = Row(
                 children: [
-                  const Icon(Icons.calendar_today_outlined,
-                      size: 15, color: AppColors.navyMid),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<int>(
-                        value: _selectedMonth,
-                        isExpanded: true,
-                        icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                            color: AppColors.navyMid),
-                        items: List.generate(
-                            12,
-                            (i) => DropdownMenuItem(
-                                  value: i + 1,
-                                  child: Text(months[i],
-                                      style: GoogleFonts.poppins(
-                                          fontSize: 12.5,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.navyDark)),
-                                )),
-                        onChanged: (val) {
-                          if (val != null) setState(() => _selectedMonth = val);
-                        },
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Container(
-            height: 44,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              border: Border.all(color: const Color(0xFFCBD5E1)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.access_time_rounded,
-                    size: 15, color: AppColors.navyMid),
-                const SizedBox(width: 8),
-                DropdownButtonHideUnderline(
-                  child: DropdownButton<int>(
-                    value: _selectedYear,
-                    icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                        color: AppColors.navyMid),
-                    items: List.generate(
-                        5,
-                        (i) => DropdownMenuItem(
-                              value: DateTime.now().year - i,
-                              child: Text('${DateTime.now().year - i}',
-                                  style: GoogleFonts.poppins(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.navyDark)),
-                            )),
-                    onChanged: (val) {
-                      if (val != null) setState(() => _selectedYear = val);
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _selectCustomRange(BuildContext context) async {
-    final range = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-      initialDateRange: _customRange,
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.navyMid,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: AppColors.navyDark,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (range != null) setState(() => _customRange = range);
-  }
-
-  Widget _tabBtn(String label, _CalendarTabArea area) {
-    final isActive = _activeArea == area;
-    const color = AppColors.navyMid;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _activeArea = area),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
-          decoration: BoxDecoration(
-            color: isActive ? color : Colors.transparent,
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            boxShadow: isActive
-                ? [
-                    BoxShadow(
-                      color: AppColors.navyMid.withValues(alpha: 0.25),
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
-                    )
-                  ]
-                : null,
-          ),
-          child: Center(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.poppins(
-                fontSize: 10.0,
-                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                color: isActive ? Colors.white : AppColors.lightSubText,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRegistrationSummary(
-      BuildContext context, _CalendarTabArea area) {
-    final allRecords = _getConsolidatedRecords(context);
-    final now = DateTime.now();
-
-    List<ModuleRecord> filtered;
-    String rangeLabel;
-    String reportTitle;
-
-    if (area == _CalendarTabArea.weekly) {
-      final weekStart = DateTime(now.year, now.month, now.day)
-          .subtract(Duration(days: now.weekday - 1));
-      final weekEnd = weekStart
-          .add(const Duration(days: 7))
-          .subtract(const Duration(seconds: 1));
-      filtered = allRecords
-          .where((r) =>
-              (r.incidentDate.isAfter(weekStart) ||
-                  r.incidentDate.isAtSameMomentAs(weekStart)) &&
-              (r.incidentDate.isBefore(weekEnd) ||
-                  r.incidentDate.isAtSameMomentAs(weekEnd)))
-          .toList();
-      rangeLabel =
-          '${DateFormat('dd MMM').format(weekStart)} - ${DateFormat('dd MMM').format(weekEnd)}';
-      reportTitle = 'WEEKLY REGISTRATION REPORT';
-    } else if (area == _CalendarTabArea.monthly) {
-      filtered = allRecords
-          .where((r) =>
-              r.incidentDate.month == _selectedMonth &&
-              r.incidentDate.year == _selectedYear)
-          .toList();
-      rangeLabel = '${[
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December"
-      ][_selectedMonth - 1]} $_selectedYear';
-      reportTitle = 'MONTHLY REPORT';
-    } else if (area == _CalendarTabArea.samWarrant) {
-      filtered = allRecords;
-      rangeLabel = '${[
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December"
-      ][_selectedMonth - 1]} $_selectedYear';
-      reportTitle = 'SUMMONS & WARRANT MONTHLY REPORT';
-    } else if (area == _CalendarTabArea.yearly) {
-      filtered =
-          allRecords.where((r) => r.incidentDate.year == now.year).toList();
-      rangeLabel = '${now.year}';
-      reportTitle = 'YEARLY REGISTRATION REPORT';
-    } else {
-      if (_customRange == null) {
-        return SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-                vertical: 40, horizontal: AppSpacing.lg),
-            child: Center(
-              child: Column(
-                children: [
-                  Icon(Icons.date_range_rounded,
-                      size: 64, color: Colors.grey.shade300),
-                  const SizedBox(height: 16),
-                  Text('Custom Report not generated yet',
-                      style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.lightSubText)),
-                  const SizedBox(height: 12),
-                  ElevatedButton.icon(
-                    onPressed: () => _selectCustomRange(context),
-                    icon: const Icon(Icons.date_range_rounded,
-                        size: 18, color: Colors.white),
-                    label: Text('Select Date Range',
-                        style: GoogleFonts.poppins(color: Colors.white)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.navyMid,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      }
-      filtered = allRecords
-          .where((r) =>
-              r.incidentDate.isAfter(
-                  _customRange!.start.subtract(const Duration(seconds: 1))) &&
-              r.incidentDate
-                  .isBefore(_customRange!.end.add(const Duration(days: 1))))
-          .toList();
-      rangeLabel =
-          '${DateFormat('dd MMM yyyy').format(_customRange!.start)} - ${DateFormat('dd MMM yyyy').format(_customRange!.end)}';
-      reportTitle = 'CUSTOM DATE REGISTRATION REPORT';
-    }
-
-    final Map<String, _CalCategoryMeta> catMeta = {};
-    for (var r in filtered) {
-      final label = r.firestoreCategoryDisplayName;
-      String? sub = r.subCategory;
-      final key = '${r.moduleKey}_${sub ?? ""}';
-      if (!catMeta.containsKey(key)) {
-        catMeta[key] = _CalCategoryMeta(
-            label: label, moduleKey: r.moduleKey, subCategory: sub, count: 0);
-      }
-      catMeta[key]!.count++;
-    }
-
-    final sortedItems = catMeta.values.toList()
-      ..sort((a, b) => a.label.compareTo(b.label));
-    final countsForPdf = {for (var it in sortedItems) it.label: it.count};
-
-    return SliverPadding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      sliver: SliverToBoxAdapter(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-              margin: const EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [AppColors.navyDark, AppColors.navyMid]),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                      color: AppColors.navyDark.withValues(alpha: 0.16),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4)),
-                ],
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.20),
-                      ),
-                    ),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.calendar_month_rounded,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          reportTitle,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                        const SizedBox(height: 5),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 5,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 7, vertical: 2.5),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    Icons.date_range_rounded,
-                                    size: 11,
-                                    color: AppColors.goldPrimary,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    rangeLabel,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 10.5,
-                                      color: AppColors.goldPrimary,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 7, vertical: 2.5),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.25),
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.folder_outlined,
-                                      size: 11, color: Colors.white),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '${filtered.length} Recorded',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 10.5,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (area == _CalendarTabArea.custom)
-                              GestureDetector(
-                                onTap: () => _selectCustomRange(context),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 7, vertical: 2.5),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        Icons.edit_calendar_rounded,
-                                        size: 11,
-                                        color: Colors.white,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        'Change Range',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 10.5,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (area == _CalendarTabArea.monthly) ...[
-              // Month/Year selector
-              _buildMonthSelector(),
-              const SizedBox(height: 16),
-              // Dynamic Monthly Crime Comparative Table from database backend
-              MonthlyCrimeComparativeTable(
-                selectedYear: _selectedYear,
-                selectedMonth: _selectedMonth,
-              ),
-            ] else if (area == _CalendarTabArea.samWarrant) ...[
-              // Month/Year selector
-              _buildMonthSelector(),
-              const SizedBox(height: 16),
-              // Dynamic Summons & Warrant Report Table from database backend
-              SummonsWarrantReportTable(
-                selectedYear: _selectedYear,
-                selectedMonth: _selectedMonth,
-              ),
-            ] else ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 4,
-                          height: 22,
-                          decoration: BoxDecoration(
-                            color: AppColors.navyMid,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                TranslationHelper.translate(
-                                    context, 'Statistics Summary'),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.navyDark,
-                                ),
-                              ),
-                              Text(
-                                '${filtered.length} ${TranslationHelper.translate(context, 'cases registered in total')}',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11,
-                                  color: AppColors.lightSubText,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton.icon(
-                    onPressed: () => ModulePdfHelper.generateSummaryReportPdf(
-                        countsForPdf, reportTitle, rangeLabel),
-                    icon: const Icon(Icons.picture_as_pdf_outlined,
-                        size: 14, color: Colors.white),
-                    label: Text(
-                      TranslationHelper.translate(context, 'Summary'),
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.navyMid,
-                      elevation: 1,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 8),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              if (sortedItems.isEmpty)
-                _buildEmptyReport()
-              else
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final isWide = constraints.maxWidth >= 1050;
-                    final isMedium = constraints.maxWidth >= 650;
-                    const spacing = 12.0;
-                    final int cols = isWide ? 3 : (isMedium ? 2 : 1);
-                    final cardWidth = cols == 1
-                        ? constraints.maxWidth
-                        : ((constraints.maxWidth - (spacing * (cols - 1))) /
-                            cols);
-
-                    return Wrap(
-                      spacing: spacing,
-                      runSpacing: spacing,
-                      children: sortedItems.map((meta) {
-                        return SizedBox(
-                          width: cardWidth,
-                          child: _buildReportTile(meta),
-                        );
-                      }).toList(),
-                    );
-                  },
-                ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildReportTile(_CalCategoryMeta meta) {
-    return InkWell(
-      onTap: () {
-        if (meta.moduleKey.toLowerCase() == 'itsso' ||
-            meta.label.toUpperCase() == 'ITSSO') {
-          Navigator.push(
-            context,
-            AppTheme.fadeSlideRoute(
-                page: const ItssoHubScreen(stationName: 'All Stations')),
-          );
-          return;
-        }
-        if (meta.moduleKey.toLowerCase() == 'dar' ||
-            meta.label.toUpperCase() == 'DAR') {
-          final auth = context.read<AuthProvider>();
-          Navigator.push(
-            context,
-            AppTheme.fadeSlideRoute(
-                page: DarHubScreen(stationName: auth.stationName)),
-          );
-          return;
-        }
-        if (meta.moduleKey.toLowerCase() == 'irad' ||
-            meta.moduleKey.toLowerCase() == 'irda' ||
-            meta.label.toUpperCase() == 'IRAD' ||
-            meta.label.toUpperCase() == 'IRDA') {
-          final auth = context.read<AuthProvider>();
-          Navigator.push(
-            context,
-            AppTheme.fadeSlideRoute(
-                page: IradHubScreen(stationName: auth.stationName)),
-          );
-          return;
-        }
-        // A tile for one sub-category opens that module's list filtered to it
-        final sub = meta.subCategory?.trim() ?? '';
-        if (sub.isNotEmpty) {
-          Navigator.push(
-              context,
-              AppTheme.fadeSlideRoute(
-                  page: ModuleHubScreen(
-                moduleLabel: meta.label,
-                moduleKey: meta.moduleKey,
-                subCategory: meta.subCategory,
-                readOnly: true,
-              )));
-          return;
-        }
-        CategoryNavigationHelper.handleDashboardCategoryTap(
-          context: context,
-          categoryName: meta.label,
-          moduleKey: meta.moduleKey,
-          readOnly: true,
-        );
-      },
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFCBD5E1), width: 1.1),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: AppColors.navyMid.withValues(alpha: 0.07),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              alignment: Alignment.center,
-              child: CategoryIconHelper.buildWidget(
-                meta.label,
-                color: AppColors.navyDark,
-                size: 19,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    TranslationHelper.translate(context, meta.label),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.navyDark,
-                      height: 1.2,
-                    ),
-                  ),
-                  if (meta.subCategory != null &&
-                      meta.subCategory!.trim().isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      TranslationHelper.translate(
-                          context, meta.subCategory!.trim()),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.lightSubText,
-                        height: 1.1,
-                      ),
-                    ),
+                  for (var i = 0; i < count; i++) ...[
+                    if (i > 0) const SizedBox(width: gap),
+                    SizedBox(width: cardWidth, child: cards[i]),
                   ],
                 ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.goldPrimary.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: AppColors.goldPrimary.withValues(alpha: 0.35),
-                ),
-              ),
-              child: Text(
-                '${meta.count}',
-                style: GoogleFonts.poppins(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.goldPrimary,
-                  height: 1.0,
-                ),
-              ),
-            ),
-            const SizedBox(width: 6),
-            const Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 12,
-              color: Color(0xFF94A3B8),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyReport() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 40),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+              );
+              return fitWidth < minCardWidth
+                  ? SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: row,
+                    )
+                  : row;
+            },
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF1F5F9),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.analytics_outlined,
-                  size: 26,
-                  color: Color(0xFF94A3B8),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'No data available for this range',
-                style: GoogleFonts.poppins(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.navyDark,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'No cases registered during this period.',
-                style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  color: AppColors.lightSubText,
-                ),
-              ),
-            ],
-          ),
-        ),
+        ],
       ),
     );
   }
@@ -7832,6 +6942,12 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
               ));
         } else if (item.moduleKey == 'passport') {
           PassportAddEditDialog.show(context);
+        } else if (item.moduleKey == 'muddemal' || item.name == 'Muddemal') {
+          Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(
+                page: const MuddemalMainScreen(),
+              ));
         } else if (moduleUsesCommonCrimeForm(item.moduleKey, item.name)) {
           Navigator.push(
               context,

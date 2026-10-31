@@ -75,7 +75,7 @@ class JuvenileCasesDataTable extends StatelessWidget {
           headerCell('Cr. No.'),
           headerCell('Sec/Act'),
           headerCell('Head'),
-          headerCell('Name of juvenile'),
+          headerCell('Name of CiCL'),
           headerCell('Age'),
           headerCell('IO name'),
         ];

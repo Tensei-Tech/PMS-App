@@ -1,5 +1,5 @@
 // lib/utils/common_form_pdf.dart
-// Universal PDF for Khakhi Diary: CommonForm 17 sections + arbitrary extraMap.
+// Universal PDF for PMS: CommonForm 17 sections + arbitrary extraMap.
 // No screen imports, no Firebase.
 
 import 'dart:typed_data';
@@ -47,7 +47,7 @@ Future<void> previewFormPdf(
   Map<String, dynamic> commonMap, {
   Map<String, dynamic> extraMap = const {},
   String formTitle = 'CASE FORM',
-  String formSubtitle = 'Khakhi Diary - Maharashtra Police',
+  String formSubtitle = 'PMS - Maharashtra Police',
 }) async {
   await PdfLoadingHelper.runWithLoading(
     context: context,
@@ -70,7 +70,7 @@ Future<Uint8List> generateFormPdf(
   Map<String, dynamic> commonMap, {
   Map<String, dynamic> extraMap = const {},
   String formTitle = 'CASE FORM',
-  String formSubtitle = 'Khakhi Diary - Maharashtra Police',
+  String formSubtitle = 'PMS - Maharashtra Police',
 }) async {
   final unicodeTheme = await PdfUnicodeFonts.openSansTheme();
   final pdf = pw.Document(theme: unicodeTheme);
@@ -213,7 +213,7 @@ pw.Widget _footer(pw.Context ctx) => pw.Container(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
           pw.Text(
-            'Khakhi Diary · Crime Monitoring & Case Record System',
+            'PMS · Crime Monitoring & Case Record System',
             style: const pw.TextStyle(
               fontSize: PdfLayoutConstants.footerFontSize,
               color: _sec,

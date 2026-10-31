@@ -300,20 +300,142 @@ class ServiceData {
   final String label;
   final IconData icon;
   final int color;
+  final String? assetPath;
+  final String? moduleKey;
+  final String? categoryCode;
+  final dynamic categoryId;
+  final int displayOrder;
+  final bool isActive;
 
-  const ServiceData(this.label, this.icon, this.color);
+  const ServiceData(
+    this.label,
+    this.icon,
+    this.color, {
+    this.assetPath,
+    this.moduleKey,
+    this.categoryCode,
+    this.categoryId,
+    this.displayOrder = 0,
+    this.isActive = true,
+  });
 
-  /// Tools shown directly on the dashboard grid.
-  /// Licence is a tab inside the Passport/PVR/Licence tile.
-  static const List<ServiceData> dashboardTools = [
-    ServiceData('Tadipar', Icons.gavel_rounded, 0xFF1ABC9C),
-    ServiceData('Repeat Offender', Icons.warning_rounded, 0xFFF39C12),
-    ServiceData('ITSSO', Icons.description_rounded, 0xFFE91E63),
-    // Opens two tabs: NAFIS and Fingerprint
-    ServiceData('NAFIS/Fingerprint', Icons.fingerprint_rounded, 0xFF673AB7),
-    // Opens two tabs: DAR and IRAD
-    ServiceData('DAR/IRAD', Icons.folder_rounded, 0xFF607D8B),
-    ServiceData('E-Learning', Icons.school_rounded, 0xFF7F8C8D),
+  /// Generic resolver from backend icon string/name to Material IconData
+  static IconData resolveIconData(String? iconName, String label) {
+    if (iconName != null && iconName.isNotEmpty) {
+      final key = iconName.toLowerCase().replaceAll('-', '_').trim();
+      switch (key) {
+        case 'assignment_ind':
+        case 'assignment_ind_rounded':
+          return Icons.assignment_ind_rounded;
+        case 'warning':
+        case 'warning_rounded':
+          return Icons.warning_rounded;
+        case 'description':
+        case 'description_rounded':
+          return Icons.description_rounded;
+        case 'fingerprint':
+        case 'fingerprint_rounded':
+          return Icons.fingerprint_rounded;
+        case 'folder':
+        case 'folder_rounded':
+          return Icons.folder_rounded;
+        case 'analytics':
+        case 'analytics_rounded':
+          return Icons.analytics_rounded;
+        case 'school':
+        case 'school_rounded':
+          return Icons.school_rounded;
+        case 'gavel':
+        case 'gavel_rounded':
+          return Icons.gavel_rounded;
+        case 'security':
+        case 'security_rounded':
+          return Icons.security_rounded;
+        case 'shield':
+        case 'shield_rounded':
+          return Icons.shield_rounded;
+        case 'inventory':
+        case 'inventory_rounded':
+          return Icons.inventory_rounded;
+        case 'account_balance':
+        case 'account_balance_rounded':
+          return Icons.account_balance_rounded;
+      }
+    }
+    return Icons.widgets_rounded;
+  }
+
+  /// Factory to construct ServiceData dynamically from backend JSON
+  factory ServiceData.fromJson(Map<String, dynamic> json) {
+    final label = json['label']?.toString() ?? '';
+    final moduleKey = json['module_key']?.toString();
+    final categoryCode = json['category_code']?.toString();
+    final categoryId = json['category_id'] ?? json['id'];
+    final iconVal = json['icon']?.toString() ?? '';
+    final iconType = json['icon_type']?.toString();
+    final displayOrder =
+        int.tryParse(json['display_order']?.toString() ?? '0') ?? 0;
+    final isActive = json['is_active'] != false;
+
+    // Parse color
+    int colorValue = 0xFF607D8B;
+    final colorRaw = json['color'];
+    if (colorRaw is int) {
+      colorValue = colorRaw;
+    } else if (colorRaw != null) {
+      final s = colorRaw.toString().trim();
+      if (s.startsWith('0x') || s.startsWith('0X')) {
+        colorValue = int.tryParse(s) ?? colorValue;
+      } else if (s.startsWith('#')) {
+        final hex = s.replaceFirst('#', '');
+        if (hex.length == 6) {
+          colorValue = int.tryParse('0xFF$hex') ?? colorValue;
+        } else if (hex.length == 8) {
+          colorValue = int.tryParse('0x$hex') ?? colorValue;
+        }
+      }
+    }
+
+    String? assetPath;
+    if (iconType == 'asset' ||
+        iconVal.endsWith('.svg') ||
+        iconVal.startsWith('assets/')) {
+      assetPath = iconVal;
+    }
+
+    final IconData icon = resolveIconData(iconVal, label);
+
+    return ServiceData(
+      label,
+      icon,
+      colorValue,
+      assetPath: assetPath,
+      moduleKey: moduleKey,
+      categoryCode: categoryCode,
+      categoryId: categoryId,
+      displayOrder: displayOrder,
+      isActive: isActive,
+    );
+  }
+
+  /// Tools shown directly on the dashboard grid. Loaded dynamically from the backend (/api/categories/dashboard-tools/).
+  /// Default baseline excludes dynamic/database-driven modules (e.g. Tadipar).
+  static List<ServiceData> dashboardTools = [
+    const ServiceData('Repeat Offender', Icons.warning_rounded, 0xFFF39C12,
+        moduleKey: 'repeat_offender',
+        assetPath: 'assets/icons/repeatoffender.svg',
+        displayOrder: 1),
+    const ServiceData('ITSSO', Icons.description_rounded, 0xFFE91E63,
+        moduleKey: 'itsso',
+        assetPath: 'assets/icons/itsso.svg',
+        displayOrder: 2),
+    const ServiceData(
+        'NAFIS/Fingerprint', Icons.fingerprint_rounded, 0xFF673AB7,
+        moduleKey: 'nafis', displayOrder: 3),
+    const ServiceData('DAR/IRAD', Icons.folder_rounded, 0xFF607D8B,
+        moduleKey: 'dar', assetPath: 'assets/icons/dar.svg', displayOrder: 4),
+    const ServiceData('E-Learning', Icons.school_rounded, 0xFF7F8C8D,
+        moduleKey: 'elearning', displayOrder: 5),
   ];
 }
 

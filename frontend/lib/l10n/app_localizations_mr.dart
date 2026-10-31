@@ -12,7 +12,7 @@ class AppLocalizationsMr extends AppLocalizations {
   String get appTitle => 'पोलीस व्यवस्थापन प्रणाली';
 
   @override
-  String get khakhiDiary => 'खाकी डायरी';
+  String get khakhiDiary => 'PMS';
 
   @override
   String get safeSwiftSecure => 'सुरक्षित • जलद • भक्कम';

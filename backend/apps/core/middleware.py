@@ -166,22 +166,34 @@ class TenantMiddleware(MiddlewareMixin):
 
     def process_response(self, request, response):
         """
-        Safely resets search_path back to 'public' immediately after every request completes,
-        preventing tenant search_path leakage across connection pools.
+        Safely resets search_path back to whatever tenant is on the active stack,
+        or 'public' if the stack is empty, preventing tenant search_path leakage
+        while preserving test and context-manager tenant scopes.
         """
         try:
-            set_tenant_schema('public')
+            from apps.core.tenancy import _get_schema_stack
+            stack = _get_schema_stack()
+            if stack:
+                set_tenant_schema(stack[-1])
+            else:
+                set_tenant_schema('public')
         except Exception as e:
-            logger.warning(f"[TenantMiddleware] Failed to reset search_path to public on response: {e}")
+            logger.warning(f"[TenantMiddleware] Failed to reset search_path on response: {e}")
         return response
 
     def process_exception(self, request, exception):
         """
-        Ensures search_path is safely reset to 'public' if an unhandled exception occurs.
+        Ensures search_path is safely restored to the active stack top, or 'public'
+        if an unhandled exception occurs.
         """
         try:
-            set_tenant_schema('public')
+            from apps.core.tenancy import _get_schema_stack
+            stack = _get_schema_stack()
+            if stack:
+                set_tenant_schema(stack[-1])
+            else:
+                set_tenant_schema('public')
         except Exception as e:
-            logger.warning(f"[TenantMiddleware] Failed to reset search_path to public on exception: {e}")
+            logger.warning(f"[TenantMiddleware] Failed to reset search_path on exception: {e}")
         return None
 

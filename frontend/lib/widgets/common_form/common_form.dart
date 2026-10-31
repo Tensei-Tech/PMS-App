@@ -1,7 +1,7 @@
 // ignore_for_file: unused_element, unused_field, unused_local_variable, dead_code, use_build_context_synchronously
 // lib/widgets/common_form/common_form.dart
 // ─────────────────────────────────────────────────────────────────────────────
-// KHAKHI DIARY — Shared Common Form (Sections 1–17)
+// PMS — Shared Common Form (Sections 1–17)
 // • No DropdownButtonFormField anywhere — all selectors use _ChipSelector or
 //   _SegmentedPicker (horizontal scrollable chips)
 // • Compact: font sizes 11–13 pt, dense input decoration, 8px vertical spacing
@@ -3313,8 +3313,8 @@ class CommonFormState extends State<CommonForm> {
             ? '${label.toUpperCase()} FORM'
             : (sub.isNotEmpty ? '${sub.toUpperCase()} FORM' : 'CASE FORM');
         final formSubtitle = sub.isNotEmpty
-            ? '$sub · ${label.isNotEmpty ? label : 'Khakhi Diary'} — Maharashtra Police'
-            : '${label.isNotEmpty ? label : 'Khakhi Diary'} — Maharashtra Police';
+            ? '$sub · ${label.isNotEmpty ? label : 'PMS'} — Maharashtra Police'
+            : '${label.isNotEmpty ? label : 'PMS'} — Maharashtra Police';
 
         await previewFormPdf(
           context,

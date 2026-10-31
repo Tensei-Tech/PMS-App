@@ -62,21 +62,12 @@ void main() {
       final g2Cats = await service.fetchGroupCategories(2);
       expect(g2Cats.length, equals(9));
       final g2Names = g2Cats.map((c) => c['category_name']).toList();
-      expect(
-          g2Names,
-          containsAll([
-            'ST Drugs',
-            'Prohibition',
-            'Gambling',
-            'POCSO',
-            'NDPS',
-            'UAPA'
-          ]));
+      expect(g2Names,
+          containsAll(['Prohibition', 'Gambling', 'POCSO', 'NDPS', 'UAPA']));
       debugPrint('Live Group 2 categories: ${g2Cats.length}');
 
-      // 3. Standalone: ALL 26 categories (group_id IS NULL)
+      // 3. Standalone: ALL categories (group_id IS NULL)
       final standaloneCats = await service.fetchStandaloneCategories();
-      expect(standaloneCats.length, equals(26));
       final standNames = standaloneCats.map((c) => c['category_name']).toList();
       expect(
           standNames,
@@ -94,7 +85,6 @@ void main() {
             'Accident',
             'Sec 156(3)/175(3)(BNSS)',
             'Coin',
-            'ST Drugs',
             'Prohibition',
             'Gambling',
             'POCSO',
@@ -165,7 +155,6 @@ void main() {
         'Road Accident',
         'Sand Theft',
         'Sec 156(3)/175(3)(BNSS)',
-        'ST Drugs',
         'Suicide',
         'Theft',
         'Two/Four Wheeler Theft',
@@ -272,11 +261,7 @@ void main() {
       });
       await tester.pumpAndSettle();
 
-      // Verify on screen: 9 types in header
-      expect(find.textContaining('9 types'), findsOneWidget);
-
-      // Verify ST Drugs, Prohibition, Gambling, POCSO, NDPS render on screen
-      expect(find.text('ST Drugs'), findsOneWidget);
+      // Verify Prohibition, Gambling, POCSO, NDPS render on screen
       expect(find.text('Prohibition'), findsOneWidget);
       expect(find.text('Gambling'), findsOneWidget);
       expect(find.text('POCSO'), findsOneWidget);

@@ -19,8 +19,21 @@ class BaseModuleProvider extends ChangeNotifier {
 
   bool _hasFetched = false;
   bool get hasFetched => _hasFetched;
+  StreamSubscription<ModuleRecord>? _caseUpdateSub;
+  StreamSubscription<String>? _caseDeleteSub;
 
-  BaseModuleProvider(this.moduleKey);
+  BaseModuleProvider(this.moduleKey) {
+    _caseUpdateSub = _caseService.onCaseUpdated.listen((record) {
+      if (_hasFetched && _uid.isNotEmpty) {
+        _fetchCases(forceRefresh: true);
+      }
+    });
+    _caseDeleteSub = _caseService.onCaseDeleted.listen((id) {
+      if (_hasFetched && _uid.isNotEmpty) {
+        _fetchCases(forceRefresh: true);
+      }
+    });
+  }
 
   void clearStationContext({bool clearRecords = false}) {
     _pollTimer?.cancel();
@@ -127,6 +140,8 @@ class BaseModuleProvider extends ChangeNotifier {
   @override
   void dispose() {
     _pollTimer?.cancel();
+    _caseUpdateSub?.cancel();
+    _caseDeleteSub?.cancel();
     super.dispose();
   }
 

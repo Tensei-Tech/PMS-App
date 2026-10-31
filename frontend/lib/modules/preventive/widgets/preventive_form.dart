@@ -1,5 +1,5 @@
 // lib/modules/preventive/widgets/preventive_form.dart
-// Dedicated Preventive & Istegasha Entry Form matching Form 1 to 5 styling.
+// Backend-Driven Dynamic Preventive & Istegasha Entry Form matching Form 1 to 5 styling.
 
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -8,8 +8,10 @@ import 'package:intl/intl.dart';
 
 import '../../../services/backend_case_service.dart';
 import '../../../services/case_service.dart';
-import '../../../theme/app_theme.dart';
+import '../../../services/dynamic_options_service.dart';
+import '../../../services/preventive_service.dart';
 import '../../../widgets/common_form/pocso_voice_banner.dart';
+import '../../../widgets/dynamic_form/dynamic_field_model.dart';
 import '../../../widgets/voice_dictation_button.dart';
 
 // ── Palette matching Form 1 to 5 design system ──────────────────────────────
@@ -36,19 +38,37 @@ const _tsLabel = TextStyle(
 /// Accused entry model for Preventive Form
 class PreventiveAccusedEntry {
   final TextEditingController name = TextEditingController();
-  String actionType = 'Arrested'; // 'Arrested', 'Notice Issued', 'Not Arrested'
-  String bondTaken = 'No'; // 'Yes', 'No'
+  String actionType = '';
+  String bondTaken = '';
   final TextEditingController bondDetails = TextEditingController();
+
+  PreventiveAccusedEntry(
+      {String? defaultActionType, String? defaultBondTaken}) {
+    actionType = defaultActionType ??
+        (PreventiveService().accusedActionTypes.isNotEmpty
+            ? PreventiveService().accusedActionTypes.first
+            : '');
+    bondTaken = defaultBondTaken ??
+        (PreventiveService().yesNoOptions.isNotEmpty
+            ? PreventiveService().yesNoOptions.last
+            : '');
+  }
 
   void dispose() {
     name.dispose();
     bondDetails.dispose();
   }
 
-  void clear() {
+  void clear([String? defaultActionType, String? defaultBondTaken]) {
     name.clear();
-    actionType = 'Arrested';
-    bondTaken = 'No';
+    actionType = defaultActionType ??
+        (PreventiveService().accusedActionTypes.isNotEmpty
+            ? PreventiveService().accusedActionTypes.first
+            : '');
+    bondTaken = defaultBondTaken ??
+        (PreventiveService().yesNoOptions.isNotEmpty
+            ? PreventiveService().yesNoOptions.last
+            : '');
     bondDetails.clear();
   }
 
@@ -63,8 +83,14 @@ class PreventiveAccusedEntry {
 
   void fromMap(Map<String, dynamic> m) {
     name.text = m['name']?.toString() ?? '';
-    actionType = m['actionType']?.toString() ?? 'Arrested';
-    bondTaken = m['bondTaken']?.toString() ?? 'No';
+    actionType = m['actionType']?.toString() ??
+        (PreventiveService().accusedActionTypes.isNotEmpty
+            ? PreventiveService().accusedActionTypes.first
+            : '');
+    bondTaken = m['bondTaken']?.toString() ??
+        (PreventiveService().yesNoOptions.isNotEmpty
+            ? PreventiveService().yesNoOptions.last
+            : '');
     bondDetails.text = m['bondDetails']?.toString() ?? '';
   }
 }
@@ -92,68 +118,44 @@ class PreventiveFormState extends State<PreventiveForm> {
   final ValueNotifier<double> scrollProgress = ValueNotifier(0);
   String saveBarText = 'All changes unsaved';
 
+  // ── Dynamic State & Definitions ───────────────────────────────────────────
+  bool _isLoading = true;
+  String? _errorMessage;
+  DynamicFormDefinition? _formDef;
+  Map<String, dynamic>? _pendingHydrateDoc;
+
+  // Dynamically populated collections from backend APIs and DB master
+  List<String> _crimeCategories = [];
+  List<String> _caseStatuses = PreventiveService().caseStatuses;
+  List<String> _preventiveActsList = [];
+  List<String> _riskFlags = PreventiveService().riskFlags;
+  List<String> _actionStatuses = PreventiveService().actionStatuses;
+  List<String> _accusedActionTypes = PreventiveService().accusedActionTypes;
+  List<String> _yesNoOptions = PreventiveService().yesNoOptions;
+  Map<String, dynamic> _backendDefaults = {};
+  Map<String, Map<String, dynamic>> _actsData = {};
+  List<DynamicFieldDef> _templateFields = [];
+
+  // Controllers for any additional dynamic fields from backend template
+  final Map<String, TextEditingController> _dynamicFieldControllers = {};
+  final Map<String, dynamic> _dynamicFieldValues = {};
+
   // 1. Case & Crime Reference
   final _crimeNoCtrl = TextEditingController();
   final _regDateCtrl = TextEditingController();
-  String _crimeCategory = 'Theft';
+  String _crimeCategory = '';
   final _customCrimeCategoryCtrl = TextEditingController();
-  String _caseStatus = 'Under Investigation';
+  late String _caseStatus = _caseStatuses.isNotEmpty ? _caseStatuses.first : '';
 
   // 2. Sections & Acts
-  String _selectedAct = 'BNS';
+  String _selectedAct = '';
   final List<String> _selectedSections = [];
   final _sectionSearchCtrl = TextEditingController();
   final _otherSectionsCtrl = TextEditingController();
 
-  Map<String, Map<String, dynamic>> _actsData = {};
-  List<String> _preventiveActsList = List.from(_kPreventiveSectionActs);
-
   Map<String, Map<String, dynamic>> get _activeActsData =>
       _actsData.isNotEmpty ? _actsData : BackendCaseService.cachedActData;
-  List<String> get _activePreventiveSectionActs =>
-      _preventiveActsList.isNotEmpty
-          ? _preventiveActsList
-          : _kPreventiveSectionActs;
-
-  Future<void> _fetchGlobalActs() async {
-    final acts = await BackendCaseService().fetchActDataMap();
-    if (acts != null && acts.isNotEmpty && mounted) {
-      setState(() {
-        _actsData = acts;
-      });
-    } else if (mounted &&
-        _actsData.isEmpty &&
-        BackendCaseService.cachedActData.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to load legal acts and sections from server.'),
-          backgroundColor: AppColors.dangerRed,
-          duration: Duration(seconds: 4),
-        ),
-      );
-    }
-  }
-
-  Future<void> _loadFormDefinition() async {
-    final catId = widget.categoryId ?? 'Preventive';
-    final def = await CaseService().fetchFormDefinition(catId);
-    if (def != null && mounted) {
-      setState(() {
-        if (def['acts_sections'] is Map) {
-          final acts = Map<String, dynamic>.from(def['acts_sections'] as Map);
-          _actsData = acts
-              .map((k, v) => MapEntry(k, Map<String, dynamic>.from(v as Map)));
-        }
-        if (def['preventive_items'] is List) {
-          final items = (def['preventive_items'] as List)
-              .map((e) => e.toString())
-              .toList();
-          if (!items.contains('Other')) items.add('Other');
-          _preventiveActsList = items;
-        }
-      });
-    }
-  }
+  List<String> get _activePreventiveSectionActs => _preventiveActsList;
 
   // 3. Accused list
   final List<PreventiveAccusedEntry> _accusedEntries = [
@@ -161,7 +163,8 @@ class PreventiveFormState extends State<PreventiveForm> {
   ];
 
   // 4. Preventive / Istegasha Details
-  String _preventiveSectionAct = '107 Crpc/126 BNSS';
+  String _hasPreventiveNo = 'No';
+  String _preventiveSectionAct = '';
   final _customPreventiveSectionActCtrl = TextEditingController();
   final _preventiveNoCtrl = TextEditingController();
   final _preventiveDateCtrl = TextEditingController();
@@ -169,9 +172,9 @@ class PreventiveFormState extends State<PreventiveForm> {
   final _ioNameCtrl = TextEditingController();
 
   // 5. Risk Flag & Action Status
-  String _riskFlag = '🚨 High Priority'; // '🚨 High Priority', '🛑 Sensitive'
-  String _preventiveActionStatus = '🟢 Preventive Action Completed';
-  // '🟢 Preventive Action Completed', '🟡 Partially Completed', '🔴 No Preventive Action Recorded'
+  late String _riskFlag = _riskFlags.isNotEmpty ? _riskFlags.first : '';
+  late String _preventiveActionStatus =
+      _actionStatuses.isNotEmpty ? _actionStatuses.first : '';
   final _remarksCtrl = TextEditingController();
 
   // Active Voice Dictation State
@@ -190,58 +193,10 @@ class PreventiveFormState extends State<PreventiveForm> {
     }
   }
 
-  static const List<String> _kPreventiveSectionActs = [
-    '107 Crpc/126 BNSS',
-    '109 Crpc/128 BNSS',
-    '110 Crpc/129 BNSS',
-    '151 (3) Crpc/170(3) BNSS',
-    '55 to 57 B P Act',
-    'U/s 122 B P Act',
-    'U/s 124 B P Act',
-    '142 B P Act',
-    'M H O R',
-    '93 Pro Act',
-    'N S A',
-    'M P D A',
-    'M.C.O.C.A.',
-    'Other',
-  ];
-
-  static const List<String> _kCrimeCategories = [
-    'Theft',
-    'Assault',
-    'Cyber',
-    'POCSO',
-    'NDPS',
-    'Hurt',
-    'Murder',
-    'Robbery',
-    'Gambling',
-    'Prohibition',
-    'Other',
-  ];
-
-  static const List<String> _kCaseStatuses = [
-    'Under Investigation',
-    'Chargesheeted',
-  ];
-
-  static const List<String> _kRiskFlags = [
-    '🚨 High Priority',
-    '🛑 Sensitive',
-  ];
-
-  static const List<String> _kActionStatuses = [
-    '🟢 Preventive Action Completed',
-    '🟡 Partially Completed',
-    '🔴 No Preventive Action Recorded',
-  ];
-
   @override
   void initState() {
     super.initState();
-    _loadFormDefinition();
-    _fetchGlobalActs();
+
     _activeVoiceController = _crimeNoCtrl;
     _scroll.addListener(() {
       if (!_scroll.hasClients) return;
@@ -250,10 +205,7 @@ class PreventiveFormState extends State<PreventiveForm> {
           max > 0 ? (_scroll.offset / max).clamp(0.0, 1.0) : 0;
     });
 
-    // Default dates
-    final now = DateTime.now();
-    _regDateCtrl.text = DateFormat('dd/MM/yyyy').format(now);
-    _preventiveDateCtrl.text = DateFormat('dd/MM/yyyy').format(now);
+    _loadFormDefinition();
   }
 
   @override
@@ -273,7 +225,226 @@ class PreventiveFormState extends State<PreventiveForm> {
     _outwardNoCtrl.dispose();
     _ioNameCtrl.dispose();
     _remarksCtrl.dispose();
+    for (final c in _dynamicFieldControllers.values) {
+      c.dispose();
+    }
     super.dispose();
+  }
+
+  // ── Dynamic Definition & Options Loader ─────────────────────────────────────
+  Future<void> _loadFormDefinition({bool forceRefresh = false}) async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final catId = widget.categoryId ?? 'Preventive';
+
+      // 1. Fetch form definition from backend API (GET /api/categories/{id}/form-definition/)
+      final def = await CaseService().fetchFormDefinition(
+        catId,
+        forceRefresh: forceRefresh,
+      );
+
+      // 2. Fetch preventive configuration from dedicated endpoint /api/preventive/config/
+      final prevConfig =
+          await PreventiveService().fetchConfig(forceRefresh: forceRefresh);
+
+      // 3. Fetch master categories from backend API (GET /api/categories/)
+      final allCategories = await CaseService().fetchAllCategories(
+        forceRefresh: forceRefresh,
+      );
+
+      if (!mounted) return;
+
+      if (def != null) {
+        final formDef = DynamicFormDefinition.fromJson(def);
+        _formDef = formDef;
+        _templateFields = formDef.fields;
+
+        // Dynamic statutory sections from database (Act & ActSection tables)
+        if (formDef.actsSections.isNotEmpty) {
+          _actsData = formDef.actsSections.map(
+            (k, v) => MapEntry(k, Map<String, dynamic>.from(v as Map)),
+          );
+        } else {
+          final acts = await CaseService().fetchActs();
+          final actSections = await CaseService().fetchActSections();
+          final actsMap = <String, Map<String, dynamic>>{};
+          for (final a in acts) {
+            final code = (a['code'] ?? a['act_name'] ?? '').toString().trim();
+            if (code.isNotEmpty) {
+              final secs = actSections
+                  .where((s) => s['act_id'] == a['id'] || s['act_code'] == code)
+                  .map((s) => {
+                        'val': s['section_number']?.toString() ?? '',
+                        'label': s['title']?.toString() ??
+                            s['section_number']?.toString() ??
+                            '',
+                      })
+                  .toList();
+              actsMap[code] = {
+                'label': a['act_name']?.toString() ?? code,
+                'sections': secs,
+              };
+            }
+          }
+          if (actsMap.isNotEmpty) _actsData = actsMap;
+        }
+
+        // Dynamic legal provisions from OptionValue (preventive_action_types)
+        if (formDef.preventiveItems.isNotEmpty) {
+          _preventiveActsList = List<String>.from(formDef.preventiveItems);
+        } else {
+          final prevOpts = await DynamicOptionsService().fetchOptions(
+            '/api/options/preventive_action_types/',
+            forceRefresh: forceRefresh,
+          );
+          if (prevOpts.isNotEmpty) {
+            _preventiveActsList = List<String>.from(prevOpts);
+          }
+        }
+        if (!_preventiveActsList.contains('Other')) {
+          _preventiveActsList.add('Other');
+        }
+
+        // Dynamic Crime Categories from backend database categories
+        if (allCategories.isNotEmpty) {
+          final catNames = allCategories
+              .map((c) =>
+                  (c['category_name'] ?? c['name'] ?? '').toString().trim())
+              .where((n) => n.isNotEmpty && n != 'Preventive')
+              .toSet()
+              .toList();
+          if (catNames.isNotEmpty) {
+            _crimeCategories = catNames;
+          }
+        }
+        if (!_crimeCategories.contains('Other')) {
+          _crimeCategories.add('Other');
+        }
+
+        // Dynamic dropdown options from backend config / OptionValue
+        _caseStatuses = formDef.caseStatuses.isNotEmpty
+            ? formDef.caseStatuses
+            : PreventiveService().caseStatuses;
+        _riskFlags = formDef.riskFlags.isNotEmpty
+            ? formDef.riskFlags
+            : PreventiveService().riskFlags;
+        _actionStatuses = formDef.actionStatuses.isNotEmpty
+            ? formDef.actionStatuses
+            : PreventiveService().actionStatuses;
+        _accusedActionTypes = formDef.accusedActionTypes.isNotEmpty
+            ? formDef.accusedActionTypes
+            : PreventiveService().accusedActionTypes;
+        _yesNoOptions = formDef.yesNoOptions.isNotEmpty
+            ? formDef.yesNoOptions
+            : PreventiveService().yesNoOptions;
+
+        final defs = Map<String, dynamic>.from(formDef.defaults);
+        if (prevConfig['defaults'] is Map) {
+          defs.addAll(Map<String, dynamic>.from(prevConfig['defaults'] as Map));
+        }
+        _backendDefaults = defs;
+
+        // Apply backend defaults if not editing / hydrating
+        if (_crimeCategory.isEmpty) {
+          final defCat = defs['crime_category']?.toString() ?? '';
+          _crimeCategory =
+              defCat.isNotEmpty && _crimeCategories.contains(defCat)
+                  ? defCat
+                  : (_crimeCategories.isNotEmpty ? _crimeCategories.first : '');
+        }
+        if (_caseStatus.isEmpty) {
+          final defStatus = defs['case_status']?.toString() ?? '';
+          _caseStatus =
+              defStatus.isNotEmpty && _caseStatuses.contains(defStatus)
+                  ? defStatus
+                  : (_caseStatuses.isNotEmpty ? _caseStatuses.first : '');
+        }
+        if (_selectedAct.isEmpty) {
+          final defAct = defs['act']?.toString() ?? '';
+          _selectedAct = defAct.isNotEmpty && _actsData.containsKey(defAct)
+              ? defAct
+              : (_actsData.isNotEmpty ? _actsData.keys.first : '');
+        }
+        if (_preventiveSectionAct.isEmpty) {
+          final defPsa = defs['section']?.toString() ?? '';
+          _preventiveSectionAct =
+              defPsa.isNotEmpty && _preventiveActsList.contains(defPsa)
+                  ? defPsa
+                  : (_preventiveActsList.isNotEmpty
+                      ? _preventiveActsList.first
+                      : '');
+        }
+        if (_riskFlag.isEmpty) {
+          final defRisk = defs['risk_flag']?.toString() ?? '';
+          _riskFlag = defRisk.isNotEmpty && _riskFlags.contains(defRisk)
+              ? defRisk
+              : (_riskFlags.isNotEmpty ? _riskFlags.first : '');
+        }
+        if (_preventiveActionStatus.isEmpty) {
+          final defActionStatus = defs['action_status']?.toString() ?? '';
+          _preventiveActionStatus = defActionStatus.isNotEmpty &&
+                  _actionStatuses.contains(defActionStatus)
+              ? defActionStatus
+              : (_actionStatuses.isNotEmpty ? _actionStatuses.first : '');
+        }
+        _hasPreventiveNo =
+            defs['has_preventive_no']?.toString() ?? _hasPreventiveNo;
+
+        // Date defaults: only set today's date if backend defaults explicitly declare current_date
+        if (defs['date_default'] == 'current_date') {
+          final now = DateTime.now();
+          if (_regDateCtrl.text.isEmpty) {
+            _regDateCtrl.text = DateFormat('dd/MM/yyyy').format(now);
+          }
+          if (_preventiveDateCtrl.text.isEmpty && _hasPreventiveNo == 'Yes') {
+            _preventiveDateCtrl.text = DateFormat('dd/MM/yyyy').format(now);
+          }
+        }
+
+        // Dynamic field controllers & options from backend template
+        for (final f in formDef.fields) {
+          if (f.fieldKey == 'preventive_action_status' &&
+              f.options.isNotEmpty) {
+            _actionStatuses = f.options;
+          }
+          if (f.fieldKey == 'has_preventive_no' && f.options.isNotEmpty) {
+            _yesNoOptions = f.options;
+          }
+          _dynamicFieldControllers.putIfAbsent(
+              f.fieldKey, () => TextEditingController());
+          if (f.fieldType == 'checkbox') {
+            _dynamicFieldValues.putIfAbsent(f.fieldKey, () => false);
+          }
+        }
+
+        setState(() {
+          _isLoading = false;
+          _errorMessage = null;
+        });
+
+        // Hydrate pending record if available
+        if (_pendingHydrateDoc != null) {
+          hydrateFromDocumentMap(_pendingHydrateDoc!);
+          _pendingHydrateDoc = null;
+        }
+      } else {
+        setState(() {
+          _isLoading = false;
+          _errorMessage =
+              'Failed to retrieve Preventive form definition from backend database.';
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Error loading Preventive form definition: $e';
+      });
+    }
   }
 
   // ── Accused list helpers ───────────────────────────────────────────────────
@@ -312,7 +483,7 @@ class PreventiveFormState extends State<PreventiveForm> {
         ? _customPreventiveSectionActCtrl.text.trim()
         : _preventiveSectionAct;
 
-    return {
+    final out = <String, dynamic>{
       'caseRef': {
         'crimeNo': _crimeNoCtrl.text.trim(),
         'regDate': _regDateCtrl.text.trim(),
@@ -326,6 +497,7 @@ class PreventiveFormState extends State<PreventiveForm> {
       },
       'accusedList': _accusedEntries.map((a) => a.toMap()).toList(),
       'istegasha': {
+        'hasPreventiveNo': _hasPreventiveNo,
         'preventiveSectionAct': effectivePrevSectionAct,
         'preventiveNo': _preventiveNoCtrl.text.trim(),
         'preventiveDate': _preventiveDateCtrl.text.trim(),
@@ -337,14 +509,18 @@ class PreventiveFormState extends State<PreventiveForm> {
         'actionStatus': _preventiveActionStatus,
         'remarks': _remarksCtrl.text.trim(),
       },
-      // Convenience root fields for instant list indexing
+      // Backend template field direct mappings
+      'has_preventive_no': _hasPreventiveNo,
+      'preventive_no': _preventiveNoCtrl.text.trim(),
+      'preventive_date': _preventiveDateCtrl.text.trim(),
+      'preventive_action_status': _preventiveActionStatus,
+      // Convenience root fields for instant list indexing & views
       'crimeNo': _crimeNoCtrl.text.trim(),
       'caseNumber': _crimeNoCtrl.text.trim(),
       'preventiveSectionAct': effectivePrevSectionAct,
       'preventiveSecAct': effectivePrevSectionAct,
       'preventiveAct': effectivePrevSectionAct,
       'act': effectivePrevSectionAct,
-      'preventiveNo': _preventiveNoCtrl.text.trim(),
       'accusedNames': _accusedEntries
           .map((a) => a.name.text.trim())
           .where((n) => n.isNotEmpty)
@@ -355,19 +531,49 @@ class PreventiveFormState extends State<PreventiveForm> {
       'status': _caseStatus,
       'actionStatus': _preventiveActionStatus,
     };
+
+    // Serialize any dynamic field controllers
+    for (final entry in _dynamicFieldControllers.entries) {
+      final val = entry.value.text.trim();
+      if (val.isNotEmpty) {
+        out[entry.key] = val;
+      }
+    }
+    for (final entry in _dynamicFieldValues.entries) {
+      out[entry.key] = entry.value;
+    }
+
+    return out;
   }
 
   void hydrateFromDocumentMap(Map<String, dynamic> doc) {
+    if (_isLoading) {
+      _pendingHydrateDoc = doc;
+    }
+
     final formMap = (doc['preventiveForm'] is Map<String, dynamic>)
         ? doc['preventiveForm'] as Map<String, dynamic>
-        : doc;
+        : (doc['preventiveForm'] is Map)
+            ? Map<String, dynamic>.from(doc['preventiveForm'] as Map)
+            : doc;
 
-    final caseRef = formMap['caseRef'] as Map<String, dynamic>? ?? {};
-    final sections = formMap['sections'] as Map<String, dynamic>? ?? {};
+    final caseRef = formMap['caseRef'] as Map<String, dynamic>? ??
+        (formMap['caseRef'] is Map
+            ? Map<String, dynamic>.from(formMap['caseRef'] as Map)
+            : {});
+    final sections = formMap['sections'] as Map<String, dynamic>? ??
+        (formMap['sections'] is Map
+            ? Map<String, dynamic>.from(formMap['sections'] as Map)
+            : {});
     final accusedList = formMap['accusedList'] as List<dynamic>? ?? [];
-    final istegasha = formMap['istegasha'] as Map<String, dynamic>? ?? {};
-    final riskAndStatus =
-        formMap['riskAndStatus'] as Map<String, dynamic>? ?? {};
+    final istegasha = formMap['istegasha'] as Map<String, dynamic>? ??
+        (formMap['istegasha'] is Map
+            ? Map<String, dynamic>.from(formMap['istegasha'] as Map)
+            : {});
+    final riskAndStatus = formMap['riskAndStatus'] as Map<String, dynamic>? ??
+        (formMap['riskAndStatus'] is Map
+            ? Map<String, dynamic>.from(formMap['riskAndStatus'] as Map)
+            : {});
 
     setState(() {
       _crimeNoCtrl.text = caseRef['crimeNo']?.toString() ??
@@ -377,19 +583,32 @@ class PreventiveFormState extends State<PreventiveForm> {
           '';
       _regDateCtrl.text = caseRef['regDate']?.toString() ?? '';
 
-      final cat = caseRef['crimeCategory']?.toString() ?? 'Theft';
-      if (_kCrimeCategories.contains(cat)) {
-        _crimeCategory = cat;
+      final cat = caseRef['crimeCategory']?.toString() ??
+          doc['crimeCategory']?.toString() ??
+          doc['subCategory']?.toString() ??
+          '';
+      if (cat.isNotEmpty) {
+        if (_crimeCategories.contains(cat)) {
+          _crimeCategory = cat;
+          _customCrimeCategoryCtrl.clear();
+        } else if (_crimeCategories.isEmpty) {
+          _crimeCategory = cat;
+          _customCrimeCategoryCtrl.clear();
+        } else {
+          _crimeCategory = 'Other';
+          _customCrimeCategoryCtrl.text = cat;
+        }
+      } else if (_crimeCategories.isNotEmpty) {
+        _crimeCategory = _crimeCategories.first;
         _customCrimeCategoryCtrl.clear();
-      } else {
-        _crimeCategory = 'Other';
-        _customCrimeCategoryCtrl.text = cat;
       }
 
       final st =
           caseRef['caseStatus']?.toString() ?? doc['status']?.toString() ?? '';
-      if (_kCaseStatuses.contains(st)) {
+      if (st.isNotEmpty) {
         _caseStatus = st;
+      } else if (_caseStatuses.isNotEmpty) {
+        _caseStatus = _caseStatuses.first;
       }
 
       final psa = istegasha['preventiveSectionAct']?.toString() ??
@@ -401,19 +620,20 @@ class PreventiveFormState extends State<PreventiveForm> {
           istegasha['act']?.toString() ??
           '';
       if (psa.isNotEmpty) {
-        if (_kPreventiveSectionActs.contains(psa)) {
+        if (_preventiveActsList.contains(psa)) {
           _preventiveSectionAct = psa;
           _customPreventiveSectionActCtrl.clear();
         } else {
           _preventiveSectionAct = 'Other';
           _customPreventiveSectionActCtrl.text = psa;
         }
-      } else {
-        _preventiveSectionAct = '107 Crpc/126 BNSS';
+      } else if (_preventiveActsList.isNotEmpty) {
+        _preventiveSectionAct = _preventiveActsList.first;
         _customPreventiveSectionActCtrl.clear();
       }
 
-      _selectedAct = sections['act']?.toString() ?? 'BNS';
+      _selectedAct = sections['act']?.toString() ??
+          (_actsData.isNotEmpty ? _actsData.keys.first : '');
       _selectedSections.clear();
       if (sections['selectedSections'] is List) {
         _selectedSections.addAll(
@@ -443,10 +663,17 @@ class PreventiveFormState extends State<PreventiveForm> {
         _accusedEntries.add(entry);
       }
 
+      _hasPreventiveNo = istegasha['hasPreventiveNo']?.toString() ??
+          doc['has_preventive_no']?.toString() ??
+          _backendDefaults['has_preventive_no']?.toString() ??
+          (_yesNoOptions.isNotEmpty ? _yesNoOptions.first : 'No');
       _preventiveNoCtrl.text = istegasha['preventiveNo']?.toString() ??
+          doc['preventive_no']?.toString() ??
           doc['preventiveNo']?.toString() ??
           '';
-      _preventiveDateCtrl.text = istegasha['preventiveDate']?.toString() ?? '';
+      _preventiveDateCtrl.text = istegasha['preventiveDate']?.toString() ??
+          doc['preventive_date']?.toString() ??
+          '';
       _outwardNoCtrl.text = istegasha['outwardNo']?.toString() ?? '';
       _ioNameCtrl.text = istegasha['ioName']?.toString() ??
           doc['assignedOfficer']?.toString() ??
@@ -456,28 +683,59 @@ class PreventiveFormState extends State<PreventiveForm> {
       final rf = riskAndStatus['riskFlag']?.toString() ??
           doc['priority']?.toString() ??
           '';
-      if (_kRiskFlags.contains(rf)) {
-        _riskFlag = rf;
-      } else if (rf.toLowerCase().contains('high')) {
-        _riskFlag = '🚨 High Priority';
-      } else if (rf.toLowerCase().contains('sensitive')) {
-        _riskFlag = '🛑 Sensitive';
+      if (rf.isNotEmpty) {
+        if (_riskFlags.contains(rf)) {
+          _riskFlag = rf;
+        } else {
+          final match = _riskFlags.firstWhere(
+            (opt) =>
+                opt.toLowerCase().contains(rf.toLowerCase()) ||
+                rf.toLowerCase().contains(opt.toLowerCase()),
+            orElse: () => rf,
+          );
+          _riskFlag = match;
+        }
+      } else if (_riskFlags.isNotEmpty) {
+        _riskFlag = _riskFlags.first;
       }
 
       final actSt = riskAndStatus['actionStatus']?.toString() ??
+          doc['preventive_action_status']?.toString() ??
           doc['actionStatus']?.toString() ??
           '';
-      if (_kActionStatuses.contains(actSt)) {
-        _preventiveActionStatus = actSt;
-      } else if (actSt.toLowerCase().contains('partial')) {
-        _preventiveActionStatus = '🟡 Partially Completed';
-      } else if (actSt.toLowerCase().contains('no')) {
-        _preventiveActionStatus = '🔴 No Preventive Action Recorded';
+      if (actSt.isNotEmpty) {
+        if (_actionStatuses.contains(actSt)) {
+          _preventiveActionStatus = actSt;
+        } else {
+          final match = _actionStatuses.firstWhere(
+            (opt) =>
+                opt.toLowerCase().contains(actSt.toLowerCase()) ||
+                actSt.toLowerCase().contains(opt.toLowerCase()),
+            orElse: () => actSt,
+          );
+          _preventiveActionStatus = match;
+        }
+      } else if (_actionStatuses.isNotEmpty) {
+        _preventiveActionStatus = _actionStatuses.first;
       }
 
       _remarksCtrl.text = riskAndStatus['remarks']?.toString() ??
           doc['description']?.toString() ??
           '';
+
+      // Hydrate dynamic field controllers
+      for (final f in _templateFields) {
+        final val = doc[f.fieldKey] ?? formMap[f.fieldKey];
+        if (val != null) {
+          if (_dynamicFieldControllers.containsKey(f.fieldKey)) {
+            _dynamicFieldControllers[f.fieldKey]!.text = val.toString();
+          }
+          if (_dynamicFieldValues.containsKey(f.fieldKey)) {
+            _dynamicFieldValues[f.fieldKey] = val;
+          }
+        }
+      }
+
       saveBarText = 'Saved';
     });
   }
@@ -486,29 +744,70 @@ class PreventiveFormState extends State<PreventiveForm> {
     if (widget.readOnly) return;
     setState(() {
       _crimeNoCtrl.clear();
-      _regDateCtrl.text = DateFormat('dd/MM/yyyy').format(DateTime.now());
-      _crimeCategory = 'Theft';
+      if (_backendDefaults['date_default'] == 'current_date') {
+        _regDateCtrl.text = DateFormat('dd/MM/yyyy').format(DateTime.now());
+      } else {
+        _regDateCtrl.clear();
+      }
+      final defCat = _backendDefaults['crime_category']?.toString() ?? '';
+      _crimeCategory = defCat.isNotEmpty && _crimeCategories.contains(defCat)
+          ? defCat
+          : (_crimeCategories.isNotEmpty ? _crimeCategories.first : '');
       _customCrimeCategoryCtrl.clear();
-      _caseStatus = 'Under Investigation';
-      _preventiveSectionAct = '107 Crpc/126 BNSS';
+
+      final defStatus = _backendDefaults['case_status']?.toString() ?? '';
+      _caseStatus = defStatus.isNotEmpty && _caseStatuses.contains(defStatus)
+          ? defStatus
+          : (_caseStatuses.isNotEmpty ? _caseStatuses.first : '');
+
+      final defPsa = _backendDefaults['section']?.toString() ?? '';
+      _preventiveSectionAct = defPsa.isNotEmpty &&
+              _preventiveActsList.contains(defPsa)
+          ? defPsa
+          : (_preventiveActsList.isNotEmpty ? _preventiveActsList.first : '');
       _customPreventiveSectionActCtrl.clear();
-      _selectedAct = 'BNS';
+
+      final defAct = _backendDefaults['act']?.toString() ?? '';
+      _selectedAct = defAct.isNotEmpty && _actsData.containsKey(defAct)
+          ? defAct
+          : (_actsData.isNotEmpty ? _actsData.keys.first : '');
       _selectedSections.clear();
       _sectionSearchCtrl.clear();
       _otherSectionsCtrl.clear();
+
       for (final a in _accusedEntries) {
         a.dispose();
       }
       _accusedEntries.clear();
       _accusedEntries.add(PreventiveAccusedEntry());
+
+      _hasPreventiveNo = _backendDefaults['has_preventive_no']?.toString() ??
+          (_yesNoOptions.isNotEmpty ? _yesNoOptions.last : 'No');
       _preventiveNoCtrl.clear();
-      _preventiveDateCtrl.text =
-          DateFormat('dd/MM/yyyy').format(DateTime.now());
+      if (_hasPreventiveNo == 'Yes' &&
+          _backendDefaults['date_default'] == 'current_date') {
+        _preventiveDateCtrl.text =
+            DateFormat('dd/MM/yyyy').format(DateTime.now());
+      } else {
+        _preventiveDateCtrl.clear();
+      }
       _outwardNoCtrl.clear();
       _ioNameCtrl.clear();
-      _riskFlag = '🚨 High Priority';
-      _preventiveActionStatus = '🟢 Preventive Action Completed';
+
+      final defRisk = _backendDefaults['risk_flag']?.toString() ?? '';
+      _riskFlag = defRisk.isNotEmpty && _riskFlags.contains(defRisk)
+          ? defRisk
+          : (_riskFlags.isNotEmpty ? _riskFlags.first : '');
+
+      final defAction = _backendDefaults['action_status']?.toString() ?? '';
+      _preventiveActionStatus =
+          defAction.isNotEmpty && _actionStatuses.contains(defAction)
+              ? defAction
+              : (_actionStatuses.isNotEmpty ? _actionStatuses.first : '');
       _remarksCtrl.clear();
+      for (final c in _dynamicFieldControllers.values) {
+        c.clear();
+      }
       saveBarText = 'Form cleared';
     });
   }
@@ -559,6 +858,134 @@ class PreventiveFormState extends State<PreventiveForm> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Container(
+        color: _kPageBg,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(_kTeal),
+                strokeWidth: 3,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Loading Preventive form definition from server...',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: _kMid,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Fetching statutory sections, legal provisions, and template configuration',
+                style: GoogleFonts.inter(fontSize: 11, color: _kSec),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Container(
+        color: _kPageBg,
+        padding: const EdgeInsets.all(24),
+        child: Center(
+          child: Card(
+            elevation: 2,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.cloud_off_rounded, size: 48, color: _kRed),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Form Definition Load Failed',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: _kDark,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _errorMessage!,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(fontSize: 12, color: _kSec),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: () => _loadFormDefinition(forceRefresh: true),
+                    icon: const Icon(Icons.refresh_rounded, size: 16),
+                    label: const Text('Retry'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _kTeal,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (_formDef == null) {
+      return Container(
+        color: _kPageBg,
+        padding: const EdgeInsets.all(24),
+        child: Center(
+          child: Card(
+            elevation: 1,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.info_outline_rounded,
+                      size: 44, color: _kSec),
+                  const SizedBox(height: 12),
+                  Text(
+                    'No Form Definition Available',
+                    style: GoogleFonts.poppins(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: _kDark,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'The server returned an empty form definition for the Preventive module.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(fontSize: 12, color: _kSec),
+                  ),
+                  const SizedBox(height: 18),
+                  OutlinedButton.icon(
+                    onPressed: () => _loadFormDefinition(forceRefresh: true),
+                    icon: const Icon(Icons.refresh_rounded, size: 16),
+                    label: const Text('Refresh'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Column(
       children: [
         PocsoVoiceBanner(
@@ -675,7 +1102,8 @@ class PreventiveFormState extends State<PreventiveForm> {
                       // Section 1: Case & Crime Reference
                       _buildCard(
                         secNum: '1',
-                        title: 'Case & Crime Reference',
+                        title: _formDef?.sectionTitles['case_ref'] ??
+                            'Case & Crime Reference',
                         marathiTitle: 'गुन्हा व खटला संदर्भ',
                         icon: Icons.folder_copy_rounded,
                         child: Column(
@@ -705,43 +1133,85 @@ class PreventiveFormState extends State<PreventiveForm> {
                               ],
                             ),
                             const SizedBox(height: 14),
-
-                            // Crime Category
-                            _buildLabel('Crime Category (गुन्ह्याचा प्रकार)'),
-                            const SizedBox(height: 6),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: _kCrimeCategories.map((cat) {
-                                final isSelected = _crimeCategory == cat;
-                                return ChoiceChip(
-                                  label: Text(cat),
-                                  selected: isSelected,
-                                  onSelected: widget.readOnly
-                                      ? null
-                                      : (val) {
-                                          if (val) {
-                                            setState(() {
-                                              _crimeCategory = cat;
-                                              _markUnsaved();
-                                            });
-                                          }
-                                        },
-                                  selectedColor: _kTeal.withValues(alpha: 0.15),
-                                  backgroundColor: _kInputBg,
-                                  side: BorderSide(
-                                    color: isSelected ? _kTeal : _kBorder,
-                                    width: isSelected ? 1.5 : 1,
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  flex: 3,
+                                  child: _buildDropdownField(
+                                    label:
+                                        'Crime Category (गुन्ह्याचा प्रकार) *',
+                                    value: _crimeCategories
+                                            .contains(_crimeCategory)
+                                        ? _crimeCategory
+                                        : (_crimeCategories.isNotEmpty
+                                            ? _crimeCategories.first
+                                            : ''),
+                                    items: _crimeCategories,
+                                    required: true,
+                                    onChanged: (val) {
+                                      setState(() {
+                                        _crimeCategory = val ??
+                                            (_crimeCategories.isNotEmpty
+                                                ? _crimeCategories.first
+                                                : '');
+                                      });
+                                    },
                                   ),
-                                  labelStyle: GoogleFonts.inter(
-                                    fontSize: 11,
-                                    fontWeight: isSelected
-                                        ? FontWeight.w700
-                                        : FontWeight.w500,
-                                    color: isSelected ? _kTeal : _kDark,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  flex: 2,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      _buildLabel(
+                                          'Case Status (खटल्याची स्थिती)'),
+                                      const SizedBox(height: 5),
+                                      Wrap(
+                                        spacing: 8,
+                                        runSpacing: 8,
+                                        children: _caseStatuses.map((st) {
+                                          final isSelected = _caseStatus == st;
+                                          return ChoiceChip(
+                                            label: Text(st),
+                                            selected: isSelected,
+                                            onSelected: widget.readOnly
+                                                ? null
+                                                : (val) {
+                                                    if (val) {
+                                                      setState(() {
+                                                        _caseStatus = st;
+                                                        _markUnsaved();
+                                                      });
+                                                    }
+                                                  },
+                                            selectedColor:
+                                                const Color(0xFFE0E7FF),
+                                            backgroundColor: _kInputBg,
+                                            side: BorderSide(
+                                              color: isSelected
+                                                  ? const Color(0xFF4F46E5)
+                                                  : _kBorder,
+                                              width: isSelected ? 1.5 : 1,
+                                            ),
+                                            labelStyle: GoogleFonts.inter(
+                                              fontSize: 11,
+                                              fontWeight: isSelected
+                                                  ? FontWeight.w700
+                                                  : FontWeight.w500,
+                                              color: isSelected
+                                                  ? const Color(0xFF4F46E5)
+                                                  : _kDark,
+                                            ),
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ],
                                   ),
-                                );
-                              }).toList(),
+                                ),
+                              ],
                             ),
                             if (_crimeCategory == 'Other') ...[
                               const SizedBox(height: 10),
@@ -751,49 +1221,6 @@ class PreventiveFormState extends State<PreventiveForm> {
                                 controller: _customCrimeCategoryCtrl,
                               ),
                             ],
-                            const SizedBox(height: 14),
-
-                            // Case Status
-                            _buildLabel('Case Status (खटल्याची स्थिती)'),
-                            const SizedBox(height: 6),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: _kCaseStatuses.map((st) {
-                                final isSelected = _caseStatus == st;
-                                return ChoiceChip(
-                                  label: Text(st),
-                                  selected: isSelected,
-                                  onSelected: widget.readOnly
-                                      ? null
-                                      : (val) {
-                                          if (val) {
-                                            setState(() {
-                                              _caseStatus = st;
-                                              _markUnsaved();
-                                            });
-                                          }
-                                        },
-                                  selectedColor: const Color(0xFFE0E7FF),
-                                  backgroundColor: _kInputBg,
-                                  side: BorderSide(
-                                    color: isSelected
-                                        ? const Color(0xFF4F46E5)
-                                        : _kBorder,
-                                    width: isSelected ? 1.5 : 1,
-                                  ),
-                                  labelStyle: GoogleFonts.inter(
-                                    fontSize: 11,
-                                    fontWeight: isSelected
-                                        ? FontWeight.w700
-                                        : FontWeight.w500,
-                                    color: isSelected
-                                        ? const Color(0xFF4F46E5)
-                                        : _kDark,
-                                  ),
-                                );
-                              }).toList(),
-                            ),
                           ],
                         ),
                       ),
@@ -809,7 +1236,7 @@ class PreventiveFormState extends State<PreventiveForm> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Act Selector Chips
+                            // Act Selector Chips from backend DB
                             _buildLabel('Select Act / कायदे निवडा'),
                             const SizedBox(height: 6),
                             if (_activeActsData.isEmpty)
@@ -944,7 +1371,8 @@ class PreventiveFormState extends State<PreventiveForm> {
                       // Section 3: Accused & Action Details
                       _buildCard(
                         secNum: '3',
-                        title: 'Accused & Preventive Action Details',
+                        title: _formDef?.sectionTitles['accused'] ??
+                            'Accused & Preventive Action Details',
                         marathiTitle: 'आरोपी व प्रतिबंधक कारवाई तपशील',
                         icon: Icons.people_alt_rounded,
                         trailing: widget.readOnly
@@ -983,7 +1411,8 @@ class PreventiveFormState extends State<PreventiveForm> {
                       // Section 4: Preventive & Istegasha Details
                       _buildCard(
                         secNum: '4',
-                        title: 'Preventive & Istegasha Details',
+                        title: _formDef?.sectionTitles['istegasha'] ??
+                            'Preventive & Istegasha Details',
                         marathiTitle: 'प्रतिबंधक / इस्तेगाशा तपशील',
                         icon: Icons.shield_outlined,
                         child: Column(
@@ -993,30 +1422,60 @@ class PreventiveFormState extends State<PreventiveForm> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Expanded(
+                                  flex: 4,
                                   child: _buildDropdownField(
                                     label:
                                         'Preventive Section Act (प्रतिबंधक कलम / कायदा) *',
                                     value: _activePreventiveSectionActs
                                             .contains(_preventiveSectionAct)
                                         ? _preventiveSectionAct
-                                        : _activePreventiveSectionActs.first,
+                                        : (_activePreventiveSectionActs
+                                                .isNotEmpty
+                                            ? _activePreventiveSectionActs.first
+                                            : ''),
                                     items: _activePreventiveSectionActs,
                                     required: true,
                                     onChanged: (val) {
                                       setState(() {
                                         _preventiveSectionAct = val ??
-                                            _activePreventiveSectionActs.first;
+                                            (_activePreventiveSectionActs
+                                                    .isNotEmpty
+                                                ? _activePreventiveSectionActs
+                                                    .first
+                                                : '');
                                       });
                                     },
                                   ),
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
+                                  flex: 2,
+                                  child: _buildDropdownField(
+                                    label: 'Has Prev No.? *',
+                                    value: _hasPreventiveNo,
+                                    items: _yesNoOptions,
+                                    required: true,
+                                    onChanged: (val) {
+                                      setState(() {
+                                        _hasPreventiveNo = val ??
+                                            _backendDefaults[
+                                                    'has_preventive_no']
+                                                ?.toString() ??
+                                            (_yesNoOptions.isNotEmpty
+                                                ? _yesNoOptions.first
+                                                : 'No');
+                                      });
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  flex: 4,
                                   child: _buildTextField(
                                     label: 'Preventive No. / इस्तेगाशा नंबर *',
                                     hint: 'e.g. IST/04/2026 or Prev No. 12',
                                     controller: _preventiveNoCtrl,
-                                    required: true,
+                                    required: _hasPreventiveNo == 'Yes',
                                   ),
                                 ),
                               ],
@@ -1071,19 +1530,20 @@ class PreventiveFormState extends State<PreventiveForm> {
                       // Section 5: Risk Flag & Action Status
                       _buildCard(
                         secNum: '5',
-                        title: 'Risk Flag & Preventive Action Status',
+                        title: _formDef?.sectionTitles['risk_status'] ??
+                            'Risk Flag & Preventive Action Status',
                         marathiTitle: 'जोखीम ध्वज व कारवाई स्थिती',
                         icon: Icons.warning_amber_rounded,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Risk Flag Chips
+                            // Dynamic Risk Flag Chips from backend
                             _buildLabel('Risk Flag (जोखीम वर्ग)'),
                             const SizedBox(height: 6),
                             Wrap(
                               spacing: 10,
                               runSpacing: 8,
-                              children: _kRiskFlags.map((flag) {
+                              children: _riskFlags.map((flag) {
                                 final isSelected = _riskFlag == flag;
                                 final isHigh = flag.contains('High');
                                 final isSensitive = flag.contains('Sensitive');
@@ -1133,12 +1593,12 @@ class PreventiveFormState extends State<PreventiveForm> {
                             ),
                             const SizedBox(height: 16),
 
-                            // Action Status Options
+                            // Dynamic Action Status Options from backend
                             _buildLabel(
                                 'Preventive Action Status (कारवाई स्थिती)'),
                             const SizedBox(height: 6),
                             Column(
-                              children: _kActionStatuses.map((actionSt) {
+                              children: _actionStatuses.map((actionSt) {
                                 final isSelected =
                                     _preventiveActionStatus == actionSt;
                                 final isCompleted =
@@ -1323,7 +1783,7 @@ class PreventiveFormState extends State<PreventiveForm> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Arrested / Notice Issued
+              // Dynamic Accused Action / Status from backend
               Expanded(
                 flex: 3,
                 child: Column(
@@ -1334,11 +1794,7 @@ class PreventiveFormState extends State<PreventiveForm> {
                     Wrap(
                       spacing: 6,
                       runSpacing: 6,
-                      children: [
-                        'Arrested',
-                        'Notice Issued',
-                        'Not Arrested',
-                      ].map((type) {
+                      children: _accusedActionTypes.map((type) {
                         final isSel = entry.actionType == type;
                         return ChoiceChip(
                           label: Text(type),
@@ -1373,7 +1829,7 @@ class PreventiveFormState extends State<PreventiveForm> {
               ),
               const SizedBox(width: 12),
 
-              // Bond Taken Y/N
+              // Dynamic Bond Taken Y/N from backend options
               Expanded(
                 flex: 2,
                 child: Column(
@@ -1382,7 +1838,7 @@ class PreventiveFormState extends State<PreventiveForm> {
                     _buildLabel('Bond Taken (जामीन/बंधपत्र)'),
                     const SizedBox(height: 4),
                     Row(
-                      children: ['Yes', 'No'].map((b) {
+                      children: _yesNoOptions.map((b) {
                         final isSel = entry.bondTaken == b;
                         return Padding(
                           padding: const EdgeInsets.only(right: 6),
@@ -1625,9 +2081,12 @@ class PreventiveFormState extends State<PreventiveForm> {
 
   // ── Inputs Builders ────────────────────────────────────────────────────────
   Widget _buildLabel(String text, {bool required = false}) {
+    final cleanText = text.trim().endsWith('*')
+        ? text.trim().substring(0, text.trim().length - 1).trim()
+        : text.trim();
     return RichText(
       text: TextSpan(
-        text: text,
+        text: cleanText,
         style: _tsLabel,
         children: [
           if (required)

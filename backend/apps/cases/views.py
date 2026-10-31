@@ -5,7 +5,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from django.db import connection, transaction
-from apps.cases.group_filters import group_case_q
+from django.db.models import Q
+from apps.cases.group_filters import group_case_q, preventive_case_q
 from apps.cases.models import CaseRecord, is_ad_case_disposed
 from apps.cases.serializers import CaseRecordSerializer, CreateCaseSerializer, CaseRecordListSerializer
 from apps.core.permissions import check_dynamic_permission, HasPermission
@@ -161,11 +162,39 @@ class CaseRecordViewSet(viewsets.ModelViewSet):
                 raise exceptions.PermissionDenied("You do not have permission to create case records.")
 
             created_by = getattr(user, 'uid', getattr(user, 'id', ''))
-            station_name = getattr(user, 'station_name', '')
+            station_name = serializer.validated_data.get('station_name') or getattr(user, 'station_name', '')
+
+            # Auto-assign sequence for any auto-generated fields (like Tadipar sr_no)
+            extra_fields = serializer.validated_data.get('extra_fields')
+            if not isinstance(extra_fields, dict):
+                extra_fields = {}
+            sub_cat = serializer.validated_data.get('sub_category') or ''
+            mod_key = serializer.validated_data.get('module_key') or ''
+
+            # Generic database-backed auto-numbering
+            from apps.crimetab.models.groupings import CaseCategory
+            from apps.crimetab.services.dynamic_form_service import auto_assign_category_sequences
+
+            cat = None
+            category_id = serializer.validated_data.get('category_id') or extra_fields.get('category_id') or extra_fields.get('targetCategoryId')
+            if category_id:
+                cat = CaseCategory.objects.filter(category_id=category_id, is_active=True).first()
+            if not cat and (mod_key or sub_cat):
+                cat = CaseCategory.objects.filter(
+                    Q(category_code__iexact=mod_key) |
+                    Q(category_name__iexact=sub_cat) |
+                    Q(category_code__iexact=sub_cat) |
+                    Q(category_name__iexact=mod_key)
+                ).filter(is_active=True).first()
+
+            if cat:
+                extra_fields = auto_assign_category_sequences(cat, extra_fields, station_name=station_name)
+                serializer.validated_data['extra_fields'] = extra_fields
 
             instance = serializer.save(
                 created_by=serializer.validated_data.get('created_by') or str(created_by),
-                station_name=serializer.validated_data.get('station_name') or station_name
+                station_name=station_name,
+                extra_fields=extra_fields
             )
             self._link_case_category(instance)
             upstash_cache.delete_pattern("pms:cache:*:cases:*")
@@ -258,6 +287,10 @@ class CaseRecordViewSet(viewsets.ModelViewSet):
                 q_group = group_case_q(2)
                 queryset = queryset.filter(q_group).distinct()
 
+            elif mod_lower == 'preventive':
+                # Standalone preventive cases + present crime tabs where preventive applies
+                queryset = queryset.filter(preventive_case_q()).distinct()
+
             else:
                 # Specific category / module
                 norm_name = module_key.replace('_', ' ').strip()
@@ -311,6 +344,22 @@ class CaseRecordViewSet(viewsets.ModelViewSet):
     def counts(self, request):
         """Action proxy for GET /api/cases/counts/"""
         return CaseCountsView.as_view()(request._request)
+
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        try:
+            from apps.muddemal.services.auto_fetch_service import sync_single_case_properties
+            sync_single_case_properties(instance)
+        except Exception:
+            pass
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        try:
+            from apps.muddemal.services.auto_fetch_service import sync_single_case_properties
+            sync_single_case_properties(instance)
+        except Exception:
+            pass
 
 
 # ------------------------------------------------------------------------------
@@ -398,6 +447,23 @@ class CaseCountsView(APIView):
                     'disposal': row['disposal'] or 0,
                     'detected': row['detected'] or 0,
                 }
+
+            # 3b. Accurate aggregation for preventive (includes standalone + present crime tabs where preventive applies)
+            try:
+                prev_agg = queryset.filter(preventive_case_q()).aggregate(
+                    total=Count('id', distinct=True),
+                    pending=Count('id', filter=pending_q, distinct=True),
+                    disposal=Count('id', filter=disposal_q, distinct=True),
+                    detected=Count('id', filter=detected_q, distinct=True),
+                )
+                tabs_dict['preventive'] = {
+                    'total': prev_agg['total'] or 0,
+                    'pending': prev_agg['pending'] or 0,
+                    'disposal': prev_agg['disposal'] or 0,
+                    'detected': prev_agg['detected'] or 0,
+                }
+            except Exception as e:
+                logger.debug(f"Failed to calculate preventive counts: {e}")
 
             g1_res = {
                 'total': g1['total'] or 0,
