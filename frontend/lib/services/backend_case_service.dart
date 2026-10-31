@@ -1186,6 +1186,7 @@ class BackendCaseService {
     String? category,
     String? startDate,
     String? endDate,
+    String? victimFilter,
   }) async {
     try {
       final queryParams = <String, dynamic>{};
@@ -1197,6 +1198,9 @@ class BackendCaseService {
       }
       if (endDate != null && endDate.isNotEmpty) {
         queryParams['end_date'] = endDate;
+      }
+      if (victimFilter != null && victimFilter.isNotEmpty && victimFilter != 'all') {
+        queryParams['victim_filter'] = victimFilter;
       }
 
       final url = '${ApiConfig.cases}victim/case-wise/';
@@ -1223,10 +1227,16 @@ class BackendCaseService {
     return null;
   }
 
-  Future<List<Map<String, dynamic>>?> fetchVictimTimeWise() async {
+  Future<List<Map<String, dynamic>>?> fetchVictimTimeWise({
+    String? victimFilter,
+  }) async {
     try {
+      final queryParams = <String, dynamic>{};
+      if (victimFilter != null && victimFilter.isNotEmpty && victimFilter != 'all') {
+        queryParams['victim_filter'] = victimFilter;
+      }
       final url = '${ApiConfig.cases}victim/time-wise/';
-      final response = await _api.get(url);
+      final response = await _api.get(url, queryParameters: queryParams);
 
       if (response.isSuccess && response.data is List) {
         return List<Map<String, dynamic>>.from(response.data);
@@ -1244,10 +1254,16 @@ class BackendCaseService {
     return null;
   }
 
-  Future<List<Map<String, dynamic>>?> fetchVictimIOWise() async {
+  Future<List<Map<String, dynamic>>?> fetchVictimIOWise({
+    String? victimFilter,
+  }) async {
     try {
+      final queryParams = <String, dynamic>{};
+      if (victimFilter != null && victimFilter.isNotEmpty && victimFilter != 'all') {
+        queryParams['victim_filter'] = victimFilter;
+      }
       final url = '${ApiConfig.cases}victim/io-wise/';
-      final response = await _api.get(url);
+      final response = await _api.get(url, queryParameters: queryParams);
 
       if (response.isSuccess && response.data is List) {
         return List<Map<String, dynamic>>.from(response.data);
@@ -1260,6 +1276,27 @@ class BackendCaseService {
     } catch (e) {
       if (kDebugMode) {
         debugPrint('[BackendCaseService] fetchVictimIOWise exception: $e');
+      }
+    }
+    return null;
+  }
+
+  Future<Map<String, dynamic>?> fetchVictimStats() async {
+    try {
+      final url = '${ApiConfig.cases}victim/stats/';
+      final response = await _api.get(url);
+
+      if (response.isSuccess && response.data is Map) {
+        return Map<String, dynamic>.from(response.data);
+      } else {
+        if (kDebugMode) {
+          debugPrint(
+              '[BackendCaseService] fetchVictimStats error: ${response.errorMessage}');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] fetchVictimStats exception: $e');
       }
     }
     return null;

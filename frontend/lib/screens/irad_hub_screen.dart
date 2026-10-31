@@ -6,6 +6,200 @@ import '../theme/app_theme.dart';
 import '../modules/core/models/base_record.dart';
 import '../widgets/dynamic_form/dynamic_form_screen.dart';
 
+/// Strongly-typed data model for an IRAD case item
+class IradCaseItem {
+  final String id;
+  final String crNo;
+  final String actAndSection;
+  final String ioName;
+  final String ioUid;
+  final String status;
+  final String statusColor;
+  final String stationName;
+  final DateTime incidentDate;
+  final DateTime createdAt;
+  final Map<String, dynamic> rawMap;
+
+  IradCaseItem({
+    required this.id,
+    required this.crNo,
+    required this.actAndSection,
+    required this.ioName,
+    required this.ioUid,
+    required this.status,
+    required this.statusColor,
+    required this.stationName,
+    required this.incidentDate,
+    required this.createdAt,
+    required this.rawMap,
+  });
+
+  factory IradCaseItem.fromMap(Map m) {
+    final now = DateTime.now();
+    final id = (m['id'] ?? '').toString();
+    final crNo = (m['cr_no'] ?? m['case_number'] ?? '—').toString();
+    final act = (m['act_and_section'] ??
+            m['sub_category'] ??
+            m['title'] ??
+            'Road Accident')
+        .toString()
+        .trim();
+    final io = (m['io_name'] ?? m['assigned_officer'] ?? 'Unassigned')
+        .toString()
+        .trim();
+    final ioUid = (m['io_uid'] ?? m['assigned_officer_uid'] ?? '').toString();
+    final st = (m['status'] ?? 'Pending').toString().trim();
+    final stColor = (m['status_color'] ?? '#E74C3C').toString();
+    final station = (m['station_name'] ?? '').toString();
+
+    DateTime incDt = now;
+    if (m['incident_date'] != null) {
+      incDt = DateTime.tryParse(m['incident_date'].toString()) ?? now;
+    } else if (m['created_at'] != null) {
+      incDt = DateTime.tryParse(m['created_at'].toString()) ?? now;
+    }
+
+    DateTime crDt = now;
+    if (m['created_at'] != null) {
+      crDt = DateTime.tryParse(m['created_at'].toString()) ?? now;
+    }
+
+    final raw = <String, dynamic>{};
+    m.forEach((k, v) {
+      raw[k.toString()] = v;
+    });
+
+    return IradCaseItem(
+      id: id,
+      crNo: crNo.isEmpty ? '—' : crNo,
+      actAndSection: act.isEmpty ? 'Road Accident' : act,
+      ioName: io.isEmpty ? 'Unassigned' : io,
+      ioUid: ioUid,
+      status: st,
+      statusColor: stColor,
+      stationName: station,
+      incidentDate: incDt,
+      createdAt: crDt,
+      rawMap: raw,
+    );
+  }
+}
+
+/// Strongly-typed model for IO groupings
+class IradIOItem {
+  final String ioName;
+  final String ioUid;
+  final String stationName;
+  final List<IradCaseItem> cases;
+
+  IradIOItem({
+    required this.ioName,
+    required this.ioUid,
+    required this.stationName,
+    required this.cases,
+  });
+
+  int get count => cases.length;
+}
+
+/// Filter option descriptor for IRAD categories & statuses
+class IradFilterItem {
+  final String key;
+  final String label;
+  final String group;
+  final IconData icon;
+  final Color? color;
+
+  const IradFilterItem({
+    required this.key,
+    required this.label,
+    required this.group,
+    required this.icon,
+    this.color,
+  });
+}
+
+const List<IradFilterItem> kIradFilterItems = [
+  // Overview
+  IradFilterItem(
+    key: 'all',
+    label: 'Total IRAD',
+    group: 'Overview',
+    icon: Icons.assignment_rounded,
+    color: AppColors.navyMid,
+  ),
+
+  // Status
+  IradFilterItem(
+    key: 'filled',
+    label: 'IRAD Form Filled',
+    group: 'Status',
+    icon: Icons.check_circle_rounded,
+    color: AppColors.successGreen,
+  ),
+  IradFilterItem(
+    key: 'pending',
+    label: 'IRAD Form Pending',
+    group: 'Status',
+    icon: Icons.pending_actions_rounded,
+    color: AppColors.dangerRed,
+  ),
+
+  // Accident Type / Act & Section
+  IradFilterItem(
+    key: 'road_accident',
+    label: 'Road Accident',
+    group: 'Accident Category',
+    icon: Icons.car_crash_rounded,
+    color: Color(0xFF1E88E5),
+  ),
+  IradFilterItem(
+    key: 'normal_accident',
+    label: 'Normal Accident',
+    group: 'Accident Category',
+    icon: Icons.minor_crash_rounded,
+    color: Color(0xFF00ACC1),
+  ),
+  IradFilterItem(
+    key: 'death_rash_driving',
+    label: 'Death Due to Rash Driving',
+    group: 'Accident Category',
+    icon: Icons.warning_amber_rounded,
+    color: Color(0xFFD32F2F),
+  ),
+  IradFilterItem(
+    key: 'hit_and_run',
+    label: 'Hit and Run',
+    group: 'Accident Category',
+    icon: Icons.speed_rounded,
+    color: Color(0xFFE65100),
+  ),
+  IradFilterItem(
+    key: 'fatal',
+    label: 'Fatal Accident',
+    group: 'Accident Category',
+    icon: Icons.heart_broken_rounded,
+    color: Color(0xFFC2185B),
+  ),
+  IradFilterItem(
+    key: 'non_fatal',
+    label: 'Non-Fatal Accident',
+    group: 'Accident Category',
+    icon: Icons.health_and_safety_rounded,
+    color: Color(0xFF43A047),
+  ),
+];
+
+const Set<String> kIradStatusKeys = {'filled', 'pending'};
+const Set<String> kIradCategoryKeys = {
+  'road_accident',
+  'normal_accident',
+  'death_rash_driving',
+  'hit_and_run',
+  'fatal',
+  'non_fatal',
+};
+
 class IradHubScreen extends StatefulWidget {
   final String? stationName;
   const IradHubScreen({super.key, this.stationName});
@@ -14,36 +208,124 @@ class IradHubScreen extends StatefulWidget {
   State<IradHubScreen> createState() => _IradHubScreenState();
 }
 
-class _IradHubScreenState extends State<IradHubScreen> {
+class _IradHubScreenState extends State<IradHubScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  final ApiService _apiService = ApiService();
+  final GlobalKey _dropdownButtonKey = GlobalKey();
+
   bool _isLoading = true;
   String? _errorMessage;
 
-  // Summary Metrics
-  int _totalIrad = 0;
-  int _iradFilled = 0;
-  int _iradPending = 0;
+  // Raw typed cases
+  List<IradCaseItem> _rawCases = [];
+  Map<String, int> _filterCounts = {};
 
-  // Cases List
-  List<dynamic> _cases = [];
+  // Multi-select active filter state
+  Set<String> _selectedFilterKeys = {'all'};
 
-  // Filter & Search
-  String _statusFilter = 'all'; // 'all', 'pending', 'filled'
-  String _searchQuery = '';
-  final TextEditingController _searchController = TextEditingController();
-
-  final ApiService _apiService = ApiService();
+  // Presentation data for tabs
+  Map<String, List<IradCaseItem>>? _caseWiseData;
+  List<Map<String, dynamic>>? _timeWiseData;
+  List<IradIOItem>? _ioWiseData;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 3, vsync: this);
     _fetchIradData();
   }
 
   @override
   void dispose() {
-    _searchController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
+
+  // ---------------------------------------------------------------------------
+  // FILTERING LOGIC
+  // ---------------------------------------------------------------------------
+
+  bool _caseMatchesSingleFilter(IradCaseItem c, String key) {
+    final st = c.status.toLowerCase().trim();
+    final isFilled = st == 'filled' || st == 'completed';
+    final isPending = !isFilled;
+
+    final sub = (c.rawMap['sub_category'] ?? '').toString().toLowerCase();
+    final title = (c.rawMap['title'] ?? '').toString().toLowerCase();
+    final desc = (c.rawMap['description'] ?? '').toString().toLowerCase();
+    final combined = '${c.actAndSection.toLowerCase()} $sub $title $desc';
+
+    switch (key) {
+      case 'all':
+        return true;
+      case 'filled':
+        return isFilled;
+      case 'pending':
+        return isPending;
+      case 'road_accident':
+        return combined.contains('road') || combined.contains('accident');
+      case 'normal_accident':
+        return combined.contains('normal');
+      case 'death_rash_driving':
+        return combined.contains('rash') ||
+            combined.contains('death') ||
+            combined.contains('304') ||
+            combined.contains('106');
+      case 'hit_and_run':
+        return combined.contains('hit') && combined.contains('run');
+      case 'fatal':
+        return combined.contains('fatal') ||
+            combined.contains('death') ||
+            combined.contains('मृत्यू');
+      case 'non_fatal':
+        return !combined.contains('fatal') &&
+            !combined.contains('death') &&
+            !combined.contains('मृत्यू');
+    }
+    return false;
+  }
+
+  bool _caseMatchesMultipleFilters(IradCaseItem c, Set<String> keys) {
+    if (keys.isEmpty || (keys.length == 1 && keys.contains('all'))) {
+      return true;
+    }
+
+    final activeKeys = keys.where((k) => k != 'all').toSet();
+    if (activeKeys.isEmpty) return true;
+
+    final selectedStatus = activeKeys.intersection(kIradStatusKeys);
+    final selectedCategories = activeKeys.intersection(kIradCategoryKeys);
+
+    if (selectedStatus.isNotEmpty) {
+      if (!selectedStatus.any((k) => _caseMatchesSingleFilter(c, k))) {
+        return false;
+      }
+    }
+
+    if (selectedCategories.isNotEmpty) {
+      if (!selectedCategories.any((k) => _caseMatchesSingleFilter(c, k))) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  void _recomputeFilterCounts(List<IradCaseItem> cases) {
+    final counts = <String, int>{};
+    counts['all'] = cases.length;
+    for (final item in kIradFilterItems) {
+      if (item.key == 'all') continue;
+      counts[item.key] =
+          cases.where((c) => _caseMatchesSingleFilter(c, item.key)).length;
+    }
+    _filterCounts = counts;
+  }
+
+  // ---------------------------------------------------------------------------
+  // DATA FETCHING & TAB DATA DERIVATION
+  // ---------------------------------------------------------------------------
 
   Future<void> _fetchIradData() async {
     setState(() {
@@ -53,16 +335,10 @@ class _IradHubScreenState extends State<IradHubScreen> {
 
     try {
       final qp = <String>[];
-      if (_statusFilter != 'all') {
-        qp.add('status=$_statusFilter');
-      }
       if (widget.stationName != null &&
           widget.stationName!.isNotEmpty &&
           widget.stationName != 'All Stations') {
         qp.add('station_name=${Uri.encodeComponent(widget.stationName!)}');
-      }
-      if (_searchQuery.trim().isNotEmpty) {
-        qp.add('search=${Uri.encodeComponent(_searchQuery.trim())}');
       }
 
       final queryStr = qp.isNotEmpty ? '?${qp.join('&')}' : '';
@@ -72,53 +348,39 @@ class _IradHubScreenState extends State<IradHubScreen> {
 
       if (res.isSuccess && res.data != null) {
         final data = res.data;
+        final rawList = <IradCaseItem>[];
+
         if (data is Map) {
-          final stats = (data['stats'] is Map)
-              ? data['stats']
-              : ((data['summary'] is Map) ? data['summary'] : data);
-          final casesList = (data['results'] is List)
-              ? data['results']
-              : (data['cases'] is List ? data['cases'] : []);
-
-          int total = int.tryParse(stats['total_irad']?.toString() ?? '') ??
-              (data['total_count'] is int ? data['total_count'] : 0);
-          int filled = int.tryParse(stats['irad_filled']?.toString() ?? '') ??
-              int.tryParse(stats['irad_form_filled']?.toString() ?? '') ??
-              0;
-          int pending = int.tryParse(stats['irad_pending']?.toString() ?? '') ??
-              int.tryParse(stats['irad_form_pending']?.toString() ?? '') ??
-              0;
-
-          // Calculate from cases if summary is 0 but cases are loaded
-          if (total == 0 && casesList.isNotEmpty) {
-            total = casesList.length;
-            filled = 0;
-            pending = 0;
-            for (final c in casesList) {
-              final st = (c['status'] ?? '').toString().toLowerCase();
-              if (st == 'filled' || st == 'completed') {
-                filled++;
-              } else {
-                pending++;
+          final results = data['results'] ?? data['cases'];
+          if (results is Iterable) {
+            for (final item in results) {
+              if (item is Map) {
+                rawList.add(IradCaseItem.fromMap(item));
               }
             }
           }
-
-          setState(() {
-            _totalIrad = total;
-            _iradFilled = filled;
-            _iradPending = pending;
-            _cases = casesList;
-            _isLoading = false;
-          });
-          return;
+        } else if (data is Iterable) {
+          for (final item in data) {
+            if (item is Map) {
+              rawList.add(IradCaseItem.fromMap(item));
+            }
+          }
         }
+
+        if (mounted) {
+          _rawCases = rawList;
+          _recomputeFilterCounts(rawList);
+          _applyCurrentFilter();
+        }
+        return;
       }
 
-      setState(() {
-        _errorMessage = res.errorMessage ?? 'Failed to load IRAD cases';
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = res.errorMessage ?? 'Failed to load IRAD cases';
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -128,6 +390,120 @@ class _IradHubScreenState extends State<IradHubScreen> {
       }
     }
   }
+
+  void _applyFilterKeys(Set<String> newKeys) {
+    setState(() {
+      if (newKeys.isEmpty) {
+        _selectedFilterKeys = {'all'};
+      } else {
+        _selectedFilterKeys = Set<String>.from(newKeys);
+      }
+      _applyCurrentFilter();
+    });
+  }
+
+  void _applyCurrentFilter() {
+    final activeCases = _selectedFilterKeys.contains('all')
+        ? _rawCases
+        : _rawCases
+            .where((c) => _caseMatchesMultipleFilters(c, _selectedFilterKeys))
+            .toList();
+
+    // 1. Group for Case Wise
+    final grouped = <String, List<IradCaseItem>>{};
+    for (final c in activeCases) {
+      final head =
+          c.actAndSection.isNotEmpty ? c.actAndSection : 'Road Accident';
+      if (!grouped.containsKey(head)) {
+        grouped[head] = <IradCaseItem>[];
+      }
+      grouped[head]!.add(c);
+    }
+
+    // 2. Derive Time Wise breakdown
+    final now = DateTime.now();
+    final month1 = now.subtract(const Duration(days: 30));
+    final months3 = now.subtract(const Duration(days: 90));
+    final months6 = now.subtract(const Duration(days: 180));
+    final year1 = now.subtract(const Duration(days: 365));
+
+    int under1 = 0;
+    int m1to3 = 0;
+    int m3to6 = 0;
+    int m6to12 = 0;
+    int moreThan1Yr = 0;
+
+    for (final c in activeCases) {
+      final dt = c.incidentDate;
+      if (dt.isAfter(month1)) {
+        under1++;
+      } else if (dt.isAfter(months3)) {
+        m1to3++;
+      } else if (dt.isAfter(months6)) {
+        m3to6++;
+      } else if (dt.isAfter(year1)) {
+        m6to12++;
+      } else {
+        moreThan1Yr++;
+      }
+    }
+
+    final timeWise = <Map<String, dynamic>>[
+      {'period': 'Under 1 month', 'count': under1},
+      {'period': '1 to 3 months', 'count': m1to3},
+      {'period': '3 to 6 months', 'count': m3to6},
+      {'period': '6 to 12 months', 'count': m6to12},
+      {'period': 'More than 1 year', 'count': moreThan1Yr},
+      {'period': 'Under 3 months (Total)', 'count': under1 + m1to3},
+    ];
+
+    // 3. Derive IO Wise breakdown
+    final ioMap = <String, IradIOItem>{};
+    for (final c in activeCases) {
+      final key = '${c.ioName}|${c.stationName}';
+      if (!ioMap.containsKey(key)) {
+        ioMap[key] = IradIOItem(
+          ioName: c.ioName,
+          ioUid: c.ioUid,
+          stationName: c.stationName,
+          cases: <IradCaseItem>[],
+        );
+      }
+      ioMap[key]!.cases.add(c);
+    }
+
+    final sortedIOs = ioMap.values.toList()
+      ..sort((a, b) => b.count.compareTo(a.count));
+
+    setState(() {
+      _isLoading = false;
+      _caseWiseData = grouped;
+      _timeWiseData = timeWise;
+      _ioWiseData = sortedIOs;
+    });
+  }
+
+  List<IradCaseItem> _getActiveFilteredCases() {
+    return _selectedFilterKeys.contains('all')
+        ? _rawCases
+        : _rawCases
+            .where((c) => _caseMatchesMultipleFilters(c, _selectedFilterKeys))
+            .toList();
+  }
+
+  String _getActiveFilterLabels() {
+    if (_selectedFilterKeys.contains('all') || _selectedFilterKeys.isEmpty) {
+      return 'Total IRAD';
+    }
+    return kIradFilterItems
+        .where((i) => _selectedFilterKeys.contains(i.key))
+        .map((i) => i.label)
+        .join(', ');
+  }
+
+  // ---------------------------------------------------------------------------
+  // REMIND IO ACTION & CASE FORM NAVIGATION
+  // ---------------------------------------------------------------------------
 
   Future<void> _sendReminderToIO(
       String caseId, String crNo, String ioName) async {
@@ -184,11 +560,10 @@ class _IradHubScreenState extends State<IradHubScreen> {
     }
   }
 
-  Future<void> _openCaseForm(Map<String, dynamic> caseData) async {
-    final caseId = caseData['id']?.toString() ?? '';
-    final crNo = caseData['cr_no']?.toString() ??
-        caseData['case_number']?.toString() ??
-        '';
+  Future<void> _openCaseForm(IradCaseItem item) async {
+    final caseData = item.rawMap;
+    final caseId = item.id;
+    final crNo = item.crNo;
     final existingExtra = (caseData['extra_fields'] is Map)
         ? Map<String, dynamic>.from(caseData['extra_fields'])
         : (caseData['fields'] is Map
@@ -209,7 +584,7 @@ class _IradHubScreenState extends State<IradHubScreen> {
           existingRecord: ModuleRecord(
             id: caseId,
             caseNumber: crNo,
-            title: caseData['act_and_section']?.toString() ?? '',
+            title: item.actAndSection,
             moduleKey: (caseData['module_key']?.toString().isNotEmpty == true)
                 ? caseData['module_key'].toString()
                 : 'irad',
@@ -217,25 +592,21 @@ class _IradHubScreenState extends State<IradHubScreen> {
             complainant: caseData['complainant']?.toString() ?? '',
             accused: caseData['accused']?.toString() ?? '',
             location: caseData['location']?.toString() ?? '',
-            incidentDate: DateTime.tryParse(
-                    caseData['incident_date']?.toString() ?? '') ??
-                DateTime.now(),
+            incidentDate: item.incidentDate,
             priority: 'Medium',
-            assignedOfficer: caseData['io_name']?.toString() ?? '',
-            assignedOfficerUid: caseData['io_uid']?.toString() ?? '',
-            status: caseData['status']?.toString() ?? 'Pending',
-            createdAt:
-                DateTime.tryParse(caseData['created_at']?.toString() ?? '') ??
-                    DateTime.now(),
+            assignedOfficer: item.ioName,
+            assignedOfficerUid: item.ioUid,
+            status: item.status,
+            createdAt: item.createdAt,
             subCategory:
                 (caseData['sub_category']?.toString().isNotEmpty == true)
                     ? caseData['sub_category'].toString()
                     : 'Road Accident',
             extraFields: existingExtra,
             createdBy: '',
-            stationName: caseData['station_name']?.toString() ??
-                widget.stationName ??
-                '',
+            stationName: item.stationName.isNotEmpty
+                ? item.stationName
+                : (widget.stationName ?? ''),
           ),
         ),
       ),
@@ -245,10 +616,1254 @@ class _IradHubScreenState extends State<IradHubScreen> {
     }
   }
 
+  void _openDetailScreen({
+    required String title,
+    required List<IradCaseItem> cases,
+  }) {
+    Navigator.push(
+      context,
+      AppTheme.fadeSlideRoute(
+        page: IradCasesDetailScreen(
+          title: title,
+          cases: cases,
+          stationName: widget.stationName ?? '',
+          onOpenCaseForm: _openCaseForm,
+          onSendReminderToIO: _sendReminderToIO,
+          onRefreshData: _fetchIradData,
+          onOpenNewCaseForm: _openNewCaseForm,
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // MULTI-SELECT DROPDOWN MENU
+  // ---------------------------------------------------------------------------
+
+  void _openMultiSelectDropdown() {
+    final renderBox =
+        _dropdownButtonKey.currentContext?.findRenderObject() as RenderBox?;
+    final offset =
+        renderBox?.localToGlobal(Offset.zero) ?? const Offset(20, 120);
+    final size = renderBox?.size ?? const Size(220, 38);
+
+    final groups = [
+      'Overview',
+      'Status',
+      'Accident Category',
+    ];
+
+    final tempSelected = Set<String>.from(_selectedFilterKeys);
+
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Dismiss Multi-Select',
+      barrierColor: Colors.black.withValues(alpha: 0.14),
+      pageBuilder: (dialogContext, anim1, anim2) {
+        String searchQuery = '';
+
+        return StatefulBuilder(
+          builder: (modalContext, setModalState) {
+            final media = MediaQuery.of(dialogContext);
+            final leftPos = offset.dx.clamp(12.0, media.size.width - 365.0);
+            final topPos = (offset.dy + size.height + 4.0)
+                .clamp(12.0, media.size.height - 520.0);
+
+            final filteredItems = kIradFilterItems.where((item) {
+              if (searchQuery.isEmpty) return true;
+              return item.label
+                      .toLowerCase()
+                      .contains(searchQuery.toLowerCase()) ||
+                  item.group.toLowerCase().contains(searchQuery.toLowerCase());
+            }).toList();
+
+            final selectedCount =
+                tempSelected.contains('all') ? 0 : tempSelected.length;
+
+            return SafeArea(
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: leftPos,
+                    top: topPos,
+                    width: 350,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: Container(
+                        constraints: const BoxConstraints(maxHeight: 480),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: Colors.grey.withValues(alpha: 0.25),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.14),
+                              blurRadius: 18,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Header
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 12, 12, 8),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.filter_alt_rounded,
+                                    size: 18,
+                                    color: AppColors.navyMid,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Filter IRAD Cases',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.navyDark,
+                                      ),
+                                    ),
+                                  ),
+                                  if (!tempSelected.contains('all'))
+                                    InkWell(
+                                      onTap: () {
+                                        setModalState(() {
+                                          tempSelected.clear();
+                                          tempSelected.add('all');
+                                        });
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 6, vertical: 2),
+                                        child: Text(
+                                          'Reset',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.dangerRed,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  const SizedBox(width: 4),
+                                  InkWell(
+                                    onTap: () => Navigator.pop(dialogContext),
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: const Padding(
+                                      padding: EdgeInsets.all(4),
+                                      child: Icon(
+                                        Icons.close_rounded,
+                                        size: 18,
+                                        color: AppColors.lightSubText,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // Search bar
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 4),
+                              child: Container(
+                                height: 34,
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF6F8FF),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                      color: Colors.grey.withValues(alpha: 0.2)),
+                                ),
+                                child: TextField(
+                                  onChanged: (val) {
+                                    setModalState(() {
+                                      searchQuery = val.trim();
+                                    });
+                                  },
+                                  style: GoogleFonts.poppins(fontSize: 12),
+                                  decoration: InputDecoration(
+                                    icon: const Icon(
+                                      Icons.search_rounded,
+                                      size: 16,
+                                      color: AppColors.lightSubText,
+                                    ),
+                                    hintText: 'Search categories...',
+                                    hintStyle: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      color: AppColors.lightSubText,
+                                    ),
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                    contentPadding:
+                                        const EdgeInsets.symmetric(vertical: 8),
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            const Divider(height: 12),
+
+                            // Checkbox List
+                            Flexible(
+                              child: ListView(
+                                shrinkWrap: true,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 4),
+                                children: groups.map((group) {
+                                  final itemsInGroup = filteredItems
+                                      .where((i) => i.group == group)
+                                      .toList();
+                                  if (itemsInGroup.isEmpty) {
+                                    return const SizedBox.shrink();
+                                  }
+
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                            6, 6, 6, 4),
+                                        child: Text(
+                                          group.toUpperCase(),
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w700,
+                                            letterSpacing: 0.6,
+                                            color: AppColors.lightSubText,
+                                          ),
+                                        ),
+                                      ),
+                                      ...itemsInGroup.map((item) {
+                                        final isChecked =
+                                            tempSelected.contains(item.key);
+                                        final count =
+                                            _filterCounts[item.key] ?? 0;
+
+                                        return InkWell(
+                                          onTap: () {
+                                            setModalState(() {
+                                              if (item.key == 'all') {
+                                                tempSelected.clear();
+                                                tempSelected.add('all');
+                                              } else {
+                                                tempSelected.remove('all');
+                                                if (isChecked) {
+                                                  tempSelected.remove(item.key);
+                                                  if (tempSelected.isEmpty) {
+                                                    tempSelected.add('all');
+                                                  }
+                                                } else {
+                                                  tempSelected.add(item.key);
+                                                }
+                                              }
+                                            });
+                                          },
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 6, vertical: 6),
+                                            margin:
+                                                const EdgeInsets.only(bottom: 2),
+                                            decoration: BoxDecoration(
+                                              color: isChecked
+                                                  ? AppColors.navyMid
+                                                      .withValues(alpha: 0.08)
+                                                  : Colors.transparent,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                // Checkbox
+                                                SizedBox(
+                                                  width: 22,
+                                                  height: 22,
+                                                  child: Checkbox(
+                                                    value: isChecked,
+                                                    activeColor:
+                                                        AppColors.navyMid,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              4),
+                                                    ),
+                                                    onChanged: (_) {
+                                                      setModalState(() {
+                                                        if (item.key == 'all') {
+                                                          tempSelected.clear();
+                                                          tempSelected.add('all');
+                                                        } else {
+                                                          tempSelected
+                                                              .remove('all');
+                                                          if (isChecked) {
+                                                            tempSelected.remove(
+                                                                item.key);
+                                                            if (tempSelected
+                                                                .isEmpty) {
+                                                              tempSelected
+                                                                  .add('all');
+                                                            }
+                                                          } else {
+                                                            tempSelected
+                                                                .add(item.key);
+                                                          }
+                                                        }
+                                                      });
+                                                    },
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+
+                                                // Icon
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.all(5),
+                                                  decoration: BoxDecoration(
+                                                    color: (item.color ??
+                                                            AppColors.navyMid)
+                                                        .withValues(alpha: 0.12),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            6),
+                                                  ),
+                                                  child: Icon(
+                                                    item.icon,
+                                                    size: 13,
+                                                    color: item.color ??
+                                                        AppColors.navyMid,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+
+                                                // Label
+                                                Expanded(
+                                                  child: Text(
+                                                    item.label,
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize: 12.5,
+                                                      fontWeight: isChecked
+                                                          ? FontWeight.w700
+                                                          : FontWeight.w500,
+                                                      color: isChecked
+                                                          ? AppColors.navyDark
+                                                          : const Color(
+                                                              0xFF2C3E50),
+                                                    ),
+                                                  ),
+                                                ),
+
+                                                // Count
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                          horizontal: 6,
+                                                          vertical: 1.5),
+                                                  decoration: BoxDecoration(
+                                                    color: isChecked
+                                                        ? AppColors.navyMid
+                                                        : Colors.grey
+                                                            .withValues(
+                                                                alpha: 0.12),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10),
+                                                  ),
+                                                  child: Text(
+                                                    '$count',
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize: 10.5,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color: isChecked
+                                                          ? Colors.white
+                                                          : AppColors.navyDark,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      }),
+                                    ],
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+
+                            const Divider(height: 1),
+
+                            // Bottom Action Bar
+                            Padding(
+                              padding:
+                                  const EdgeInsets.fromLTRB(14, 8, 14, 10),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    selectedCount == 0
+                                        ? 'All cases'
+                                        : '$selectedCount selected',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.lightSubText,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(dialogContext),
+                                    child: Text(
+                                      'Cancel',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 12,
+                                        color: AppColors.lightSubText,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      Navigator.pop(dialogContext);
+                                      _applyFilterKeys(tempSelected);
+                                    },
+                                    icon: const Icon(
+                                      Icons.check_rounded,
+                                      size: 14,
+                                      color: Colors.white,
+                                    ),
+                                    label: Text(
+                                      'Apply Filters',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.navyMid,
+                                      elevation: 0,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 14, vertical: 7),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // FILTER BAR (DROPDOWN BUTTON + CLEAR ACTION)
+  // ---------------------------------------------------------------------------
+
+  Widget _buildFilterDropdownButton() {
+    final isFiltered = !_selectedFilterKeys.contains('all') &&
+        _selectedFilterKeys.isNotEmpty;
+    final activeCases = _getActiveFilteredCases();
+    final count = activeCases.length;
+
+    String labelText;
+    IconData leadingIcon = Icons.assignment_rounded;
+
+    if (_selectedFilterKeys.contains('all') || _selectedFilterKeys.isEmpty) {
+      labelText = 'Total IRAD';
+      leadingIcon = Icons.assignment_rounded;
+    } else if (_selectedFilterKeys.length == 1) {
+      final item = kIradFilterItems.firstWhere(
+        (i) => i.key == _selectedFilterKeys.first,
+        orElse: () => kIradFilterItems.first,
+      );
+      labelText = item.label;
+      leadingIcon = item.icon;
+    } else {
+      labelText = '${_selectedFilterKeys.length} Filters Selected';
+      leadingIcon = Icons.filter_alt_rounded;
+    }
+
+    return InkWell(
+      key: _dropdownButtonKey,
+      onTap: _openMultiSelectDropdown,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        height: 38,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        decoration: BoxDecoration(
+          color: isFiltered
+              ? AppColors.navyMid.withValues(alpha: 0.08)
+              : Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isFiltered
+                ? AppColors.navyMid
+                : Colors.grey.withValues(alpha: 0.3),
+            width: isFiltered ? 1.5 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              leadingIcon,
+              size: 16,
+              color: isFiltered ? AppColors.navyMid : const Color(0xFF5D7285),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Filter: $labelText',
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.navyDark,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+              decoration: BoxDecoration(
+                color: isFiltered
+                    ? AppColors.navyMid
+                    : Colors.grey.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '$count',
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: isFiltered ? Colors.white : AppColors.navyDark,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            const Icon(
+              Icons.keyboard_arrow_down_rounded,
+              size: 20,
+              color: AppColors.navyMid,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterBar() {
+    final isFiltered = !_selectedFilterKeys.contains('all') &&
+        _selectedFilterKeys.isNotEmpty;
+
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: Row(
+        children: [
+          _buildFilterDropdownButton(),
+          const Spacer(),
+          if (isFiltered)
+            InkWell(
+              onTap: () => _applyFilterKeys({'all'}),
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.dangerRed.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: AppColors.dangerRed.withValues(alpha: 0.25),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.close_rounded,
+                      size: 14,
+                      color: AppColors.dangerRed,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Clear Filter',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.dangerRed,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // ACTIVE FILTER BANNER
+  // ---------------------------------------------------------------------------
+
+  Widget _buildActiveFilterBanner() {
+    if (_selectedFilterKeys.contains('all') || _selectedFilterKeys.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final activeItems = kIradFilterItems
+        .where((i) => _selectedFilterKeys.contains(i.key))
+        .toList();
+    final filterLabels = activeItems.map((i) => i.label).join(', ');
+    final activeCases = _getActiveFilteredCases();
+    final count = activeCases.length;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.navyMid.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.navyMid.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.filter_alt_rounded,
+            size: 16,
+            color: AppColors.navyMid,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                text: 'Filtered by: ',
+                style: GoogleFonts.poppins(
+                  fontSize: 12.5,
+                  color: AppColors.lightSubText,
+                ),
+                children: [
+                  TextSpan(
+                    text: filterLabels,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyDark,
+                    ),
+                  ),
+                  TextSpan(
+                    text: ' • $count ${count == 1 ? 'Case' : 'Cases'}',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.navyMid,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () => _applyFilterKeys({'all'}),
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.dangerRed.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Clear',
+                    style: GoogleFonts.poppins(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.dangerRed,
+                    ),
+                  ),
+                  const SizedBox(width: 3),
+                  const Icon(
+                    Icons.close_rounded,
+                    size: 13,
+                    color: AppColors.dangerRed,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // EMPTY STATE HELPER
+  // ---------------------------------------------------------------------------
+
+  Widget _buildEmptyState({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+  }) {
+    final isFiltered = !_selectedFilterKeys.contains('all') &&
+        _selectedFilterKeys.isNotEmpty;
+
+    return RefreshIndicator(
+      onRefresh: _fetchIradData,
+      color: AppColors.navyMid,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(height: MediaQuery.of(context).size.height * 0.15),
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.navyMid.withValues(alpha: 0.06),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 44,
+                    color: AppColors.navyMid.withValues(alpha: 0.5),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.navyDark,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12.5,
+                    color: AppColors.lightSubText,
+                  ),
+                ),
+                if (isFiltered) ...[
+                  const SizedBox(height: 14),
+                  OutlinedButton.icon(
+                    onPressed: () => _applyFilterKeys({'all'}),
+                    icon: const Icon(Icons.clear_rounded, size: 16),
+                    label: Text(
+                      'Clear Filter',
+                      style: GoogleFonts.poppins(fontSize: 12.5),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.navyMid,
+                      side: BorderSide(
+                        color: AppColors.navyMid.withValues(alpha: 0.3),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // TAB 1: CASE WISE
+  // ---------------------------------------------------------------------------
+
+  Widget _buildCaseWiseTab() {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.navyMid),
+      );
+    }
+    if (_errorMessage != null) {
+      return Center(
+        child: Text(
+          _errorMessage!,
+          style: GoogleFonts.poppins(color: AppColors.dangerRed),
+        ),
+      );
+    }
+    if (_caseWiseData == null || _caseWiseData!.isEmpty) {
+      return _buildEmptyState(
+        title: _selectedFilterKeys.contains('all')
+            ? 'No IRAD Cases Found'
+            : 'No Cases for Selected Filters',
+        subtitle: _selectedFilterKeys.contains('all')
+            ? 'Road accident IRAD cases will appear here once registered'
+            : 'Try adjusting your filter selection above',
+        icon: Icons.category_outlined,
+      );
+    }
+
+    final keys = _caseWiseData!.keys.toList()..sort();
+
+    return RefreshIndicator(
+      onRefresh: _fetchIradData,
+      color: AppColors.navyMid,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        itemCount: keys.length + 1,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return _buildActiveFilterBanner();
+          }
+
+          final head = keys[index - 1];
+          final cases = _caseWiseData![head] ?? [];
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(14),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () {
+                  _openDetailScreen(
+                    title: _selectedFilterKeys.contains('all')
+                        ? 'IRAD Cases — $head'
+                        : 'IRAD ($head) — ${_getActiveFilterLabels()}',
+                    cases: cases,
+                  );
+                },
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0F2FA),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.car_crash_rounded,
+                          color: AppColors.navyMid,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          head,
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14.5,
+                            color: AppColors.navyDark,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.navyMid.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: AppColors.navyMid.withValues(alpha: 0.15),
+                          ),
+                        ),
+                        child: Text(
+                          '${cases.length} ${cases.length == 1 ? 'Case' : 'Cases'}',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                            color: AppColors.navyMid,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppColors.lightSubText,
+                        size: 22,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // TAB 2: TIME WISE
+  // ---------------------------------------------------------------------------
+
+  Widget _buildTimeWiseTab() {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.navyMid),
+      );
+    }
+    if (_errorMessage != null) {
+      return Center(
+        child: Text(
+          _errorMessage!,
+          style: GoogleFonts.poppins(color: AppColors.dangerRed),
+        ),
+      );
+    }
+    if (_timeWiseData == null || _timeWiseData!.isEmpty) {
+      return _buildEmptyState(
+        title: 'No Time Intervals Found',
+        subtitle: 'Duration-wise IRAD breakdown will appear here',
+        icon: Icons.schedule_rounded,
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _fetchIradData,
+      color: AppColors.navyMid,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        itemCount: _timeWiseData!.length + 1,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return _buildActiveFilterBanner();
+          }
+
+          final item = _timeWiseData![index - 1];
+          final p = item['period']?.toString() ?? '';
+          final count = (item['count'] as num?)?.toInt() ?? 0;
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(14),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () {
+                  final now = DateTime.now();
+                  final month1 = now.subtract(const Duration(days: 30));
+                  final months3 = now.subtract(const Duration(days: 90));
+                  final months6 = now.subtract(const Duration(days: 180));
+                  final year1 = now.subtract(const Duration(days: 365));
+
+                  final activeCases = _getActiveFilteredCases();
+                  final filteredByTime = activeCases.where((c) {
+                    final dt = c.incidentDate;
+
+                    if (p == 'Under 1 month') {
+                      return dt.isAfter(month1);
+                    } else if (p == '1 to 3 months') {
+                      return dt.isAfter(months3) && !dt.isAfter(month1);
+                    } else if (p == '3 to 6 months') {
+                      return dt.isAfter(months6) && !dt.isAfter(months3);
+                    } else if (p == '6 to 12 months') {
+                      return dt.isAfter(year1) && !dt.isAfter(months6);
+                    } else if (p == 'More than 1 year') {
+                      return !dt.isAfter(year1);
+                    } else if (p == 'Under 3 months (Total)') {
+                      return dt.isAfter(months3);
+                    }
+                    return true;
+                  }).toList();
+
+                  _openDetailScreen(
+                    title: _selectedFilterKeys.contains('all')
+                        ? 'IRAD — $p'
+                        : 'IRAD ($p) — ${_getActiveFilterLabels()}',
+                    cases: filteredByTime,
+                  );
+                },
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0F2FA),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.schedule_rounded,
+                          color: AppColors.navyMid,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          p,
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14.5,
+                            color: AppColors.navyDark,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.navyMid.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: AppColors.navyMid.withValues(alpha: 0.15),
+                          ),
+                        ),
+                        child: Text(
+                          '$count ${count == 1 ? 'Case' : 'Cases'}',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                            color: AppColors.navyMid,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppColors.lightSubText,
+                        size: 22,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // TAB 3: IO WISE
+  // ---------------------------------------------------------------------------
+
+  Widget _buildIOWiseTab() {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.navyMid),
+      );
+    }
+    if (_errorMessage != null) {
+      return Center(
+        child: Text(
+          _errorMessage!,
+          style: GoogleFonts.poppins(color: AppColors.dangerRed),
+        ),
+      );
+    }
+    if (_ioWiseData == null || _ioWiseData!.isEmpty) {
+      return _buildEmptyState(
+        title: 'No Investigating Officers Found',
+        subtitle: 'Officer-wise IRAD assignment will appear here',
+        icon: Icons.badge_outlined,
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _fetchIradData,
+      color: AppColors.navyMid,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        itemCount: _ioWiseData!.length + 1,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return _buildActiveFilterBanner();
+          }
+
+          final item = _ioWiseData![index - 1];
+          final ioName = item.ioName;
+          final stationName = item.stationName;
+          final count = item.count;
+          final ioCases = item.cases;
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(14),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () {
+                  _openDetailScreen(
+                    title: _selectedFilterKeys.contains('all')
+                        ? 'IRAD — $ioName'
+                        : 'IRAD ($ioName) — ${_getActiveFilterLabels()}',
+                    cases: ioCases,
+                  );
+                },
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: AppColors.navyDark,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.person_rounded,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              ioName,
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14.5,
+                                color: AppColors.navyDark,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              stationName.isNotEmpty
+                                  ? 'Investigating Officer • $stationName'
+                                  : 'Investigating Officer',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                color: AppColors.lightSubText,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.navyMid.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: AppColors.navyMid.withValues(alpha: 0.15),
+                          ),
+                        ),
+                        child: Text(
+                          '$count ${count == 1 ? 'Case' : 'Cases'}',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                            color: AppColors.navyMid,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppColors.lightSubText,
+                        size: 22,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // MAIN BUILD
+  // ---------------------------------------------------------------------------
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.lightBg,
+      backgroundColor: const Color(0xFFF6F8FF),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 1,
@@ -262,6 +1877,7 @@ class _IradHubScreenState extends State<IradHubScreen> {
           ),
         ),
         actions: [
+          // Add Case Button
           ElevatedButton.icon(
             onPressed: _openNewCaseForm,
             style: ElevatedButton.styleFrom(
@@ -273,7 +1889,7 @@ class _IradHubScreenState extends State<IradHubScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            icon: const Icon(Icons.add_rounded, size: 18),
+            icon: const Icon(Icons.add_rounded, size: 16),
             label: Text(
               'Add Case',
               style: GoogleFonts.poppins(
@@ -282,7 +1898,43 @@ class _IradHubScreenState extends State<IradHubScreen> {
               ),
             ),
           ),
+          const SizedBox(width: 8),
+
+          // Summary Button (like Victim tab)
+          ElevatedButton.icon(
+            onPressed: () {
+              _openDetailScreen(
+                title: _selectedFilterKeys.contains('all')
+                    ? 'IRAD Cases — Summary'
+                    : 'IRAD Summary — ${_getActiveFilterLabels()}',
+                cases: _getActiveFilteredCases(),
+              );
+            },
+            icon: const Icon(
+              Icons.assessment_outlined,
+              color: Colors.white,
+              size: 16,
+            ),
+            label: Text(
+              'Summary',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+                color: Colors.white,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.navyMid,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            ),
+          ),
           const SizedBox(width: 6),
+
           IconButton(
             icon: const Icon(Icons.refresh_rounded, color: AppColors.navyMid),
             tooltip: 'Refresh',
@@ -290,461 +1942,654 @@ class _IradHubScreenState extends State<IradHubScreen> {
           ),
           const SizedBox(width: 8),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: Container(
+            color: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: TabBar(
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              controller: _tabController,
+              labelColor: AppColors.navyMid,
+              unselectedLabelColor: AppColors.lightSubText,
+              indicatorColor: AppColors.navyMid,
+              indicatorWeight: 3,
+              indicatorSize: TabBarIndicatorSize.label,
+              labelStyle: GoogleFonts.poppins(
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+              ),
+              unselectedLabelStyle: GoogleFonts.poppins(
+                fontWeight: FontWeight.w500,
+                fontSize: 13,
+              ),
+              tabs: const [
+                Tab(
+                  iconMargin: EdgeInsets.zero,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.category_outlined, size: 16),
+                      SizedBox(width: 8),
+                      Text('Case Wise'),
+                    ],
+                  ),
+                ),
+                Tab(
+                  iconMargin: EdgeInsets.zero,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.schedule_rounded, size: 16),
+                      SizedBox(width: 8),
+                      Text('Time Wise'),
+                    ],
+                  ),
+                ),
+                Tab(
+                  iconMargin: EdgeInsets.zero,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.badge_outlined, size: 16),
+                      SizedBox(width: 8),
+                      Text('IO Wise'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.navyMid),
-            )
-          : RefreshIndicator(
-              onRefresh: _fetchIradData,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Filter Bar with multi-select dropdown button
+            _buildFilterBar(),
+
+            // Tab Views
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                child: TabBarView(
+                  controller: _tabController,
+                  physics: const NeverScrollableScrollPhysics(),
                   children: [
-                    // Error message if any
-                    if (_errorMessage != null)
-                      Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.dangerRed.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(AppRadius.md),
-                          border: Border.all(
-                            color: AppColors.dangerRed.withValues(alpha: 0.3),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.error_outline,
-                                color: AppColors.dangerRed),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                _errorMessage!,
-                                style: GoogleFonts.poppins(
-                                    color: AppColors.dangerRed, fontSize: 13),
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: _fetchIradData,
-                              child: Text('Retry',
-                                  style: GoogleFonts.poppins(
-                                      color: AppColors.navyMid,
-                                      fontWeight: FontWeight.w600)),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                    // 1. Three Summary Cards
-                    _buildSummaryCards(),
-
-                    const SizedBox(height: 16),
-
-                    // 2. Search & Filter Bar
-                    _buildSearchAndFilterBar(),
-
-                    const SizedBox(height: 16),
-
-                    // 3. Cases Table
-                    _buildCasesTable(),
+                    _buildCaseWiseTab(),
+                    _buildTimeWiseTab(),
+                    _buildIOWiseTab(),
                   ],
                 ),
               ),
             ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _openNewCaseForm,
-        backgroundColor: AppColors.navyMid,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add_rounded),
-        label: Text(
-          'Add Case',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildSummaryCards() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final cardWidth = constraints.maxWidth > 700
-            ? (constraints.maxWidth - 32) / 3
-            : constraints.maxWidth;
+// =============================================================================
+// IRAD DETAILED CASES SCREEN (TABLE WITH REMIND TO IO & FORM EDITING)
+// =============================================================================
 
-        return Wrap(
-          spacing: 16,
-          runSpacing: 12,
-          children: [
-            SizedBox(
-              width: cardWidth,
-              child: _buildMetricCard(
-                title: 'Total IRAD',
-                count: _totalIrad,
-                icon: Icons.assignment_rounded,
-                color: AppColors.navyMid,
-                isActive: _statusFilter == 'all',
-                onTap: () {
-                  setState(() => _statusFilter = 'all');
-                  _fetchIradData();
-                },
-              ),
-            ),
-            SizedBox(
-              width: cardWidth,
-              child: _buildMetricCard(
-                title: 'IRAD Form Filled',
-                count: _iradFilled,
-                icon: Icons.check_circle_rounded,
-                color: AppColors.successGreen,
-                isActive: _statusFilter == 'filled',
-                onTap: () {
-                  setState(() => _statusFilter = 'filled');
-                  _fetchIradData();
-                },
-              ),
-            ),
-            SizedBox(
-              width: cardWidth,
-              child: _buildMetricCard(
-                title: 'IRAD Form Pending',
-                count: _iradPending,
-                icon: Icons.pending_actions_rounded,
-                color: AppColors.dangerRed,
-                isActive: _statusFilter == 'pending',
-                onTap: () {
-                  setState(() => _statusFilter = 'pending');
-                  _fetchIradData();
-                },
-              ),
-            ),
-          ],
-        );
-      },
-    );
+class IradCasesDetailScreen extends StatefulWidget {
+  final String title;
+  final List<IradCaseItem> cases;
+  final String stationName;
+  final Future<void> Function(IradCaseItem caseItem) onOpenCaseForm;
+  final Future<void> Function(String caseId, String crNo, String ioName)
+      onSendReminderToIO;
+  final Future<void> Function() onRefreshData;
+  final VoidCallback? onOpenNewCaseForm;
+
+  const IradCasesDetailScreen({
+    super.key,
+    required this.title,
+    required this.cases,
+    required this.stationName,
+    required this.onOpenCaseForm,
+    required this.onSendReminderToIO,
+    required this.onRefreshData,
+    this.onOpenNewCaseForm,
+  });
+
+  @override
+  State<IradCasesDetailScreen> createState() => _IradCasesDetailScreenState();
+}
+
+class _IradCasesDetailScreenState extends State<IradCasesDetailScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  late List<IradCaseItem> _displayCases;
+
+  @override
+  void initState() {
+    super.initState();
+    _displayCases = List<IradCaseItem>.from(widget.cases);
   }
 
-  Widget _buildMetricCard({
+  @override
+  void didUpdateWidget(covariant IradCasesDetailScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.cases != widget.cases) {
+      _applySearch();
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _applySearch() {
+    final q = _searchQuery.toLowerCase().trim();
+    if (q.isEmpty) {
+      setState(() {
+        _displayCases = List<IradCaseItem>.from(widget.cases);
+      });
+      return;
+    }
+    setState(() {
+      _displayCases = widget.cases.where((c) {
+        final cr = c.crNo.toLowerCase();
+        final io = c.ioName.toLowerCase();
+        final act = c.actAndSection.toLowerCase();
+        return cr.contains(q) || io.contains(q) || act.contains(q);
+      }).toList();
+    });
+  }
+
+  Widget _buildStatCard({
     required String title,
     required int count,
     required IconData icon,
     required Color color,
-    required bool isActive,
-    required VoidCallback onTap,
+    required Color bgColor,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppRadius.lg),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(
-            color: isActive ? color : AppColors.lightBorder,
-            width: isActive ? 2 : 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: color.withValues(alpha: isActive ? 0.12 : 0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-              child: Icon(icon, color: color, size: 24),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.lightSubText,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    count.toString(),
-                    style: GoogleFonts.poppins(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: color,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchAndFilterBar() {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.lightBorder),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search by CR No. or IO Name...',
-                hintStyle: GoogleFonts.poppins(
-                    fontSize: 13, color: AppColors.lightSubText),
-                prefixIcon: const Icon(Icons.search,
-                    color: AppColors.navyMid, size: 20),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, size: 18),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _searchQuery = '');
-                          _fetchIradData();
-                        },
-                      )
-                    : null,
-                isDense: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                  borderSide: const BorderSide(color: AppColors.lightBorder),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                title,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.lightSubText,
                 ),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
               ),
-              onSubmitted: (val) {
-                setState(() => _searchQuery = val);
-                _fetchIradData();
-              },
-            ),
-          ),
-          const SizedBox(width: 8),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.navyMid,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.sm),
+              const SizedBox(height: 2),
+              Text(
+                count.toString(),
+                style: GoogleFonts.poppins(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.navyDark,
+                ),
               ),
-            ),
-            onPressed: () {
-              setState(() => _searchQuery = _searchController.text);
-              _fetchIradData();
-            },
-            child: Text(
-              'Search',
-              style: GoogleFonts.poppins(
-                  fontSize: 13, fontWeight: FontWeight.w600),
-            ),
-          ),
-          const SizedBox(width: 8),
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.navyMid,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-            ),
-            icon: const Icon(Icons.add_rounded, size: 16),
-            label: Text(
-              'Add Case',
-              style: GoogleFonts.poppins(
-                  fontSize: 13, fontWeight: FontWeight.w600),
-            ),
-            onPressed: _openNewCaseForm,
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCasesTable() {
-    if (_cases.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(32),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: AppColors.lightBorder),
-        ),
-        child: Column(
-          children: [
-            const Icon(Icons.folder_open_rounded,
-                size: 48, color: AppColors.lightSubText),
-            const SizedBox(height: 12),
-            Text(
-              'No Road Accident IRAD cases found.',
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.navyDark,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Cases will appear here once registered under Road Accident categories.',
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                color: AppColors.lightSubText,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      );
+  @override
+  Widget build(BuildContext context) {
+    int filledCount = 0;
+    int pendingCount = 0;
+    for (final c in _displayCases) {
+      final st = c.status.toLowerCase();
+      if (st == 'filled' || st == 'completed') {
+        filledCount++;
+      } else {
+        pendingCount++;
+      }
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.lightBorder),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF6F8FF),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 1,
+        iconTheme: const IconThemeData(color: AppColors.navyDark),
+        title: Text(
+          widget.title,
+          style: GoogleFonts.poppins(
+            color: AppColors.navyDark,
+            fontWeight: FontWeight.w700,
+            fontSize: 16,
+          ),
+        ),
+        actions: [
+          if (widget.onOpenNewCaseForm != null)
+            ElevatedButton.icon(
+              onPressed: widget.onOpenNewCaseForm,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.navyMid,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              icon: const Icon(Icons.add_rounded, size: 16),
+              label: Text(
+                'Add Case',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded, color: AppColors.navyMid),
+            tooltip: 'Refresh',
+            onPressed: () async {
+              await widget.onRefreshData();
+              _applySearch();
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: DataTable(
-            headingRowColor: WidgetStateProperty.all(
-              AppColors.navyMid.withValues(alpha: 0.05),
-            ),
-            headingTextStyle: GoogleFonts.poppins(
-              fontWeight: FontWeight.w700,
-              fontSize: 13,
-              color: AppColors.navyDark,
-            ),
-            dataTextStyle: GoogleFonts.poppins(
-              fontSize: 13,
-              color: Colors.black87,
-            ),
-            columns: const [
-              DataColumn(label: Text('Sr. No.')),
-              DataColumn(label: Text('CR No.')),
-              DataColumn(label: Text('Act and Section')),
-              DataColumn(label: Text('IO Name')),
-              DataColumn(label: Text('Status')),
-              DataColumn(label: Text('Action / Remind to IO')),
-            ],
-            rows: _cases.map((c) {
-              final srNo = c['sr_no']?.toString() ?? '-';
-              final crNo =
-                  c['cr_no']?.toString() ?? c['case_number']?.toString() ?? '-';
-              final actSec = c['act_and_section']?.toString() ?? '-';
-              final ioName = c['io_name']?.toString() ?? '-';
-              final status = c['status']?.toString() ?? 'Pending';
-              final isFilled = status.toLowerCase() == 'filled' ||
-                  status.toLowerCase() == 'completed';
-              final canRemind = c['can_remind'] == true;
-              final caseId = c['id']?.toString() ?? '';
+      floatingActionButton: widget.onOpenNewCaseForm != null
+          ? FloatingActionButton.extended(
+              onPressed: widget.onOpenNewCaseForm,
+              backgroundColor: AppColors.navyMid,
+              foregroundColor: Colors.white,
+              elevation: 4,
+              icon: const Icon(Icons.add_rounded, size: 20),
+              label: Text(
+                'Add Case',
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            )
+          : null,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Top 3 Stat Cards
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isMobile = constraints.maxWidth < 650;
+                  final cards = [
+                    _buildStatCard(
+                      title: 'Total IRAD',
+                      count: _displayCases.length,
+                      icon: Icons.assignment_outlined,
+                      color: AppColors.navyMid,
+                      bgColor: AppColors.navyMid.withValues(alpha: 0.08),
+                    ),
+                    _buildStatCard(
+                      title: 'IRAD Form Filled',
+                      count: filledCount,
+                      icon: Icons.check_circle_outline_rounded,
+                      color: AppColors.successGreen,
+                      bgColor: AppColors.successGreen.withValues(alpha: 0.1),
+                    ),
+                    _buildStatCard(
+                      title: 'IRAD Form Pending',
+                      count: pendingCount,
+                      icon: Icons.pending_actions_rounded,
+                      color: AppColors.dangerRed,
+                      bgColor: AppColors.dangerRed.withValues(alpha: 0.1),
+                    ),
+                  ];
 
-              return DataRow(
-                cells: [
-                  DataCell(Text(srNo)),
-                  DataCell(
-                    InkWell(
-                      onTap: () => _openCaseForm(c),
-                      borderRadius: BorderRadius.circular(4),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              crNo,
-                              style: GoogleFonts.poppins(
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.navyMid,
-                                decoration: TextDecoration.underline,
+                  if (isMobile) {
+                    return Column(
+                      children: cards
+                          .map((c) => Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: c,
+                              ))
+                          .toList(),
+                    );
+                  }
+
+                  return Row(
+                    children: cards
+                        .map((c) => Expanded(
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 6),
+                                child: c,
                               ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(Icons.open_in_new_rounded,
-                                size: 14, color: AppColors.navyMid),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  DataCell(Text(actSec)),
-                  DataCell(Text(ioName)),
-                  DataCell(
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: isFilled
-                            ? AppColors.successGreen
-                            : AppColors.dangerRed,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        status,
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ),
-                  ),
-                  DataCell(
-                    canRemind
-                        ? ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 6),
-                              textStyle: GoogleFonts.poppins(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(AppRadius.sm),
-                              ),
-                            ),
-                            icon: const Icon(Icons.notifications_active_rounded,
-                                size: 14),
-                            label: const Text('Remind to IO'),
-                            onPressed: () =>
-                                _sendReminderToIO(caseId, crNo, ioName),
-                          )
-                        : Text(
-                            'Completed',
-                            style: GoogleFonts.poppins(
-                              color: AppColors.successGreen,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
+                            ))
+                        .toList(),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 16),
+
+              // Search & Action Row
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        style: GoogleFonts.poppins(fontSize: 13),
+                        decoration: InputDecoration(
+                          hintText: 'Search by CR No. or IO Name...',
+                          hintStyle: GoogleFonts.poppins(
+                            fontSize: 13,
+                            color: AppColors.lightSubText,
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.search,
+                            color: AppColors.navyMid,
+                            size: 18,
+                          ),
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear, size: 16),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    _searchQuery = '';
+                                    _applySearch();
+                                  },
+                                )
+                              : null,
+                          isDense: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(
+                              color: Colors.grey.withValues(alpha: 0.3),
                             ),
                           ),
-                  ),
-                ],
-              );
-            }).toList(),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 8),
+                        ),
+                        onChanged: (val) {
+                          _searchQuery = val;
+                          _applySearch();
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.navyMid,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onPressed: _applySearch,
+                      child: Text(
+                        'Search',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    if (widget.onOpenNewCaseForm != null) ...[
+                      const SizedBox(width: 8),
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.navyMid,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        icon: const Icon(Icons.add_rounded, size: 16),
+                        label: Text(
+                          'Add Case',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        onPressed: widget.onOpenNewCaseForm,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 14),
+
+              // Cases Table
+              Expanded(
+                child: _displayCases.isEmpty
+                    ? Center(
+                        child: Text(
+                          'No cases found matching your criteria.',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            color: AppColors.lightSubText,
+                          ),
+                        ),
+                      )
+                    : Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                              color: Colors.grey.withValues(alpha: 0.2)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.02),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: DataTable(
+                                headingRowColor: WidgetStateProperty.all(
+                                    AppColors.navyDark),
+                                headingTextStyle: GoogleFonts.poppins(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                                dataTextStyle: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.navyDark,
+                                ),
+                                columnSpacing: 24,
+                                horizontalMargin: 16,
+                                columns: const [
+                                  DataColumn(label: Text('Sr. No.')),
+                                  DataColumn(label: Text('CR No.')),
+                                  DataColumn(label: Text('Act and Section')),
+                                  DataColumn(label: Text('IO Name')),
+                                  DataColumn(label: Text('Status')),
+                                  DataColumn(
+                                      label: Text('Action / Remind to IO')),
+                                ],
+                                rows: List<DataRow>.generate(
+                                  _displayCases.length,
+                                  (index) {
+                                    final c = _displayCases[index];
+                                    final crNo = c.crNo;
+                                    final act = c.actAndSection;
+                                    final io = c.ioName;
+                                    final statusStr = c.status;
+                                    final isFilled =
+                                        statusStr.toLowerCase() == 'filled' ||
+                                            statusStr.toLowerCase() ==
+                                                'completed';
+                                    final caseId = c.id;
+
+                                    return DataRow(
+                                      color: WidgetStateProperty.resolveWith(
+                                        (states) => index.isEven
+                                            ? Colors.white
+                                            : const Color(0xFFF9FAFF),
+                                      ),
+                                      cells: [
+                                        DataCell(Text('${index + 1}')),
+                                        DataCell(
+                                          InkWell(
+                                            onTap: () =>
+                                                widget.onOpenCaseForm(c),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  crNo,
+                                                  style: GoogleFonts.poppins(
+                                                    color: AppColors.navyMid,
+                                                    fontWeight: FontWeight.w700,
+                                                    decoration:
+                                                        TextDecoration
+                                                            .underline,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 4),
+                                                const Icon(
+                                                  Icons.open_in_new_rounded,
+                                                  size: 13,
+                                                  color: AppColors.navyMid,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        DataCell(Text(act)),
+                                        DataCell(Text(io)),
+                                        DataCell(
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 10, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: isFilled
+                                                  ? AppColors.successGreen
+                                                  : AppColors.dangerRed,
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            child: Text(
+                                              isFilled ? 'Filled' : 'Pending',
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w700,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        DataCell(
+                                          isFilled
+                                              ? Text(
+                                                  'Completed',
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w600,
+                                                    color:
+                                                        AppColors.successGreen,
+                                                  ),
+                                                )
+                                              : ElevatedButton.icon(
+                                                  onPressed: () {
+                                                    widget.onSendReminderToIO(
+                                                        caseId, crNo, io);
+                                                  },
+                                                  icon: const Icon(
+                                                    Icons
+                                                        .notifications_active_rounded,
+                                                    size: 14,
+                                                    color: Colors.white,
+                                                  ),
+                                                  label: Text(
+                                                    'Remind to IO',
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize: 11.5,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                  style: ElevatedButton
+                                                      .styleFrom(
+                                                    backgroundColor:
+                                                        AppColors.dangerRed,
+                                                    elevation: 0,
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 10,
+                                                        vertical: 6),
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              6),
+                                                    ),
+                                                  ),
+                                                ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+              ),
+            ],
           ),
         ),
       ),

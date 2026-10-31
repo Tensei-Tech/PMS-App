@@ -273,6 +273,10 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
         ? baseFields.where((f) => !_isFieldEmpty(f)).toList()
         : baseFields;
 
+    if (widget.readOnly && widget.hideEmptyFields && visibleFields.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     final screenWidth = MediaQuery.sizeOf(context).width;
     final isCompact = screenWidth < 600;
 
