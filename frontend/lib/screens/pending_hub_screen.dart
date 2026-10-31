@@ -9,6 +9,7 @@ import '../modules/core/models/base_record.dart';
 import '../utils/pending_io_wise_logic.dart';
 import '../utils/category_icon_helper.dart';
 import '../widgets/read_only_module_record_hub_card.dart';
+import '../widgets/pending_time_wise_card.dart';
 
 class PendingHubScreen extends StatefulWidget {
   final String stationName;
@@ -416,115 +417,7 @@ class _PendingHubScreenState extends State<PendingHubScreen>
           final period = item['period']?.toString() ?? '';
           final count = (item['count'] as num?)?.toInt() ?? 0;
 
-          return Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(14),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(14),
-                onTap: () {
-                  final now = DateTime.now();
-                  DateTime? start, end;
-
-                  if (period == 'Under 1 month') {
-                    start = now.subtract(const Duration(days: 30));
-                  } else if (period == '1 to 3 months') {
-                    start = now.subtract(const Duration(days: 90));
-                    end = now.subtract(const Duration(days: 30));
-                  } else if (period == '3 to 6 months') {
-                    start = now.subtract(const Duration(days: 180));
-                    end = now.subtract(const Duration(days: 90));
-                  } else if (period == '6 to 12 months') {
-                    start = now.subtract(const Duration(days: 365));
-                    end = now.subtract(const Duration(days: 180));
-                  } else if (period == 'More than 1 year') {
-                    end = now.subtract(const Duration(days: 365));
-                  } else if (period == 'Under 3 months (Total)') {
-                    start = now.subtract(const Duration(days: 90));
-                  }
-
-                  Navigator.push(
-                    context,
-                    AppTheme.fadeSlideRoute(
-                      page: FilteredPendingScreen(
-                        title: 'Time Wise - $period',
-                        startDate: start?.toIso8601String().split('T')[0],
-                        endDate: end?.toIso8601String().split('T')[0],
-                      ),
-                    ),
-                  );
-                },
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: AppColors.navyMid.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(
-                          Icons.schedule_rounded,
-                          color: AppColors.navyMid,
-                          size: 22,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Text(
-                          period,
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14.5,
-                            color: AppColors.navyDark,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: AppColors.navyMid.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                              color: AppColors.navyMid.withValues(alpha: 0.15)),
-                        ),
-                        child: Text(
-                          '$count Cases',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 12,
-                            color: AppColors.navyMid,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(
-                        Icons.chevron_right_rounded,
-                        color: AppColors.lightSubText,
-                        size: 22,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          );
+          return PendingTimeWiseCard(period: period, count: count);
         },
       ),
     );
