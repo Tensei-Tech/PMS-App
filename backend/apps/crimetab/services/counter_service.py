@@ -17,11 +17,13 @@ class CategoryIndex:
 
     def __init__(self):
         self._names: Dict[int, str] = {}
+        self._codes: Dict[int, str] = {}
         self._active_by_name: Dict[str, List[int]] = defaultdict(list)
         self._active_children: Dict[int, List[int]] = defaultdict(list)
-        rows = CaseCategory.objects.values_list('category_id', 'category_name', 'parent_category_id', 'is_active')
-        for cid, name, parent_id, active in rows:
+        rows = CaseCategory.objects.values_list('category_id', 'category_name', 'parent_category_id', 'is_active', 'category_code')
+        for cid, name, parent_id, active, code in rows:
             self._names[cid] = name or ''
+            self._codes[cid] = code or ''
             if active:
                 self._active_by_name[(name or '').strip().lower()].append(cid)
                 if parent_id is not None:
@@ -37,6 +39,12 @@ class CategoryIndex:
 
     def active_children(self, category_id: int) -> List[int]:
         return list(self._active_children.get(category_id, []))
+
+    def name(self, category_id: int) -> str:
+        return self._names.get(category_id, '')
+
+    def code(self, category_id: int) -> str:
+        return self._codes.get(category_id, '')
 
 
 def get_twin_category_ids(category_id: int, index: Optional[CategoryIndex] = None) -> List[int]:
@@ -149,10 +157,11 @@ def get_category_counters(category_id: int, station_name: Optional[str] = None,
         from django.db.models import Value
         from django.db.models.fields.json import KeyTextTransform
         
+        index = index or CategoryIndex()
         descendant_ids = get_descendant_category_ids(category_id, index)
-        from apps.crimetab.models.groupings import CaseCategory
-        cat = CaseCategory.objects.filter(category_id=category_id).first()
-        is_prev = cat and (cat.category_code == 'STAND_PREVENTIVE' or (cat.category_name and cat.category_name.strip().lower() == 'preventive'))
+        cat_code = index.code(category_id)
+        cat_name = index.name(category_id)
+        is_prev = (cat_code == 'STAND_PREVENTIVE' or (cat_name and cat_name.strip().lower() == 'preventive'))
         if is_prev:
             from apps.cases.group_filters import preventive_case_q
             queryset = CaseRecord.objects.filter(preventive_case_q()).distinct()

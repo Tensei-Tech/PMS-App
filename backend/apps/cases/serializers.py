@@ -4,7 +4,8 @@ from apps.cases.models import CaseRecord
 
 class CaseRecordListSerializer(serializers.ModelSerializer):
     """
-    Serializer for case list screens providing essential case fields and extra_fields.
+    Lightweight serializer for case list screens to minimize egress.
+    Omits heavy extra_fields JSON payload and deep relations.
     """
     class Meta:
         model = CaseRecord
@@ -26,47 +27,10 @@ class CaseRecordListSerializer(serializers.ModelSerializer):
             'created_by',
             'station_name',
             'disposal_date',
-            'extra_fields',
             'created_at',
             'updated_at',
         ]
         read_only_fields = ['created_at', 'updated_at']
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        try:
-            extra = data.get('extra_fields')
-            if not isinstance(extra, dict):
-                extra = {}
-                data['extra_fields'] = extra
-            p_items = list(instance.preventive_action_items.all())
-            if p_items:
-                serialized_pa = [
-                    {
-                        'name': p.name or (p.person.name if p.person else None),
-                        'action': p.action_type,
-                        'action_type': p.action_type,
-                        'action_date': p.action_date.strftime('%d/%m/%Y') if p.action_date else '',
-                        'outward_number': p.outward_number or '',
-                        'preventive_number': p.preventive_number or '',
-                        'bond_date': p.bond_date.strftime('%d/%m/%Y') if p.bond_date else '',
-                        'bond_cancellation_date': p.bond_cancellation_date.strftime('%d/%m/%Y') if p.bond_cancellation_date else '',
-                    }
-                    for p in p_items
-                ]
-                if not extra.get('preventive_actions'):
-                    extra['preventive_actions'] = serialized_pa
-                if not extra.get('preventive_action_items'):
-                    extra['preventive_action_items'] = serialized_pa
-                if not extra.get('preventive_action_type'):
-                    extra['preventive_action_type'] = p_items[0].action_type
-                if not extra.get('preventive_no') and p_items[0].preventive_number:
-                    extra['preventive_no'] = p_items[0].preventive_number
-                if not extra.get('preventive_outward_no') and p_items[0].outward_number:
-                    extra['preventive_outward_no'] = p_items[0].outward_number
-        except Exception:
-            pass
-        return data
 
 
 class CaseRecordSerializer(serializers.ModelSerializer):
