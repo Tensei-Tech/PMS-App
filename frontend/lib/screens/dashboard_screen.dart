@@ -4091,9 +4091,6 @@ class _HomeTabState extends State<_HomeTab> {
       }
     }
 
-    final itemColor =
-        matchedTool != null ? Color(matchedTool.color) : AppColors.navyMid;
-
     return GestureDetector(
       onTap: () => _openClassificationItem(context, item),
       child: Column(
@@ -4115,7 +4112,7 @@ class _HomeTabState extends State<_HomeTab> {
                     child: _buildGridIcon(
                         item.name,
                         matchedTool?.icon ?? _classIcon(item.iconName),
-                        itemColor,
+                        AppColors.navyMid,
                         baseSize),
                   );
                 },
