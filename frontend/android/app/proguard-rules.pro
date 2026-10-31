@@ -1,4 +1,4 @@
-# Khakhi Diary — ProGuard / R8 Rules
+# PMS — ProGuard / R8 Rules
 # Domain 6: Code obfuscation and shrinking rules for release builds.
 
 # ── Flutter Engine ─────────────────────────────────────────────────────────────

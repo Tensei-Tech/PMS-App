@@ -12,7 +12,7 @@ class AppLocalizationsPa extends AppLocalizations {
   String get appTitle => 'ਪੁਲਿਸ ਪ੍ਰਬੰਧਨ ਪ੍ਰਣਾਲੀ';
 
   @override
-  String get khakhiDiary => 'ਖਾਕੀ ਡਾਇਰੀ';
+  String get khakhiDiary => 'PMS';
 
   @override
   String get safeSwiftSecure => 'ਸੁਰੱਖਿਅਤ • ਤੇਜ਼ • ਨਿਰਭਰ';

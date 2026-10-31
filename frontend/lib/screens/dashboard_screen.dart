@@ -3183,7 +3183,7 @@ class _HomeTabState extends State<_HomeTab> {
       (
         title: 'About App',
         subtext: 'App Info',
-        keywords: ['about app', 'about', 'about khakhi diary', 'tensei tech'],
+        keywords: ['about app', 'about', 'about pms', 'tensei tech'],
         icon: Icons.info_rounded,
         onTap: () => Navigator.push(
             context, AppTheme.fadeSlideRoute(page: const AboutAppScreen())),

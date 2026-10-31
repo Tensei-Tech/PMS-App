@@ -631,7 +631,7 @@ class PreventiveFormPdfHelper {
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
           pw.Text(
-            'Khakhi Diary · Crime Monitoring & Preventive Action System',
+            'PMS · Crime Monitoring & Preventive Action System',
             style: const pw.TextStyle(fontSize: 6.5, color: _kSec),
           ),
           pw.Text(
