@@ -70,6 +70,8 @@ import '../providers/news_provider.dart';
 import '../providers/theme_provider.dart';
 import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
+import '../services/backend_case_service.dart';
+import '../widgets/pending_time_wise_card.dart';
 import '../utils/app_constants.dart';
 import '../utils/case_visibility_ui.dart';
 import '../utils/common_form_module.dart';
@@ -90,8 +92,6 @@ import 'undetected_hub_screen.dart';
 import 'detected_hub_screen.dart';
 import 'disposal_hub_screen.dart';
 import 'arrested_hub_screen.dart';
-import '../widgets/summons_warrant_report_table.dart';
-import '../widgets/monthly_crime_comparative_table.dart';
 import 'juvenile_hub_screen.dart';
 import 'victim_hub_screen.dart';
 import 'repeat_offender_summary_screen.dart';
@@ -5472,20 +5472,7 @@ class _ViewTabState extends State<_ViewTab> {
 }
 
 // ── CALENDAR TAB ─────────────────────────────────────────────────────────────
-class _CalCategoryMeta {
-  final String label;
-  final String moduleKey;
-  final String? subCategory;
-  int count;
-
-  _CalCategoryMeta({
-    required this.label,
-    required this.moduleKey,
-    this.subCategory,
-    required this.count,
-  });
-}
-
+// Shows the same Time Wise breakdown as the Pending hub.
 class _CalendarTab extends StatefulWidget {
   final bool isDark;
   const _CalendarTab({required this.isDark});
@@ -5494,606 +5481,109 @@ class _CalendarTab extends StatefulWidget {
   State<_CalendarTab> createState() => _CalendarTabState();
 }
 
-enum _CalendarTabArea { weekly, monthly, samWarrant, yearly, custom }
-
 class _CalendarTabState extends State<_CalendarTab> {
-  _CalendarTabArea _activeArea = _CalendarTabArea.weekly;
-  DateTimeRange? _customRange;
-  late int _selectedMonth;
-  late int _selectedYear;
+  final BackendCaseService _backend = BackendCaseService();
+  List<Map<String, dynamic>>? _timeWiseData;
+  bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
-    _selectedMonth = now.month;
-    _selectedYear = now.year;
+    _load();
   }
 
-  List<ModuleRecord> _getConsolidatedRecords(BuildContext context) {
-    final records = <ModuleRecord>[];
-    records.addAll(context.watch<FormIVProvider>().records);
-    records.addAll(context.watch<FormVIProvider>().records);
-    records.addAll(context.watch<NcProvider>().records);
-    records.addAll(context.watch<PreventiveProvider>().records);
-    records.addAll(context.watch<AdProvider>().records);
-    records.addAll(context.watch<MissingProvider>().records);
-    records.addAll(context.watch<KidnappingProvider>().records);
-    records.addAll(context.watch<TheftProvider>().records);
-    records.addAll(context.watch<SandTheftProvider>().records);
-    records.addAll(context.watch<HurtProvider>().records);
-    records.addAll(context.watch<PocsoProvider>().records);
-    records.addAll(context.watch<PassportProvider>().records);
-    records.addAll(context.watch<LicenceProvider>().records);
-    records.addAll(context.watch<TwoFourWheelerProvider>().records);
-    records.addAll(context.watch<ArrestedProvider>().records);
-    records.addAll(context.watch<AbscondedProvider>().records);
-    records.addAll(context.watch<CrimeWomenProvider>().records);
-    records.addAll(context.watch<JuvenileProvider>().records);
-    records.addAll(context.watch<VictimProvider>().records);
-    records.addAll(context.watch<AccidentProvider>().records);
-    records.addAll(context.watch<TrafficProvider>().records);
-    records.addAll(context.watch<ApplicationProvider>().records);
-    records.addAll(context.watch<SamWarrantProvider>().records);
-    records.addAll(context.watch<MuddemalProvider>().records);
-    records.addAll(context.watch<BnssProvider>().records);
-    records.addAll(context.watch<NdpsProvider>().records);
-    records.addAll(context.watch<GowansProvider>().records);
-    records.addAll(context.watch<ItActProvider>().records);
-    records.addAll(context.watch<McocaProvider>().records);
-    records.addAll(context.watch<UapaProvider>().records);
-    records.addAll(context.watch<MpdaProvider>().records);
-    records.addAll(context.watch<CoinProvider>().records);
-    final unique = <String, ModuleRecord>{};
-    for (final r in records) {
-      unique[r.id] = r;
+  Future<void> _load() async {
+    try {
+      final data = await _backend.fetchPendingTimeWise();
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        if (data != null) {
+          _timeWiseData = data;
+          _error = null;
+        } else if (_timeWiseData == null) {
+          _error = 'Failed to load time-wise pending data.';
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _error = e.toString();
+      });
     }
-    return unique.values.toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      physics: const BouncingScrollPhysics(),
-      slivers: [
-        SliverToBoxAdapter(child: _buildReportTabs()),
-        _buildRegistrationSummary(context, _activeArea),
-        const SliverToBoxAdapter(child: SizedBox(height: 100)),
-      ],
-    );
-  }
-
-  Widget _buildReportTabs() {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 8),
-          child: Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-              border: Border.all(color: AppColors.lightBorder),
-            ),
-            child: Row(
-              children: [
-                _tabBtn('Weekly', _CalendarTabArea.weekly),
-                _tabBtn('Monthly', _CalendarTabArea.monthly),
-                _tabBtn('Sam/Warrant', _CalendarTabArea.samWarrant),
-                _tabBtn('Yearly', _CalendarTabArea.yearly),
-                _tabBtn('Custom', _CalendarTabArea.custom),
-              ],
-            ),
-          ),
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.navyMid),
+      );
+    }
+    if (_error != null) {
+      return Center(
+        child: Text(
+          _error!,
+          style: GoogleFonts.poppins(color: AppColors.dangerRed),
         ),
-      ],
-    );
-  }
+      );
+    }
 
-  Widget _buildMonthSelector() {
-    final months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December'
-    ];
-
-    return Padding(
-      padding:
-          const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 8),
-      child: Row(
+    // The "(Total)" row only repeats the first two periods added together.
+    final items = (_timeWiseData ?? const <Map<String, dynamic>>[])
+        .where((item) => item['period']?.toString() != 'Under 3 months (Total)')
+        .toList();
+    return RefreshIndicator(
+      onRefresh: _load,
+      color: AppColors.navyMid,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 100),
         children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(color: AppColors.lightBorder),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<int>(
-                  value: _selectedMonth,
-                  isExpanded: true,
-                  icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                      color: AppColors.navyMid),
-                  items: List.generate(
-                      12,
-                      (i) => DropdownMenuItem(
-                            value: i + 1,
-                            child: Text(months[i],
-                                style: GoogleFonts.poppins(
-                                    fontSize: 13, fontWeight: FontWeight.w600)),
-                          )),
-                  onChanged: (val) {
-                    if (val != null) setState(() => _selectedMonth = val);
-                  },
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              border: Border.all(color: AppColors.lightBorder),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<int>(
-                value: _selectedYear,
-                icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                    color: AppColors.navyMid),
-                items: List.generate(
-                    5,
-                    (i) => DropdownMenuItem(
-                          value: DateTime.now().year - i,
-                          child: Text('${DateTime.now().year - i}',
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, fontWeight: FontWeight.w600)),
-                        )),
-                onChanged: (val) {
-                  if (val != null) setState(() => _selectedYear = val);
-                },
-              ),
-            ),
+          // All cards in one row. Cards share the width equally, and
+          // scroll sideways once they would be narrower than minCardWidth
+          // (small phones).
+          LayoutBuilder(
+            builder: (context, constraints) {
+              const gap = 10.0;
+              const minCardWidth = 112.0;
+              final cards = <Widget>[
+                for (final item in items)
+                  PendingTimeWiseCard(
+                    period: item['period']?.toString() ?? '',
+                    count: (item['count'] as num?)?.toInt() ?? 0,
+                    vertical: true,
+                    showTitlePrefix: false,
+                  ),
+                // Pick any date range and list the pending cases in it.
+                const PendingTimeWiseCard.custom(showTitlePrefix: false),
+              ];
+              final count = cards.length;
+              final fitWidth =
+                  (constraints.maxWidth - gap * (count - 1)) / count;
+              final cardWidth =
+                  fitWidth < minCardWidth ? minCardWidth : fitWidth;
+              final row = Row(
+                children: [
+                  for (var i = 0; i < count; i++) ...[
+                    if (i > 0) const SizedBox(width: gap),
+                    SizedBox(width: cardWidth, child: cards[i]),
+                  ],
+                ],
+              );
+              return fitWidth < minCardWidth
+                  ? SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: row,
+                    )
+                  : row;
+            },
           ),
         ],
-      ),
-    );
-  }
-
-  Future<void> _selectCustomRange(BuildContext context) async {
-    final range = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-      initialDateRange: _customRange,
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.navyMid,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: AppColors.navyDark,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (range != null) setState(() => _customRange = range);
-  }
-
-  Widget _tabBtn(String label, _CalendarTabArea area) {
-    final isActive = _activeArea == area;
-    const color = AppColors.navyMid;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _activeArea = area),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: isActive ? color : Colors.transparent,
-            borderRadius: BorderRadius.circular(AppRadius.md),
-          ),
-          child: Center(
-            child: Text(label,
-                style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                    color: isActive ? Colors.white : AppColors.lightSubText)),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRegistrationSummary(
-      BuildContext context, _CalendarTabArea area) {
-    final allRecords = _getConsolidatedRecords(context);
-    final now = DateTime.now();
-
-    List<ModuleRecord> filtered;
-    String rangeLabel;
-    String reportTitle;
-
-    if (area == _CalendarTabArea.weekly) {
-      final weekStart = DateTime(now.year, now.month, now.day)
-          .subtract(Duration(days: now.weekday - 1));
-      final weekEnd = weekStart
-          .add(const Duration(days: 7))
-          .subtract(const Duration(seconds: 1));
-      filtered = allRecords
-          .where((r) =>
-              (r.incidentDate.isAfter(weekStart) ||
-                  r.incidentDate.isAtSameMomentAs(weekStart)) &&
-              (r.incidentDate.isBefore(weekEnd) ||
-                  r.incidentDate.isAtSameMomentAs(weekEnd)))
-          .toList();
-      rangeLabel =
-          '${DateFormat('dd MMM').format(weekStart)} - ${DateFormat('dd MMM').format(weekEnd)}';
-      reportTitle = 'WEEKLY REGISTRATION REPORT';
-    } else if (area == _CalendarTabArea.monthly) {
-      filtered = allRecords
-          .where((r) =>
-              r.incidentDate.month == _selectedMonth &&
-              r.incidentDate.year == _selectedYear)
-          .toList();
-      rangeLabel = '${[
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December"
-      ][_selectedMonth - 1]} $_selectedYear';
-      reportTitle = 'MONTHLY REPORT';
-    } else if (area == _CalendarTabArea.samWarrant) {
-      filtered = allRecords;
-      rangeLabel = '${[
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December"
-      ][_selectedMonth - 1]} $_selectedYear';
-      reportTitle = 'SUMMONS & WARRANT MONTHLY REPORT';
-    } else if (area == _CalendarTabArea.yearly) {
-      filtered =
-          allRecords.where((r) => r.incidentDate.year == now.year).toList();
-      rangeLabel = '${now.year}';
-      reportTitle = 'YEARLY REGISTRATION REPORT';
-    } else {
-      if (_customRange == null) {
-        return SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-                vertical: 40, horizontal: AppSpacing.lg),
-            child: Center(
-              child: Column(
-                children: [
-                  Icon(Icons.date_range_rounded,
-                      size: 64, color: Colors.grey.shade300),
-                  const SizedBox(height: 16),
-                  Text('Custom Report not generated yet',
-                      style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.lightSubText)),
-                  const SizedBox(height: 12),
-                  ElevatedButton.icon(
-                    onPressed: () => _selectCustomRange(context),
-                    icon: const Icon(Icons.date_range_rounded,
-                        size: 18, color: Colors.white),
-                    label: Text('Select Date Range',
-                        style: GoogleFonts.poppins(color: Colors.white)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.navyMid,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      }
-      filtered = allRecords
-          .where((r) =>
-              r.incidentDate.isAfter(
-                  _customRange!.start.subtract(const Duration(seconds: 1))) &&
-              r.incidentDate
-                  .isBefore(_customRange!.end.add(const Duration(days: 1))))
-          .toList();
-      rangeLabel =
-          '${DateFormat('dd MMM yyyy').format(_customRange!.start)} - ${DateFormat('dd MMM yyyy').format(_customRange!.end)}';
-      reportTitle = 'CUSTOM DATE REGISTRATION REPORT';
-    }
-
-    final Map<String, _CalCategoryMeta> catMeta = {};
-    for (var r in filtered) {
-      final label = r.firestoreCategoryDisplayName;
-      String? sub = r.subCategory;
-      final key = '${r.moduleKey}_${sub ?? ""}';
-      if (!catMeta.containsKey(key)) {
-        catMeta[key] = _CalCategoryMeta(
-            label: label, moduleKey: r.moduleKey, subCategory: sub, count: 0);
-      }
-      catMeta[key]!.count++;
-    }
-
-    final sortedItems = catMeta.values.toList()
-      ..sort((a, b) => a.label.compareTo(b.label));
-    final countsForPdf = {for (var it in sortedItems) it.label: it.count};
-
-    return SliverPadding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      sliver: SliverToBoxAdapter(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              margin: const EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [AppColors.navyDark, AppColors.navyMid]),
-                borderRadius: BorderRadius.circular(AppRadius.lg),
-                boxShadow: [
-                  BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.12),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4)),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    reportTitle,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: 0.4,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        rangeLabel,
-                        style: GoogleFonts.poppins(
-                          fontSize: 10.5,
-                          color: AppColors.goldPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      if (area == _CalendarTabArea.custom)
-                        GestureDetector(
-                          onTap: () => _selectCustomRange(context),
-                          child: Row(children: [
-                            const Icon(Icons.edit_calendar_rounded,
-                                size: 14, color: Colors.white70),
-                            const SizedBox(width: 4),
-                            Text('Change Range',
-                                style: GoogleFonts.poppins(
-                                    fontSize: 11, color: Colors.white70)),
-                          ]),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            if (area == _CalendarTabArea.monthly) ...[
-              // Month/Year selector
-              _buildMonthSelector(),
-              const SizedBox(height: 16),
-              // Dynamic Monthly Crime Comparative Table from database backend
-              MonthlyCrimeComparativeTable(
-                selectedYear: _selectedYear,
-                selectedMonth: _selectedMonth,
-              ),
-            ] else if (area == _CalendarTabArea.samWarrant) ...[
-              // Month/Year selector
-              _buildMonthSelector(),
-              const SizedBox(height: 16),
-              // Dynamic Summons & Warrant Report Table from database backend
-              SummonsWarrantReportTable(
-                selectedYear: _selectedYear,
-                selectedMonth: _selectedMonth,
-              ),
-            ] else ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Statistics Summary',
-                          style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.navyDark)),
-                      Text('${filtered.length} cases registered in total',
-                          style: GoogleFonts.poppins(
-                              fontSize: 11, color: AppColors.lightSubText)),
-                    ],
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () => ModulePdfHelper.generateSummaryReportPdf(
-                        countsForPdf, reportTitle, rangeLabel),
-                    icon: const Icon(Icons.assessment_outlined,
-                        size: 16, color: Colors.white),
-                    label: Text('Summary',
-                        style: GoogleFonts.poppins(
-                            fontSize: 11, color: Colors.white)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.navyMid,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.md)),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              if (sortedItems.isEmpty)
-                _buildEmptyReport()
-              else
-                ...sortedItems.map((meta) => _buildReportTile(meta)),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildReportTile(_CalCategoryMeta meta) {
-    return GestureDetector(
-      onTap: () {
-        if (meta.moduleKey.toLowerCase() == 'itsso' ||
-            meta.label.toUpperCase() == 'ITSSO') {
-          Navigator.push(
-            context,
-            AppTheme.fadeSlideRoute(
-                page: const ItssoHubScreen(stationName: 'All Stations')),
-          );
-          return;
-        }
-        if (meta.moduleKey.toLowerCase() == 'dar' ||
-            meta.label.toUpperCase() == 'DAR') {
-          final auth = context.read<AuthProvider>();
-          Navigator.push(
-            context,
-            AppTheme.fadeSlideRoute(
-                page: DarHubScreen(stationName: auth.stationName)),
-          );
-          return;
-        }
-        if (meta.moduleKey.toLowerCase() == 'irad' ||
-            meta.moduleKey.toLowerCase() == 'irda' ||
-            meta.label.toUpperCase() == 'IRAD' ||
-            meta.label.toUpperCase() == 'IRDA') {
-          final auth = context.read<AuthProvider>();
-          Navigator.push(
-            context,
-            AppTheme.fadeSlideRoute(
-                page: IradHubScreen(stationName: auth.stationName)),
-          );
-          return;
-        }
-        // A tile for one sub-category opens that module's list filtered to it
-        final sub = meta.subCategory?.trim() ?? '';
-        if (sub.isNotEmpty) {
-          Navigator.push(
-              context,
-              AppTheme.fadeSlideRoute(
-                  page: ModuleHubScreen(
-                moduleLabel: meta.label,
-                moduleKey: meta.moduleKey,
-                subCategory: meta.subCategory,
-                readOnly: true,
-              )));
-          return;
-        }
-        CategoryNavigationHelper.handleDashboardCategoryTap(
-          context: context,
-          categoryName: meta.label,
-          moduleKey: meta.moduleKey,
-          readOnly: true,
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: AppColors.lightBorder),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 4,
-                offset: const Offset(0, 2)),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Row(children: [
-                Text(meta.label,
-                    style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.lightText)),
-                const SizedBox(width: 8),
-                Icon(Icons.open_in_new_rounded,
-                    size: 14, color: AppColors.navyMid.withValues(alpha: 0.5)),
-              ]),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.goldPrimary.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text('${meta.count}',
-                  style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.goldPrimary)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyReport() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 60),
-        child: Column(children: [
-          Icon(Icons.analytics_outlined, size: 48, color: Colors.grey.shade300),
-          const SizedBox(height: 12),
-          Text('No data available for this range',
-              style: GoogleFonts.poppins(
-                  fontSize: 12, color: AppColors.lightSubText)),
-        ]),
       ),
     );
   }
