@@ -1387,8 +1387,7 @@ class MissingFormState extends State<MissingForm> {
         context,
         doc,
         formTitle: 'MISSING PERSON FORM',
-        formSubtitle:
-            'Missing Persons Record — PMS · Maharashtra Police',
+        formSubtitle: 'Missing Persons Record — PMS · Maharashtra Police',
       );
     } catch (e) {
       if (!mounted) return;
