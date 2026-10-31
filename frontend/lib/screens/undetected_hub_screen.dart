@@ -355,12 +355,12 @@ class _UndetectedHubScreenState extends State<UndetectedHubScreen>
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFFF3E0),
+                          color: AppColors.navyMid.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Icon(
                           Icons.search_off_rounded,
-                          color: Color(0xFFE65100),
+                          color: AppColors.navyMid,
                           size: 22,
                         ),
                       ),
@@ -392,9 +392,10 @@ class _UndetectedHubScreenState extends State<UndetectedHubScreen>
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFFF3E0),
+                          color: AppColors.navyMid.withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: const Color(0xFFFFCC80)),
+                          border: Border.all(
+                              color: AppColors.navyMid.withValues(alpha: 0.15)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -402,7 +403,7 @@ class _UndetectedHubScreenState extends State<UndetectedHubScreen>
                             const Icon(
                               Icons.folder_outlined,
                               size: 14,
-                              color: Color(0xFFE65100),
+                              color: AppColors.navyMid,
                             ),
                             const SizedBox(width: 6),
                             Text(
@@ -410,7 +411,7 @@ class _UndetectedHubScreenState extends State<UndetectedHubScreen>
                               style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 12,
-                                color: const Color(0xFFE65100),
+                                color: AppColors.navyMid,
                               ),
                             ),
                           ],
@@ -692,9 +693,10 @@ class _UndetectedHubScreenState extends State<UndetectedHubScreen>
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFFF3E0),
+                          color: AppColors.navyMid.withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: const Color(0xFFFFCC80)),
+                          border: Border.all(
+                              color: AppColors.navyMid.withValues(alpha: 0.15)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -702,7 +704,7 @@ class _UndetectedHubScreenState extends State<UndetectedHubScreen>
                             const Icon(
                               Icons.pending_actions_rounded,
                               size: 14,
-                              color: Color(0xFFE65100),
+                              color: AppColors.navyMid,
                             ),
                             const SizedBox(width: 6),
                             Text(
@@ -710,7 +712,7 @@ class _UndetectedHubScreenState extends State<UndetectedHubScreen>
                               style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 12,
-                                color: const Color(0xFFE65100),
+                                color: AppColors.navyMid,
                               ),
                             ),
                           ],

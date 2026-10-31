@@ -3871,7 +3871,7 @@ class _HomeTabState extends State<_HomeTab> {
                       physics: const NeverScrollableScrollPhysics(),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: cols,
-                        childAspectRatio: 0.82,
+                        childAspectRatio: isWide ? 0.77 : 0.73,
                         mainAxisSpacing: 10,
                         crossAxisSpacing: 10,
                       ),
@@ -4217,7 +4217,7 @@ class _HomeTabState extends State<_HomeTab> {
           // Fixed two-line label area: one- and two-line labels take the same
           // height, so every icon box in a row has the same size and position.
           SizedBox(
-            height: MediaQuery.textScalerOf(context).scale(9.5 * 1.2) * 2 + 2,
+            height: MediaQuery.textScalerOf(context).scale(34.0),
             child: Align(
               alignment: Alignment.topCenter,
               child: Text(
@@ -4228,7 +4228,7 @@ class _HomeTabState extends State<_HomeTab> {
                 style: GoogleFonts.poppins(
                     fontSize: 9.5,
                     fontWeight: FontWeight.w500,
-                    height: 1.2,
+                    height: 1.25,
                     color: AppColors.lightText),
               ),
             ),
@@ -7173,7 +7173,7 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 3,
-                      childAspectRatio: 0.82,
+                      childAspectRatio: 0.74,
                       mainAxisSpacing: 15,
                       crossAxisSpacing: 15,
                     ),
@@ -7286,17 +7286,23 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            TranslationHelper.translate(context, item.name),
-            textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: 9.5,
-              fontWeight: FontWeight.w600,
-              color: AppColors.navyDark,
-              height: 1.2,
+          SizedBox(
+            height: MediaQuery.textScalerOf(context).scale(34.0),
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: Text(
+                TranslationHelper.translate(context, item.name),
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.navyDark,
+                  height: 1.25,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
