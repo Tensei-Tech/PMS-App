@@ -204,7 +204,6 @@ http.Client createMockApiClient() {
     // 6. Group 2 Categories: GET /api/groups/2/categories/ (9 categories)
     if (path.contains('/groups/2/categories')) {
       final group2Names = [
-        'ST Drugs',
         'Prohibition',
         'Gambling',
         'POCSO',
@@ -252,7 +251,6 @@ http.Client createMockApiClient() {
         'Road Accident',
         'Sand Theft',
         'Sec 156(3)/175(3)(BNSS)',
-        'ST Drugs',
         'Suicide',
         'Theft',
         'Two/Four Wheeler Theft',

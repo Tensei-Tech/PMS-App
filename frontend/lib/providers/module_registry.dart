@@ -168,7 +168,6 @@ const Map<String, String> labelToModuleKey = {
   'UAPA': 'uapa',
   'MPDA': 'mpda',
   'COIN': 'coin',
-  'ST Drugs': 'st_drugs',
 };
 
 final List<Type> allDataProviders = [

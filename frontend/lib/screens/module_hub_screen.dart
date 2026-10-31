@@ -156,7 +156,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        _readProvider(context).ensureInitialized();
+        _readProvider(context).ensureInitialized(forceRefresh: true);
       }
     });
   }
@@ -167,7 +167,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     if (oldWidget.moduleKey != widget.moduleKey) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          _readProvider(context).ensureInitialized();
+          _readProvider(context).ensureInitialized(forceRefresh: true);
         }
       });
     }
@@ -379,7 +379,11 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     records.addAll(context.watch<UapaProvider>().records);
     records.addAll(context.watch<MpdaProvider>().records);
     records.addAll(context.watch<CoinProvider>().records);
-    return records;
+    final unique = <String, ModuleRecord>{};
+    for (final r in records) {
+      unique[r.id] = r;
+    }
+    return unique.values.toList();
   }
 
   void _openNewEntryForm(BuildContext context) {
@@ -3556,24 +3560,31 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
             caseRef['category'] ??
             prevMap['crimeCategory'] ??
             prevMap['category'] ??
+            record.subCategory ??
             record.extraFields['crimeCategory'] ??
             record.extraFields['category'] ??
             '')
         .toString()
         .trim();
     if (categoryLabel.isEmpty || categoryLabel.toLowerCase() == 'preventive') {
-      final fallback = (record.extraFields['crimeCategory'] ??
-              record.extraFields['category'] ??
-              '')
-          .toString()
-          .trim();
-      if (fallback.isNotEmpty && fallback.toLowerCase() != 'preventive') {
-        categoryLabel = fallback;
+      if (record.subCategory != null &&
+          record.subCategory!.trim().isNotEmpty &&
+          record.subCategory!.trim().toLowerCase() != 'preventive') {
+        categoryLabel = record.subCategory!.trim();
       } else if (record.firestoreCategoryDisplayName.isNotEmpty &&
           record.firestoreCategoryDisplayName.toLowerCase() != 'preventive') {
         categoryLabel = record.firestoreCategoryDisplayName;
       } else {
-        categoryLabel = 'Theft';
+        final fallback = (record.extraFields['crimeCategory'] ??
+                record.extraFields['category'] ??
+                '')
+            .toString()
+            .trim();
+        if (fallback.isNotEmpty && fallback.toLowerCase() != 'preventive') {
+          categoryLabel = fallback;
+        } else {
+          categoryLabel = '';
+        }
       }
     }
 
@@ -3602,6 +3613,75 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
       sectionAct = prevMap['otherSections'].toString().trim();
     } else {
       sectionAct = '—';
+    }
+    if (sectionAct.isEmpty || sectionAct == '—') {
+      final charges = extra['charges'] ?? prevMap['charges'];
+      if (charges is List && charges.isNotEmpty) {
+        final secParts = <String>[];
+        for (final item in charges) {
+          if (item is Map) {
+            final a = (item['act'] ?? '').toString().trim();
+            final s = (item['section'] ??
+                    item['section_number'] ??
+                    item['sections'] ??
+                    '')
+                .toString()
+                .trim();
+            if (s.isNotEmpty && a.isNotEmpty) {
+              secParts.add('$s $a');
+            } else if (s.isNotEmpty) {
+              secParts.add(s);
+            }
+          } else if (item is String && item.trim().isNotEmpty) {
+            secParts.add(item.trim());
+          }
+        }
+        if (secParts.isNotEmpty) sectionAct = secParts.join(', ');
+      } else if (charges is Map && charges.isNotEmpty) {
+        final secParts = <String>[];
+        for (final val in charges.values) {
+          if (val is Map) {
+            final a = (val['act'] ?? '').toString().trim();
+            final s = val['sections'];
+            if (s is List && s.isNotEmpty) {
+              secParts.add('$a ${s.join(', ')}');
+            } else if (s != null && s.toString().trim().isNotEmpty) {
+              secParts.add('$a $s');
+            }
+          }
+        }
+        if (secParts.isNotEmpty) sectionAct = secParts.join(', ');
+      }
+    }
+    if (sectionAct.isEmpty || sectionAct == '—') {
+      final rawActsSec = extra['acts_sections'] ??
+          (extra['commonForm'] is Map
+              ? (extra['commonForm'] as Map)['acts_sections']
+              : null);
+      if (rawActsSec is List && rawActsSec.isNotEmpty) {
+        final parts = <String>[];
+        for (final item in rawActsSec) {
+          if (item is Map) {
+            final a = (item['act'] ?? '').toString().trim();
+            final s = (item['section'] ??
+                    item['section_number'] ??
+                    item['sections'] ??
+                    '')
+                .toString()
+                .trim();
+            if (s.isNotEmpty && a.isNotEmpty) {
+              parts.add('$s $a');
+            } else if (s.isNotEmpty) {
+              parts.add(s);
+            } else if (a.isNotEmpty) {
+              parts.add(a);
+            }
+          } else if (item is String && item.trim().isNotEmpty) {
+            parts.add(item.trim());
+          }
+        }
+        if (parts.isNotEmpty) sectionAct = parts.join(', ');
+      }
     }
 
     // 4. Accused Name
@@ -3632,38 +3712,97 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
         accusedList.first['arrestDate'] != null &&
         accusedList.first['arrestDate'].toString().trim().isNotEmpty) {
       arrestDate = accusedList.first['arrestDate'].toString().trim();
+    } else if (extra['arrest_datetime'] != null &&
+        extra['arrest_datetime'].toString().trim().isNotEmpty) {
+      arrestDate = extra['arrest_datetime'].toString().trim();
+    } else if (extra['arrest_date'] != null &&
+        extra['arrest_date'].toString().trim().isNotEmpty) {
+      arrestDate = extra['arrest_date'].toString().trim();
     } else {
       arrestDate = DateFormat('dd/MM/yyyy').format(record.incidentDate);
     }
 
     // 6. Preventive Sec. Act
     String prevSecAct = '';
-    final prevAct = istegasha['preventiveSectionAct'] ??
+    dynamic prevAct = istegasha['preventiveSectionAct'] ??
         prevMap['preventiveSectionAct'] ??
-        record.extraFields['preventiveSectionAct'] ??
-        record.extraFields['preventiveSecAct'] ??
+        extra['preventiveSectionAct'] ??
+        extra['preventiveSecAct'] ??
+        extra['preventive_action_type'] ??
+        extra['preventiveActionType'] ??
         istegasha['act'] ??
         prevMap['preventiveAct'] ??
         prevMap['preventiveSecAct'] ??
         prevMap['act'];
+
+    if ((prevAct == null || prevAct.toString().trim().isEmpty) &&
+        extra['preventive_actions'] is List &&
+        (extra['preventive_actions'] as List).isNotEmpty) {
+      final firstPa = (extra['preventive_actions'] as List).first;
+      if (firstPa is Map) {
+        prevAct = firstPa['action'] ?? firstPa['action_type'];
+      }
+    }
+    if ((prevAct == null || prevAct.toString().trim().isEmpty) &&
+        extra['preventive_action_items'] is List &&
+        (extra['preventive_action_items'] as List).isNotEmpty) {
+      final firstPa = (extra['preventive_action_items'] as List).first;
+      if (firstPa is Map) {
+        prevAct = firstPa['action_type'] ?? firstPa['action'];
+      }
+    }
+
     if (prevAct != null && prevAct.toString().trim().isNotEmpty) {
       prevSecAct = prevAct.toString().trim();
     } else {
-      prevSecAct = '107 Crpc/126 BNSS';
+      prevSecAct = '—';
     }
 
     // 7. Preventive No.
     String prevNo = (istegasha['preventiveNo'] ??
             prevMap['preventiveNo'] ??
-            record.extraFields['preventiveNo'] ??
+            extra['preventiveNo'] ??
+            extra['preventive_no'] ??
+            extra['preventive_outward_no'] ??
             '')
         .toString()
         .trim();
+
+    if (prevNo.isEmpty &&
+        extra['preventive_actions'] is List &&
+        (extra['preventive_actions'] as List).isNotEmpty) {
+      final firstPa = (extra['preventive_actions'] as List).first;
+      if (firstPa is Map) {
+        prevNo = (firstPa['preventiveNumber'] ??
+                firstPa['preventive_number'] ??
+                firstPa['outwardNumber'] ??
+                firstPa['outward_number'] ??
+                '')
+            .toString()
+            .trim();
+      }
+    }
+    if (prevNo.isEmpty &&
+        extra['preventive_action_items'] is List &&
+        (extra['preventive_action_items'] as List).isNotEmpty) {
+      final firstPa = (extra['preventive_action_items'] as List).first;
+      if (firstPa is Map) {
+        prevNo = (firstPa['preventive_number'] ??
+                firstPa['preventiveNumber'] ??
+                firstPa['outward_number'] ??
+                firstPa['outwardNumber'] ??
+                '')
+            .toString()
+            .trim();
+      }
+    }
     if (prevNo.isEmpty) prevNo = '—';
 
     // 8. IO Name
     String ioName = (istegasha['ioName'] ??
             prevMap['ioName'] ??
+            extra['io_name'] ??
+            extra['investigating_officer'] ??
             prevMap['assignedOfficer'] ??
             record.assignedOfficer)
         .toString()
@@ -3997,16 +4136,35 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
               label: 'Edit',
               color: AppColors.infoBlue,
               onTap: () {
-                Navigator.push(
-                  context,
-                  AppTheme.fadeSlideRoute(
-                    page: PreventiveFormScreen(
-                      moduleLabel: record.firestoreCategoryDisplayName,
-                      subCategory: subCategory,
-                      existingRecord: record,
+                final isStandalone = record.moduleKey == 'preventive' ||
+                    record.extraFields[kPreventiveFormExtraFieldsKey] != null;
+                if (isStandalone) {
+                  Navigator.push(
+                    context,
+                    AppTheme.fadeSlideRoute(
+                      page: PreventiveFormScreen(
+                        moduleLabel: record.firestoreCategoryDisplayName,
+                        subCategory: subCategory,
+                        existingRecord: record,
+                      ),
                     ),
-                  ),
-                );
+                  );
+                } else {
+                  final page = moduleUsesCommonCrimeForm(record.moduleKey)
+                      ? CommonFormScreen(
+                          moduleLabel: record.firestoreCategoryDisplayName,
+                          moduleKey: record.moduleKey,
+                          subCategory: record.subCategory,
+                          existingRecord: record,
+                        )
+                      : ModuleFormScreen(
+                          moduleLabel: record.firestoreCategoryDisplayName,
+                          moduleKey: record.moduleKey,
+                          subCategory: record.subCategory,
+                          existingRecord: record,
+                        );
+                  Navigator.push(context, AppTheme.fadeSlideRoute(page: page));
+                }
               },
             ),
             const SizedBox(width: 5),
@@ -4017,15 +4175,26 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
             label: 'View',
             color: AppColors.goldPrimary,
             onTap: () {
-              Navigator.push(
-                context,
-                AppTheme.fadeSlideRoute(
-                  page: PreventiveDetailViewScreen(
-                    record: record,
-                    moduleLabel: record.firestoreCategoryDisplayName,
+              final isStandalone = record.moduleKey == 'preventive' ||
+                  record.extraFields[kPreventiveFormExtraFieldsKey] != null;
+              if (isStandalone) {
+                Navigator.push(
+                  context,
+                  AppTheme.fadeSlideRoute(
+                    page: PreventiveDetailViewScreen(
+                      record: record,
+                      moduleLabel: record.firestoreCategoryDisplayName,
+                    ),
                   ),
-                ),
-              );
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  AppTheme.fadeSlideRoute(
+                    page: ModuleRecordDetailScreen(record: record),
+                  ),
+                );
+              }
             },
           ),
           const SizedBox(width: 5),
@@ -4034,7 +4203,12 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
             icon: Icons.picture_as_pdf_outlined,
             label: 'PDF',
             color: AppColors.dangerRed,
-            onTap: () => ModulePdfHelper.generatePdf(record, context),
+            onTap: () {
+              runWithPdfAuthGate(
+                context,
+                () => ModulePdfHelper.generatePdf(record, context),
+              );
+            },
           ),
         ],
       );

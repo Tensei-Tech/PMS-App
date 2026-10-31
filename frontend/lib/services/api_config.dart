@@ -153,6 +153,9 @@ class ApiConfig {
   static String adDetail(dynamic id) => '$baseUrl/ad/$id/';
   static String adPdf(dynamic id) => '$baseUrl/ad/$id/pdf/';
 
+  // Preventive Module Endpoints
+  static String get preventiveConfig => '$baseUrl/preventive/config/';
+
   // MPDA Endpoints
   static String get mpda => '$baseUrl/mpda/';
   static String get mpdaCounts => '$baseUrl/mpda/counts/';

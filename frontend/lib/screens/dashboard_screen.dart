@@ -45,6 +45,7 @@ import '../modules/missing/screens/missing_form_screen.dart';
 import '../modules/monthly/providers/monthly_provider.dart';
 import '../modules/mpda/providers/mpda_provider.dart';
 import '../modules/muddemal/providers/muddemal_provider.dart';
+import '../modules/muddemal/screens/muddemal_main_screen.dart';
 import '../modules/nc/providers/nc_provider.dart';
 import '../modules/nc/screens/nc_form_screen.dart';
 import '../modules/ndps/providers/ndps_provider.dart';
@@ -100,6 +101,7 @@ import '../widgets/form_iv_category_button.dart';
 import '../widgets/searchable_picker_field.dart';
 import '../widgets/send_broadcast_alert_dialog.dart';
 import '../utils/app_data_cache.dart';
+import '../utils/category_icon_helper.dart';
 import '../utils/category_navigation_helper.dart';
 import '../services/case_service.dart';
 import '../widgets/send_reminder_dialog.dart';
@@ -133,133 +135,16 @@ import '../widgets/logout_confirm_dialog.dart';
 import 'profile_screen.dart';
 import 'station_access_grants_screen.dart';
 
-dynamic _dashboardTileIcon(String label, dynamic fallback) {
-  final k = label.replaceAll(RegExp(r'\s+'), ' ').trim();
-  switch (k) {
-    case 'Monthly':
-      return FontAwesomeIcons.calendarDay;
-    case 'Pending':
-      return FontAwesomeIcons.solidClock;
-    case 'Detected':
-      return FontAwesomeIcons.certificate;
-    case 'Undetected':
-      return FontAwesomeIcons.magnifyingGlassMinus;
-    case 'Disposal':
-      return FontAwesomeIcons.clipboardCheck;
-    case 'I to V':
-      return FontAwesomeIcons.fileLines;
-    case 'VI':
-      return FontAwesomeIcons.fileLines;
-    case 'Prohibition':
-      return FontAwesomeIcons.bottleDroplet;
-    case 'Gambling':
-      return FontAwesomeIcons.dice;
-    case 'Murder/Attempt to Murder':
-      return FontAwesomeIcons.skull;
-    case 'Dacoity/Robbery':
-      return FontAwesomeIcons.peopleGroup;
-    case 'Cheating/CBT':
-      return FontAwesomeIcons.maskFace;
-    case 'Chain Snatching':
-      return FontAwesomeIcons.link;
-    case 'A.D':
-      return FontAwesomeIcons.triangleExclamation;
-    case 'ST Drugs':
-      return FontAwesomeIcons.capsules;
-    case 'Hurt':
-      return FontAwesomeIcons.userInjured;
-    case 'Theft':
-      return FontAwesomeIcons.userSecret;
-    case 'Sand Theft':
-      return FontAwesomeIcons.truck;
-    case 'Two/Four Wheeler Theft':
-      return FontAwesomeIcons.motorcycle;
-    case 'Kidnapping/Missing':
-      return FontAwesomeIcons.userMinus;
-    case 'Missing':
-      return FontAwesomeIcons.magnifyingGlass;
-    case 'N.C':
-      return FontAwesomeIcons.penToSquare;
-    case 'Preventive':
-      return FontAwesomeIcons.ban;
-    case 'Arrested':
-      return FontAwesomeIcons.handcuffs;
-    case 'Absconded':
-      return FontAwesomeIcons.personRunning;
-    case 'POCSO':
-      return FontAwesomeIcons.child;
-    case 'Crime against Women':
-      return FontAwesomeIcons.personDress;
-    case 'Juvenile':
-      return FontAwesomeIcons.child;
-    case 'Victim':
-      return FontAwesomeIcons.bandage;
-    case 'Accident':
-      return FontAwesomeIcons.carBurst;
-    case 'Traffic':
-      return FontAwesomeIcons.trafficLight;
-    case 'Application':
-      return FontAwesomeIcons.fileInvoice;
-    case 'Sam/Warrant':
-      return FontAwesomeIcons.clipboardList;
-    case 'Muddemal':
-      return FontAwesomeIcons.folderOpen;
-    case 'CRPC 1563 / BNSS 1753':
-    case 'CRPC 1563 / 1753 (BNSS)':
-    case 'CRPC 156(3) / BNSS 175(3)':
-    case 'CRPC 156(3)/BNSS 175(3)':
-    case 'CRPC 156(3)/ BNSS 175(3)':
-    case 'Sec 186/175 (BNSS)':
-      return FontAwesomeIcons.scaleBalanced;
-    case 'Passport/PVR/Lic':
-    case 'Passport/ PVR/Lic':
-    case 'Passport/PVR/Licence':
-    case 'Passport/ PVR/Licence':
-    case 'Passport/PVR':
-      return FontAwesomeIcons.idCard;
-    case 'NDPS':
-      return FontAwesomeIcons.pills;
-    case 'Gowansh':
-      return FontAwesomeIcons.cow;
-    case 'IT Act':
-      return FontAwesomeIcons.laptop;
-    case 'MCOCA':
-      return FontAwesomeIcons.userShield;
-    case 'UAPA':
-      return FontAwesomeIcons.buildingColumns;
-    case 'MPDA':
-      return FontAwesomeIcons.shieldHalved;
-    case 'COIN':
-      return FontAwesomeIcons.coins;
-    case 'Licence':
-      return Icons.assignment_ind_rounded;
-    case 'Tadipar':
-      return Icons.gavel_rounded;
-    case 'History Sheeter':
-    case 'History Sheet':
-      return Icons.assignment_rounded;
-    case 'Repeat Offender':
-      return Icons.warning_rounded;
-    case 'ITSSO':
-      return Icons.description_rounded;
-    case 'NAFIS':
-    case 'NAFIS/Fingerprint':
-      return Icons.fingerprint_rounded;
-    case 'DAR':
-    case 'DAR/IRAD':
-      return Icons.folder_rounded;
-    case 'IRAD':
-    case 'IRDA':
-      return Icons.analytics_rounded;
-    case 'E-Learning':
-      return Icons.school_rounded;
-    default:
-      return fallback;
-  }
-}
-
 String? _getDashboardSvgPath(String label) {
   final clean = label.toLowerCase().replaceAll(RegExp(r'[\s/._\\]+'), '');
+  for (final tool in ServiceData.dashboardTools) {
+    if (label.toLowerCase() == tool.label.toLowerCase() ||
+        (tool.moduleKey != null && clean == tool.moduleKey!.toLowerCase())) {
+      if (tool.assetPath != null && tool.assetPath!.isNotEmpty) {
+        return tool.assetPath;
+      }
+    }
+  }
   switch (clean) {
     case 'itov':
     case '1to5':
@@ -348,8 +233,6 @@ String? _getDashboardSvgPath(String label) {
       return 'assets/icons/cctns.svg';
     case 'licence':
       return 'assets/icons/licence.svg';
-    case 'tadipar':
-      return 'assets/icons/tadipar.svg';
     case 'repeatoffender':
       return 'assets/icons/repeatoffender.svg';
     case 'dar':
@@ -420,34 +303,6 @@ Widget _buildGridIcon(
       svgPath,
       width: size * scale,
       height: size * scale,
-      fit: BoxFit.contain,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  }
-
-  for (final tool in ServiceData.dashboardTools) {
-    if (labelTrim == tool.label) {
-      return _buildServiceIcon(labelTrim, tool.icon, color, size);
-    }
-  }
-
-  // Optical parity: glyph icons (FontAwesome/Material) scale to match SVG visual weight
-  final dynamic icon = _dashboardTileIcon(label, fallback);
-  final glyphScale = (icon == FontAwesomeIcons.maskFace) ? 1.42 : 1.35;
-  final glyphSize = size * glyphScale;
-  if (icon is IconData) return Icon(icon, color: color, size: glyphSize);
-  return FaIcon(icon, color: color, size: glyphSize);
-}
-
-Widget _buildServiceIcon(
-    String label, dynamic fallback, Color color, double size) {
-  final labelTrim = label.replaceAll('\n', ' ').trim();
-  final svgPath = _getDashboardSvgPath(labelTrim);
-  if (svgPath != null) {
-    return SvgPicture.asset(
-      svgPath,
-      width: size * 1.5,
-      height: size * 1.5,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
   }
@@ -2376,6 +2231,7 @@ class _HomeTabState extends State<_HomeTab> {
   void initState() {
     super.initState();
     // DashboardScreen already refreshed stale caches for this user/station.
+    _loadDashboardTools();
     _loadBackendCategories();
     // MPDA detention end reminders of this station (bell badge + list)
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -2393,9 +2249,46 @@ class _HomeTabState extends State<_HomeTab> {
 
   /// Database tiles (MPDA, History Sheeter ...) come from this list, so a
   /// failed or dropped request is retried instead of leaving them out.
+  Future<void> _loadDashboardTools() async {
+    try {
+      final toolsData = await CaseService().fetchDashboardTools();
+      if (toolsData.isNotEmpty) {
+        final dynamicTools = toolsData
+            .map((t) => ServiceData.fromJson(t))
+            .where((t) => t.isActive)
+            .toList();
+        if (dynamicTools.isNotEmpty) {
+          for (final tool in dynamicTools) {
+            if (tool.assetPath != null && tool.assetPath!.endsWith('.svg')) {
+              CategoryIconHelper.registerSvgPath(tool.label, tool.assetPath!);
+              if (tool.moduleKey != null) {
+                CategoryIconHelper.registerSvgPath(
+                    tool.moduleKey!, tool.assetPath!);
+              }
+              if (tool.categoryCode != null) {
+                CategoryIconHelper.registerSvgPath(
+                    tool.categoryCode!, tool.assetPath!);
+              }
+            }
+          }
+          if (mounted) {
+            setState(() {
+              ServiceData.dashboardTools = dynamicTools;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[_HomeTab] _loadDashboardTools error: $e');
+      }
+    }
+  }
+
   Future<void> _loadBackendCategories({int attempt = 1}) async {
     const maxAttempts = 4;
     try {
+      await _loadDashboardTools();
       final cats = await CaseService().fetchAllCategories();
       if (!mounted) return;
       if (cats.isNotEmpty) {
@@ -3830,7 +3723,13 @@ class _HomeTabState extends State<_HomeTab> {
       serviceSection,
       [
         for (final tool in ServiceData.dashboardTools)
-          Classification(tool.label, 'service_tool', 'service_tool'),
+          Classification(
+            tool.label,
+            tool.assetPath ?? 'service_tool',
+            tool.moduleKey ?? 'service_tool',
+            categoryCode: tool.categoryCode,
+            categoryId: tool.categoryId,
+          ),
       ],
     ];
     // Sections keep their order but flow on continuously, so no row is left
@@ -4055,19 +3954,18 @@ class _HomeTabState extends State<_HomeTab> {
     } else if (label.toLowerCase().contains('passport') ||
         item.name.toLowerCase().contains('passport') ||
         item.moduleKey == 'passport') {
-      // Two tabs: Passport/PVR/Licence and Licence
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
           page: PassportLicenceScreen(stationName: widget.auth.stationName),
         ),
       );
-    } else if (item.moduleKey == 'service_tool') {
+    } else if (item.moduleKey == 'service_tool' ||
+        ServiceData.dashboardTools.any((t) =>
+            t.label.toLowerCase() == label.toLowerCase() ||
+            (t.moduleKey != null && t.moduleKey == item.moduleKey))) {
       final cleanLabel = label.trim().toLowerCase();
-      if (cleanLabel == 'history sheeter' ||
-          cleanLabel == 'history sheet' ||
-          item.categoryCode != null ||
-          item.categoryId != null) {
+      if (cleanLabel == 'history sheeter' || cleanLabel == 'history sheet') {
         CategoryNavigationHelper.handleDashboardCategoryTap(
           context: context,
           categoryName: item.name,
@@ -4142,6 +4040,13 @@ class _HomeTabState extends State<_HomeTab> {
           page: VictimHubScreen(stationName: widget.auth.stationName),
         ),
       );
+    } else if (item.moduleKey == 'muddemal' || item.name == 'Muddemal') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const MuddemalMainScreen(),
+        ),
+      );
     } else {
       final isStatsItem = [
         'Monthly',
@@ -4179,7 +4084,8 @@ class _HomeTabState extends State<_HomeTab> {
     final label = item.name.replaceAll('\n', ' ');
     ServiceData? matchedTool;
     for (final t in ServiceData.dashboardTools) {
-      if (t.label == label) {
+      if (t.label.toLowerCase() == label.toLowerCase() ||
+          (t.moduleKey != null && t.moduleKey == item.moduleKey)) {
         matchedTool = t;
         break;
       }
@@ -5638,7 +5544,11 @@ class _CalendarTabState extends State<_CalendarTab> {
     records.addAll(context.watch<UapaProvider>().records);
     records.addAll(context.watch<MpdaProvider>().records);
     records.addAll(context.watch<CoinProvider>().records);
-    return records;
+    final unique = <String, ModuleRecord>{};
+    for (final r in records) {
+      unique[r.id] = r;
+    }
+    return unique.values.toList();
   }
 
   @override
@@ -7246,6 +7156,12 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
               ));
         } else if (item.moduleKey == 'passport') {
           PassportAddEditDialog.show(context);
+        } else if (item.moduleKey == 'muddemal' || item.name == 'Muddemal') {
+          Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(
+                page: const MuddemalMainScreen(),
+              ));
         } else if (moduleUsesCommonCrimeForm(item.moduleKey, item.name)) {
           Navigator.push(
               context,
