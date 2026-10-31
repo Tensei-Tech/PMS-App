@@ -75,11 +75,11 @@ import '../utils/common_form_module.dart';
 import '../utils/module_pdf_helper.dart';
 import '../utils/pdf_helper.dart';
 import '../utils/police_hierarchy_helper.dart';
-import '../utils/police_rbac_helper.dart';
 import '../utils/state_branding_helper.dart';
 import '../utils/state_language_helper.dart';
 import '../utils/translation_helper.dart';
 import '../utils/universal_search.dart';
+import '../utils/category_icon_helper.dart';
 import '../widgets/app_logo.dart';
 import 'pending_hub_screen.dart';
 import 'itsso_hub_screen.dart';
@@ -102,7 +102,7 @@ import '../widgets/send_broadcast_alert_dialog.dart';
 import '../utils/app_data_cache.dart';
 import '../utils/category_navigation_helper.dart';
 import '../services/case_service.dart';
-import '../widgets/send_reminder_dialog.dart';
+import '../utils/ad_disposal_helper.dart';
 import '../widgets/state_police_banner_dialog.dart';
 import '../widgets/voice_search_dialog.dart';
 import 'about_app_screen.dart';
@@ -1408,7 +1408,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(width: 8),
                     _topNavItem(Icons.gps_fixed_rounded, l10n.wanted, 1),
                     const SizedBox(width: 8),
-                    _topNavItem(Icons.folder_rounded, l10n.view, 3),
+                    _topNavItem(Icons.folder_rounded,
+                        TranslationHelper.translate(context, 'My Cases'), 3),
                     const SizedBox(width: 8),
                     _topNavItem(Icons.calendar_month_rounded, l10n.calendar, 4),
                   ],
@@ -2189,23 +2190,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
               GestureDetector(
                 onTap: () => _onNavTap(2),
                 child: Container(
-                  width: 56,
-                  height: 56,
+                  width: 52,
+                  height: 52,
                   decoration: BoxDecoration(
                     gradient: AppColors.primaryGradient,
                     borderRadius: BorderRadius.circular(AppRadius.lg),
-                    boxShadow: [
-                      BoxShadow(
-                          color: AppColors.navyMid.withValues(alpha: 0.5),
-                          blurRadius: 14,
-                          spreadRadius: 2),
-                    ],
                   ),
                   child: const Icon(Icons.add_rounded,
                       color: Colors.white, size: 28),
                 ),
               ),
-              _navItem(Icons.folder_rounded, l10n.view, 3),
+              _navItem(Icons.folder_rounded,
+                  TranslationHelper.translate(context, 'My Cases'), 3),
               _navItem(Icons.calendar_month_rounded, l10n.calendar, 4),
             ],
           ),
@@ -4800,7 +4796,7 @@ class _WantedTab extends StatelessWidget {
   }
 }
 
-// ── VIEW TAB ─────────────────────────────────────────────────────────────────
+// ── VIEW / MY CASES TAB ─────────────────────────────────────────────────────────────
 class _ViewTab extends StatefulWidget {
   final bool isDark;
   const _ViewTab({required this.isDark});
@@ -4810,16 +4806,27 @@ class _ViewTab extends StatefulWidget {
 }
 
 class _ViewTabState extends State<_ViewTab> {
-  final FirestoreService _firestore = FirestoreService();
   int _selectedTabIndex = 0;
   final TextEditingController _searchCtrl = TextEditingController();
   String _query = '';
 
-  static const List<(int, IconData, String)> _tabs = [
-    (0, Icons.folder_open_rounded, 'All'),
-    (1, Icons.pending_actions_outlined, 'Pending'),
-    (2, Icons.check_circle_outline_rounded, 'Disposed'),
-  ];
+  List<ModuleRecord>? _allCases;
+  List<ModuleRecord>? _pendingCases;
+  List<ModuleRecord>? _disposalCases;
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  static String _safeTrim(dynamic val, [String fallback = '']) {
+    if (val == null) return fallback;
+    final s = val.toString().trim();
+    return s.isEmpty ? fallback : s;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCases();
+  }
 
   @override
   void dispose() {
@@ -4827,735 +4834,1025 @@ class _ViewTabState extends State<_ViewTab> {
     super.dispose();
   }
 
-  Stream<List<ModuleRecord>>? _stream;
-  String? _streamKey;
+  Future<void> _loadCases() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
-  Stream<List<ModuleRecord>> _getStream(
-      AuthProvider auth, CaseVisibilityMode mode) {
-    if (_selectedTabIndex == 1) {
-      return _firestore.getPendingCasesStream(auth.activeStation).map(
-            (records) => CaseVisibility.filterRecords(
-              records,
-              uid: auth.uid,
-              officerName: auth.displayName,
-              mode: mode,
-            ),
-          );
-    } else if (_selectedTabIndex == 2) {
-      return _firestore.getDisposalCasesStream(auth.activeStation).map(
-            (records) => CaseVisibility.filterRecords(
-              records,
-              uid: auth.uid,
-              officerName: auth.displayName,
-              mode: mode,
-            ),
-          );
+    try {
+      final results = await Future.wait([
+        CaseService().fetchMyCases(scope: 'all'),
+        CaseService().fetchMyCases(scope: 'pending'),
+        CaseService().fetchMyCases(scope: 'disposal'),
+      ]);
+      if (!mounted) return;
+      setState(() {
+        _allCases = results[0];
+        _pendingCases = results[1];
+        _disposalCases = results[2];
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
     }
-    return _firestore.getStationCasesStream(auth.activeStation).map(
-          (records) => CaseVisibility.filterRecords(
-            records,
-            uid: auth.uid,
-            officerName: auth.displayName,
-            mode: mode,
-          ),
-        );
   }
 
-  List<ModuleRecord> _filterRecords(List<ModuleRecord> all) {
-    final q = _query.trim().toLowerCase();
-    if (q.isEmpty) return all;
+  List<ModuleRecord> _getCurrentList() {
+    switch (_selectedTabIndex) {
+      case 1:
+        return _pendingCases ?? [];
+      case 2:
+        return _disposalCases ?? [];
+      case 0:
+      default:
+        return _allCases ?? [];
+    }
+  }
 
-    return all.where((r) {
-      return r.title.toLowerCase().contains(q) ||
-          r.caseNumber.toLowerCase().contains(q) ||
-          r.complainant.toLowerCase().contains(q) ||
-          r.location.toLowerCase().contains(q) ||
-          r.assignedOfficer.toLowerCase().contains(q) ||
-          r.firestoreCategoryDisplayName.toLowerCase().contains(q);
+  List<ModuleRecord> _filter(List<ModuleRecord> list) {
+    final q = _safeTrim(_query).toLowerCase();
+    if (q.isEmpty) return list;
+    return list.where((r) {
+      try {
+        final t = _safeTrim(r.title).toLowerCase();
+        final c = _safeTrim(r.caseNumber).toLowerCase();
+        final comp = _safeTrim(r.complainant).toLowerCase();
+        final loc = _safeTrim(r.location).toLowerCase();
+        final off = _safeTrim(r.assignedOfficer).toLowerCase();
+        final cat = _safeTrim(r.firestoreCategoryDisplayName).toLowerCase();
+        return t.contains(q) ||
+            c.contains(q) ||
+            comp.contains(q) ||
+            loc.contains(q) ||
+            off.contains(q) ||
+            cat.contains(q);
+      } catch (_) {
+        return false;
+      }
     }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
-    final mode = CaseVisibility.resolveFor(auth);
+    return RefreshIndicator(
+      color: AppColors.navyMid,
+      onRefresh: _loadCases,
+      child: _buildBody(),
+    );
+  }
 
-    // Same stream across rebuilds; a new one only when the tab, station,
-    // officer or visibility mode changes (a new stream flashes "loading")
-    final streamKey = '$_selectedTabIndex|${auth.activeStation}|${auth.uid}|'
-        '${auth.displayName}|$mode';
-    if (_stream == null || _streamKey != streamKey) {
-      _streamKey = streamKey;
-      _stream = _getStream(auth, mode);
-    }
+  Widget _buildStatusTabBar() {
+    final tabs = [
+      (
+        index: 0,
+        label: 'Total Cases',
+        count: _allCases?.length ?? 0,
+        badgeBg: const Color(0xFFE8F1FC),
+        badgeFg: const Color(0xFF1976D2),
+      ),
+      (
+        index: 1,
+        label: 'Pending',
+        count: _pendingCases?.length ?? 0,
+        badgeBg: const Color(0xFFFFF3E0),
+        badgeFg: const Color(0xFFE65100),
+      ),
+      (
+        index: 2,
+        label: 'Disposal',
+        count: _disposalCases?.length ?? 0,
+        badgeBg: const Color(0xFFE8F5E9),
+        badgeFg: const Color(0xFF2E7D32),
+      ),
+    ];
 
-    return StreamBuilder<List<ModuleRecord>>(
-      stream: _stream,
-      builder: (context, snapshot) {
-        final allRecords = snapshot.data ?? [];
-        final filtered = _filterRecords(allRecords);
-        final isLoading = snapshot.connectionState == ConnectionState.waiting &&
-            !snapshot.hasData;
-
-        return CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            // ── Segmented Tab Selector (All, Pending, Disposed) ──────────────────
-            SliverToBoxAdapter(
-              child: Container(
-                color: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                    vertical: 10, horizontal: AppSpacing.md),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 820),
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: AppColors.lightBg,
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        border: Border.all(color: AppColors.lightBorder),
+    return Center(
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            border: Border.all(color: const Color(0xFFCBD5E1), width: 1.1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: tabs.map((item) {
+              final isSelected = _selectedTabIndex == item.index;
+              return InkWell(
+                onTap: () {
+                  if (_selectedTabIndex != item.index) {
+                    setState(() => _selectedTabIndex = item.index);
+                  }
+                },
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.navyDark : Colors.transparent,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        TranslationHelper.translate(context, item.label),
+                        style: GoogleFonts.poppins(
+                          fontSize: 12.5,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.w500,
+                          color: isSelected
+                              ? Colors.white
+                              : AppColors.lightSubText,
+                        ),
                       ),
-                      child: Row(
-                        children: _tabs.map((t) {
-                          final isSelected = _selectedTabIndex == t.$1;
-                          return Expanded(
-                            child: InkWell(
-                              onTap: () {
-                                if (_selectedTabIndex != t.$1) {
-                                  setState(() => _selectedTabIndex = t.$1);
-                                }
-                              },
-                              borderRadius: BorderRadius.circular(AppRadius.sm),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 9),
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? AppColors.navyDark
-                                      : Colors.transparent,
-                                  borderRadius:
-                                      BorderRadius.circular(AppRadius.sm),
-                                  boxShadow: isSelected
-                                      ? [
-                                          BoxShadow(
-                                            color: AppColors.navyDark
-                                                .withValues(alpha: 0.25),
-                                            blurRadius: 6,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ]
-                                      : null,
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      t.$2,
-                                      size: 16,
-                                      color: isSelected
-                                          ? Colors.white
-                                          : AppColors.navyDark
-                                              .withValues(alpha: 0.7),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      t.$3,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 13,
-                                        fontWeight: isSelected
-                                            ? FontWeight.w700
-                                            : FontWeight.w500,
-                                        color: isSelected
-                                            ? Colors.white
-                                            : AppColors.navyDark
-                                                .withValues(alpha: 0.8),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? Colors.white.withValues(alpha: 0.22)
+                              : item.badgeBg,
+                          borderRadius: BorderRadius.circular(AppRadius.full),
+                        ),
+                        child: Text(
+                          '',
+                          style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: isSelected ? Colors.white : item.badgeFg,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
+        slivers: [
+          SliverToBoxAdapter(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1600),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.sm,
+                  ),
+                  child: Column(
+                    children: [
+                      _buildStatusTabBar(),
+                      const SizedBox(height: 14),
+                    ],
                   ),
                 ),
               ),
             ),
+          ),
+          SliverToBoxAdapter(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1600),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                  child: Column(
+                    children:
+                        List.generate(6, (_) => const _ViewCaseCardSkeleton()),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
 
-            // ── Search Field & Count ─────────────────────────────────────────────
-            SliverToBoxAdapter(
+    if (_errorMessage != null) {
+      return CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
+        slivers: [
+          SliverToBoxAdapter(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1600),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.sm,
+                  ),
+                  child: Column(
+                    children: [
+                      _buildStatusTabBar(),
+                      const SizedBox(height: 24),
+                      const _ViewEmptyState(
+                        icon: Icons.cloud_off_rounded,
+                        iconColor: AppColors.dangerRed,
+                        title: 'Unable to load cases',
+                        message:
+                            'Check your connection and pull down to try again.',
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    final rawList = _getCurrentList();
+    final filtered = _filter(rawList);
+
+    return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
+      slivers: [
+        SliverToBoxAdapter(
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1600),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.md,
+                  AppSpacing.md,
+                  AppSpacing.sm,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildStatusTabBar(),
+                    const SizedBox(height: 14),
+                    TextField(
+                      controller: _searchCtrl,
+                      onChanged: (v) => setState(() => _query = v),
+                      style: GoogleFonts.poppins(
+                          fontSize: 13.5, color: AppColors.navyDark),
+                      decoration: InputDecoration(
+                        hintText: TranslationHelper.translate(
+                          context,
+                          'Search by FIR, title, location...',
+                        ),
+                        hintStyle: GoogleFonts.poppins(
+                          fontSize: 12.5,
+                          color: AppColors.lightSubText,
+                        ),
+                        prefixIcon: const Icon(Icons.search_rounded,
+                            color: AppColors.lightSubText, size: 20),
+                        suffixIcon: _query.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear_rounded, size: 18),
+                                onPressed: () {
+                                  _searchCtrl.clear();
+                                  setState(() => _query = '');
+                                },
+                              )
+                            : null,
+                        filled: true,
+                        fillColor: Colors.white,
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 10),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFE2E8F0)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFE2E8F0)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          borderSide: const BorderSide(
+                              color: AppColors.navyMid, width: 1.5),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      _query.isNotEmpty
+                          ? 'Found  of  records'
+                          : 'Total:  records',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.lightSubText,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        if (filtered.isEmpty)
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: _ViewEmptyState(
+              icon: Icons.folder_open_rounded,
+              iconColor: AppColors.lightSubText,
+              title: _query.isNotEmpty ? 'No matching cases' : 'No cases found',
+              message: _query.isNotEmpty
+                  ? 'Try searching with a different case number, title, or officer name.'
+                  : (_selectedTabIndex == 1
+                      ? 'No pending cases under your station/jurisdiction.'
+                      : (_selectedTabIndex == 2
+                          ? 'No disposed cases recorded yet.'
+                          : 'No cases recorded under this station.')),
+            ),
+          )
+        else
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              0,
+              AppSpacing.md,
+              AppSpacing.xl,
+            ),
+            sliver: SliverToBoxAdapter(
               child: Align(
                 alignment: Alignment.topCenter,
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 820),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.md, AppSpacing.md, AppSpacing.md, 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TextField(
-                          controller: _searchCtrl,
-                          onChanged: (v) => setState(() => _query = v),
-                          style: GoogleFonts.poppins(
-                              fontSize: 13.5, color: AppColors.navyDark),
-                          decoration: InputDecoration(
-                            hintText:
-                                'Search by FIR, title, location, category…',
-                            hintStyle: GoogleFonts.poppins(
-                              fontSize: 12.5,
-                              color: AppColors.lightSubText,
-                            ),
-                            prefixIcon: const Icon(Icons.search_rounded,
-                                color: AppColors.navyMid, size: 20),
-                            suffixIcon: _searchCtrl.text.isNotEmpty
-                                ? IconButton(
-                                    onPressed: () {
-                                      _searchCtrl.clear();
-                                      setState(() => _query = '');
-                                    },
-                                    icon: const Icon(Icons.close_rounded,
-                                        color: AppColors.lightSubText,
-                                        size: 18),
-                                  )
-                                : null,
-                            filled: true,
-                            fillColor: Colors.white,
-                            isDense: true,
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 11),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: const BorderSide(
-                                  color: AppColors.lightBorder),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: const BorderSide(
-                                  color: AppColors.lightBorder),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: const BorderSide(
-                                  color: AppColors.navyMid, width: 1.5),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _query.isNotEmpty
-                              ? 'Found ${filtered.length} of ${allRecords.length} records'
-                              : 'Total: ${filtered.length} records',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.lightSubText,
-                          ),
-                        ),
-                      ],
-                    ),
+                  constraints: const BoxConstraints(maxWidth: 1600),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, i) {
+                      return _ViewCaseCard(
+                        record: filtered[i],
+                        index: i,
+                        isDisposedTab: _selectedTabIndex == 2,
+                      );
+                    },
                   ),
                 ),
               ),
             ),
+          ),
+      ],
+    );
+  }
+}
 
-            // ── Loading / Empty State or Records List ────────────────────────────
-            if (isLoading)
-              const SliverFillRemaining(
-                hasScrollBody: false,
-                child: Center(
-                  child: CircularProgressIndicator(
-                    color: AppColors.navyMid,
-                    strokeWidth: 2.5,
+class _ViewCaseCard extends StatelessWidget {
+  const _ViewCaseCard({
+    required this.record,
+    required this.index,
+    required this.isDisposedTab,
+  });
+
+  final ModuleRecord record;
+  final int index;
+  final bool isDisposedTab;
+
+  Widget _buildDivider({double margin = 6}) {
+    return Container(
+      width: 1,
+      height: 26,
+      margin: EdgeInsets.symmetric(horizontal: margin),
+      color: const Color(0xFFE2E8F0),
+    );
+  }
+
+  Widget _buildFieldColumn({
+    required BuildContext context,
+    required String label,
+    required String value,
+    IconData? icon,
+    Color? iconColor,
+    Color? valueColor,
+    double? width,
+  }) {
+    final s = _ViewTabState._safeTrim(value);
+    final shown = (s.isEmpty || s == '-') ? '—' : s;
+    final translatedLabel = label.startsWith('# ')
+        ? '# ${TranslationHelper.translate(context, label.substring(2))}'
+        : TranslationHelper.translate(context, label);
+
+    final content = SizedBox(
+      height: 38,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[
+                Icon(icon,
+                    size: 11.5, color: iconColor ?? const Color(0xFF64748B)),
+                const SizedBox(width: 3.5),
+              ],
+              Flexible(
+                child: Text(
+                  translatedLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF64748B),
+                    height: 1.1,
                   ),
                 ),
-              )
-            else if (filtered.isEmpty)
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 820),
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.xxl),
+              ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Tooltip(
+            message: shown,
+            child: Text(
+              shown,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.poppins(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: valueColor ?? AppColors.navyDark,
+                height: 1.15,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return width != null ? SizedBox(width: width, child: content) : content;
+  }
+
+  Widget _buildCompactActionButton({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    Color? color,
+    Color? borderColor,
+    Color? bgColor,
+  }) {
+    final fgColor = color ?? AppColors.navyDark;
+    return Tooltip(
+      message: TranslationHelper.translate(context, label),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          height: 38,
+          width: 42,
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          decoration: BoxDecoration(
+            color: bgColor ?? Colors.white,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: borderColor ?? const Color(0xFFCBD5E1),
+              width: 1.1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 2,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 14, color: fgColor),
+              const SizedBox(height: 1.5),
+              Text(
+                TranslationHelper.translate(context, label),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 8.0,
+                  fontWeight: FontWeight.w600,
+                  color: fgColor,
+                  height: 1.0,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _openCaseDetail(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => record.moduleKey == 'ad'
+            ? AdRecordDetailScreen(record: record)
+            : ModuleRecordDetailScreen(record: record),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDisposal = isRecordDisposal(record) || isDisposedTab;
+    final Color statusBg =
+        isDisposal ? const Color(0xFFF0FDF4) : const Color(0xFFFFFBEB);
+    final Color statusBorder =
+        isDisposal ? const Color(0xFFBBF7D0) : const Color(0xFFFDE68A);
+    final Color statusColor =
+        isDisposal ? const Color(0xFF16A34A) : const Color(0xFFD97706);
+    final String displayStatus = isDisposal ? 'Disposal' : 'Pending';
+
+    final firLabel = _ViewTabState._safeTrim(record.caseNumber, '—');
+    String cat = _ViewTabState._safeTrim(record.firestoreCategoryDisplayName);
+    if (cat.isEmpty) {
+      cat = _ViewTabState._safeTrim(record.moduleKey).toUpperCase();
+    }
+    final categoryName = cat.isNotEmpty ? cat : 'CASE';
+    final displayTitle = _ViewTabState._safeTrim(record.title, 'Untitled Case');
+
+    String dateStr = '—';
+    try {
+      dateStr = DateFormat('dd/MM/yyyy').format(record.createdAt);
+    } catch (_) {}
+
+    final officer = _ViewTabState._safeTrim(record.assignedOfficer);
+    final location = _ViewTabState._safeTrim(record.location);
+    final officerOrLocation = officer.isNotEmpty && officer != '—'
+        ? officer
+        : (location.isNotEmpty && location != '—' ? location : '—');
+
+    Widget buildDetailsRow(bool isExpandedMode) {
+      final divMargin = isExpandedMode ? 8.0 : 4.0;
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 0. Sr. No. Badge
+          Container(
+            height: 38,
+            width: 36,
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: const Color(0xFFCBD5E1)),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              '${index + 1}',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+                color: AppColors.navyDark,
+              ),
+            ),
+          ),
+
+          _buildDivider(margin: divMargin),
+
+          // 1. FIR / CR Number
+          isExpandedMode
+              ? Expanded(
+                  flex: 3,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'CR / Case No.',
+                    value: firLabel,
+                    icon: Icons.tag_rounded,
+                    valueColor: AppColors.infoBlue,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 110,
+                  label: 'CR / Case No.',
+                  value: firLabel,
+                  icon: Icons.tag_rounded,
+                  valueColor: AppColors.infoBlue,
+                ),
+
+          _buildDivider(margin: divMargin),
+
+          // 2. Crime / Module Category Tag
+          isExpandedMode
+              ? Expanded(
+                  flex: 3,
+                  child: Container(
+                    height: 38,
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF3C7),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: const Color(0xFFFDE68A)),
+                      ),
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            _query.isNotEmpty
-                                ? Icons.search_off_rounded
-                                : Icons.folder_open_rounded,
-                            size: 48,
-                            color: AppColors.navyMid.withValues(alpha: 0.5),
-                          ),
-                          const SizedBox(height: 12),
                           Text(
-                            _query.isNotEmpty
-                                ? 'No matching cases'
-                                : 'No records found in database',
+                            TranslationHelper.translate(context, 'Category'),
                             style: GoogleFonts.poppins(
-                              fontSize: 16,
+                              fontSize: 9,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.navyDark,
+                              color: const Color(0xFF92400E),
+                              height: 1.0,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 1),
                           Text(
-                            _query.isNotEmpty
-                                ? 'Try searching with a different keyword.'
-                                : 'Cases created for this station will appear here from the database.',
-                            textAlign: TextAlign.center,
+                            TranslationHelper.translate(context, categoryName),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              color: AppColors.lightSubText,
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF78350F),
+                              height: 1.1,
                             ),
                           ),
                         ],
                       ),
                     ),
                   ),
-                ),
-              )
-            else
-              SliverToBoxAdapter(
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 820),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.md,
-                        0,
-                        AppSpacing.md,
-                        AppSpacing.xl,
-                      ),
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: filtered.length,
-                        itemBuilder: (context, i) {
-                          final c = filtered[i];
-                          final isDisposed =
-                              c.status.toLowerCase() == 'closed' ||
-                                  c.status.toLowerCase() == 'disposal' ||
-                                  c.status.toLowerCase() == 'resolved' ||
-                                  c.status.toLowerCase() == 'disposed';
-                          final displayStatus =
-                              isDisposed ? 'Disposal' : 'Pending';
-                          final accentColor =
-                              _selectedTabIndex == 2 || isDisposed
-                                  ? AppColors.successGreen
-                                  : _selectedTabIndex == 1
-                                      ? AppColors.warningOrange
-                                      : AppColors.infoBlue;
-                          final statusColor = isDisposed
-                              ? AppColors.successGreen
-                              : AppColors.warningOrange;
-
-                          final displayTitle = c.title.trim().isNotEmpty
-                              ? c.title.trim()
-                              : 'Untitled Case';
-                          final firLabel = c.caseNumber.trim().isNotEmpty
-                              ? c.caseNumber.trim()
-                              : 'No FIR / case number';
-
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 10),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              border: Border.all(color: AppColors.lightBorder),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.03),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                borderRadius:
-                                    BorderRadius.circular(AppRadius.md),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    AppTheme.fadeSlideRoute(
-                                      page: c.moduleKey == 'ad'
-                                          ? AdRecordDetailScreen(record: c)
-                                          : ModuleRecordDetailScreen(record: c),
-                                    ),
-                                  );
-                                },
-                                child: IntrinsicHeight(
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      Container(
-                                        width: 4,
-                                        decoration: BoxDecoration(
-                                          color: accentColor,
-                                          borderRadius:
-                                              const BorderRadius.horizontal(
-                                            left: Radius.circular(AppRadius.md),
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(12),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              // Top Row: FIR and Status Badge
-                                              Row(
-                                                children: [
-                                                  Container(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                      horizontal: 8,
-                                                      vertical: 3,
-                                                    ),
-                                                    decoration: BoxDecoration(
-                                                      color: AppColors.navyMid
-                                                          .withValues(
-                                                              alpha: 0.08),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              AppRadius.sm),
-                                                    ),
-                                                    child: Text(
-                                                      firLabel,
-                                                      style:
-                                                          GoogleFonts.poppins(
-                                                        fontSize: 11,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        color:
-                                                            AppColors.navyDark,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  const Spacer(),
-                                                  Container(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                      horizontal: 8,
-                                                      vertical: 3,
-                                                    ),
-                                                    decoration: BoxDecoration(
-                                                      color: statusColor
-                                                          .withValues(
-                                                              alpha: 0.12),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              AppRadius.full),
-                                                    ),
-                                                    child: Row(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: [
-                                                        Container(
-                                                          width: 6,
-                                                          height: 6,
-                                                          decoration:
-                                                              BoxDecoration(
-                                                            color: statusColor,
-                                                            shape:
-                                                                BoxShape.circle,
-                                                          ),
-                                                        ),
-                                                        const SizedBox(
-                                                            width: 4),
-                                                        Text(
-                                                          displayStatus,
-                                                          style: GoogleFonts
-                                                              .poppins(
-                                                            fontSize: 10.5,
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            color: statusColor,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 6),
-
-                                              // Case Title
-                                              Text(
-                                                displayTitle,
-                                                style: GoogleFonts.poppins(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: AppColors.navyDark,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 3),
-
-                                              // Category Pill
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                  horizontal: 6,
-                                                  vertical: 2,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: AppColors.goldPrimary
-                                                      .withValues(alpha: 0.12),
-                                                  borderRadius:
-                                                      BorderRadius.circular(4),
-                                                ),
-                                                child: Text(
-                                                  c.firestoreCategoryDisplayName,
-                                                  style: GoogleFonts.poppins(
-                                                    fontSize: 10,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: AppColors.goldDark,
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(height: 8),
-
-                                              // Metadata row
-                                              Wrap(
-                                                spacing: 12,
-                                                runSpacing: 4,
-                                                children: [
-                                                  Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      const Icon(
-                                                        Icons
-                                                            .calendar_today_rounded,
-                                                        size: 12,
-                                                        color: AppColors
-                                                            .lightSubText,
-                                                      ),
-                                                      const SizedBox(width: 4),
-                                                      Text(
-                                                        DateFormat(
-                                                                'dd MMM yyyy')
-                                                            .format(
-                                                                c.incidentDate),
-                                                        style:
-                                                            GoogleFonts.poppins(
-                                                          fontSize: 11,
-                                                          color: AppColors
-                                                              .lightSubText,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  if (c.location.isNotEmpty)
-                                                    Row(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: [
-                                                        const Icon(
-                                                          Icons
-                                                              .location_on_rounded,
-                                                          size: 12,
-                                                          color: AppColors
-                                                              .lightSubText,
-                                                        ),
-                                                        const SizedBox(
-                                                            width: 4),
-                                                        Text(
-                                                          c.location,
-                                                          style: GoogleFonts
-                                                              .poppins(
-                                                            fontSize: 11,
-                                                            color: AppColors
-                                                                .lightSubText,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  if (c.assignedOfficer
-                                                      .isNotEmpty)
-                                                    Row(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: [
-                                                        const Icon(
-                                                          Icons.person_rounded,
-                                                          size: 12,
-                                                          color: AppColors
-                                                              .lightSubText,
-                                                        ),
-                                                        const SizedBox(
-                                                            width: 4),
-                                                        Text(
-                                                          c.assignedOfficer,
-                                                          style: GoogleFonts
-                                                              .poppins(
-                                                            fontSize: 11,
-                                                            color: AppColors
-                                                                .lightSubText,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                ],
-                                              ),
-                                              const Divider(height: 20),
-
-                                              // Actions Row: Edit (Guarded), Reminder (Senior Only), PDF, View
-                                              Builder(builder: (ctx) {
-                                                final canEdit = PoliceRbacHelper
-                                                    .canEditRecord(c, auth);
-                                                final canSendReminder =
-                                                    PoliceRbacHelper
-                                                        .canSendReminder(auth);
-
-                                                return Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceAround,
-                                                  children: [
-                                                    if (canEdit)
-                                                      _buildCardAction(
-                                                        icon: Icons
-                                                            .edit_note_rounded,
-                                                        label: 'Edit',
-                                                        color:
-                                                            AppColors.infoBlue,
-                                                        onTap: () {
-                                                          final isLinked =
-                                                              isTabLinkedToCommonFormBaseline(
-                                                            moduleKey:
-                                                                c.moduleKey,
-                                                            categoryName: c
-                                                                .firestoreCategoryDisplayName,
-                                                          );
-                                                          final page = isLinked
-                                                              ? CommonFormScreen(
-                                                                  moduleKey: c
-                                                                      .moduleKey,
-                                                                  moduleLabel: c
-                                                                      .firestoreCategoryDisplayName,
-                                                                  existingRecord:
-                                                                      c,
-                                                                )
-                                                              : DynamicFormScreen(
-                                                                  moduleKey: c
-                                                                      .moduleKey,
-                                                                  moduleLabel: c
-                                                                      .firestoreCategoryDisplayName,
-                                                                  existingRecord:
-                                                                      c,
-                                                                );
-                                                          Navigator.push(
-                                                            context,
-                                                            AppTheme
-                                                                .fadeSlideRoute(
-                                                                    page: page),
-                                                          );
-                                                        },
-                                                      ),
-                                                    if (canSendReminder)
-                                                      _buildCardAction(
-                                                        icon: Icons
-                                                            .notifications_active_outlined,
-                                                        label: 'Reminder',
-                                                        color: AppColors
-                                                            .warningOrange,
-                                                        onTap: () {
-                                                          SendReminderDialog
-                                                              .show(context, c);
-                                                        },
-                                                      ),
-                                                    _buildCardAction(
-                                                      icon: Icons
-                                                          .picture_as_pdf_rounded,
-                                                      label: 'PDF',
-                                                      color:
-                                                          AppColors.dangerRed,
-                                                      onTap: () {
-                                                        ModulePdfHelper
-                                                            .generatePdf(c);
-                                                      },
-                                                    ),
-                                                    _buildCardAction(
-                                                      icon: Icons
-                                                          .visibility_rounded,
-                                                      label: 'View',
-                                                      color:
-                                                          AppColors.goldPrimary,
-                                                      onTap: () {
-                                                        Navigator.push(
-                                                          context,
-                                                          AppTheme
-                                                              .fadeSlideRoute(
-                                                            page: c.moduleKey ==
-                                                                    'ad'
-                                                                ? AdRecordDetailScreen(
-                                                                    record: c)
-                                                                : ModuleRecordDetailScreen(
-                                                                    record: c),
-                                                          ),
-                                                        );
-                                                      },
-                                                    ),
-                                                  ],
-                                                );
-                                              }),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                )
+              : Container(
+                  width: 140,
+                  height: 38,
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF3C7),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: const Color(0xFFFDE68A)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          TranslationHelper.translate(context, 'Category'),
+                          style: GoogleFonts.poppins(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF92400E),
+                            height: 1.0,
+                          ),
+                        ),
+                        const SizedBox(height: 1),
+                        Text(
+                          TranslationHelper.translate(context, categoryName),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.poppins(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF78350F),
+                            height: 1.1,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
+
+          _buildDivider(margin: divMargin),
+
+          // 3. Subject / Case Title
+          isExpandedMode
+              ? Expanded(
+                  flex: 5,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Subject / Title',
+                    value: displayTitle,
+                    icon: Icons.description_outlined,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 170,
+                  label: 'Subject / Title',
+                  value: displayTitle,
+                  icon: Icons.description_outlined,
+                ),
+
+          _buildDivider(margin: divMargin),
+
+          // 4. Date
+          isExpandedMode
+              ? Expanded(
+                  flex: 3,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Registered Date',
+                    value: dateStr,
+                    icon: Icons.calendar_today_outlined,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 105,
+                  label: 'Registered Date',
+                  value: dateStr,
+                  icon: Icons.calendar_today_outlined,
+                ),
+
+          _buildDivider(margin: divMargin),
+
+          // 5. Officer / Location
+          isExpandedMode
+              ? Expanded(
+                  flex: 4,
+                  child: _buildFieldColumn(
+                    context: context,
+                    label: 'Officer / Location',
+                    value: officerOrLocation,
+                    icon: Icons.person_outline_rounded,
+                  ),
+                )
+              : _buildFieldColumn(
+                  context: context,
+                  width: 130,
+                  label: 'Officer / Location',
+                  value: officerOrLocation,
+                  icon: Icons.person_outline_rounded,
+                ),
+
+          _buildDivider(margin: divMargin),
+
+          // 6. Status Badge
+          Container(
+            height: 34,
+            width: isExpandedMode ? 110 : 100,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: statusBg,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: statusBorder),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    TranslationHelper.translate(context, displayStatus),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: statusColor,
+                      height: 1.0,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          _buildDivider(margin: divMargin),
+
+          // 7. Action buttons
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildCompactActionButton(
+                context: context,
+                icon: Icons.visibility_outlined,
+                label: 'View',
+                onTap: () => _openCaseDetail(context),
               ),
-          ],
-        );
-      },
+              const SizedBox(width: 6),
+              _buildCompactActionButton(
+                context: context,
+                icon: Icons.picture_as_pdf_outlined,
+                label: 'PDF',
+                onTap: () => ModulePdfHelper.generatePdf(record, context),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 850;
+          if (isWide) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              child: buildDetailsRow(true),
+            );
+          }
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: buildDetailsRow(false),
+          );
+        },
+      ),
     );
   }
+}
 
-  Widget _buildCardAction({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppRadius.sm),
+class _ViewCaseCardSkeleton extends StatelessWidget {
+  const _ViewCaseCardSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      height: 54,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(6),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Container(
+            width: 90,
+            height: 20,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Container(
+              height: 20,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Container(
+            width: 80,
+            height: 28,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(6),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Container(
+            width: 86,
+            height: 38,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(6),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ViewEmptyState extends StatelessWidget {
+  const _ViewEmptyState({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.message,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+        padding: const EdgeInsets.all(36),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 16, color: color),
-            const SizedBox(width: 5),
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.08),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                size: 34,
+                color: iconColor.withValues(alpha: 0.7),
+              ),
+            ),
+            const SizedBox(height: 16),
             Text(
-              label,
+              title,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: AppColors.navyDark,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              message,
+              textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: color,
+                color: AppColors.lightSubText,
               ),
             ),
           ],
@@ -5664,7 +5961,14 @@ class _CalendarTabState extends State<_CalendarTab> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(AppRadius.lg),
-              border: Border.all(color: AppColors.lightBorder),
+              border: Border.all(color: const Color(0xFFCBD5E1), width: 1.1),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 4,
+                  offset: const Offset(0, 1),
+                ),
+              ],
             ),
             child: Row(
               children: [
@@ -5704,58 +6008,80 @@ class _CalendarTabState extends State<_CalendarTab> {
         children: [
           Expanded(
             child: Container(
+              height: 44,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(color: AppColors.lightBorder),
+                border: Border.all(color: const Color(0xFFCBD5E1)),
               ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<int>(
-                  value: _selectedMonth,
-                  isExpanded: true,
-                  icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                      color: AppColors.navyMid),
-                  items: List.generate(
-                      12,
-                      (i) => DropdownMenuItem(
-                            value: i + 1,
-                            child: Text(months[i],
-                                style: GoogleFonts.poppins(
-                                    fontSize: 13, fontWeight: FontWeight.w600)),
-                          )),
-                  onChanged: (val) {
-                    if (val != null) setState(() => _selectedMonth = val);
-                  },
-                ),
+              child: Row(
+                children: [
+                  const Icon(Icons.calendar_today_outlined,
+                      size: 15, color: AppColors.navyMid),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<int>(
+                        value: _selectedMonth,
+                        isExpanded: true,
+                        icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                            color: AppColors.navyMid),
+                        items: List.generate(
+                            12,
+                            (i) => DropdownMenuItem(
+                                  value: i + 1,
+                                  child: Text(months[i],
+                                      style: GoogleFonts.poppins(
+                                          fontSize: 12.5,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.navyDark)),
+                                )),
+                        onChanged: (val) {
+                          if (val != null) setState(() => _selectedMonth = val);
+                        },
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
           const SizedBox(width: 10),
           Container(
+            height: 44,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(AppRadius.md),
-              border: Border.all(color: AppColors.lightBorder),
+              border: Border.all(color: const Color(0xFFCBD5E1)),
             ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<int>(
-                value: _selectedYear,
-                icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                    color: AppColors.navyMid),
-                items: List.generate(
-                    5,
-                    (i) => DropdownMenuItem(
-                          value: DateTime.now().year - i,
-                          child: Text('${DateTime.now().year - i}',
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, fontWeight: FontWeight.w600)),
-                        )),
-                onChanged: (val) {
-                  if (val != null) setState(() => _selectedYear = val);
-                },
-              ),
+            child: Row(
+              children: [
+                const Icon(Icons.access_time_rounded,
+                    size: 15, color: AppColors.navyMid),
+                const SizedBox(width: 8),
+                DropdownButtonHideUnderline(
+                  child: DropdownButton<int>(
+                    value: _selectedYear,
+                    icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                        color: AppColors.navyMid),
+                    items: List.generate(
+                        5,
+                        (i) => DropdownMenuItem(
+                              value: DateTime.now().year - i,
+                              child: Text('${DateTime.now().year - i}',
+                                  style: GoogleFonts.poppins(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.navyDark)),
+                            )),
+                    onChanged: (val) {
+                      if (val != null) setState(() => _selectedYear = val);
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -5794,17 +6120,31 @@ class _CalendarTabState extends State<_CalendarTab> {
         onTap: () => setState(() => _activeArea = area),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
           decoration: BoxDecoration(
             color: isActive ? color : Colors.transparent,
             borderRadius: BorderRadius.circular(AppRadius.md),
+            boxShadow: isActive
+                ? [
+                    BoxShadow(
+                      color: AppColors.navyMid.withValues(alpha: 0.25),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    )
+                  ]
+                : null,
           ),
           child: Center(
-            child: Text(label,
-                style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                    color: isActive ? Colors.white : AppColors.lightSubText)),
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.poppins(
+                fontSize: 10.0,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                color: isActive ? Colors.white : AppColors.lightSubText,
+              ),
+            ),
           ),
         ),
       ),
@@ -5951,58 +6291,153 @@ class _CalendarTabState extends State<_CalendarTab> {
           children: [
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [AppColors.navyDark, AppColors.navyMid]),
-                borderRadius: BorderRadius.circular(AppRadius.lg),
+                borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.12),
-                      blurRadius: 8,
+                      color: AppColors.navyDark.withValues(alpha: 0.16),
+                      blurRadius: 10,
                       offset: const Offset(0, 4)),
                 ],
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    reportTitle,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.20),
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Icons.calendar_month_rounded,
                       color: Colors.white,
-                      letterSpacing: 0.4,
+                      size: 22,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        rangeLabel,
-                        style: GoogleFonts.poppins(
-                          fontSize: 10.5,
-                          color: AppColors.goldPrimary,
-                          fontWeight: FontWeight.w600,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          reportTitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            letterSpacing: 0.3,
+                          ),
                         ),
-                      ),
-                      if (area == _CalendarTabArea.custom)
-                        GestureDetector(
-                          onTap: () => _selectCustomRange(context),
-                          child: Row(children: [
-                            const Icon(Icons.edit_calendar_rounded,
-                                size: 14, color: Colors.white70),
-                            const SizedBox(width: 4),
-                            Text('Change Range',
-                                style: GoogleFonts.poppins(
-                                    fontSize: 11, color: Colors.white70)),
-                          ]),
+                        const SizedBox(height: 5),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 5,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 7, vertical: 2.5),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.date_range_rounded,
+                                    size: 11,
+                                    color: AppColors.goldPrimary,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    rangeLabel,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 10.5,
+                                      color: AppColors.goldPrimary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 7, vertical: 2.5),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.25),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.folder_outlined,
+                                      size: 11, color: Colors.white),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${filtered.length} Recorded',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (area == _CalendarTabArea.custom)
+                              GestureDetector(
+                                onTap: () => _selectCustomRange(context),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 7, vertical: 2.5),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.edit_calendar_rounded,
+                                        size: 11,
+                                        color: Colors.white,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        'Change Range',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 10.5,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -6028,42 +6463,105 @@ class _CalendarTabState extends State<_CalendarTab> {
             ] else ...[
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Statistics Summary',
-                          style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.navyDark)),
-                      Text('${filtered.length} cases registered in total',
-                          style: GoogleFonts.poppins(
-                              fontSize: 11, color: AppColors.lightSubText)),
-                    ],
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 4,
+                          height: 22,
+                          decoration: BoxDecoration(
+                            color: AppColors.navyMid,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                TranslationHelper.translate(
+                                    context, 'Statistics Summary'),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.navyDark,
+                                ),
+                              ),
+                              Text(
+                                '${filtered.length} ${TranslationHelper.translate(context, 'cases registered in total')}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  color: AppColors.lightSubText,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   ElevatedButton.icon(
                     onPressed: () => ModulePdfHelper.generateSummaryReportPdf(
                         countsForPdf, reportTitle, rangeLabel),
-                    icon: const Icon(Icons.assessment_outlined,
-                        size: 16, color: Colors.white),
-                    label: Text('Summary',
-                        style: GoogleFonts.poppins(
-                            fontSize: 11, color: Colors.white)),
+                    icon: const Icon(Icons.picture_as_pdf_outlined,
+                        size: 14, color: Colors.white),
+                    label: Text(
+                      TranslationHelper.translate(context, 'Summary'),
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.navyMid,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      elevation: 1,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 8),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.md)),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                      ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               if (sortedItems.isEmpty)
                 _buildEmptyReport()
               else
-                ...sortedItems.map((meta) => _buildReportTile(meta)),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isWide = constraints.maxWidth >= 1050;
+                    final isMedium = constraints.maxWidth >= 650;
+                    const spacing = 12.0;
+                    final int cols = isWide ? 3 : (isMedium ? 2 : 1);
+                    final cardWidth = cols == 1
+                        ? constraints.maxWidth
+                        : ((constraints.maxWidth - (spacing * (cols - 1))) /
+                            cols);
+
+                    return Wrap(
+                      spacing: spacing,
+                      runSpacing: spacing,
+                      children: sortedItems.map((meta) {
+                        return SizedBox(
+                          width: cardWidth,
+                          child: _buildReportTile(meta),
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
             ],
           ],
         ),
@@ -6072,7 +6570,7 @@ class _CalendarTabState extends State<_CalendarTab> {
   }
 
   Widget _buildReportTile(_CalCategoryMeta meta) {
-    return GestureDetector(
+    return InkWell(
       onTap: () {
         if (meta.moduleKey.toLowerCase() == 'itsso' ||
             meta.label.toUpperCase() == 'ITSSO') {
@@ -6126,46 +6624,98 @@ class _CalendarTabState extends State<_CalendarTab> {
           readOnly: true,
         );
       },
+      borderRadius: BorderRadius.circular(10),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: AppColors.lightBorder),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xFFCBD5E1), width: 1.1),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 4,
-                offset: const Offset(0, 2)),
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
           ],
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Expanded(
-              child: Row(children: [
-                Text(meta.label,
-                    style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.lightText)),
-                const SizedBox(width: 8),
-                Icon(Icons.open_in_new_rounded,
-                    size: 14, color: AppColors.navyMid.withValues(alpha: 0.5)),
-              ]),
-            ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: AppColors.navyMid.withValues(alpha: 0.07),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              alignment: Alignment.center,
+              child: CategoryIconHelper.buildWidget(
+                meta.label,
+                color: AppColors.navyDark,
+                size: 19,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    TranslationHelper.translate(context, meta.label),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.navyDark,
+                      height: 1.2,
+                    ),
+                  ),
+                  if (meta.subCategory != null &&
+                      meta.subCategory!.trim().isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      TranslationHelper.translate(
+                          context, meta.subCategory!.trim()),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.lightSubText,
+                        height: 1.1,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: AppColors.goldPrimary.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: AppColors.goldPrimary.withValues(alpha: 0.35),
+                ),
               ),
-              child: Text('${meta.count}',
-                  style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.goldPrimary)),
+              child: Text(
+                '${meta.count}',
+                style: GoogleFonts.poppins(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.goldPrimary,
+                  height: 1.0,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 12,
+              color: Color(0xFF94A3B8),
             ),
           ],
         ),
@@ -6176,14 +6726,50 @@ class _CalendarTabState extends State<_CalendarTab> {
   Widget _buildEmptyReport() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 60),
-        child: Column(children: [
-          Icon(Icons.analytics_outlined, size: 48, color: Colors.grey.shade300),
-          const SizedBox(height: 12),
-          Text('No data available for this range',
-              style: GoogleFonts.poppins(
-                  fontSize: 12, color: AppColors.lightSubText)),
-        ]),
+        padding: const EdgeInsets.symmetric(vertical: 40),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF1F5F9),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.analytics_outlined,
+                  size: 26,
+                  color: Color(0xFF94A3B8),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'No data available for this range',
+                style: GoogleFonts.poppins(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.navyDark,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'No cases registered during this period.',
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  color: AppColors.lightSubText,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -7122,11 +7708,11 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.goldPrimary.withValues(alpha: 0.15),
+                    color: AppColors.navyMid.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.add_task_rounded,
-                      color: AppColors.goldPrimary, size: 24),
+                      color: AppColors.navyDark, size: 24),
                 ),
                 const SizedBox(width: 16),
                 Text('Unified Police Entry Menu',
@@ -7279,7 +7865,7 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
                 child: _buildGridIcon(
                   item.name,
                   _classIconFromName(item.iconName),
-                  AppColors.goldPrimary,
+                  AppColors.navyMid,
                   28,
                 ),
               ),

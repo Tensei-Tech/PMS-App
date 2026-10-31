@@ -181,13 +181,19 @@ class ModuleRecord {
   /// Human-readable module/category line from fields on the Firestore case document
   /// ([extraFields.moduleDisplayName], [subCategory], then humanized [moduleKey]).
   String get firestoreCategoryDisplayName {
-    final raw = extraFields['moduleDisplayName'];
-    if (raw is String && raw.trim().isNotEmpty) return raw.trim();
-    final sc = subCategory?.trim();
-    if (sc != null && sc.isNotEmpty) return sc;
-    final mk = moduleKey.trim();
-    if (mk.isEmpty) return '';
-    return mk.replaceAll('_', ' ');
+    try {
+      final raw = extraFields['moduleDisplayName'];
+      if (raw != null && raw.toString().trim().isNotEmpty) {
+        return raw.toString().trim();
+      }
+      final sc = subCategory?.toString().trim();
+      if (sc != null && sc.isNotEmpty) return sc;
+      final mk = moduleKey.toString().trim();
+      if (mk.isEmpty) return '';
+      return mk.replaceAll('_', ' ');
+    } catch (_) {
+      return '';
+    }
   }
 
   @override

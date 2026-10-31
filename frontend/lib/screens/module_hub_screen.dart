@@ -3407,11 +3407,11 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
     this.index,
   });
 
-  Widget _buildDivider() {
+  Widget _buildDivider({double margin = 6}) {
     return Container(
       width: 1,
       height: 26,
-      margin: const EdgeInsets.symmetric(horizontal: 6),
+      margin: EdgeInsets.symmetric(horizontal: margin),
       color: const Color(0xFFE2E8F0),
     );
   }
@@ -3423,62 +3423,72 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
     IconData? icon,
     Color? iconColor,
     Color? valueColor,
+    double? width,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[
-              Icon(icon,
-                  size: 11.5, color: iconColor ?? const Color(0xFF64748B)),
-              const SizedBox(width: 3.5),
-            ],
-            Flexible(
-              child: Text(
-                TranslationHelper.translate(context, label),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w500,
-                  color: const Color(0xFF64748B),
-                  height: 1.1,
+    final shown =
+        (value.trim().isEmpty || value.trim() == '-') ? '—' : value.trim();
+    final content = SizedBox(
+      height: 38,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[
+                Icon(icon,
+                    size: 11.5, color: iconColor ?? const Color(0xFF64748B)),
+                const SizedBox(width: 3.5),
+              ],
+              Flexible(
+                child: Text(
+                  TranslationHelper.translate(context, label),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF64748B),
+                    height: 1.1,
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 2),
-        Tooltip(
-          message: value,
-          child: Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: valueColor ?? const Color(0xFF0F172A),
-              height: 1.1,
+            ],
+          ),
+          const SizedBox(height: 2),
+          Tooltip(
+            message: shown,
+            child: Text(
+              shown,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.poppins(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: valueColor ?? AppColors.navyDark,
+                height: 1.15,
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
+
+    return width != null ? SizedBox(width: width, child: content) : content;
   }
 
-  Widget _buildLabeledActionButton({
+  Widget _buildCompactActionButton({
     required BuildContext context,
     required IconData icon,
     required String label,
     required VoidCallback onTap,
     Color? color,
+    Color? borderColor,
+    Color? bgColor,
   }) {
-    final fgColor = color ?? const Color(0xFF1E293B);
+    final fgColor = color ?? AppColors.navyDark;
     return Tooltip(
       message: TranslationHelper.translate(context, label),
       child: InkWell(
@@ -3486,12 +3496,15 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(6),
         child: Container(
           height: 38,
-          width: 38,
-          padding: const EdgeInsets.symmetric(vertical: 2),
+          width: 42,
+          padding: const EdgeInsets.symmetric(horizontal: 2),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: bgColor ?? Colors.white,
             borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: const Color(0xFFCBD5E1), width: 1.1),
+            border: Border.all(
+              color: borderColor ?? const Color(0xFFCBD5E1),
+              width: 1.1,
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.03),
@@ -3510,8 +3523,9 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
               Text(
                 TranslationHelper.translate(context, label),
                 maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.poppins(
-                  fontSize: 8.5,
+                  fontSize: 8.0,
                   fontWeight: FontWeight.w600,
                   color: fgColor,
                   height: 1.0,
@@ -3670,59 +3684,41 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
         .trim();
     if (ioName.isEmpty) ioName = '—';
 
-    // Status Color (Disposal = Green, Pending/Other = Red)
-    final isDisposal = record.status == 'Disposal' ||
-        record.status == 'Closed' ||
-        record.status == 'Resolved' ||
+    // Status Color (Disposal = Green, Pending/Other = Amber)
+    final isDisposal = record.status.toLowerCase() == 'disposal' ||
+        record.status.toLowerCase() == 'closed' ||
+        record.status.toLowerCase() == 'resolved' ||
         record.status.toLowerCase().contains('completed');
     final Color statusColor =
-        isDisposal ? const Color(0xFF2E7D32) : const Color(0xFFD32F2F);
+        isDisposal ? const Color(0xFF16A34A) : const Color(0xFFD97706);
     final Color statusBg =
-        isDisposal ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE);
+        isDisposal ? const Color(0xFFF0FDF4) : const Color(0xFFFFFBEB);
     final Color statusBorder =
-        isDisposal ? const Color(0xFFA5D6A7) : const Color(0xFFFFCDD2);
+        isDisposal ? const Color(0xFFBBF7D0) : const Color(0xFFFDE68A);
 
     Widget buildRowContent(bool isExpandedMode) {
+      final divMargin = isExpandedMode ? 8.0 : 4.0;
       return Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // 0. Sr. No. (Badge colored by case status: Red for Pending, Green for Disposal)
+          // 0. Sr. No. Badge (Fixed height 38, slate styling)
           if (index != null) ...[
             Container(
               height: 38,
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: statusBg,
+                color: const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: statusBorder),
+                border: Border.all(color: const Color(0xFFCBD5E1)),
               ),
               alignment: Alignment.center,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Sr.No',
-                    style: GoogleFonts.poppins(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w600,
-                      color: statusColor.withValues(alpha: 0.85),
-                      height: 1.0,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '$index',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: statusColor,
-                      height: 1.0,
-                    ),
-                  ),
-                ],
+              child: Text(
+                'Sr. $index',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                  color: AppColors.navyDark,
+                ),
               ),
             ),
             const SizedBox(width: 6),
@@ -3731,9 +3727,10 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
           // 1. CR No. (Badge)
           Container(
             height: 38,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            width: isExpandedMode ? 105 : 82,
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(6),
               border: Border.all(color: const Color(0xFFCBD5E1)),
             ),
@@ -3743,7 +3740,7 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'CR No.',
+                  TranslationHelper.translate(context, 'CR No.'),
                   style: GoogleFonts.poppins(
                     fontSize: 9,
                     fontWeight: FontWeight.w600,
@@ -3752,32 +3749,36 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  crNo,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF0F172A),
-                    height: 1.0,
+                Tooltip(
+                  message: crNo,
+                  child: Text(
+                    crNo,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyDark,
+                      height: 1.0,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 6),
 
           // 2. Crime Category (Badge)
           if (categoryLabel.isNotEmpty) ...[
+            const SizedBox(width: 6),
             Container(
               height: 38,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              width: isExpandedMode ? 85 : 70,
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFFBEB),
+                color: AppColors.goldPrimary.withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
-                  color: const Color(0xFFFDE68A),
+                  color: AppColors.goldPrimary.withValues(alpha: 0.35),
                 ),
               ),
               alignment: Alignment.center,
@@ -3786,39 +3787,40 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Crime Category',
+                    TranslationHelper.translate(context, 'Category'),
                     style: GoogleFonts.poppins(
-                      fontSize: 8.5,
+                      fontSize: 9,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF92400E),
+                      color: AppColors.goldPrimary,
                       height: 1.0,
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    categoryLabel,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF0F172A),
-                      height: 1.0,
+                  Tooltip(
+                    message: categoryLabel,
+                    child: Text(
+                      categoryLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11.0,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.goldPrimary,
+                        height: 1.0,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 6),
           ],
 
-          // Vertical Divider
-          _buildDivider(),
+          _buildDivider(margin: divMargin),
 
           // 3. Section & Act
           isExpandedMode
               ? Expanded(
-                  flex: 4,
+                  flex: 3,
                   child: _buildFieldColumn(
                     context: context,
                     label: 'Section & Act',
@@ -3828,13 +3830,13 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
                 )
               : _buildFieldColumn(
                   context: context,
+                  width: 105,
                   label: 'Section & Act',
                   value: sectionAct,
                   icon: Icons.gavel_rounded,
                 ),
 
-          // Vertical Divider
-          _buildDivider(),
+          _buildDivider(margin: divMargin),
 
           // 4. Accused Name
           isExpandedMode
@@ -3849,13 +3851,13 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
                 )
               : _buildFieldColumn(
                   context: context,
+                  width: 130,
                   label: 'Accused Name',
                   value: accusedName,
                   icon: Icons.person_outline_rounded,
                 ),
 
-          // Vertical Divider
-          _buildDivider(),
+          _buildDivider(margin: divMargin),
 
           // 5. Arrest Date
           isExpandedMode
@@ -3870,18 +3872,18 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
                 )
               : _buildFieldColumn(
                   context: context,
+                  width: 95,
                   label: 'Arrest Date',
                   value: arrestDate,
                   icon: Icons.calendar_today_outlined,
                 ),
 
-          // Vertical Divider
-          _buildDivider(),
+          _buildDivider(margin: divMargin),
 
           // 6. Preventive Section Act
           isExpandedMode
               ? Expanded(
-                  flex: 5,
+                  flex: 4,
                   child: _buildFieldColumn(
                     context: context,
                     label: 'Preventive Section Act',
@@ -3893,6 +3895,7 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
                 )
               : _buildFieldColumn(
                   context: context,
+                  width: 135,
                   label: 'Preventive Section Act',
                   value: prevSecAct,
                   icon: Icons.shield_outlined,
@@ -3900,8 +3903,7 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
                   valueColor: const Color(0xFF0284C7),
                 ),
 
-          // Vertical Divider
-          _buildDivider(),
+          _buildDivider(margin: divMargin),
 
           // 7. Preventive No.
           isExpandedMode
@@ -3916,15 +3918,15 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
                 )
               : _buildFieldColumn(
                   context: context,
+                  width: 95,
                   label: 'Preventive No.',
                   value: prevNo,
                   icon: Icons.tag_rounded,
                 ),
 
-          // Vertical Divider
-          _buildDivider(),
+          _buildDivider(margin: divMargin),
 
-          // 8. IO Name
+          // 8. Investigating Officer
           isExpandedMode
               ? Expanded(
                   flex: 4,
@@ -3937,111 +3939,115 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
                 )
               : _buildFieldColumn(
                   context: context,
+                  width: 135,
                   label: 'Investigating Officer',
                   value: ioName,
                   icon: Icons.badge_outlined,
                 ),
 
-          const SizedBox(width: 8),
+          _buildDivider(margin: divMargin),
 
-          // 9. Status Badge
+          // 9. Status Badge (Disposal / Pending in last before actions)
           Container(
-            height: 38,
+            height: 34,
+            width: isExpandedMode ? 140 : 120,
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: statusBg,
               borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: statusBorder,
-              ),
+              border: Border.all(color: statusBorder),
             ),
-            child: Column(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  'Status',
-                  style: GoogleFonts.poppins(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w600,
-                    color: statusColor.withValues(alpha: 0.85),
-                    height: 1.0,
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    shape: BoxShape.circle,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  TranslationHelper.translate(
-                    context,
-                    record.status,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: statusColor,
-                    height: 1.0,
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    TranslationHelper.translate(
+                      context,
+                      record.status,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: statusColor,
+                      height: 1.0,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 8),
 
-          // 10. Labeled Action Buttons: Edit, View, PDF
-          if (!readOnly) ...[
-            _buildLabeledActionButton(
-              context: context,
-              icon: Icons.edit_outlined,
-              label: 'Edit',
-              color: AppColors.infoBlue,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  AppTheme.fadeSlideRoute(
-                    page: PreventiveFormScreen(
-                      moduleLabel: record.firestoreCategoryDisplayName,
-                      subCategory: subCategory,
-                      existingRecord: record,
-                    ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(width: 5),
-          ],
-          _buildLabeledActionButton(
-            context: context,
-            icon: Icons.visibility_outlined,
-            label: 'View',
-            color: AppColors.goldPrimary,
-            onTap: () {
-              Navigator.push(
-                context,
-                AppTheme.fadeSlideRoute(
-                  page: PreventiveDetailViewScreen(
-                    record: record,
-                    moduleLabel: record.firestoreCategoryDisplayName,
-                  ),
+          _buildDivider(margin: divMargin),
+
+          // 10. Action buttons
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (!readOnly) ...[
+                _buildCompactActionButton(
+                  context: context,
+                  icon: Icons.edit_outlined,
+                  label: 'Edit',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      AppTheme.fadeSlideRoute(
+                        page: PreventiveFormScreen(
+                          moduleLabel: record.firestoreCategoryDisplayName,
+                          subCategory: subCategory,
+                          existingRecord: record,
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
-          const SizedBox(width: 5),
-          _buildLabeledActionButton(
-            context: context,
-            icon: Icons.picture_as_pdf_outlined,
-            label: 'PDF',
-            color: AppColors.dangerRed,
-            onTap: () => ModulePdfHelper.generatePdf(record, context),
+                const SizedBox(width: 6),
+              ],
+              _buildCompactActionButton(
+                context: context,
+                icon: Icons.visibility_outlined,
+                label: 'View',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    AppTheme.fadeSlideRoute(
+                      page: PreventiveDetailViewScreen(
+                        record: record,
+                        moduleLabel: record.firestoreCategoryDisplayName,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 6),
+              _buildCompactActionButton(
+                context: context,
+                icon: Icons.picture_as_pdf_outlined,
+                label: 'PDF',
+                onTap: () => ModulePdfHelper.generatePdf(record, context),
+              ),
+            ],
           ),
         ],
       );
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
@@ -4059,7 +4065,7 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final isWide = constraints.maxWidth >= 1150;
+          final isWide = constraints.maxWidth >= 1250;
           if (isWide) {
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
