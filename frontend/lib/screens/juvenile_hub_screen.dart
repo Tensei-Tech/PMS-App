@@ -229,8 +229,8 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
     }
     if (_caseWiseData == null || _caseWiseData!.isEmpty) {
       return _buildEmptyState(
-        title: 'No Juvenile Cases',
-        subtitle: 'Cases involving juveniles will appear here once registered',
+        title: 'No CiCL Cases',
+        subtitle: 'Cases involving CiCL will appear here once registered',
         icon: Icons.category_outlined,
         onRefresh: _loadCaseWise,
       );
@@ -359,7 +359,7 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
     if (_timeWiseData == null || _timeWiseData!.isEmpty) {
       return _buildEmptyState(
         title: 'No Time Intervals Found',
-        subtitle: 'Duration-wise juvenile breakdown will appear here',
+        subtitle: 'Duration-wise CiCL breakdown will appear here',
         icon: Icons.schedule_rounded,
         onRefresh: _loadTimeWise,
       );
@@ -420,7 +420,7 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
                     context,
                     AppTheme.fadeSlideRoute(
                       page: FilteredJuvenileScreen(
-                        title: 'Juvenile - $p',
+                        title: 'CiCL - $p',
                         startDate: start?.toIso8601String().split('T')[0],
                         endDate: end?.toIso8601String().split('T')[0],
                       ),
@@ -509,7 +509,7 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
       return _buildEmptyState(
         title: 'No Officers Found',
         subtitle:
-            'Juvenile cases mapped to investigating officers will appear here',
+            'CiCL cases mapped to investigating officers will appear here',
         icon: Icons.badge_outlined,
         onRefresh: _loadIOWise,
       );
