@@ -138,7 +138,7 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
     final Map<String, List<ModuleRecord>> map = {};
 
     for (final r in allRecords) {
-      final date = r.incidentDate ?? DateTime.now();
+      final date = r.incidentDate;
       final key = DateFormat('yyyy-MM').format(date);
       map.putIfAbsent(key, () => []).add(r);
     }
@@ -154,7 +154,7 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
         v += PvrProvider.getRecordVerifiedCount(r);
         p += PvrProvider.getRecordPendingCount(r);
       }
-      final date = list.first.incidentDate ?? DateTime.now();
+      final date = list.first.incidentDate;
       final label = DateFormat('MMMM yyyy').format(date);
 
       groups.add(PvrGroup(

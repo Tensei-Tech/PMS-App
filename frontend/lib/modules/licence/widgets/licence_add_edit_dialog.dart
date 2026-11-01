@@ -56,15 +56,6 @@ class _LicenceAddEditDialogState extends State<LicenceAddEditDialog> {
     return type.contains('other') || type.contains('इतर');
   }
 
-  bool get _isPoliceVerificationSelected {
-    final type =
-        (_selectedLicenceType ?? _licenceTypeCtrl.text).trim().toLowerCase();
-    final opt = _selectedLicenceOption;
-    if (opt?.number == 38) return true;
-    return type.contains('police') ||
-        type.contains('verification') ||
-        type.contains('तपासणी');
-  }
 
   @override
   void initState() {

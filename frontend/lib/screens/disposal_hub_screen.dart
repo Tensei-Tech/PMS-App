@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/backend_case_service.dart';
 import '../theme/app_theme.dart';
-import '../utils/category_icon_helper.dart';
 import 'filtered_disposal_screen.dart';
 
 class DisposalHubScreen extends StatefulWidget {
