@@ -253,29 +253,27 @@ class _FilteredDetectedScreenState extends State<FilteredDetectedScreen> {
                                   ],
                                 ),
                               )
-                            : SingleChildScrollView(
-                                padding: const EdgeInsets.only(bottom: 24),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(14),
-                                    border: Border.all(
-                                        color:
-                                            Colors.grey.withValues(alpha: 0.2)),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black
-                                            .withValues(alpha: 0.03),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 3),
-                                      ),
-                                    ],
-                                  ),
-                                  padding: const EdgeInsets.all(16),
-                                  child: DetectedCasesDemoDataTable(
-                                    isAd: false,
-                                    realDataRows: _tableRows,
-                                  ),
+                            : Container(
+                                margin: const EdgeInsets.only(bottom: 16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                      color:
+                                          Colors.grey.withValues(alpha: 0.2)),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black
+                                          .withValues(alpha: 0.03),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                padding: const EdgeInsets.all(12),
+                                child: DetectedCasesDemoDataTable(
+                                  isAd: false,
+                                  realDataRows: _tableRows,
                                 ),
                               ),
               ),

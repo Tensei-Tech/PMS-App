@@ -428,9 +428,13 @@ class BackendCaseService {
     String? district,
     String? crimeType,
     String? search,
+    int? groupId,
   }) async {
     try {
       final queryParams = <String, dynamic>{};
+      if (groupId != null) {
+        queryParams['group_id'] = groupId;
+      }
       if (ioUid != null && ioUid.isNotEmpty) {
         queryParams['io_uid'] = ioUid;
       }
@@ -486,9 +490,13 @@ class BackendCaseService {
   Future<List<Map<String, dynamic>>?> fetchDisposalIOWise({
     String? startDate,
     String? endDate,
+    int? groupId,
   }) async {
     try {
       final queryParams = <String, dynamic>{};
+      if (groupId != null) {
+        queryParams['group_id'] = groupId;
+      }
       if (startDate != null && startDate.isNotEmpty) {
         queryParams['start_date'] = startDate;
       }
@@ -517,10 +525,19 @@ class BackendCaseService {
   }
 
   /// Fetch time-wise grouped disposal counts
-  Future<List<Map<String, dynamic>>?> fetchDisposalTimeWise() async {
+  Future<List<Map<String, dynamic>>?> fetchDisposalTimeWise({
+    int? groupId,
+  }) async {
     try {
+      final queryParams = <String, dynamic>{};
+      if (groupId != null) {
+        queryParams['group_id'] = groupId;
+      }
       final url = '${ApiConfig.cases}disposal/time-wise/';
-      final response = await _api.get(url);
+      final response = await _api.get(
+        url,
+        queryParameters: queryParams.isNotEmpty ? queryParams : null,
+      );
       if (response.isSuccess && response.data is List) {
         return List<Map<String, dynamic>>.from(response.data);
       } else {
@@ -539,10 +556,19 @@ class BackendCaseService {
   }
 
   /// Fetch Crime-Type-wise grouped disposal counts
-  Future<List<Map<String, dynamic>>?> fetchDisposalCrimeTypeWise() async {
+  Future<List<Map<String, dynamic>>?> fetchDisposalCrimeTypeWise({
+    int? groupId,
+  }) async {
     try {
+      final queryParams = <String, dynamic>{};
+      if (groupId != null) {
+        queryParams['group_id'] = groupId;
+      }
       final url = '${ApiConfig.cases}disposal/crime-type-wise/';
-      final response = await _api.get(url);
+      final response = await _api.get(
+        url,
+        queryParameters: queryParams.isNotEmpty ? queryParams : null,
+      );
       if (response.isSuccess && response.data is List) {
         return List<Map<String, dynamic>>.from(response.data);
       } else {
@@ -1118,6 +1144,20 @@ class BackendCaseService {
     } catch (e) {
       if (kDebugMode) {
         debugPrint('[BackendCaseService] sendNafisReminderToIO exception: $e');
+      }
+      return false;
+    }
+  }
+
+  /// Trigger Remind to IO action for a Disposed case with missing CC/ST No.
+  Future<bool> sendDisposalReminderToIO(String caseId) async {
+    try {
+      final url = '${ApiConfig.cases}disposal/$caseId/remind/';
+      final response = await _api.post(url, body: {});
+      return response.isSuccess;
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[BackendCaseService] sendDisposalReminderToIO exception: $e');
       }
       return false;
     }

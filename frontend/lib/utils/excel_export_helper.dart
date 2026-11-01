@@ -414,7 +414,17 @@ class ExcelExportHelper {
             .replaceFirst(RegExp(r'^[\s:-]+'), '');
       }
 
-      final entry = '$label :- $cleaned';
+      final upper = cleaned.toUpperCase();
+      final String entry;
+      if (upper.startsWith('CC/ST') ||
+          upper.startsWith('CC NO') ||
+          upper.startsWith('ST NO') ||
+          upper.startsWith('CC ') ||
+          upper.startsWith('ST ')) {
+        entry = cleaned;
+      } else {
+        entry = '$label :- $cleaned';
+      }
 
       if (!seenValues.contains(cleaned) && !results.contains(entry)) {
         seenValues.add(cleaned);
@@ -447,179 +457,16 @@ class ExcelExportHelper {
       }
     }
 
-    // 4. A Final
-    addResult(
-        'A Final',
-        findValue([
-          'aFinalNo',
-          'a_final_number',
-          'a_final_no',
-          'aFinalNumber',
-        ]));
-
-    // 5. B Final
-    addResult(
-        'B Final',
-        findValue([
-          'bFinalNo',
-          'b_final_number',
-          'b_final_no',
-          'bFinalNumber',
-        ]));
-
-    // 6. C Final
-    addResult(
-        'C Final',
-        findValue([
-          'cFinalNo',
-          'c_final_number',
-          'c_final_no',
-          'cFinalNumber',
-        ]));
-
-    // 7. NC Final
-    addResult(
-        'NC Final',
-        findValue([
-          'ncFinalNo',
-          'nc_final_number',
-          'nc_final_no',
-          'ncFinalNumber',
-        ]));
-
-    // 8. Abated Summary
-    addResult(
-        'Abated Summary',
-        findValue([
-          'abatedSummaryNo',
-          'abeted_summary_no',
-          'abated_summary_no',
-          'abetedSummaryNo',
-          'abeted_summary_number',
-        ]));
-
-    // 9. AD No / AD Summary No
-    addResult(
-        'AD No',
-        findValue([
-          'ad_summary_sent',
-          'adSummarySent',
-          'ad_summary_sent_no',
-          'adSummarySentNo',
-          'adSummaryNo',
-          'ad_summary_no',
-          'adSummaryNum',
-          'ad_summary_num',
-          'adSummaryNumber',
-          'ad_summary_number',
-          'ad_no',
-          'ad_number',
-          'adNumber',
-          'adNo',
-          'summaryNo',
-          'summary_no',
-          'margSummaryNo',
-          'marg_summary_no',
-          'मर्ग समरी No.',
-          'मर्ग समरी No',
-          'मर्ग समरी नं.',
-          'मर्ग समरी नं',
-          'मर्ग समरी क्रमांक',
-          'मर्ग समरी क्र.',
-          'मर्ग समरी क्र',
-          'मर्ग समरी',
-          'मर्ग समरी पाठविली क्र.',
-          'मर्ग समरी पाठविली क्र',
-          'मर्ग समरी पाठविली नं.',
-          'मर्ग समरी पाठविली नं',
-          'मर्ग समरी पाठविली',
-          'मर्ग समरी पाठविल्याचा क्र.',
-          'मर्ग समरी पाठविल्याचा क्र',
-          'मर्ग समरी पाठविल्याचा क्रमांक',
-          'AD Summary No.',
-          'AD Summary No',
-          'AD Summary Number',
-          'AD Summary',
-        ]));
-
-    // 10. Preventive Action No
-    addResult(
-        'Preventive No',
-        findValue([
-          'preventiveNumber',
-          'preventive_number',
-          'preventiveNo',
-          'preventive_no',
-          'istegasha_no',
-          'istegashaNo',
-          'istegasha_number',
-          'istegashaNumber',
-          'istegasha',
-          'preventiveActionNo',
-          'preventive_action_no',
-          'chapter_case_no',
-          'chapterCaseNo',
-          'इस्तेगाशा नंबर',
-          'इस्तेगाशा नं.',
-          'इस्तेगाशा नं',
-          'इस्तेगाशा क्र.',
-          'इस्तेगाशा क्र',
-          'इस्तेगाशा क्रमांक',
-          'प्रतिबंधक कारवाई क्र.',
-          'प्रतिबंधक कारवाई क्र',
-          'प्रतिबंधक क्र.',
-          'प्रतिबंधक क्र',
-          'प्रतिबंधक क्रमांक',
-        ]));
-
-    final outwardVal = findValue([
-      'outwardNumber',
-      'outward_number',
-      'outwardNo',
-      'outward_no',
-      'preventiveOutwardNumber',
-      'preventive_outward_no',
-      'preventiveOutwardNo',
-      'जावक क्र.',
-      'जावक क्र',
-      'जावक क्रमांक',
-      'जावक नंबर',
-    ]);
-    if (outwardVal != null && outwardVal.isNotEmpty) {
-      addResult('Outward No', outwardVal);
-    }
-
-    // 11. No Preventive Reason (Family matter / Other)
-    final noPrevReason = findValue([
-      'noPreventiveReason',
-      'no_preventive_reason',
-      'preventiveNotDoneReason',
-      'preventive_not_done_reason',
-      'reason_for_no_preventive',
-      'preventive_reason',
-    ]);
-    if (noPrevReason != null && noPrevReason.isNotEmpty) {
-      final otherDetail =
-          findValue(['noPreventiveOtherDetails', 'other_reason_details']);
-      final fullReason = (noPrevReason.toLowerCase() == 'other' &&
-              otherDetail != null &&
-              otherDetail.isNotEmpty)
-          ? 'Other ($otherDetail)'
-          : noPrevReason;
-      addResult('No Preventive', fullReason);
-    }
-
-    // 12. Backend disposal_type / disposal_no fallback
+    // Fallback to backend disposal_type if it is CC or ST
     if (results.isEmpty &&
         r['disposal_no'] != null &&
         r['disposal_no'].toString().trim().isNotEmpty &&
         r['disposal_no'].toString().toLowerCase() != 'n/a') {
       final dispType = (r['disposal_type'] ?? '').toString().trim();
       final dispNo = r['disposal_no'].toString().trim();
-      if (dispType.isNotEmpty && dispType.toLowerCase() != 'n/a') {
-        results.add('$dispType :- $dispNo');
-      } else {
-        results.add(dispNo);
+      if (dispType.toLowerCase().contains('cc') ||
+          dispType.toLowerCase().contains('st')) {
+        addResult('CC/ST No', dispNo);
       }
     }
 
@@ -639,7 +486,7 @@ class ExcelExportHelper {
         'Cr. No.',
         'Sec & Act',
         'Head',
-        'Case Summary',
+        'Disposal',
         'IO Name',
       ]
     ];
@@ -687,6 +534,11 @@ class ExcelExportHelper {
           .trim();
 
       final disposalCourtNumbers = extractDisposalNumbers(r);
+      final disposalValue = (disposalCourtNumbers.isEmpty ||
+              disposalCourtNumbers == '—' ||
+              disposalCourtNumbers == '-')
+          ? 'Remind to IO'
+          : disposalCourtNumbers;
 
       final io = (r['assigned_officer'] ?? r['io_name'] ?? r['io'] ?? '-')
           .toString()
@@ -697,7 +549,7 @@ class ExcelExportHelper {
         cr.isEmpty || cr == '—' ? '-' : cr,
         secAct,
         head.isEmpty || head == '—' ? '-' : head,
-        disposalCourtNumbers,
+        disposalValue,
         io.isEmpty || io == '—' ? '-' : io,
       ]);
     }

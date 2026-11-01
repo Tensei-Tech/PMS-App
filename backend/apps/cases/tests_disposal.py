@@ -373,3 +373,41 @@ class ADCaseDisposalTests(APITestCase):
         self.assertEqual(len(ids1), 20)
         self.assertEqual(len(ids2), 5)
         self.assertEqual(set(ids1).intersection(set(ids2)), set())
+
+    def test_disposal_remind_io(self):
+        from rest_framework.test import APIClient
+        from apps.users.models import OfficerProfile, NotificationRecord
+        from unittest.mock import patch
+
+        client = APIClient()
+        user = OfficerProfile.objects.create_user(
+            username='remind_supervisor',
+            badge_number='SUP999',
+            password='pass',
+            station_name='Central',
+            is_staff=True
+        )
+        client.force_authenticate(user=user)
+
+        case = CaseRecord.objects.create(
+            case_number='CR_DISP_REMIND',
+            station_name='Central',
+            assigned_officer='PSI Kadam',
+            assigned_officer_uid='io_uid_123',
+            extra_fields={'aFinalNo': 'A-101', 'disposal_date': '2023-01-01'}
+        )
+
+        with patch('apps.core.permissions.check_dynamic_permission', return_value=True), \
+             patch('apps.core.tenancy.get_active_tenant_schema', return_value='public'), \
+             patch('apps.core.tenancy.set_tenant_schema'):
+            res = client.post(f'/api/cases/disposal/{case.id}/remind/')
+
+        self.assertEqual(res.status_code, 200, res.data)
+        self.assertEqual(res.data['status'], 'success')
+        self.assertIn('PSI Kadam', res.data['message'])
+
+        notif = NotificationRecord.objects.filter(category='reminder', registration_uid='CR_DISP_REMIND').first()
+        self.assertIsNotNone(notif)
+        self.assertEqual(notif.target_user_uid, 'io_uid_123')
+        self.assertIn('CC/ST No. Pending', notif.title)
+

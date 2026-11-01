@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -168,16 +169,40 @@ class NAFISCasesDataTable extends StatelessWidget {
           );
         }
 
-        final columnWidths = <int, TableColumnWidth>{
-          0: const FixedColumnWidth(70), // Sr. No.
-          1: const FlexColumnWidth(1.4), // Accused Name
-          2: const FlexColumnWidth(1.2), // CR No.
-          3: const FlexColumnWidth(1.4), // Section/Act
-          4: const FlexColumnWidth(1.4), // Head
-          5: const FlexColumnWidth(1.5), // IO Name
-          6: const FixedColumnWidth(130), // Status
-          7: const FixedColumnWidth(130), // Action
-        };
+        final isMobile = w < 650;
+        final double tableWidth;
+        final Map<int, TableColumnWidth> columnWidths;
+
+        if (isMobile) {
+          const srWidth = 48.0;
+          final colUnitW = (w - srWidth) / 2.5;
+          const statusW = 95.0;
+          const actionW = 105.0;
+          tableWidth = srWidth + (colUnitW * 5) + statusW + actionW;
+
+          columnWidths = <int, TableColumnWidth>{
+            0: const FixedColumnWidth(srWidth),
+            1: FixedColumnWidth(colUnitW),
+            2: FixedColumnWidth(colUnitW),
+            3: FixedColumnWidth(colUnitW),
+            4: FixedColumnWidth(colUnitW),
+            5: FixedColumnWidth(colUnitW),
+            6: const FixedColumnWidth(statusW),
+            7: const FixedColumnWidth(actionW),
+          };
+        } else {
+          tableWidth = w > 900 ? w : 900;
+          columnWidths = const <int, TableColumnWidth>{
+            0: FixedColumnWidth(70),
+            1: FlexColumnWidth(1.4),
+            2: FlexColumnWidth(1.2),
+            3: FlexColumnWidth(1.4),
+            4: FlexColumnWidth(1.4),
+            5: FlexColumnWidth(1.5),
+            6: FixedColumnWidth(130),
+            7: FixedColumnWidth(130),
+          };
+        }
 
         final headers = <Widget>[
           headerCell('Sr. No.', align: Alignment.centerLeft),
@@ -288,43 +313,96 @@ class NAFISCasesDataTable extends StatelessWidget {
 
         final maxH = constraints.maxHeight;
 
-        return Container(
-          width: double.infinity,
-          height: maxH.isFinite ? maxH : null,
+        final hasFiniteHeight = maxH.isFinite;
+        final double estHeight = 44.0 * (rows.length + 1) + 20.0;
+        final double containerHeight = hasFiniteHeight
+            ? maxH
+            : math.min(MediaQuery.of(context).size.height * 0.65, estHeight);
+
+        final headerTable = Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFFF8FAFC),
+          ),
+          child: Table(
+            columnWidths: columnWidths,
+            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            border: const TableBorder(
+              verticalInside:
+                  BorderSide(color: Color(0xFFE2E8F0), width: 1),
+              bottom:
+                  BorderSide(color: Color(0xFFE2E8F0), width: 1.5),
+            ),
+            children: [
+              TableRow(
+                decoration: const BoxDecoration(color: Color(0xFFF8FAFC)),
+                children: headers,
+              ),
+            ],
+          ),
+        );
+
+        final colCount = headers.length;
+        final bodyTable = Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+          ),
+          child: Table(
+            columnWidths: columnWidths,
+            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            border: const TableBorder(
+              horizontalInside:
+                  BorderSide(color: Color(0xFFEDF2F7), width: 1),
+              verticalInside:
+                  BorderSide(color: Color(0xFFEDF2F7), width: 1),
+            ),
+            children: rows.isEmpty
+                ? [
+                    TableRow(
+                      children: [
+                        for (var c = 0; c < colCount; c++)
+                          dataCell(c == 0 ? '-' : (c == 2 ? 'No records' : '-')),
+                      ],
+                    ),
+                  ]
+                : [
+                    for (var i = 0; i < rows.length; i++) rowFor(i, rows[i]),
+                  ],
+          ),
+        );
+
+        final inner = Container(
+          width: tableWidth,
+          height: containerHeight,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: const Color(0xFFE2E8F0)),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.vertical,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minWidth: w > 900 ? w : 900),
-                  child: Table(
-                    columnWidths: columnWidths,
-                    defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                    children: [
-                      TableRow(
-                        decoration: const BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(
-                              color: Color(0xFFE2E8F0),
-                              width: 1.5,
-                            ),
-                          ),
-                        ),
-                        children: headers,
-                      ),
-                      for (var i = 0; i < rows.length; i++) rowFor(i, rows[i]),
-                    ],
+            borderRadius: BorderRadius.circular(15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                headerTable,
+                Expanded(
+                  child: Scrollbar(
+                    thumbVisibility: true,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.vertical,
+                      child: bodyTable,
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
+          ),
+        );
+
+        return Scrollbar(
+          thumbVisibility: true,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: inner,
           ),
         );
       },
