@@ -135,8 +135,7 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
             border: const TableBorder(
               verticalInside:
                   BorderSide(color: AppColors.lightBorder, width: 1),
-              bottom:
-                  BorderSide(color: AppColors.lightBorder, width: 1),
+              bottom: BorderSide(color: AppColors.lightBorder, width: 1),
             ),
             children: [
               TableRow(
@@ -165,7 +164,8 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
                     TableRow(
                       children: [
                         for (var c = 0; c < 6; c++)
-                          dataCell(c == 0 ? '-' : (c == 2 ? 'No records' : '-')),
+                          dataCell(
+                              c == 0 ? '-' : (c == 2 ? 'No records' : '-')),
                       ],
                     ),
                   ]

@@ -25,7 +25,8 @@ void main() {
   });
 
   group('Disposal Excel Export Helper Tests', () {
-    test('extractDisposalNumbers extracts only cc_st_no and excludes final summaries',
+    test(
+        'extractDisposalNumbers extracts only cc_st_no and excludes final summaries',
         () {
       final r1 = {
         'cc_st_no': 'CC 101/2024',
@@ -72,7 +73,8 @@ void main() {
           returnsNormally);
     });
 
-    test('exportDisposalToExcel exports Remind to IO when cc_st_no is missing', () {
+    test('exportDisposalToExcel exports Remind to IO when cc_st_no is missing',
+        () {
       final sample = [
         {
           'sr_no': '1',

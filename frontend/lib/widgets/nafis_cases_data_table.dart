@@ -327,10 +327,8 @@ class NAFISCasesDataTable extends StatelessWidget {
             columnWidths: columnWidths,
             defaultVerticalAlignment: TableCellVerticalAlignment.middle,
             border: const TableBorder(
-              verticalInside:
-                  BorderSide(color: Color(0xFFE2E8F0), width: 1),
-              bottom:
-                  BorderSide(color: Color(0xFFE2E8F0), width: 1.5),
+              verticalInside: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+              bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.5),
             ),
             children: [
               TableRow(
@@ -350,17 +348,16 @@ class NAFISCasesDataTable extends StatelessWidget {
             columnWidths: columnWidths,
             defaultVerticalAlignment: TableCellVerticalAlignment.middle,
             border: const TableBorder(
-              horizontalInside:
-                  BorderSide(color: Color(0xFFEDF2F7), width: 1),
-              verticalInside:
-                  BorderSide(color: Color(0xFFEDF2F7), width: 1),
+              horizontalInside: BorderSide(color: Color(0xFFEDF2F7), width: 1),
+              verticalInside: BorderSide(color: Color(0xFFEDF2F7), width: 1),
             ),
             children: rows.isEmpty
                 ? [
                     TableRow(
                       children: [
                         for (var c = 0; c < colCount; c++)
-                          dataCell(c == 0 ? '-' : (c == 2 ? 'No records' : '-')),
+                          dataCell(
+                              c == 0 ? '-' : (c == 2 ? 'No records' : '-')),
                       ],
                     ),
                   ]

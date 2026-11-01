@@ -120,7 +120,8 @@ class PvrStatusCards extends StatelessWidget {
             color: isSelected ? lightBg : Colors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isSelected ? accentColor : borderColor.withValues(alpha: 0.5),
+              color:
+                  isSelected ? accentColor : borderColor.withValues(alpha: 0.5),
               width: isSelected ? 2 : 1,
             ),
             boxShadow: [
@@ -160,7 +161,8 @@ class PvrStatusCards extends StatelessWidget {
                         fontSize: 12.5,
                         fontWeight:
                             isSelected ? FontWeight.w600 : FontWeight.w500,
-                        color: isSelected ? accentColor : AppColors.lightSubText,
+                        color:
+                            isSelected ? accentColor : AppColors.lightSubText,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

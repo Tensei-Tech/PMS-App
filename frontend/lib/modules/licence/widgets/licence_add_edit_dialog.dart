@@ -56,7 +56,6 @@ class _LicenceAddEditDialogState extends State<LicenceAddEditDialog> {
     return type.contains('other') || type.contains('इतर');
   }
 
-
   @override
   void initState() {
     super.initState();

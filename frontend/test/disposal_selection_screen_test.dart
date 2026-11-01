@@ -57,13 +57,13 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.byType(DisposalHubScreen), findsOneWidget);
-    final hub = tester.widget<DisposalHubScreen>(find.byType(DisposalHubScreen));
+    final hub =
+        tester.widget<DisposalHubScreen>(find.byType(DisposalHubScreen));
     expect(hub.groupId, 1);
     expect(hub.groupTitle, 'Form 1 to 5');
   });
 
-  testWidgets(
-      'Tapping Form 6 navigates to DisposalHubScreen with groupId 2',
+  testWidgets('Tapping Form 6 navigates to DisposalHubScreen with groupId 2',
       (tester) async {
     tester.view.physicalSize = const Size(1024, 768);
     tester.view.devicePixelRatio = 1.0;
@@ -77,7 +77,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.byType(DisposalHubScreen), findsOneWidget);
-    final hub = tester.widget<DisposalHubScreen>(find.byType(DisposalHubScreen));
+    final hub =
+        tester.widget<DisposalHubScreen>(find.byType(DisposalHubScreen));
     expect(hub.groupId, 2);
     expect(hub.groupTitle, 'Form 6');
   });

@@ -197,8 +197,7 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
       );
       groups = groups.where((g) {
         final monthStart = DateTime(g.date.year, g.date.month, 1);
-        final monthEnd =
-            DateTime(g.date.year, g.date.month + 1, 0, 23, 59, 59);
+        final monthEnd = DateTime(g.date.year, g.date.month + 1, 0, 23, 59, 59);
         return !monthStart.isAfter(end) && !monthEnd.isBefore(start);
       }).toList();
     }
@@ -635,9 +634,7 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
           color: hasFilter ? const Color(0xFFEFF6FF) : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: hasFilter
-                ? const Color(0xFF3B82F6)
-                : AppColors.lightBorder,
+            color: hasFilter ? const Color(0xFF3B82F6) : AppColors.lightBorder,
           ),
           boxShadow: [
             BoxShadow(
@@ -653,9 +650,8 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
             Icon(
               Icons.calendar_month_rounded,
               size: 18,
-              color: hasFilter
-                  ? const Color(0xFF1E40AF)
-                  : AppColors.lightSubText,
+              color:
+                  hasFilter ? const Color(0xFF1E40AF) : AppColors.lightSubText,
             ),
             const SizedBox(width: 8),
             Text(
@@ -664,9 +660,7 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 13,
                 fontWeight: hasFilter ? FontWeight.w600 : FontWeight.w500,
-                color: hasFilter
-                    ? const Color(0xFF1E40AF)
-                    : AppColors.navyDark,
+                color: hasFilter ? const Color(0xFF1E40AF) : AppColors.navyDark,
               ),
             ),
             if (hasFilter) ...[

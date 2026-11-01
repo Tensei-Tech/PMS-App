@@ -380,7 +380,8 @@ class _PvrAddEditDialogState extends State<PvrAddEditDialog> {
                         horizontal: 14, vertical: 12),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: AppColors.lightBorder),
+                      borderSide:
+                          const BorderSide(color: AppColors.lightBorder),
                     ),
                   ),
                 ),
@@ -412,7 +413,8 @@ class _PvrAddEditDialogState extends State<PvrAddEditDialog> {
                         horizontal: 14, vertical: 12),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: AppColors.lightBorder),
+                      borderSide:
+                          const BorderSide(color: AppColors.lightBorder),
                     ),
                   ),
                 ),

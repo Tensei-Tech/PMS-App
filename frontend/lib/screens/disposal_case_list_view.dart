@@ -589,13 +589,11 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
             border: const TableBorder(
               verticalInside:
                   BorderSide(color: AppColors.lightBorder, width: 1),
-              bottom:
-                  BorderSide(color: AppColors.lightBorder, width: 1),
+              bottom: BorderSide(color: AppColors.lightBorder, width: 1),
             ),
             children: [
               TableRow(
-                decoration:
-                    const BoxDecoration(color: AppColors.navyDark),
+                decoration: const BoxDecoration(color: AppColors.navyDark),
                 children: headers,
               ),
             ],
@@ -620,7 +618,8 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
                     TableRow(
                       children: [
                         for (var c = 0; c < 6; c++)
-                          dataCell(c == 0 ? '-' : (c == 2 ? 'No records' : '-')),
+                          dataCell(
+                              c == 0 ? '-' : (c == 2 ? 'No records' : '-')),
                       ],
                     ),
                   ]

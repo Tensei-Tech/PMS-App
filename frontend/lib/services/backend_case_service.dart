@@ -1157,7 +1157,8 @@ class BackendCaseService {
       return response.isSuccess;
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('[BackendCaseService] sendDisposalReminderToIO exception: $e');
+        debugPrint(
+            '[BackendCaseService] sendDisposalReminderToIO exception: $e');
       }
       return false;
     }
