@@ -1303,9 +1303,10 @@ class DisposalRemindIOView(APIView):
             from apps.core.tenancy import get_active_tenant_schema, set_tenant_schema
 
             schema = getattr(request, 'state_schema', None) or get_active_tenant_schema(request)
-            if not schema or schema == 'public':
-                schema = getattr(user, 'state_schema', None) or 'maharashtra'
-            set_tenant_schema(schema)
+            if not schema:
+                schema = getattr(user, 'state_schema', None)
+            if schema and schema != 'public':
+                set_tenant_schema(schema)
 
             case = CaseRecord.objects.get(pk=pk)
 

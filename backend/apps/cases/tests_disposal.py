@@ -376,17 +376,20 @@ class ADCaseDisposalTests(APITestCase):
 
     def test_disposal_remind_io(self):
         from rest_framework.test import APIClient
-        from apps.users.models import OfficerProfile, NotificationRecord
+        from django.contrib.auth import get_user_model
+        from apps.users.models import NotificationRecord
         from unittest.mock import patch
 
+        User = get_user_model()
         client = APIClient()
-        user = OfficerProfile.objects.create_user(
+        user = User.objects.create_user(
             username='remind_supervisor',
-            badge_number='SUP999',
             password='pass',
-            station_name='Central',
             is_staff=True
         )
+        user.station_name = 'Central'
+        user.state_code = 'MH'
+        user.save()
         client.force_authenticate(user=user)
 
         case = CaseRecord.objects.create(
@@ -397,7 +400,8 @@ class ADCaseDisposalTests(APITestCase):
             extra_fields={'aFinalNo': 'A-101', 'disposal_date': '2023-01-01'}
         )
 
-        with patch('apps.core.permissions.check_dynamic_permission', return_value=True), \
+        with patch('apps.cases.views.check_dynamic_permission', return_value=True), \
+             patch('apps.core.permissions.check_dynamic_permission', return_value=True), \
              patch('apps.core.tenancy.get_active_tenant_schema', return_value='public'), \
              patch('apps.core.tenancy.set_tenant_schema'):
             res = client.post(f'/api/cases/disposal/{case.id}/remind/')
