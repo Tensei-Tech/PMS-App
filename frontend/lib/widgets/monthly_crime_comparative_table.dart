@@ -36,16 +36,20 @@ class _MonthlyCrimeComparativeTableState
   String? _errorMessage;
   Map<String, dynamic>? _reportData;
 
-  // Column width definitions (Total width = 964px)
+  // Column width definitions
+  static const double _dividerWidth = 1.0;
   static const double _colSrWidth = 44.0;
   static const double _colHeadWidth = 210.0;
   static const double _colDataWidth = 56.0;
   static const double _colIncDecWidth = 66.0;
-  static const double _colGroupWidth = _colDataWidth * 2; // 112.0
+  static const double _colGroupWidth =
+      (_colDataWidth * 2) + _dividerWidth; // 113.0
   static const double _totalTableWidth = _colSrWidth +
       _colHeadWidth +
       (_colDataWidth * 10) +
-      (_colIncDecWidth * 2); // 44 + 210 + 560 + 132 = 946.0
+      (_colIncDecWidth * 2) +
+      (_dividerWidth * 13) +
+      6.0; // 44 + 210 + 560 + 132 + 13 + 6 = 965.0
 
   @override
   void initState() {
@@ -786,6 +790,7 @@ class _MonthlyCrimeComparativeTableState
       ),
       child: IntrinsicHeight(
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             // SR NO
             _buildHeaderCellBox(
@@ -917,9 +922,10 @@ class _MonthlyCrimeComparativeTableState
               height: 1, thickness: 0.8, color: AppColors.lightBorder),
           // Bottom Sub-columns
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               SizedBox(
-                width: _colDataWidth - 0.5,
+                width: _colDataWidth,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Text(
@@ -933,9 +939,9 @@ class _MonthlyCrimeComparativeTableState
                   ),
                 ),
               ),
-              Container(width: 1, height: 16, color: AppColors.lightBorder),
+              _buildCellDivider(),
               SizedBox(
-                width: _colDataWidth - 0.5,
+                width: _colDataWidth,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Text(
@@ -967,6 +973,7 @@ class _MonthlyCrimeComparativeTableState
         ),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             width: 4,
@@ -977,13 +984,16 @@ class _MonthlyCrimeComparativeTableState
             ),
           ),
           const SizedBox(width: 8),
-          Text(
-            title,
-            style: GoogleFonts.poppins(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-              letterSpacing: 0.5,
+          Expanded(
+            child: Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+                letterSpacing: 0.5,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -1082,6 +1092,7 @@ class _MonthlyCrimeComparativeTableState
       ),
       child: IntrinsicHeight(
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             // SR NO
             _buildDataCellBox(
@@ -1457,7 +1468,7 @@ class _MonthlyCrimeComparativeTableState
 
   Widget _buildCellDivider() {
     return Container(
-      width: 0.6,
+      width: _dividerWidth,
       color: AppColors.lightBorder,
     );
   }
