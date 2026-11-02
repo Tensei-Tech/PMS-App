@@ -84,19 +84,42 @@ void main() {
     final field = find.byType(TextFormField);
     String text() => tester.widget<TextFormField>(field).controller!.text;
 
+    InputDecoration decoration() =>
+        tester.widget<InputDecorator>(find.byType(InputDecorator)).decoration;
+
+    // Three digits are valid: no note, no error.
     await tester.enterText(field, '123');
     await tester.pump();
     expect(find.textContaining('must be between'), findsNothing);
-    expect(find.text('TEST Age can be at most 3 digits'), findsNothing);
+    expect(find.text('TEST Age: maximum 3 digits'), findsNothing);
+    expect(decoration().errorText, isNull);
 
+    // A fourth digit is refused with a grey note, never a red error...
     await tester.enterText(field, '1234');
     await tester.pump();
     expect(text(), '123');
-    expect(find.text('TEST Age can be at most 3 digits'), findsOneWidget);
+    expect(find.text('TEST Age: maximum 3 digits'), findsOneWidget);
+    expect(decoration().errorText, isNull);
 
+    // ...which hides itself after a moment.
+    await tester.pump(const Duration(seconds: 3));
+    expect(find.text('TEST Age: maximum 3 digits'), findsNothing);
+
+    // A pasted longer number keeps its first three digits.
+    await tester.enterText(field, '');
+    await tester.pump();
+    await tester.enterText(field, '45678');
+    await tester.pump();
+    expect(text(), '456');
+    expect(find.text('TEST Age: maximum 3 digits'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 3));
+
+    // And on the next accepted edit.
+    await tester.enterText(field, '1234');
+    await tester.pump();
     await tester.enterText(field, '12');
     await tester.pump();
-    expect(find.text('TEST Age can be at most 3 digits'), findsNothing);
+    expect(find.text('TEST Age: maximum 3 digits'), findsNothing);
 
     await tester.enterText(field, '');
     await tester.pump();
@@ -147,6 +170,37 @@ void main() {
     expect(YearPickerField.matches('03'), ['2003']);
     expect(YearPickerField.matches('202'),
         [for (var y = 2020; y <= 2029; y++) '$y']);
+  });
+
+  test('Year: a field can set its own range with years:<first>-<last>', () {
+    expect(YearPickerField.parseRange('years:2001-3001'), (2001, 3001));
+    expect(YearPickerField.parseRange(null), (2001, 2100));
+    expect(YearPickerField.parseRange('/api/options/x/'), (2001, 2100));
+    expect(YearPickerField.parseRange('years:3001-2001'), (2001, 2100));
+    final all = YearPickerField.matches('', range: (2001, 3001));
+    expect(all.length, 1001);
+    expect(all.first, '2001');
+    expect(all.last, '3001');
+    expect(YearPickerField.matches('300', range: (2001, 3001)),
+        [for (var y = 3000; y <= 3001; y++) '$y']);
+  });
+
+  testWidgets('Year: a 2001-3001 field accepts 3001 and refuses 3002',
+      (tester) async {
+    await _pump(
+        tester,
+        _def('t_ad_year', 'TEST Year', 'year',
+            optionsSource: 'years:2001-3001'));
+    final field = find.byType(TextFormField);
+    await tester.enterText(field, '3001');
+    await tester.pump();
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Select a year'), findsNothing);
+
+    await tester.enterText(field, '3002');
+    await tester.pump();
+    expect(find.text('Select a year from 2001 to 3001'), findsOneWidget);
   });
 
   testWidgets('Year: typing 03 and leaving the field gives 2003',

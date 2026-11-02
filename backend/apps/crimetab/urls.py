@@ -106,6 +106,7 @@ from apps.crimetab.views_ad import (
     AdCountsView,
     AdConfigView,
     AdDetailView,
+    AdOfficersView,
     AdPdfView,
 )
 
@@ -162,6 +163,7 @@ urlpatterns = [
     # A.D. Endpoints (Suicide / Other sub-tabs; case records with module_key 'ad')
     path('ad/counts/', AdCountsView.as_view(), name='ad-counts'),
     path('ad/config/', AdConfigView.as_view(), name='ad-config'),
+    path('ad/officers/', AdOfficersView.as_view(), name='ad-officers'),
     path('ad/<str:pk>/pdf/', AdPdfView.as_view(), name='ad-pdf'),
     path('ad/<str:pk>/', AdDetailView.as_view(), name='ad-detail'),
     path('ad/', AdListCreateView.as_view(), name='ad-list-create'),
