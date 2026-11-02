@@ -84,19 +84,42 @@ void main() {
     final field = find.byType(TextFormField);
     String text() => tester.widget<TextFormField>(field).controller!.text;
 
+    InputDecoration decoration() =>
+        tester.widget<InputDecorator>(find.byType(InputDecorator)).decoration;
+
+    // Three digits are valid: no note, no error.
     await tester.enterText(field, '123');
     await tester.pump();
     expect(find.textContaining('must be between'), findsNothing);
-    expect(find.text('TEST Age can be at most 3 digits'), findsNothing);
+    expect(find.text('TEST Age: maximum 3 digits'), findsNothing);
+    expect(decoration().errorText, isNull);
 
+    // A fourth digit is refused with a grey note, never a red error...
     await tester.enterText(field, '1234');
     await tester.pump();
     expect(text(), '123');
-    expect(find.text('TEST Age can be at most 3 digits'), findsOneWidget);
+    expect(find.text('TEST Age: maximum 3 digits'), findsOneWidget);
+    expect(decoration().errorText, isNull);
 
+    // ...which hides itself after a moment.
+    await tester.pump(const Duration(seconds: 3));
+    expect(find.text('TEST Age: maximum 3 digits'), findsNothing);
+
+    // A pasted longer number keeps its first three digits.
+    await tester.enterText(field, '');
+    await tester.pump();
+    await tester.enterText(field, '45678');
+    await tester.pump();
+    expect(text(), '456');
+    expect(find.text('TEST Age: maximum 3 digits'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 3));
+
+    // And on the next accepted edit.
+    await tester.enterText(field, '1234');
+    await tester.pump();
     await tester.enterText(field, '12');
     await tester.pump();
-    expect(find.text('TEST Age can be at most 3 digits'), findsNothing);
+    expect(find.text('TEST Age: maximum 3 digits'), findsNothing);
 
     await tester.enterText(field, '');
     await tester.pump();
