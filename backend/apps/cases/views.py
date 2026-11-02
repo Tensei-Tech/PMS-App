@@ -2534,6 +2534,24 @@ def case_matches_victim_filter(case, filter_key):
     return True
 
 
+def apply_victim_filter_queryset(queryset, victim_filter):
+    """
+    Applies victim filtering to a queryset.
+    Uses .only(...) to fetch only required fields for matching, reducing DB load and memory.
+    """
+    if not victim_filter or str(victim_filter).lower().strip() in ['all', 'total', 'total_victims', '']:
+        return queryset
+
+    raw_keys = [k.strip().lower() for k in str(victim_filter).split(',') if k.strip()]
+    raw_keys = [k for k in raw_keys if k not in ['all', 'total', 'total_victims']]
+    if not raw_keys:
+        return queryset
+
+    filtered_candidates = queryset.only('id', 'extra_fields', 'module_key', 'sub_category', 'status')
+    matching_ids = [c.id for c in filtered_candidates if case_matches_victim_filter(c, victim_filter)]
+    return queryset.filter(id__in=matching_ids)
+
+
 class VictimCaseWiseView(APIView):
     permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
@@ -2567,9 +2585,7 @@ class VictimCaseWiseView(APIView):
                 queryset = queryset.filter(created_at__date__lte=end_date)
 
             victim_filter = request.query_params.get('victim_filter') or request.query_params.get('filter_type')
-            if victim_filter and victim_filter.lower() not in ['all', 'total', '']:
-                matching_ids = [c.id for c in queryset if case_matches_victim_filter(c, victim_filter)]
-                queryset = queryset.filter(id__in=matching_ids)
+            queryset = apply_victim_filter_queryset(queryset, victim_filter)
 
             from apps.cases.serializers import CaseRecordSerializer
             paginator = PageNumberPagination()
@@ -2636,7 +2652,7 @@ class VictimStatsView(APIView):
             }
 
             total_victims_count = 0
-            for case in queryset:
+            for case in queryset.only('id', 'extra_fields', 'module_key', 'sub_category', 'status'):
                 victims = extract_case_victims(case)
                 for v in victims:
                     total_victims_count += 1
@@ -2743,10 +2759,7 @@ class VictimTimeWiseView(APIView):
                 queryset = queryset.filter(station_name__in=stations)
 
             victim_filter = request.query_params.get('victim_filter') or request.query_params.get('filter_type')
-            if victim_filter and victim_filter.lower() not in ['all', 'total', '']:
-                filtered_candidates = queryset.only('id', 'extra_fields', 'module_key', 'sub_category', 'status')
-                matching_ids = [c.id for c in filtered_candidates if case_matches_victim_filter(c, victim_filter)]
-                queryset = queryset.filter(id__in=matching_ids)
+            queryset = apply_victim_filter_queryset(queryset, victim_filter)
 
             now = timezone.now()
             month_1 = now - timedelta(days=30)
@@ -2790,10 +2803,7 @@ class VictimIOWiseView(APIView):
                 queryset = queryset.filter(station_name__in=stations)
 
             victim_filter = request.query_params.get('victim_filter') or request.query_params.get('filter_type')
-            if victim_filter and victim_filter.lower() not in ['all', 'total', '']:
-                filtered_candidates = queryset.only('id', 'extra_fields', 'module_key', 'sub_category', 'status')
-                matching_ids = [c.id for c in filtered_candidates if case_matches_victim_filter(c, victim_filter)]
-                queryset = queryset.filter(id__in=matching_ids)
+            queryset = apply_victim_filter_queryset(queryset, victim_filter)
 
             counts = queryset.values('assigned_officer', 'station_name').annotate(count=Count('id')).order_by('-count')
             results = []
