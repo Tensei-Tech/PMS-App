@@ -2475,14 +2475,14 @@ def victim_matches_single_filter(v, k):
         return age is not None and 16 <= age <= 18
     elif k in ['age_18_59', '18_59']:
         return age is not None and 18 <= age <= 59
-    elif k in ['age_60_plus', '60_plus', '60_above']:
+    elif k in ['age_60_plus', '60_plus', '60_above', 'above_60', 'age_above_60']:
         return age is not None and age >= 60
     return False
 
 GENDER_KEYS = {'male', 'male_victims', 'female', 'female_victims', 'transgender', 'transgender_victims', 'other', 'other_gender', 'other_victims'}
 SPECIAL_KEYS = {'adult', 'adult_victims', 'pwd', 'disability', 'minor', 'child', 'minor_under_18', 'minor_male', 'minor_female', 'women', 'senior', 'senior_citizen', 'senior_60_plus', 'senior_male', 'senior_female', 'mentally_vulnerable'}
 CONDITION_KEYS = {'injured', 'injured_victims', 'deceased', 'deceased_victims', 'missing', 'missing_victims', 'traced', 'victims_traced', 'pending_tracing', 'victims_pending_tracing'}
-AGE_KEYS = {'age_below_5', 'below_5', 'age_5_10', '5_10', 'age_11_15', '11_15', 'age_16_18', '16_18', 'age_18_59', '18_59', 'age_60_plus', '60_plus', '60_above'}
+AGE_KEYS = {'age_below_5', 'below_5', 'age_5_10', '5_10', 'age_11_15', '11_15', 'age_16_18', '16_18', 'age_18_59', '18_59', 'age_60_plus', '60_plus', '60_above', 'above_60', 'age_above_60'}
 
 
 def case_matches_victim_filter(case, filter_key):
