@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/backend_case_service.dart';
@@ -810,9 +811,19 @@ class _VictimHubScreenState extends State<VictimHubScreen>
         return StatefulBuilder(
           builder: (modalContext, setModalState) {
             final media = MediaQuery.of(dialogContext);
-            final leftPos = offset.dx.clamp(12.0, media.size.width - 365.0);
-            final topPos = (offset.dy + size.height + 4.0)
-                .clamp(12.0, media.size.height - 520.0);
+            final dialogWidth =
+                math.min(350.0, math.max(280.0, media.size.width - 24.0));
+            final maxLeft =
+                math.max(12.0, media.size.width - dialogWidth - 12.0);
+            final isSmallScreen = media.size.width < 420;
+            final leftPos = isSmallScreen
+                ? ((media.size.width - dialogWidth) / 2).clamp(12.0, maxLeft)
+                : offset.dx.clamp(12.0, maxLeft);
+            final maxTop = math.max(12.0, media.size.height - 520.0);
+            final idealTop = offset.dy + size.height + 4.0;
+            final topPos = idealTop.clamp(12.0, maxTop);
+            final maxModalHeight = math.min(
+                480.0, math.max(260.0, media.size.height - topPos - 16.0));
 
             final filteredItems = kVictimFilterItems.where((item) {
               if (searchQuery.isEmpty) return true;
@@ -831,11 +842,11 @@ class _VictimHubScreenState extends State<VictimHubScreen>
                   Positioned(
                     left: leftPos,
                     top: topPos,
-                    width: 350,
+                    width: dialogWidth,
                     child: Material(
                       color: Colors.transparent,
                       child: Container(
-                        constraints: const BoxConstraints(maxHeight: 480),
+                        constraints: BoxConstraints(maxHeight: maxModalHeight),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(14),
