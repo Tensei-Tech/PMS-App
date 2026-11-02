@@ -4820,105 +4820,125 @@ class _ViewTabState extends State<_ViewTab> {
         index: 0,
         label: 'Total Cases',
         count: _allCases?.length ?? 0,
-        badgeBg: const Color(0xFFE8F1FC),
-        badgeFg: const Color(0xFF1976D2),
+        color: AppColors.infoBlue,
       ),
       (
         index: 1,
         label: 'Pending',
         count: _pendingCases?.length ?? 0,
-        badgeBg: const Color(0xFFFFF3E0),
-        badgeFg: const Color(0xFFE65100),
+        color: AppColors.warningOrange,
       ),
       (
         index: 2,
         label: 'Disposal',
         count: _disposalCases?.length ?? 0,
-        badgeBg: const Color(0xFFE8F5E9),
-        badgeFg: const Color(0xFF2E7D32),
+        color: AppColors.successGreen,
       ),
     ];
 
-    return Center(
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Container(
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Border.all(color: const Color(0xFFCBD5E1), width: 1.1),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
-                blurRadius: 4,
-                offset: const Offset(0, 1),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+
+        Widget buildTabItem(
+          ({int count, Color color, int index, String label}) item, {
+          bool expand = false,
+        }) {
+          final isSelected = _selectedTabIndex == item.index;
+          final tabContent = Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 4 : 18,
+              vertical: 10,
+            ),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: isSelected ? AppColors.navyDark : Colors.transparent,
+                  width: 2.5,
+                ),
               ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: tabs.map((item) {
-              final isSelected = _selectedTabIndex == item.index;
-              return InkWell(
-                onTap: () {
-                  if (_selectedTabIndex != item.index) {
-                    setState(() => _selectedTabIndex = item.index);
-                  }
-                },
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isSelected ? AppColors.navyDark : Colors.transparent,
-                    borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+            alignment: Alignment.center,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    TranslationHelper.translate(context, item.label),
+                    style: GoogleFonts.poppins(
+                      fontSize: isMobile ? 12 : 13,
+                      fontWeight:
+                          isSelected ? FontWeight.w700 : FontWeight.w500,
+                      color: isSelected
+                          ? AppColors.navyDark
+                          : const Color(0xFF64748B),
+                    ),
                   ),
+                  const SizedBox(width: 5),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 1.5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: item.color.withValues(
+                        alpha: isSelected ? 0.14 : 0.08,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '${item.count}',
+                      style: GoogleFonts.poppins(
+                        fontSize: isMobile ? 10 : 10.5,
+                        fontWeight: FontWeight.w700,
+                        color: item.color,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+
+          final inkWell = InkWell(
+            onTap: () {
+              if (_selectedTabIndex != item.index) {
+                setState(() => _selectedTabIndex = item.index);
+              }
+            },
+            hoverColor: Colors.transparent,
+            splashColor: AppColors.navyMid.withValues(alpha: 0.05),
+            child: tabContent,
+          );
+
+          return expand ? Expanded(child: inkWell) : inkWell;
+        }
+
+        return Container(
+          decoration: const BoxDecoration(
+            border: Border(
+              bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.2),
+            ),
+          ),
+          child: isMobile
+              ? Row(
+                  children: tabs
+                      .map((item) => buildTabItem(item, expand: true))
+                      .toList(),
+                )
+              : Center(
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        TranslationHelper.translate(context, item.label),
-                        style: GoogleFonts.poppins(
-                          fontSize: 12.5,
-                          fontWeight:
-                              isSelected ? FontWeight.w600 : FontWeight.w500,
-                          color: isSelected
-                              ? Colors.white
-                              : AppColors.lightSubText,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 7,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? Colors.white.withValues(alpha: 0.22)
-                              : item.badgeBg,
-                          borderRadius: BorderRadius.circular(AppRadius.full),
-                        ),
-                        child: Text(
-                          '${item.count}',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: isSelected ? Colors.white : item.badgeFg,
-                          ),
-                        ),
-                      ),
-                    ],
+                    children: tabs
+                        .map((item) => buildTabItem(item, expand: false))
+                        .toList(),
                   ),
                 ),
-              );
-            }).toList(),
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -4956,13 +4976,9 @@ class _ViewTabState extends State<_ViewTab> {
               alignment: Alignment.topCenter,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1600),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                  child: Column(
-                    children:
-                        List.generate(6, (_) => const _ViewCaseCardSkeleton()),
-                  ),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                  child: _ViewCaseCardSkeleton(),
                 ),
               ),
             ),
@@ -5128,17 +5144,9 @@ class _ViewTabState extends State<_ViewTab> {
                 alignment: Alignment.topCenter,
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 1600),
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: filtered.length,
-                    itemBuilder: (context, i) {
-                      return _ViewCaseCard(
-                        record: filtered[i],
-                        index: i + 1,
-                        isDisposedTab: _selectedTabIndex == 2,
-                      );
-                    },
+                  child: ViewCaseTable(
+                    records: filtered,
+                    isDisposedTab: _selectedTabIndex == 2,
                   ),
                 ),
               ),
@@ -5149,7 +5157,6 @@ class _ViewTabState extends State<_ViewTab> {
   }
 }
 
-typedef _ViewCaseCard = ViewCaseCard;
 typedef _ViewCaseCardSkeleton = ViewCaseCardSkeleton;
 typedef _ViewEmptyState = ViewEmptyState;
 
