@@ -324,13 +324,12 @@ class _PendingHubScreenState extends State<PendingHubScreen>
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color:
-                              const Color(0xFFE65100).withValues(alpha: 0.08),
+                          color: AppColors.navyMid.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: CategoryIconHelper.buildWidget(
                           typeName,
-                          color: const Color(0xFFE65100),
+                          color: AppColors.navyMid,
                           size: 20,
                         ),
                       ),
@@ -349,12 +348,10 @@ class _PendingHubScreenState extends State<PendingHubScreen>
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 5),
                         decoration: BoxDecoration(
-                          color:
-                              const Color(0xFFE65100).withValues(alpha: 0.06),
+                          color: AppColors.navyMid.withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color:
-                                const Color(0xFFE65100).withValues(alpha: 0.2),
+                            color: AppColors.navyMid.withValues(alpha: 0.2),
                           ),
                         ),
                         child: Text(
@@ -362,7 +359,7 @@ class _PendingHubScreenState extends State<PendingHubScreen>
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w600,
                             fontSize: 12,
-                            color: const Color(0xFFE65100),
+                            color: AppColors.navyMid,
                           ),
                         ),
                       ),
@@ -542,12 +539,10 @@ class _PendingHubScreenState extends State<PendingHubScreen>
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 5),
                         decoration: BoxDecoration(
-                          color:
-                              const Color(0xFFE65100).withValues(alpha: 0.06),
+                          color: AppColors.navyMid.withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color:
-                                const Color(0xFFE65100).withValues(alpha: 0.2),
+                            color: AppColors.navyMid.withValues(alpha: 0.2),
                           ),
                         ),
                         child: Row(
@@ -556,7 +551,7 @@ class _PendingHubScreenState extends State<PendingHubScreen>
                             const Icon(
                               Icons.hourglass_top_rounded,
                               size: 13,
-                              color: Color(0xFFE65100),
+                              color: AppColors.navyMid,
                             ),
                             const SizedBox(width: 5),
                             Text(
@@ -564,7 +559,7 @@ class _PendingHubScreenState extends State<PendingHubScreen>
                               style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 12,
-                                color: const Color(0xFFE65100),
+                                color: AppColors.navyMid,
                               ),
                             ),
                           ],

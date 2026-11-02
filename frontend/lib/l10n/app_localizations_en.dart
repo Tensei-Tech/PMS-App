@@ -117,7 +117,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wanted => 'Wanted';
 
   @override
-  String get view => 'View';
+  String get view => 'My Cases';
 
   @override
   String get calendar => 'Calendar';

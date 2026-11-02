@@ -38,8 +38,6 @@ class StatePoliceBannerDialog extends StatelessWidget {
     final transDesig = rawDesig.isNotEmpty
         ? TranslationHelper.translate(context, rawDesig)
         : '';
-    final officerValue =
-        transDesig.isNotEmpty ? '$officerName ($transDesig)' : officerName;
 
     final rawDistrict = auth.district.isNotEmpty
         ? auth.district
@@ -77,7 +75,7 @@ class StatePoliceBannerDialog extends StatelessWidget {
               ),
             ],
           ),
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -287,7 +285,10 @@ class StatePoliceBannerDialog extends StatelessWidget {
 
                 // Jurisdiction Information Grid
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 14,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.lightBg,
                     borderRadius: BorderRadius.circular(16),
@@ -299,7 +300,9 @@ class StatePoliceBannerDialog extends StatelessWidget {
                         context: context,
                         icon: Icons.person_rounded,
                         label: 'Logged-in Officer',
-                        value: officerValue,
+                        value: officerName,
+                        subtitle:
+                            transDesig.isNotEmpty ? '($transDesig)' : null,
                         valueColor: AppColors.navyDark,
                       ),
                       const Divider(height: 20),
@@ -397,30 +400,74 @@ class StatePoliceBannerDialog extends StatelessWidget {
     required IconData icon,
     required String label,
     required String value,
+    String? subtitle,
     Color? valueColor,
   }) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Icon(icon, size: 18, color: AppColors.navyMid),
-        const SizedBox(width: 10),
-        Text(
-          TranslationHelper.translate(context, label),
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: AppColors.lightSubText,
+        SizedBox(
+          width: 132,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(icon, size: 17, color: AppColors.navyMid),
+              const SizedBox(width: 8),
+              Expanded(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    TranslationHelper.translate(context, label),
+                    style: GoogleFonts.poppins(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.lightSubText,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-        const Spacer(),
-        Flexible(
-          child: Text(
-            value,
-            textAlign: TextAlign.right,
-            style: GoogleFonts.poppins(
-              fontSize: 12.5,
-              fontWeight: FontWeight.w700,
-              color: valueColor ?? AppColors.navyDark,
-            ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Text(
+                  value,
+                  textAlign: TextAlign.end,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: valueColor ?? AppColors.navyDark,
+                    height: 1.25,
+                  ),
+                ),
+              ),
+              if (subtitle != null && subtitle.trim().isNotEmpty) ...[
+                const SizedBox(height: 2),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    subtitle,
+                    textAlign: TextAlign.end,
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.lightSubText,
+                      height: 1.2,
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
       ],
