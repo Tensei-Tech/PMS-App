@@ -30,15 +30,22 @@ class NAFISCasesDataTable extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final w = constraints.maxWidth;
-        final double cellFontSize = w < 400 ? 11.5 : 13.0;
-        final double headerFontSize = w < 400 ? 12.0 : 13.5;
+        final isMobile = w < 880;
+        final double tableWidth = math.max(w, 880.0);
+        final double cellFontSize = isMobile ? 12.0 : 13.0;
+        final double headerFontSize = isMobile ? 12.0 : 13.5;
+        final double hPad = isMobile ? 10.0 : 14.0;
+        final double vPad = isMobile ? 10.0 : 12.0;
 
         Widget headerCell(String s, {Alignment align = Alignment.centerLeft}) =>
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad + 2),
               alignment: align,
               child: Text(
                 s,
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.ellipsis,
                 textAlign: align == Alignment.center
                     ? TextAlign.center
                     : TextAlign.left,
@@ -57,29 +64,40 @@ class NAFISCasesDataTable extends StatelessWidget {
           Color? textColor,
           FontWeight? fontWeight,
           int? maxLines,
-        }) =>
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              alignment: align,
-              child: Text(
-                s,
-                maxLines: maxLines ?? 3,
-                overflow: TextOverflow.ellipsis,
-                textAlign: align == Alignment.center
-                    ? TextAlign.center
-                    : TextAlign.left,
-                style: GoogleFonts.poppins(
-                  fontSize: cellFontSize,
-                  fontWeight: fontWeight ?? FontWeight.w400,
-                  color: textColor ?? const Color(0xFF334155),
-                ),
+          VoidCallback? onTap,
+        }) {
+          final content = Container(
+            padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad),
+            alignment: align,
+            child: Text(
+              s,
+              maxLines: maxLines ?? 3,
+              overflow: TextOverflow.ellipsis,
+              textAlign: align == Alignment.center
+                  ? TextAlign.center
+                  : TextAlign.left,
+              style: GoogleFonts.poppins(
+                fontSize: cellFontSize,
+                fontWeight: fontWeight ?? FontWeight.w400,
+                color: textColor ?? const Color(0xFF334155),
               ),
-            );
+            ),
+          );
 
-        Widget statusBadge(bool isPending) {
+          if (onTap != null) {
+            return InkWell(
+              onTap: onTap,
+              child: content,
+            );
+          }
+          return content;
+        }
+
+        Widget statusBadge(bool isPending, {String? label}) {
+          final text = label ?? (isPending ? 'Pending' : 'Done');
           return Center(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
               decoration: BoxDecoration(
                 color: isPending
                     ? const Color(0xFFEF4444)
@@ -87,7 +105,7 @@ class NAFISCasesDataTable extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                isPending ? 'Pending' : 'Done',
+                text,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
                   fontSize: cellFontSize - 1.0,
@@ -123,8 +141,8 @@ class NAFISCasesDataTable extends StatelessWidget {
                 backgroundColor: const Color(0xFFEF4444),
                 foregroundColor: Colors.white,
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                minimumSize: const Size(80, 30),
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                minimumSize: const Size(88, 30),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -160,6 +178,7 @@ class NAFISCasesDataTable extends StatelessWidget {
               },
               child: Text(
                 'Remind to IO',
+                maxLines: 1,
                 style: GoogleFonts.poppins(
                   fontSize: cellFontSize - 1.0,
                   fontWeight: FontWeight.bold,
@@ -169,40 +188,27 @@ class NAFISCasesDataTable extends StatelessWidget {
           );
         }
 
-        final isMobile = w < 650;
-        final double tableWidth;
-        final Map<int, TableColumnWidth> columnWidths;
-
-        if (isMobile) {
-          const srWidth = 48.0;
-          final colUnitW = (w - srWidth) / 2.5;
-          const statusW = 95.0;
-          const actionW = 105.0;
-          tableWidth = srWidth + (colUnitW * 5) + statusW + actionW;
-
-          columnWidths = <int, TableColumnWidth>{
-            0: const FixedColumnWidth(srWidth),
-            1: FixedColumnWidth(colUnitW),
-            2: FixedColumnWidth(colUnitW),
-            3: FixedColumnWidth(colUnitW),
-            4: FixedColumnWidth(colUnitW),
-            5: FixedColumnWidth(colUnitW),
-            6: const FixedColumnWidth(statusW),
-            7: const FixedColumnWidth(actionW),
-          };
-        } else {
-          tableWidth = w > 900 ? w : 900;
-          columnWidths = const <int, TableColumnWidth>{
-            0: FixedColumnWidth(70),
-            1: FlexColumnWidth(1.4),
-            2: FlexColumnWidth(1.2),
-            3: FlexColumnWidth(1.4),
-            4: FlexColumnWidth(1.4),
-            5: FlexColumnWidth(1.5),
-            6: FixedColumnWidth(130),
-            7: FixedColumnWidth(130),
-          };
-        }
+        final columnWidths = isMobile
+            ? const <int, TableColumnWidth>{
+                0: FixedColumnWidth(64),  // Sr. No.
+                1: FixedColumnWidth(160), // Accused Name
+                2: FixedColumnWidth(100), // CR No.
+                3: FixedColumnWidth(140), // Section/Act
+                4: FixedColumnWidth(130), // Head
+                5: FixedColumnWidth(150), // IO Name
+                6: FixedColumnWidth(110), // Status
+                7: FixedColumnWidth(126), // Action
+              }
+            : const <int, TableColumnWidth>{
+                0: FixedColumnWidth(70),
+                1: FlexColumnWidth(1.5),
+                2: FlexColumnWidth(1.1),
+                3: FlexColumnWidth(1.4),
+                4: FlexColumnWidth(1.3),
+                5: FlexColumnWidth(1.5),
+                6: FixedColumnWidth(120),
+                7: FixedColumnWidth(126),
+              };
 
         final headers = <Widget>[
           headerCell('Sr. No.', align: Alignment.centerLeft),
@@ -266,20 +272,26 @@ class NAFISCasesDataTable extends StatelessWidget {
               .trim();
 
           final color =
-              (r['nafis_status_color'] ?? extra['nafis_status_color'] ?? '')
+              (r['fingerprint_status_color'] ?? r['nafis_status_color'] ?? extra['fingerprint_status_color'] ?? extra['nafis_status_color'] ?? '')
                   .toString()
                   .toLowerCase();
           final rawStatus =
-              (r['nafis_status'] ?? extra['nafis_status'] ?? r['status'] ?? '')
+              (r['fingerprint_status'] ?? r['nafis_status'] ?? extra['fingerprint_status'] ?? extra['nafis_status'] ?? r['status'] ?? '')
                   .toString()
                   .trim()
                   .toLowerCase();
           final isGreen = color == 'green' ||
+              color == 'taken' ||
+              r['fingerprint_taken'] == true ||
+              rawStatus == 'taken' ||
               rawStatus == 'done' ||
               rawStatus == 'chargesheeted' ||
               rawStatus == 'yes' ||
               rawStatus == 'true';
           final isPending = !isGreen;
+          final statusLabel = r['status_label'] ?? r['fingerprint_status'] ?? (isPending ? 'Pending' : 'Done');
+
+          final handleTap = onRowTap != null ? () => onRowTap!(idx, r) : null;
 
           return TableRow(
             decoration: const BoxDecoration(
@@ -291,16 +303,17 @@ class NAFISCasesDataTable extends StatelessWidget {
               dataCell(
                 r['sr_no']?.toString() ?? '${serialOffset + idx + 1}',
                 align: Alignment.centerLeft,
+                onTap: handleTap,
               ),
-              dataCell(accusedName),
-              dataCell(cr),
-              dataCell(sectionAct),
-              dataCell(head),
-              dataCell(ioName.isEmpty ? 'Unassigned' : ioName),
+              dataCell(accusedName, onTap: handleTap),
+              dataCell(cr, onTap: handleTap),
+              dataCell(sectionAct, onTap: handleTap),
+              dataCell(head, onTap: handleTap),
+              dataCell(ioName.isEmpty ? 'Unassigned' : ioName, onTap: handleTap),
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 alignment: Alignment.center,
-                child: statusBadge(isPending),
+                child: statusBadge(isPending, label: statusLabel.toString()),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),

@@ -372,88 +372,103 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
                 bottom: BorderSide(color: Color(0xFFE2E8F0)),
               ),
             ),
-            child: Row(
-              children: [
-                // Search Input
-                Expanded(
-                  child: SizedBox(
-                    height: 38,
-                    child: TextField(
-                      controller: _searchCtrl,
-                      style: GoogleFonts.poppins(
-                          fontSize: 12.5, color: AppColors.navyDark),
-                      decoration: InputDecoration(
-                        isDense: true,
-                        filled: true,
-                        fillColor: const Color(0xFFF8FAFC),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 8),
-                        hintText: TranslationHelper.translate(
-                          context,
-                          'Search by applicant, business, type, date...',
-                        ),
-                        hintStyle: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: AppColors.lightSubText.withValues(alpha: 0.7),
-                        ),
-                        prefixIcon: const Icon(Icons.search_rounded,
-                            size: 18, color: AppColors.navyMid),
-                        suffixIcon: _searchQuery.isNotEmpty
-                            ? InkWell(
-                                onTap: _searchCtrl.clear,
-                                child: const Icon(Icons.close_rounded,
-                                    size: 16, color: AppColors.lightSubText),
-                              )
-                            : null,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide:
-                              const BorderSide(color: Color(0xFFCBD5E1)),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide:
-                              const BorderSide(color: Color(0xFFCBD5E1)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(
-                              color: Color(0xFF3B82F6), width: 1.5),
-                        ),
+            child: LayoutBuilder(
+              builder: (context, filterConstraints) {
+                final isNarrow = filterConstraints.maxWidth < 620;
+
+                final searchWidget = SizedBox(
+                  width: isNarrow ? 170.0 : null,
+                  height: 38,
+                  child: TextField(
+                    controller: _searchCtrl,
+                    style: GoogleFonts.poppins(
+                        fontSize: 12.5, color: AppColors.navyDark),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      filled: true,
+                      fillColor: const Color(0xFFF8FAFC),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 8),
+                      hintText: TranslationHelper.translate(
+                        context,
+                        'Search...',
+                      ),
+                      hintStyle: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: AppColors.lightSubText.withValues(alpha: 0.7),
+                      ),
+                      prefixIcon: const Icon(Icons.search_rounded,
+                          size: 18, color: AppColors.navyMid),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? InkWell(
+                              onTap: _searchCtrl.clear,
+                              child: const Icon(Icons.close_rounded,
+                                  size: 16, color: AppColors.lightSubText),
+                            )
+                          : null,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide:
+                            const BorderSide(color: Color(0xFFCBD5E1)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide:
+                            const BorderSide(color: Color(0xFFCBD5E1)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                            color: Color(0xFF3B82F6), width: 1.5),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 10),
+                );
 
-                // NOC Type Filter Menu
-                _buildNocTypeFilterMenu(context),
-                const SizedBox(width: 8),
+                final actionWidgets = [
+                  const SizedBox(width: 8),
+                  _buildNocTypeFilterMenu(context),
+                  const SizedBox(width: 8),
+                  _buildDateFilterMenu(context),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    tooltip: TranslationHelper.translate(context, 'Export PDF'),
+                    onPressed: visibleRecords.isNotEmpty
+                        ? () => _exportPdf(visibleRecords)
+                        : null,
+                    icon: const Icon(Icons.picture_as_pdf_outlined,
+                        color: Color(0xFFDC2626), size: 20),
+                  ),
+                  IconButton(
+                    tooltip: TranslationHelper.translate(context, 'Export Excel'),
+                    onPressed: visibleRecords.isNotEmpty
+                        ? () => _exportExcel(visibleRecords)
+                        : null,
+                    icon: const Icon(Icons.table_chart_outlined,
+                        color: Color(0xFF16A34A), size: 20),
+                  ),
+                ];
 
-                // Date Presets Menu
-                _buildDateFilterMenu(context),
-                const SizedBox(width: 8),
+                if (isNarrow) {
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        searchWidget,
+                        ...actionWidgets,
+                      ],
+                    ),
+                  );
+                }
 
-                // PDF Export
-                IconButton(
-                  tooltip: TranslationHelper.translate(context, 'Export PDF'),
-                  onPressed: visibleRecords.isNotEmpty
-                      ? () => _exportPdf(visibleRecords)
-                      : null,
-                  icon: const Icon(Icons.picture_as_pdf_outlined,
-                      color: Color(0xFFDC2626), size: 20),
-                ),
-
-                // Excel Export
-                IconButton(
-                  tooltip: TranslationHelper.translate(context, 'Export Excel'),
-                  onPressed: visibleRecords.isNotEmpty
-                      ? () => _exportExcel(visibleRecords)
-                      : null,
-                  icon: const Icon(Icons.table_chart_outlined,
-                      color: Color(0xFF16A34A), size: 20),
-                ),
-              ],
+                return Row(
+                  children: [
+                    Expanded(child: searchWidget),
+                    ...actionWidgets,
+                  ],
+                );
+              },
             ),
           ),
 

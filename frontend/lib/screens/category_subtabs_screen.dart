@@ -11,6 +11,7 @@ import '../utils/translation_helper.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
 import 'dar_hub_screen.dart';
 import 'form_i_v_selection_screen.dart';
+import 'fingerprint_hub_screen.dart';
 import 'irad_hub_screen.dart';
 import 'nafis_hub_screen.dart';
 
@@ -278,7 +279,7 @@ class NafisFingerprintScreen extends StatelessWidget {
           (context) => Navigator.push(
                 context,
                 AppTheme.fadeSlideRoute(
-                  page: const ComingSoonScreen(title: 'Fingerprint'),
+                  page: FingerprintHubScreen(stationName: stationName),
                 ),
               ),
         ),

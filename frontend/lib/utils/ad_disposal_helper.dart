@@ -344,10 +344,42 @@ bool isPreventiveDisposalCase(dynamic recordOrMap) {
   return num.isNotEmpty && dt.isNotEmpty;
 }
 
+/// Checks if a record or map represents an Absconded case.
+bool isAbscondedCase(dynamic recordOrMap) {
+  if (recordOrMap == null) return false;
+  if (recordOrMap is Map) {
+    final mod = (recordOrMap['moduleKey'] ??
+            recordOrMap['module_key'] ??
+            recordOrMap['module'] ??
+            recordOrMap['caseType'] ??
+            recordOrMap['case_type'] ??
+            '')
+        .toString()
+        .trim()
+        .toLowerCase();
+    if (mod == 'absconded' || mod == 'absconded_accused') return true;
+    final sub =
+        (recordOrMap['subCategory'] ?? recordOrMap['sub_category'] ?? '')
+            .toString()
+            .trim()
+            .toLowerCase();
+    return sub == 'absconded' || sub == 'फरार' || sub == 'फरारी';
+  }
+  try {
+    final mod = (recordOrMap.moduleKey ?? '').toString().trim().toLowerCase();
+    if (mod == 'absconded' || mod == 'absconded_accused') return true;
+  } catch (_) {}
+  try {
+    final sub = (recordOrMap.subCategory ?? '').toString().trim().toLowerCase();
+    if (sub == 'absconded' || sub == 'फरार' || sub == 'फरारी') return true;
+  } catch (_) {}
+  return false;
+}
+
 /// Unified helper to determine if ANY case record is Disposed.
 /// Covers:
 /// 1. Status == CaseStatus.disposal / 'Disposed' / 'Closed' / 'Resolved'
-/// 2. Absconded disposal rules via [isAbscondedDisposal]
+/// 2. Absconded disposal rules via [isAbscondedDisposal] (ONLY for absconded cases)
 /// 3. AD (Accidental Death) disposal rule: both AD Summary No. & AD Summary Date present
 /// 4. Preventive disposal rule: both Preventive No. & Preventive Date present
 bool isRecordDisposal(dynamic record) {
@@ -360,6 +392,11 @@ bool isRecordDisposal(dynamic record) {
       s = (record.status ?? '').toString().trim().toLowerCase();
     } catch (_) {}
   }
+  // Detected cases are active investigations where the accused was identified/arrested.
+  // They are pending final court filing / chargesheet disposal, so they must never appear in Disposal.
+  if (s == 'detected') {
+    return false;
+  }
   final disposalStatuses = {
     CaseStatus.disposal.toLowerCase(),
     CaseStatus.closed.toLowerCase(),
@@ -369,7 +406,7 @@ bool isRecordDisposal(dynamic record) {
   if (disposalStatuses.contains(s)) {
     return true;
   }
-  if (isAbscondedDisposal(record)) {
+  if (isAbscondedCase(record) && isAbscondedDisposal(record)) {
     return true;
   }
   if (isAdDisposalCase(record)) {
@@ -385,3 +422,4 @@ bool isRecordDisposal(dynamic record) {
 bool isRecordPending(dynamic record) {
   return !isRecordDisposal(record);
 }
+
