@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:khakhi_diary/providers/module_registry.dart';
 import 'package:khakhi_diary/screens/category_subtabs_screen.dart';
+import 'package:khakhi_diary/screens/fingerprint_hub_screen.dart';
 import 'package:khakhi_diary/screens/form_i_v_selection_screen.dart';
 import 'package:khakhi_diary/utils/app_constants.dart';
 
@@ -18,12 +19,13 @@ void main() {
     expect(find.text('NAFIS'), findsOneWidget); // first tab
   });
 
-  testWidgets('Fingerprint opens a Coming soon page', (tester) async {
+  testWidgets('Fingerprint opens FingerprintHubScreen', (tester) async {
     await tester.pumpWidget(
         const MaterialApp(home: NafisFingerprintScreen(stationName: 'TEST')));
     await tester.tap(find.text('Fingerprint'));
-    await tester.pumpAndSettle();
-    expect(find.text('Coming soon'), findsWidgets);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byType(FingerprintHubScreen), findsOneWidget);
   });
 
   test('the BNSS tile is named CRPC 156(3)/BNSS 175(3) and still opens bnss',
