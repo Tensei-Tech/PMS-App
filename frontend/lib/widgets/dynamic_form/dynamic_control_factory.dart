@@ -13,6 +13,7 @@ import '../person_select_or_custom_field.dart';
 import 'dynamic_field_model.dart';
 import 'dynamic_repeating_group_widget.dart';
 import '../repeating_cascading_charges_selector.dart';
+import '../age_digits_limit.dart';
 
 class DynamicControlFactory extends StatelessWidget {
   final DynamicFieldDef fieldDef;
@@ -1757,6 +1758,10 @@ class _DynamicRadioWidget extends StatefulWidget {
 }
 
 class _DynamicRadioWidgetState extends State<_DynamicRadioWidget> {
+  static const double _optionHeight = 44;
+  static const double _optionMinWidth = 130;
+  static const double _optionMaxWidth = 190;
+
   List<String> _options = [];
   bool _isLoading = false;
   String? _error;
@@ -1882,73 +1887,98 @@ class _DynamicRadioWidgetState extends State<_DynamicRadioWidget> {
       );
     }
 
-    final radioWrap = Align(
-      alignment: Alignment.centerLeft,
-      child: Wrap(
-        spacing: 12,
-        runSpacing: 6,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: _options.map((opt) {
-          final isSelected = opt.toLowerCase() == currentVal.toLowerCase();
-          return InkWell(
-            onTap: widget.readOnly
-                ? null
-                : () {
-                    if (widget.controller != null) {
-                      widget.controller!.text = opt;
-                    }
-                    widget.onChanged?.call(opt);
-                  },
+    Widget option(String opt) {
+      final isSelected = opt.toLowerCase() == currentVal.toLowerCase();
+      return InkWell(
+        onTap: widget.readOnly
+            ? null
+            : () {
+                if (widget.controller != null) {
+                  widget.controller!.text = opt;
+                }
+                widget.onChanged?.call(opt);
+              },
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          height: _optionHeight,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppColors.navyMid.withValues(alpha: 0.08)
+                : Colors.white,
             borderRadius: BorderRadius.circular(AppRadius.md),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.navyMid.withValues(alpha: 0.08)
-                    : Colors.white,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(
-                  color: isSelected ? AppColors.navyMid : AppColors.lightBorder,
-                  width: isSelected ? 1.5 : 1.0,
+            border: Border.all(
+              color: isSelected ? AppColors.navyMid : AppColors.lightBorder,
+              width: isSelected ? 1.5 : 1.0,
+            ),
+          ),
+          child: Row(
+            children: [
+              Radio<String>(
+                value: opt,
+                groupValue: currentVal,
+                activeColor: AppColors.navyMid,
+                onChanged: widget.readOnly
+                    ? null
+                    : (val) {
+                        if (val != null) {
+                          if (widget.controller != null) {
+                            widget.controller!.text = val;
+                          }
+                          widget.onChanged?.call(val);
+                        }
+                      },
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                visualDensity: VisualDensity.compact,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  opt,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12.5,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    color:
+                        isSelected ? AppColors.navyDark : AppColors.lightText,
+                  ),
                 ),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Radio<String>(
-                    value: opt,
-                    groupValue: currentVal,
-                    activeColor: AppColors.navyMid,
-                    onChanged: widget.readOnly
-                        ? null
-                        : (val) {
-                            if (val != null) {
-                              if (widget.controller != null) {
-                                widget.controller!.text = val;
-                              }
-                              widget.onChanged?.call(val);
-                            }
-                          },
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    opt,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12.5,
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.w500,
-                      color:
-                          isSelected ? AppColors.navyDark : AppColors.lightText,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }).toList(),
-      ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Equal-width options in even rows: all on one line when they fit,
+    // otherwise as many per row as fit, so nothing wraps unevenly. Widths are
+    // capped so short choices (Yes / No) stay compact.
+    final radioWrap = LayoutBuilder(
+      builder: (context, constraints) {
+        const gap = 10.0;
+        final count = _options.length;
+        final maxWidth = constraints.hasBoundedWidth
+            ? constraints.maxWidth
+            : _optionMaxWidth * count + gap * (count - 1);
+        final perRow = ((maxWidth + gap) / (_optionMinWidth + gap))
+            .floor()
+            .clamp(1, count < 1 ? 1 : count);
+        final width = ((maxWidth - gap * (perRow - 1)) / perRow)
+            .clamp(0.0, _optionMaxWidth);
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: Wrap(
+            spacing: gap,
+            runSpacing: 8,
+            children: [
+              for (final opt in _options)
+                SizedBox(width: width, child: option(opt)),
+            ],
+          ),
+        );
+      },
     );
 
     if (widget.labelWidget is SizedBox) {
@@ -2378,10 +2408,25 @@ class _MaxDigitsField extends StatefulWidget {
 }
 
 class _MaxDigitsFieldState extends State<_MaxDigitsField> {
-  bool _tooLong = false;
+  // Grey note (not a red error) for a refused extra digit: the digits kept
+  // are valid. It hides itself after a moment.
+  final _hint = MaxDigitsHintController();
 
-  void _setTooLong(bool value) {
-    if (_tooLong != value) setState(() => _tooLong = value);
+  @override
+  void initState() {
+    super.initState();
+    _hint.addListener(_onHint);
+  }
+
+  void _onHint() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _hint.removeListener(_onHint);
+    _hint.dispose();
+    super.dispose();
   }
 
   @override
@@ -2392,18 +2437,16 @@ class _MaxDigitsFieldState extends State<_MaxDigitsField> {
       keyboardType: TextInputType.number,
       inputFormatters: [
         FilteringTextInputFormatter.digitsOnly,
-        TextInputFormatter.withFunction((oldValue, newValue) {
-          final tooLong = newValue.text.length > widget.maxDigits;
-          _setTooLong(tooLong);
-          return tooLong ? oldValue : newValue;
-        }),
+        _hint.formatter(widget.maxDigits),
       ],
       onChanged: widget.onChanged,
       style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
       decoration: widget.decoration.copyWith(
-        errorText: _tooLong
-            ? '${widget.label} can be at most ${widget.maxDigits} digits'
-            : null,
+        helperText: _hint.visible
+            ? maxDigitsHint(widget.label, widget.maxDigits)
+            : widget.decoration.helperText,
+        helperStyle:
+            _hint.visible ? kMaxDigitsHintStyle : widget.decoration.helperStyle,
       ),
       validator: (v) {
         if ((v?.trim() ?? '').isEmpty && widget.isRequired) {
