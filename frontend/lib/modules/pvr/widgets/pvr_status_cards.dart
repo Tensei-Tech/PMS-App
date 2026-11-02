@@ -37,7 +37,7 @@ class PvrStatusCards extends StatelessWidget {
           _buildCard(
             context: context,
             filter: PvrStatusFilter.totalReceived,
-            title: TranslationHelper.translate(context, 'Total Received'),
+            title: TranslationHelper.translate(context, 'Total'),
             count: totalReceivedCount,
             icon: Icons.fact_check_rounded,
             accentColor: const Color(0xFF1E40AF), // Deep Blue
