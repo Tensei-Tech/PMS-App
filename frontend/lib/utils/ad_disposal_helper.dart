@@ -422,4 +422,3 @@ bool isRecordDisposal(dynamic record) {
 bool isRecordPending(dynamic record) {
   return !isRecordDisposal(record);
 }
-

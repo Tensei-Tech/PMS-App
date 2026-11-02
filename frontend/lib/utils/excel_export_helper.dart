@@ -360,24 +360,33 @@ class ExcelExportHelper {
     String filename = 'Repeat_Offender_Summary.csv',
   }) {
     final List<List<dynamic>> rows = [
-      ['Sr. No.', 'Accused Name', 'Cr. No.', 'Sec/Act', 'Head', 'Police station']
+      [
+        'Sr. No.',
+        'Accused Name',
+        'Cr. No.',
+        'Sec/Act',
+        'Head',
+        'Police station'
+      ]
     ];
 
     for (var i = 0; i < dataset.length; i++) {
       final r = dataset[i];
       final sr = r['sr']?.isNotEmpty == true ? r['sr']! : '${i + 1}';
-      final accused = (r['accused_name'] ?? r['accused'])?.trim().isNotEmpty == true
-          ? (r['accused_name'] ?? r['accused'])!.trim()
-          : '—';
+      final accused =
+          (r['accused_name'] ?? r['accused'])?.trim().isNotEmpty == true
+              ? (r['accused_name'] ?? r['accused'])!.trim()
+              : '—';
       final cr = r['cr']?.trim().isNotEmpty == true ? r['cr']!.trim() : '—';
       final secAct = r['sections']?.trim().isNotEmpty == true
           ? r['sections']!.trim()
           : '—';
       final head =
           r['head']?.trim().isNotEmpty == true ? r['head']!.trim() : '—';
-      final station = (r['station'] ?? r['police_station'])?.trim().isNotEmpty == true
-          ? (r['station'] ?? r['police_station'])!.trim()
-          : '—';
+      final station =
+          (r['station'] ?? r['police_station'])?.trim().isNotEmpty == true
+              ? (r['station'] ?? r['police_station'])!.trim()
+              : '—';
 
       rows.add([
         sr,

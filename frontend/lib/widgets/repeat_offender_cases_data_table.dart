@@ -116,7 +116,8 @@ class _RepeatOffenderCasesDataTableState
 
         if (isMobile) {
           const srWidth = 48.0;
-          final colUnitW = math.max((constraints.maxWidth - srWidth) / 2.5, 90.0);
+          final colUnitW =
+              math.max((constraints.maxWidth - srWidth) / 2.5, 90.0);
           final col1W = math.max(colUnitW * 1.3, 140.0);
           final col2W = math.max(colUnitW * 1.1, 110.0);
           final col3W = math.max(colUnitW * 1.0, 100.0);
@@ -225,8 +226,7 @@ class _RepeatOffenderCasesDataTableState
             columnWidths: columnWidths,
             defaultVerticalAlignment: TableCellVerticalAlignment.middle,
             border: const TableBorder(
-              verticalInside:
-                  BorderSide(color: Color(0xFFE2E8F0), width: 1),
+              verticalInside: BorderSide(color: Color(0xFFE2E8F0), width: 1),
               bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
             ),
             children: [
@@ -246,18 +246,17 @@ class _RepeatOffenderCasesDataTableState
             columnWidths: columnWidths,
             defaultVerticalAlignment: TableCellVerticalAlignment.middle,
             border: const TableBorder(
-              horizontalInside:
-                  BorderSide(color: Color(0xFFEDF2F7), width: 1),
-              verticalInside:
-                  BorderSide(color: Color(0xFFEDF2F7), width: 1),
+              horizontalInside: BorderSide(color: Color(0xFFEDF2F7), width: 1),
+              verticalInside: BorderSide(color: Color(0xFFEDF2F7), width: 1),
             ),
             children: rows.isEmpty
                 ? [
                     TableRow(
                       children: [
                         for (var c = 0; c < 6; c++)
-                          dataCell(
-                              c == 0 ? '-' : (c == 1 ? 'No repeat offender records' : '-')),
+                          dataCell(c == 0
+                              ? '-'
+                              : (c == 1 ? 'No repeat offender records' : '-')),
                       ],
                     ),
                   ]

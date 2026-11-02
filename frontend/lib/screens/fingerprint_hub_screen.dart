@@ -92,7 +92,8 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
   }
 
   /// Inspects all possible common form and forensics locations for fingerprint_taken
-  static bool isFingerprintTaken(Map<String, dynamic> row, [ModuleRecord? record]) {
+  static bool isFingerprintTaken(Map<String, dynamic> row,
+      [ModuleRecord? record]) {
     final extra = (row['extra_fields'] is Map)
         ? Map<String, dynamic>.from(row['extra_fields'] as Map)
         : (record?.extraFields ?? {});
@@ -246,7 +247,10 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
       r['cr_no'] = r['cr'];
       r['accused_name'] = m?.accused.isNotEmpty == true
           ? m!.accused
-          : (rawM?['accused_name'] ?? rawM?['accused'] ?? r['accused_name'] ?? '—');
+          : (rawM?['accused_name'] ??
+              rawM?['accused'] ??
+              r['accused_name'] ??
+              '—');
       r['io_name'] = m?.assignedOfficer.isNotEmpty == true
           ? m!.assignedOfficer
           : (rawM?['assigned_officer'] ?? r['io'] ?? '—');
@@ -256,8 +260,8 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
       r['section_act'] = rawM?['section_act'] ??
           m?.extraFields['section_act'] ??
           r['section_act'];
-      r['charge_sheet_date'] = rawM?['charge_sheet_date'] ??
-          m?.extraFields['charge_sheet_date'];
+      r['charge_sheet_date'] =
+          rawM?['charge_sheet_date'] ?? m?.extraFields['charge_sheet_date'];
       r['incident_date'] = m?.incidentDate ??
           (rawM?['created_at'] != null
               ? DateTime.tryParse(rawM!['created_at'].toString())
@@ -277,10 +281,12 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
       case FingerprintFilter.all:
         break;
       case FingerprintFilter.taken:
-        filtered = filtered.where((r) => r['fingerprint_taken'] == true).toList();
+        filtered =
+            filtered.where((r) => r['fingerprint_taken'] == true).toList();
         break;
       case FingerprintFilter.pending:
-        filtered = filtered.where((r) => r['fingerprint_taken'] != true).toList();
+        filtered =
+            filtered.where((r) => r['fingerprint_taken'] != true).toList();
         break;
     }
 
@@ -341,7 +347,8 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
         page: DynamicFormScreen(
           categoryId: record.subCategory ?? head,
           moduleLabel: head,
-          moduleKey: record.moduleKey.isNotEmpty ? record.moduleKey : 'form_1_5',
+          moduleKey:
+              record.moduleKey.isNotEmpty ? record.moduleKey : 'form_1_5',
           subCategory: record.subCategory ?? head,
           existingRecord: record,
         ),
@@ -475,7 +482,8 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
   Widget build(BuildContext context) {
     final allRows = _getProcessedRows();
     final totalCases = allRows.length;
-    final takenCount = allRows.where((r) => r['fingerprint_taken'] == true).length;
+    final takenCount =
+        allRows.where((r) => r['fingerprint_taken'] == true).length;
     final pendingCount = totalCases - takenCount;
 
     final visibleRows = _filterRows(allRows);
@@ -534,14 +542,18 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.table_chart_outlined, color: Color(0xFF16A34A)),
+            icon: const Icon(Icons.table_chart_outlined,
+                color: Color(0xFF16A34A)),
             tooltip: 'Export to Excel',
-            onPressed: visibleRows.isNotEmpty ? () => _exportExcel(visibleRows) : null,
+            onPressed:
+                visibleRows.isNotEmpty ? () => _exportExcel(visibleRows) : null,
           ),
           IconButton(
-            icon: const Icon(Icons.picture_as_pdf_outlined, color: Color(0xFFDC2626)),
+            icon: const Icon(Icons.picture_as_pdf_outlined,
+                color: Color(0xFFDC2626)),
             tooltip: 'Export PDF',
-            onPressed: visibleRows.isNotEmpty ? () => _exportPdf(visibleRows) : null,
+            onPressed:
+                visibleRows.isNotEmpty ? () => _exportPdf(visibleRows) : null,
           ),
         ],
         bottom: TabBar(
@@ -582,7 +594,8 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
     required List<Map<String, dynamic>> visibleRows,
   }) {
     if (_isLoadingCase) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.navyMid));
+      return const Center(
+          child: CircularProgressIndicator(color: AppColors.navyMid));
     }
     if (_errorCase != null) {
       return Center(
@@ -640,9 +653,11 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
               if (isCompact) {
                 final double cardWidth;
                 if (constraints.maxWidth < 500) {
-                  cardWidth = math.max(120.0, (constraints.maxWidth - 16) / 2.45);
+                  cardWidth =
+                      math.max(120.0, (constraints.maxWidth - 16) / 2.45);
                 } else {
-                  cardWidth = math.max(140.0, (constraints.maxWidth - 24) / 3.45);
+                  cardWidth =
+                      math.max(140.0, (constraints.maxWidth - 24) / 3.45);
                 }
 
                 return SingleChildScrollView(
@@ -694,7 +709,8 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
                 height: 38,
                 child: TextField(
                   controller: _searchCtrl,
-                  style: GoogleFonts.poppins(fontSize: 12.5, color: AppColors.navyDark),
+                  style: GoogleFonts.poppins(
+                      fontSize: 12.5, color: AppColors.navyDark),
                   decoration: InputDecoration(
                     isDense: true,
                     filled: true,
@@ -725,8 +741,8 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide:
-                          const BorderSide(color: Color(0xFF3B82F6), width: 1.5),
+                      borderSide: const BorderSide(
+                          color: Color(0xFF3B82F6), width: 1.5),
                     ),
                   ),
                 ),
@@ -738,13 +754,17 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
                 const SizedBox(width: 4),
                 IconButton(
                   tooltip: TranslationHelper.translate(context, 'Export PDF'),
-                  onPressed: visibleRows.isNotEmpty ? () => _exportPdf(visibleRows) : null,
+                  onPressed: visibleRows.isNotEmpty
+                      ? () => _exportPdf(visibleRows)
+                      : null,
                   icon: const Icon(Icons.picture_as_pdf_outlined,
                       color: Color(0xFFDC2626), size: 20),
                 ),
                 IconButton(
                   tooltip: TranslationHelper.translate(context, 'Export Excel'),
-                  onPressed: visibleRows.isNotEmpty ? () => _exportExcel(visibleRows) : null,
+                  onPressed: visibleRows.isNotEmpty
+                      ? () => _exportExcel(visibleRows)
+                      : null,
                   icon: const Icon(Icons.table_chart_outlined,
                       color: Color(0xFF16A34A), size: 20),
                 ),
@@ -904,7 +924,8 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
                             style: GoogleFonts.poppins(
                               fontSize: countFontSize,
                               fontWeight: FontWeight.w700,
-                              color: isSelected ? accentColor : AppColors.navyDark,
+                              color:
+                                  isSelected ? accentColor : AppColors.navyDark,
                             ),
                           ),
                           const SizedBox(width: 3),
@@ -978,8 +999,8 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
         if (val == 'all') {
           setState(() => _selectedDateRange = null);
         } else if (val == 'today') {
-          setState(() => _selectedDateRange =
-              DateTimeRange(start: now, end: now));
+          setState(
+              () => _selectedDateRange = DateTimeRange(start: now, end: now));
         } else if (val == 'week') {
           setState(() => _selectedDateRange = DateTimeRange(
                 start: now.subtract(const Duration(days: 7)),
@@ -1014,7 +1035,8 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
 
   Widget _buildTimeWiseTab() {
     if (_isLoadingTime) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.navyMid));
+      return const Center(
+          child: CircularProgressIndicator(color: AppColors.navyMid));
     }
     if (_errorTime != null) {
       return Center(
@@ -1109,7 +1131,8 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
 
   Widget _buildIOWiseTab() {
     if (_isLoadingIO) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.navyMid));
+      return const Center(
+          child: CircularProgressIndicator(color: AppColors.navyMid));
     }
     if (_errorIO != null) {
       return Center(
@@ -1142,7 +1165,8 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               leading: CircleAvatar(
                 backgroundColor: const Color(0xFF0D9488).withValues(alpha: 0.1),
-                child: const Icon(Icons.person_rounded, color: Color(0xFF0D9488)),
+                child:
+                    const Icon(Icons.person_rounded, color: Color(0xFF0D9488)),
               ),
               title: Text(
                 ioName,

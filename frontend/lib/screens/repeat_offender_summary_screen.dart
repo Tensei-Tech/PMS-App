@@ -68,7 +68,8 @@ class RepeatOffenderSummaryScreen extends StatelessWidget {
     );
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Exported Repeat Offender summary to Excel (.csv) successfully.'),
+        content: Text(
+            'Exported Repeat Offender summary to Excel (.csv) successfully.'),
         backgroundColor: Color(0xFF107C41),
       ),
     );
@@ -197,7 +198,8 @@ class RepeatOffenderSummaryScreen extends StatelessWidget {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: anyRows ? AppColors.navyMid : Colors.grey.shade400,
+                        color:
+                            anyRows ? AppColors.navyMid : Colors.grey.shade400,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -253,8 +255,8 @@ class RepeatOffenderSummaryScreen extends StatelessWidget {
                           ],
                         ),
                         padding: const EdgeInsets.all(12),
-                        child: RepeatOffenderCasesDataTable(
-                            realDataRows: dataset),
+                        child:
+                            RepeatOffenderCasesDataTable(realDataRows: dataset),
                       ),
               ),
             ],

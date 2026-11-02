@@ -436,13 +436,11 @@ class _PassportHubScreenState extends State<PassportHubScreen> {
                           : null,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide:
-                            const BorderSide(color: Color(0xFFCBD5E1)),
+                        borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide:
-                            const BorderSide(color: Color(0xFFCBD5E1)),
+                        borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -466,7 +464,8 @@ class _PassportHubScreenState extends State<PassportHubScreen> {
                         color: Color(0xFFDC2626), size: 20),
                   ),
                   IconButton(
-                    tooltip: TranslationHelper.translate(context, 'Export Excel'),
+                    tooltip:
+                        TranslationHelper.translate(context, 'Export Excel'),
                     onPressed: visibleGroups.isNotEmpty
                         ? () => _exportExcel(visibleGroups)
                         : null,

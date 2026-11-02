@@ -286,41 +286,42 @@ class NAFISSummaryScreen extends StatelessWidget {
                   Expanded(
                     child: dataset.isEmpty
                         ? Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.fingerprint_rounded,
-                              size: 48,
-                              color: AppColors.navyMid.withValues(alpha: 0.3),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.fingerprint_rounded,
+                                  size: 48,
+                                  color:
+                                      AppColors.navyMid.withValues(alpha: 0.3),
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'No NAFIS cases found',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.lightSubText,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'No NAFIS cases found',
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: AppColors.lightSubText,
-                              ),
+                          )
+                        : SingleChildScrollView(
+                            child: NAFISCasesDataTable(
+                              realDataRows: dataset,
+                              rawRecords: records,
                             ),
-                          ],
-                        ),
-                      )
-                    : SingleChildScrollView(
-                        child: NAFISCasesDataTable(
-                          realDataRows: dataset,
-                          rawRecords: records,
-                        ),
-                      ),
+                          ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        );
-      },
-    ),
-  ),
-);
-}
+            );
+          },
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

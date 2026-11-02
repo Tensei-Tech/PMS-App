@@ -39,7 +39,8 @@ class NAFISCasesDataTable extends StatelessWidget {
 
         Widget headerCell(String s, {Alignment align = Alignment.centerLeft}) =>
             Container(
-              padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad + 2),
+              padding:
+                  EdgeInsets.symmetric(horizontal: hPad, vertical: vPad + 2),
               alignment: align,
               child: Text(
                 s,
@@ -73,9 +74,8 @@ class NAFISCasesDataTable extends StatelessWidget {
               s,
               maxLines: maxLines ?? 3,
               overflow: TextOverflow.ellipsis,
-              textAlign: align == Alignment.center
-                  ? TextAlign.center
-                  : TextAlign.left,
+              textAlign:
+                  align == Alignment.center ? TextAlign.center : TextAlign.left,
               style: GoogleFonts.poppins(
                 fontSize: cellFontSize,
                 fontWeight: fontWeight ?? FontWeight.w400,
@@ -190,7 +190,7 @@ class NAFISCasesDataTable extends StatelessWidget {
 
         final columnWidths = isMobile
             ? const <int, TableColumnWidth>{
-                0: FixedColumnWidth(64),  // Sr. No.
+                0: FixedColumnWidth(64), // Sr. No.
                 1: FixedColumnWidth(160), // Accused Name
                 2: FixedColumnWidth(100), // CR No.
                 3: FixedColumnWidth(140), // Section/Act
@@ -271,15 +271,22 @@ class NAFISCasesDataTable extends StatelessWidget {
               .toString()
               .trim();
 
-          final color =
-              (r['fingerprint_status_color'] ?? r['nafis_status_color'] ?? extra['fingerprint_status_color'] ?? extra['nafis_status_color'] ?? '')
-                  .toString()
-                  .toLowerCase();
-          final rawStatus =
-              (r['fingerprint_status'] ?? r['nafis_status'] ?? extra['fingerprint_status'] ?? extra['nafis_status'] ?? r['status'] ?? '')
-                  .toString()
-                  .trim()
-                  .toLowerCase();
+          final color = (r['fingerprint_status_color'] ??
+                  r['nafis_status_color'] ??
+                  extra['fingerprint_status_color'] ??
+                  extra['nafis_status_color'] ??
+                  '')
+              .toString()
+              .toLowerCase();
+          final rawStatus = (r['fingerprint_status'] ??
+                  r['nafis_status'] ??
+                  extra['fingerprint_status'] ??
+                  extra['nafis_status'] ??
+                  r['status'] ??
+                  '')
+              .toString()
+              .trim()
+              .toLowerCase();
           final isGreen = color == 'green' ||
               color == 'taken' ||
               r['fingerprint_taken'] == true ||
@@ -289,7 +296,9 @@ class NAFISCasesDataTable extends StatelessWidget {
               rawStatus == 'yes' ||
               rawStatus == 'true';
           final isPending = !isGreen;
-          final statusLabel = r['status_label'] ?? r['fingerprint_status'] ?? (isPending ? 'Pending' : 'Done');
+          final statusLabel = r['status_label'] ??
+              r['fingerprint_status'] ??
+              (isPending ? 'Pending' : 'Done');
 
           final handleTap = onRowTap != null ? () => onRowTap!(idx, r) : null;
 
@@ -309,7 +318,8 @@ class NAFISCasesDataTable extends StatelessWidget {
               dataCell(cr, onTap: handleTap),
               dataCell(sectionAct, onTap: handleTap),
               dataCell(head, onTap: handleTap),
-              dataCell(ioName.isEmpty ? 'Unassigned' : ioName, onTap: handleTap),
+              dataCell(ioName.isEmpty ? 'Unassigned' : ioName,
+                  onTap: handleTap),
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 alignment: Alignment.center,
