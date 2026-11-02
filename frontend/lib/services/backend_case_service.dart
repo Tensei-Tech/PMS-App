@@ -1240,7 +1240,9 @@ class BackendCaseService {
       if (endDate != null && endDate.isNotEmpty) {
         queryParams['end_date'] = endDate;
       }
-      if (victimFilter != null && victimFilter.isNotEmpty && victimFilter != 'all') {
+      if (victimFilter != null &&
+          victimFilter.isNotEmpty &&
+          victimFilter != 'all') {
         queryParams['victim_filter'] = victimFilter;
       }
 
@@ -1273,7 +1275,9 @@ class BackendCaseService {
   }) async {
     try {
       final queryParams = <String, dynamic>{};
-      if (victimFilter != null && victimFilter.isNotEmpty && victimFilter != 'all') {
+      if (victimFilter != null &&
+          victimFilter.isNotEmpty &&
+          victimFilter != 'all') {
         queryParams['victim_filter'] = victimFilter;
       }
       final url = '${ApiConfig.cases}victim/time-wise/';
@@ -1300,7 +1304,9 @@ class BackendCaseService {
   }) async {
     try {
       final queryParams = <String, dynamic>{};
-      if (victimFilter != null && victimFilter.isNotEmpty && victimFilter != 'all') {
+      if (victimFilter != null &&
+          victimFilter.isNotEmpty &&
+          victimFilter != 'all') {
         queryParams['victim_filter'] = victimFilter;
       }
       final url = '${ApiConfig.cases}victim/io-wise/';

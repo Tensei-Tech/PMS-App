@@ -785,7 +785,8 @@ class _DarHubScreenState extends State<DarHubScreen>
                                   color: const Color(0xFFF6F8FF),
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
-                                      color: Colors.grey.withValues(alpha: 0.2)),
+                                      color:
+                                          Colors.grey.withValues(alpha: 0.2)),
                                 ),
                                 child: TextField(
                                   onChanged: (val) {
@@ -877,8 +878,8 @@ class _DarHubScreenState extends State<DarHubScreen>
                                           child: Container(
                                             padding: const EdgeInsets.symmetric(
                                                 horizontal: 6, vertical: 6),
-                                            margin:
-                                                const EdgeInsets.only(bottom: 2),
+                                            margin: const EdgeInsets.only(
+                                                bottom: 2),
                                             decoration: BoxDecoration(
                                               color: isChecked
                                                   ? AppColors.navyMid
@@ -907,7 +908,8 @@ class _DarHubScreenState extends State<DarHubScreen>
                                                       setModalState(() {
                                                         if (item.key == 'all') {
                                                           tempSelected.clear();
-                                                          tempSelected.add('all');
+                                                          tempSelected
+                                                              .add('all');
                                                         } else {
                                                           tempSelected
                                                               .remove('all');
@@ -937,7 +939,8 @@ class _DarHubScreenState extends State<DarHubScreen>
                                                   decoration: BoxDecoration(
                                                     color: (item.color ??
                                                             AppColors.navyMid)
-                                                        .withValues(alpha: 0.12),
+                                                        .withValues(
+                                                            alpha: 0.12),
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             6),
@@ -973,10 +976,10 @@ class _DarHubScreenState extends State<DarHubScreen>
 
                                                 // Count
                                                 Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                          horizontal: 6,
-                                                          vertical: 1.5),
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 6,
+                                                      vertical: 1.5),
                                                   decoration: BoxDecoration(
                                                     color: isChecked
                                                         ? AppColors.navyMid
@@ -1014,8 +1017,7 @@ class _DarHubScreenState extends State<DarHubScreen>
 
                             // Bottom Action Bar
                             Padding(
-                              padding:
-                                  const EdgeInsets.fromLTRB(14, 8, 14, 10),
+                              padding: const EdgeInsets.fromLTRB(14, 8, 14, 10),
                               child: Row(
                                 children: [
                                   Text(
@@ -1065,8 +1067,7 @@ class _DarHubScreenState extends State<DarHubScreen>
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 14, vertical: 7),
                                       shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(8),
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
                                     ),
                                   ),
@@ -1092,8 +1093,8 @@ class _DarHubScreenState extends State<DarHubScreen>
   // ---------------------------------------------------------------------------
 
   Widget _buildFilterDropdownButton() {
-    final isFiltered = !_selectedFilterKeys.contains('all') &&
-        _selectedFilterKeys.isNotEmpty;
+    final isFiltered =
+        !_selectedFilterKeys.contains('all') && _selectedFilterKeys.isNotEmpty;
     final activeCases = _getActiveFilteredCases();
     final count = activeCases.length;
 
@@ -1189,8 +1190,8 @@ class _DarHubScreenState extends State<DarHubScreen>
   }
 
   Widget _buildFilterBar() {
-    final isFiltered = !_selectedFilterKeys.contains('all') &&
-        _selectedFilterKeys.isNotEmpty;
+    final isFiltered =
+        !_selectedFilterKeys.contains('all') && _selectedFilterKeys.isNotEmpty;
 
     return Container(
       color: Colors.white,
@@ -1344,8 +1345,8 @@ class _DarHubScreenState extends State<DarHubScreen>
     required String subtitle,
     required IconData icon,
   }) {
-    final isFiltered = !_selectedFilterKeys.contains('all') &&
-        _selectedFilterKeys.isNotEmpty;
+    final isFiltered =
+        !_selectedFilterKeys.contains('all') && _selectedFilterKeys.isNotEmpty;
 
     return RefreshIndicator(
       onRefresh: _fetchDarData,
@@ -1933,8 +1934,7 @@ class _DarHubScreenState extends State<DarHubScreen>
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             ),
           ),
           const SizedBox(width: 6),
@@ -2213,7 +2213,8 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
 
     await Printing.sharePdf(
       bytes: await doc.save(),
-      filename: '${widget.title.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_')}.pdf',
+      filename:
+          '${widget.title.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_')}.pdf',
     );
   }
 
@@ -2371,8 +2372,7 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 12,
                 fontWeight: hasFilter ? FontWeight.w600 : FontWeight.w500,
-                color:
-                    hasFilter ? const Color(0xFF1E40AF) : AppColors.navyDark,
+                color: hasFilter ? const Color(0xFF1E40AF) : AppColors.navyDark,
               ),
             ),
             const SizedBox(width: 4),
@@ -2717,8 +2717,7 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
                       child: IconButton(
                         padding: EdgeInsets.zero,
                         tooltip: 'Export PDF',
-                        onPressed:
-                            _displayCases.isNotEmpty ? _exportPdf : null,
+                        onPressed: _displayCases.isNotEmpty ? _exportPdf : null,
                         icon: const Icon(
                           Icons.picture_as_pdf_outlined,
                           color: Color(0xFFDC2626),
@@ -2992,9 +2991,8 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
                                                       isFilled
                                                           ? Text(
                                                               'Completed',
-                                                              style:
-                                                                  GoogleFonts
-                                                                      .poppins(
+                                                              style: GoogleFonts
+                                                                  .poppins(
                                                                 fontSize: 12,
                                                                 fontWeight:
                                                                     FontWeight

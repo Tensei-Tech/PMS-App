@@ -3220,8 +3220,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         record['pr_bond'] == 'true' ||
         record['isPrBond'] == true ||
         record['isPrBond'] == 'true';
-    final prBondDate =
-        (record['pr_bond_date'] ?? record['prBondDate'] ?? '').toString().trim();
+    final prBondDate = (record['pr_bond_date'] ?? record['prBondDate'] ?? '')
+        .toString()
+        .trim();
     final bail = record['bail'] == true ||
         record['bail'] == 'true' ||
         record['isBail'] == true ||
@@ -3245,7 +3246,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   }
 
   bool get _hasAnyCustodyData {
-    if (_pcrDaysCtrl.text.trim().isNotEmpty && _pcrDaysCtrl.text.trim() != '0') {
+    if (_pcrDaysCtrl.text.trim().isNotEmpty &&
+        _pcrDaysCtrl.text.trim() != '0') {
       return true;
     }
     if (_jailDateCtrl.text.trim().isNotEmpty) return true;
@@ -3275,8 +3277,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       return true;
     }
     return _preventiveActionsList.any((it) {
-      final aType =
-          (it['action_type'] ?? it['action'] ?? '').toString().trim();
+      final aType = (it['action_type'] ?? it['action'] ?? '').toString().trim();
       final aDate = (it['action_date'] ?? it['date'] ?? '').toString().trim();
       final aNum = (it['preventive_number'] ?? it['outward_number'] ?? '')
           .toString()
@@ -3546,7 +3547,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         : orderedSectionKeys) {
       if (secKey == 'Acts & Sections Filed') {
         if (showSection(secKey) &&
-            !(widget.readOnly && _hideEmptyInViewMode && !_hasAnyLegalCharges)) {
+            !(widget.readOnly &&
+                _hideEmptyInViewMode &&
+                !_hasAnyLegalCharges)) {
           final idx = sectionCounter++;
           sectionCards.add(_buildLegalChargesSection(sectionIndex: idx));
         }
@@ -3588,19 +3591,24 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         }
       } else if (secKey == 'Preventive Action') {
         if (showSection(secKey) &&
-            !(widget.readOnly && _hideEmptyInViewMode && !_hasAnyPreventiveData)) {
+            !(widget.readOnly &&
+                _hideEmptyInViewMode &&
+                !_hasAnyPreventiveData)) {
           final idx = sectionCounter++;
           sectionCards.add(_buildPreventiveActionSection(sectionIndex: idx));
         }
       } else if (secKey == 'Discharge Accused') {
         if (showSection(secKey) &&
-            !(widget.readOnly && _hideEmptyInViewMode && !_hasAnyDischargeData)) {
+            !(widget.readOnly &&
+                _hideEmptyInViewMode &&
+                !_hasAnyDischargeData)) {
           final idx = sectionCounter++;
           sectionCards.add(_buildDischargeAccusedSection(sectionIndex: idx));
         }
       } else if (secKey == 'Accused') {
         final hasAccusedData = _accusedList.isNotEmpty &&
-            _accusedList.any((a) => (a['name'] ?? '').toString().trim().isNotEmpty);
+            _accusedList
+                .any((a) => (a['name'] ?? '').toString().trim().isNotEmpty);
         if (showSection(secKey) &&
             !(widget.readOnly && _hideEmptyInViewMode && !hasAccusedData)) {
           final idx = sectionCounter++;
@@ -3608,7 +3616,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         }
       } else if (secKey == 'Suspected Accused') {
         final hasSuspectData = _suspectedAccusedList.isNotEmpty &&
-            _suspectedAccusedList.any((a) => (a['name'] ?? '').toString().trim().isNotEmpty);
+            _suspectedAccusedList
+                .any((a) => (a['name'] ?? '').toString().trim().isNotEmpty);
         if (showSection(secKey) &&
             !(widget.readOnly && _hideEmptyInViewMode && !hasSuspectData)) {
           final idx = sectionCounter++;
@@ -3623,13 +3632,16 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                 (a['complexion'] ?? '').toString().trim().isNotEmpty ||
                 (a['height'] ?? '').toString().trim().isNotEmpty);
         if (showSection(secKey) &&
-            !(widget.readOnly && _hideEmptyInViewMode && !hasUnidentifiedData)) {
+            !(widget.readOnly &&
+                _hideEmptyInViewMode &&
+                !hasUnidentifiedData)) {
           final idx = sectionCounter++;
           sectionCards.add(_buildUnidentifiedAccusedSection(sectionIndex: idx));
         }
       } else if (secKey == 'Unknown Accused') {
         final hasUnknownData = _unknownAccusedList.isNotEmpty &&
-            _unknownAccusedList.any((a) => (a['name'] ?? '').toString().trim().isNotEmpty);
+            _unknownAccusedList
+                .any((a) => (a['name'] ?? '').toString().trim().isNotEmpty);
         if (showSection(secKey) &&
             !(widget.readOnly && _hideEmptyInViewMode && !hasUnknownData)) {
           final idx = sectionCounter++;
@@ -3643,7 +3655,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         }
       } else if (secKey == 'Scrutiny') {
         if (showSection(secKey) &&
-            !(widget.readOnly && _hideEmptyInViewMode && !_hasAnyScrutinyData)) {
+            !(widget.readOnly &&
+                _hideEmptyInViewMode &&
+                !_hasAnyScrutinyData)) {
           final idx = sectionCounter++;
           sectionCards.add(_buildScrutinySection(sectionIndex: idx));
         }
@@ -4953,7 +4967,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
 
   Widget _buildSuspectedAccusedSection({int? sectionIndex}) {
     final hasData = _suspectedAccusedList.isNotEmpty &&
-        _suspectedAccusedList.any((a) => (a['name'] ?? '').toString().trim().isNotEmpty);
+        _suspectedAccusedList
+            .any((a) => (a['name'] ?? '').toString().trim().isNotEmpty);
     if (widget.readOnly && _hideEmptyInViewMode && !hasData) {
       return const SizedBox.shrink();
     }
@@ -5682,7 +5697,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                     children: [
                       if (allDisplayNames.isEmpty) ...[
                         Container(
-                           padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: const Color(0xFFF8FAFC),
                             borderRadius: BorderRadius.circular(AppRadius.md),
@@ -6638,7 +6653,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   // ── Unknown Accused Repeating List Section ──────────────────────────────
   Widget _buildUnknownAccusedSection({int? sectionIndex}) {
     final hasData = _unknownAccusedList.isNotEmpty &&
-        _unknownAccusedList.any((a) => (a['name'] ?? '').toString().trim().isNotEmpty);
+        _unknownAccusedList
+            .any((a) => (a['name'] ?? '').toString().trim().isNotEmpty);
     if (widget.readOnly && _hideEmptyInViewMode && !hasData) {
       return const SizedBox.shrink();
     }
@@ -6884,10 +6900,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                 (it['action_type'] ?? it['action'] ?? '').toString().trim();
             final aDate =
                 (it['action_date'] ?? it['date'] ?? '').toString().trim();
-            final aNum =
-                (it['preventive_number'] ?? it['outward_number'] ?? '')
-                    .toString()
-                    .trim();
+            final aNum = (it['preventive_number'] ?? it['outward_number'] ?? '')
+                .toString()
+                .trim();
             return aType.isNotEmpty || aDate.isNotEmpty || aNum.isNotEmpty;
           }).toList()
         : rawPeople;
@@ -8659,7 +8674,8 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
                   if (medicalFlds.isNotEmpty)
                     MapEntry(medicalFlds.first, _medical.trim().isNotEmpty),
                   if (medicalFlds.length > 1)
-                    MapEntry(medicalFlds[1], _medicalDateCtrl.text.trim().isNotEmpty),
+                    MapEntry(medicalFlds[1],
+                        _medicalDateCtrl.text.trim().isNotEmpty),
                   MapEntry(addrFld, _addressCtrl.text.trim().isNotEmpty),
                 ];
 

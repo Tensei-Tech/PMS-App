@@ -310,7 +310,9 @@ class _VictimHubScreenState extends State<VictimHubScreen>
     final rawCf = extra['commonForm'] ?? extra['common_form'];
     final cf = rawCf is Map<String, dynamic>
         ? rawCf
-        : (rawCf is Map ? Map<String, dynamic>.from(rawCf) : <String, dynamic>{});
+        : (rawCf is Map
+            ? Map<String, dynamic>.from(rawCf)
+            : <String, dynamic>{});
 
     final mod = r.moduleKey.toLowerCase().trim();
     final sub = (r.subCategory ?? '').toLowerCase().trim();
@@ -335,10 +337,7 @@ class _VictimHubScreenState extends State<VictimHubScreen>
       if (g == 'female' || g == 'f' || g == 'स्त्री' || g == 'महिला') {
         return 'female';
       }
-      if (g == 'transgender' ||
-          g == 'trans' ||
-          g == 'tg' ||
-          g == 'तृतीयपंथी') {
+      if (g == 'transgender' || g == 'trans' || g == 'tg' || g == 'तृतीयपंथी') {
         return 'transgender';
       }
       if (g.isNotEmpty) return 'other';
@@ -383,23 +382,23 @@ class _VictimHubScreenState extends State<VictimHubScreen>
     if (candidates is List && candidates.isNotEmpty) {
       for (final v in candidates) {
         if (v is! Map) continue;
-        final role =
-            (v['role'] ?? v['person_type'] ?? '').toString().toLowerCase().trim();
+        final role = (v['role'] ?? v['person_type'] ?? '')
+            .toString()
+            .toLowerCase()
+            .trim();
         if (candidates.toString().contains('person') &&
             role.isNotEmpty &&
             !role.contains('victim')) {
           continue;
         }
 
-        var g = parseGender(v['gender'] ??
-            v['victim_gender'] ??
-            v['cheating_victim_gender']);
-        var age = parseAge(
-            v['age'] ?? v['victim_age'] ?? v['cheating_victim_age']);
-        final pwd = parseBool(
-            v['pwd'] ?? v['victim_pwd'] ?? v['disability']);
-        final mv = parseBool(
-            v['mentally_vulnerable'] ?? v['is_mentally_vulnerable']);
+        var g = parseGender(
+            v['gender'] ?? v['victim_gender'] ?? v['cheating_victim_gender']);
+        var age =
+            parseAge(v['age'] ?? v['victim_age'] ?? v['cheating_victim_age']);
+        final pwd = parseBool(v['pwd'] ?? v['victim_pwd'] ?? v['disability']);
+        final mv =
+            parseBool(v['mentally_vulnerable'] ?? v['is_mentally_vulnerable']);
         final cond = parseCondition(v['status'] ??
             v['condition'] ??
             v['injured_deceased'] ??
@@ -441,10 +440,9 @@ class _VictimHubScreenState extends State<VictimHubScreen>
           extra['caw_victim_age'] ??
           extra['cheating_victim_age'] ??
           extra['missing_person_age']);
-      final pwd = parseBool(
-          cf['pwd'] ?? extra['pwd'] ?? extra['victim_pwd']);
-      final mv = parseBool(
-          cf['mentally_vulnerable'] ?? extra['mentally_vulnerable']);
+      final pwd = parseBool(cf['pwd'] ?? extra['pwd'] ?? extra['victim_pwd']);
+      final mv =
+          parseBool(cf['mentally_vulnerable'] ?? extra['mentally_vulnerable']);
       final cond = parseCondition(cf['injured_deceased'] ??
           extra['injured_deceased'] ??
           cf['condition'] ??
@@ -582,19 +580,23 @@ class _VictimHubScreenState extends State<VictimHubScreen>
 
     // 2. Also check if the case as a whole satisfies each group across its victims
     if (selectedGender.isNotEmpty &&
-        !victims.any((v) => selectedGender.any((k) => _victimMatchesSingleFilter(v, k)))) {
+        !victims.any((v) =>
+            selectedGender.any((k) => _victimMatchesSingleFilter(v, k)))) {
       return false;
     }
     if (selectedSpecial.isNotEmpty &&
-        !victims.any((v) => selectedSpecial.any((k) => _victimMatchesSingleFilter(v, k)))) {
+        !victims.any((v) =>
+            selectedSpecial.any((k) => _victimMatchesSingleFilter(v, k)))) {
       return false;
     }
     if (selectedCondition.isNotEmpty &&
-        !victims.any((v) => selectedCondition.any((k) => _victimMatchesSingleFilter(v, k)))) {
+        !victims.any((v) =>
+            selectedCondition.any((k) => _victimMatchesSingleFilter(v, k)))) {
       return false;
     }
     if (selectedAge.isNotEmpty &&
-        !victims.any((v) => selectedAge.any((k) => _victimMatchesSingleFilter(v, k)))) {
+        !victims.any(
+            (v) => selectedAge.any((k) => _victimMatchesSingleFilter(v, k)))) {
       return false;
     }
 
@@ -629,8 +631,7 @@ class _VictimHubScreenState extends State<VictimHubScreen>
 
       if (mounted) {
         if (dataList != null) {
-          final records =
-              dataList.map((m) => ModuleRecord.fromMap(m)).toList();
+          final records = dataList.map((m) => ModuleRecord.fromMap(m)).toList();
           _allRecords = records;
           _recomputeFilterCounts(records);
           _applyCurrentFilter();
@@ -924,7 +925,8 @@ class _VictimHubScreenState extends State<VictimHubScreen>
                                   color: const Color(0xFFF6F8FF),
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
-                                      color: Colors.grey.withValues(alpha: 0.2)),
+                                      color:
+                                          Colors.grey.withValues(alpha: 0.2)),
                                 ),
                                 child: TextField(
                                   onChanged: (val) {
@@ -1016,8 +1018,8 @@ class _VictimHubScreenState extends State<VictimHubScreen>
                                           child: Container(
                                             padding: const EdgeInsets.symmetric(
                                                 horizontal: 6, vertical: 6),
-                                            margin:
-                                                const EdgeInsets.only(bottom: 2),
+                                            margin: const EdgeInsets.only(
+                                                bottom: 2),
                                             decoration: BoxDecoration(
                                               color: isChecked
                                                   ? AppColors.navyMid
@@ -1046,7 +1048,8 @@ class _VictimHubScreenState extends State<VictimHubScreen>
                                                       setModalState(() {
                                                         if (item.key == 'all') {
                                                           tempSelected.clear();
-                                                          tempSelected.add('all');
+                                                          tempSelected
+                                                              .add('all');
                                                         } else {
                                                           tempSelected
                                                               .remove('all');
@@ -1113,10 +1116,10 @@ class _VictimHubScreenState extends State<VictimHubScreen>
 
                                                 // Count
                                                 Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                          horizontal: 6,
-                                                          vertical: 1.5),
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 6,
+                                                      vertical: 1.5),
                                                   decoration: BoxDecoration(
                                                     color: isChecked
                                                         ? AppColors.navyMid
@@ -1154,8 +1157,7 @@ class _VictimHubScreenState extends State<VictimHubScreen>
 
                             // Bottom Action Bar
                             Padding(
-                              padding:
-                                  const EdgeInsets.fromLTRB(14, 8, 14, 10),
+                              padding: const EdgeInsets.fromLTRB(14, 8, 14, 10),
                               child: Row(
                                 children: [
                                   Text(
@@ -1205,8 +1207,7 @@ class _VictimHubScreenState extends State<VictimHubScreen>
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 14, vertical: 7),
                                       shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(8),
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
                                     ),
                                   ),
@@ -1232,8 +1233,8 @@ class _VictimHubScreenState extends State<VictimHubScreen>
   // ---------------------------------------------------------------------------
 
   Widget _buildFilterDropdownButton() {
-    final isFiltered = !_selectedFilterKeys.contains('all') &&
-        _selectedFilterKeys.isNotEmpty;
+    final isFiltered =
+        !_selectedFilterKeys.contains('all') && _selectedFilterKeys.isNotEmpty;
     final count = _selectedFilterKeys.contains('all')
         ? (_filterCounts['all'] ?? 0)
         : (_allRecords
@@ -1304,8 +1305,7 @@ class _VictimHubScreenState extends State<VictimHubScreen>
             ),
             const SizedBox(width: 8),
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
               decoration: BoxDecoration(
                 color: isFiltered
                     ? AppColors.navyMid
@@ -1334,8 +1334,8 @@ class _VictimHubScreenState extends State<VictimHubScreen>
   }
 
   Widget _buildFilterBar() {
-    final isFiltered = !_selectedFilterKeys.contains('all') &&
-        _selectedFilterKeys.isNotEmpty;
+    final isFiltered =
+        !_selectedFilterKeys.contains('all') && _selectedFilterKeys.isNotEmpty;
 
     return Container(
       color: Colors.white,
@@ -1402,8 +1402,8 @@ class _VictimHubScreenState extends State<VictimHubScreen>
         .toList();
     final filterLabels = activeItems.map((i) => i.label).join(', ');
     final activeRecords = _allRecords
-            ?.where((r) =>
-                _recordMatchesMultipleFilters(r, _selectedFilterKeys))
+            ?.where(
+                (r) => _recordMatchesMultipleFilters(r, _selectedFilterKeys))
             .toList() ??
         [];
     final count = activeRecords.length;
@@ -1498,8 +1498,8 @@ class _VictimHubScreenState extends State<VictimHubScreen>
     required IconData icon,
     required Future<void> Function() onRefresh,
   }) {
-    final isFiltered = !_selectedFilterKeys.contains('all') &&
-        _selectedFilterKeys.isNotEmpty;
+    final isFiltered =
+        !_selectedFilterKeys.contains('all') && _selectedFilterKeys.isNotEmpty;
 
     return RefreshIndicator(
       onRefresh: onRefresh,
@@ -1921,9 +1921,9 @@ class _VictimHubScreenState extends State<VictimHubScreen>
           final ioRank = item['io_rank']?.toString() ?? '';
           final stationName = item['station_name']?.toString() ?? '';
           final count = (item['victim_count'] ??
-                  item['pending_count'] ??
-                  item['count'] as num?)
-              ?.toInt() ??
+                      item['pending_count'] ??
+                      item['count'] as num?)
+                  ?.toInt() ??
               0;
 
           return Container(

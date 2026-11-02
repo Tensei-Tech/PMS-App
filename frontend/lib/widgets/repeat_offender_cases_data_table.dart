@@ -216,7 +216,8 @@ class RepeatOffenderCasesDataTable extends StatelessWidget {
                             BorderSide(color: Color(0xFFEDF2F7), width: 1),
                       ),
                       children: [
-                        for (var i = 0; i < rows.length; i++) rowFor(i, rows[i]),
+                        for (var i = 0; i < rows.length; i++)
+                          rowFor(i, rows[i]),
                       ],
                     ),
                   ),
