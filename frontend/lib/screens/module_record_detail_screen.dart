@@ -49,6 +49,7 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
   bool _recordDeleted = false;
   bool _accessDenied = false;
   StreamSubscription<ModuleRecord?>? _subscription;
+  StreamSubscription<ModuleRecord>? _caseServiceSub;
 
   @override
   void initState() {
@@ -93,6 +94,18 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
         // Keep showing local record if stream errors
       },
     );
+
+    _caseServiceSub?.cancel();
+    _caseServiceSub = CaseService().onCaseUpdated.listen((next) {
+      if (!mounted) return;
+      if (next.id == id) {
+        setState(() {
+          _recordDeleted = false;
+          _accessDenied = false;
+          _record = next;
+        });
+      }
+    });
   }
 
   Future<void> _fetchFreshRecord() async {
@@ -113,6 +126,7 @@ class _ModuleRecordDetailScreenState extends State<ModuleRecordDetailScreen> {
   @override
   void dispose() {
     _subscription?.cancel();
+    _caseServiceSub?.cancel();
     super.dispose();
   }
 

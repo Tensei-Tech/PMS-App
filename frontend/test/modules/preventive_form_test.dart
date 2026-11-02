@@ -5,11 +5,25 @@ import 'package:khakhi_diary/modules/core/models/base_record.dart';
 import 'package:khakhi_diary/modules/preventive/screens/preventive_view_screen.dart';
 import 'package:khakhi_diary/modules/preventive/widgets/preventive_form.dart';
 
+import 'package:khakhi_diary/services/preventive_service.dart';
+
 void main() {
-  return;
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('Preventive Module Tests', () {
+    setUp(() {
+      PreventiveService().seedConfigForTesting({
+        'case_statuses': ['Under Investigation', 'Chargesheeted'],
+        'risk_flags': ['🚨 High Priority', '🛑 Sensitive'],
+        'action_statuses': [
+          '🟢 Preventive Action Completed',
+          '🟡 Partially Completed',
+          '🔴 No Preventive Action Recorded',
+        ],
+        'accused_action_types': ['Arrested', 'Notice Issued', 'Not Arrested'],
+        'yes_no_options': ['Yes', 'No'],
+      });
+    });
     testWidgets('PreventiveForm builds and serializes all 14 statutory fields',
         (tester) async {
       final formKey = GlobalKey<PreventiveFormState>();

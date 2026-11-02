@@ -1,6 +1,4 @@
-// lib/widgets/pending_cases_demo_data_table.dart
-// Shared pending demo [Table] — same layout as [PendingDemoTableScreen].
-
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -28,14 +26,36 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
         final double cellFontSize = w < 360 ? 9.5 : (w < 420 ? 10.5 : 11.5);
         final double headerFontSize = w < 360 ? 9.5 : (w < 420 ? 10.5 : 11.5);
 
-        final columnWidths = <int, TableColumnWidth>{
-          0: const FixedColumnWidth(55),
-          1: const FlexColumnWidth(1.1),
-          2: const FlexColumnWidth(1.3),
-          3: const FlexColumnWidth(1.3),
-          4: const FlexColumnWidth(1.6),
-          5: const FlexColumnWidth(1.4),
-        };
+        final isMobile = constraints.maxWidth < 650;
+        final double tableWidth;
+        final Map<int, TableColumnWidth> columnWidths;
+
+        if (isMobile) {
+          const srWidth = 48.0;
+          final colUnitW = (constraints.maxWidth - srWidth) / 2.5;
+          final col4W = math.max(colUnitW * 1.3, 130.0);
+          final col5W = math.max(colUnitW * 1.15, 120.0);
+          tableWidth = srWidth + (colUnitW * 3) + col4W + col5W;
+
+          columnWidths = <int, TableColumnWidth>{
+            0: const FixedColumnWidth(srWidth),
+            1: FixedColumnWidth(colUnitW),
+            2: FixedColumnWidth(colUnitW),
+            3: FixedColumnWidth(colUnitW),
+            4: FixedColumnWidth(col4W),
+            5: FixedColumnWidth(col5W),
+          };
+        } else {
+          tableWidth = math.max(constraints.maxWidth, 800.0);
+          columnWidths = const <int, TableColumnWidth>{
+            0: IntrinsicColumnWidth(),
+            1: FlexColumnWidth(1.1),
+            2: FlexColumnWidth(1.3),
+            3: FlexColumnWidth(1.3),
+            4: FlexColumnWidth(1.6),
+            5: FlexColumnWidth(1.4),
+          };
+        }
 
         Widget headerCell(String s) => Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
@@ -99,56 +119,82 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
         }
 
         final maxH = constraints.maxHeight;
-        final inner = ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: AppColors.lightBorder),
-              borderRadius: BorderRadius.circular(12),
+        final hasFiniteHeight = maxH.isFinite;
+        final double estHeight = 44.0 * (rows.length + 1) + 20.0;
+        final double containerHeight = hasFiniteHeight
+            ? maxH
+            : math.min(MediaQuery.of(context).size.height * 0.65, estHeight);
+
+        final headerTable = Container(
+          decoration: const BoxDecoration(
+            color: AppColors.navyDark,
+          ),
+          child: Table(
+            columnWidths: columnWidths,
+            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            border: const TableBorder(
+              verticalInside:
+                  BorderSide(color: AppColors.lightBorder, width: 1),
+              bottom: BorderSide(color: AppColors.lightBorder, width: 1),
             ),
+            children: [
+              TableRow(
+                decoration: const BoxDecoration(color: AppColors.navyDark),
+                children: headers,
+              ),
+            ],
+          ),
+        );
+
+        final bodyTable = Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+          ),
+          child: Table(
+            columnWidths: columnWidths,
+            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            border: const TableBorder(
+              horizontalInside:
+                  BorderSide(color: AppColors.lightBorder, width: 1),
+              verticalInside:
+                  BorderSide(color: AppColors.lightBorder, width: 1),
+            ),
+            children: rows.isEmpty
+                ? [
+                    TableRow(
+                      children: [
+                        for (var c = 0; c < 6; c++)
+                          dataCell(
+                              c == 0 ? '-' : (c == 2 ? 'No records' : '-')),
+                      ],
+                    ),
+                  ]
+                : [
+                    for (var i = 0; i < rows.length; i++) rowFor(i, rows[i]),
+                  ],
+          ),
+        );
+
+        final inner = Container(
+          width: tableWidth,
+          height: containerHeight,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.lightBorder, width: 1),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(11),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // ── Sticky Fixed Blue Header ──
-                Container(
-                  color: AppColors.navyDark,
-                  child: Table(
-                    columnWidths: columnWidths,
-                    defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                    children: [
-                      TableRow(
-                        decoration:
-                            const BoxDecoration(color: AppColors.navyDark),
-                        children: headers,
-                      ),
-                    ],
-                  ),
-                ),
-                // ── Scrollable Case Rows ──
-                ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxHeight: maxH.isFinite
-                        ? (maxH - 45).clamp(100.0, 10000.0)
-                        : 520.0,
-                  ),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.vertical,
-                    child: Table(
-                      columnWidths: columnWidths,
-                      defaultVerticalAlignment:
-                          TableCellVerticalAlignment.middle,
-                      border: const TableBorder(
-                        horizontalInside:
-                            BorderSide(color: Color(0xFFEDF2F7), width: 1),
-                        verticalInside:
-                            BorderSide(color: Color(0xFFEDF2F7), width: 1),
-                      ),
-                      children: [
-                        for (var i = 0; i < rows.length; i++) rowFor(i, rows[i]),
-                      ],
+                headerTable,
+                Expanded(
+                  child: Scrollbar(
+                    thumbVisibility: true,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.vertical,
+                      child: bodyTable,
                     ),
                   ),
                 ),
@@ -156,7 +202,14 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
             ),
           ),
         );
-        return inner;
+
+        return Scrollbar(
+          thumbVisibility: true,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: inner,
+          ),
+        );
       },
     );
     return tableCore;

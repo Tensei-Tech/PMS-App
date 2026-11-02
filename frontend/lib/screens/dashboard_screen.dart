@@ -45,6 +45,7 @@ import '../modules/missing/screens/missing_form_screen.dart';
 import '../modules/monthly/providers/monthly_provider.dart';
 import '../modules/mpda/providers/mpda_provider.dart';
 import '../modules/muddemal/providers/muddemal_provider.dart';
+import '../modules/muddemal/screens/muddemal_main_screen.dart';
 import '../modules/nc/providers/nc_provider.dart';
 import '../modules/nc/screens/nc_form_screen.dart';
 import '../modules/ndps/providers/ndps_provider.dart';
@@ -69,17 +70,18 @@ import '../providers/news_provider.dart';
 import '../providers/theme_provider.dart';
 import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
+import '../services/backend_case_service.dart';
+import '../widgets/pending_time_wise_card.dart';
 import '../utils/app_constants.dart';
 import '../utils/case_visibility_ui.dart';
 import '../utils/common_form_module.dart';
-import '../utils/module_pdf_helper.dart';
 import '../utils/pdf_helper.dart';
 import '../utils/police_hierarchy_helper.dart';
-import '../utils/police_rbac_helper.dart';
 import '../utils/state_branding_helper.dart';
 import '../utils/state_language_helper.dart';
 import '../utils/translation_helper.dart';
 import '../utils/universal_search.dart';
+import '../utils/category_icon_helper.dart';
 import '../widgets/app_logo.dart';
 import 'pending_hub_screen.dart';
 import 'itsso_hub_screen.dart';
@@ -87,10 +89,8 @@ import 'dar_hub_screen.dart';
 import 'irad_hub_screen.dart';
 import 'undetected_hub_screen.dart';
 import 'detected_hub_screen.dart';
-import 'disposal_hub_screen.dart';
+import 'disposal_selection_screen.dart';
 import 'arrested_hub_screen.dart';
-import '../widgets/summons_warrant_report_table.dart';
-import '../widgets/monthly_crime_comparative_table.dart';
 import 'juvenile_hub_screen.dart';
 import 'victim_hub_screen.dart';
 import 'repeat_offender_summary_screen.dart';
@@ -102,12 +102,11 @@ import '../widgets/send_broadcast_alert_dialog.dart';
 import '../utils/app_data_cache.dart';
 import '../utils/category_navigation_helper.dart';
 import '../services/case_service.dart';
-import '../widgets/send_reminder_dialog.dart';
 import '../widgets/state_police_banner_dialog.dart';
 import '../widgets/voice_search_dialog.dart';
+import '../widgets/view_case_card.dart';
 import 'about_app_screen.dart';
 import 'absconded_hub_screen.dart';
-import 'ad_record_detail_screen.dart';
 import 'add_members_screen.dart';
 import 'admin_panel_screen.dart';
 import 'analytics_performance_screen.dart';
@@ -124,7 +123,6 @@ import 'hurt_cases_screen.dart';
 import 'login_security_screen.dart';
 import 'module_form_screen.dart';
 import 'module_hub_screen.dart';
-import 'module_record_detail_screen.dart';
 import 'my_cases_screen.dart';
 import 'pending_transfers_screen.dart';
 import '../widgets/dynamic_form/dynamic_form_screen.dart';
@@ -133,133 +131,16 @@ import '../widgets/logout_confirm_dialog.dart';
 import 'profile_screen.dart';
 import 'station_access_grants_screen.dart';
 
-dynamic _dashboardTileIcon(String label, dynamic fallback) {
-  final k = label.replaceAll(RegExp(r'\s+'), ' ').trim();
-  switch (k) {
-    case 'Monthly':
-      return FontAwesomeIcons.calendarDay;
-    case 'Pending':
-      return FontAwesomeIcons.solidClock;
-    case 'Detected':
-      return FontAwesomeIcons.certificate;
-    case 'Undetected':
-      return FontAwesomeIcons.magnifyingGlassMinus;
-    case 'Disposal':
-      return FontAwesomeIcons.clipboardCheck;
-    case 'I to V':
-      return FontAwesomeIcons.fileLines;
-    case 'VI':
-      return FontAwesomeIcons.fileLines;
-    case 'Prohibition':
-      return FontAwesomeIcons.bottleDroplet;
-    case 'Gambling':
-      return FontAwesomeIcons.dice;
-    case 'Murder/Attempt to Murder':
-      return FontAwesomeIcons.skull;
-    case 'Dacoity/Robbery':
-      return FontAwesomeIcons.peopleGroup;
-    case 'Cheating/CBT':
-      return FontAwesomeIcons.maskFace;
-    case 'Chain Snatching':
-      return FontAwesomeIcons.link;
-    case 'A.D':
-      return FontAwesomeIcons.triangleExclamation;
-    case 'ST Drugs':
-      return FontAwesomeIcons.capsules;
-    case 'Hurt':
-      return FontAwesomeIcons.userInjured;
-    case 'Theft':
-      return FontAwesomeIcons.userSecret;
-    case 'Sand Theft':
-      return FontAwesomeIcons.truck;
-    case 'Two/Four Wheeler Theft':
-      return FontAwesomeIcons.motorcycle;
-    case 'Kidnapping/Missing':
-      return FontAwesomeIcons.userMinus;
-    case 'Missing':
-      return FontAwesomeIcons.magnifyingGlass;
-    case 'N.C':
-      return FontAwesomeIcons.penToSquare;
-    case 'Preventive':
-      return FontAwesomeIcons.ban;
-    case 'Arrested':
-      return FontAwesomeIcons.handcuffs;
-    case 'Absconded':
-      return FontAwesomeIcons.personRunning;
-    case 'POCSO':
-      return FontAwesomeIcons.child;
-    case 'Crime against Women':
-      return FontAwesomeIcons.personDress;
-    case 'Juvenile':
-      return FontAwesomeIcons.child;
-    case 'Victim':
-      return FontAwesomeIcons.bandage;
-    case 'Accident':
-      return FontAwesomeIcons.carBurst;
-    case 'Traffic':
-      return FontAwesomeIcons.trafficLight;
-    case 'Application':
-      return FontAwesomeIcons.fileInvoice;
-    case 'Sam/Warrant':
-      return FontAwesomeIcons.clipboardList;
-    case 'Muddemal':
-      return FontAwesomeIcons.folderOpen;
-    case 'CRPC 1563 / BNSS 1753':
-    case 'CRPC 1563 / 1753 (BNSS)':
-    case 'CRPC 156(3) / BNSS 175(3)':
-    case 'CRPC 156(3)/BNSS 175(3)':
-    case 'CRPC 156(3)/ BNSS 175(3)':
-    case 'Sec 186/175 (BNSS)':
-      return FontAwesomeIcons.scaleBalanced;
-    case 'Passport/PVR/Lic':
-    case 'Passport/ PVR/Lic':
-    case 'Passport/PVR/Licence':
-    case 'Passport/ PVR/Licence':
-    case 'Passport/PVR':
-      return FontAwesomeIcons.idCard;
-    case 'NDPS':
-      return FontAwesomeIcons.pills;
-    case 'Gowansh':
-      return FontAwesomeIcons.cow;
-    case 'IT Act':
-      return FontAwesomeIcons.laptop;
-    case 'MCOCA':
-      return FontAwesomeIcons.userShield;
-    case 'UAPA':
-      return FontAwesomeIcons.buildingColumns;
-    case 'MPDA':
-      return FontAwesomeIcons.shieldHalved;
-    case 'COIN':
-      return FontAwesomeIcons.coins;
-    case 'Licence':
-      return Icons.assignment_ind_rounded;
-    case 'Tadipar':
-      return Icons.gavel_rounded;
-    case 'History Sheeter':
-    case 'History Sheet':
-      return Icons.assignment_rounded;
-    case 'Repeat Offender':
-      return Icons.warning_rounded;
-    case 'ITSSO':
-      return Icons.description_rounded;
-    case 'NAFIS':
-    case 'NAFIS/Fingerprint':
-      return Icons.fingerprint_rounded;
-    case 'DAR':
-    case 'DAR/IRAD':
-      return Icons.folder_rounded;
-    case 'IRAD':
-    case 'IRDA':
-      return Icons.analytics_rounded;
-    case 'E-Learning':
-      return Icons.school_rounded;
-    default:
-      return fallback;
-  }
-}
-
 String? _getDashboardSvgPath(String label) {
   final clean = label.toLowerCase().replaceAll(RegExp(r'[\s/._\\]+'), '');
+  for (final tool in ServiceData.dashboardTools) {
+    if (label.toLowerCase() == tool.label.toLowerCase() ||
+        (tool.moduleKey != null && clean == tool.moduleKey!.toLowerCase())) {
+      if (tool.assetPath != null && tool.assetPath!.isNotEmpty) {
+        return tool.assetPath;
+      }
+    }
+  }
   switch (clean) {
     case 'itov':
     case '1to5':
@@ -316,6 +197,9 @@ String? _getDashboardSvgPath(String label) {
     case 'passportpvrlic':
     case 'passport':
       return 'assets/icons/passport.svg';
+    case 'preventive':
+    case 'tadipar':
+      return 'assets/icons/tadipar.svg';
     case 'ndps':
       return 'assets/icons/ndps.svg';
     case 'gowansh':
@@ -348,8 +232,6 @@ String? _getDashboardSvgPath(String label) {
       return 'assets/icons/cctns.svg';
     case 'licence':
       return 'assets/icons/licence.svg';
-    case 'tadipar':
-      return 'assets/icons/tadipar.svg';
     case 'repeatoffender':
       return 'assets/icons/repeatoffender.svg';
     case 'dar':
@@ -420,34 +302,6 @@ Widget _buildGridIcon(
       svgPath,
       width: size * scale,
       height: size * scale,
-      fit: BoxFit.contain,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  }
-
-  for (final tool in ServiceData.dashboardTools) {
-    if (labelTrim == tool.label) {
-      return _buildServiceIcon(labelTrim, tool.icon, color, size);
-    }
-  }
-
-  // Optical parity: glyph icons (FontAwesome/Material) scale to match SVG visual weight
-  final dynamic icon = _dashboardTileIcon(label, fallback);
-  final glyphScale = (icon == FontAwesomeIcons.maskFace) ? 1.42 : 1.35;
-  final glyphSize = size * glyphScale;
-  if (icon is IconData) return Icon(icon, color: color, size: glyphSize);
-  return FaIcon(icon, color: color, size: glyphSize);
-}
-
-Widget _buildServiceIcon(
-    String label, dynamic fallback, Color color, double size) {
-  final labelTrim = label.replaceAll('\n', ' ').trim();
-  final svgPath = _getDashboardSvgPath(labelTrim);
-  if (svgPath != null) {
-    return SvgPicture.asset(
-      svgPath,
-      width: size * 1.5,
-      height: size * 1.5,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
   }
@@ -1408,7 +1262,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(width: 8),
                     _topNavItem(Icons.gps_fixed_rounded, l10n.wanted, 1),
                     const SizedBox(width: 8),
-                    _topNavItem(Icons.folder_rounded, l10n.view, 3),
+                    _topNavItem(Icons.folder_rounded,
+                        TranslationHelper.translate(context, 'My Cases'), 3),
                     const SizedBox(width: 8),
                     _topNavItem(Icons.calendar_month_rounded, l10n.calendar, 4),
                   ],
@@ -2189,23 +2044,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
               GestureDetector(
                 onTap: () => _onNavTap(2),
                 child: Container(
-                  width: 56,
-                  height: 56,
+                  width: 52,
+                  height: 52,
                   decoration: BoxDecoration(
                     gradient: AppColors.primaryGradient,
                     borderRadius: BorderRadius.circular(AppRadius.lg),
-                    boxShadow: [
-                      BoxShadow(
-                          color: AppColors.navyMid.withValues(alpha: 0.5),
-                          blurRadius: 14,
-                          spreadRadius: 2),
-                    ],
                   ),
                   child: const Icon(Icons.add_rounded,
                       color: Colors.white, size: 28),
                 ),
               ),
-              _navItem(Icons.folder_rounded, l10n.view, 3),
+              _navItem(Icons.folder_rounded,
+                  TranslationHelper.translate(context, 'My Cases'), 3),
               _navItem(Icons.calendar_month_rounded, l10n.calendar, 4),
             ],
           ),
@@ -2376,6 +2226,7 @@ class _HomeTabState extends State<_HomeTab> {
   void initState() {
     super.initState();
     // DashboardScreen already refreshed stale caches for this user/station.
+    _loadDashboardTools();
     _loadBackendCategories();
     // MPDA detention end reminders of this station (bell badge + list)
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -2393,9 +2244,46 @@ class _HomeTabState extends State<_HomeTab> {
 
   /// Database tiles (MPDA, History Sheeter ...) come from this list, so a
   /// failed or dropped request is retried instead of leaving them out.
+  Future<void> _loadDashboardTools() async {
+    try {
+      final toolsData = await CaseService().fetchDashboardTools();
+      if (toolsData.isNotEmpty) {
+        final dynamicTools = toolsData
+            .map((t) => ServiceData.fromJson(t))
+            .where((t) => t.isActive)
+            .toList();
+        if (dynamicTools.isNotEmpty) {
+          for (final tool in dynamicTools) {
+            if (tool.assetPath != null && tool.assetPath!.endsWith('.svg')) {
+              CategoryIconHelper.registerSvgPath(tool.label, tool.assetPath!);
+              if (tool.moduleKey != null) {
+                CategoryIconHelper.registerSvgPath(
+                    tool.moduleKey!, tool.assetPath!);
+              }
+              if (tool.categoryCode != null) {
+                CategoryIconHelper.registerSvgPath(
+                    tool.categoryCode!, tool.assetPath!);
+              }
+            }
+          }
+          if (mounted) {
+            setState(() {
+              ServiceData.dashboardTools = dynamicTools;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[_HomeTab] _loadDashboardTools error: $e');
+      }
+    }
+  }
+
   Future<void> _loadBackendCategories({int attempt = 1}) async {
     const maxAttempts = 4;
     try {
+      await _loadDashboardTools();
       final cats = await CaseService().fetchAllCategories();
       if (!mounted) return;
       if (cats.isNotEmpty) {
@@ -3183,7 +3071,7 @@ class _HomeTabState extends State<_HomeTab> {
       (
         title: 'About App',
         subtext: 'App Info',
-        keywords: ['about app', 'about', 'about khakhi diary', 'tensei tech'],
+        keywords: ['about app', 'about', 'about pms', 'tensei tech'],
         icon: Icons.info_rounded,
         onTap: () => Navigator.push(
             context, AppTheme.fadeSlideRoute(page: const AboutAppScreen())),
@@ -3622,7 +3510,10 @@ class _HomeTabState extends State<_HomeTab> {
       case 'healing':
         return Icons.healing_rounded;
       case 'shield':
-        return Icons.shield_rounded;
+      case 'security':
+        return Icons.security_rounded;
+      case 'balance':
+        return FontAwesomeIcons.scaleBalanced;
       case 'woman':
         return Icons.woman_rounded;
       case 'description':
@@ -3830,7 +3721,13 @@ class _HomeTabState extends State<_HomeTab> {
       serviceSection,
       [
         for (final tool in ServiceData.dashboardTools)
-          Classification(tool.label, 'service_tool', 'service_tool'),
+          Classification(
+            tool.label,
+            tool.assetPath ?? 'service_tool',
+            tool.moduleKey ?? 'service_tool',
+            categoryCode: tool.categoryCode,
+            categoryId: tool.categoryId,
+          ),
       ],
     ];
     // Sections keep their order but flow on continuously, so no row is left
@@ -3871,7 +3768,7 @@ class _HomeTabState extends State<_HomeTab> {
                       physics: const NeverScrollableScrollPhysics(),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: cols,
-                        childAspectRatio: 0.82,
+                        childAspectRatio: isWide ? 0.77 : 0.73,
                         mainAxisSpacing: 10,
                         crossAxisSpacing: 10,
                       ),
@@ -4001,7 +3898,7 @@ class _HomeTabState extends State<_HomeTab> {
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
-          page: DisposalHubScreen(stationName: auth.stationName),
+          page: DisposalSelectionScreen(stationName: auth.stationName),
         ),
       );
     } else if (item.name == 'Arrested') {
@@ -4055,19 +3952,18 @@ class _HomeTabState extends State<_HomeTab> {
     } else if (label.toLowerCase().contains('passport') ||
         item.name.toLowerCase().contains('passport') ||
         item.moduleKey == 'passport') {
-      // Two tabs: Passport/PVR/Licence and Licence
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
           page: PassportLicenceScreen(stationName: widget.auth.stationName),
         ),
       );
-    } else if (item.moduleKey == 'service_tool') {
+    } else if (item.moduleKey == 'service_tool' ||
+        ServiceData.dashboardTools.any((t) =>
+            t.label.toLowerCase() == label.toLowerCase() ||
+            (t.moduleKey != null && t.moduleKey == item.moduleKey))) {
       final cleanLabel = label.trim().toLowerCase();
-      if (cleanLabel == 'history sheeter' ||
-          cleanLabel == 'history sheet' ||
-          item.categoryCode != null ||
-          item.categoryId != null) {
+      if (cleanLabel == 'history sheeter' || cleanLabel == 'history sheet') {
         CategoryNavigationHelper.handleDashboardCategoryTap(
           context: context,
           categoryName: item.name,
@@ -4142,6 +4038,13 @@ class _HomeTabState extends State<_HomeTab> {
           page: VictimHubScreen(stationName: widget.auth.stationName),
         ),
       );
+    } else if (item.moduleKey == 'muddemal' || item.name == 'Muddemal') {
+      Navigator.push(
+        context,
+        AppTheme.fadeSlideRoute(
+          page: const MuddemalMainScreen(),
+        ),
+      );
     } else {
       final isStatsItem = [
         'Monthly',
@@ -4179,7 +4082,8 @@ class _HomeTabState extends State<_HomeTab> {
     final label = item.name.replaceAll('\n', ' ');
     ServiceData? matchedTool;
     for (final t in ServiceData.dashboardTools) {
-      if (t.label == label) {
+      if (t.label.toLowerCase() == label.toLowerCase() ||
+          (t.moduleKey != null && t.moduleKey == item.moduleKey)) {
         matchedTool = t;
         break;
       }
@@ -4217,7 +4121,7 @@ class _HomeTabState extends State<_HomeTab> {
           // Fixed two-line label area: one- and two-line labels take the same
           // height, so every icon box in a row has the same size and position.
           SizedBox(
-            height: MediaQuery.textScalerOf(context).scale(9.5 * 1.2) * 2 + 2,
+            height: MediaQuery.textScalerOf(context).scale(34.0),
             child: Align(
               alignment: Alignment.topCenter,
               child: Text(
@@ -4228,7 +4132,7 @@ class _HomeTabState extends State<_HomeTab> {
                 style: GoogleFonts.poppins(
                     fontSize: 9.5,
                     fontWeight: FontWeight.w500,
-                    height: 1.2,
+                    height: 1.25,
                     color: AppColors.lightText),
               ),
             ),
@@ -4800,7 +4704,7 @@ class _WantedTab extends StatelessWidget {
   }
 }
 
-// ── VIEW TAB ─────────────────────────────────────────────────────────────────
+// ── VIEW / MY CASES TAB ─────────────────────────────────────────────────────────────
 class _ViewTab extends StatefulWidget {
   final bool isDark;
   const _ViewTab({required this.isDark});
@@ -4810,16 +4714,27 @@ class _ViewTab extends StatefulWidget {
 }
 
 class _ViewTabState extends State<_ViewTab> {
-  final FirestoreService _firestore = FirestoreService();
   int _selectedTabIndex = 0;
   final TextEditingController _searchCtrl = TextEditingController();
   String _query = '';
 
-  static const List<(int, IconData, String)> _tabs = [
-    (0, Icons.folder_open_rounded, 'All'),
-    (1, Icons.pending_actions_outlined, 'Pending'),
-    (2, Icons.check_circle_outline_rounded, 'Disposed'),
-  ];
+  List<ModuleRecord>? _allCases;
+  List<ModuleRecord>? _pendingCases;
+  List<ModuleRecord>? _disposalCases;
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  static String _safeTrim(dynamic val, [String fallback = '']) {
+    if (val == null) return fallback;
+    final s = val.toString().trim();
+    return s.isEmpty ? fallback : s;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCases();
+  }
 
   @override
   void dispose() {
@@ -4827,759 +4742,419 @@ class _ViewTabState extends State<_ViewTab> {
     super.dispose();
   }
 
-  Stream<List<ModuleRecord>>? _stream;
-  String? _streamKey;
+  Future<void> _loadCases() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
-  Stream<List<ModuleRecord>> _getStream(
-      AuthProvider auth, CaseVisibilityMode mode) {
-    if (_selectedTabIndex == 1) {
-      return _firestore.getPendingCasesStream(auth.activeStation).map(
-            (records) => CaseVisibility.filterRecords(
-              records,
-              uid: auth.uid,
-              officerName: auth.displayName,
-              mode: mode,
-            ),
-          );
-    } else if (_selectedTabIndex == 2) {
-      return _firestore.getDisposalCasesStream(auth.activeStation).map(
-            (records) => CaseVisibility.filterRecords(
-              records,
-              uid: auth.uid,
-              officerName: auth.displayName,
-              mode: mode,
-            ),
-          );
+    try {
+      final results = await Future.wait([
+        CaseService().fetchMyCases(scope: 'all'),
+        CaseService().fetchMyCases(scope: 'pending'),
+        CaseService().fetchMyCases(scope: 'disposal'),
+      ]);
+      if (!mounted) return;
+      setState(() {
+        _allCases = results[0];
+        _pendingCases = results[1];
+        _disposalCases = results[2];
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
     }
-    return _firestore.getStationCasesStream(auth.activeStation).map(
-          (records) => CaseVisibility.filterRecords(
-            records,
-            uid: auth.uid,
-            officerName: auth.displayName,
-            mode: mode,
-          ),
-        );
   }
 
-  List<ModuleRecord> _filterRecords(List<ModuleRecord> all) {
-    final q = _query.trim().toLowerCase();
-    if (q.isEmpty) return all;
+  List<ModuleRecord> _getCurrentList() {
+    switch (_selectedTabIndex) {
+      case 1:
+        return _pendingCases ?? [];
+      case 2:
+        return _disposalCases ?? [];
+      case 0:
+      default:
+        return _allCases ?? [];
+    }
+  }
 
-    return all.where((r) {
-      return r.title.toLowerCase().contains(q) ||
-          r.caseNumber.toLowerCase().contains(q) ||
-          r.complainant.toLowerCase().contains(q) ||
-          r.location.toLowerCase().contains(q) ||
-          r.assignedOfficer.toLowerCase().contains(q) ||
-          r.firestoreCategoryDisplayName.toLowerCase().contains(q);
+  List<ModuleRecord> _filter(List<ModuleRecord> list) {
+    final q = _safeTrim(_query).toLowerCase();
+    if (q.isEmpty) return list;
+    return list.where((r) {
+      try {
+        final t = _safeTrim(r.title).toLowerCase();
+        final c = _safeTrim(r.caseNumber).toLowerCase();
+        final comp = _safeTrim(r.complainant).toLowerCase();
+        final loc = _safeTrim(r.location).toLowerCase();
+        final off = _safeTrim(r.assignedOfficer).toLowerCase();
+        final cat = _safeTrim(r.firestoreCategoryDisplayName).toLowerCase();
+        return t.contains(q) ||
+            c.contains(q) ||
+            comp.contains(q) ||
+            loc.contains(q) ||
+            off.contains(q) ||
+            cat.contains(q);
+      } catch (_) {
+        return false;
+      }
     }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
-    final mode = CaseVisibility.resolveFor(auth);
-
-    // Same stream across rebuilds; a new one only when the tab, station,
-    // officer or visibility mode changes (a new stream flashes "loading")
-    final streamKey = '$_selectedTabIndex|${auth.activeStation}|${auth.uid}|'
-        '${auth.displayName}|$mode';
-    if (_stream == null || _streamKey != streamKey) {
-      _streamKey = streamKey;
-      _stream = _getStream(auth, mode);
-    }
-
-    return StreamBuilder<List<ModuleRecord>>(
-      stream: _stream,
-      builder: (context, snapshot) {
-        final allRecords = snapshot.data ?? [];
-        final filtered = _filterRecords(allRecords);
-        final isLoading = snapshot.connectionState == ConnectionState.waiting &&
-            !snapshot.hasData;
-
-        return CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            // ── Segmented Tab Selector (All, Pending, Disposed) ──────────────────
-            SliverToBoxAdapter(
-              child: Container(
-                color: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                    vertical: 10, horizontal: AppSpacing.md),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 820),
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: AppColors.lightBg,
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        border: Border.all(color: AppColors.lightBorder),
-                      ),
-                      child: Row(
-                        children: _tabs.map((t) {
-                          final isSelected = _selectedTabIndex == t.$1;
-                          return Expanded(
-                            child: InkWell(
-                              onTap: () {
-                                if (_selectedTabIndex != t.$1) {
-                                  setState(() => _selectedTabIndex = t.$1);
-                                }
-                              },
-                              borderRadius: BorderRadius.circular(AppRadius.sm),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 9),
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? AppColors.navyDark
-                                      : Colors.transparent,
-                                  borderRadius:
-                                      BorderRadius.circular(AppRadius.sm),
-                                  boxShadow: isSelected
-                                      ? [
-                                          BoxShadow(
-                                            color: AppColors.navyDark
-                                                .withValues(alpha: 0.25),
-                                            blurRadius: 6,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ]
-                                      : null,
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      t.$2,
-                                      size: 16,
-                                      color: isSelected
-                                          ? Colors.white
-                                          : AppColors.navyDark
-                                              .withValues(alpha: 0.7),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      t.$3,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 13,
-                                        fontWeight: isSelected
-                                            ? FontWeight.w700
-                                            : FontWeight.w500,
-                                        color: isSelected
-                                            ? Colors.white
-                                            : AppColors.navyDark
-                                                .withValues(alpha: 0.8),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            // ── Search Field & Count ─────────────────────────────────────────────
-            SliverToBoxAdapter(
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 820),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.md, AppSpacing.md, AppSpacing.md, 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TextField(
-                          controller: _searchCtrl,
-                          onChanged: (v) => setState(() => _query = v),
-                          style: GoogleFonts.poppins(
-                              fontSize: 13.5, color: AppColors.navyDark),
-                          decoration: InputDecoration(
-                            hintText:
-                                'Search by FIR, title, location, category…',
-                            hintStyle: GoogleFonts.poppins(
-                              fontSize: 12.5,
-                              color: AppColors.lightSubText,
-                            ),
-                            prefixIcon: const Icon(Icons.search_rounded,
-                                color: AppColors.navyMid, size: 20),
-                            suffixIcon: _searchCtrl.text.isNotEmpty
-                                ? IconButton(
-                                    onPressed: () {
-                                      _searchCtrl.clear();
-                                      setState(() => _query = '');
-                                    },
-                                    icon: const Icon(Icons.close_rounded,
-                                        color: AppColors.lightSubText,
-                                        size: 18),
-                                  )
-                                : null,
-                            filled: true,
-                            fillColor: Colors.white,
-                            isDense: true,
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 11),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: const BorderSide(
-                                  color: AppColors.lightBorder),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: const BorderSide(
-                                  color: AppColors.lightBorder),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: const BorderSide(
-                                  color: AppColors.navyMid, width: 1.5),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _query.isNotEmpty
-                              ? 'Found ${filtered.length} of ${allRecords.length} records'
-                              : 'Total: ${filtered.length} records',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.lightSubText,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            // ── Loading / Empty State or Records List ────────────────────────────
-            if (isLoading)
-              const SliverFillRemaining(
-                hasScrollBody: false,
-                child: Center(
-                  child: CircularProgressIndicator(
-                    color: AppColors.navyMid,
-                    strokeWidth: 2.5,
-                  ),
-                ),
-              )
-            else if (filtered.isEmpty)
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 820),
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.xxl),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            _query.isNotEmpty
-                                ? Icons.search_off_rounded
-                                : Icons.folder_open_rounded,
-                            size: 48,
-                            color: AppColors.navyMid.withValues(alpha: 0.5),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            _query.isNotEmpty
-                                ? 'No matching cases'
-                                : 'No records found in database',
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.navyDark,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _query.isNotEmpty
-                                ? 'Try searching with a different keyword.'
-                                : 'Cases created for this station will appear here from the database.',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              color: AppColors.lightSubText,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              )
-            else
-              SliverToBoxAdapter(
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 820),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.md,
-                        0,
-                        AppSpacing.md,
-                        AppSpacing.xl,
-                      ),
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: filtered.length,
-                        itemBuilder: (context, i) {
-                          final c = filtered[i];
-                          final isDisposed =
-                              c.status.toLowerCase() == 'closed' ||
-                                  c.status.toLowerCase() == 'disposal' ||
-                                  c.status.toLowerCase() == 'resolved' ||
-                                  c.status.toLowerCase() == 'disposed';
-                          final displayStatus =
-                              isDisposed ? 'Disposal' : 'Pending';
-                          final accentColor =
-                              _selectedTabIndex == 2 || isDisposed
-                                  ? AppColors.successGreen
-                                  : _selectedTabIndex == 1
-                                      ? AppColors.warningOrange
-                                      : AppColors.infoBlue;
-                          final statusColor = isDisposed
-                              ? AppColors.successGreen
-                              : AppColors.warningOrange;
-
-                          final displayTitle = c.title.trim().isNotEmpty
-                              ? c.title.trim()
-                              : 'Untitled Case';
-                          final firLabel = c.caseNumber.trim().isNotEmpty
-                              ? c.caseNumber.trim()
-                              : 'No FIR / case number';
-
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 10),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              border: Border.all(color: AppColors.lightBorder),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.03),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                borderRadius:
-                                    BorderRadius.circular(AppRadius.md),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    AppTheme.fadeSlideRoute(
-                                      page: c.moduleKey == 'ad'
-                                          ? AdRecordDetailScreen(record: c)
-                                          : ModuleRecordDetailScreen(record: c),
-                                    ),
-                                  );
-                                },
-                                child: IntrinsicHeight(
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      Container(
-                                        width: 4,
-                                        decoration: BoxDecoration(
-                                          color: accentColor,
-                                          borderRadius:
-                                              const BorderRadius.horizontal(
-                                            left: Radius.circular(AppRadius.md),
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(12),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              // Top Row: FIR and Status Badge
-                                              Row(
-                                                children: [
-                                                  Container(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                      horizontal: 8,
-                                                      vertical: 3,
-                                                    ),
-                                                    decoration: BoxDecoration(
-                                                      color: AppColors.navyMid
-                                                          .withValues(
-                                                              alpha: 0.08),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              AppRadius.sm),
-                                                    ),
-                                                    child: Text(
-                                                      firLabel,
-                                                      style:
-                                                          GoogleFonts.poppins(
-                                                        fontSize: 11,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        color:
-                                                            AppColors.navyDark,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  const Spacer(),
-                                                  Container(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                      horizontal: 8,
-                                                      vertical: 3,
-                                                    ),
-                                                    decoration: BoxDecoration(
-                                                      color: statusColor
-                                                          .withValues(
-                                                              alpha: 0.12),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              AppRadius.full),
-                                                    ),
-                                                    child: Row(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: [
-                                                        Container(
-                                                          width: 6,
-                                                          height: 6,
-                                                          decoration:
-                                                              BoxDecoration(
-                                                            color: statusColor,
-                                                            shape:
-                                                                BoxShape.circle,
-                                                          ),
-                                                        ),
-                                                        const SizedBox(
-                                                            width: 4),
-                                                        Text(
-                                                          displayStatus,
-                                                          style: GoogleFonts
-                                                              .poppins(
-                                                            fontSize: 10.5,
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            color: statusColor,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 6),
-
-                                              // Case Title
-                                              Text(
-                                                displayTitle,
-                                                style: GoogleFonts.poppins(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: AppColors.navyDark,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 3),
-
-                                              // Category Pill
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                  horizontal: 6,
-                                                  vertical: 2,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: AppColors.goldPrimary
-                                                      .withValues(alpha: 0.12),
-                                                  borderRadius:
-                                                      BorderRadius.circular(4),
-                                                ),
-                                                child: Text(
-                                                  c.firestoreCategoryDisplayName,
-                                                  style: GoogleFonts.poppins(
-                                                    fontSize: 10,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: AppColors.goldDark,
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(height: 8),
-
-                                              // Metadata row
-                                              Wrap(
-                                                spacing: 12,
-                                                runSpacing: 4,
-                                                children: [
-                                                  Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      const Icon(
-                                                        Icons
-                                                            .calendar_today_rounded,
-                                                        size: 12,
-                                                        color: AppColors
-                                                            .lightSubText,
-                                                      ),
-                                                      const SizedBox(width: 4),
-                                                      Text(
-                                                        DateFormat(
-                                                                'dd MMM yyyy')
-                                                            .format(
-                                                                c.incidentDate),
-                                                        style:
-                                                            GoogleFonts.poppins(
-                                                          fontSize: 11,
-                                                          color: AppColors
-                                                              .lightSubText,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  if (c.location.isNotEmpty)
-                                                    Row(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: [
-                                                        const Icon(
-                                                          Icons
-                                                              .location_on_rounded,
-                                                          size: 12,
-                                                          color: AppColors
-                                                              .lightSubText,
-                                                        ),
-                                                        const SizedBox(
-                                                            width: 4),
-                                                        Text(
-                                                          c.location,
-                                                          style: GoogleFonts
-                                                              .poppins(
-                                                            fontSize: 11,
-                                                            color: AppColors
-                                                                .lightSubText,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  if (c.assignedOfficer
-                                                      .isNotEmpty)
-                                                    Row(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: [
-                                                        const Icon(
-                                                          Icons.person_rounded,
-                                                          size: 12,
-                                                          color: AppColors
-                                                              .lightSubText,
-                                                        ),
-                                                        const SizedBox(
-                                                            width: 4),
-                                                        Text(
-                                                          c.assignedOfficer,
-                                                          style: GoogleFonts
-                                                              .poppins(
-                                                            fontSize: 11,
-                                                            color: AppColors
-                                                                .lightSubText,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                ],
-                                              ),
-                                              const Divider(height: 20),
-
-                                              // Actions Row: Edit (Guarded), Reminder (Senior Only), PDF, View
-                                              Builder(builder: (ctx) {
-                                                final canEdit = PoliceRbacHelper
-                                                    .canEditRecord(c, auth);
-                                                final canSendReminder =
-                                                    PoliceRbacHelper
-                                                        .canSendReminder(auth);
-
-                                                return Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceAround,
-                                                  children: [
-                                                    if (canEdit)
-                                                      _buildCardAction(
-                                                        icon: Icons
-                                                            .edit_note_rounded,
-                                                        label: 'Edit',
-                                                        color:
-                                                            AppColors.infoBlue,
-                                                        onTap: () {
-                                                          final isLinked =
-                                                              isTabLinkedToCommonFormBaseline(
-                                                            moduleKey:
-                                                                c.moduleKey,
-                                                            categoryName: c
-                                                                .firestoreCategoryDisplayName,
-                                                          );
-                                                          final page = isLinked
-                                                              ? CommonFormScreen(
-                                                                  moduleKey: c
-                                                                      .moduleKey,
-                                                                  moduleLabel: c
-                                                                      .firestoreCategoryDisplayName,
-                                                                  existingRecord:
-                                                                      c,
-                                                                )
-                                                              : DynamicFormScreen(
-                                                                  moduleKey: c
-                                                                      .moduleKey,
-                                                                  moduleLabel: c
-                                                                      .firestoreCategoryDisplayName,
-                                                                  existingRecord:
-                                                                      c,
-                                                                );
-                                                          Navigator.push(
-                                                            context,
-                                                            AppTheme
-                                                                .fadeSlideRoute(
-                                                                    page: page),
-                                                          );
-                                                        },
-                                                      ),
-                                                    if (canSendReminder)
-                                                      _buildCardAction(
-                                                        icon: Icons
-                                                            .notifications_active_outlined,
-                                                        label: 'Reminder',
-                                                        color: AppColors
-                                                            .warningOrange,
-                                                        onTap: () {
-                                                          SendReminderDialog
-                                                              .show(context, c);
-                                                        },
-                                                      ),
-                                                    _buildCardAction(
-                                                      icon: Icons
-                                                          .picture_as_pdf_rounded,
-                                                      label: 'PDF',
-                                                      color:
-                                                          AppColors.dangerRed,
-                                                      onTap: () {
-                                                        ModulePdfHelper
-                                                            .generatePdf(c);
-                                                      },
-                                                    ),
-                                                    _buildCardAction(
-                                                      icon: Icons
-                                                          .visibility_rounded,
-                                                      label: 'View',
-                                                      color:
-                                                          AppColors.goldPrimary,
-                                                      onTap: () {
-                                                        Navigator.push(
-                                                          context,
-                                                          AppTheme
-                                                              .fadeSlideRoute(
-                                                            page: c.moduleKey ==
-                                                                    'ad'
-                                                                ? AdRecordDetailScreen(
-                                                                    record: c)
-                                                                : ModuleRecordDetailScreen(
-                                                                    record: c),
-                                                          ),
-                                                        );
-                                                      },
-                                                    ),
-                                                  ],
-                                                );
-                                              }),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        );
-      },
+    return RefreshIndicator(
+      color: AppColors.navyMid,
+      onRefresh: _loadCases,
+      child: _buildBody(),
     );
   }
 
-  Widget _buildCardAction({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppRadius.sm),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 16, color: color),
-            const SizedBox(width: 5),
-            Text(
-              label,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: color,
+  Widget _buildStatusTabBar() {
+    final tabs = [
+      (
+        index: 0,
+        label: 'Total Cases',
+        count: _allCases?.length ?? 0,
+        badgeBg: const Color(0xFFE8F1FC),
+        badgeFg: const Color(0xFF1976D2),
+      ),
+      (
+        index: 1,
+        label: 'Pending',
+        count: _pendingCases?.length ?? 0,
+        badgeBg: const Color(0xFFFFF3E0),
+        badgeFg: const Color(0xFFE65100),
+      ),
+      (
+        index: 2,
+        label: 'Disposal',
+        count: _disposalCases?.length ?? 0,
+        badgeBg: const Color(0xFFE8F5E9),
+        badgeFg: const Color(0xFF2E7D32),
+      ),
+    ];
+
+    return Center(
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            border: Border.all(color: const Color(0xFFCBD5E1), width: 1.1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
               ),
-            ),
-          ],
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: tabs.map((item) {
+              final isSelected = _selectedTabIndex == item.index;
+              return InkWell(
+                onTap: () {
+                  if (_selectedTabIndex != item.index) {
+                    setState(() => _selectedTabIndex = item.index);
+                  }
+                },
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.navyDark : Colors.transparent,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        TranslationHelper.translate(context, item.label),
+                        style: GoogleFonts.poppins(
+                          fontSize: 12.5,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.w500,
+                          color: isSelected
+                              ? Colors.white
+                              : AppColors.lightSubText,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? Colors.white.withValues(alpha: 0.22)
+                              : item.badgeBg,
+                          borderRadius: BorderRadius.circular(AppRadius.full),
+                        ),
+                        child: Text(
+                          '${item.count}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: isSelected ? Colors.white : item.badgeFg,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
         ),
       ),
     );
   }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
+        slivers: [
+          SliverToBoxAdapter(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1600),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.sm,
+                  ),
+                  child: Column(
+                    children: [
+                      _buildStatusTabBar(),
+                      const SizedBox(height: 14),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1600),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                  child: Column(
+                    children:
+                        List.generate(6, (_) => const _ViewCaseCardSkeleton()),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (_errorMessage != null) {
+      return CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
+        slivers: [
+          SliverToBoxAdapter(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1600),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.sm,
+                  ),
+                  child: Column(
+                    children: [
+                      _buildStatusTabBar(),
+                      const SizedBox(height: 24),
+                      const _ViewEmptyState(
+                        icon: Icons.cloud_off_rounded,
+                        iconColor: AppColors.dangerRed,
+                        title: 'Unable to load cases',
+                        message:
+                            'Check your connection and pull down to try again.',
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    final rawList = _getCurrentList();
+    final filtered = _filter(rawList);
+
+    return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
+      slivers: [
+        SliverToBoxAdapter(
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1600),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.md,
+                  AppSpacing.md,
+                  AppSpacing.sm,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildStatusTabBar(),
+                    const SizedBox(height: 14),
+                    TextField(
+                      controller: _searchCtrl,
+                      onChanged: (v) => setState(() => _query = v),
+                      style: GoogleFonts.poppins(
+                          fontSize: 13.5, color: AppColors.navyDark),
+                      decoration: InputDecoration(
+                        hintText: TranslationHelper.translate(
+                          context,
+                          'Search by FIR, title, location...',
+                        ),
+                        hintStyle: GoogleFonts.poppins(
+                          fontSize: 12.5,
+                          color: AppColors.lightSubText,
+                        ),
+                        prefixIcon: const Icon(Icons.search_rounded,
+                            color: AppColors.lightSubText, size: 20),
+                        suffixIcon: _query.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear_rounded, size: 18),
+                                onPressed: () {
+                                  _searchCtrl.clear();
+                                  setState(() => _query = '');
+                                },
+                              )
+                            : null,
+                        filled: true,
+                        fillColor: Colors.white,
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 10),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFE2E8F0)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFE2E8F0)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          borderSide: const BorderSide(
+                              color: AppColors.navyMid, width: 1.5),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      _query.isNotEmpty
+                          ? 'Found ${filtered.length} of ${rawList.length} records'
+                          : 'Total: ${rawList.length} records',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.lightSubText,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        if (filtered.isEmpty)
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: _ViewEmptyState(
+              icon: Icons.folder_open_rounded,
+              iconColor: AppColors.lightSubText,
+              title: _query.isNotEmpty ? 'No matching cases' : 'No cases found',
+              message: _query.isNotEmpty
+                  ? 'Try searching with a different case number, title, or officer name.'
+                  : (_selectedTabIndex == 1
+                      ? 'No pending cases under your station/jurisdiction.'
+                      : (_selectedTabIndex == 2
+                          ? 'No disposed cases recorded yet.'
+                          : 'No cases recorded under this station.')),
+            ),
+          )
+        else
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              0,
+              AppSpacing.md,
+              AppSpacing.xl,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1600),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, i) {
+                      return _ViewCaseCard(
+                        record: filtered[i],
+                        index: i + 1,
+                        isDisposedTab: _selectedTabIndex == 2,
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
 }
+
+typedef _ViewCaseCard = ViewCaseCard;
+typedef _ViewCaseCardSkeleton = ViewCaseCardSkeleton;
+typedef _ViewEmptyState = ViewEmptyState;
 
 // ── CALENDAR TAB ─────────────────────────────────────────────────────────────
-class _CalCategoryMeta {
-  final String label;
-  final String moduleKey;
-  final String? subCategory;
-  int count;
-
-  _CalCategoryMeta({
-    required this.label,
-    required this.moduleKey,
-    this.subCategory,
-    required this.count,
-  });
-}
-
+// Shows the same Time Wise breakdown as the Pending hub.
 class _CalendarTab extends StatefulWidget {
   final bool isDark;
   const _CalendarTab({required this.isDark});
@@ -5588,602 +5163,109 @@ class _CalendarTab extends StatefulWidget {
   State<_CalendarTab> createState() => _CalendarTabState();
 }
 
-enum _CalendarTabArea { weekly, monthly, samWarrant, yearly, custom }
-
 class _CalendarTabState extends State<_CalendarTab> {
-  _CalendarTabArea _activeArea = _CalendarTabArea.weekly;
-  DateTimeRange? _customRange;
-  late int _selectedMonth;
-  late int _selectedYear;
+  final BackendCaseService _backend = BackendCaseService();
+  List<Map<String, dynamic>>? _timeWiseData;
+  bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
-    _selectedMonth = now.month;
-    _selectedYear = now.year;
+    _load();
   }
 
-  List<ModuleRecord> _getConsolidatedRecords(BuildContext context) {
-    final records = <ModuleRecord>[];
-    records.addAll(context.watch<FormIVProvider>().records);
-    records.addAll(context.watch<FormVIProvider>().records);
-    records.addAll(context.watch<NcProvider>().records);
-    records.addAll(context.watch<PreventiveProvider>().records);
-    records.addAll(context.watch<AdProvider>().records);
-    records.addAll(context.watch<MissingProvider>().records);
-    records.addAll(context.watch<KidnappingProvider>().records);
-    records.addAll(context.watch<TheftProvider>().records);
-    records.addAll(context.watch<SandTheftProvider>().records);
-    records.addAll(context.watch<HurtProvider>().records);
-    records.addAll(context.watch<PocsoProvider>().records);
-    records.addAll(context.watch<PassportProvider>().records);
-    records.addAll(context.watch<LicenceProvider>().records);
-    records.addAll(context.watch<TwoFourWheelerProvider>().records);
-    records.addAll(context.watch<ArrestedProvider>().records);
-    records.addAll(context.watch<AbscondedProvider>().records);
-    records.addAll(context.watch<CrimeWomenProvider>().records);
-    records.addAll(context.watch<JuvenileProvider>().records);
-    records.addAll(context.watch<VictimProvider>().records);
-    records.addAll(context.watch<AccidentProvider>().records);
-    records.addAll(context.watch<TrafficProvider>().records);
-    records.addAll(context.watch<ApplicationProvider>().records);
-    records.addAll(context.watch<SamWarrantProvider>().records);
-    records.addAll(context.watch<MuddemalProvider>().records);
-    records.addAll(context.watch<BnssProvider>().records);
-    records.addAll(context.watch<NdpsProvider>().records);
-    records.addAll(context.watch<GowansProvider>().records);
-    records.addAll(context.watch<ItActProvider>().records);
-    records.addAll(context.watch<McocaProvider>().records);
-    records.addAll(context.watch<UapaProvider>().records);
-    records.addAll(context.watch<MpdaProvider>().records);
-    records.addAll(context.watch<CoinProvider>().records);
-    return records;
+  Future<void> _load() async {
+    try {
+      final data = await _backend.fetchPendingTimeWise();
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        if (data != null) {
+          _timeWiseData = data;
+          _error = null;
+        } else if (_timeWiseData == null) {
+          _error = 'Failed to load time-wise pending data.';
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _error = e.toString();
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      physics: const BouncingScrollPhysics(),
-      slivers: [
-        SliverToBoxAdapter(child: _buildReportTabs()),
-        _buildRegistrationSummary(context, _activeArea),
-        const SliverToBoxAdapter(child: SizedBox(height: 100)),
-      ],
-    );
-  }
-
-  Widget _buildReportTabs() {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 8),
-          child: Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-              border: Border.all(color: AppColors.lightBorder),
-            ),
-            child: Row(
-              children: [
-                _tabBtn('Weekly', _CalendarTabArea.weekly),
-                _tabBtn('Monthly', _CalendarTabArea.monthly),
-                _tabBtn('Sam/Warrant', _CalendarTabArea.samWarrant),
-                _tabBtn('Yearly', _CalendarTabArea.yearly),
-                _tabBtn('Custom', _CalendarTabArea.custom),
-              ],
-            ),
-          ),
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.navyMid),
+      );
+    }
+    if (_error != null) {
+      return Center(
+        child: Text(
+          _error!,
+          style: GoogleFonts.poppins(color: AppColors.dangerRed),
         ),
-      ],
-    );
-  }
+      );
+    }
 
-  Widget _buildMonthSelector() {
-    final months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December'
-    ];
-
-    return Padding(
-      padding:
-          const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 8),
-      child: Row(
+    // The "(Total)" row only repeats the first two periods added together.
+    final items = (_timeWiseData ?? const <Map<String, dynamic>>[])
+        .where((item) => item['period']?.toString() != 'Under 3 months (Total)')
+        .toList();
+    return RefreshIndicator(
+      onRefresh: _load,
+      color: AppColors.navyMid,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 100),
         children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(color: AppColors.lightBorder),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<int>(
-                  value: _selectedMonth,
-                  isExpanded: true,
-                  icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                      color: AppColors.navyMid),
-                  items: List.generate(
-                      12,
-                      (i) => DropdownMenuItem(
-                            value: i + 1,
-                            child: Text(months[i],
-                                style: GoogleFonts.poppins(
-                                    fontSize: 13, fontWeight: FontWeight.w600)),
-                          )),
-                  onChanged: (val) {
-                    if (val != null) setState(() => _selectedMonth = val);
-                  },
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              border: Border.all(color: AppColors.lightBorder),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<int>(
-                value: _selectedYear,
-                icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                    color: AppColors.navyMid),
-                items: List.generate(
-                    5,
-                    (i) => DropdownMenuItem(
-                          value: DateTime.now().year - i,
-                          child: Text('${DateTime.now().year - i}',
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, fontWeight: FontWeight.w600)),
-                        )),
-                onChanged: (val) {
-                  if (val != null) setState(() => _selectedYear = val);
-                },
-              ),
-            ),
+          // All cards in one row. Cards share the width equally, and
+          // scroll sideways once they would be narrower than minCardWidth
+          // (small phones).
+          LayoutBuilder(
+            builder: (context, constraints) {
+              const gap = 10.0;
+              const minCardWidth = 112.0;
+              final cards = <Widget>[
+                for (final item in items)
+                  PendingTimeWiseCard(
+                    period: item['period']?.toString() ?? '',
+                    count: (item['count'] as num?)?.toInt() ?? 0,
+                    vertical: true,
+                    showTitlePrefix: false,
+                  ),
+                // Pick any date range and list the pending cases in it.
+                const PendingTimeWiseCard.custom(showTitlePrefix: false),
+              ];
+              final count = cards.length;
+              final fitWidth =
+                  (constraints.maxWidth - gap * (count - 1)) / count;
+              final cardWidth =
+                  fitWidth < minCardWidth ? minCardWidth : fitWidth;
+              final row = Row(
+                children: [
+                  for (var i = 0; i < count; i++) ...[
+                    if (i > 0) const SizedBox(width: gap),
+                    SizedBox(width: cardWidth, child: cards[i]),
+                  ],
+                ],
+              );
+              return fitWidth < minCardWidth
+                  ? SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: row,
+                    )
+                  : row;
+            },
           ),
         ],
-      ),
-    );
-  }
-
-  Future<void> _selectCustomRange(BuildContext context) async {
-    final range = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-      initialDateRange: _customRange,
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.navyMid,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: AppColors.navyDark,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (range != null) setState(() => _customRange = range);
-  }
-
-  Widget _tabBtn(String label, _CalendarTabArea area) {
-    final isActive = _activeArea == area;
-    const color = AppColors.navyMid;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _activeArea = area),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: isActive ? color : Colors.transparent,
-            borderRadius: BorderRadius.circular(AppRadius.md),
-          ),
-          child: Center(
-            child: Text(label,
-                style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                    color: isActive ? Colors.white : AppColors.lightSubText)),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRegistrationSummary(
-      BuildContext context, _CalendarTabArea area) {
-    final allRecords = _getConsolidatedRecords(context);
-    final now = DateTime.now();
-
-    List<ModuleRecord> filtered;
-    String rangeLabel;
-    String reportTitle;
-
-    if (area == _CalendarTabArea.weekly) {
-      final weekStart = DateTime(now.year, now.month, now.day)
-          .subtract(Duration(days: now.weekday - 1));
-      final weekEnd = weekStart
-          .add(const Duration(days: 7))
-          .subtract(const Duration(seconds: 1));
-      filtered = allRecords
-          .where((r) =>
-              (r.incidentDate.isAfter(weekStart) ||
-                  r.incidentDate.isAtSameMomentAs(weekStart)) &&
-              (r.incidentDate.isBefore(weekEnd) ||
-                  r.incidentDate.isAtSameMomentAs(weekEnd)))
-          .toList();
-      rangeLabel =
-          '${DateFormat('dd MMM').format(weekStart)} - ${DateFormat('dd MMM').format(weekEnd)}';
-      reportTitle = 'WEEKLY REGISTRATION REPORT';
-    } else if (area == _CalendarTabArea.monthly) {
-      filtered = allRecords
-          .where((r) =>
-              r.incidentDate.month == _selectedMonth &&
-              r.incidentDate.year == _selectedYear)
-          .toList();
-      rangeLabel = '${[
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December"
-      ][_selectedMonth - 1]} $_selectedYear';
-      reportTitle = 'MONTHLY REPORT';
-    } else if (area == _CalendarTabArea.samWarrant) {
-      filtered = allRecords;
-      rangeLabel = '${[
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December"
-      ][_selectedMonth - 1]} $_selectedYear';
-      reportTitle = 'SUMMONS & WARRANT MONTHLY REPORT';
-    } else if (area == _CalendarTabArea.yearly) {
-      filtered =
-          allRecords.where((r) => r.incidentDate.year == now.year).toList();
-      rangeLabel = '${now.year}';
-      reportTitle = 'YEARLY REGISTRATION REPORT';
-    } else {
-      if (_customRange == null) {
-        return SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-                vertical: 40, horizontal: AppSpacing.lg),
-            child: Center(
-              child: Column(
-                children: [
-                  Icon(Icons.date_range_rounded,
-                      size: 64, color: Colors.grey.shade300),
-                  const SizedBox(height: 16),
-                  Text('Custom Report not generated yet',
-                      style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.lightSubText)),
-                  const SizedBox(height: 12),
-                  ElevatedButton.icon(
-                    onPressed: () => _selectCustomRange(context),
-                    icon: const Icon(Icons.date_range_rounded,
-                        size: 18, color: Colors.white),
-                    label: Text('Select Date Range',
-                        style: GoogleFonts.poppins(color: Colors.white)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.navyMid,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      }
-      filtered = allRecords
-          .where((r) =>
-              r.incidentDate.isAfter(
-                  _customRange!.start.subtract(const Duration(seconds: 1))) &&
-              r.incidentDate
-                  .isBefore(_customRange!.end.add(const Duration(days: 1))))
-          .toList();
-      rangeLabel =
-          '${DateFormat('dd MMM yyyy').format(_customRange!.start)} - ${DateFormat('dd MMM yyyy').format(_customRange!.end)}';
-      reportTitle = 'CUSTOM DATE REGISTRATION REPORT';
-    }
-
-    final Map<String, _CalCategoryMeta> catMeta = {};
-    for (var r in filtered) {
-      final label = r.firestoreCategoryDisplayName;
-      String? sub = r.subCategory;
-      final key = '${r.moduleKey}_${sub ?? ""}';
-      if (!catMeta.containsKey(key)) {
-        catMeta[key] = _CalCategoryMeta(
-            label: label, moduleKey: r.moduleKey, subCategory: sub, count: 0);
-      }
-      catMeta[key]!.count++;
-    }
-
-    final sortedItems = catMeta.values.toList()
-      ..sort((a, b) => a.label.compareTo(b.label));
-    final countsForPdf = {for (var it in sortedItems) it.label: it.count};
-
-    return SliverPadding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      sliver: SliverToBoxAdapter(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              margin: const EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [AppColors.navyDark, AppColors.navyMid]),
-                borderRadius: BorderRadius.circular(AppRadius.lg),
-                boxShadow: [
-                  BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.12),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4)),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    reportTitle,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: 0.4,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        rangeLabel,
-                        style: GoogleFonts.poppins(
-                          fontSize: 10.5,
-                          color: AppColors.goldPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      if (area == _CalendarTabArea.custom)
-                        GestureDetector(
-                          onTap: () => _selectCustomRange(context),
-                          child: Row(children: [
-                            const Icon(Icons.edit_calendar_rounded,
-                                size: 14, color: Colors.white70),
-                            const SizedBox(width: 4),
-                            Text('Change Range',
-                                style: GoogleFonts.poppins(
-                                    fontSize: 11, color: Colors.white70)),
-                          ]),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            if (area == _CalendarTabArea.monthly) ...[
-              // Month/Year selector
-              _buildMonthSelector(),
-              const SizedBox(height: 16),
-              // Dynamic Monthly Crime Comparative Table from database backend
-              MonthlyCrimeComparativeTable(
-                selectedYear: _selectedYear,
-                selectedMonth: _selectedMonth,
-              ),
-            ] else if (area == _CalendarTabArea.samWarrant) ...[
-              // Month/Year selector
-              _buildMonthSelector(),
-              const SizedBox(height: 16),
-              // Dynamic Summons & Warrant Report Table from database backend
-              SummonsWarrantReportTable(
-                selectedYear: _selectedYear,
-                selectedMonth: _selectedMonth,
-              ),
-            ] else ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Statistics Summary',
-                          style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.navyDark)),
-                      Text('${filtered.length} cases registered in total',
-                          style: GoogleFonts.poppins(
-                              fontSize: 11, color: AppColors.lightSubText)),
-                    ],
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () => ModulePdfHelper.generateSummaryReportPdf(
-                        countsForPdf, reportTitle, rangeLabel),
-                    icon: const Icon(Icons.assessment_outlined,
-                        size: 16, color: Colors.white),
-                    label: Text('Summary',
-                        style: GoogleFonts.poppins(
-                            fontSize: 11, color: Colors.white)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.navyMid,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.md)),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              if (sortedItems.isEmpty)
-                _buildEmptyReport()
-              else
-                ...sortedItems.map((meta) => _buildReportTile(meta)),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildReportTile(_CalCategoryMeta meta) {
-    return GestureDetector(
-      onTap: () {
-        if (meta.moduleKey.toLowerCase() == 'itsso' ||
-            meta.label.toUpperCase() == 'ITSSO') {
-          Navigator.push(
-            context,
-            AppTheme.fadeSlideRoute(
-                page: const ItssoHubScreen(stationName: 'All Stations')),
-          );
-          return;
-        }
-        if (meta.moduleKey.toLowerCase() == 'dar' ||
-            meta.label.toUpperCase() == 'DAR') {
-          final auth = context.read<AuthProvider>();
-          Navigator.push(
-            context,
-            AppTheme.fadeSlideRoute(
-                page: DarHubScreen(stationName: auth.stationName)),
-          );
-          return;
-        }
-        if (meta.moduleKey.toLowerCase() == 'irad' ||
-            meta.moduleKey.toLowerCase() == 'irda' ||
-            meta.label.toUpperCase() == 'IRAD' ||
-            meta.label.toUpperCase() == 'IRDA') {
-          final auth = context.read<AuthProvider>();
-          Navigator.push(
-            context,
-            AppTheme.fadeSlideRoute(
-                page: IradHubScreen(stationName: auth.stationName)),
-          );
-          return;
-        }
-        // A tile for one sub-category opens that module's list filtered to it
-        final sub = meta.subCategory?.trim() ?? '';
-        if (sub.isNotEmpty) {
-          Navigator.push(
-              context,
-              AppTheme.fadeSlideRoute(
-                  page: ModuleHubScreen(
-                moduleLabel: meta.label,
-                moduleKey: meta.moduleKey,
-                subCategory: meta.subCategory,
-                readOnly: true,
-              )));
-          return;
-        }
-        CategoryNavigationHelper.handleDashboardCategoryTap(
-          context: context,
-          categoryName: meta.label,
-          moduleKey: meta.moduleKey,
-          readOnly: true,
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: AppColors.lightBorder),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 4,
-                offset: const Offset(0, 2)),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Row(children: [
-                Text(meta.label,
-                    style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.lightText)),
-                const SizedBox(width: 8),
-                Icon(Icons.open_in_new_rounded,
-                    size: 14, color: AppColors.navyMid.withValues(alpha: 0.5)),
-              ]),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.goldPrimary.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text('${meta.count}',
-                  style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.goldPrimary)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyReport() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 60),
-        child: Column(children: [
-          Icon(Icons.analytics_outlined, size: 48, color: Colors.grey.shade300),
-          const SizedBox(height: 12),
-          Text('No data available for this range',
-              style: GoogleFonts.poppins(
-                  fontSize: 12, color: AppColors.lightSubText)),
-        ]),
       ),
     );
   }
@@ -7122,11 +6204,11 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.goldPrimary.withValues(alpha: 0.15),
+                    color: AppColors.navyMid.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.add_task_rounded,
-                      color: AppColors.goldPrimary, size: 24),
+                      color: AppColors.navyDark, size: 24),
                 ),
                 const SizedBox(width: 16),
                 Text('Unified Police Entry Menu',
@@ -7173,7 +6255,7 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 3,
-                      childAspectRatio: 0.82,
+                      childAspectRatio: 0.74,
                       mainAxisSpacing: 15,
                       crossAxisSpacing: 15,
                     ),
@@ -7246,6 +6328,12 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
               ));
         } else if (item.moduleKey == 'passport') {
           PassportAddEditDialog.show(context);
+        } else if (item.moduleKey == 'muddemal' || item.name == 'Muddemal') {
+          Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(
+                page: const MuddemalMainScreen(),
+              ));
         } else if (moduleUsesCommonCrimeForm(item.moduleKey, item.name)) {
           Navigator.push(
               context,
@@ -7279,24 +6367,30 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
                 child: _buildGridIcon(
                   item.name,
                   _classIconFromName(item.iconName),
-                  AppColors.goldPrimary,
+                  AppColors.navyMid,
                   28,
                 ),
               ),
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            TranslationHelper.translate(context, item.name),
-            textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: 9.5,
-              fontWeight: FontWeight.w600,
-              color: AppColors.navyDark,
-              height: 1.2,
+          SizedBox(
+            height: MediaQuery.textScalerOf(context).scale(34.0),
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: Text(
+                TranslationHelper.translate(context, item.name),
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.navyDark,
+                  height: 1.25,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

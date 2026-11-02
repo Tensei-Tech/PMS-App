@@ -17,6 +17,7 @@ from apps.crimetab.views import (
     CaseReportPdfView, MyCasesView,
     FormSchemaView,
     OptionValuesView,
+    PreventiveConfigView,
 )
 
 from apps.cases.views import (
@@ -45,6 +46,7 @@ from apps.cases.views import (
     TimeWiseDisposalView,
     DesignationWiseDisposalView,
     DisposalCrimeTypeWiseView,
+    DisposalRemindIOView,
     DarCasesListView,
     DarSummaryStatsView,
     DarRemindIOView,
@@ -168,6 +170,9 @@ urlpatterns = [
     path('road-accident/<str:pk>/', RoadAccidentDetailView.as_view(), name='road-accident-detail'),
     path('road-accident/', RoadAccidentListCreateView.as_view(), name='road-accident-list-create'),
 
+    # Preventive dynamic configuration
+    path('preventive/config/', PreventiveConfigView.as_view(), name='preventive-config'),
+
     # Options route for dynamic drop-downs & radios (e.g. GET /api/options/<group>/)
     path('options/<str:group>/', OptionValuesView.as_view(), name='option-values-by-group'),
     path('<path:slug>/form-schema/', FormSchemaView.as_view(), name='tab-form-schema'),
@@ -192,6 +197,8 @@ urlpatterns = [
     path('cases/disposal/time-wise/', TimeWiseDisposalView.as_view(), name='disposal-time-wise'),
     path('cases/disposal/designation-wise/', DesignationWiseDisposalView.as_view(), name='disposal-designation-wise'),
     path('cases/disposal/crime-type-wise/', DisposalCrimeTypeWiseView.as_view(), name='disposal-crime-type-wise'),
+    path('cases/disposal/<str:pk>/remind/', DisposalRemindIOView.as_view(), name='cases-disposal-remind'),
+    path('cases/disposal/<str:pk>/action/', DisposalRemindIOView.as_view(), name='cases-disposal-action'),
     path('cases/monthly-comparative/', MonthlyCrimeComparativeView.as_view(), name='cases-monthly-comparative'),
     path('cases/summons-warrant/', SummonsWarrantReportView.as_view(), name='cases-summons-warrant-report'),
     path('cases/sam-warrant/', SummonsWarrantReportView.as_view(), name='cases-sam-warrant-report'),
@@ -235,9 +242,11 @@ urlpatterns = [
     # Category Collections (Standalone & Dashboard Tabs)
     path('categories/standalone/', CaseCategoryViewSet.as_view({'get': 'standalone'}), name='category-standalone'),
     path('categories/dashboard-tabs/', CaseCategoryViewSet.as_view({'get': 'dashboard_tabs'}), name='category-dashboard-tabs'),
+    path('categories/dashboard-tools/', CaseCategoryViewSet.as_view({'get': 'dashboard_tools'}), name='category-dashboard-tools'),
 
     # ID-based category routes (first priority)
     path('categories/<int:pk>/form-definition/', CaseCategoryViewSet.as_view({'get': 'form_definition'}), name='category-form-definition-by-id'),
+    path('categories/<int:pk>/next-sequence/', CaseCategoryViewSet.as_view({'get': 'next_sequence'}), name='category-next-sequence-by-id'),
     path('categories/<int:pk>/children/', CaseCategoryViewSet.as_view({'get': 'children'}), name='category-children-by-id'),
     path('categories/<int:pk>/counters/', CaseCategoryViewSet.as_view({'get': 'counters'}), name='category-counters-by-id'),
     path('categories/<int:pk>/cases/', CaseCategoryViewSet.as_view({'get': 'cases'}), name='category-cases-by-id'),
@@ -245,6 +254,7 @@ urlpatterns = [
 
     # Name-based category routes (path-converter for slashes, backwards compatibility)
     path('categories/<path:pk>/form-definition/', CaseCategoryViewSet.as_view({'get': 'form_definition'}), name='category-form-definition-by-name'),
+    path('categories/<path:pk>/next-sequence/', CaseCategoryViewSet.as_view({'get': 'next_sequence'}), name='category-next-sequence-by-name'),
     path('categories/<path:pk>/children/', CaseCategoryViewSet.as_view({'get': 'children'}), name='category-children-by-name'),
     path('categories/<path:pk>/counters/', CaseCategoryViewSet.as_view({'get': 'counters'}), name='category-counters-by-name'),
     path('categories/<path:pk>/cases/', CaseCategoryViewSet.as_view({'get': 'cases'}), name='category-cases-by-name'),

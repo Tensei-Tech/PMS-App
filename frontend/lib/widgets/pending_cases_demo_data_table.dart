@@ -1,6 +1,7 @@
 // lib/widgets/pending_cases_demo_data_table.dart
 // Shared pending demo [Table] with interactive CR No. linking and case details popup.
 
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -45,41 +46,97 @@ class PendingCasesDemoDataTable extends StatelessWidget {
         final double cellFontSize = w < 360 ? 9.5 : (w < 420 ? 10.5 : 11.5);
         final double headerFontSize = w < 360 ? 9.5 : (w < 420 ? 10.5 : 11.5);
 
-        final columnWidths = isVictim
-            ? const <int, TableColumnWidth>{
-                0: FixedColumnWidth(55),
-                1: FlexColumnWidth(1.0),
-                2: FlexColumnWidth(1.2),
-                3: FlexColumnWidth(1.2),
-                4: FlexColumnWidth(1.2),
-                5: FlexColumnWidth(1.0),
-                6: FlexColumnWidth(1.2),
-                7: FlexColumnWidth(1.2),
-              }
-            : isAbsconded
-                ? const <int, TableColumnWidth>{
-                    0: FixedColumnWidth(55),
-                    1: FlexColumnWidth(1.2),
-                    2: FlexColumnWidth(1.4),
-                    3: FlexColumnWidth(1.4),
-                    4: FlexColumnWidth(1.6),
-                    5: FlexColumnWidth(1.6),
-                  }
-                : isUndetected
-                    ? const <int, TableColumnWidth>{
-                        0: FixedColumnWidth(55),
-                        1: FlexColumnWidth(1.2),
-                        2: FlexColumnWidth(1.5),
-                        3: FlexColumnWidth(1.5),
-                        4: FlexColumnWidth(1.8),
-                      }
-                    : const <int, TableColumnWidth>{
-                        0: FixedColumnWidth(55),
-                        1: FlexColumnWidth(1.5),
-                        2: FlexColumnWidth(1.5),
-                        3: FlexColumnWidth(1.5),
-                        4: FlexColumnWidth(2.0),
-                      };
+        final isMobile = constraints.maxWidth < 650;
+        final double tableWidth;
+        final Map<int, TableColumnWidth> columnWidths;
+
+        if (isMobile) {
+          const srWidth = 48.0;
+          final colUnitW = (constraints.maxWidth - srWidth) / 2.5;
+
+          if (isVictim) {
+            final otherColW = math.max(colUnitW * 1.15, 120.0);
+            tableWidth = srWidth + (colUnitW * 3) + (otherColW * 4);
+            columnWidths = <int, TableColumnWidth>{
+              0: const FixedColumnWidth(srWidth),
+              1: FixedColumnWidth(colUnitW),
+              2: FixedColumnWidth(colUnitW),
+              3: FixedColumnWidth(colUnitW),
+              4: FixedColumnWidth(otherColW),
+              5: FixedColumnWidth(otherColW),
+              6: FixedColumnWidth(otherColW),
+              7: FixedColumnWidth(otherColW),
+            };
+          } else if (isAbsconded) {
+            final otherColW = math.max(colUnitW * 1.25, 130.0);
+            tableWidth = srWidth + (colUnitW * 3) + (otherColW * 2);
+            columnWidths = <int, TableColumnWidth>{
+              0: const FixedColumnWidth(srWidth),
+              1: FixedColumnWidth(colUnitW),
+              2: FixedColumnWidth(colUnitW),
+              3: FixedColumnWidth(colUnitW),
+              4: FixedColumnWidth(otherColW),
+              5: FixedColumnWidth(otherColW),
+            };
+          } else if (isUndetected) {
+            final otherColW = math.max(colUnitW * 1.3, 130.0);
+            tableWidth = srWidth + (colUnitW * 3) + otherColW;
+            columnWidths = <int, TableColumnWidth>{
+              0: const FixedColumnWidth(srWidth),
+              1: FixedColumnWidth(colUnitW),
+              2: FixedColumnWidth(colUnitW),
+              3: FixedColumnWidth(colUnitW),
+              4: FixedColumnWidth(otherColW),
+            };
+          } else {
+            final otherColW = math.max(colUnitW * 1.4, 140.0);
+            tableWidth = srWidth + (colUnitW * 3) + otherColW;
+            columnWidths = <int, TableColumnWidth>{
+              0: const FixedColumnWidth(srWidth),
+              1: FixedColumnWidth(colUnitW),
+              2: FixedColumnWidth(colUnitW),
+              3: FixedColumnWidth(colUnitW),
+              4: FixedColumnWidth(otherColW),
+            };
+          }
+        } else {
+          tableWidth = math.max(constraints.maxWidth, 850.0);
+          columnWidths = isVictim
+              ? const <int, TableColumnWidth>{
+                  0: IntrinsicColumnWidth(),
+                  1: FlexColumnWidth(1.0),
+                  2: FlexColumnWidth(1.2),
+                  3: FlexColumnWidth(1.2),
+                  4: FlexColumnWidth(1.2),
+                  5: FlexColumnWidth(1.0),
+                  6: FlexColumnWidth(1.2),
+                  7: FlexColumnWidth(1.2),
+                }
+              : isAbsconded
+                  ? const <int, TableColumnWidth>{
+                      0: IntrinsicColumnWidth(),
+                      1: FlexColumnWidth(1.2),
+                      2: FlexColumnWidth(1.4),
+                      3: FlexColumnWidth(1.4),
+                      4: FlexColumnWidth(1.6),
+                      5: FlexColumnWidth(1.6),
+                    }
+                  : isUndetected
+                      ? const <int, TableColumnWidth>{
+                          0: IntrinsicColumnWidth(),
+                          1: FlexColumnWidth(1.2),
+                          2: FlexColumnWidth(1.5),
+                          3: FlexColumnWidth(1.5),
+                          4: FlexColumnWidth(1.8),
+                        }
+                      : const <int, TableColumnWidth>{
+                          0: IntrinsicColumnWidth(),
+                          1: FlexColumnWidth(1.5),
+                          2: FlexColumnWidth(1.5),
+                          3: FlexColumnWidth(1.5),
+                          4: FlexColumnWidth(2.0),
+                        };
+        }
 
         Widget headerCell(String s) => Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
@@ -218,52 +275,81 @@ class PendingCasesDemoDataTable extends StatelessWidget {
           );
         }
 
-        final inner = ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              borderRadius: BorderRadius.circular(10),
+        final maxH = constraints.maxHeight;
+        final hasFiniteHeight = maxH.isFinite;
+        final double estHeight = 44.0 * (rows.length + 1) + 20.0;
+        final double containerHeight = hasFiniteHeight
+            ? maxH
+            : math.min(MediaQuery.of(context).size.height * 0.65, estHeight);
+
+        final headerTable = Container(
+          decoration: const BoxDecoration(
+            color: AppColors.navyDark,
+          ),
+          child: Table(
+            columnWidths: columnWidths,
+            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            border: const TableBorder(
+              verticalInside: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+              bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
             ),
+            children: [
+              TableRow(
+                decoration: const BoxDecoration(color: AppColors.navyDark),
+                children: headers,
+              ),
+            ],
+          ),
+        );
+
+        final colCount = headers.length;
+        final bodyTable = Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+          ),
+          child: Table(
+            columnWidths: columnWidths,
+            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            border: const TableBorder(
+              horizontalInside: BorderSide(color: Color(0xFFEDF2F7), width: 1),
+              verticalInside: BorderSide(color: Color(0xFFEDF2F7), width: 1),
+            ),
+            children: rows.isEmpty
+                ? [
+                    TableRow(
+                      children: [
+                        for (var c = 0; c < colCount; c++)
+                          dataCell(
+                              c == 0 ? '-' : (c == 2 ? 'No records' : '-')),
+                      ],
+                    ),
+                  ]
+                : [
+                    for (var i = 0; i < rows.length; i++) rowFor(i, rows[i]),
+                  ],
+          ),
+        );
+
+        final inner = Container(
+          width: tableWidth,
+          height: containerHeight,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(9),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // ── Sticky Fixed Blue Header ──
-                Container(
-                  color: AppColors.navyDark,
-                  child: Table(
-                    columnWidths: columnWidths,
-                    defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                    children: [
-                      TableRow(
-                        decoration:
-                            const BoxDecoration(color: AppColors.navyDark),
-                        children: headers,
-                      ),
-                    ],
-                  ),
-                ),
-                // ── Scrollable Case Rows ──
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 520),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.vertical,
-                    child: Table(
-                      columnWidths: columnWidths,
-                      defaultVerticalAlignment:
-                          TableCellVerticalAlignment.middle,
-                      border: const TableBorder(
-                        horizontalInside:
-                            BorderSide(color: Color(0xFFEDF2F7), width: 1),
-                        verticalInside:
-                            BorderSide(color: Color(0xFFEDF2F7), width: 1),
-                      ),
-                      children: [
-                        for (var i = 0; i < rows.length; i++) rowFor(i, rows[i]),
-                      ],
+                headerTable,
+                Expanded(
+                  child: Scrollbar(
+                    thumbVisibility: true,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.vertical,
+                      child: bodyTable,
                     ),
                   ),
                 ),
@@ -271,7 +357,14 @@ class PendingCasesDemoDataTable extends StatelessWidget {
             ),
           ),
         );
-        return inner;
+
+        return Scrollbar(
+          thumbVisibility: true,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: inner,
+          ),
+        );
       },
     );
     return tableCore;

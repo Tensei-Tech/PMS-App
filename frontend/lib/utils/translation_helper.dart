@@ -493,8 +493,8 @@ class TranslationHelper {
       'home police station': 'गृह पुलिस स्टेशन',
       'dismiss': 'बंद करें',
       'serving': 'सेवारत',
-      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.':
-          'राज्य की सेवा सम्मान, सत्यनिष्ठा और उत्कृष्टता के साथ। खाकी डायरी एंटरप्राइज पोर्टल द्वारा एकीकृत।',
+      'state with honor, integrity, and excellence. integrated via pms enterprise portal.':
+          'राज्य की सेवा सम्मान, सत्यनिष्ठा और उत्कृष्टता के साथ। PMS एंटरप्राइज पोर्टल द्वारा एकीकृत।',
       'to protect the good and punish the evil':
           'सज्जनों का रक्षण और दुर्जनों का दमन',
       'headquarters': 'मुख्यालय',
@@ -891,8 +891,8 @@ class TranslationHelper {
       'home police station': 'मूळ पोलीस ठाणे',
       'dismiss': 'बंद करा',
       'serving': 'सेवारत',
-      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.':
-          'राज्य सेवा सन्मान, सत्यनिष्ठा आणि उत्कृष्टतेसह. खाकी डायरी एंटरप्राइझ पोर्टलद्वारे समाकलित.',
+      'state with honor, integrity, and excellence. integrated via pms enterprise portal.':
+          'राज्य सेवा सन्मान, सत्यनिष्ठा आणि उत्कृष्टतेसह. PMS एंटरप्राइझ पोर्टलद्वारे समाकलित.',
       'to protect the good and punish the evil': 'सद्क्षणाय खलनिग्रहणाय',
       'headquarters': 'मुख्यालय',
       'state hq': 'राज्य मुख्यालय',
@@ -1170,7 +1170,7 @@ class TranslationHelper {
       'home police station': 'મૂળ પોલીસ સ્ટેશન',
       'dismiss': 'બંધ કરો',
       'serving': 'સેવામાં',
-      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.':
+      'state with honor, integrity, and excellence. integrated via pms enterprise portal.':
           'રાજ્યની સેવા સન્માન, સત્યનિષ્ઠા અને શ્રેષ્ઠતા સાથે. ખાકી ડાયરી એન્ટરપ્રાઇઝ પોર્ટલ દ્વારા સંકલિત.',
       'to protect the good and punish the evil':
           'સજ્જનોનું રક્ષણ અને દુર્જનોનો સંહાર',
@@ -1452,8 +1452,8 @@ class TranslationHelper {
       'home police station': 'சொந்த காவல் நிலையம்',
       'dismiss': 'மூடு',
       'serving': 'சேவையில்',
-      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.':
-          'கௌரவம், நேர்மை மற்றும் சிறப்பம்சத்துடன் மாநிலச் சேவை. காக்கி டைரி என்டர்பிரைஸ் போர்டல் மூலம் இணைக்கப்பட்டது.',
+      'state with honor, integrity, and excellence. integrated via pms enterprise portal.':
+          'கௌரவம், நேர்மை மற்றும் சிறப்பம்சத்துடன் மாநிலச் சேவை. PMS என்டர்பிரைஸ் போர்டல் மூலம் இணைக்கப்பட்டது.',
       'to protect the good and punish the evil':
           'நல்லோரைக் காத்து தீயோரைத் தண்டிப்போம்',
       'headquarters': 'தலைமையகம்',
@@ -1733,8 +1733,8 @@ class TranslationHelper {
       'home police station': 'సొంత పోలీస్ స్టేషన్',
       'dismiss': 'మూసివేయి',
       'serving': 'సేవలో',
-      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.':
-          'గౌరవం, నిబద్ధత మరియు విశిష్టతతో రాష్ట్ర సేవ. ఖాకీ డైరీ ఎంటర్‌ప్రైజ్ పోర్టల్ ద్వారా అనుసంధానించబడింది.',
+      'state with honor, integrity, and excellence. integrated via pms enterprise portal.':
+          'గౌరవం, నిబద్ధత మరియు విశిష్టతతో రాష్ట్ర సేవ. PMS ఎంటర్‌ప్రైజ్ పోర్టల్ ద్వారా అనుసంధానించబడింది.',
       'to protect the good and punish the evil':
           'మంచివారిని రక్షించడం, చెడ్డవారిని శిక్షించడం',
       'headquarters': 'ప్రధాన కార్యాలయం',
@@ -2013,8 +2013,8 @@ class TranslationHelper {
       'home police station': 'ತವರು ಪೊಲೀಸ್ ಠಾಣೆ',
       'dismiss': 'ಮುಚ್ಚಿ',
       'serving': 'ಸೇವೆಯಲ್ಲಿ',
-      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.':
-          'ಗೌರವ, ಪ್ರಾಮಾಣಿಕತೆ ಮತ್ತು ಶ್ರೇಷ್ಠತೆಯೊಂದಿಗೆ ರಾಜ್ಯ ಸೇವೆ. ಖಾಕಿ ಡೈರಿ ಎಂಟರ್‌ಪ್ರೈಸ್ ಪೋರ್ಟಲ್ ಮೂಲಕ ಸಂಯೋಜಿಸಲಾಗಿದೆ.',
+      'state with honor, integrity, and excellence. integrated via pms enterprise portal.':
+          'ಗೌರವ, ಪ್ರಾಮಾಣಿಕತೆ ಮತ್ತು ಶ್ರೇಷ್ಠತೆಯೊಂದಿಗೆ ರಾಜ್ಯ ಸೇವೆ. PMS ಎಂಟರ್‌ಪ್ರೈಸ್ ಪೋರ್ಟಲ್ ಮೂಲಕ ಸಂಯೋಜಿಸಲಾಗಿದೆ.',
       'to protect the good and punish the evil':
           'ಸಜ್ಜನರ ರಕ್ಷಣೆ ಮತ್ತು ದುಷ್ಟರ ಶಿಕ್ಷಣೆ',
       'headquarters': 'ಪ್ರಧಾನ ಕಚೇರಿ',
@@ -2295,8 +2295,8 @@ class TranslationHelper {
       'home police station': 'ഹോം പോലീസ് സ്റ്റേഷൻ',
       'dismiss': 'അടയ്ക്കുക',
       'serving': 'സേവനത്തിൽ',
-      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.':
-          'ബഹുമാനം, സമഗ്രത, മികവ് എന്നിവയോടെ സംസ്ഥാന സേവനം. ഖാക്കി ഡയറി എന്റർപ്രൈസ് പോർട്ടൽ വഴി സംയോജിപ്പിച്ചു.',
+      'state with honor, integrity, and excellence. integrated via pms enterprise portal.':
+          'ബഹുമാനം, സമഗ്രത, മികവ് എന്നിവയോടെ സംസ്ഥാന സേവനം. PMS എന്റർപ്രൈസ് പോർട്ടൽ വഴി സംയോജിപ്പിച്ചു.',
       'to protect the good and punish the evil':
           'നല്ലവരെ സംരക്ഷിക്കുക, ദുഷ്ടരെ ശിക്ഷിക്കുക',
       'headquarters': 'ആസ്ഥാനം',
@@ -2574,8 +2574,8 @@ class TranslationHelper {
       'home police station': 'ਹੋਮ ਪੁਲਿਸ ਸਟੇਸ਼ਨ',
       'dismiss': 'ਬੰਦ ਕਰੋ',
       'serving': 'ਸੇਵਾ ਵਿੱਚ',
-      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.':
-          'ਸਨਮਾਨ, ਇਮਾਨਦਾਰੀ ਅਤੇ ਉੱਤਮਤਾ ਨਾਲ ਰਾਜ ਦੀ ਸੇਵਾ। ਖਾਕੀ ਡਾਇਰੀ ਐਂਟਰਪ੍ਰਾਈਜ਼ ਪੋਰਟਲ ਦੁਆਰਾ ਏਕੀਕ੍ਰਿਤ।',
+      'state with honor, integrity, and excellence. integrated via pms enterprise portal.':
+          'ਸਨਮਾਨ, ਇਮਾਨਦਾਰੀ ਅਤੇ ਉੱਤਮਤਾ ਨਾਲ ਰਾਜ ਦੀ ਸੇਵਾ। PMS ਐਂਟਰਪ੍ਰਾਈਜ਼ ਪੋਰਟਲ ਦੁਆਰਾ ਏਕੀਕ੍ਰਿਤ।',
       'to protect the good and punish the evil':
           'ਨੇਕਾਂ ਦੀ ਰੱਖਿਆ ਅਤੇ ਬੁਰਿਆਂ ਦਾ ਖਾਤਮਾ',
       'headquarters': 'ਮੁੱਖ ਦਫ਼ਤਰ',
@@ -2854,8 +2854,8 @@ class TranslationHelper {
       'home police station': 'হোম পুলিশ স্টেশন',
       'dismiss': 'বন্ধ করুন',
       'serving': 'সেবায়',
-      'state with honor, integrity, and excellence. integrated via khakhi diary enterprise portal.':
-          'সম্মান, সততা এবং শ্রেষ্ঠত্বের সাথে রাজ্য সেবা। খাকি ডায়েরি এন্টারপ্রাইজ পোর্টালের মাধ্যমে সমন্বিত।',
+      'state with honor, integrity, and excellence. integrated via pms enterprise portal.':
+          'সম্মান, সততা এবং শ্রেষ্ঠত্বের সাথে রাজ্য সেবা। PMS এন্টারপ্রাইজ পোর্টালের মাধ্যমে সমন্বিত।',
       'to protect the good and punish the evil': 'সৎকে রক্ষা এবং অসৎকে দমন',
       'headquarters': 'সদর দপ্তর',
       'state hq': 'রাজ্য সদর দপ্তর',

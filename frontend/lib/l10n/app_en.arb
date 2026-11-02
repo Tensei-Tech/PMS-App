@@ -1,7 +1,7 @@
 {
   "@@locale": "en",
   "appTitle": "Police Management System",
-  "khakhiDiary": "Khakhi Diary",
+  "khakhiDiary": "PMS",
   "safeSwiftSecure": "Safe • Swift • Secure",
   "notifications": "Notifications",
   "myProfile": "My Profile",
@@ -36,7 +36,7 @@
   "dontHaveAccount": "Don't have an account? ",
   "home": "Home",
   "wanted": "Wanted",
-  "view": "View",
+  "view": "My Cases",
   "calendar": "Calendar",
   "management": "Management",
   "registration": "Registration",

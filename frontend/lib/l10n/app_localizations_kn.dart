@@ -12,7 +12,7 @@ class AppLocalizationsKn extends AppLocalizations {
   String get appTitle => 'ಪೊಲೀಸ್ ನಿರ್ವಹಣಾ ವ್ಯವಸ್ಥೆ';
 
   @override
-  String get khakhiDiary => 'ಖಾಕಿ ಡೈರಿ';
+  String get khakhiDiary => 'PMS';
 
   @override
   String get safeSwiftSecure => 'ಸುರಕ್ಷಿತ • ಶೀಘ್ರ • ಭದ್ರ';

@@ -301,10 +301,25 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
                 for cat in standalone_cats
             ]
 
+            from apps.crimetab.services.dynamic_form_service import get_dashboard_tools
             return Response({
                 'groups': groups_data,
                 'standalone': standalone_data,
+                'tools': get_dashboard_tools(target_schema),
             })
+
+    @action(detail=False, methods=['get'], url_path='dashboard-tools')
+    def dashboard_tools(self, request):
+        """
+        GET /api/categories/dashboard-tools/
+        Returns dynamically configured dashboard tools from the database (ModuleSetting).
+        Ensures zero hardcoded tools or static icon mappings in the frontend.
+        """
+        from apps.core.tenancy import TenantContext, get_active_tenant_schema
+        target_schema = get_active_tenant_schema(request)
+        with TenantContext(target_schema):
+            from apps.crimetab.services.dynamic_form_service import get_dashboard_tools
+            return Response(get_dashboard_tools(target_schema))
 
     def retrieve(self, request, pk=None, *args, **kwargs):
         from apps.core.tenancy import TenantContext, get_active_tenant_schema
@@ -419,6 +434,12 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     def form_definition(self, request, pk=None):
         from apps.core.tenancy import TenantContext, get_active_tenant_schema
         target_schema = get_active_tenant_schema(request)
+        if not target_schema or target_schema == 'public':
+            user = getattr(request, 'user', None)
+            if user and getattr(user, 'state_code', None):
+                target_schema = user.state_code.lower()
+            else:
+                target_schema = 'maharashtra'
         with TenantContext(target_schema):
             from urllib.parse import unquote
             if pk is not None:
@@ -446,13 +467,52 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
             case_id = request.query_params.get('case_id')
             section_ids_raw = request.query_params.get('section_ids') or request.query_params.get('sections') or ''
             section_ids = [s.strip() for s in section_ids_raw.split(',') if s.strip()]
+            station_name = request.query_params.get('station_name') or getattr(request.user, 'station_name', '')
 
             form_def = get_form_definition(
                 category_id=category_id,
                 case_id=case_id,
-                charged_section_ids=section_ids
+                charged_section_ids=section_ids,
+                station_name=station_name,
             )
             return Response(form_def)
+
+    @action(detail=True, methods=['get'], url_path='next-sequence')
+    def next_sequence(self, request, pk=None):
+        from apps.core.tenancy import TenantContext, get_active_tenant_schema
+        target_schema = get_active_tenant_schema(request)
+        if not target_schema or target_schema == 'public':
+            user = getattr(request, 'user', None)
+            if user and getattr(user, 'state_code', None):
+                target_schema = user.state_code.lower()
+            else:
+                target_schema = 'maharashtra'
+        with TenantContext(target_schema):
+            from urllib.parse import unquote
+            if pk is not None:
+                pk = unquote(str(pk)).strip()
+            cat = None
+            if str(pk).isdigit():
+                cat = CaseCategory.objects.filter(pk=int(pk), is_active=True).first()
+            if not cat:
+                cat = CaseCategory.objects.filter(
+                    Q(category_name__iexact=pk) | Q(category_code__iexact=pk),
+                    is_active=True
+                ).first()
+            if not cat:
+                return Response({'error': f'Category {pk} not found'}, status=status.HTTP_404_NOT_FOUND)
+
+            field_key = request.query_params.get('field_key', 'sr_no')
+            station_name = request.query_params.get('station_name') or getattr(request.user, 'station_name', '')
+            from apps.crimetab.services.dynamic_form_service import get_next_category_sequence
+            next_seq = get_next_category_sequence(cat, field_key=field_key, station_name=station_name, increment=False)
+            return Response({
+                'category_id': cat.category_id,
+                'category_code': cat.category_code,
+                'field_key': field_key,
+                'station_name': station_name,
+                'next_sequence': next_seq
+            })
 
     @action(detail=True, methods=['get'])
     def cases(self, request, pk=None):
@@ -493,6 +553,10 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
             q_filter = Q(id__in=linked_case_ids)
             for name in cat_names:
                 q_filter |= Q(sub_category__iexact=name)
+
+            if category.category_code == 'STAND_PREVENTIVE' or (category.category_name and category.category_name.strip().lower() == 'preventive'):
+                from apps.cases.group_filters import preventive_case_q
+                q_filter = preventive_case_q()
 
             qs = scope_by_station(CaseRecord.objects.filter(q_filter).distinct(), request.user)
 
@@ -1263,7 +1327,7 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
         for pa in prev_actions:
             if isinstance(pa, dict):
                 act_type = pa.get('action_type') or pa.get('action')
-                act_date = _parse_d(pa.get('action_date') or pa.get('actionDate'))
+                act_date = _parse_d(pa.get('action_date') or pa.get('actionDate')) or timezone.now().date()
                 outward = pa.get('outward_number') or pa.get('outwardNumber')
                 target_pid = pa.get('person_id') or pa.get('existing_person_id') or pa.get('person')
                 typed_nm = pa.get('typed_name') or pa.get('person_name') or pa.get('name') or pa.get('accusedName')
@@ -1729,6 +1793,9 @@ class CrimeCaseManageView(APIView):
                             from apps.cases.group_filters import group_case_q
                             q_group = group_case_q(2)
                             qs = qs.filter(q_group).distinct()
+                        elif mod_lower == 'preventive':
+                            from apps.cases.group_filters import preventive_case_q
+                            qs = qs.filter(preventive_case_q()).distinct()
                         else:
                             norm_name = module_key.replace('_', ' ').strip()
                             q_mod = (
@@ -1758,14 +1825,18 @@ class CrimeCaseManageView(APIView):
                             Q(accused__icontains=search)
                         )
 
+                    limit_param = request.query_params.get('limit')
+                    limit = int(limit_param) if limit_param and limit_param.isdigit() else 500
+                    qs = qs.prefetch_related('preventive_action_items', 'charges__act', 'charges__section')
+
                     try:
                         total_count = qs.count()
-                        rows = serialize_case_list(qs.order_by('-created_at')[:50])
+                        rows = serialize_case_list(qs.order_by('-created_at')[:limit])
                     except OperationalError:
                         from django.db import connection
                         connection.close()
                         total_count = qs.count()
-                        rows = serialize_case_list(qs.order_by('-created_at')[:50])
+                        rows = serialize_case_list(qs.order_by('-created_at')[:limit])
 
                     # The app reads 'results' (falling back to 'cases'); sending
                     # the same rows under both keys doubled the download.
@@ -2355,4 +2426,19 @@ class OptionValuesView(APIView):
             logger.warning(f"[OptionValuesView] Error fetching options for group '{group}': {e}")
             return Response([], status=status.HTTP_200_OK)
 
+class PreventiveConfigView(APIView):
+    """
+    Returns full dynamic database configuration for the Preventive module.
+    Includes dropdown options (case_statuses, risk_flags, action_statuses, accused_action_types, yes_no),
+    defaults, section titles, action labels, and validation messages from ModuleSetting and OptionValue.
+    """
+    permission_classes = [AllowAny]
+
+    @cache_response(ttl=60, key_prefix="preventive_config")
+    def get(self, request):
+        from apps.crimetab.services.dynamic_form_service import get_preventive_configuration
+        tenant_schema = get_active_tenant_schema(request)
+        with TenantContext(tenant_schema):
+            config = get_preventive_configuration()
+            return Response(config, status=status.HTTP_200_OK)
 

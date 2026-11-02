@@ -6,9 +6,19 @@ import 'package:flutter_svg/flutter_svg.dart';
 class CategoryIconHelper {
   const CategoryIconHelper._();
 
+  static final Map<String, String> _dynamicSvgPaths = {};
+
+  /// Register dynamic backend-provided SVG assets (e.g. from /api/categories/dashboard-tools/)
+  static void registerSvgPath(String categoryKey, String svgPath) {
+    _dynamicSvgPaths[categoryKey.trim().toLowerCase()] = svgPath;
+  }
+
   /// Resolves matching dashboard SVG path from assets/icons/ if available.
   static String? getSvgPath(String category) {
     final k = category.trim().toLowerCase();
+    if (_dynamicSvgPaths.containsKey(k)) {
+      return _dynamicSvgPaths[k];
+    }
 
     switch (k) {
       case 'theft':
@@ -84,7 +94,6 @@ class CategoryIconHelper {
         return 'assets/icons/arrested.svg';
       case 'absconded':
         return 'assets/icons/absconded.svg';
-      case 'st drugs':
       case 'ndps':
         return 'assets/icons/ndps.svg';
       case 'prohibition':
@@ -109,6 +118,9 @@ class CategoryIconHelper {
         return 'assets/icons/macoca.svg';
       case 'mpda':
         return 'assets/icons/mpda.svg';
+      case 'preventive':
+      case 'tadipar':
+        return 'assets/icons/tadipar.svg';
       case 'pending':
         return 'assets/icons/pending.svg';
       case 'disposal':
@@ -127,12 +139,14 @@ class CategoryIconHelper {
         return 'assets/icons/muddemal.svg';
       case 'rti':
         return 'assets/icons/rti.svg';
-      case 'tadipar':
-        return 'assets/icons/tadipar.svg';
       case 'cctns':
         return 'assets/icons/cctns.svg';
       case 'licence':
         return 'assets/icons/licence.svg';
+      case 'passport':
+      case 'passport/pvr':
+      case 'passport/pvr/licence':
+        return 'assets/icons/passport.svg';
       case 'repeat offender':
         return 'assets/icons/repeatoffender.svg';
       case 'dar':
@@ -270,6 +284,11 @@ class CategoryIconHelper {
       case 'sec 156(3)/175(3)(bnss)':
       case 'sec 156(3)/175(3)':
         return Icons.policy_rounded;
+      case 'passport':
+      case 'passport/pvr':
+        return Icons.badge_rounded;
+      case 'pvr':
+        return Icons.fact_check_rounded;
       case 'all':
       case 'all cases':
         return Icons.grid_view_rounded;

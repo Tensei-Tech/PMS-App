@@ -183,11 +183,10 @@ class Command(BaseCommand):
             )
 
         # =========================================================================
-        # E. TABS UNDER 'PART 6' THAT ALSO HAVE A SEPARATE TAB (9 items)
+        # E. TABS UNDER 'PART 6' THAT ALSO HAVE A SEPARATE TAB (8 items)
         #    (Inside Part 6 group, group_id = 2)
         # =========================================================================
         dual_tabs_part6 = [
-            ('ST Drugs', '601', tmpl_general),
             ('Prohibition', '602', tmpl_general),
             ('Gambling', '603', tmpl_general),
             ('POCSO', '604', tmpl_sexual),
@@ -197,7 +196,7 @@ class Command(BaseCommand):
             ('M.V Act', '608', tmpl_general),
             ('UAPA', '609', tmpl_general),
         ]
-        for order, (name, code, tmpl) in enumerate(dual_tabs_part6, start=42):
+        for order, (name, code, tmpl) in enumerate(dual_tabs_part6, start=43):
             CaseCategory.objects.create(
                 group=g_part6,
                 category_name=name,
@@ -211,7 +210,6 @@ class Command(BaseCommand):
         # F. STANDALONE TWINS FOR PART 6 DUAL-PRESENCE ITEMS (group_id = NULL)
         # =========================================================================
         standalone_twins_part6 = [
-            ('ST Drugs', 'STAND_ST_DRUGS', tmpl_general),
             ('Prohibition', 'STAND_PROHIBITION', tmpl_general),
             ('Gambling', 'STAND_GAMBLING', tmpl_general),
             ('POCSO', 'STAND_POCSO', tmpl_sexual),

@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../modules/core/models/base_record.dart';
 import '../providers/auth_provider.dart';
 import '../services/case_service.dart';
 import '../theme/app_theme.dart';
-import '../utils/case_visibility.dart';
-import 'ad_record_detail_screen.dart';
-import 'module_record_detail_screen.dart';
-import '../utils/ad_disposal_helper.dart';
+import '../utils/translation_helper.dart';
+import '../widgets/view_case_card.dart';
 
 /// Tab indices for [MyCasesScreen].
 abstract final class MyCasesTab {
@@ -23,10 +20,9 @@ abstract final class MyCasesTab {
 
 /// Case list opened from dashboard summary cards or the drawer.
 ///
-/// [initialTab]: `0` Active, `1` Pending, `2` Closed/Disposed.
-/// Lists honor [CaseVisibility] the same way dashboard card counts do.
+/// Displays only cases created by the signed-in officer.
 class MyCasesScreen extends StatefulWidget {
-  const MyCasesScreen({super.key, this.initialTab = MyCasesTab.active});
+  const MyCasesScreen({super.key, this.initialTab = MyCasesTab.total});
 
   final int initialTab;
 
@@ -35,381 +31,21 @@ class MyCasesScreen extends StatefulWidget {
 }
 
 class _MyCasesScreenState extends State<MyCasesScreen> {
-  // Only the cases the signed-in officer created, fetched once per screen.
-  final Stream<List<ModuleRecord>> _activeCases =
-      Stream.fromFuture(CaseService().fetchMyCases());
-  final Stream<List<ModuleRecord>> _pendingCases =
-      Stream.fromFuture(CaseService().fetchMyCases(scope: 'pending'));
-  final Stream<List<ModuleRecord>> _disposalCases =
-      Stream.fromFuture(CaseService().fetchMyCases(scope: 'disposal'));
-  late int _selectedTabIndex;
+  final TextEditingController _searchCtrl = TextEditingController();
+  List<ModuleRecord>? _allCases;
+  List<ModuleRecord>? _pendingCases;
+  List<ModuleRecord>? _disposalCases;
+  bool _isLoading = true;
+  String? _errorMessage;
+  int _selectedTabIndex = 0;
+  String _query = '';
 
   @override
   void initState() {
     super.initState();
-    _selectedTabIndex = widget.initialTab.clamp(
-      MyCasesTab.active,
-      MyCasesTab.disposal,
-    );
+    _selectedTabIndex = widget.initialTab.clamp(0, 2);
+    _loadCases();
   }
-
-  @override
-  Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
-    const mode = CaseVisibilityMode.ownCasesOnly;
-    const stationWide = false;
-    const title = 'My Cases';
-
-    return Scaffold(
-      backgroundColor: AppColors.lightBg,
-      appBar: AppBar(
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        backgroundColor: Colors.white,
-        title: Text(
-          title,
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: AppColors.navyDark,
-          ),
-        ),
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.navyDark),
-        ),
-      ),
-      body: Column(
-        children: [
-          // ── Fixed Top Hero Banner ──────────────────────────────────────────
-          _buildHeroHeaderBanner(auth, mode, stationWide, title),
-
-          // ── Segmented Tab Selector (Click-Only with Hover) ──────────────────
-          _buildSegmentedTabBar(),
-
-          // ── Instant Tab Content (Zero Sliding Animation) ───────────────────
-          Expanded(
-            child: IndexedStack(
-              index: _selectedTabIndex,
-              children: [
-                _VisibilityCasesTab(
-                  stream: _activeCases,
-                  emptyMessage: 'You have not created any cases yet.',
-                  emptyHint: 'Cases you add in any tab will show up here.',
-                  listKind: _CaseListKind.active,
-                ),
-                _VisibilityCasesTab(
-                  stream: _pendingCases,
-                  emptyMessage: 'You have no pending cases.',
-                  emptyHint:
-                      'Pending investigations and follow-ups appear in this tab.',
-                  listKind: _CaseListKind.pending,
-                ),
-                _VisibilityCasesTab(
-                  stream: _disposalCases,
-                  emptyMessage: 'You have no disposal cases.',
-                  emptyHint: 'Disposed cases are archived here for reference.',
-                  listKind: _CaseListKind.closed,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeroHeaderBanner(
-    AuthProvider auth,
-    CaseVisibilityMode mode,
-    bool stationWide,
-    String title,
-  ) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(AppRadius.lg),
-          bottomRight: Radius.circular(AppRadius.lg),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.navyDark.withValues(alpha: 0.15),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: -20,
-            top: -20,
-            child: Container(
-              width: 110,
-              height: 110,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.04),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.lg,
-              vertical: AppSpacing.md,
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: AppColors.goldPrimary.withValues(alpha: 0.4),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: const Icon(
-                    Icons.assignment_rounded,
-                    color: AppColors.goldPrimary,
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        auth.displayName.isNotEmpty
-                            ? auth.displayName
-                            : 'Officer',
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 4,
-                        children: [
-                          if (auth.designation.isNotEmpty)
-                            _HeaderChip(
-                              icon: Icons.badge_outlined,
-                              label: auth.designation,
-                            ),
-                          if (auth.stationName.isNotEmpty)
-                            _HeaderChip(
-                              icon: Icons.location_on_outlined,
-                              label: auth.stationName,
-                            ),
-                          _HeaderChip(
-                            icon: stationWide
-                                ? Icons.groups_outlined
-                                : Icons.person_outline_rounded,
-                            label: CaseVisibility.chipPrefix(mode),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSegmentedTabBar() {
-    final tabs = [
-      (0, Icons.folder_open_rounded, 'Total Cases'),
-      (1, Icons.pending_actions_outlined, 'Pending Cases'),
-      (2, Icons.check_circle_outline_rounded, 'Disposal Cases'),
-    ];
-
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(
-        vertical: 8,
-        horizontal: AppSpacing.md,
-      ),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 820),
-          child: Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: AppColors.lightBg,
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              border: Border.all(color: AppColors.lightBorder),
-            ),
-            child: Row(
-              children: tabs.map((t) {
-                final isSelected = _selectedTabIndex == t.$1;
-                return Expanded(
-                  child: _HoverTabItem(
-                    icon: t.$2,
-                    label: t.$3,
-                    isSelected: isSelected,
-                    onTap: () {
-                      if (_selectedTabIndex != t.$1) {
-                        setState(() => _selectedTabIndex = t.$1);
-                      }
-                    },
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _HoverTabItem extends StatefulWidget {
-  const _HoverTabItem({
-    required this.icon,
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  @override
-  State<_HoverTabItem> createState() => _HoverTabItemState();
-}
-
-class _HoverTabItemState extends State<_HoverTabItem> {
-  bool _isHovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    Color bg;
-    Color fg;
-
-    if (widget.isSelected) {
-      bg = AppColors.navyDark;
-      fg = Colors.white;
-    } else if (_isHovered) {
-      bg = AppColors.navyMid.withValues(alpha: 0.08);
-      fg = AppColors.navyDark;
-    } else {
-      bg = Colors.transparent;
-      fg = AppColors.lightSubText;
-    }
-
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 8),
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: BorderRadius.circular(AppRadius.sm),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(widget.icon, size: 16, color: fg),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  widget.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12.5,
-                    fontWeight:
-                        widget.isSelected ? FontWeight.w600 : FontWeight.w500,
-                    color: fg,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _HeaderChip extends StatelessWidget {
-  const _HeaderChip({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: Colors.white.withValues(alpha: 0.9)),
-          const SizedBox(width: 4),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 140),
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.poppins(
-                fontSize: 10.5,
-                fontWeight: FontWeight.w500,
-                color: Colors.white.withValues(alpha: 0.9),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-enum _CaseListKind { active, pending, closed }
-
-class _VisibilityCasesTab extends StatefulWidget {
-  const _VisibilityCasesTab({
-    required this.stream,
-    required this.emptyMessage,
-    required this.emptyHint,
-    required this.listKind,
-  });
-
-  final Stream<List<ModuleRecord>> stream;
-  final String emptyMessage;
-  final String emptyHint;
-  final _CaseListKind listKind;
-
-  @override
-  State<_VisibilityCasesTab> createState() => _VisibilityCasesTabState();
-}
-
-class _VisibilityCasesTabState extends State<_VisibilityCasesTab> {
-  final _searchCtrl = TextEditingController();
-  String _query = '';
 
   @override
   void dispose() {
@@ -417,651 +53,466 @@ class _VisibilityCasesTabState extends State<_VisibilityCasesTab> {
     super.dispose();
   }
 
-  List<ModuleRecord> _filter(List<ModuleRecord> cases) {
-    final q = _query.trim().toLowerCase();
-    if (q.isEmpty) return cases;
-    return cases.where((r) {
-      return r.title.toLowerCase().contains(q) ||
-          r.caseNumber.toLowerCase().contains(q) ||
-          r.complainant.toLowerCase().contains(q) ||
-          r.location.toLowerCase().contains(q) ||
-          r.assignedOfficer.toLowerCase().contains(q) ||
-          r.firestoreCategoryDisplayName.toLowerCase().contains(q);
+  Future<void> _loadCases() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final results = await Future.wait([
+        CaseService().fetchMyCases(scope: 'all'),
+        CaseService().fetchMyCases(scope: 'pending'),
+        CaseService().fetchMyCases(scope: 'disposal'),
+      ]);
+      if (!mounted) return;
+      setState(() {
+        _allCases = results[0];
+        _pendingCases = results[1];
+        _disposalCases = results[2];
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  List<ModuleRecord> _getCurrentList() {
+    switch (_selectedTabIndex) {
+      case 1:
+        return _pendingCases ?? const [];
+      case 2:
+        return _disposalCases ?? const [];
+      case 0:
+      default:
+        return _allCases ?? const [];
+    }
+  }
+
+  static String _safeTrim(dynamic val, [String fallback = '']) {
+    if (val == null) return fallback;
+    final s = val.toString().trim();
+    return s.isEmpty ? fallback : s;
+  }
+
+  List<ModuleRecord> _filter(List<ModuleRecord> list) {
+    final q = _safeTrim(_query).toLowerCase();
+    if (q.isEmpty) return list;
+    return list.where((r) {
+      try {
+        final t = _safeTrim(r.title).toLowerCase();
+        final c = _safeTrim(r.caseNumber).toLowerCase();
+        final comp = _safeTrim(r.complainant).toLowerCase();
+        final loc = _safeTrim(r.location).toLowerCase();
+        final off = _safeTrim(r.assignedOfficer).toLowerCase();
+        final cat = _safeTrim(r.firestoreCategoryDisplayName).toLowerCase();
+        return t.contains(q) ||
+            c.contains(q) ||
+            comp.contains(q) ||
+            loc.contains(q) ||
+            off.contains(q) ||
+            cat.contains(q);
+      } catch (_) {
+        return false;
+      }
     }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<ModuleRecord>>(
-      stream: widget.stream,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 820),
-              child: ListView.builder(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                itemCount: 4,
-                itemBuilder: (_, __) => const _CaseCardSkeleton(),
-              ),
-            ),
-          );
-        }
+    final auth = context.watch<AuthProvider>();
+    final name = auth.displayName.isNotEmpty ? auth.displayName : 'Officer';
+    final role = auth.designation.isNotEmpty ? ' (${auth.designation})' : '';
+    final station = auth.stationName.isNotEmpty ? ' · ${auth.stationName}' : '';
+    final subtitle = '$name$role$station';
 
-        if (snapshot.hasError) {
-          return const _EmptyState(
-            icon: Icons.cloud_off_rounded,
-            iconColor: AppColors.dangerRed,
-            title: 'Unable to load cases',
-            message: 'Check your connection and pull down to try again.',
-          );
-        }
-
-        final allCases = snapshot.data ?? const [];
-        final cases = _filter(allCases);
-
-        return RefreshIndicator(
-          color: AppColors.navyMid,
-          onRefresh: () async {
-            await Future<void>.delayed(const Duration(milliseconds: 600));
-          },
-          child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(
-              parent: BouncingScrollPhysics(),
-            ),
-            slivers: [
-              SliverToBoxAdapter(
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 820),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.md,
-                        AppSpacing.md,
-                        AppSpacing.md,
-                        AppSpacing.sm,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _SearchField(
-                            controller: _searchCtrl,
-                            onChanged: (v) => setState(() => _query = v),
-                            onClear: () {
-                              _searchCtrl.clear();
-                              setState(() => _query = '');
-                            },
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Text(
-                                _query.isNotEmpty
-                                    ? 'Found ${cases.length} of ${allCases.length} records'
-                                    : 'Total: ${allCases.length} records',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.lightSubText,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              if (cases.isEmpty)
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 820),
-                      child: _EmptyState(
-                        icon: _query.isNotEmpty
-                            ? Icons.search_off_rounded
-                            : Icons.folder_open_rounded,
-                        iconColor: AppColors.navyMid,
-                        title: _query.isNotEmpty
-                            ? 'No matching cases'
-                            : widget.emptyMessage,
-                        message: _query.isNotEmpty
-                            ? 'Try a different FIR number, title, or location.'
-                            : widget.emptyHint,
-                      ),
-                    ),
-                  ),
-                )
-              else
-                SliverToBoxAdapter(
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 820),
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          AppSpacing.md,
-                          0,
-                          AppSpacing.md,
-                          AppSpacing.xl,
-                        ),
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: cases.length,
-                          itemBuilder: (context, index) => _CaseCard(
-                            record: cases[index],
-                            listKind: widget.listKind,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _SearchField extends StatelessWidget {
-  const _SearchField({
-    required this.controller,
-    required this.onChanged,
-    required this.onClear,
-  });
-
-  final TextEditingController controller;
-  final ValueChanged<String> onChanged;
-  final VoidCallback onClear;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      onChanged: onChanged,
-      style: GoogleFonts.poppins(fontSize: 13.5, color: AppColors.navyDark),
-      decoration: InputDecoration(
-        hintText: 'Search by FIR, title, location…',
-        hintStyle: GoogleFonts.poppins(
-          fontSize: 12.5,
-          color: AppColors.lightSubText,
+    return Scaffold(
+      backgroundColor: AppColors.lightBg,
+      appBar: AppBar(
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        backgroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.navyDark),
+          onPressed: () => Navigator.pop(context),
         ),
-        prefixIcon: const Icon(
-          Icons.search_rounded,
-          color: AppColors.navyMid,
-          size: 20,
-        ),
-        suffixIcon: controller.text.isNotEmpty
-            ? IconButton(
-                onPressed: onClear,
-                icon: const Icon(
-                  Icons.close_rounded,
-                  color: AppColors.lightSubText,
-                  size: 18,
-                ),
-              )
-            : null,
-        filled: true,
-        fillColor: Colors.white,
-        isDense: true,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 11,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.lightBorder),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.lightBorder),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.navyMid, width: 1.5),
-        ),
-      ),
-    );
-  }
-}
-
-class _CaseCard extends StatefulWidget {
-  const _CaseCard({required this.record, required this.listKind});
-
-  final ModuleRecord record;
-  final _CaseListKind listKind;
-
-  @override
-  State<_CaseCard> createState() => _CaseCardState();
-}
-
-class _CaseCardState extends State<_CaseCard> {
-  bool _isHovered = false;
-
-  String get _displayStatus {
-    if (isRecordDisposal(widget.record) ||
-        widget.listKind == _CaseListKind.closed) {
-      return 'Disposal';
-    }
-    return 'Pending';
-  }
-
-  Color get _accentColor {
-    switch (widget.listKind) {
-      case _CaseListKind.active:
-        return AppColors.infoBlue;
-      case _CaseListKind.pending:
-        return AppColors.warningOrange;
-      case _CaseListKind.closed:
-        return AppColors.successGreen;
-    }
-  }
-
-  Color _recordStatusColor(String status) {
-    switch (status) {
-      case 'Disposal':
-        return AppColors.successGreen;
-      case 'Pending':
-      default:
-        return AppColors.warningOrange;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = _accentColor;
-    final displayStatus = _displayStatus;
-    final statusColor = _recordStatusColor(displayStatus);
-    final displayTitle = widget.record.title.trim().isNotEmpty
-        ? widget.record.title.trim()
-        : 'Untitled Case';
-    final firLabel = widget.record.caseNumber.trim().isNotEmpty
-        ? widget.record.caseNumber.trim()
-        : 'No FIR / case number';
-
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        margin: const EdgeInsets.only(bottom: 10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(
-            color: _isHovered
-                ? AppColors.navyMid.withValues(alpha: 0.3)
-                : AppColors.lightBorder,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: _isHovered ? 0.08 : 0.03),
-              blurRadius: _isHovered ? 12 : 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            onTap: () => _openCaseDetail(context),
-            child: IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Container(
-                    width: 4,
-                    decoration: BoxDecoration(
-                      color: accent,
-                      borderRadius: const BorderRadius.horizontal(
-                        left: Radius.circular(AppRadius.md),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 3,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.navyMid.withValues(
-                                    alpha: 0.08,
-                                  ),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  firLabel,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 10.5,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.navyMid,
-                                  ),
-                                ),
-                              ),
-                              const Spacer(),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2.5,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: statusColor.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(
-                                    AppRadius.full,
-                                  ),
-                                  border: Border.all(
-                                    color: statusColor.withValues(alpha: 0.25),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      width: 5,
-                                      height: 5,
-                                      decoration: BoxDecoration(
-                                        color: statusColor,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      displayStatus,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w600,
-                                        color: statusColor,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            displayTitle,
-                            style: GoogleFonts.poppins(
-                              fontSize: 14.5,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.navyDark,
-                              height: 1.3,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          if (widget.record.firestoreCategoryDisplayName
-                              .isNotEmpty) ...[
-                            const SizedBox(height: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 7,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.goldPrimary.withValues(
-                                  alpha: 0.12,
-                                ),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                widget.record.firestoreCategoryDisplayName,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.goldDark,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                          const SizedBox(height: 10),
-                          Wrap(
-                            spacing: 12,
-                            runSpacing: 4,
-                            children: [
-                              _MetaChip(
-                                icon: Icons.calendar_today_rounded,
-                                label: DateFormat(
-                                  'dd MMM yyyy',
-                                ).format(widget.record.createdAt),
-                              ),
-                              if (widget.record.location.trim().isNotEmpty)
-                                _MetaChip(
-                                  icon: Icons.location_on_outlined,
-                                  label: widget.record.location.trim(),
-                                ),
-                              if (widget.record.assignedOfficer
-                                  .trim()
-                                  .isNotEmpty)
-                                _MetaChip(
-                                  icon: Icons.person_outline_rounded,
-                                  label: widget.record.assignedOfficer.trim(),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Text(
-                                'Tap to view details',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.navyMid,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              const Icon(
-                                Icons.arrow_forward_ios_rounded,
-                                size: 10,
-                                color: AppColors.navyMid,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _openCaseDetail(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => widget.record.moduleKey == 'ad'
-            ? AdRecordDetailScreen(record: widget.record)
-            : ModuleRecordDetailScreen(record: widget.record),
-      ),
-    );
-  }
-}
-
-class _MetaChip extends StatelessWidget {
-  const _MetaChip({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 12, color: AppColors.lightSubText),
-        const SizedBox(width: 4),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 160),
-          child: Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.poppins(
-              fontSize: 11,
-              color: AppColors.lightSubText,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _CaseCardSkeleton extends StatelessWidget {
-  const _CaseCardSkeleton();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      height: 120,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.lightBorder),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 4,
-            decoration: const BoxDecoration(
-              color: AppColors.lightBorder,
-              borderRadius: BorderRadius.horizontal(
-                left: Radius.circular(AppRadius.md),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    height: 10,
-                    width: 80,
-                    decoration: BoxDecoration(
-                      color: AppColors.lightBorder,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    height: 14,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: AppColors.lightBorder,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    height: 12,
-                    width: 160,
-                    decoration: BoxDecoration(
-                      color: AppColors.lightBorder,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                  const Spacer(),
-                  Container(
-                    height: 10,
-                    width: 100,
-                    decoration: BoxDecoration(
-                      color: AppColors.lightBorder,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({
-    required this.icon,
-    required this.iconColor,
-    required this.title,
-    required this.message,
-  });
-
-  final IconData icon;
-  final Color iconColor;
-  final String title;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(36),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        titleSpacing: 0,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.08),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                size: 34,
-                color: iconColor.withValues(alpha: 0.7),
-              ),
-            ),
-            const SizedBox(height: 16),
             Text(
-              title,
-              textAlign: TextAlign.center,
+              TranslationHelper.translate(context, 'My Cases'),
               style: GoogleFonts.poppins(
-                fontSize: 15,
+                fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: AppColors.navyDark,
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                color: AppColors.lightSubText,
+            if (subtitle.isNotEmpty)
+              Text(
+                subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.lightSubText,
+                ),
               ),
-            ),
           ],
         ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            height: 1,
+            color: const Color(0xFFE2E8F0),
+          ),
+        ),
       ),
+      body: RefreshIndicator(
+        color: AppColors.navyMid,
+        onRefresh: _loadCases,
+        child: _buildBody(),
+      ),
+    );
+  }
+
+  Widget _buildStatusTabBar() {
+    final tabs = [
+      (
+        index: 0,
+        label: 'Total Cases',
+        count: _allCases?.length ?? 0,
+        badgeBg: const Color(0xFFE8F1FC),
+        badgeFg: const Color(0xFF1976D2),
+      ),
+      (
+        index: 1,
+        label: 'Pending',
+        count: _pendingCases?.length ?? 0,
+        badgeBg: const Color(0xFFFFF3E0),
+        badgeFg: const Color(0xFFE65100),
+      ),
+      (
+        index: 2,
+        label: 'Disposal',
+        count: _disposalCases?.length ?? 0,
+        badgeBg: const Color(0xFFE8F5E9),
+        badgeFg: const Color(0xFF2E7D32),
+      ),
+    ];
+
+    return Center(
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            border: Border.all(color: const Color(0xFFCBD5E1), width: 1.1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: tabs.map((item) {
+              final isSelected = _selectedTabIndex == item.index;
+              return InkWell(
+                onTap: () {
+                  if (_selectedTabIndex != item.index) {
+                    setState(() => _selectedTabIndex = item.index);
+                  }
+                },
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.navyDark : Colors.transparent,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        TranslationHelper.translate(context, item.label),
+                        style: GoogleFonts.poppins(
+                          fontSize: 12.5,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.w500,
+                          color: isSelected
+                              ? Colors.white
+                              : AppColors.lightSubText,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? Colors.white.withValues(alpha: 0.22)
+                              : item.badgeBg,
+                          borderRadius: BorderRadius.circular(AppRadius.full),
+                        ),
+                        child: Text(
+                          '${item.count}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: isSelected ? Colors.white : item.badgeFg,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
+        slivers: [
+          SliverToBoxAdapter(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1600),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.sm,
+                  ),
+                  child: Column(
+                    children: [
+                      _buildStatusTabBar(),
+                      const SizedBox(height: 14),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1600),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                  child: Column(
+                    children:
+                        List.generate(6, (_) => const ViewCaseCardSkeleton()),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (_errorMessage != null) {
+      return CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
+        slivers: [
+          SliverToBoxAdapter(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1600),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.sm,
+                  ),
+                  child: Column(
+                    children: [
+                      _buildStatusTabBar(),
+                      const SizedBox(height: 24),
+                      const ViewEmptyState(
+                        icon: Icons.cloud_off_rounded,
+                        iconColor: AppColors.dangerRed,
+                        title: 'Unable to load cases',
+                        message:
+                            'Check your connection and pull down to try again.',
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    final rawList = _getCurrentList();
+    final filtered = _filter(rawList);
+
+    return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
+      slivers: [
+        SliverToBoxAdapter(
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1600),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.md,
+                  AppSpacing.md,
+                  AppSpacing.sm,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildStatusTabBar(),
+                    const SizedBox(height: 14),
+                    TextField(
+                      controller: _searchCtrl,
+                      onChanged: (v) => setState(() => _query = v),
+                      style: GoogleFonts.poppins(
+                          fontSize: 13.5, color: AppColors.navyDark),
+                      decoration: InputDecoration(
+                        hintText: TranslationHelper.translate(
+                          context,
+                          'Search by FIR, title, location...',
+                        ),
+                        hintStyle: GoogleFonts.poppins(
+                          fontSize: 12.5,
+                          color: AppColors.lightSubText,
+                        ),
+                        prefixIcon: const Icon(Icons.search_rounded,
+                            color: AppColors.lightSubText, size: 20),
+                        suffixIcon: _query.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear_rounded, size: 18),
+                                onPressed: () {
+                                  _searchCtrl.clear();
+                                  setState(() => _query = '');
+                                },
+                              )
+                            : null,
+                        filled: true,
+                        fillColor: Colors.white,
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 10),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFE2E8F0)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFE2E8F0)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          borderSide: const BorderSide(
+                              color: AppColors.navyMid, width: 1.5),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      _query.isNotEmpty
+                          ? 'Found ${filtered.length} of ${rawList.length} records'
+                          : 'Total: ${rawList.length} records',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.lightSubText,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        if (filtered.isEmpty)
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: ViewEmptyState(
+              icon: Icons.folder_open_rounded,
+              iconColor: AppColors.lightSubText,
+              title: _query.isNotEmpty ? 'No matching cases' : 'No cases found',
+              message: _query.isNotEmpty
+                  ? 'Try searching with a different case number, title, or officer name.'
+                  : (_selectedTabIndex == 1
+                      ? 'No pending cases under your station/jurisdiction.'
+                      : (_selectedTabIndex == 2
+                          ? 'No disposed cases recorded yet.'
+                          : 'No cases recorded under this station.')),
+            ),
+          )
+        else
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              0,
+              AppSpacing.md,
+              AppSpacing.xxl,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1600),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, i) {
+                      return ViewCaseCard(
+                        record: filtered[i],
+                        index: i + 1,
+                        isDisposedTab: _selectedTabIndex == 2,
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

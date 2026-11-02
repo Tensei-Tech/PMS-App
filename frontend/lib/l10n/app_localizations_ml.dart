@@ -12,7 +12,7 @@ class AppLocalizationsMl extends AppLocalizations {
   String get appTitle => 'പോലീസ് മാനേജ്മെന്റ് സിസ്റ്റം';
 
   @override
-  String get khakhiDiary => 'ഖാക്കി ഡയറി';
+  String get khakhiDiary => 'PMS';
 
   @override
   String get safeSwiftSecure => 'സുരക്ഷിതം • വേഗതയേറിയത് • ഭദ്രം';

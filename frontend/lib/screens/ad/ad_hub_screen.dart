@@ -567,36 +567,106 @@ class _AdHubScreenState extends State<AdHubScreen>
     );
   }
 
-  /// One field of a card: small label on top, value below ('-' when empty).
-  Widget _fieldTile(String label, String value, double? width) {
-    final shown = value.isEmpty ? '-' : value;
+  Widget _buildDivider({double margin = 8}) {
     return Container(
-      width: width,
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
+      width: 1,
+      height: 28,
+      margin: EdgeInsets.symmetric(horizontal: margin),
+      color: const Color(0xFFE2E8F0),
+    );
+  }
+
+  IconData _iconForLabel(String label) {
+    final l = label.toLowerCase();
+    if (l.contains('ad no') ||
+        l.contains('ad_no') ||
+        l.contains('case_no') ||
+        l.contains('no.')) {
+      return Icons.tag_rounded;
+    }
+    if (l.contains('identity')) {
+      return Icons.badge_outlined;
+    }
+    if (l.contains('name') || l.contains('deceased')) {
+      return Icons.person_outline_rounded;
+    }
+    if (l.contains('cause') || l.contains('death')) {
+      return Icons.health_and_safety_outlined;
+    }
+    if (l.contains('pm') || l.contains('post mortem')) {
+      return Icons.medical_services_outlined;
+    }
+    if (l.contains('sdm') || l.contains('grant')) {
+      return Icons.fact_check_outlined;
+    }
+    if (l.contains('date')) {
+      return Icons.calendar_today_outlined;
+    }
+    if (l.contains('spot') ||
+        l.contains('place') ||
+        l.contains('village') ||
+        l.contains('location')) {
+      return Icons.place_outlined;
+    }
+    if (l.contains('station') || l.contains('police')) {
+      return Icons.local_police_outlined;
+    }
+    if (l.contains('io') || l.contains('officer')) {
+      return Icons.shield_outlined;
+    }
+    return Icons.info_outline_rounded;
+  }
+
+  Widget _buildFieldColumn({
+    required BuildContext context,
+    required String label,
+    required String value,
+    IconData? icon,
+    Color? iconColor,
+    Color? valueColor,
+    VoidCallback? onTap,
+    double? width,
+  }) {
+    final shown =
+        (value.trim().isEmpty || value.trim() == '-') ? '-' : value.trim();
+    final parts = shown.split('\n');
+
+    final content = SizedBox(
+      height: 40,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            TranslationHelper.translate(context, label),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.poppins(
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-                color: AppColors.lightSubText,
-                height: 1.2),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[
+                Icon(
+                  icon,
+                  size: 11.0,
+                  color: iconColor ?? const Color(0xFF64748B),
+                ),
+                const SizedBox(width: 3.5),
+              ],
+              Flexible(
+                child: Text(
+                  TranslationHelper.translate(context, label),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 9.0,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF64748B),
+                    height: 1.0,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 1),
-          // A merged box (e.g. SDM Granted / Date) shows each value on its own
-          // line, with a thin divider between them
-          for (final (i, part) in shown.split('\n').indexed) ...[
-            if (i > 0)
-              const Divider(height: 7, thickness: 1, color: Color(0xFFE2E8F0)),
+          const SizedBox(height: 1.5),
+          for (final (i, part) in parts.indexed) ...[
+            if (i > 0) const SizedBox(height: 1),
             Tooltip(
               message: part,
               child: Text(
@@ -604,151 +674,304 @@ class _AdHubScreenState extends State<AdHubScreen>
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    height: 1.3,
-                    fontWeight: FontWeight.w600,
-                    color: value.isEmpty
-                        ? AppColors.lightSubText
-                        : AppColors.navyDark),
+                  fontSize: parts.length > 1 ? 10.0 : 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: valueColor ?? AppColors.navyDark,
+                  height: 1.05,
+                ),
               ),
             ),
           ],
         ],
       ),
     );
+
+    final wrapped =
+        width != null ? SizedBox(width: width, child: content) : content;
+
+    if (onTap != null) {
+      return InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(4),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: wrapped,
+        ),
+      );
+    }
+    return wrapped;
   }
 
-  /// All fields in ONE line, sharing the width equally (labels may take two
-  /// lines). Only on a narrow screen (phone) do the boxes wrap.
-  Widget _fieldGrid(List<List> rows) {
-    if (rows.isEmpty) return const SizedBox.shrink();
-    return LayoutBuilder(builder: (context, constraints) {
-      const gap = 5.0;
-      final maxW = constraints.maxWidth;
-      if ((maxW - gap * (rows.length - 1)) / rows.length >= 72) {
-        return IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (int i = 0; i < rows.length; i++) ...[
-                if (i > 0) const SizedBox(width: gap),
-                Expanded(
-                  child: _fieldTile(rows[i][0]?.toString() ?? '',
-                      rows[i][1]?.toString() ?? '', null),
-                ),
-              ],
+  Widget _buildCompactActionButton({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    Color? color,
+    Color? borderColor,
+    Color? bgColor,
+  }) {
+    final fgColor = color ?? AppColors.navyDark;
+    return Tooltip(
+      message: TranslationHelper.translate(context, label),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          height: 38,
+          width: 42,
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          decoration: BoxDecoration(
+            color: bgColor ?? Colors.white,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: borderColor ?? const Color(0xFFCBD5E1),
+              width: 1.1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 2,
+                offset: const Offset(0, 1),
+              ),
             ],
           ),
-        );
-      }
-      final perLine = (maxW / 112).floor().clamp(1, rows.length);
-      final tileW = (maxW - gap * (perLine - 1)) / perLine;
-      return Wrap(
-        spacing: gap,
-        runSpacing: gap,
-        children: [
-          for (final r in rows)
-            _fieldTile(r[0]?.toString() ?? '', r[1]?.toString() ?? '', tileW),
-        ],
-      );
-    });
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 14, color: fgColor),
+              const SizedBox(height: 1.5),
+              Text(
+                TranslationHelper.translate(context, label),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 8.0,
+                  fontWeight: FontWeight.w600,
+                  color: fgColor,
+                  height: 1.0,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildCard(Map<String, dynamic> item, int serial) {
     final isDisposal = item['is_disposal'] == true;
-    final statusColor =
-        isDisposal ? AppColors.successGreen : AppColors.warningOrange;
+    final Color statusBg =
+        isDisposal ? const Color(0xFFF0FDF4) : const Color(0xFFFFFBEB);
+    final Color statusBorder =
+        isDisposal ? const Color(0xFFBBF7D0) : const Color(0xFFFDE68A);
+    final Color statusColor =
+        isDisposal ? const Color(0xFF16A34A) : const Color(0xFFD97706);
+
     final serialLabel = _cfgTop('serial_label');
     final cardRows = (item['card_rows'] as List? ?? const [])
         .whereType<List>()
         .where((r) => r.length >= 2 && (r[0]?.toString() ?? '').isNotEmpty)
         .toList();
 
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: const BorderSide(color: Color(0xFFE2E8F0)),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border(left: BorderSide(color: statusColor, width: 3)),
-        ),
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header: serial, status and actions on one line
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 6,
-              runSpacing: 6,
+    final viewLabel = _cfg('action_labels', 'view').isNotEmpty
+        ? _cfg('action_labels', 'view')
+        : 'View';
+    final editLabel = _cfg('action_labels', 'edit').isNotEmpty
+        ? _cfg('action_labels', 'edit')
+        : 'Edit';
+    final pdfLabel = _cfg('action_labels', 'pdf').isNotEmpty
+        ? _cfg('action_labels', 'pdf')
+        : 'PDF';
+
+    Widget buildDetailsRow(bool isExpandedMode) {
+      final divMargin = isExpandedMode ? 8.0 : 4.0;
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 0. Sr. No. Badge (Fixed height 38, neutral slate styling)
+          Container(
+            height: 38,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: const Color(0xFFCBD5E1)),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              serialLabel.isEmpty
+                  ? '$serial'
+                  : '${TranslationHelper.translate(context, serialLabel)} $serial',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+                color: AppColors.navyDark,
+              ),
+            ),
+          ),
+
+          // 1. Dynamic Field Columns
+          for (final f in cardRows) ...[
+            _buildDivider(margin: divMargin),
+            () {
+              final label = f[0]?.toString() ?? '';
+              final rawVal = f[1]?.toString() ?? '';
+              final icon = _iconForLabel(label);
+              final l = label.toLowerCase();
+              final int flex = (l.contains('name') || l.contains('deceased'))
+                  ? 4
+                  : (l.contains('cause') ||
+                          l.contains('death') ||
+                          l.contains('identity') ||
+                          l.contains('sdm') ||
+                          l.contains('pm'))
+                      ? 3
+                      : 2;
+              final double width =
+                  (l.contains('name') || l.contains('deceased'))
+                      ? 150
+                      : (l.contains('cause') ||
+                              l.contains('death') ||
+                              l.contains('pm') ||
+                              l.contains('sdm'))
+                          ? 140
+                          : (l.contains('identity'))
+                              ? 125
+                              : 105;
+
+              return isExpandedMode
+                  ? Expanded(
+                      flex: flex,
+                      child: _buildFieldColumn(
+                        context: context,
+                        label: label,
+                        value: rawVal,
+                        icon: icon,
+                      ),
+                    )
+                  : _buildFieldColumn(
+                      context: context,
+                      width: width,
+                      label: label,
+                      value: rawVal,
+                      icon: icon,
+                    );
+            }(),
+          ],
+
+          _buildDivider(margin: divMargin),
+
+          // 2. Status Badge (Disposal / Pending in last before actions)
+          Container(
+            height: 34,
+            width: isExpandedMode ? 105 : 95,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: statusBg,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: statusBorder),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  width: 6,
+                  height: 6,
                   decoration: BoxDecoration(
-                    color: AppColors.navyMid.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    serialLabel.isEmpty
-                        ? '$serial'
-                        : '${TranslationHelper.translate(context, serialLabel)} $serial',
-                    style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12,
-                        color: AppColors.navyMid),
+                    color: statusColor,
+                    shape: BoxShape.circle,
                   ),
                 ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                const SizedBox(width: 6),
+                Flexible(
                   child: Text(
-                    item['status_label']?.toString() ?? '',
+                    TranslationHelper.translate(
+                      context,
+                      item['status_label']?.toString() ??
+                          (isDisposal ? 'Disposal' : 'Pending'),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: statusColor),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: statusColor,
+                      height: 1.0,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 4),
-                _actionButton(
-                    'view', Icons.visibility_rounded, () => _openView(item)),
-                _actionButton('edit', Icons.edit_rounded,
-                    () => _openForm(id: item['id'])),
-                _actionButton(
-                    'pdf', Icons.picture_as_pdf_rounded, () => _openPdf(item)),
               ],
             ),
-            const SizedBox(height: 8),
-            _fieldGrid(cardRows),
-          ],
-        ),
-      ),
-    );
-  }
+          ),
 
-  Widget _actionButton(String key, IconData icon, VoidCallback onTap) {
-    final label = _cfg('action_labels', key);
-    if (label.isEmpty) return const SizedBox.shrink();
-    return OutlinedButton.icon(
-      onPressed: onTap,
-      icon: Icon(icon, size: 13),
-      label: Text(TranslationHelper.translate(context, label),
-          style: GoogleFonts.poppins(fontSize: 11)),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.navyMid,
-        visualDensity: VisualDensity.compact,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-        minimumSize: Size.zero,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          _buildDivider(margin: divMargin),
+
+          // 3. Action buttons
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildCompactActionButton(
+                context: context,
+                icon: Icons.visibility_outlined,
+                label: viewLabel,
+                onTap: () => _openView(item),
+              ),
+              const SizedBox(width: 6),
+              _buildCompactActionButton(
+                context: context,
+                icon: Icons.edit_outlined,
+                label: editLabel,
+                onTap: () => _openForm(id: item['id']),
+              ),
+              const SizedBox(width: 6),
+              _buildCompactActionButton(
+                context: context,
+                icon: Icons.picture_as_pdf_outlined,
+                label: pdfLabel,
+                onTap: () => _openPdf(item),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: const Color(0xFFCBD5E1),
+          width: 1.1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide =
+              constraints.maxWidth >= (cardRows.length > 4 ? 1280 : 1000);
+          if (isWide) {
+            return buildDetailsRow(true);
+          }
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: buildDetailsRow(false),
+          );
+        },
       ),
     );
   }

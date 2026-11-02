@@ -47,7 +47,7 @@ class AppUpdateInstaller {
         return const UpdateDownloadEvent(
           UpdateDownloadStatus.failed,
           message:
-              'Allow Khakhi Diary to install apps (Android asks once), then tap Update again.',
+              'Allow PMS to install apps (Android asks once), then tap Update again.',
         );
       case OtaStatus.ALREADY_RUNNING_ERROR:
         return const UpdateDownloadEvent(
