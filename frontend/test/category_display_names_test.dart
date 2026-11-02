@@ -13,7 +13,8 @@ void main() {
     addTearDown(() => TranslationHelper.activeLanguageCode = saved);
 
     TranslationHelper.activeLanguageCode = 'en';
-    expect(TranslationHelper.translate(ctx, 'Normal Accident'), 'Other Accident');
+    expect(
+        TranslationHelper.translate(ctx, 'Normal Accident'), 'Other Accident');
     expect(TranslationHelper.translate(ctx, 'Road Accident'), 'Road Accident');
     // The parent tab keeps its name
     expect(TranslationHelper.translate(ctx, 'Accident'), 'Accident');
