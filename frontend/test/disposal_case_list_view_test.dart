@@ -25,7 +25,8 @@ void main() {
   });
 
   group('Disposal Excel Export Helper Tests', () {
-    test('extractDisposalNumbers extracts cc_st_no and various final summaries',
+    test(
+        'extractDisposalNumbers extracts only cc_st_no and excludes final summaries',
         () {
       final r1 = {
         'cc_st_no': 'CC 101/2024',
@@ -40,10 +41,10 @@ void main() {
 
       final extracted = ExcelExportHelper.extractDisposalNumbers(r1);
       expect(extracted, contains('CC 101/2024'));
-      expect(extracted, contains('B Final :- B-99'));
-      expect(extracted, contains('Abated Summary :- AS-50'));
-      expect(extracted, contains('AD No :- AD-12'));
-      expect(extracted, contains('Preventive No :- PREV-77'));
+      expect(extracted, isNot(contains('B Final')));
+      expect(extracted, isNot(contains('Abated Summary')));
+      expect(extracted, isNot(contains('AD No')));
+      expect(extracted, isNot(contains('Preventive No')));
     });
 
     test('extractDisposalNumbers returns dash if no disposal numbers exist',
@@ -65,6 +66,24 @@ void main() {
           'crime_type_name': 'Murder',
           'cc_st_no': 'CC 55/2024',
           'assigned_officer': 'PI Patil',
+        }
+      ];
+
+      expect(() => ExcelExportHelper.exportDisposalToExcel(dataset: sample),
+          returnsNormally);
+    });
+
+    test('exportDisposalToExcel exports Remind to IO when cc_st_no is missing',
+        () {
+      final sample = [
+        {
+          'sr_no': '1',
+          'case_number': 'CR 99/2024',
+          'section_act': '307 IPC',
+          'crime_type_name': 'Attempt to Murder',
+          'cc_st_no': '',
+          'disposal_no': 'N/A',
+          'assigned_officer': 'PSI Shinde',
         }
       ];
 

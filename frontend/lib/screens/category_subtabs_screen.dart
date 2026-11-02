@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../modules/form_iv/providers/form_iv_provider.dart';
 import '../modules/licence/screens/licence_hub_screen.dart';
 import '../modules/passport/screens/passport_hub_screen.dart';
+import '../modules/pvr/providers/pvr_provider.dart';
+import '../modules/pvr/screens/pvr_hub_screen.dart';
 import '../theme/app_theme.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
@@ -170,6 +172,7 @@ class ModuleTabsScreen extends StatelessWidget {
           final (name, icon, open) = tabs[i];
           return CategoryGridCard(
             category: TranslationHelper.translate(context, name),
+            rawCategory: name,
             icon: icon,
             count: 0,
             showCount: false,
@@ -190,8 +193,9 @@ class PassportLicenceScreen extends StatelessWidget {
   const PassportLicenceScreen({super.key, required this.stationName});
 
   static const String passportLabel = 'Passport/PVR/Licence';
-  static const String passportTabLabel = 'Passport/PVR';
+  static const String passportTabLabel = 'Passport';
   static const String licenceLabel = 'Licence';
+  static const String pvrLabel = 'PVR';
 
   @override
   Widget build(BuildContext context) {
@@ -217,6 +221,28 @@ class PassportLicenceScreen extends StatelessWidget {
                   page: LicenceHubScreen(stationName: stationName),
                 ),
               ),
+        ),
+        (
+          pvrLabel,
+          Icons.fact_check_rounded,
+          (context) {
+            PvrProvider? existing;
+            try {
+              existing = context.read<PvrProvider>();
+            } catch (_) {}
+
+            Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(
+                page: existing != null
+                    ? PvrHubScreen(stationName: stationName)
+                    : ChangeNotifierProvider(
+                        create: (_) => PvrProvider(),
+                        child: PvrHubScreen(stationName: stationName),
+                      ),
+              ),
+            );
+          },
         ),
       ],
     );

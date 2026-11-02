@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/backend_case_service.dart';
 import '../theme/app_theme.dart';
-import '../utils/category_icon_helper.dart';
 import 'filtered_disposal_screen.dart';
 
 class DisposalHubScreen extends StatefulWidget {
   final String stationName;
+  final int? groupId;
+  final String? groupTitle;
 
   const DisposalHubScreen({
     super.key,
     required this.stationName,
+    this.groupId,
+    this.groupTitle,
   });
 
   @override
@@ -75,7 +78,9 @@ class _DisposalHubScreenState extends State<DisposalHubScreen>
       });
     }
 
-    final data = await _backend.fetchDisposalCrimeTypeWise();
+    final data = await _backend.fetchDisposalCrimeTypeWise(
+      groupId: widget.groupId,
+    );
 
     if (mounted) {
       setState(() {
@@ -97,7 +102,9 @@ class _DisposalHubScreenState extends State<DisposalHubScreen>
       });
     }
 
-    final data = await _backend.fetchDisposalTimeWise();
+    final data = await _backend.fetchDisposalTimeWise(
+      groupId: widget.groupId,
+    );
 
     if (mounted) {
       setState(() {
@@ -119,7 +126,9 @@ class _DisposalHubScreenState extends State<DisposalHubScreen>
       });
     }
 
-    final data = await _backend.fetchDisposalIOWise();
+    final data = await _backend.fetchDisposalIOWise(
+      groupId: widget.groupId,
+    );
 
     if (mounted) {
       setState(() {
@@ -247,8 +256,11 @@ class _DisposalHubScreenState extends State<DisposalHubScreen>
                     context,
                     AppTheme.fadeSlideRoute(
                       page: FilteredDisposalScreen(
-                        title: 'Case Wise - $typeName',
+                        title: widget.groupTitle != null
+                            ? '${widget.groupTitle} — Case Wise - $typeName'
+                            : 'Case Wise - $typeName',
                         crimeType: typeKey,
+                        groupId: widget.groupId,
                       ),
                     ),
                   );
@@ -259,17 +271,16 @@ class _DisposalHubScreenState extends State<DisposalHubScreen>
                   child: Row(
                     children: [
                       Container(
-                        width: 40,
-                        height: 40,
+                        width: 44,
+                        height: 44,
                         decoration: BoxDecoration(
-                          color:
-                              const Color(0xFF2E7D32).withValues(alpha: 0.07),
-                          borderRadius: BorderRadius.circular(10),
+                          color: const Color(0xFFE8F5E9),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        child: CategoryIconHelper.buildWidget(
-                          typeName,
-                          color: const Color(0xFF2E7D32),
-                          size: 20,
+                        child: const Icon(
+                          Icons.verified_rounded,
+                          color: Color(0xFF2E7D32),
+                          size: 22,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -285,23 +296,30 @@ class _DisposalHubScreenState extends State<DisposalHubScreen>
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 5),
+                            horizontal: 14, vertical: 6),
                         decoration: BoxDecoration(
-                          color:
-                              const Color(0xFF2E7D32).withValues(alpha: 0.06),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color:
-                                const Color(0xFF2E7D32).withValues(alpha: 0.16),
-                          ),
+                          color: const Color(0xFFE8F5E9),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: const Color(0xFFA5D6A7)),
                         ),
-                        child: Text(
-                          '$count Cases',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
-                            color: const Color(0xFF2E7D32),
-                          ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.check_circle_rounded,
+                              size: 14,
+                              color: Color(0xFF2E7D32),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              '$count ${count == 1 ? 'Case' : 'Cases'}',
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                                color: const Color(0xFF2E7D32),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -379,9 +397,12 @@ class _DisposalHubScreenState extends State<DisposalHubScreen>
                     context,
                     AppTheme.fadeSlideRoute(
                       page: FilteredDisposalScreen(
-                        title: 'Time Wise - $period',
+                        title: widget.groupTitle != null
+                            ? '${widget.groupTitle} — Time Wise - $period'
+                            : 'Time Wise - $period',
                         startDate: item['start_date']?.toString(),
                         endDate: item['end_date']?.toString(),
+                        groupId: widget.groupId,
                       ),
                     ),
                   );
@@ -510,8 +531,11 @@ class _DisposalHubScreenState extends State<DisposalHubScreen>
                     context,
                     AppTheme.fadeSlideRoute(
                       page: FilteredDisposalScreen(
-                        title: 'IO Wise - $ioName',
+                        title: widget.groupTitle != null
+                            ? '${widget.groupTitle} — IO Wise - $ioName'
+                            : 'IO Wise - $ioName',
                         ioUid: item['io_uid']?.toString(),
+                        groupId: widget.groupId,
                       ),
                     ),
                   );
@@ -618,7 +642,9 @@ class _DisposalHubScreenState extends State<DisposalHubScreen>
         elevation: 1,
         iconTheme: const IconThemeData(color: AppColors.navyDark),
         title: Text(
-          'Disposal',
+          widget.groupTitle != null
+              ? 'Disposal — ${widget.groupTitle}'
+              : 'Disposal',
           style: GoogleFonts.poppins(
             color: AppColors.navyDark,
             fontWeight: FontWeight.w700,
