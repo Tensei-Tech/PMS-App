@@ -26,7 +26,8 @@ def _seed_ad_public_data():
     if not CaseCategory.objects.filter(category_code='STAND_AD').exists():
         CaseCategory.objects.create(category_name='A.D.', category_code='STAND_AD', display_order=40)
     for name in ('0121_ad_suicide_and_other_subtabs', '0125_ad_form_fields', '0126_ad_module_settings',
-                 '0130_ad_disposal_rule_settings'):
+                 '0130_ad_disposal_rule_settings', '0161_ad_unknown_deceased_multiple',
+                 '0162_ad_registration_year_io_and_sdm_acp'):
         importlib.import_module(f'apps.crimetab.migrations.{name}').forwards(django_apps, None)
 
 
@@ -67,6 +68,9 @@ class AdBackendTests(TestCase):
         return req
 
     def create(self, payload, category=SUICIDE, user=None):
+        # An AD No. needs its year (0162); default one unless the test sets it
+        if payload.get('case_number') and 'ad_year' not in payload:
+            payload = {**payload, 'ad_year': '2026'}
         return AdListCreateView.as_view()(self._req('post', '/api/ad/', payload, user, category=category))
 
     def list(self, category=SUICIDE, user=None, **params):
