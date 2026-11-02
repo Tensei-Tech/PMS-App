@@ -197,6 +197,9 @@ String? _getDashboardSvgPath(String label) {
     case 'passportpvrlic':
     case 'passport':
       return 'assets/icons/passport.svg';
+    case 'preventive':
+    case 'tadipar':
+      return 'assets/icons/tadipar.svg';
     case 'ndps':
       return 'assets/icons/ndps.svg';
     case 'gowansh':
@@ -3507,7 +3510,10 @@ class _HomeTabState extends State<_HomeTab> {
       case 'healing':
         return Icons.healing_rounded;
       case 'shield':
-        return Icons.shield_rounded;
+      case 'security':
+        return Icons.security_rounded;
+      case 'balance':
+        return FontAwesomeIcons.scaleBalanced;
       case 'woman':
         return Icons.woman_rounded;
       case 'description':
