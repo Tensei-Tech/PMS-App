@@ -143,6 +143,8 @@ class DynamicControlFactory extends StatelessWidget {
             isRequired: fieldDef.isRequired,
             label: fieldDef.fieldLabel,
             onChanged: onChanged,
+            // Range from the field's options source ('years:2001-3001')
+            range: YearPickerField.parseRange(fieldDef.optionsSource),
             decoration: _inputDecoration(hint: 'Select or type year (e.g. 03)')
                 .copyWith(
                     suffixIcon: const Icon(Icons.arrow_drop_down_rounded)),
@@ -2553,7 +2555,8 @@ class _StepperNumberFieldState extends State<_StepperNumberField> {
   }
 }
 
-/// Year from a dropdown of 2001-2100 that can also be typed into. A short
+/// Year from a dropdown (2001-2100 unless the field sets its own range with
+/// options source 'years:<first>-<last>') that can also be typed into. A short
 /// year means 20xx: typing "03" lists 2003 first and becomes 2003 when the
 /// field is left ("00" means 2100).
 class YearPickerField extends StatefulWidget {
@@ -2567,6 +2570,9 @@ class YearPickerField extends StatefulWidget {
   final Function(dynamic)? onChanged;
   final InputDecoration decoration;
 
+  /// (first, last) year offered; defaults to [firstYear]-[lastYear].
+  final (int, int) range;
+
   const YearPickerField({
     super.key,
     this.controller,
@@ -2575,7 +2581,17 @@ class YearPickerField extends StatefulWidget {
     required this.label,
     this.onChanged,
     required this.decoration,
+    this.range = (firstYear, lastYear),
   });
+
+  /// 'years:2001-3001' -> (2001, 3001); anything else the default range.
+  static (int, int) parseRange(String? source) {
+    final m = RegExp(r'^\s*years\s*:\s*(\d{4})\s*-\s*(\d{4})\s*$')
+        .firstMatch(source ?? '');
+    if (m == null) return (firstYear, lastYear);
+    final a = int.parse(m.group(1)!), b = int.parse(m.group(2)!);
+    return a <= b ? (a, b) : (firstYear, lastYear);
+  }
 
   /// '3' / '03' -> '2003', '00' -> '2100'; anything else is returned as is.
   static String expand(String text) {
@@ -2587,9 +2603,10 @@ class YearPickerField extends StatefulWidget {
 
   /// Years matching what is typed: a short entry matches the last two digits
   /// ("0" -> 2001-2009, 2100; "03" -> 2003), a longer one the start.
-  static List<String> matches(String text) {
+  static List<String> matches(String text,
+      {(int, int) range = (firstYear, lastYear)}) {
     final q = text.trim();
-    final years = [for (var y = firstYear; y <= lastYear; y++) '$y'];
+    final years = [for (var y = range.$1; y <= range.$2; y++) '$y'];
     if (q.isEmpty || !RegExp(r'^[0-9]+$').hasMatch(q)) return years;
     if (q.length <= 2) {
       return years.where((y) => y.substring(2).startsWith(q)).toList();
@@ -2638,8 +2655,9 @@ class _YearPickerFieldState extends State<YearPickerField> {
     return RawAutocomplete<String>(
       textEditingController: _ctrl,
       focusNode: _focus,
-      optionsBuilder: (value) =>
-          widget.readOnly ? const [] : YearPickerField.matches(value.text),
+      optionsBuilder: (value) => widget.readOnly
+          ? const []
+          : YearPickerField.matches(value.text, range: widget.range),
       onSelected: (year) => widget.onChanged?.call(year),
       fieldViewBuilder: (context, ctrl, focus, onSubmitted) => TextFormField(
         controller: ctrl,
@@ -2664,10 +2682,9 @@ class _YearPickerFieldState extends State<YearPickerField> {
             return widget.isRequired ? '${widget.label} is required' : null;
           }
           final n = int.tryParse(year);
-          if (n == null ||
-              n < YearPickerField.firstYear ||
-              n > YearPickerField.lastYear) {
-            return 'Select a year from ${YearPickerField.firstYear} to ${YearPickerField.lastYear}';
+          final (first, last) = widget.range;
+          if (n == null || n < first || n > last) {
+            return 'Select a year from $first to $last';
           }
           return null;
         },
