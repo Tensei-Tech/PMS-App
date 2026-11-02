@@ -89,7 +89,7 @@ import 'dar_hub_screen.dart';
 import 'irad_hub_screen.dart';
 import 'undetected_hub_screen.dart';
 import 'detected_hub_screen.dart';
-import 'disposal_hub_screen.dart';
+import 'disposal_selection_screen.dart';
 import 'arrested_hub_screen.dart';
 import 'juvenile_hub_screen.dart';
 import 'victim_hub_screen.dart';
@@ -3898,7 +3898,7 @@ class _HomeTabState extends State<_HomeTab> {
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
-          page: DisposalHubScreen(stationName: auth.stationName),
+          page: DisposalSelectionScreen(stationName: auth.stationName),
         ),
       );
     } else if (item.name == 'Arrested') {

@@ -51,6 +51,8 @@ class FormIVSelectionScreen extends StatefulWidget {
   final String? moduleKey;
   final dynamic categoryId;
 
+  final FormIVStatusTab initialStatusTab;
+
   const FormIVSelectionScreen({
     super.key,
     this.mode = FormIVSelectionMode.add,
@@ -59,6 +61,7 @@ class FormIVSelectionScreen extends StatefulWidget {
     this.moduleKey,
     this.categoryId,
     this.openCategory,
+    this.initialStatusTab = FormIVStatusTab.total,
   });
 
   /// Open directly on this category's case list (e.g. from a dashboard tile);
@@ -133,7 +136,7 @@ class FormIVSelectionScreen extends StatefulWidget {
 }
 
 class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
-  FormIVStatusTab _selectedStatusTab = FormIVStatusTab.total;
+  late FormIVStatusTab _selectedStatusTab;
   String? _selectedCategory;
   final List<String> _categoryBreadcrumb = [];
   final Map<String, List<Map<String, dynamic>>> _categoryChildrenCache = {};
@@ -158,6 +161,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedStatusTab = widget.initialStatusTab;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<FormIVProvider>().ensureInitialized();
@@ -286,6 +290,9 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
             options.add(fallbackName);
           }
         }
+      }
+      if (!options.contains(FormIVSelectionScreen.allFilterLabel)) {
+        options.insert(0, FormIVSelectionScreen.allFilterLabel);
       }
       return options;
     }
@@ -2135,7 +2142,7 @@ class _CategoryGridView extends StatelessWidget {
             crossAxisCount: cols,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            mainAxisExtent: availableWidth < 480 ? 84 : 74,
+            mainAxisExtent: availableWidth < 600 ? 88 : 82,
           ),
           itemBuilder: (context, index) {
             final category = categories[index];
@@ -2257,9 +2264,9 @@ class CategoryGridCardState extends State<CategoryGridCard> {
                       children: [
                         Text(
                           widget.category,
-                          maxLines: 3,
+                          maxLines: 2,
                           softWrap: true,
-                          overflow: TextOverflow.visible,
+                          overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.poppins(
                             fontSize: 12.0,
                             fontWeight: FontWeight.w600,

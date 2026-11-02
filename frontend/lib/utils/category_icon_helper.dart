@@ -143,6 +143,10 @@ class CategoryIconHelper {
         return 'assets/icons/cctns.svg';
       case 'licence':
         return 'assets/icons/licence.svg';
+      case 'passport':
+      case 'passport/pvr':
+      case 'passport/pvr/licence':
+        return 'assets/icons/passport.svg';
       case 'repeat offender':
         return 'assets/icons/repeatoffender.svg';
       case 'dar':
@@ -280,6 +284,11 @@ class CategoryIconHelper {
       case 'sec 156(3)/175(3)(bnss)':
       case 'sec 156(3)/175(3)':
         return Icons.policy_rounded;
+      case 'passport':
+      case 'passport/pvr':
+        return Icons.badge_rounded;
+      case 'pvr':
+        return Icons.fact_check_rounded;
       case 'all':
       case 'all cases':
         return Icons.grid_view_rounded;

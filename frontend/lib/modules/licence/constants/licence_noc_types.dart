@@ -124,5 +124,20 @@ LicenceNocOption? findLicenceNocOption(String? input) {
     }
   }
 
+  // Check if option name starts with input (e.g. "Other Police Verification" -> "Other Police Verification / NOC")
+  if (clean.length >= 4) {
+    for (final opt in kLicenceNocOptions) {
+      if (opt.name.toLowerCase().startsWith(clean)) {
+        return opt;
+      }
+    }
+  }
+
+  // Check keyword matching for police verification
+  if (clean.contains('police') && clean.contains('verification')) {
+    return kLicenceNocOptions.firstWhere((o) => o.number == 38,
+        orElse: () => kLicenceNocOptions.last);
+  }
+
   return null;
 }

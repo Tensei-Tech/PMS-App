@@ -175,8 +175,8 @@ class _FilteredJuvenileScreenState extends State<FilteredJuvenileScreen> {
                               style: GoogleFonts.poppins(color: Colors.red)))
                       : _tableRows.isEmpty
                           ? const Center(child: Text("No cases found"))
-                          : SingleChildScrollView(
-                              padding: const EdgeInsets.all(12),
+                          : Padding(
+                              padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
                               child: JuvenileCasesDataTable(
                                 realDataRows: _tableRows,
                               ),

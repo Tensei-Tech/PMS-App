@@ -47,6 +47,15 @@ class _LicenceAddEditDialogState extends State<LicenceAddEditDialog> {
   LicenceNocOption? get _selectedLicenceOption =>
       findLicenceNocOption(_selectedLicenceType);
 
+  bool get _isOtherSelected {
+    final type =
+        (_selectedLicenceType ?? _licenceTypeCtrl.text).trim().toLowerCase();
+    if (type.isEmpty) return false;
+    final opt = _selectedLicenceOption;
+    if (opt != null && (opt.number == 25 || opt.number == 38)) return true;
+    return type.contains('other') || type.contains('इतर');
+  }
+
   @override
   void initState() {
     super.initState();
@@ -66,18 +75,42 @@ class _LicenceAddEditDialogState extends State<LicenceAddEditDialog> {
           .toString()
           .trim();
 
+      final savedOtherDetails =
+          (r.extraFields['other_noc_type'] ?? '').toString().trim();
+
       final matched = findLicenceNocOption(rawType);
       if (matched != null) {
         _selectedLicenceType = matched.displayName;
         _licenceTypeCtrl.text = matched.displayName;
-        if ((matched.number == 25 || matched.number == 38) &&
+        if (savedOtherDetails.isNotEmpty) {
+          _otherDetailsCtrl.text = savedOtherDetails;
+        } else if ((matched.number == 25 || matched.number == 38) &&
             rawType.contains(' - ')) {
           _otherDetailsCtrl.text =
               rawType.split(' - ').skip(1).join(' - ').trim();
         }
       } else if (rawType.isNotEmpty) {
-        _selectedLicenceType = rawType;
-        _licenceTypeCtrl.text = rawType;
+        if (rawType.contains(' - ')) {
+          final parts = rawType.split(' - ');
+          final basePart = parts.first.trim();
+          final otherPart = parts.skip(1).join(' - ').trim();
+          final baseMatched = findLicenceNocOption(basePart);
+          if (baseMatched != null) {
+            _selectedLicenceType = baseMatched.displayName;
+            _licenceTypeCtrl.text = baseMatched.displayName;
+          } else {
+            _selectedLicenceType = basePart;
+            _licenceTypeCtrl.text = basePart;
+          }
+          _otherDetailsCtrl.text =
+              savedOtherDetails.isNotEmpty ? savedOtherDetails : otherPart;
+        } else {
+          _selectedLicenceType = rawType;
+          _licenceTypeCtrl.text = rawType;
+          if (savedOtherDetails.isNotEmpty) {
+            _otherDetailsCtrl.text = savedOtherDetails;
+          }
+        }
       }
 
       if (LicenceProvider.isApprovedRecord(r)) {
@@ -134,12 +167,17 @@ class _LicenceAddEditDialogState extends State<LicenceAddEditDialog> {
       final applicantName = _applicantNameCtrl.text.trim();
       final businessName = _businessNameCtrl.text.trim();
 
-      String licenceType =
+      String baseLicenceType =
           (_selectedLicenceType ?? _licenceTypeCtrl.text).trim();
-      final matchedOpt = findLicenceNocOption(licenceType);
-      if ((matchedOpt?.number == 25 || matchedOpt?.number == 38) &&
-          _otherDetailsCtrl.text.trim().isNotEmpty) {
-        licenceType = '$licenceType - ${_otherDetailsCtrl.text.trim()}';
+      final otherNocDetails = _otherDetailsCtrl.text.trim();
+
+      String fullLicenceType = baseLicenceType;
+      if (_isOtherSelected && otherNocDetails.isNotEmpty) {
+        if (baseLicenceType.isNotEmpty) {
+          fullLicenceType = '$baseLicenceType - $otherNocDetails';
+        } else {
+          fullLicenceType = otherNocDetails;
+        }
       }
 
       final statusToSave = (_status == LicenceProvider.statusApproved ||
@@ -152,7 +190,9 @@ class _LicenceAddEditDialogState extends State<LicenceAddEditDialog> {
         if (isEdit) ...widget.existingRecord!.extraFields,
         'applicant_name': applicantName,
         'business_name': businessName,
-        'licence_type': licenceType,
+        'licence_type': fullLicenceType,
+        'base_licence_type': baseLicenceType,
+        'other_noc_type': otherNocDetails,
         'received_date': _receivedDate.toIso8601String(),
         'licence_number': fileNo,
         'licence_status': statusToSave,
@@ -162,7 +202,9 @@ class _LicenceAddEditDialogState extends State<LicenceAddEditDialog> {
       final record = ModuleRecord(
         id: isEdit ? widget.existingRecord!.id : const Uuid().v4(),
         moduleKey: 'licence',
-        title: licenceType.isNotEmpty ? licenceType : 'Licence Verification',
+        title: fullLicenceType.isNotEmpty
+            ? fullLicenceType
+            : 'Licence Verification',
         caseNumber: fileNo,
         description: statusToSave,
         complainant:
@@ -173,8 +215,9 @@ class _LicenceAddEditDialogState extends State<LicenceAddEditDialog> {
         priority: 'Normal',
         status: statusToSave,
         assignedOfficer: '',
-        subCategory:
-            licenceType.isNotEmpty ? licenceType : 'Licence Verification',
+        subCategory: fullLicenceType.isNotEmpty
+            ? fullLicenceType
+            : 'Licence Verification',
         extraFields: extraFields,
         createdAt: isEdit ? widget.existingRecord!.createdAt : DateTime.now(),
       );

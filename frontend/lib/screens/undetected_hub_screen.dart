@@ -366,26 +366,13 @@ class _UndetectedHubScreenState extends State<UndetectedHubScreen>
                       ),
                       const SizedBox(width: 16),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              head,
-                              style: GoogleFonts.poppins(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14.5,
-                                color: AppColors.navyDark,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Category undetected cases breakdown',
-                              style: GoogleFonts.poppins(
-                                fontSize: 11.5,
-                                color: AppColors.lightSubText,
-                              ),
-                            ),
-                          ],
+                        child: Text(
+                          head,
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14.5,
+                            color: AppColors.navyDark,
+                          ),
                         ),
                       ),
                       Container(

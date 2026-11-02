@@ -43,6 +43,7 @@ import '../modules/mcoca/providers/mcoca_provider.dart';
 import '../modules/uapa/providers/uapa_provider.dart';
 import '../modules/mpda/providers/mpda_provider.dart';
 import '../modules/coin/providers/coin_provider.dart';
+import '../modules/pvr/providers/pvr_provider.dart';
 import '../modules/st_drugs/providers/st_drugs_provider.dart';
 
 // ── Helper macro — wires AuthProvider → any BaseModuleProvider subclass ──────
@@ -82,6 +83,7 @@ List<SingleChildWidget> moduleProviders = [
   _wired<HurtProvider>(() => HurtProvider()),
   _wired<PocsoProvider>(() => PocsoProvider()),
   _wired<PassportProvider>(() => PassportProvider()),
+  _wired<PvrProvider>(() => PvrProvider()),
   _wired<LicenceProvider>(() => LicenceProvider()),
   _wired<MonthlyProvider>(() => MonthlyProvider()),
   _wired<PendingProvider>(() => PendingProvider()),
@@ -125,6 +127,7 @@ const Map<String, String> labelToModuleKey = {
   'Hurt': 'hurt',
   'POCSO': 'pocso',
   'Passport/PVR': 'passport',
+  'PVR': 'pvr',
   'Monthly': 'monthly',
   'Pending': 'pending',
   'Detected': 'detected',
@@ -183,6 +186,7 @@ final List<Type> allDataProviders = [
   HurtProvider,
   PocsoProvider,
   PassportProvider,
+  PvrProvider,
   LicenceProvider,
   TwoFourWheelerProvider,
   ArrestedProvider,
@@ -234,6 +238,8 @@ BaseModuleProvider getProvider(BuildContext context, String label) {
       return context.read<PocsoProvider>();
     case 'passport':
       return context.read<PassportProvider>();
+    case 'pvr':
+      return context.read<PvrProvider>();
     case 'licence':
       return context.read<LicenceProvider>();
     case 'monthly':
@@ -305,6 +311,7 @@ List<BaseModuleProvider> getModuleProviders(BuildContext context) {
     context.read<HurtProvider>(),
     context.read<PocsoProvider>(),
     context.read<PassportProvider>(),
+    context.read<PvrProvider>(),
     context.read<LicenceProvider>(),
     context.read<MonthlyProvider>(),
     context.read<PendingProvider>(),

@@ -48,11 +48,15 @@ class FormVISelectionScreen extends StatefulWidget {
   /// Open directly on this category's case list (e.g. from a dashboard tile);
   /// Back then closes the screen instead of showing the Part 6 grid.
   final String? openCategory;
+  final String? customTitle;
+  final FormVIStatusTab initialStatusTab;
 
   const FormVISelectionScreen({
     super.key,
     this.mode = FormVISelectionMode.add,
     this.openCategory,
+    this.customTitle,
+    this.initialStatusTab = FormVIStatusTab.total,
   });
 
   static bool recordMatchesCategory(
@@ -123,7 +127,7 @@ class FormVISelectionScreen extends StatefulWidget {
 }
 
 class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
-  FormVIStatusTab _selectedStatusTab = FormVIStatusTab.total;
+  late FormVIStatusTab _selectedStatusTab;
   String? _selectedCategory;
   final List<String> _categoryBreadcrumb = [];
   final Map<String, List<Map<String, dynamic>>> _categoryChildrenCache = {};
@@ -148,6 +152,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedStatusTab = widget.initialStatusTab;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<FormVIProvider>().ensureInitialized();
@@ -213,6 +218,9 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
             options.add(fallbackName);
           }
         }
+      }
+      if (!options.contains(FormVISelectionScreen.allFilterLabel)) {
+        options.insert(0, FormVISelectionScreen.allFilterLabel);
       }
       return options;
     }
@@ -1464,7 +1472,10 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
       child: Scaffold(
         backgroundColor: AppColors.lightBg,
         appBar: ModuleHubScreenAppBar(
-          title: TranslationHelper.translate(context, 'Form VI Cases'),
+          title: TranslationHelper.translate(
+            context,
+            widget.customTitle ?? 'Form VI Cases',
+          ),
           subtitle: subtitle,
           actionWidget: actionWidget,
           onBackPressed: _handleBackNavigation,
