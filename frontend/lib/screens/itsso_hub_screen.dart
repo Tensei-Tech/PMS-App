@@ -383,29 +383,30 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
                                                   ),
                                                 ),
                                                 onPressed: () async {
+                                                  final messenger =
+                                                      ScaffoldMessenger.of(
+                                                          context);
+                                                  final caseNumber =
+                                                      caseItem['case_number'];
                                                   try {
                                                     await ApiService().post(
                                                       '$baseUrl/itsso/cases/${caseItem['id']}/action/',
                                                       body: {},
                                                     );
                                                     if (mounted) {
-                                                      ScaffoldMessenger.of(
-                                                              context)
-                                                          .showSnackBar(
+                                                      messenger.showSnackBar(
                                                         SnackBar(
                                                           content: Text(
-                                                              "Reminder sent to IO for case ${caseItem['case_number']}"),
+                                                              "Reminder sent to IO for case $caseNumber"),
                                                         ),
                                                       );
                                                     }
                                                   } catch (e) {
                                                     if (mounted) {
-                                                      ScaffoldMessenger.of(
-                                                              context)
-                                                          .showSnackBar(
+                                                      messenger.showSnackBar(
                                                         SnackBar(
                                                           content: Text(
-                                                              "Reminder sent to IO for case ${caseItem['case_number']}"),
+                                                              "Reminder sent to IO for case $caseNumber"),
                                                         ),
                                                       );
                                                     }
