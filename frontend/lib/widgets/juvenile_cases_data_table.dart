@@ -24,7 +24,7 @@ class JuvenileCasesDataTable extends StatelessWidget {
         final double headerFontSize = w < 360 ? 9.5 : (w < 420 ? 10.5 : 11.5);
 
         final columnWidths = <int, TableColumnWidth>{
-          0: const IntrinsicColumnWidth(),
+          0: const FixedColumnWidth(55),
           1: const FlexColumnWidth(1.2),
           2: const FlexColumnWidth(1.4),
           3: const FlexColumnWidth(1.4),
@@ -105,20 +105,46 @@ class JuvenileCasesDataTable extends StatelessWidget {
               border: Border.all(color: const Color(0xFFE2E8F0)),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Table(
-              columnWidths: columnWidths,
-              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-              border: const TableBorder(
-                horizontalInside:
-                    BorderSide(color: Color(0xFFEDF2F7), width: 1),
-                verticalInside: BorderSide(color: Color(0xFFEDF2F7), width: 1),
-              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TableRow(
-                  decoration: const BoxDecoration(color: AppColors.navyDark),
-                  children: headers,
+                // ── Sticky Fixed Blue Header ──
+                Container(
+                  color: AppColors.navyDark,
+                  child: Table(
+                    columnWidths: columnWidths,
+                    defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                    children: [
+                      TableRow(
+                        decoration:
+                            const BoxDecoration(color: AppColors.navyDark),
+                        children: headers,
+                      ),
+                    ],
+                  ),
                 ),
-                for (var i = 0; i < rows.length; i++) rowFor(i, rows[i]),
+                // ── Scrollable Case Rows ──
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 520),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: Table(
+                      columnWidths: columnWidths,
+                      defaultVerticalAlignment:
+                          TableCellVerticalAlignment.middle,
+                      border: const TableBorder(
+                        horizontalInside:
+                            BorderSide(color: Color(0xFFEDF2F7), width: 1),
+                        verticalInside:
+                            BorderSide(color: Color(0xFFEDF2F7), width: 1),
+                      ),
+                      children: [
+                        for (var i = 0; i < rows.length; i++) rowFor(i, rows[i]),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

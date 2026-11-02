@@ -287,41 +287,65 @@ class NAFISCasesDataTable extends StatelessWidget {
         }
 
         final maxH = constraints.maxHeight;
+        final tableWidth = w > 900 ? w : 900.0;
 
-        return Container(
-          width: double.infinity,
-          height: maxH.isFinite ? maxH : null,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
             child: SingleChildScrollView(
-              scrollDirection: Axis.vertical,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minWidth: w > 900 ? w : 900),
-                  child: Table(
-                    columnWidths: columnWidths,
-                    defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                    children: [
-                      TableRow(
-                        decoration: const BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(
-                              color: Color(0xFFE2E8F0),
-                              width: 1.5,
+              scrollDirection: Axis.horizontal,
+              child: SizedBox(
+                width: tableWidth,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // ── Sticky Header ──
+                    Table(
+                      columnWidths: columnWidths,
+                      defaultVerticalAlignment:
+                          TableCellVerticalAlignment.middle,
+                      children: [
+                        TableRow(
+                          decoration: const BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(
+                                color: Color(0xFFE2E8F0),
+                                width: 1.5,
+                              ),
                             ),
                           ),
+                          children: headers,
                         ),
-                        children: headers,
+                      ],
+                    ),
+                    // ── Scrollable Case Rows ──
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: maxH.isFinite
+                            ? (maxH - 52).clamp(100.0, 10000.0)
+                            : 520.0,
                       ),
-                      for (var i = 0; i < rows.length; i++) rowFor(i, rows[i]),
-                    ],
-                  ),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.vertical,
+                        child: Table(
+                          columnWidths: columnWidths,
+                          defaultVerticalAlignment:
+                              TableCellVerticalAlignment.middle,
+                          children: [
+                            for (var i = 0; i < rows.length; i++)
+                              rowFor(i, rows[i]),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

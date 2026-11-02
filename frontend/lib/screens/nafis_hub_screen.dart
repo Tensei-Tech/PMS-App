@@ -194,9 +194,8 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
     return RefreshIndicator(
       onRefresh: _loadCaseWise,
       color: AppColors.navyMid,
-      child: SingleChildScrollView(
+      child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        physics: const AlwaysScrollableScrollPhysics(),
         child: NAFISCasesDataTable(
           realDataRows: _caseWiseList,
           rawRecords: _caseRecords,

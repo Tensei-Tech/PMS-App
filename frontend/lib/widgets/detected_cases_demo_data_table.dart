@@ -29,7 +29,7 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
         final double headerFontSize = w < 360 ? 9.5 : (w < 420 ? 10.5 : 11.5);
 
         final columnWidths = <int, TableColumnWidth>{
-          0: const IntrinsicColumnWidth(),
+          0: const FixedColumnWidth(55),
           1: const FlexColumnWidth(1.1),
           2: const FlexColumnWidth(1.3),
           3: const FlexColumnWidth(1.3),
@@ -103,31 +103,60 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: Container(
             width: double.infinity,
-            height: maxH.isFinite ? maxH : null,
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border.all(color: AppColors.lightBorder),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Table(
-              columnWidths: columnWidths,
-              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-              border: TableBorder.all(color: AppColors.lightBorder, width: 1),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TableRow(
-                  decoration: const BoxDecoration(color: AppColors.navyDark),
-                  children: headers,
+                // ── Sticky Fixed Blue Header ──
+                Container(
+                  color: AppColors.navyDark,
+                  child: Table(
+                    columnWidths: columnWidths,
+                    defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                    children: [
+                      TableRow(
+                        decoration:
+                            const BoxDecoration(color: AppColors.navyDark),
+                        children: headers,
+                      ),
+                    ],
+                  ),
                 ),
-                for (var i = 0; i < rows.length; i++) rowFor(i, rows[i]),
+                // ── Scrollable Case Rows ──
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: maxH.isFinite
+                        ? (maxH - 45).clamp(100.0, 10000.0)
+                        : 520.0,
+                  ),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: Table(
+                      columnWidths: columnWidths,
+                      defaultVerticalAlignment:
+                          TableCellVerticalAlignment.middle,
+                      border: const TableBorder(
+                        horizontalInside:
+                            BorderSide(color: Color(0xFFEDF2F7), width: 1),
+                        verticalInside:
+                            BorderSide(color: Color(0xFFEDF2F7), width: 1),
+                      ),
+                      children: [
+                        for (var i = 0; i < rows.length; i++) rowFor(i, rows[i]),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
         );
-        if (maxH.isFinite) return inner;
-        const estimatedRowPx = 44.0;
-        final estHeight =
-            estimatedRowPx * (rows.isEmpty ? 2 : rows.length + 1) + 16;
-        return SizedBox(height: estHeight, child: inner);
+        return inner;
       },
     );
     return tableCore;

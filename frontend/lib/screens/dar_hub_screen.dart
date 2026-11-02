@@ -127,7 +127,7 @@ const List<DarFilterItem> kDarFilterItems = [
   // Overview
   DarFilterItem(
     key: 'all',
-    label: 'Total DAR',
+    label: 'Total',
     group: 'Overview',
     icon: Icons.assignment_rounded,
     color: AppColors.navyMid,
@@ -136,14 +136,14 @@ const List<DarFilterItem> kDarFilterItems = [
   // Status
   DarFilterItem(
     key: 'filled',
-    label: 'DAR Form Filled',
+    label: 'Filled',
     group: 'Status',
     icon: Icons.check_circle_rounded,
     color: AppColors.successGreen,
   ),
   DarFilterItem(
     key: 'pending',
-    label: 'DAR Form Pending',
+    label: 'Pending',
     group: 'Status',
     icon: Icons.pending_actions_rounded,
     color: AppColors.dangerRed,
@@ -497,7 +497,7 @@ class _DarHubScreenState extends State<DarHubScreen>
 
   String _getActiveFilterLabels() {
     if (_selectedFilterKeys.contains('all') || _selectedFilterKeys.isEmpty) {
-      return 'Total DAR';
+      return 'Total';
     }
     return kDarFilterItems
         .where((i) => _selectedFilterKeys.contains(i.key))
@@ -1101,7 +1101,7 @@ class _DarHubScreenState extends State<DarHubScreen>
     IconData leadingIcon = Icons.assignment_rounded;
 
     if (_selectedFilterKeys.contains('all') || _selectedFilterKeys.isEmpty) {
-      labelText = 'Total DAR';
+      labelText = 'Total';
       leadingIcon = Icons.assignment_rounded;
     } else if (_selectedFilterKeys.length == 1) {
       final item = kDarFilterItems.firstWhere(
@@ -2070,6 +2070,7 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
   late List<DarCaseItem> _displayCases;
   DateTimeRange? _selectedDateRange;
   String? _datePresetLabel;
+  String _statusFilter = 'all'; // 'all', 'filled', 'pending'
 
   @override
   void initState() {
@@ -2113,8 +2114,31 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
           }
         }
 
+        if (_statusFilter == 'filled') {
+          final st = c.status.toLowerCase();
+          if (st != 'filled' && st != 'completed') {
+            return false;
+          }
+        } else if (_statusFilter == 'pending') {
+          final st = c.status.toLowerCase();
+          if (st == 'filled' || st == 'completed') {
+            return false;
+          }
+        }
+
         return true;
       }).toList();
+    });
+  }
+
+  void _setStatusFilter(String status) {
+    setState(() {
+      if (_statusFilter == status && status != 'all') {
+        _statusFilter = 'all';
+      } else {
+        _statusFilter = status;
+      }
+      _applySearch();
     });
   }
 
@@ -2395,65 +2419,95 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
     required IconData icon,
     required Color color,
     required Color bgColor,
+    bool isSelected = false,
+    VoidCallback? onTap,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? color : Colors.grey.withValues(alpha: 0.2),
+            width: isSelected ? 2 : 1,
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: isSelected
+                  ? color.withValues(alpha: 0.15)
+                  : Colors.black.withValues(alpha: 0.02),
+              blurRadius: isSelected ? 8 : 6,
+              offset: const Offset(0, 2),
             ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                title,
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.lightSubText,
-                ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(10),
               ),
-              const SizedBox(height: 2),
-              Text(
-                count.toString(),
-                style: GoogleFonts.poppins(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.navyDark,
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                    color: isSelected ? color : AppColors.lightSubText,
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
+                const SizedBox(height: 2),
+                Text(
+                  count.toString(),
+                  style: GoogleFonts.poppins(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.navyDark,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final q = _searchQuery.toLowerCase().trim();
+    int totalCount = 0;
     int filledCount = 0;
     int pendingCount = 0;
-    for (final c in _displayCases) {
+    for (final c in widget.cases) {
+      if (q.isNotEmpty) {
+        final cr = c.crNo.toLowerCase();
+        final io = c.ioName.toLowerCase();
+        final act = c.actAndSection.toLowerCase();
+        if (!cr.contains(q) && !io.contains(q) && !act.contains(q)) {
+          continue;
+        }
+      }
+      if (_selectedDateRange != null) {
+        final dt = c.incidentDate;
+        final start = _selectedDateRange!.start;
+        final end = _selectedDateRange!.end.add(const Duration(days: 1));
+        if (dt.isBefore(start) || dt.isAfter(end)) {
+          continue;
+        }
+      }
+      totalCount++;
       final st = c.status.toLowerCase();
       if (st == 'filled' || st == 'completed') {
         filledCount++;
@@ -2539,25 +2593,31 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
                   final isMobile = constraints.maxWidth < 650;
                   final cards = [
                     _buildStatCard(
-                      title: 'Total DAR',
-                      count: _displayCases.length,
+                      title: 'Total',
+                      count: totalCount,
                       icon: Icons.assignment_outlined,
                       color: AppColors.navyMid,
                       bgColor: AppColors.navyMid.withValues(alpha: 0.08),
+                      isSelected: _statusFilter == 'all',
+                      onTap: () => _setStatusFilter('all'),
                     ),
                     _buildStatCard(
-                      title: 'DAR Form Filled',
+                      title: 'Filled',
                       count: filledCount,
                       icon: Icons.check_circle_outline_rounded,
                       color: AppColors.successGreen,
                       bgColor: AppColors.successGreen.withValues(alpha: 0.1),
+                      isSelected: _statusFilter == 'filled',
+                      onTap: () => _setStatusFilter('filled'),
                     ),
                     _buildStatCard(
-                      title: 'DAR Form Pending',
+                      title: 'Pending',
                       count: pendingCount,
                       icon: Icons.pending_actions_rounded,
                       color: AppColors.dangerRed,
                       bgColor: AppColors.dangerRed.withValues(alpha: 0.1),
+                      isSelected: _statusFilter == 'pending',
+                      onTap: () => _setStatusFilter('pending'),
                     ),
                   ];
 
@@ -2700,161 +2760,314 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.vertical,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: DataTable(
-                                headingRowColor: WidgetStateProperty.all(
-                                    AppColors.navyDark),
-                                headingTextStyle: GoogleFonts.poppins(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                ),
-                                dataTextStyle: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: AppColors.navyDark,
-                                ),
-                                columnSpacing: 24,
-                                horizontalMargin: 16,
-                                columns: const [
-                                  DataColumn(label: Text('Sr. No.')),
-                                  DataColumn(label: Text('CR No.')),
-                                  DataColumn(label: Text('Act and Section')),
-                                  DataColumn(label: Text('IO Name')),
-                                  DataColumn(label: Text('Status')),
-                                  DataColumn(
-                                      label: Text('Action / Remind to IO')),
-                                ],
-                                rows: List<DataRow>.generate(
-                                  _displayCases.length,
-                                  (index) {
-                                    final c = _displayCases[index];
-                                    final crNo = c.crNo;
-                                    final act = c.actAndSection;
-                                    final io = c.ioName;
-                                    final statusStr = c.status;
-                                    final isFilled =
-                                        statusStr.toLowerCase() == 'filled' ||
-                                            statusStr.toLowerCase() ==
-                                                'completed';
-                                    final caseId = c.id;
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              const minWidth = 780.0;
+                              final tableWidth = constraints.maxWidth > minWidth
+                                  ? constraints.maxWidth
+                                  : minWidth;
 
-                                    return DataRow(
-                                      color: WidgetStateProperty.resolveWith(
-                                        (states) => index.isEven
-                                            ? Colors.white
-                                            : const Color(0xFFF9FAFF),
-                                      ),
-                                      cells: [
-                                        DataCell(Text('${index + 1}')),
-                                        DataCell(
-                                          InkWell(
-                                            onTap: () =>
-                                                widget.onOpenCaseForm(c),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
+                              const columnWidths = <int, TableColumnWidth>{
+                                0: FixedColumnWidth(65),
+                                1: FlexColumnWidth(1.4),
+                                2: FlexColumnWidth(2.0),
+                                3: FlexColumnWidth(1.6),
+                                4: FixedColumnWidth(100),
+                                5: FixedColumnWidth(140),
+                              };
+
+                              Widget headerCell(String text,
+                                  {Alignment align = Alignment.centerLeft}) {
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 14),
+                                  alignment: align,
+                                  child: Text(
+                                    text,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                );
+                              }
+
+                              Widget dataCell(Widget child,
+                                  {Alignment align = Alignment.centerLeft}) {
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 12),
+                                  alignment: align,
+                                  child: child,
+                                );
+                              }
+
+                              return SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: SizedBox(
+                                  width: tableWidth,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      // ── Sticky Fixed Blue Header ──
+                                      Container(
+                                        color: AppColors.navyDark,
+                                        child: Table(
+                                          columnWidths: columnWidths,
+                                          defaultVerticalAlignment:
+                                              TableCellVerticalAlignment.middle,
+                                          children: [
+                                            TableRow(
+                                              decoration: const BoxDecoration(
+                                                  color: AppColors.navyDark),
                                               children: [
-                                                Text(
-                                                  crNo,
-                                                  style: GoogleFonts.poppins(
-                                                    color: AppColors.navyMid,
-                                                    fontWeight: FontWeight.w700,
-                                                    decoration:
-                                                        TextDecoration
-                                                            .underline,
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 4),
-                                                const Icon(
-                                                  Icons.open_in_new_rounded,
-                                                  size: 13,
-                                                  color: AppColors.navyMid,
-                                                ),
+                                                headerCell('Sr. No.'),
+                                                headerCell('CR No.'),
+                                                headerCell('Act and Section'),
+                                                headerCell('IO Name'),
+                                                headerCell('Status',
+                                                    align: Alignment.center),
+                                                headerCell('Action',
+                                                    align: Alignment.center),
                                               ],
                                             ),
-                                          ),
+                                          ],
                                         ),
-                                        DataCell(Text(act)),
-                                        DataCell(Text(io)),
-                                        DataCell(
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 10, vertical: 4),
-                                            decoration: BoxDecoration(
-                                              color: isFilled
-                                                  ? AppColors.successGreen
-                                                  : AppColors.dangerRed,
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                            ),
-                                            child: Text(
-                                              isFilled ? 'Filled' : 'Pending',
-                                              style: GoogleFonts.poppins(
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w700,
-                                                color: Colors.white,
+                                      ),
+
+                                      // ── Scrollable Case List ──
+                                      Expanded(
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.vertical,
+                                          child: Table(
+                                            columnWidths: columnWidths,
+                                            defaultVerticalAlignment:
+                                                TableCellVerticalAlignment
+                                                    .middle,
+                                            border: const TableBorder(
+                                              horizontalInside: BorderSide(
+                                                color: Color(0xFFEDF2F7),
+                                                width: 1,
                                               ),
                                             ),
+                                            children: List<TableRow>.generate(
+                                              _displayCases.length,
+                                              (index) {
+                                                final c = _displayCases[index];
+                                                final crNo = c.crNo;
+                                                final act = c.actAndSection;
+                                                final io = c.ioName;
+                                                final statusStr = c.status;
+                                                final isFilled = statusStr
+                                                            .toLowerCase() ==
+                                                        'filled' ||
+                                                    statusStr.toLowerCase() ==
+                                                        'completed';
+                                                final caseId = c.id;
+                                                final bg = index.isEven
+                                                    ? Colors.white
+                                                    : const Color(0xFFF9FAFF);
+
+                                                return TableRow(
+                                                  decoration:
+                                                      BoxDecoration(color: bg),
+                                                  children: [
+                                                    dataCell(
+                                                      Text(
+                                                        '${index + 1}',
+                                                        style:
+                                                            GoogleFonts.poppins(
+                                                          fontSize: 12,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                          color: AppColors
+                                                              .navyDark,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    dataCell(
+                                                      InkWell(
+                                                        onTap: () => widget
+                                                            .onOpenCaseForm(c),
+                                                        child: Row(
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          children: [
+                                                            Flexible(
+                                                              child: Text(
+                                                                crNo,
+                                                                style:
+                                                                    GoogleFonts
+                                                                        .poppins(
+                                                                  color: AppColors
+                                                                      .navyMid,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w700,
+                                                                  fontSize: 12,
+                                                                  decoration:
+                                                                      TextDecoration
+                                                                          .underline,
+                                                                ),
+                                                                overflow:
+                                                                    TextOverflow
+                                                                        .ellipsis,
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
+                                                                width: 4),
+                                                            const Icon(
+                                                              Icons
+                                                                  .open_in_new_rounded,
+                                                              size: 13,
+                                                              color: AppColors
+                                                                  .navyMid,
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    dataCell(
+                                                      Text(
+                                                        act,
+                                                        style:
+                                                            GoogleFonts.poppins(
+                                                          fontSize: 12,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                          color: AppColors
+                                                              .navyDark,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    dataCell(
+                                                      Text(
+                                                        io,
+                                                        style:
+                                                            GoogleFonts.poppins(
+                                                          fontSize: 12,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                          color: AppColors
+                                                              .navyDark,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    dataCell(
+                                                      Container(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .symmetric(
+                                                                horizontal: 10,
+                                                                vertical: 4),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color: isFilled
+                                                              ? AppColors
+                                                                  .successGreen
+                                                              : AppColors
+                                                                  .dangerRed,
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(12),
+                                                        ),
+                                                        child: Text(
+                                                          isFilled
+                                                              ? 'Filled'
+                                                              : 'Pending',
+                                                          style: GoogleFonts
+                                                              .poppins(
+                                                            fontSize: 11,
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            color: Colors.white,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      align: Alignment.center,
+                                                    ),
+                                                    dataCell(
+                                                      isFilled
+                                                          ? Text(
+                                                              'Completed',
+                                                              style:
+                                                                  GoogleFonts
+                                                                      .poppins(
+                                                                fontSize: 12,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                color: AppColors
+                                                                    .successGreen,
+                                                              ),
+                                                            )
+                                                          : ElevatedButton.icon(
+                                                              onPressed: () {
+                                                                widget
+                                                                    .onSendReminderToIO(
+                                                                        caseId,
+                                                                        crNo,
+                                                                        io);
+                                                              },
+                                                              icon: const Icon(
+                                                                Icons
+                                                                    .notifications_active_rounded,
+                                                                size: 14,
+                                                                color: Colors
+                                                                    .white,
+                                                              ),
+                                                              label: Text(
+                                                                'Remind to IO',
+                                                                style:
+                                                                    GoogleFonts
+                                                                        .poppins(
+                                                                  fontSize:
+                                                                      11.5,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
+                                                                  color: Colors
+                                                                      .white,
+                                                                ),
+                                                              ),
+                                                              style:
+                                                                  ElevatedButton
+                                                                      .styleFrom(
+                                                                backgroundColor:
+                                                                    AppColors
+                                                                        .dangerRed,
+                                                                elevation: 0,
+                                                                padding: const EdgeInsets
+                                                                    .symmetric(
+                                                                    horizontal:
+                                                                        10,
+                                                                    vertical:
+                                                                        6),
+                                                                shape:
+                                                                    RoundedRectangleBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              6),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                      align: Alignment.center,
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            ),
                                           ),
                                         ),
-                                        DataCell(
-                                          isFilled
-                                              ? Text(
-                                                  'Completed',
-                                                  style: GoogleFonts.poppins(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w600,
-                                                    color:
-                                                        AppColors.successGreen,
-                                                  ),
-                                                )
-                                              : ElevatedButton.icon(
-                                                  onPressed: () {
-                                                    widget.onSendReminderToIO(
-                                                        caseId, crNo, io);
-                                                  },
-                                                  icon: const Icon(
-                                                    Icons
-                                                        .notifications_active_rounded,
-                                                    size: 14,
-                                                    color: Colors.white,
-                                                  ),
-                                                  label: Text(
-                                                    'Remind to IO',
-                                                    style: GoogleFonts.poppins(
-                                                      fontSize: 11.5,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      color: Colors.white,
-                                                    ),
-                                                  ),
-                                                  style: ElevatedButton
-                                                      .styleFrom(
-                                                    backgroundColor:
-                                                        AppColors.dangerRed,
-                                                    elevation: 0,
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 10,
-                                                        vertical: 6),
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              6),
-                                                    ),
-                                                  ),
-                                                ),
-                                        ),
-                                      ],
-                                    );
-                                  },
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ),
+                              );
+                            },
                           ),
                         ),
                       ),
