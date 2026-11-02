@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:khakhi_diary/utils/translation_helper.dart';
 
 void main() {
-  testWidgets('Normal Accident is shown as Accident', (tester) async {
+  testWidgets('Normal Accident is shown as Other Accident', (tester) async {
     late BuildContext ctx;
     await tester.pumpWidget(Builder(builder: (c) {
       ctx = c;
@@ -13,12 +13,14 @@ void main() {
     addTearDown(() => TranslationHelper.activeLanguageCode = saved);
 
     TranslationHelper.activeLanguageCode = 'en';
-    expect(TranslationHelper.translate(ctx, 'Normal Accident'), 'Accident');
+    expect(TranslationHelper.translate(ctx, 'Normal Accident'), 'Other Accident');
     expect(TranslationHelper.translate(ctx, 'Road Accident'), 'Road Accident');
+    // The parent tab keeps its name
+    expect(TranslationHelper.translate(ctx, 'Accident'), 'Accident');
 
     TranslationHelper.activeLanguageCode = 'mr';
     expect(TranslationHelper.translate(ctx, 'Normal Accident'),
-        TranslationHelper.translate(ctx, 'Accident'));
+        TranslationHelper.translate(ctx, 'Other Accident'));
   });
 
   testWidgets('Juvenile is shown as CiCL in English', (tester) async {
