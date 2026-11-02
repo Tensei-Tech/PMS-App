@@ -118,6 +118,9 @@ class CategoryIconHelper {
         return 'assets/icons/macoca.svg';
       case 'mpda':
         return 'assets/icons/mpda.svg';
+      case 'preventive':
+      case 'tadipar':
+        return 'assets/icons/tadipar.svg';
       case 'pending':
         return 'assets/icons/pending.svg';
       case 'disposal':
