@@ -71,6 +71,8 @@ import '../providers/theme_provider.dart';
 import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
 import '../services/backend_case_service.dart';
+import '../widgets/hover_lift.dart';
+import 'filtered_pending_screen.dart';
 import '../widgets/pending_time_wise_card.dart';
 import '../utils/app_constants.dart';
 import '../utils/case_visibility_ui.dart';
@@ -5535,6 +5537,25 @@ class _CalendarTabState extends State<_CalendarTab> {
     final items = (_timeWiseData ?? const <Map<String, dynamic>>[])
         .where((item) => item['period']?.toString() != 'Under 3 months (Total)')
         .toList();
+    final total = items.fold<int>(
+        0, (sum, item) => sum + ((item['count'] as num?)?.toInt() ?? 0));
+
+    // Phones get compact cards and header so the whole tab fits on one
+    // screen without scrolling.
+    final isPhone = MediaQuery.sizeOf(context).width < Breakpoints.mobile;
+
+    Widget periodCard(Map<String, dynamic> item) {
+      final count = (item['count'] as num?)?.toInt() ?? 0;
+      return PendingTimeWiseCard(
+        period: item['period']?.toString() ?? '',
+        count: count,
+        vertical: true,
+        showTitlePrefix: false,
+        share: total == 0 ? 0 : count / total,
+        compact: isPhone,
+      );
+    }
+
     return RefreshIndicator(
       onRefresh: _load,
       color: AppColors.navyMid,
@@ -5543,47 +5564,260 @@ class _CalendarTabState extends State<_CalendarTab> {
         padding: const EdgeInsets.fromLTRB(
             AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 100),
         children: [
-          // All cards in one row. Cards share the width equally, and
-          // scroll sideways once they would be narrower than minCardWidth
-          // (small phones).
+          _PendingAgeSummary(items: items, total: total, compact: isPhone),
+          SizedBox(height: isPhone ? 14 : 18),
+          Text(
+            'Pending by age',
+            style: GoogleFonts.poppins(
+              fontSize: isPhone ? 14 : 15,
+              fontWeight: FontWeight.w700,
+              color: AppColors.navyDark,
+            ),
+          ),
+          if (!isPhone)
+            Text(
+              'Tap a card to see its cases',
+              style: GoogleFonts.poppins(
+                fontSize: 11.5,
+                color: AppColors.lightSubText,
+              ),
+            ),
+          SizedBox(height: isPhone ? 8 : 10),
           LayoutBuilder(
             builder: (context, constraints) {
               const gap = 10.0;
-              const minCardWidth = 112.0;
-              final cards = <Widget>[
-                for (final item in items)
-                  PendingTimeWiseCard(
-                    period: item['period']?.toString() ?? '',
-                    count: (item['count'] as num?)?.toInt() ?? 0,
-                    vertical: true,
+              final width = constraints.maxWidth;
+
+              // Phones: compact cards in two columns, Custom last. An odd
+              // last card spans the full width.
+              if (width < Breakpoints.mobile) {
+                final cards = <Widget>[
+                  for (final item in items) periodCard(item),
+                  const PendingTimeWiseCard.custom(
                     showTitlePrefix: false,
+                    compact: true,
                   ),
-                // Pick any date range and list the pending cases in it.
+                ];
+                final half = (width - gap) / 2;
+                return Wrap(
+                  spacing: gap,
+                  runSpacing: gap,
+                  children: [
+                    for (var i = 0; i < cards.length; i++)
+                      SizedBox(
+                        width: cards.length.isOdd && i == cards.length - 1
+                            ? width
+                            : half,
+                        child: cards[i],
+                      ),
+                  ],
+                );
+              }
+
+              // Tablets and desktop: everything in one row.
+              final cards = <Widget>[
+                for (final item in items) periodCard(item),
                 const PendingTimeWiseCard.custom(showTitlePrefix: false),
               ];
-              final count = cards.length;
-              final fitWidth =
-                  (constraints.maxWidth - gap * (count - 1)) / count;
               final cardWidth =
-                  fitWidth < minCardWidth ? minCardWidth : fitWidth;
-              final row = Row(
+                  (width - gap * (cards.length - 1)) / cards.length;
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  for (var i = 0; i < count; i++) ...[
+                  for (var i = 0; i < cards.length; i++) ...[
                     if (i > 0) const SizedBox(width: gap),
                     SizedBox(width: cardWidth, child: cards[i]),
                   ],
                 ],
               );
-              return fitWidth < minCardWidth
-                  ? SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      physics: const BouncingScrollPhysics(),
-                      child: row,
-                    )
-                  : row;
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Navy header on the Calendar tab: total pending cases and a bar split by
+/// how long they have been pending.
+class _PendingAgeSummary extends StatelessWidget {
+  final List<Map<String, dynamic>> items;
+  final int total;
+
+  /// Phones: puts the total beside the icon and tightens spacing.
+  final bool compact;
+
+  const _PendingAgeSummary({
+    required this.items,
+    required this.total,
+    this.compact = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final oldest = items
+        .where((item) => item['period']?.toString() == 'More than 1 year')
+        .fold<int>(
+            0, (sum, item) => sum + ((item['count'] as num?)?.toInt() ?? 0));
+    final totalText = Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(
+            text: '$total',
+            style: GoogleFonts.poppins(
+              fontSize: compact ? 26 : 34,
+              fontWeight: FontWeight.w700,
+              height: 1.1,
+              color: Colors.white,
+            ),
+          ),
+          TextSpan(
+            text: total == 1 ? '  case open' : '  cases open',
+            style: GoogleFonts.poppins(
+              fontSize: compact ? 12 : 13,
+              fontWeight: FontWeight.w500,
+              color: Colors.white70,
+            ),
+          ),
+        ],
+      ),
+    );
+    final label = Text(
+      'Pending cases',
+      style: GoogleFonts.poppins(
+        fontSize: compact ? 11.5 : 13,
+        fontWeight: FontWeight.w600,
+        color: Colors.white70,
+      ),
+    );
+    final card = Container(
+      padding: compact
+          ? const EdgeInsets.fromLTRB(14, 12, 14, 12)
+          : const EdgeInsets.fromLTRB(18, 18, 18, 16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppColors.navyDark, AppColors.navyMid],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.navyMid.withValues(alpha: 0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.hourglass_bottom_rounded,
+                  color: AppColors.goldPrimary,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: compact
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [label, totalText],
+                      )
+                    : label,
+              ),
+              Text(
+                'View all',
+                style: GoogleFonts.poppins(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white70,
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: Colors.white70,
+                size: 18,
+              ),
+            ],
+          ),
+          if (!compact) ...[
+            const SizedBox(height: 10),
+            totalText,
+          ],
+          SizedBox(height: compact ? 10 : 14),
+          // One segment per age bucket, sized by its share of the total.
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: SizedBox(
+              height: compact ? 8 : 10,
+              child: total == 0
+                  ? Container(color: Colors.white.withValues(alpha: 0.2))
+                  : Row(
+                      children: [
+                        for (final item in items)
+                          if (((item['count'] as num?)?.toInt() ?? 0) > 0)
+                            Expanded(
+                              flex: (item['count'] as num).toInt(),
+                              child: Container(
+                                color: pendingPeriodColorOnDark(
+                                    item['period']?.toString() ?? ''),
+                              ),
+                            ),
+                      ],
+                    ),
+            ),
+          ),
+          SizedBox(height: compact ? 8 : 10),
+          Row(
+            children: [
+              Icon(
+                oldest > 0
+                    ? Icons.warning_amber_rounded
+                    : Icons.check_circle_outline_rounded,
+                size: 16,
+                color: oldest > 0 ? AppColors.goldPrimary : AppColors.goldLight,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  oldest > 0
+                      ? '$oldest pending for more than a year'
+                      : 'Nothing pending for more than a year',
+                  style: GoogleFonts.poppins(
+                    fontSize: 11.5,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    // Tapping the summary lists every pending case.
+    return HoverLift(
+      borderRadius: BorderRadius.circular(18),
+      hoverBorderColor: AppColors.goldPrimary,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => Navigator.push(
+          context,
+          AppTheme.fadeSlideRoute(
+            page: const FilteredPendingScreen(title: 'All pending cases'),
+          ),
+        ),
+        child: card,
       ),
     );
   }
