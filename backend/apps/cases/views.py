@@ -2744,7 +2744,8 @@ class VictimTimeWiseView(APIView):
 
             victim_filter = request.query_params.get('victim_filter') or request.query_params.get('filter_type')
             if victim_filter and victim_filter.lower() not in ['all', 'total', '']:
-                matching_ids = [c.id for c in queryset if case_matches_victim_filter(c, victim_filter)]
+                filtered_candidates = queryset.only('id', 'extra_fields', 'module_key', 'sub_category', 'status')
+                matching_ids = [c.id for c in filtered_candidates if case_matches_victim_filter(c, victim_filter)]
                 queryset = queryset.filter(id__in=matching_ids)
 
             now = timezone.now()
@@ -2790,7 +2791,8 @@ class VictimIOWiseView(APIView):
 
             victim_filter = request.query_params.get('victim_filter') or request.query_params.get('filter_type')
             if victim_filter and victim_filter.lower() not in ['all', 'total', '']:
-                matching_ids = [c.id for c in queryset if case_matches_victim_filter(c, victim_filter)]
+                filtered_candidates = queryset.only('id', 'extra_fields', 'module_key', 'sub_category', 'status')
+                matching_ids = [c.id for c in filtered_candidates if case_matches_victim_filter(c, victim_filter)]
                 queryset = queryset.filter(id__in=matching_ids)
 
             counts = queryset.values('assigned_officer', 'station_name').annotate(count=Count('id')).order_by('-count')
