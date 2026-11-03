@@ -157,42 +157,42 @@ const List<IradFilterItem> kIradFilterItems = [
     label: 'Road Accident',
     group: 'Accident Category',
     icon: Icons.car_crash_rounded,
-    color: Color(0xFF1E88E5),
+    color: AppColors.navyMid,
   ),
   IradFilterItem(
     key: 'normal_accident',
     label: 'Other Accident',
     group: 'Accident Category',
     icon: Icons.minor_crash_rounded,
-    color: Color(0xFF00ACC1),
+    color: AppColors.navyMid,
   ),
   IradFilterItem(
     key: 'death_rash_driving',
     label: 'Death Due to Rash Driving',
     group: 'Accident Category',
     icon: Icons.warning_amber_rounded,
-    color: Color(0xFFD32F2F),
+    color: AppColors.navyMid,
   ),
   IradFilterItem(
     key: 'hit_and_run',
     label: 'Hit and Run',
     group: 'Accident Category',
     icon: Icons.speed_rounded,
-    color: Color(0xFFE65100),
+    color: AppColors.navyMid,
   ),
   IradFilterItem(
     key: 'fatal',
     label: 'Fatal Accident',
     group: 'Accident Category',
     icon: Icons.heart_broken_rounded,
-    color: Color(0xFFC2185B),
+    color: AppColors.navyMid,
   ),
   IradFilterItem(
     key: 'non_fatal',
     label: 'Non-Fatal Accident',
     group: 'Accident Category',
     icon: Icons.health_and_safety_rounded,
-    color: Color(0xFF43A047),
+    color: AppColors.navyMid,
   ),
 ];
 
@@ -333,6 +333,11 @@ class _IradHubScreenState extends State<IradHubScreen>
   // DATA FETCHING & TAB DATA DERIVATION
   // ---------------------------------------------------------------------------
 
+  bool _isAccidentCategoryCase(IradCaseItem c) {
+    final combined = '${c.actAndSection} ${c.rawMap['sub_category'] ?? ''} ${c.rawMap['title'] ?? ''} ${c.rawMap['category_name'] ?? ''} ${c.rawMap['module_key'] ?? ''}'.toLowerCase();
+    return combined.contains('accident') || combined.contains('rash');
+  }
+
   Future<void> _fetchIradData() async {
     setState(() {
       _isLoading = true;
@@ -361,14 +366,20 @@ class _IradHubScreenState extends State<IradHubScreen>
           if (results is Iterable) {
             for (final item in results) {
               if (item is Map) {
-                rawList.add(IradCaseItem.fromMap(item));
+                final c = IradCaseItem.fromMap(item);
+                if (_isAccidentCategoryCase(c)) {
+                  rawList.add(c);
+                }
               }
             }
           }
         } else if (data is Iterable) {
           for (final item in data) {
             if (item is Map) {
-              rawList.add(IradCaseItem.fromMap(item));
+              final c = IradCaseItem.fromMap(item);
+              if (_isAccidentCategoryCase(c)) {
+                rawList.add(c);
+              }
             }
           }
         }
@@ -614,6 +625,7 @@ class _IradHubScreenState extends State<IradHubScreen>
                 ? item.stationName
                 : (widget.stationName ?? ''),
           ),
+          readOnly: true,
         ),
       ),
     );
@@ -2365,11 +2377,10 @@ class _IradCasesDetailScreenState extends State<IradCasesDetailScreen> {
         height: 38,
         padding: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
-          color: hasFilter ? const Color(0xFFEFF6FF) : Colors.white,
+          color: hasFilter ? AppColors.navyMid.withValues(alpha: 0.08) : Colors.white,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color:
-                hasFilter ? const Color(0xFF3B82F6) : const Color(0xFFCBD5E1),
+            color: hasFilter ? AppColors.navyMid : const Color(0xFFCBD5E1),
           ),
         ),
         child: Row(
@@ -2378,8 +2389,7 @@ class _IradCasesDetailScreenState extends State<IradCasesDetailScreen> {
             Icon(
               Icons.calendar_month_rounded,
               size: 16,
-              color:
-                  hasFilter ? const Color(0xFF1E40AF) : AppColors.lightSubText,
+              color: hasFilter ? AppColors.navyMid : AppColors.lightSubText,
             ),
             const SizedBox(width: 6),
             Text(
@@ -2387,15 +2397,14 @@ class _IradCasesDetailScreenState extends State<IradCasesDetailScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 12,
                 fontWeight: hasFilter ? FontWeight.w600 : FontWeight.w500,
-                color: hasFilter ? const Color(0xFF1E40AF) : AppColors.navyDark,
+                color: hasFilter ? AppColors.navyMid : AppColors.navyDark,
               ),
             ),
             const SizedBox(width: 4),
             Icon(
               Icons.arrow_drop_down_rounded,
               size: 18,
-              color:
-                  hasFilter ? const Color(0xFF1E40AF) : AppColors.lightSubText,
+              color: hasFilter ? AppColors.navyMid : AppColors.lightSubText,
             ),
           ],
         ),
@@ -2827,7 +2836,7 @@ class _IradCasesDetailScreenState extends State<IradCasesDetailScreen> {
                                     children: [
                                       // ── Sticky Fixed Blue Header ──
                                       Container(
-                                        color: AppColors.navyDark,
+                                        color: AppColors.navyMid,
                                         child: Table(
                                           columnWidths: columnWidths,
                                           defaultVerticalAlignment:
@@ -2835,7 +2844,7 @@ class _IradCasesDetailScreenState extends State<IradCasesDetailScreen> {
                                           children: [
                                             TableRow(
                                               decoration: const BoxDecoration(
-                                                  color: AppColors.navyDark),
+                                                  color: AppColors.navyMid),
                                               children: [
                                                 headerCell('Sr. No.'),
                                                 headerCell('CR No.'),

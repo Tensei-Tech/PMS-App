@@ -506,8 +506,8 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
                     context,
                     AppTheme.fadeSlideRoute(
                       page: FilteredPendingScreen(
-                        title: 'ITSSO (POCSO) - $p',
-                        category: 'pocso',
+                        title: 'ITSSO - $p',
+                        category: 'itsso',
                         startDate: start?.toIso8601String().split('T')[0],
                         endDate: end?.toIso8601String().split('T')[0],
                         isVictim: true,
@@ -627,8 +627,8 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
                     context,
                     AppTheme.fadeSlideRoute(
                       page: FilteredPendingScreen(
-                        title: 'ITSSO (POCSO) - $ioName',
-                        category: 'pocso',
+                        title: 'ITSSO - $ioName',
+                        category: 'itsso',
                         ioUid: item['io_uid']?.toString() ?? ioName,
                         isVictim: true,
                       ),

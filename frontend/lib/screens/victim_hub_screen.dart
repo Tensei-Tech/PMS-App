@@ -41,28 +41,28 @@ const List<VictimFilterItem> kVictimFilterItems = [
     label: 'Male Victims',
     group: 'Gender',
     icon: Icons.male_rounded,
-    color: Color(0xFF1E88E5),
+    color: AppColors.navyMid,
   ),
   VictimFilterItem(
     key: 'female',
     label: 'Female Victims',
     group: 'Gender',
     icon: Icons.female_rounded,
-    color: Color(0xFFE91E63),
+    color: AppColors.navyMid,
   ),
   VictimFilterItem(
     key: 'transgender',
     label: 'Transgender Victims',
     group: 'Gender',
     icon: Icons.transgender_rounded,
-    color: Color(0xFF9C27B0),
+    color: AppColors.navyMid,
   ),
   VictimFilterItem(
     key: 'other_gender',
     label: 'Other Victims',
     group: 'Gender',
     icon: Icons.person_outline_rounded,
-    color: Color(0xFF607D8B),
+    color: AppColors.navyMid,
   ),
 
   // Special Categories & Vulnerability
@@ -71,70 +71,70 @@ const List<VictimFilterItem> kVictimFilterItems = [
     label: 'Adult Victims',
     group: 'Special Categories',
     icon: Icons.person_rounded,
-    color: Color(0xFF455A64),
+    color: AppColors.navyMid,
   ),
   VictimFilterItem(
     key: 'pwd',
     label: 'Person with Disability (PwD)',
     group: 'Special Categories',
     icon: Icons.accessible_rounded,
-    color: Color(0xFF00897B),
+    color: AppColors.navyMid,
   ),
   VictimFilterItem(
     key: 'minor',
     label: 'Child/Minor Under 18',
     group: 'Special Categories',
     icon: Icons.child_care_rounded,
-    color: Color(0xFFFB8C00),
+    color: AppColors.navyMid,
   ),
   VictimFilterItem(
     key: 'minor_male',
     label: 'Child/Minor Under 18 — Male',
     group: 'Special Categories',
     icon: Icons.boy_rounded,
-    color: Color(0xFF1976D2),
+    color: AppColors.navyMid,
   ),
   VictimFilterItem(
     key: 'minor_female',
     label: 'Child/Minor Under 18 — Female',
     group: 'Special Categories',
     icon: Icons.girl_rounded,
-    color: Color(0xFFD81B60),
+    color: AppColors.navyMid,
   ),
   VictimFilterItem(
     key: 'women',
     label: 'Women',
     group: 'Special Categories',
     icon: Icons.woman_rounded,
-    color: Color(0xFFC2185B),
+    color: AppColors.navyMid,
   ),
   VictimFilterItem(
     key: 'senior',
     label: 'Senior Citizen Age 60+',
     group: 'Special Categories',
     icon: Icons.elderly_rounded,
-    color: Color(0xFF5D4037),
+    color: AppColors.navyMid,
   ),
   VictimFilterItem(
     key: 'senior_male',
     label: 'Senior Citizen Age 60+ — Male',
     group: 'Special Categories',
     icon: Icons.elderly_rounded,
-    color: Color(0xFF0288D1),
+    color: AppColors.navyMid,
   ),
   VictimFilterItem(
     key: 'senior_female',
     label: 'Senior Citizen Age 60+ — Female',
     group: 'Special Categories',
     icon: Icons.elderly_woman_rounded,
-    color: Color(0xFFAD1457),
+    color: AppColors.navyMid,
   ),
   VictimFilterItem(
     key: 'mentally_vulnerable',
     label: 'Mentally Vulnerable',
     group: 'Special Categories',
     icon: Icons.psychology_rounded,
-    color: Color(0xFF673AB7),
+    color: AppColors.navyMid,
   ),
 
   // Condition & Tracing
@@ -143,35 +143,35 @@ const List<VictimFilterItem> kVictimFilterItems = [
     label: 'Injured Victims',
     group: 'Condition & Tracing',
     icon: Icons.personal_injury_rounded,
-    color: Color(0xFFFF9800),
+    color: AppColors.navyMid,
   ),
   VictimFilterItem(
     key: 'deceased',
     label: 'Deceased Victims',
     group: 'Condition & Tracing',
     icon: Icons.heart_broken_rounded,
-    color: Color(0xFFD32F2F),
+    color: AppColors.navyMid,
   ),
   VictimFilterItem(
     key: 'missing',
     label: 'Missing Victims',
     group: 'Condition & Tracing',
     icon: Icons.person_search_rounded,
-    color: Color(0xFF7B1FA2),
+    color: AppColors.navyMid,
   ),
   VictimFilterItem(
     key: 'traced',
     label: 'Victims Traced',
     group: 'Condition & Tracing',
     icon: Icons.how_to_reg_rounded,
-    color: Color(0xFF2E7D32),
+    color: AppColors.navyMid,
   ),
   VictimFilterItem(
     key: 'pending_tracing',
     label: 'Victims Pending Tracing',
     group: 'Condition & Tracing',
     icon: Icons.pending_actions_rounded,
-    color: Color(0xFFE65100),
+    color: AppColors.navyMid,
   ),
 
   // Age Category (filter)
@@ -179,43 +179,43 @@ const List<VictimFilterItem> kVictimFilterItems = [
     key: 'age_below_5',
     label: 'Below 5 Years',
     group: 'Age Category',
-    icon: Icons.cake_outlined,
-    color: Color(0xFF00ACC1),
+    icon: Icons.child_friendly_rounded,
+    color: AppColors.navyMid,
   ),
   VictimFilterItem(
     key: 'age_5_10',
     label: '5–10 Years',
     group: 'Age Category',
-    icon: Icons.child_friendly_rounded,
-    color: Color(0xFF43A047),
+    icon: Icons.cake_rounded,
+    color: AppColors.navyMid,
   ),
   VictimFilterItem(
     key: 'age_11_15',
     label: '11–15 Years',
     group: 'Age Category',
     icon: Icons.school_outlined,
-    color: Color(0xFF3949AB),
+    color: AppColors.navyMid,
   ),
   VictimFilterItem(
     key: 'age_16_18',
     label: '16–18 Years',
     group: 'Age Category',
     icon: Icons.face_outlined,
-    color: Color(0xFF8E24AA),
+    color: AppColors.navyMid,
   ),
   VictimFilterItem(
     key: 'age_18_59',
     label: '18–59 Years',
     group: 'Age Category',
     icon: Icons.work_outline_rounded,
-    color: Color(0xFF00897B),
+    color: AppColors.navyMid,
   ),
   VictimFilterItem(
     key: 'age_60_plus',
     label: '60 Years & Above',
     group: 'Age Category',
     icon: Icons.elderly_rounded,
-    color: Color(0xFF6D4C41),
+    color: AppColors.navyMid,
   ),
 ];
 
@@ -1132,9 +1132,9 @@ class _VictimHubScreenState extends State<VictimHubScreen>
                                                       horizontal: 6,
                                                       vertical: 1.5),
                                                   decoration: BoxDecoration(
-                                                    color: isChecked
+                                                    color: (isChecked || count > 0)
                                                         ? AppColors.navyMid
-                                                        : Colors.grey
+                                                        : AppColors.navyMid
                                                             .withValues(
                                                                 alpha: 0.12),
                                                     borderRadius:
@@ -1147,9 +1147,9 @@ class _VictimHubScreenState extends State<VictimHubScreen>
                                                       fontSize: 10.5,
                                                       fontWeight:
                                                           FontWeight.w700,
-                                                      color: isChecked
+                                                      color: (isChecked || count > 0)
                                                           ? Colors.white
-                                                          : AppColors.navyDark,
+                                                          : AppColors.navyMid,
                                                     ),
                                                   ),
                                                 ),
@@ -1303,7 +1303,7 @@ class _VictimHubScreenState extends State<VictimHubScreen>
             Icon(
               leadingIcon,
               size: 16,
-              color: isFiltered ? AppColors.navyMid : const Color(0xFF5D7285),
+              color: AppColors.navyMid,
             ),
             const SizedBox(width: 8),
             Text(
@@ -1318,9 +1318,7 @@ class _VictimHubScreenState extends State<VictimHubScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
               decoration: BoxDecoration(
-                color: isFiltered
-                    ? AppColors.navyMid
-                    : Colors.grey.withValues(alpha: 0.15),
+                color: AppColors.navyMid,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
@@ -1328,7 +1326,7 @@ class _VictimHubScreenState extends State<VictimHubScreen>
                 style: GoogleFonts.poppins(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: isFiltered ? Colors.white : AppColors.navyDark,
+                  color: Colors.white,
                 ),
               ),
             ),

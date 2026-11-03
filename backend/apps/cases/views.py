@@ -2568,14 +2568,18 @@ class VictimCaseWiseView(APIView):
 
             category = request.query_params.get('category') or request.query_params.get('crime_type')
             if category:
-                norm_cat = category.replace('_', ' ').strip()
-                queryset = queryset.filter(
-                    Q(module_key__iexact=category) |
-                    Q(sub_category__iexact=category) |
-                    Q(sub_category__iexact=norm_cat) |
-                    Q(category_links__category__category_name__iexact=norm_cat) |
-                    Q(category_links__category__category_code__iexact=category)
-                ).distinct()
+                if category.lower() == 'itsso':
+                    from apps.cases.itsso_service import ItssoService
+                    queryset = ItssoService.get_itsso_cases_queryset()
+                else:
+                    norm_cat = category.replace('_', ' ').strip()
+                    queryset = queryset.filter(
+                        Q(module_key__iexact=category) |
+                        Q(sub_category__iexact=category) |
+                        Q(sub_category__iexact=norm_cat) |
+                        Q(category_links__category__category_name__iexact=norm_cat) |
+                        Q(category_links__category__category_code__iexact=category)
+                    ).distinct()
 
             start_date = request.query_params.get('start_date')
             end_date = request.query_params.get('end_date')
@@ -2825,15 +2829,14 @@ class VictimIOWiseView(APIView):
 
 
 from apps.cases.serializers import ItssoCaseRecordSerializer
+from apps.cases.itsso_service import ItssoService
 
 class ItssoCasesView(APIView):
     permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         from django.db.models import Q
-        # POCSO cases only
-        pocso_q = Q(module_key__iexact='pocso') | Q(sub_category__iexact='pocso') | Q(sub_category__icontains='pocso')
-        queryset = CaseRecord.objects.filter(pocso_q).distinct()
+        queryset = ItssoService.get_itsso_cases_queryset()
 
         user = request.user
         if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
@@ -2889,8 +2892,7 @@ class ItssoIOWiseView(APIView):
 
     def get(self, request):
         from django.db.models import Q, Count
-        pocso_q = Q(module_key__iexact='pocso') | Q(sub_category__iexact='pocso') | Q(sub_category__icontains='pocso')
-        queryset = CaseRecord.objects.filter(pocso_q).distinct()
+        queryset = ItssoService.get_itsso_cases_queryset()
 
         user = request.user
         if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
@@ -2928,8 +2930,7 @@ class ItssoTimeWiseView(APIView):
         from django.utils import timezone
         from datetime import timedelta
         
-        pocso_q = Q(module_key__iexact='pocso') | Q(sub_category__iexact='pocso') | Q(sub_category__icontains='pocso')
-        queryset = CaseRecord.objects.filter(pocso_q).distinct()
+        queryset = ItssoService.get_itsso_cases_queryset()
 
         user = request.user
         if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):

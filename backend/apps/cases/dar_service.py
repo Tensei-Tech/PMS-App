@@ -54,13 +54,13 @@ class RoadAccidentDarService:
 
     @classmethod
     def get_road_accident_category_codes(cls) -> List[str]:
-        """Dynamically fetch all accident and road-rash category codes from database."""
+        """Dynamically fetch all accident category codes from database."""
         try:
             from apps.crimetab.models.groupings import CaseCategory
             codes = list(CaseCategory.objects.filter(
                 Q(category_name__icontains='accident') |
-                Q(category_name__icontains='rash') |
-                Q(category_code__icontains='acc')
+                Q(parent_category__category_name__icontains='accident') |
+                Q(category_code__startswith='ACC')
             ).values_list('category_code', flat=True))
             return [str(c).strip() for c in codes if c]
         except Exception:
@@ -73,24 +73,19 @@ class RoadAccidentDarService:
     @classmethod
     def get_road_accident_query(cls) -> Q:
         """
-        Constructs the dynamic database Q filter to find all Road Accident cases
-        across database categories, module keys, sub-categories, titles, and extra fields.
+        Constructs the dynamic database Q filter to find all Accident cases
+        across database categories, module keys, sub-categories, and titles.
         """
         dynamic_codes = cls.get_road_accident_category_codes()
         q_filter = (
             Q(module_key__iexact='accident')
             | Q(module_key__iexact='road_accident')
             | Q(module_key__iexact='road accident')
+            | Q(module_key__iexact='other_accident')
             | Q(module_key__iexact='dar')
             | Q(sub_category__icontains='accident')
-            | Q(sub_category__icontains='rash')
-            | Q(sub_category__icontains='road')
             | Q(category_links__category__category_name__icontains='accident')
-            | Q(extra_fields__has_key='acc_dar')
-            | Q(extra_fields__has_key='acc_dar_date')
-            | Q(extra_fields__has_key='acc_irad')
-            | Q(extra_fields__has_key='accident_datetime')
-            | Q(extra_fields__has_key='accident_spot')
+            | Q(category_links__category__parent_category__category_name__icontains='accident')
             | Q(title__icontains='accident')
             | Q(title__icontains='rash driving')
         )

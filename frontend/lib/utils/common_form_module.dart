@@ -97,7 +97,6 @@ const Set<String> _kCommonFormBaselineCategoryNames = {
   'accident',
   'other accident',
   'normal accident',
-  'other accident',
   // Road Accident tabs open the dynamic form (see above)
   'sec 156(3)/175(3)(bnss)',
   'sec 156(3)/175 (3)(bnss)',

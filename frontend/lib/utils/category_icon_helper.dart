@@ -65,7 +65,6 @@ class CategoryIconHelper {
       case 'accident':
       case 'other accident':
       case 'normal accident':
-      case 'other accident':
       case 'road accident':
       case 'other road accident':
       case 'death due to rash driving':

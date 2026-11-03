@@ -2707,6 +2707,82 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           ],
         ),
         actions: [
+          if (widget.existingRecord != null) ...[
+            if (widget.readOnly)
+              FilledButton.icon(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    AppTheme.fadeSlideRoute(
+                      page: DynamicFormScreen(
+                        categoryId: widget.categoryId,
+                        moduleLabel: widget.moduleLabel,
+                        moduleKey: widget.moduleKey,
+                        subCategory: widget.subCategory,
+                        existingRecord: widget.existingRecord,
+                        readOnly: false,
+                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.edit_note_rounded,
+                    size: 16, color: Colors.white),
+                label: Text(
+                  'Edit',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.navyMid,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              )
+            else
+              OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    AppTheme.fadeSlideRoute(
+                      page: DynamicFormScreen(
+                        categoryId: widget.categoryId,
+                        moduleLabel: widget.moduleLabel,
+                        moduleKey: widget.moduleKey,
+                        subCategory: widget.subCategory,
+                        existingRecord: widget.existingRecord,
+                        readOnly: true,
+                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.visibility_outlined,
+                    size: 16, color: AppColors.navyMid),
+                label: Text(
+                  'View Entered Only',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.navyMid,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.navyMid,
+                  side: const BorderSide(color: AppColors.navyMid),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            const SizedBox(width: 8),
+          ],
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -3850,11 +3926,12 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   }
 
   Widget _buildSectionIndexBadge(int? sectionIndex, [IconData? fallbackIcon]) {
+    final isCompact = MediaQuery.sizeOf(context).width < 600;
     return Container(
-      width: 38,
-      height: 38,
+      width: isCompact ? 28 : 32,
+      height: isCompact ? 28 : 32,
       decoration: BoxDecoration(
-        color: AppColors.navyMid.withValues(alpha: 0.08),
+        color: AppColors.navyMid,
         borderRadius: BorderRadius.circular(8),
       ),
       alignment: Alignment.center,
@@ -3862,13 +3939,13 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           ? Text(
               '$sectionIndex',
               style: GoogleFonts.poppins(
-                fontSize: 15,
+                fontSize: isCompact ? 12.0 : 13.5,
                 fontWeight: FontWeight.w700,
-                color: AppColors.navyDark,
+                color: Colors.white,
               ),
             )
           : Icon(fallbackIcon ?? Icons.article_outlined,
-              size: 20, color: AppColors.navyMid),
+              size: isCompact ? 16 : 18, color: Colors.white),
     );
   }
 
@@ -4768,10 +4845,13 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                   ),
                   Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
+                      color: AppColors.navyMid.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.navyMid.withValues(alpha: 0.18),
+                      ),
                     ),
                     child: Text(
                       '${_accusedList.length} accused',
@@ -5013,10 +5093,13 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                   ),
                   Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
+                      color: AppColors.navyMid.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.navyMid.withValues(alpha: 0.18),
+                      ),
                     ),
                     child: Text(
                       '${_suspectedAccusedList.length} suspected',
@@ -5258,10 +5341,13 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                   ),
                   Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
+                      color: AppColors.navyMid.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.navyMid.withValues(alpha: 0.18),
+                      ),
                     ),
                     child: Text(
                       '${_unidentifiedAccusedList.length} unidentified',
@@ -5649,10 +5735,13 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                   ),
                   Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
+                      color: AppColors.navyMid.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.navyMid.withValues(alpha: 0.18),
+                      ),
                     ),
                     child: Text(
                       '${_arrestRecordsList.length} arrested',
@@ -6699,10 +6788,13 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                   ),
                   Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
+                      color: AppColors.navyMid.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.navyMid.withValues(alpha: 0.18),
+                      ),
                     ),
                     child: Text(
                       '${_unknownAccusedList.length} unknown accused',
