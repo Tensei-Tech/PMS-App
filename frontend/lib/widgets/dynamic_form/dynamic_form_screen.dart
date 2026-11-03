@@ -46,6 +46,11 @@ class DynamicFormScreen extends StatefulWidget {
   /// modules such as N.C.). Default false keeps every existing form unchanged.
   final bool sectionsInDisplayOrder;
 
+  /// Show a spinner while the form definition loads. False leaves the page
+  /// empty until the fields arrive (used by A.D.). Default true keeps every
+  /// existing form unchanged.
+  final bool showLoadingSpinner;
+
   const DynamicFormScreen({
     super.key,
     this.categoryId,
@@ -60,6 +65,7 @@ class DynamicFormScreen extends StatefulWidget {
     this.dateOffsetRules,
     this.fieldMaxLengths,
     this.sectionsInDisplayOrder = false,
+    this.showLoadingSpinner = true,
   });
 
   @override
@@ -1869,7 +1875,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Please fill all required fields.',
+            'Please fill the required fields and fix the ones marked in red.',
             style: GoogleFonts.poppins(),
           ),
           backgroundColor: AppColors.dangerRed,
@@ -3211,6 +3217,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
+      if (!widget.showLoadingSpinner) return const SizedBox.shrink();
       return const Center(
         child: CircularProgressIndicator(color: AppColors.navyMid),
       );
@@ -3368,11 +3375,28 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       int firstOrder(List<DynamicFieldDef> fs) => fs.isEmpty
           ? 1 << 30
           : fs.map((f) => f.displayOrder).reduce((x, y) => x < y ? x : y);
-      final entries = groupedBySection.entries
+      final sorted = groupedBySection.entries
           .where((e) => e.value.isNotEmpty)
           .toList()
         ..sort((x, y) => firstOrder(x.value).compareTo(firstOrder(y.value)));
-      for (final entry in entries) {
+      // Sections whose fields name the same field_config 'card' share one
+      // card, each keeping its heading inside it; others get a card each
+      String cardOf(List<DynamicFieldDef> fs) =>
+          fs.first.fieldConfig?['card']?.toString().trim() ?? '';
+
+      final cards = <MapEntry<String, List<DynamicFieldDef>>>[];
+      final sectionsInCard = <String, int>{};
+      for (final e in sorted) {
+        final card = cardOf(e.value);
+        final i = card.isEmpty ? -1 : cards.indexWhere((c) => c.key == card);
+        if (i >= 0) {
+          cards[i].value.addAll(e.value);
+          sectionsInCard[card] = (sectionsInCard[card] ?? 1) + 1;
+        } else {
+          cards.add(MapEntry(card.isEmpty ? e.key : card, [...e.value]));
+        }
+      }
+      for (final entry in cards) {
         final idx = sectionCounter++;
         sectionCards.add(
           DynamicSectionCard(
@@ -3381,6 +3405,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             title: entry.key,
             icon: _iconForSection(entry.key),
             fields: entry.value,
+            showSectionHeadings: (sectionsInCard[entry.key] ?? 1) > 1,
             controllers: _controllers,
             values: _values,
             onValueChanged: _onDynamicFieldValueChanged,
@@ -7929,6 +7954,7 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
     int maxLines = 1,
     TextInputType? keyboardType,
     bool isAge = false,
+    bool isMobile = false,
   }) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -7941,7 +7967,24 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
               readOnly: widget.readOnly,
               maxLines: maxLines,
               keyboardType: keyboardType,
-              inputFormatters: formatters,
+              inputFormatters: isMobile
+                  ? [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(10),
+                    ]
+                  : formatters,
+              // Mobile: optional, but when filled it must be 10 digits
+              autovalidateMode:
+                  isMobile ? AutovalidateMode.onUserInteraction : null,
+              validator: isMobile
+                  ? (v) {
+                      final value = v?.trim() ?? '';
+                      if (value.isEmpty) return null;
+                      return RegExp(r'^[0-9]{10}$').hasMatch(value)
+                          ? null
+                          : '$label must be exactly 10 digits';
+                    }
+                  : null,
               style:
                   GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
               decoration: _inputDeco(hint).copyWith(errorText: errorText),
@@ -8323,6 +8366,7 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
                   controller: _mobileCtrl,
                   hint: 'Enter Mobile Number',
                   keyboardType: TextInputType.phone,
+                  isMobile: true,
                 );
                 final aadhaarFld = _buildField(
                   label: 'Aadhar Number',

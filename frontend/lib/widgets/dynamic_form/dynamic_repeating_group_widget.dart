@@ -86,6 +86,7 @@ class _DynamicRepeatingGroupWidgetState
         (widget.fieldDef.fieldKey.contains('accused') ||
             widget.fieldDef.fieldKey.contains('injured') ||
             widget.fieldDef.fieldKey.contains('damage') ||
+            widget.fieldDef.fieldConfig?['start_with_one_row'] == true ||
             _isSingleRow)) {
       _rows.add({});
     }
@@ -173,7 +174,10 @@ class _DynamicRepeatingGroupWidgetState
     return ctrl;
   }
 
-  bool _isChildVisibleInRow(DynamicFieldDef child, Map<String, dynamic> row) {
+  /// Shown while its row parent (itself shown) has the given value, e.g. a
+  /// relative's name needs "Body Funeral by Relative", which needs Unknown
+  bool _isChildVisibleInRow(DynamicFieldDef child, Map<String, dynamic> row,
+      [Set<String>? seen]) {
     if (child.dependsOnFieldKey == null ||
         child.dependsOnFieldKey!.trim().isEmpty) {
       return true;
@@ -182,6 +186,14 @@ class _DynamicRepeatingGroupWidgetState
     final parentKey = child.dependsOnFieldKey!.trim();
     final rawVal = row[parentKey];
     if (rawVal == null) return false;
+
+    final visiting = seen ?? <String>{};
+    if (!visiting.add(child.fieldKey)) return false;
+    final parent =
+        widget.childFields.where((f) => f.fieldKey == parentKey).firstOrNull;
+    if (parent != null && !_isChildVisibleInRow(parent, row, visiting)) {
+      return false;
+    }
 
     return dependsOnValueMatches(rawVal, child.dependsOnValue);
   }
@@ -327,59 +339,92 @@ class _DynamicRepeatingGroupWidgetState
           LayoutBuilder(
             builder: (context, constraints) {
               final isWide = constraints.maxWidth > 550;
-              if (isWide && visibleChildren.length >= 2) {
-                return Wrap(
-                  spacing: 12,
-                  runSpacing: 10,
-                  children: visibleChildren.map((child) {
-                    final val = row[child.fieldKey];
-                    final ctrl = _getController(index, child.fieldKey, val);
-                    final colWidth =
-                        (constraints.maxWidth - 24) / visibleChildren.length;
-                    final isFullWidth = child.fieldType == 'textarea' ||
-                        child.fieldType == 'repeating_group' ||
-                        child.fieldType == 'charges';
-                    final itemWidth = isFullWidth
-                        ? constraints.maxWidth
-                        : (colWidth > 150
-                            ? colWidth
-                            : (constraints.maxWidth - 12) / 2);
-                    return SizedBox(
-                      width: itemWidth,
-                      child: DynamicControlFactory(
-                        fieldDef: child,
-                        controller: ctrl,
-                        value: val,
-                        readOnly: widget.readOnly,
-                        formValues: widget.formValues,
-                        onChanged: (newVal) {
-                          _updateRowField(index, child.fieldKey, newVal);
-                        },
-                      ),
-                    );
-                  }).toList(),
+
+              Widget control(DynamicFieldDef child) {
+                final val = row[child.fieldKey];
+                final ctrl = _getController(index, child.fieldKey, val);
+                // A checkbox's own date-time (e.g. Inquest Panchanama) is
+                // kept in the row as '<key>_date'
+                final dateKey = '${child.fieldKey}_date';
+                return DynamicControlFactory(
+                  fieldDef: child,
+                  controller: ctrl,
+                  value: val,
+                  readOnly: widget.readOnly,
+                  formValues: widget.formValues,
+                  dateController: child.fieldType == 'checkbox'
+                      ? _getController(index, dateKey, row[dateKey])
+                      : null,
+                  // The date-time button may fill "now" while it is drawn, so
+                  // the form hears of it after this frame
+                  onDateChanged: child.fieldType == 'checkbox'
+                      ? (dt) => WidgetsBinding.instance.addPostFrameCallback(
+                          (_) => _updateRowField(index, dateKey, dt))
+                      : null,
+                  onChanged: (newVal) {
+                    _updateRowField(index, child.fieldKey, newVal);
+                    // Show / hide the fields that depend on this answer
+                    if (mounted) setState(() {});
+                  },
                 );
               }
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: visibleChildren.map((child) {
-                  final val = row[child.fieldKey];
-                  final ctrl = _getController(index, child.fieldKey, val);
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: DynamicControlFactory(
-                      fieldDef: child,
-                      controller: ctrl,
-                      value: val,
-                      readOnly: widget.readOnly,
-                      formValues: widget.formValues,
-                      onChanged: (newVal) {
-                        _updateRowField(index, child.fieldKey, newVal);
-                      },
+              // field_config 'heading' puts a heading above that field, so
+              // a long row reads in parts (e.g. Post Mortem, FSL / CA)
+              String? headingOf(DynamicFieldDef child) {
+                final h = child.fieldConfig?['heading']?.toString().trim();
+                return (h == null || h.isEmpty) ? null : h;
+              }
+
+              Widget heading(String text, bool first) => Padding(
+                    padding: EdgeInsets.only(top: first ? 0 : 6, bottom: 2),
+                    child: Text(
+                      text,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.navyMid,
+                      ),
                     ),
                   );
-                }).toList(),
+
+              if (isWide && visibleChildren.length >= 2) {
+                final colWidth =
+                    (constraints.maxWidth - 24) / visibleChildren.length;
+                final items = <Widget>[];
+                for (final child in visibleChildren) {
+                  final h = headingOf(child);
+                  if (h != null) {
+                    items.add(SizedBox(
+                      width: constraints.maxWidth,
+                      child: heading(h, items.isEmpty),
+                    ));
+                  }
+                  final isFullWidth = child.fieldType == 'textarea' ||
+                      child.fieldType == 'repeating_group' ||
+                      child.fieldType == 'charges';
+                  final itemWidth = isFullWidth
+                      ? constraints.maxWidth
+                      : (colWidth > 150
+                          ? colWidth
+                          : (constraints.maxWidth - 12) / 2);
+                  items.add(SizedBox(width: itemWidth, child: control(child)));
+                }
+                return Wrap(spacing: 12, runSpacing: 10, children: items);
+              }
+
+              final items = <Widget>[];
+              for (final child in visibleChildren) {
+                final h = headingOf(child);
+                if (h != null) items.add(heading(h, items.isEmpty));
+                items.add(Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: control(child),
+                ));
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: items,
               );
             },
           ),

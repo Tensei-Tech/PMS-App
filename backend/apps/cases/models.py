@@ -3,13 +3,20 @@ from django.db import models
 
 
 # A.D. disposal rule from module_settings 'ad' (migration crimetab 0130):
-#   disposal_field_key       answer that decides disposal (e.g. the SDM Granted radio)
-#   disposal_value           value it must have (e.g. Yes)
+#   disposal_field_key       answer that decides disposal (e.g. the SDM Granted checkbox)
+#   disposal_value           value it must have (e.g. true; Yes / true / 1 count alike)
 #   disposal_date_field_key  date that must also be filled (e.g. SDM Granted Date)
 AD_MODULE_KEY = 'ad'
 AD_DISPOSAL_SETTING_KEYS = ('disposal_field_key', 'disposal_value', 'disposal_date_field_key')
 AD_DISPOSAL_CACHE_KEY = 'ad:disposal_rule'
 AD_DISPOSAL_CACHE_SECONDS = 60
+# A ticked checkbox (true) and a "Yes" radio answer mean the same
+AD_YES_ANSWERS = ('yes', 'true', '1')
+
+
+def _same_ad_answer(answer, value):
+    a, v = answer.strip().lower(), value.strip().lower()
+    return a == v or (a in AD_YES_ANSWERS and v in AD_YES_ANSWERS)
 
 
 def ad_disposal_rule():
@@ -166,7 +173,7 @@ def is_ad_case_disposed(case) -> bool:
         return False
     answer = _extract_first_non_empty(extra, [field])
     answer_date = _extract_first_non_empty(extra, [date_field])
-    return answer.lower() == value.lower() and bool(answer_date)
+    return _same_ad_answer(answer, value) and bool(answer_date)
 
 
 PREVENTIVE_NO_KEYS = [

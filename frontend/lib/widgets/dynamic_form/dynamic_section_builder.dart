@@ -33,6 +33,10 @@ class DynamicSectionCard extends StatefulWidget {
   /// Optional per-field character limits (field_key -> max length).
   final Map<String, int>? fieldMaxLengths;
 
+  /// The card holds several sections: show each section's name as a heading
+  /// above its fields (see field_config 'card'). Default false.
+  final bool showSectionHeadings;
+
   const DynamicSectionCard({
     super.key,
     required this.title,
@@ -56,6 +60,7 @@ class DynamicSectionCard extends StatefulWidget {
     this.copyOnTickRules,
     this.allFormFields,
     this.fieldMaxLengths,
+    this.showSectionHeadings = false,
   });
 
   @override
@@ -539,111 +544,148 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                         }
 
                         final rowSpacing = isCompact ? 8.0 : 10.0;
-                        if (!isWide) {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: visibleFields.map((f) {
-                              return Padding(
-                                padding: EdgeInsets.only(bottom: rowSpacing),
-                                child: buildControl(f),
-                              );
-                            }).toList(),
-                          );
-                        }
 
-                        // Special one-line layout for CCTV & CDR (3 compact fields)
-                        if (widget.title.toLowerCase().contains('cctv') &&
-                            visibleFields.length == 3) {
-                          return Padding(
-                            padding: EdgeInsets.only(bottom: rowSpacing),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Expanded(
-                                  flex: 3,
-                                  child: buildControl(visibleFields[0]),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  flex: 4,
-                                  child: buildControl(visibleFields[1]),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  flex: 4,
-                                  child: buildControl(visibleFields[2]),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
+                        Widget layoutFields(List<DynamicFieldDef> fields) {
+                          if (!isWide) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: fields.map((f) {
+                                return Padding(
+                                  padding: EdgeInsets.only(bottom: rowSpacing),
+                                  child: buildControl(f),
+                                );
+                              }).toList(),
+                            );
+                          }
 
-                        // 2-Column Responsive Grid on wider screens: single-line
-                        // fields in pairs, in display order; textareas, repeating
-                        // groups, Act / Section pickers and radio groups with
-                        // more than two choices take a full row, so their
-                        // options sit side by side instead of wrapping
-                        bool hasManyChoices(DynamicFieldDef f) {
-                          if (f.options.isNotEmpty) return f.options.length > 2;
-                          // Choices come from the server, count unknown; a
-                          // Yes / No list is two.
-                          final src = (f.optionsSource ?? '').toLowerCase();
-                          return src.isNotEmpty && !src.contains('yes_no');
-                        }
-
-                        bool isFullWidth(DynamicFieldDef f) =>
-                            f.fieldType == 'textarea' ||
-                            f.fieldType == 'repeating_group' ||
-                            f.fieldType == 'charges' ||
-                            (f.fieldType == 'radio' && hasManyChoices(f));
-                        final items = <Widget>[];
-                        final pending = <DynamicFieldDef>[];
-
-                        void flushPair() {
-                          if (pending.isEmpty) return;
-                          final f1 = pending[0];
-                          final f2 = pending.length > 1 ? pending[1] : null;
-                          pending.clear();
-                          items.add(
-                            Padding(
+                          // Special one-line layout for CCTV & CDR (3 compact fields)
+                          if (widget.title.toLowerCase().contains('cctv') &&
+                              fields.length == 3) {
+                            return Padding(
                               padding: EdgeInsets.only(bottom: rowSpacing),
                               child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   Expanded(
-                                    child: buildControl(f1),
+                                    flex: 3,
+                                    child: buildControl(fields[0]),
                                   ),
-                                  const SizedBox(width: 18),
+                                  const SizedBox(width: 16),
                                   Expanded(
-                                    child: f2 != null
-                                        ? buildControl(f2)
-                                        : const SizedBox.shrink(),
+                                    flex: 4,
+                                    child: buildControl(fields[1]),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    flex: 4,
+                                    child: buildControl(fields[2]),
                                   ),
                                 ],
                               ),
-                            ),
-                          );
-                        }
+                            );
+                          }
 
-                        for (final f in visibleFields) {
-                          if (isFullWidth(f)) {
-                            flushPair();
+                          // 2-Column Responsive Grid on wider screens: single-line
+                          // fields in pairs, in display order; textareas, repeating
+                          // groups, Act / Section pickers and radio groups with
+                          // more than two choices take a full row, so their
+                          // options sit side by side instead of wrapping
+                          bool hasManyChoices(DynamicFieldDef f) {
+                            if (f.options.isNotEmpty) {
+                              return f.options.length > 2;
+                            }
+                            // Choices come from the server, count unknown; a
+                            // Yes / No list is two.
+                            final src = (f.optionsSource ?? '').toLowerCase();
+                            return src.isNotEmpty && !src.contains('yes_no');
+                          }
+
+                          bool isFullWidth(DynamicFieldDef f) =>
+                              f.fieldType == 'textarea' ||
+                              f.fieldType == 'repeating_group' ||
+                              f.fieldType == 'charges' ||
+                              (f.fieldType == 'radio' && hasManyChoices(f));
+                          final items = <Widget>[];
+                          final pending = <DynamicFieldDef>[];
+
+                          void flushPair() {
+                            if (pending.isEmpty) return;
+                            final f1 = pending[0];
+                            final f2 = pending.length > 1 ? pending[1] : null;
+                            pending.clear();
                             items.add(
                               Padding(
                                 padding: EdgeInsets.only(bottom: rowSpacing),
-                                child: buildControl(f),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: buildControl(f1),
+                                    ),
+                                    const SizedBox(width: 18),
+                                    Expanded(
+                                      child: f2 != null
+                                          ? buildControl(f2)
+                                          : const SizedBox.shrink(),
+                                    ),
+                                  ],
+                                ),
                               ),
                             );
-                          } else {
-                            pending.add(f);
-                            if (pending.length == 2) flushPair();
                           }
-                        }
-                        flushPair();
 
+                          for (final f in fields) {
+                            if (isFullWidth(f)) {
+                              flushPair();
+                              items.add(
+                                Padding(
+                                  padding: EdgeInsets.only(bottom: rowSpacing),
+                                  child: buildControl(f),
+                                ),
+                              );
+                            } else {
+                              pending.add(f);
+                              if (pending.length == 2) flushPair();
+                            }
+                          }
+                          flushPair();
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: items,
+                          );
+                        }
+
+                        if (!widget.showSectionHeadings) {
+                          return layoutFields(visibleFields);
+                        }
+
+                        // Several sections in one card: each keeps its own
+                        // heading above its fields
+                        final runs =
+                            <MapEntry<String, List<DynamicFieldDef>>>[];
+                        for (final f in visibleFields) {
+                          final heading = f.section ?? '';
+                          if (runs.isEmpty || runs.last.key != heading) {
+                            runs.add(MapEntry(heading, []));
+                          }
+                          runs.last.value.add(f);
+                        }
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: items,
+                          children: [
+                            for (var i = 0; i < runs.length; i++) ...[
+                              if (runs[i].key.isNotEmpty)
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                    top: i == 0 ? 0 : 6,
+                                    bottom: rowSpacing,
+                                  ),
+                                  child: _SectionHeading(runs[i].key),
+                                ),
+                              layoutFields(runs[i].value),
+                            ],
+                          ],
                         );
                       },
                     ),
@@ -657,6 +699,32 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
             sizeCurve: Curves.easeInOutCubic,
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// A section's name inside a card that holds several sections.
+class _SectionHeading extends StatelessWidget {
+  final String text;
+
+  const _SectionHeading(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.only(bottom: 6),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppColors.lightBorder)),
+      ),
+      child: Text(
+        text,
+        style: GoogleFonts.poppins(
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+          color: AppColors.navyMid,
+        ),
       ),
     );
   }
