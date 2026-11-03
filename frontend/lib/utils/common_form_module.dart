@@ -29,6 +29,7 @@ const Set<String> _kCommonFormBaselineModules = {
   'crime_women',
   'accident',
   'normal_accident',
+  'other_accident',
   // Road Accident tabs (road_accident, death_due_to_rash_driving,
   // other_road_accident) open the dynamic form: it draws the common form and
   // the Road Accident template's lists (vehicles, injured, deceased)
@@ -95,6 +96,7 @@ const Set<String> _kCommonFormBaselineCategoryNames = {
   'crime against women',
   'accident',
   'normal accident',
+  'other accident',
   // Road Accident tabs open the dynamic form (see above)
   'sec 156(3)/175(3)(bnss)',
   'sec 156(3)/175 (3)(bnss)',

@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -159,7 +160,7 @@ const List<DarFilterItem> kDarFilterItems = [
   ),
   DarFilterItem(
     key: 'normal_accident',
-    label: 'Normal Accident',
+    label: 'Other Accident',
     group: 'Accident Category',
     icon: Icons.minor_crash_rounded,
     color: Color(0xFF00ACC1),
@@ -270,7 +271,7 @@ class _DarHubScreenState extends State<DarHubScreen>
       case 'road_accident':
         return combined.contains('road') || combined.contains('accident');
       case 'normal_accident':
-        return combined.contains('normal');
+        return combined.contains('normal') || combined.contains('other');
       case 'death_rash_driving':
         return combined.contains('rash') ||
             combined.contains('death') ||
@@ -670,9 +671,19 @@ class _DarHubScreenState extends State<DarHubScreen>
         return StatefulBuilder(
           builder: (modalContext, setModalState) {
             final media = MediaQuery.of(dialogContext);
-            final leftPos = offset.dx.clamp(12.0, media.size.width - 365.0);
-            final topPos = (offset.dy + size.height + 4.0)
-                .clamp(12.0, media.size.height - 520.0);
+            final dialogWidth =
+                math.min(350.0, math.max(280.0, media.size.width - 24.0));
+            final maxLeft =
+                math.max(12.0, media.size.width - dialogWidth - 12.0);
+            final isSmallScreen = media.size.width < 420;
+            final leftPos = isSmallScreen
+                ? ((media.size.width - dialogWidth) / 2).clamp(12.0, maxLeft)
+                : offset.dx.clamp(12.0, maxLeft);
+            final maxTop = math.max(12.0, media.size.height - 520.0);
+            final idealTop = offset.dy + size.height + 4.0;
+            final topPos = idealTop.clamp(12.0, maxTop);
+            final maxModalHeight = math.min(
+                480.0, math.max(260.0, media.size.height - topPos - 16.0));
 
             final filteredItems = kDarFilterItems.where((item) {
               if (searchQuery.isEmpty) return true;
@@ -691,11 +702,11 @@ class _DarHubScreenState extends State<DarHubScreen>
                   Positioned(
                     left: leftPos,
                     top: topPos,
-                    width: 350,
+                    width: dialogWidth,
                     child: Material(
                       color: Colors.transparent,
                       child: Container(
-                        constraints: const BoxConstraints(maxHeight: 480),
+                        constraints: BoxConstraints(maxHeight: maxModalHeight),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(14),

@@ -64,6 +64,7 @@ class CategoryIconHelper {
         return 'assets/icons/crimewomen.svg';
       case 'accident':
       case 'normal accident':
+      case 'other accident':
       case 'road accident':
       case 'other road accident':
       case 'death due to rash driving':

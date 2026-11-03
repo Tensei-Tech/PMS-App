@@ -11,9 +11,9 @@ class TranslationHelper {
   static String translate(BuildContext context, String? text) {
     if (text == null || text.isEmpty) return text ?? '';
 
-    // Shown as "Accident"; it keeps the name "Normal Accident" in the
+    // Shown as "Other Accident"; it keeps the name "Normal Accident" in the
     // database, where its parent tab is already called "Accident".
-    if (text.trim().toLowerCase() == 'normal accident') text = 'Accident';
+    if (text.trim().toLowerCase() == 'normal accident') text = 'Other Accident';
 
     final locale = activeLanguageCode;
     if (locale == 'en') {

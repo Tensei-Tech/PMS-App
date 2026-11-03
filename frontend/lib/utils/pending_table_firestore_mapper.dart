@@ -154,8 +154,13 @@ String _sectionsLine(ModuleRecord r) {
 
 String _headLine(ModuleRecord r) {
   final sub = r.subCategory?.trim();
-  if (sub != null && sub.isNotEmpty) return sub;
-  return r.firestoreCategoryDisplayName.trim();
+  if (sub != null && sub.isNotEmpty) {
+    if (sub.toLowerCase() == 'normal accident') return 'Other Accident';
+    return sub;
+  }
+  final cat = r.firestoreCategoryDisplayName.trim();
+  if (cat.toLowerCase() == 'normal accident') return 'Other Accident';
+  return cat;
 }
 
 String _victimNamesLine(ModuleRecord r) {
