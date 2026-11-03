@@ -20,6 +20,8 @@ MODULE_KEY = 'ad'
 STATUS_DISPOSAL = 'Disposal'
 # Panchanama checkboxes keep their date and time under '<field_key>_date'
 CHECKBOX_DATE_SUFFIX = '_date'
+# A list with more fields than this is shown one block per row, not a table
+TABLE_MAX_COLUMNS = 10
 
 
 class AdValidationError(Exception):
@@ -144,7 +146,27 @@ def _check_aadhaar(value, settings):
     return s
 
 
+def year_range(f):
+    """(first, last) from options source 'years:2001-3001', else (2001, 2100)."""
+    m = re.match(r'^\s*years\s*:\s*(\d{4})\s*-\s*(\d{4})\s*$', str(f.options_source or ''))
+    if m and int(m.group(1)) <= int(m.group(2)):
+        return int(m.group(1)), int(m.group(2))
+    return 2001, 2100
+
+
+def _check_year(f, raw):
+    s = _clean_str(raw)
+    if s is None:
+        return None
+    first, last = year_range(f)
+    if not s.isdigit() or not first <= int(s) <= last:
+        raise AdValidationError(f'Select a {f.field_label} from {first} to {last}')
+    return s
+
+
 def _clean_value(f, raw, settings):
+    if f.field_type == 'year':
+        return _check_year(f, raw)
     if f.field_type == 'checkbox':
         return True if _is_ticked(raw) else None
     if f.field_type == 'multi_select':
@@ -198,15 +220,27 @@ def clean_form_data(data, field_defs, settings):
             continue
         raw = data.get(f.field_key)
         if f.field_type == 'repeating_group':
+            kids = children.get(f.field_key, [])
+            kids_by_key = {k.field_key: k for k in kids}
             rows = []
             for row in raw if isinstance(raw, list) else []:
                 if not isinstance(row, dict):
                     continue
                 clean_row = {}
-                for k in children.get(f.field_key, []):
+                for k in kids:
                     v = _clean_value(k, row.get(k.field_key), settings)
                     if not _blank(v):
                         clean_row[k.field_key] = v
+                        if k.field_type == 'checkbox':
+                            dt = _clean_str(row.get(k.field_key + CHECKBOX_DATE_SUFFIX))
+                            if dt:
+                                clean_row[k.field_key + CHECKBOX_DATE_SUFFIX] = dt
+                # Drop answers hidden within the row (e.g. a relative's details
+                # when "Body Funeral by Relative" is not ticked for that person)
+                for k in kids:
+                    if k.field_key in clean_row and not is_visible(k, clean_row, kids_by_key):
+                        clean_row.pop(k.field_key, None)
+                        clean_row.pop(k.field_key + CHECKBOX_DATE_SUFFIX, None)
                 if clean_row:
                     rows.append(clean_row)
             if rows:
@@ -227,6 +261,14 @@ def clean_form_data(data, field_defs, settings):
         if not is_visible(f, values, defs_by_key):
             values.pop(f.field_key, None)
             values.pop(f.field_key + CHECKBOX_DATE_SUFFIX, None)
+
+    # A required field must be answered while it is shown (e.g. the Year once
+    # an AD No. is entered)
+    for f in field_defs:
+        if f.parent_field_key or not getattr(f, 'is_required', False):
+            continue
+        if f.field_key not in values and is_visible(f, values, defs_by_key):
+            raise AdValidationError(f'{f.field_label} is required')
     return values
 
 
@@ -311,6 +353,19 @@ def build_display_sections(values, field_defs, settings):
             if not rows:
                 continue
             kids = children.get(f.field_key, [])
+            if len(kids) > TABLE_MAX_COLUMNS:
+                # Too many columns for a table (e.g. Unknown Deceased): one
+                # block per row, "Unknown Deceased 1", "Unknown Deceased 2" ...
+                kids_by_key = {k.field_key: k for k in kids}
+                for i, row in enumerate(rows, 1):
+                    block = section(f'{f.field_label} {i}', 'fields')
+                    for k in kids:
+                        if not is_visible(k, row, kids_by_key):
+                            continue
+                        text = display_value(k, row, settings)
+                        if text:
+                            block['rows'].append((k.field_label, text))
+                continue
             sec = section(f.field_label, 'table')
             sec['headers'] = [k.field_label for k in kids]
             for row in rows:

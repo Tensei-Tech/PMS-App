@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:khakhi_diary/providers/module_registry.dart';
 import 'package:khakhi_diary/screens/category_subtabs_screen.dart';
+import 'package:khakhi_diary/screens/fingerprint_hub_screen.dart';
 import 'package:khakhi_diary/screens/form_i_v_selection_screen.dart';
 import 'package:khakhi_diary/utils/app_constants.dart';
 import 'package:khakhi_diary/widgets/sub_tab_host.dart';
@@ -88,13 +89,14 @@ void main() {
     expect(find.text('Fingerprint'), findsOneWidget); // switch
   });
 
-  testWidgets('Fingerprint tab shows a Coming soon page', (tester) async {
+  testWidgets('Fingerprint tab shows FingerprintHubScreen', (tester) async {
     await tester.pumpWidget(
         const MaterialApp(home: NafisFingerprintScreen(stationName: 'TEST')));
     await tester.pump();
     await tester.tap(find.text('Fingerprint'));
-    await tester.pumpAndSettle();
-    expect(find.text('Coming soon'), findsWidgets);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byType(FingerprintHubScreen), findsOneWidget);
   });
 
   testWidgets('DAR/IRAD opens DAR first, with an IRAD tab', (tester) async {

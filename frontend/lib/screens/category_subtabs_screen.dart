@@ -12,6 +12,7 @@ import '../widgets/module_hub_screen_app_bar.dart';
 import '../widgets/sub_tab_host.dart';
 import 'dar_hub_screen.dart';
 import 'form_i_v_selection_screen.dart';
+import 'fingerprint_hub_screen.dart';
 import 'irad_hub_screen.dart';
 import 'nafis_hub_screen.dart';
 
@@ -277,7 +278,7 @@ class NafisFingerprintScreen extends StatelessWidget {
         (
           'Fingerprint',
           Icons.touch_app_rounded,
-          (_) => const ComingSoonScreen(title: 'Fingerprint'),
+          (_) => FingerprintHubScreen(stationName: stationName),
         ),
       ],
     );

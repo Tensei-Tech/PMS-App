@@ -1075,6 +1075,9 @@ class NafisCaseRecordSerializer(serializers.ModelSerializer):
     charge_sheet_date = serializers.SerializerMethodField()
     nafis_status_color = serializers.SerializerMethodField()
     nafis_status = serializers.SerializerMethodField()
+    fingerprint_taken = serializers.SerializerMethodField()
+    fingerprint_status = serializers.SerializerMethodField()
+    fingerprint_status_color = serializers.SerializerMethodField()
     section_act = serializers.SerializerMethodField()
     accused_name = serializers.SerializerMethodField()
     head = serializers.SerializerMethodField()
@@ -1086,6 +1089,7 @@ class NafisCaseRecordSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'sr_no', 'case_number', 'section_act', 'head', 'sub_category', 'title', 'charge_sheet_date',
             'assigned_officer', 'accused_name', 'accused', 'nafis_status', 'nafis_status_color',
+            'fingerprint_taken', 'fingerprint_status', 'fingerprint_status_color',
             'created_at', 'station_name', 'days_passed', 'action_required', 'extra_fields'
         ]
 
@@ -1234,6 +1238,33 @@ class NafisCaseRecordSerializer(serializers.ModelSerializer):
 
     def get_nafis_status(self, obj):
         return 'Done' if self._has_fingerprint_taken(obj) else 'Pending'
+
+    def _is_fingerprint_taken(self, obj):
+        extra = obj.extra_fields if isinstance(obj.extra_fields, dict) else {}
+        inv = extra.get('investigationNotes') or extra.get('commonForm', {}).get('investigationNotes') or {}
+        forensics = getattr(obj, 'forensics', None)
+        
+        if forensics and getattr(forensics, 'fingerprint_taken', None) is True:
+            return True
+        if extra.get('fingerprint_taken') is True or extra.get('fingerprintTaken') is True:
+            return True
+        if inv.get('fingerprint_taken') is True:
+            return True
+        fp_val = str(extra.get('fingerprintVal') or inv.get('fingerprintVal') or extra.get('fingerprint_taken') or '').strip().lower()
+        if fp_val in ['yes', 'true']:
+            return True
+        if str(extra.get('fingerprintDate') or inv.get('fingerprintDate') or '').strip():
+            return True
+        return False
+
+    def get_fingerprint_taken(self, obj):
+        return self._is_fingerprint_taken(obj)
+
+    def get_fingerprint_status(self, obj):
+        return 'Taken' if self._is_fingerprint_taken(obj) else 'Pending'
+
+    def get_fingerprint_status_color(self, obj):
+        return 'Green' if self._is_fingerprint_taken(obj) else 'Red'
 
     def get_days_passed(self, obj):
         reg_date = obj.created_at.date() if obj.created_at else timezone.now().date()

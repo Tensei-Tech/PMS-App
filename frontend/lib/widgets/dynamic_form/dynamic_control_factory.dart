@@ -13,6 +13,7 @@ import '../person_select_or_custom_field.dart';
 import 'dynamic_field_model.dart';
 import 'dynamic_repeating_group_widget.dart';
 import '../repeating_cascading_charges_selector.dart';
+import '../age_digits_limit.dart';
 
 class DynamicControlFactory extends StatelessWidget {
   final DynamicFieldDef fieldDef;
@@ -143,6 +144,8 @@ class DynamicControlFactory extends StatelessWidget {
             isRequired: fieldDef.isRequired,
             label: fieldDef.fieldLabel,
             onChanged: onChanged,
+            // Range from the field's options source ('years:2001-3001')
+            range: YearPickerField.parseRange(fieldDef.optionsSource),
             decoration: _inputDecoration(hint: 'Select or type year (e.g. 03)')
                 .copyWith(
                     suffixIcon: const Icon(Icons.arrow_drop_down_rounded)),
@@ -1757,6 +1760,10 @@ class _DynamicRadioWidget extends StatefulWidget {
 }
 
 class _DynamicRadioWidgetState extends State<_DynamicRadioWidget> {
+  static const double _optionHeight = 44;
+  static const double _optionMinWidth = 130;
+  static const double _optionMaxWidth = 190;
+
   List<String> _options = [];
   bool _isLoading = false;
   String? _error;
@@ -1882,73 +1889,98 @@ class _DynamicRadioWidgetState extends State<_DynamicRadioWidget> {
       );
     }
 
-    final radioWrap = Align(
-      alignment: Alignment.centerLeft,
-      child: Wrap(
-        spacing: 12,
-        runSpacing: 6,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: _options.map((opt) {
-          final isSelected = opt.toLowerCase() == currentVal.toLowerCase();
-          return InkWell(
-            onTap: widget.readOnly
-                ? null
-                : () {
-                    if (widget.controller != null) {
-                      widget.controller!.text = opt;
-                    }
-                    widget.onChanged?.call(opt);
-                  },
+    Widget option(String opt) {
+      final isSelected = opt.toLowerCase() == currentVal.toLowerCase();
+      return InkWell(
+        onTap: widget.readOnly
+            ? null
+            : () {
+                if (widget.controller != null) {
+                  widget.controller!.text = opt;
+                }
+                widget.onChanged?.call(opt);
+              },
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          height: _optionHeight,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppColors.navyMid.withValues(alpha: 0.08)
+                : Colors.white,
             borderRadius: BorderRadius.circular(AppRadius.md),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.navyMid.withValues(alpha: 0.08)
-                    : Colors.white,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(
-                  color: isSelected ? AppColors.navyMid : AppColors.lightBorder,
-                  width: isSelected ? 1.5 : 1.0,
+            border: Border.all(
+              color: isSelected ? AppColors.navyMid : AppColors.lightBorder,
+              width: isSelected ? 1.5 : 1.0,
+            ),
+          ),
+          child: Row(
+            children: [
+              Radio<String>(
+                value: opt,
+                groupValue: currentVal,
+                activeColor: AppColors.navyMid,
+                onChanged: widget.readOnly
+                    ? null
+                    : (val) {
+                        if (val != null) {
+                          if (widget.controller != null) {
+                            widget.controller!.text = val;
+                          }
+                          widget.onChanged?.call(val);
+                        }
+                      },
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                visualDensity: VisualDensity.compact,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  opt,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12.5,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    color:
+                        isSelected ? AppColors.navyDark : AppColors.lightText,
+                  ),
                 ),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Radio<String>(
-                    value: opt,
-                    groupValue: currentVal,
-                    activeColor: AppColors.navyMid,
-                    onChanged: widget.readOnly
-                        ? null
-                        : (val) {
-                            if (val != null) {
-                              if (widget.controller != null) {
-                                widget.controller!.text = val;
-                              }
-                              widget.onChanged?.call(val);
-                            }
-                          },
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    opt,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12.5,
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.w500,
-                      color:
-                          isSelected ? AppColors.navyDark : AppColors.lightText,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }).toList(),
-      ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Equal-width options in even rows: all on one line when they fit,
+    // otherwise as many per row as fit, so nothing wraps unevenly. Widths are
+    // capped so short choices (Yes / No) stay compact.
+    final radioWrap = LayoutBuilder(
+      builder: (context, constraints) {
+        const gap = 10.0;
+        final count = _options.length;
+        final maxWidth = constraints.hasBoundedWidth
+            ? constraints.maxWidth
+            : _optionMaxWidth * count + gap * (count - 1);
+        final perRow = ((maxWidth + gap) / (_optionMinWidth + gap))
+            .floor()
+            .clamp(1, count < 1 ? 1 : count);
+        final width = ((maxWidth - gap * (perRow - 1)) / perRow)
+            .clamp(0.0, _optionMaxWidth);
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: Wrap(
+            spacing: gap,
+            runSpacing: 8,
+            children: [
+              for (final opt in _options)
+                SizedBox(width: width, child: option(opt)),
+            ],
+          ),
+        );
+      },
     );
 
     if (widget.labelWidget is SizedBox) {
@@ -2378,10 +2410,25 @@ class _MaxDigitsField extends StatefulWidget {
 }
 
 class _MaxDigitsFieldState extends State<_MaxDigitsField> {
-  bool _tooLong = false;
+  // Grey note (not a red error) for a refused extra digit: the digits kept
+  // are valid. It hides itself after a moment.
+  final _hint = MaxDigitsHintController();
 
-  void _setTooLong(bool value) {
-    if (_tooLong != value) setState(() => _tooLong = value);
+  @override
+  void initState() {
+    super.initState();
+    _hint.addListener(_onHint);
+  }
+
+  void _onHint() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _hint.removeListener(_onHint);
+    _hint.dispose();
+    super.dispose();
   }
 
   @override
@@ -2392,18 +2439,16 @@ class _MaxDigitsFieldState extends State<_MaxDigitsField> {
       keyboardType: TextInputType.number,
       inputFormatters: [
         FilteringTextInputFormatter.digitsOnly,
-        TextInputFormatter.withFunction((oldValue, newValue) {
-          final tooLong = newValue.text.length > widget.maxDigits;
-          _setTooLong(tooLong);
-          return tooLong ? oldValue : newValue;
-        }),
+        _hint.formatter(widget.maxDigits),
       ],
       onChanged: widget.onChanged,
       style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
       decoration: widget.decoration.copyWith(
-        errorText: _tooLong
-            ? '${widget.label} can be at most ${widget.maxDigits} digits'
-            : null,
+        helperText: _hint.visible
+            ? maxDigitsHint(widget.label, widget.maxDigits)
+            : widget.decoration.helperText,
+        helperStyle:
+            _hint.visible ? kMaxDigitsHintStyle : widget.decoration.helperStyle,
       ),
       validator: (v) {
         if ((v?.trim() ?? '').isEmpty && widget.isRequired) {
@@ -2553,7 +2598,8 @@ class _StepperNumberFieldState extends State<_StepperNumberField> {
   }
 }
 
-/// Year from a dropdown of 2001-2100 that can also be typed into. A short
+/// Year from a dropdown (2001-2100 unless the field sets its own range with
+/// options source 'years:<first>-<last>') that can also be typed into. A short
 /// year means 20xx: typing "03" lists 2003 first and becomes 2003 when the
 /// field is left ("00" means 2100).
 class YearPickerField extends StatefulWidget {
@@ -2567,6 +2613,9 @@ class YearPickerField extends StatefulWidget {
   final Function(dynamic)? onChanged;
   final InputDecoration decoration;
 
+  /// (first, last) year offered; defaults to [firstYear]-[lastYear].
+  final (int, int) range;
+
   const YearPickerField({
     super.key,
     this.controller,
@@ -2575,7 +2624,17 @@ class YearPickerField extends StatefulWidget {
     required this.label,
     this.onChanged,
     required this.decoration,
+    this.range = (firstYear, lastYear),
   });
+
+  /// 'years:2001-3001' -> (2001, 3001); anything else the default range.
+  static (int, int) parseRange(String? source) {
+    final m = RegExp(r'^\s*years\s*:\s*(\d{4})\s*-\s*(\d{4})\s*$')
+        .firstMatch(source ?? '');
+    if (m == null) return (firstYear, lastYear);
+    final a = int.parse(m.group(1)!), b = int.parse(m.group(2)!);
+    return a <= b ? (a, b) : (firstYear, lastYear);
+  }
 
   /// '3' / '03' -> '2003', '00' -> '2100'; anything else is returned as is.
   static String expand(String text) {
@@ -2587,9 +2646,10 @@ class YearPickerField extends StatefulWidget {
 
   /// Years matching what is typed: a short entry matches the last two digits
   /// ("0" -> 2001-2009, 2100; "03" -> 2003), a longer one the start.
-  static List<String> matches(String text) {
+  static List<String> matches(String text,
+      {(int, int) range = (firstYear, lastYear)}) {
     final q = text.trim();
-    final years = [for (var y = firstYear; y <= lastYear; y++) '$y'];
+    final years = [for (var y = range.$1; y <= range.$2; y++) '$y'];
     if (q.isEmpty || !RegExp(r'^[0-9]+$').hasMatch(q)) return years;
     if (q.length <= 2) {
       return years.where((y) => y.substring(2).startsWith(q)).toList();
@@ -2638,8 +2698,9 @@ class _YearPickerFieldState extends State<YearPickerField> {
     return RawAutocomplete<String>(
       textEditingController: _ctrl,
       focusNode: _focus,
-      optionsBuilder: (value) =>
-          widget.readOnly ? const [] : YearPickerField.matches(value.text),
+      optionsBuilder: (value) => widget.readOnly
+          ? const []
+          : YearPickerField.matches(value.text, range: widget.range),
       onSelected: (year) => widget.onChanged?.call(year),
       fieldViewBuilder: (context, ctrl, focus, onSubmitted) => TextFormField(
         controller: ctrl,
@@ -2664,10 +2725,9 @@ class _YearPickerFieldState extends State<YearPickerField> {
             return widget.isRequired ? '${widget.label} is required' : null;
           }
           final n = int.tryParse(year);
-          if (n == null ||
-              n < YearPickerField.firstYear ||
-              n > YearPickerField.lastYear) {
-            return 'Select a year from ${YearPickerField.firstYear} to ${YearPickerField.lastYear}';
+          final (first, last) = widget.range;
+          if (n == null || n < first || n > last) {
+            return 'Select a year from $first to $last';
           }
           return null;
         },

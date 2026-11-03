@@ -16,6 +16,7 @@ import '../utils/pdf_unicode_fonts.dart';
 import '../utils/arrested_table_firestore_mapper.dart';
 import '../utils/case_visibility.dart';
 import '../widgets/repeat_offender_cases_data_table.dart';
+import '../utils/excel_export_helper.dart';
 import '../services/ui_config_service.dart';
 
 class RepeatOffenderSummaryScreen extends StatelessWidget {
@@ -51,6 +52,26 @@ class RepeatOffenderSummaryScreen extends StatelessWidget {
     await Printing.sharePdf(
       bytes: await doc.save(),
       filename: 'Repeat_Offender_Summary.pdf',
+    );
+  }
+
+  void _exportExcel(
+    BuildContext context,
+    List<Map<String, String>> dataset,
+  ) {
+    if (dataset.isEmpty) return;
+    final dittoRows =
+        RepeatOffenderCasesDataTable.applyDittoFormatting(dataset);
+    ExcelExportHelper.exportRepeatOffenderToExcel(
+      dataset: dittoRows,
+      filename: 'Repeat_Offender_Summary.csv',
+    );
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+            'Exported Repeat Offender summary to Excel (.csv) successfully.'),
+        backgroundColor: Color(0xFF107C41),
+      ),
     );
   }
 
@@ -131,27 +152,74 @@ class RepeatOffenderSummaryScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  ElevatedButton.icon(
-                    onPressed:
-                        !anyRows ? null : () => _exportPdf(context, dataset),
-                    icon: const Icon(Icons.download_rounded, size: 16),
-                    label: Text(
-                      'Export',
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                        color: Colors.white,
+                  PopupMenuButton<String>(
+                    enabled: anyRows,
+                    tooltip: 'Export',
+                    onSelected: (val) {
+                      if (val == 'excel') {
+                        _exportExcel(context, dataset);
+                      } else if (val == 'pdf') {
+                        _exportPdf(context, dataset);
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'excel',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.table_chart_outlined,
+                                color: Color(0xFF107C41), size: 18),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Export to Excel (CSV)',
+                              style: GoogleFonts.poppins(fontSize: 13),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.navyMid,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                      PopupMenuItem(
+                        value: 'pdf',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.picture_as_pdf_outlined,
+                                color: Color(0xFFD32F2F), size: 18),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Export to PDF',
+                              style: GoogleFonts.poppins(fontSize: 13),
+                            ),
+                          ],
+                        ),
                       ),
+                    ],
+                    child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 14,
                         vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color:
+                            anyRows ? AppColors.navyMid : Colors.grey.shade400,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.download_rounded,
+                              size: 16, color: Colors.white),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Export',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.arrow_drop_down_rounded,
+                              size: 18, color: Colors.white),
+                        ],
                       ),
                     ),
                   ),
@@ -171,26 +239,24 @@ class RepeatOffenderSummaryScreen extends StatelessWidget {
                           ),
                         ),
                       )
-                    : SingleChildScrollView(
-                        padding: const EdgeInsets.only(bottom: 24),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                                color: Colors.grey.withValues(alpha: 0.2)),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.03),
-                                blurRadius: 8,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          padding: const EdgeInsets.all(16),
-                          child: RepeatOffenderCasesDataTable(
-                              realDataRows: dataset),
+                    : Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                              color: Colors.grey.withValues(alpha: 0.2)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.03),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
                         ),
+                        padding: const EdgeInsets.all(12),
+                        child:
+                            RepeatOffenderCasesDataTable(realDataRows: dataset),
                       ),
               ),
             ],
