@@ -18,7 +18,7 @@ import 'module_record_detail_screen.dart';
 
 /// Offline fallback list of all 26 standalone category names from database master
 const List<String> kDefaultStandaloneCategories = [
-  'Normal Accident',
+  'Other Accident',
   'Road Accident',
   'Death Due to Rash Driving',
   'Other Road Accident',
