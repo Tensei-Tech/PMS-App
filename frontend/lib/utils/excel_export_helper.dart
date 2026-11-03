@@ -353,6 +353,58 @@ class ExcelExportHelper {
     platformDownloadBytes(bytes, filename, 'text/csv;charset=utf-8');
   }
 
+  /// Exports Repeat Offender cases to CSV/Excel format with requested columns:
+  /// Sr. No., Accused Name, Cr. No., Sec/Act, Head, Police station
+  static void exportRepeatOffenderToExcel({
+    required List<Map<String, String>> dataset,
+    String filename = 'Repeat_Offender_Summary.csv',
+  }) {
+    final List<List<dynamic>> rows = [
+      [
+        'Sr. No.',
+        'Accused Name',
+        'Cr. No.',
+        'Sec/Act',
+        'Head',
+        'Police station'
+      ]
+    ];
+
+    for (var i = 0; i < dataset.length; i++) {
+      final r = dataset[i];
+      final sr = r['sr']?.isNotEmpty == true ? r['sr']! : '${i + 1}';
+      final accused =
+          (r['accused_name'] ?? r['accused'])?.trim().isNotEmpty == true
+              ? (r['accused_name'] ?? r['accused'])!.trim()
+              : '—';
+      final cr = r['cr']?.trim().isNotEmpty == true ? r['cr']!.trim() : '—';
+      final secAct = r['sections']?.trim().isNotEmpty == true
+          ? r['sections']!.trim()
+          : '—';
+      final head =
+          r['head']?.trim().isNotEmpty == true ? r['head']!.trim() : '—';
+      final station =
+          (r['station'] ?? r['police_station'])?.trim().isNotEmpty == true
+              ? (r['station'] ?? r['police_station'])!.trim()
+              : '—';
+
+      rows.add([
+        sr,
+        accused,
+        cr,
+        secAct,
+        head,
+        station,
+      ]);
+    }
+
+    final csvContent = const ListToCsvConverter().convert(rows);
+    // Add UTF-8 BOM so Excel opens Hindi, Marathi, and special symbols correctly
+    final bytes = [0xEF, 0xBB, 0xBF, ...utf8.encode(csvContent)];
+
+    platformDownloadBytes(bytes, filename, 'text/csv;charset=utf-8');
+  }
+
   /// Extracts Court / Final Summary / AD / Preventive Action numbers for Disposal:
   /// Formatted as "A Final :- 25", "CC No :- 76", showing only the entered ones.
   static String extractDisposalNumbers(Map<String, dynamic> r,

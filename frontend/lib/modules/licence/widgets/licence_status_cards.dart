@@ -1,4 +1,5 @@
 // lib/modules/licence/widgets/licence_status_cards.dart
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../theme/app_theme.dart';
@@ -42,6 +43,7 @@ class LicenceStatusCards extends StatelessWidget {
             lightBg: const Color(0xFFEFF6FF),
             borderColor: const Color(0xFFBFDBFE),
             iconBg: const Color(0xFFDBEAFE),
+            isCompact: isCompact,
           ),
           _buildCard(
             context: context,
@@ -53,6 +55,7 @@ class LicenceStatusCards extends StatelessWidget {
             lightBg: const Color(0xFFECFDF5),
             borderColor: const Color(0xFFA7F3D0),
             iconBg: const Color(0xFFD1FAE5),
+            isCompact: isCompact,
           ),
           _buildCard(
             context: context,
@@ -64,6 +67,7 @@ class LicenceStatusCards extends StatelessWidget {
             lightBg: const Color(0xFFFEF2F2),
             borderColor: const Color(0xFFFECACA),
             iconBg: const Color(0xFFFEE2E2),
+            isCompact: isCompact,
           ),
           _buildCard(
             context: context,
@@ -75,6 +79,7 @@ class LicenceStatusCards extends StatelessWidget {
             lightBg: const Color(0xFFF5F3FF),
             borderColor: const Color(0xFFDDD6FE),
             iconBg: const Color(0xFFEDE9FE),
+            isCompact: isCompact,
           ),
           _buildCard(
             context: context,
@@ -86,10 +91,20 @@ class LicenceStatusCards extends StatelessWidget {
             lightBg: const Color(0xFFFFFBEB),
             borderColor: const Color(0xFFFDE68A),
             iconBg: const Color(0xFFFEF3C7),
+            isCompact: isCompact,
           ),
         ];
 
         if (isCompact) {
+          // On mobile screens (< 500), size cards so that 2 full cards + half of the 3rd card
+          // (peeking ~45-50%) are visible, clearly signaling horizontal scrollability.
+          final double cardWidth;
+          if (constraints.maxWidth < 500) {
+            cardWidth = math.max(120.0, (constraints.maxWidth - 16) / 2.45);
+          } else {
+            cardWidth = math.max(140.0, (constraints.maxWidth - 24) / 3.45);
+          }
+
           return SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -97,7 +112,7 @@ class LicenceStatusCards extends StatelessWidget {
                   .map((c) => Padding(
                         padding: const EdgeInsets.only(right: 8),
                         child: SizedBox(
-                          width: 200,
+                          width: cardWidth,
                           child: c,
                         ),
                       ))
@@ -130,8 +145,17 @@ class LicenceStatusCards extends StatelessWidget {
     required Color lightBg,
     required Color borderColor,
     required Color iconBg,
+    bool isCompact = false,
   }) {
     final isSelected = selectedFilter == filter;
+
+    final iconBoxSize = isCompact ? 30.0 : 38.0;
+    final iconSize = isCompact ? 15.0 : 18.0;
+    final cardPaddingH = isCompact ? 8.0 : 12.0;
+    final cardPaddingV = isCompact ? 8.0 : 10.0;
+    final titleFontSize = isCompact ? 10.5 : 11.5;
+    final countFontSize = isCompact ? 15.5 : 18.0;
+    final recordsFontSize = isCompact ? 9.0 : 10.5;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -160,25 +184,26 @@ class LicenceStatusCards extends StatelessWidget {
           hoverColor: accentColor.withValues(alpha: 0.04),
           splashColor: accentColor.withValues(alpha: 0.1),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: EdgeInsets.symmetric(
+                horizontal: cardPaddingH, vertical: cardPaddingV),
             child: Row(
               children: [
                 Container(
-                  width: 38,
-                  height: 38,
+                  width: iconBoxSize,
+                  height: iconBoxSize,
                   decoration: BoxDecoration(
                     color: iconBg,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(isCompact ? 8 : 10),
                   ),
                   child: Center(
                     child: Icon(
                       icon,
                       color: accentColor,
-                      size: 18,
+                      size: iconSize,
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: isCompact ? 6.0 : 10.0),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -189,31 +214,35 @@ class LicenceStatusCards extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
-                          fontSize: 11.5,
+                          fontSize: titleFontSize,
                           fontWeight:
                               isSelected ? FontWeight.w700 : FontWeight.w600,
                           color: isSelected ? accentColor : AppColors.navyDark,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 1),
                       Row(
                         children: [
                           Text(
                             '$count',
                             style: GoogleFonts.poppins(
-                              fontSize: 18,
+                              fontSize: countFontSize,
                               fontWeight: FontWeight.w700,
                               color:
                                   isSelected ? accentColor : AppColors.navyDark,
                             ),
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            TranslationHelper.translate(context, 'records'),
-                            style: GoogleFonts.poppins(
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w400,
-                              color: AppColors.lightSubText,
+                          const SizedBox(width: 3),
+                          Flexible(
+                            child: Text(
+                              TranslationHelper.translate(context, 'records'),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.poppins(
+                                fontSize: recordsFontSize,
+                                fontWeight: FontWeight.w400,
+                                color: AppColors.lightSubText,
+                              ),
                             ),
                           ),
                         ],
@@ -221,19 +250,21 @@ class LicenceStatusCards extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (isSelected)
+                if (isSelected) ...[
+                  const SizedBox(width: 3),
                   Container(
-                    padding: const EdgeInsets.all(3),
+                    padding: const EdgeInsets.all(2.5),
                     decoration: BoxDecoration(
                       color: accentColor,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.check,
                       color: Colors.white,
-                      size: 10,
+                      size: isCompact ? 8.0 : 10.0,
                     ),
                   ),
+                ],
               ],
             ),
           ),

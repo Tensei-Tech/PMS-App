@@ -7,6 +7,7 @@ import '../modules/core/models/base_record.dart';
 import '../utils/arrested_table_firestore_mapper.dart';
 import '../utils/excel_export_helper.dart';
 import '../widgets/nafis_cases_data_table.dart';
+import '../widgets/sub_tab_host.dart';
 
 class NAFISHubScreen extends StatefulWidget {
   final String stationName;
@@ -204,6 +205,56 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
     );
   }
 
+  void _openTimeWise(String period) {
+    final now = DateTime.now();
+    DateTime? start, end;
+
+    if (period == 'Under 1 month') {
+      start = now.subtract(const Duration(days: 30));
+    } else if (period == '1 to 3 months') {
+      start = now.subtract(const Duration(days: 90));
+      end = now.subtract(const Duration(days: 30));
+    } else if (period == '3 to 6 months') {
+      start = now.subtract(const Duration(days: 180));
+      end = now.subtract(const Duration(days: 90));
+    } else if (period == '6 to 12 months') {
+      start = now.subtract(const Duration(days: 365));
+      end = now.subtract(const Duration(days: 180));
+    } else if (period == 'More than 1 year') {
+      end = now.subtract(const Duration(days: 365));
+    } else if (period == 'Under 3 months (Total)') {
+      start = now.subtract(const Duration(days: 90));
+    }
+
+    Navigator.push(
+      context,
+      AppTheme.fadeSlideRoute(
+        page: NAFISSummaryScreen(
+          title: 'NAFIS — $period',
+          startDate: start?.toIso8601String().split('T')[0],
+          endDate: end?.toIso8601String().split('T')[0],
+          stationName: widget.stationName,
+        ),
+      ),
+    );
+  }
+
+  void _openIOWise(Map<String, dynamic> item) {
+    final ioName = item['io_name']?.toString() ?? 'Unassigned';
+    final ioUid = item['io_uid']?.toString() ?? ioName;
+
+    Navigator.push(
+      context,
+      AppTheme.fadeSlideRoute(
+        page: NAFISSummaryScreen(
+          title: 'NAFIS — IO: $ioName',
+          ioUid: ioUid,
+          stationName: widget.stationName,
+        ),
+      ),
+    );
+  }
+
   Widget _buildTimeWiseTab() {
     if (_isLoadingTime) {
       return const Center(
@@ -231,50 +282,67 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            leading: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.navyMid.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.access_time_rounded,
-                color: AppColors.navyMid,
-                size: 22,
-              ),
-            ),
-            title: Text(
-              period,
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-                color: AppColors.navyDark,
-              ),
-            ),
-            trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color:
-                    count > 0 ? const Color(0xFFFFEBEE) : Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: count > 0
-                      ? const Color(0xFFEF5350)
-                      : Colors.grey.shade300,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () => _openTimeWise(period),
+            child: ListTile(
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              leading: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.navyMid.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.access_time_rounded,
+                  color: AppColors.navyMid,
+                  size: 22,
                 ),
               ),
-              child: Text(
-                '$count',
+              title: Text(
+                period,
                 style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13,
-                  color: count > 0
-                      ? const Color(0xFFC62828)
-                      : Colors.grey.shade700,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                  color: AppColors.navyDark,
                 ),
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: count > 0
+                          ? const Color(0xFFFFEBEE)
+                          : Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: count > 0
+                            ? const Color(0xFFEF5350)
+                            : Colors.grey.shade300,
+                      ),
+                    ),
+                    child: Text(
+                      '$count',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                        color: count > 0
+                            ? const Color(0xFFC62828)
+                            : Colors.grey.shade700,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    color: AppColors.lightSubText,
+                    size: 20,
+                  ),
+                ],
               ),
             ),
           ),
@@ -311,49 +379,67 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            leading: CircleAvatar(
-              backgroundColor: AppColors.navyMid.withValues(alpha: 0.1),
-              child: const Icon(Icons.person_rounded, color: AppColors.navyMid),
-            ),
-            title: Text(
-              ioName,
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-                color: AppColors.navyDark,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () => _openIOWise(item),
+            child: ListTile(
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              leading: CircleAvatar(
+                backgroundColor: AppColors.navyMid.withValues(alpha: 0.1),
+                child:
+                    const Icon(Icons.person_rounded, color: AppColors.navyMid),
               ),
-            ),
-            subtitle: Text(
-              station,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                color: AppColors.lightSubText,
-              ),
-            ),
-            trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color:
-                    count > 0 ? const Color(0xFFFFEBEE) : Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: count > 0
-                      ? const Color(0xFFEF5350)
-                      : Colors.grey.shade300,
-                ),
-              ),
-              child: Text(
-                '$count Pending',
+              title: Text(
+                ioName,
                 style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 12,
-                  color: count > 0
-                      ? const Color(0xFFC62828)
-                      : Colors.grey.shade700,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                  color: AppColors.navyDark,
                 ),
+              ),
+              subtitle: Text(
+                station,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: AppColors.lightSubText,
+                ),
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: count > 0
+                          ? const Color(0xFFFFEBEE)
+                          : Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: count > 0
+                            ? const Color(0xFFEF5350)
+                            : Colors.grey.shade300,
+                      ),
+                    ),
+                    child: Text(
+                      '$count Pending',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                        color: count > 0
+                            ? const Color(0xFFC62828)
+                            : Colors.grey.shade700,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    color: AppColors.lightSubText,
+                    size: 20,
+                  ),
+                ],
               ),
             ),
           ),
@@ -388,26 +474,31 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
               ),
             ),
             const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'NAFIS',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.navyDark,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'NAFIS',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyDark,
+                    ),
                   ),
-                ),
-                Text(
-                  'National Automated Fingerprint Identification',
-                  style: GoogleFonts.poppins(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.lightSubText,
+                  Text(
+                    'National Automated Fingerprint Identification',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.lightSubText,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -447,19 +538,24 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
             },
           ),
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: AppColors.navyMid,
-          unselectedLabelColor: AppColors.lightSubText,
-          indicatorColor: AppColors.navyMid,
-          indicatorWeight: 3,
-          labelStyle:
-              GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13),
-          tabs: const [
-            Tab(text: "Case Wise"),
-            Tab(text: "Time Wise"),
-            Tab(text: "IO Wise"),
-          ],
+        // NAFIS | Fingerprint switch above these tabs when opened from the
+        // NAFIS/Fingerprint dashboard tile.
+        bottom: SubTabHost.appBarBottomAbove(
+          context,
+          TabBar(
+            controller: _tabController,
+            labelColor: AppColors.navyMid,
+            unselectedLabelColor: AppColors.lightSubText,
+            indicatorColor: AppColors.navyMid,
+            indicatorWeight: 3,
+            labelStyle:
+                GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13),
+            tabs: const [
+              Tab(text: "Case Wise"),
+              Tab(text: "Time Wise"),
+              Tab(text: "IO Wise"),
+            ],
+          ),
         ),
       ),
       body: TabBarView(

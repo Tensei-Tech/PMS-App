@@ -1135,6 +1135,23 @@ class BackendCaseService {
     return null;
   }
 
+  /// Fetch Fingerprint cases (Case Wise)
+  Future<List<Map<String, dynamic>>?> fetchFingerprintCases({
+    String? ioUid,
+    String? category,
+    String? startDate,
+    String? endDate,
+    int? pageSize = 1000,
+  }) async {
+    return fetchNAFISCases(
+      ioUid: ioUid,
+      category: category,
+      startDate: startDate,
+      endDate: endDate,
+      pageSize: pageSize,
+    );
+  }
+
   /// Trigger Remind to IO action for a NAFIS case
   Future<bool> sendNafisReminderToIO(String caseId) async {
     try {

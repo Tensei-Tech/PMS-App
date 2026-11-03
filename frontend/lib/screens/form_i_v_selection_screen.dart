@@ -20,6 +20,7 @@ import '../widgets/form_iv_category_button.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
 import '../widgets/dynamic_form/dynamic_form_screen.dart';
 import '../utils/category_icon_helper.dart';
+import '../widgets/sub_tab_host.dart';
 
 /// Controls where a Form I-V category tap navigates.
 enum FormIVSelectionMode {
@@ -323,6 +324,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
     collect(category);
     if (category.toLowerCase() == 'accident') {
       result.addAll([
+        'Other Accident',
         'Normal Accident',
         'Other Accident',
         'Road Accident',
@@ -1583,6 +1585,8 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Tab switch when opened from a two-tab dashboard tile.
+            ...SubTabHost.strip(context),
             _StatusTabBar(
               selectedTab: _selectedStatusTab,
               totalCount: totalCount,

@@ -8,6 +8,7 @@ import '../services/api_config.dart';
 import '../theme/app_theme.dart';
 import '../modules/core/models/base_record.dart';
 import '../widgets/dynamic_form/dynamic_form_screen.dart';
+import '../widgets/sub_tab_host.dart';
 import '../utils/dynamic_map_pdf.dart';
 import '../utils/pdf_unicode_fonts.dart';
 
@@ -1957,63 +1958,66 @@ class _IradHubScreenState extends State<IradHubScreen>
           ),
           const SizedBox(width: 8),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
-          child: Container(
-            color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: TabBar(
-              isScrollable: true,
-              tabAlignment: TabAlignment.start,
-              controller: _tabController,
-              labelColor: AppColors.navyMid,
-              unselectedLabelColor: AppColors.lightSubText,
-              indicatorColor: AppColors.navyMid,
-              indicatorWeight: 3,
-              indicatorSize: TabBarIndicatorSize.label,
-              labelStyle: GoogleFonts.poppins(
-                fontWeight: FontWeight.w700,
-                fontSize: 13,
+        bottom: SubTabHost.appBarBottomAbove(
+          context,
+          PreferredSize(
+            preferredSize: const Size.fromHeight(48),
+            child: Container(
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: TabBar(
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                controller: _tabController,
+                labelColor: AppColors.navyMid,
+                unselectedLabelColor: AppColors.lightSubText,
+                indicatorColor: AppColors.navyMid,
+                indicatorWeight: 3,
+                indicatorSize: TabBarIndicatorSize.label,
+                labelStyle: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+                unselectedLabelStyle: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 13,
+                ),
+                tabs: const [
+                  Tab(
+                    iconMargin: EdgeInsets.zero,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.category_outlined, size: 16),
+                        SizedBox(width: 8),
+                        Text('Case Wise'),
+                      ],
+                    ),
+                  ),
+                  Tab(
+                    iconMargin: EdgeInsets.zero,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.schedule_rounded, size: 16),
+                        SizedBox(width: 8),
+                        Text('Time Wise'),
+                      ],
+                    ),
+                  ),
+                  Tab(
+                    iconMargin: EdgeInsets.zero,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.badge_outlined, size: 16),
+                        SizedBox(width: 8),
+                        Text('IO Wise'),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              unselectedLabelStyle: GoogleFonts.poppins(
-                fontWeight: FontWeight.w500,
-                fontSize: 13,
-              ),
-              tabs: const [
-                Tab(
-                  iconMargin: EdgeInsets.zero,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.category_outlined, size: 16),
-                      SizedBox(width: 8),
-                      Text('Case Wise'),
-                    ],
-                  ),
-                ),
-                Tab(
-                  iconMargin: EdgeInsets.zero,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.schedule_rounded, size: 16),
-                      SizedBox(width: 8),
-                      Text('Time Wise'),
-                    ],
-                  ),
-                ),
-                Tab(
-                  iconMargin: EdgeInsets.zero,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.badge_outlined, size: 16),
-                      SizedBox(width: 8),
-                      Text('IO Wise'),
-                    ],
-                  ),
-                ),
-              ],
             ),
           ),
         ),

@@ -584,11 +584,22 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
 
                         // 2-Column Responsive Grid on wider screens: single-line
                         // fields in pairs, in display order; textareas, repeating
-                        // groups and Act / Section pickers take a full row
+                        // groups, Act / Section pickers and radio groups with
+                        // more than two choices take a full row, so their
+                        // options sit side by side instead of wrapping
+                        bool hasManyChoices(DynamicFieldDef f) {
+                          if (f.options.isNotEmpty) return f.options.length > 2;
+                          // Choices come from the server, count unknown; a
+                          // Yes / No list is two.
+                          final src = (f.optionsSource ?? '').toLowerCase();
+                          return src.isNotEmpty && !src.contains('yes_no');
+                        }
+
                         bool isFullWidth(DynamicFieldDef f) =>
                             f.fieldType == 'textarea' ||
                             f.fieldType == 'repeating_group' ||
-                            f.fieldType == 'charges';
+                            f.fieldType == 'charges' ||
+                            (f.fieldType == 'radio' && hasManyChoices(f));
                         final items = <Widget>[];
                         final pending = <DynamicFieldDef>[];
 

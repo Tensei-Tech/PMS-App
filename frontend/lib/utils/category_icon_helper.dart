@@ -63,6 +63,7 @@ class CategoryIconHelper {
       case '498 ipc':
         return 'assets/icons/crimewomen.svg';
       case 'accident':
+      case 'other accident':
       case 'normal accident':
       case 'other accident':
       case 'road accident':

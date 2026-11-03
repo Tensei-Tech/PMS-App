@@ -60,7 +60,7 @@ def get_descendant_category_ids(category_id: int, index: Optional[CategoryIndex]
     """
     Recursively finds all category IDs in the subtree under `category_id` (including itself)
     and all twin categories across standalone and group copies.
-    Handles nested sub-tabs (e.g. Accident -> Normal Accident / Road Accident -> Death Due to Rash Driving)
+    Handles nested sub-tabs (e.g. Accident -> Other Accident / Road Accident -> Death Due to Rash Driving)
     by expanding children across all twin parent rows.
     """
     index = index or CategoryIndex()
