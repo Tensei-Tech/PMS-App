@@ -328,8 +328,12 @@ class AdPersonsApiTests(AdBackendTests):
                   for s in det['sections'] if s['title'].startswith(mig_persons.GROUP_LABEL)}
         self.assertEqual(set(blocks), {'Deceased Person 1', 'Deceased Person 2'})
         self.assertEqual(blocks['Deceased Person 1']['Relative Name'], 'TEST Sita')
-        # PM's date is its own row, not repeated beside the tick
-        self.assertEqual(blocks['Deceased Person 1']['PM Date'], '01/11/2026')
-        self.assertNotIn('01/11/2026', blocks['Deceased Person 1']['PM'])
+        # PM's date is its own row, not repeated beside the tick. Labels come
+        # from the form: "PM (Post Mortem)" reads "PM" only after another branch
+        labels = {f.field_key: f.field_label for f in FieldTemplateField.objects.filter(
+            field_key__in=('ad_postmortem', 'ad_postmortem_date'))}
+        person_one = blocks['Deceased Person 1']
+        self.assertEqual(person_one[labels['ad_postmortem_date']], '01/11/2026')
+        self.assertNotIn('01/11/2026', person_one[labels['ad_postmortem']])
         self.assertEqual(blocks['Deceased Person 2']['Name'], 'TEST Ram')
         self.assertEqual(len(det['form_data'][mig_persons.GROUP_KEY]), 2)

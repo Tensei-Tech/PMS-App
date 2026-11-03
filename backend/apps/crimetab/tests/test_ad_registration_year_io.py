@@ -77,7 +77,8 @@ class AdYearAndOfficersApiTests(AdBackendTests):
         self.assertEqual((extra['ad_year'], extra['ad_io_name'], extra['ad_io_designation']),
                          ('2026', 'TEST Officer', 'PSI'))
         # No AD No. yet: Year is hidden, so it is neither needed nor kept
-        res = self.create({'ad_postmortem': 'No', 'ad_year': '2026'})
+        # (A case-level answer: PM is per deceased person since 0173)
+        res = self.create({'ad_summary_sent': True, 'ad_year': '2026'})
         self.assertEqual(res.status_code, 201, res.data)
         self.assertNotIn('ad_year', CaseRecord.objects.get(pk=res.data['id']).extra_fields)
 
