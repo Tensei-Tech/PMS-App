@@ -24,6 +24,11 @@ _STATE_SCHEMA_CACHE = {
     'BR': 'bihar',
 }
 
+# Health checks (the app's "am I online" probe, Render): they read no tenant
+# data, so they skip setting search_path. That opened a Supabase connection
+# and ran 2 queries per probe, which could outlast the app's 3.5 s timeout.
+_HEALTH_CHECK_PATHS = ('/', '/api/')
+
 
 class TenantMiddleware(MiddlewareMixin):
     """
@@ -36,6 +41,14 @@ class TenantMiddleware(MiddlewareMixin):
     """
 
     def process_request(self, request):
+        if request.path in _HEALTH_CHECK_PATHS:
+            request.state_code = None
+            request.state_schema = 'public'
+            request.schema_resolution_source = 'health_check'
+            request._schema_switched = False
+            request._skip_search_path = True
+            return
+
         state_code = None
         schema_name = None
         source = 'default'
@@ -170,6 +183,8 @@ class TenantMiddleware(MiddlewareMixin):
         or 'public' if the stack is empty, preventing tenant search_path leakage
         while preserving test and context-manager tenant scopes.
         """
+        if getattr(request, '_skip_search_path', False):
+            return response
         try:
             from apps.core.tenancy import _get_schema_stack
             stack = _get_schema_stack()
@@ -186,6 +201,8 @@ class TenantMiddleware(MiddlewareMixin):
         Ensures search_path is safely restored to the active stack top, or 'public'
         if an unhandled exception occurs.
         """
+        if getattr(request, '_skip_search_path', False):
+            return None
         try:
             from apps.core.tenancy import _get_schema_stack
             stack = _get_schema_stack()
