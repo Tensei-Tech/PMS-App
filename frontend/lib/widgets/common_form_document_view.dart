@@ -1373,7 +1373,7 @@ class CommonFormDocumentView extends StatelessWidget {
     ]);
     if (respFields.isNotEmpty) {
       children.add(
-          _sectionShell(sIdx++, 'CASE RESPONSIBILITY', accent, respFields));
+          _sectionShell(sIdx++, 'IO / REGISTERED BY', accent, respFields));
     }
 
     // ── 11. Arrest ─────────────────────────────────────────────────────────

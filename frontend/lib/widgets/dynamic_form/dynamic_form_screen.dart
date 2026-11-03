@@ -3512,7 +3512,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         if (secFields != null && secFields.isNotEmpty) {
           final idx = sectionCounter++;
           final displayTitle = secKey == 'Officer'
-              ? 'Case Responsibility (Officer)'
+              ? 'IO / Registered By'
               : (secKey == 'Court Filing and Final Summary'
                   ? 'Court Filing & Final Summary'
                   : secKey);
