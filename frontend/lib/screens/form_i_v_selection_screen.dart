@@ -3572,7 +3572,8 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
               child: Builder(
                 builder: (context) {
                   final raw = record.status.trim();
-                  final label = raw.toLowerCase() == 'detected' ? 'Pending' : raw;
+                  final label =
+                      raw.toLowerCase() == 'detected' ? 'Pending' : raw;
                   return Text(
                     TranslationHelper.translate(context, label),
                     style: GoogleFonts.poppins(
