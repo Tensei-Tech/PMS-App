@@ -17,7 +17,7 @@ subtabs = importlib.import_module('apps.crimetab.migrations.0121_ad_suicide_and_
 mig = importlib.import_module('apps.crimetab.migrations.0125_ad_form_fields')
 # Later migrations that change the AD form; undone so 0125 is checked on its own
 later = [importlib.import_module(f'apps.crimetab.migrations.{name}') for name in (
-    '0172_ad_deceased_person_list',
+    '0173_ad_deceased_person_list',
     '0168_ad_deceased_and_inquiry_card',
     '0167_ad_yes_no_to_checkboxes',
     '0166_ad_pm_report',

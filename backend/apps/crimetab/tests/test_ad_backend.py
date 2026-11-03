@@ -30,7 +30,7 @@ def _seed_ad_public_data():
                  '0162_ad_registration_year_io_and_sdm_acp',
                  '0165_ad_unknown_deceased_in_deceased_details', '0166_ad_pm_report',
                  '0167_ad_yes_no_to_checkboxes', '0168_ad_deceased_and_inquiry_card',
-                 '0172_ad_deceased_person_list'):
+                 '0173_ad_deceased_person_list'):
         importlib.import_module(f'apps.crimetab.migrations.{name}').forwards(django_apps, None)
 
 

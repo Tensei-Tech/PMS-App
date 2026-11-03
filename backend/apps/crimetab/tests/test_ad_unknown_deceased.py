@@ -15,7 +15,7 @@ mig_same_card = importlib.import_module(
 mig_pm_report = importlib.import_module('apps.crimetab.migrations.0166_ad_pm_report')
 mig_checkboxes = importlib.import_module('apps.crimetab.migrations.0167_ad_yes_no_to_checkboxes')
 mig_card = importlib.import_module('apps.crimetab.migrations.0168_ad_deceased_and_inquiry_card')
-mig_persons = importlib.import_module('apps.crimetab.migrations.0172_ad_deceased_person_list')
+mig_persons = importlib.import_module('apps.crimetab.migrations.0173_ad_deceased_person_list')
 
 
 def _seed_before_persons():

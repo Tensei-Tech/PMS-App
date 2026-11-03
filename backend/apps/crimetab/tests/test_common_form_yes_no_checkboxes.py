@@ -144,3 +144,30 @@ class CommonFormEvidenceDateTests(TestCase):
         self.assertEqual([r[0] for r in self.evidence()], [
             'e_shakshya', 'fingerprint_taken', 'nafis_fingerprint',
             'mobile_spot_recording', 'mobile_spot_recording_date'])
+
+
+mig_ids = importlib.import_module('apps.crimetab.migrations.0172_common_form_pan_aadhaar')
+
+
+class CommonFormAadhaarPanTests(TestCase):
+    """Migration 0172: Common Form Aadhaar / PAN are checked fields, still optional."""
+
+    def setUp(self):
+        tmpl, _ = FieldTemplate.objects.get_or_create(template_name=mig_ids.TEMPLATE_NAME)
+        for key in mig_ids.TYPES:
+            FieldTemplateField.objects.update_or_create(
+                template=tmpl, field_key=key,
+                defaults={'field_label': key, 'field_type': 'text', 'is_required': False})
+
+    def fields(self):
+        return {f.field_key: f for f in FieldTemplateField.objects.filter(
+            template__template_name=mig_ids.TEMPLATE_NAME, field_key__in=list(mig_ids.TYPES))}
+
+    def test_aadhaar_and_pan_types_and_not_required(self):
+        mig_ids.forwards(django_apps, None)
+        mig_ids.forwards(django_apps, None)
+        for key, f in self.fields().items():
+            self.assertEqual((f.field_type, f.is_required), (mig_ids.TYPES[key], False), key)
+        self.assertIn(('pan', 'PAN Number (ABCDE1234F)'), FieldTemplateField._meta.get_field('field_type').choices)
+        mig_ids.backwards(django_apps, None)
+        self.assertEqual({f.field_type for f in self.fields().values()}, {'text'})

@@ -16,6 +16,8 @@ import '../../services/firestore_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/module_pdf_helper.dart';
 import '../../screens/transfer_case_form_screen.dart';
+import 'dynamic_control_factory.dart'
+    show panInputFormatters, panValidationError;
 import 'dynamic_field_model.dart';
 import 'dynamic_section_builder.dart';
 import '../repeating_cascading_charges_selector.dart';
@@ -7955,11 +7957,44 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
     TextInputType? keyboardType,
     bool isAge = false,
     bool isMobile = false,
+    bool isAadhaar = false,
+    bool isPan = false,
   }) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth >= 280;
         final isMultiline = maxLines > 1;
+
+        // Mobile / Aadhaar / PAN are optional, but when filled they must be
+        // 10 digits / 12 digits / like ABCDE1234F
+        String? digitsError(String? v, int count) {
+          final value = v?.trim() ?? '';
+          if (value.isEmpty) return null;
+          return RegExp('^[0-9]{$count}\$').hasMatch(value)
+              ? null
+              : '$label must be exactly $count digits';
+        }
+
+        final List<TextInputFormatter>? checkedFormatters = isMobile
+            ? [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(10),
+              ]
+            : isAadhaar
+                ? [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(12),
+                  ]
+                : isPan
+                    ? panInputFormatters
+                    : null;
+        final FormFieldValidator<String>? checkedValidator = isMobile
+            ? (v) => digitsError(v, 10)
+            : isAadhaar
+                ? (v) => digitsError(v, 12)
+                : isPan
+                    ? (v) => panValidationError(v, label)
+                    : null;
 
         Widget box(List<TextInputFormatter>? formatters, String? errorText) =>
             TextFormField(
@@ -7967,24 +8002,14 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
               readOnly: widget.readOnly,
               maxLines: maxLines,
               keyboardType: keyboardType,
-              inputFormatters: isMobile
-                  ? [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(10),
-                    ]
-                  : formatters,
-              // Mobile: optional, but when filled it must be 10 digits
-              autovalidateMode:
-                  isMobile ? AutovalidateMode.onUserInteraction : null,
-              validator: isMobile
-                  ? (v) {
-                      final value = v?.trim() ?? '';
-                      if (value.isEmpty) return null;
-                      return RegExp(r'^[0-9]{10}$').hasMatch(value)
-                          ? null
-                          : '$label must be exactly 10 digits';
-                    }
+              textCapitalization: isPan
+                  ? TextCapitalization.characters
+                  : TextCapitalization.none,
+              inputFormatters: checkedFormatters ?? formatters,
+              autovalidateMode: checkedValidator != null
+                  ? AutovalidateMode.onUserInteraction
                   : null,
+              validator: checkedValidator,
               style:
                   GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
               decoration: _inputDeco(hint).copyWith(errorText: errorText),
@@ -8373,11 +8398,13 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
                   controller: _aadhaarCtrl,
                   hint: 'Enter Aadhar Number',
                   keyboardType: TextInputType.number,
+                  isAadhaar: true,
                 );
                 final panFld = _buildField(
                   label: 'PAN Number',
                   controller: _panCtrl,
-                  hint: 'Enter PAN Number',
+                  hint: 'ABCDE1234F',
+                  isPan: true,
                 );
                 final relFld = _buildField(
                   label: 'Religion',

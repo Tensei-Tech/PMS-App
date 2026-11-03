@@ -3,7 +3,7 @@ import importlib
 from django.db import migrations
 
 """
-Migration 0172: A.D. "Deceased & Inquiry Details" repeats per dead person
+Migration 0173: A.D. "Deceased & Inquiry Details" repeats per dead person
 
 The card now holds one list, "Deceased Person" (Add 1 / Add 2 ...). Each person
 has their own:
@@ -282,7 +282,7 @@ def backwards(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('crimetab', '0171_common_form_evidence_dates'),
+        ('crimetab', '0172_common_form_pan_aadhaar'),
         ('cases', '0006_caserecord_disposal_date'),
     ]
 
