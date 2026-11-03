@@ -230,14 +230,51 @@ class ViewCaseTable extends StatelessWidget {
     required bool isLast,
     required bool isExpanded,
   }) {
-    final isDisposal = isRecordDisposal(record) || isDisposedTab;
-    final Color statusBg =
-        isDisposal ? const Color(0xFFF0FDF4) : const Color(0xFFFFFBEB);
-    final Color statusBorder =
-        isDisposal ? const Color(0xFFBBF7D0) : const Color(0xFFFDE68A);
-    final Color statusColor =
-        isDisposal ? const Color(0xFF16A34A) : const Color(0xFFD97706);
-    final String displayStatus = isDisposal ? 'Disposal' : 'Pending';
+    final rawStatus = _safeTrim(record.status);
+    final isDisposal = isDisposedTab ||
+        isRecordDisposal(record) ||
+        rawStatus.toLowerCase() == 'disposal' ||
+        rawStatus.toLowerCase() == 'closed' ||
+        rawStatus.toLowerCase() == 'resolved' ||
+        rawStatus.toLowerCase() == 'disposed';
+
+    final String displayStatus;
+    if (isDisposedTab || isDisposal) {
+      displayStatus = 'Disposal';
+    } else if (rawStatus.toLowerCase() == 'detected' ||
+        rawStatus.toLowerCase() == 'pending' ||
+        rawStatus.toLowerCase() == 'open' ||
+        rawStatus.toLowerCase() == 'active' ||
+        rawStatus.isEmpty) {
+      displayStatus = 'Pending';
+    } else {
+      displayStatus = rawStatus;
+    }
+
+    final lowerStatus = displayStatus.toLowerCase();
+    final Color statusBg;
+    final Color statusBorder;
+    final Color statusColor;
+
+    if (isDisposal ||
+        lowerStatus == 'disposal' ||
+        lowerStatus == 'closed' ||
+        lowerStatus == 'resolved' ||
+        lowerStatus == 'disposed') {
+      statusBg = const Color(0xFFF0FDF4);
+      statusBorder = const Color(0xFFBBF7D0);
+      statusColor = const Color(0xFF16A34A);
+    } else if (lowerStatus == 'pending' ||
+        lowerStatus == 'open' ||
+        lowerStatus == 'active') {
+      statusBg = const Color(0xFFFFFBEB);
+      statusBorder = const Color(0xFFFDE68A);
+      statusColor = const Color(0xFFD97706);
+    } else {
+      statusBg = const Color(0xFFF8FAFC);
+      statusBorder = const Color(0xFFCBD5E1);
+      statusColor = const Color(0xFF475569);
+    }
 
     final firLabel = _safeTrim(record.caseNumber, '—');
     String cat = _safeTrim(record.firestoreCategoryDisplayName);

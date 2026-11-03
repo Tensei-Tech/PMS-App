@@ -2548,21 +2548,39 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
     final crimeDate = _getCrimeDate(record, doc);
     final officerOrLocation = _getOfficerOrLocation(record, doc);
 
-    final isDisposal = record.status.toLowerCase() == 'disposal' ||
-        record.status.toLowerCase() == 'closed' ||
-        record.status.toLowerCase() == 'resolved';
-    final isPending = record.status.toLowerCase() == 'pending' ||
-        record.status.toLowerCase() == 'open' ||
-        record.status.toLowerCase() == 'active';
+    final rawStatus = record.status.trim();
+    final isDisposal = rawStatus.toLowerCase() == 'disposal' ||
+        rawStatus.toLowerCase() == 'closed' ||
+        rawStatus.toLowerCase() == 'resolved' ||
+        rawStatus.toLowerCase() == 'disposed';
+    final String displayStatus;
+    if (isDisposal) {
+      displayStatus = 'Disposal';
+    } else if (rawStatus.toLowerCase() == 'detected' ||
+        rawStatus.toLowerCase() == 'pending' ||
+        rawStatus.toLowerCase() == 'open' ||
+        rawStatus.toLowerCase() == 'active' ||
+        rawStatus.isEmpty) {
+      displayStatus = 'Pending';
+    } else {
+      displayStatus = rawStatus;
+    }
+
     final Color statusColor = isDisposal
         ? const Color(0xFF2E7D32)
-        : (isPending ? const Color(0xFFE65100) : const Color(0xFFD32F2F));
+        : (displayStatus == 'Pending'
+            ? const Color(0xFFE65100)
+            : const Color(0xFF475569));
     final Color statusBg = isDisposal
         ? const Color(0xFFE8F5E9)
-        : (isPending ? const Color(0xFFFFF3E0) : const Color(0xFFFFEBEE));
+        : (displayStatus == 'Pending'
+            ? const Color(0xFFFFF3E0)
+            : const Color(0xFFF8FAFC));
     final Color statusBorder = isDisposal
         ? const Color(0xFFA5D6A7)
-        : (isPending ? const Color(0xFFFFCC80) : const Color(0xFFFFCDD2));
+        : (displayStatus == 'Pending'
+            ? const Color(0xFFFFCC80)
+            : const Color(0xFFCBD5E1));
 
     final categoryLabel = record.subCategory?.trim().isNotEmpty == true
         ? TranslationHelper.translate(context, record.subCategory!.trim())
@@ -2837,9 +2855,9 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                 const SizedBox(width: 5),
                 Flexible(
                   child: Tooltip(
-                    message: record.status,
+                    message: displayStatus,
                     child: Text(
-                      TranslationHelper.translate(context, record.status),
+                      TranslationHelper.translate(context, displayStatus),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
@@ -3408,13 +3426,19 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(color: statusColor.withValues(alpha: 0.35)),
               ),
-              child: Text(
-                TranslationHelper.translate(context, record.status),
-                style: GoogleFonts.poppins(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: statusColor,
-                ),
+              child: Builder(
+                builder: (context) {
+                  final raw = record.status.trim();
+                  final label = raw.toLowerCase() == 'detected' ? 'Pending' : raw;
+                  return Text(
+                    TranslationHelper.translate(context, label),
+                    style: GoogleFonts.poppins(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: statusColor,
+                    ),
+                  );
+                },
               ),
             ),
           ],
