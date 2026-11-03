@@ -15,6 +15,7 @@ import '../utils/pdf_unicode_fonts.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/dynamic_form/dynamic_form_screen.dart';
 import '../widgets/nafis_cases_data_table.dart';
+import '../widgets/sub_tab_host.dart';
 import 'nafis_summary_screen.dart';
 
 enum FingerprintFilter {
@@ -556,19 +557,24 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
                 visibleRows.isNotEmpty ? () => _exportPdf(visibleRows) : null,
           ),
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: AppColors.navyMid,
-          unselectedLabelColor: AppColors.lightSubText,
-          indicatorColor: AppColors.navyMid,
-          indicatorWeight: 3,
-          labelStyle:
-              GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13),
-          tabs: const [
-            Tab(text: "Case Wise"),
-            Tab(text: "Time Wise"),
-            Tab(text: "IO Wise"),
-          ],
+        // NAFIS | Fingerprint switch above these tabs when opened from the
+        // NAFIS/Fingerprint dashboard tile.
+        bottom: SubTabHost.appBarBottomAbove(
+          context,
+          TabBar(
+            controller: _tabController,
+            labelColor: AppColors.navyMid,
+            unselectedLabelColor: AppColors.lightSubText,
+            indicatorColor: AppColors.navyMid,
+            indicatorWeight: 3,
+            labelStyle:
+                GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13),
+            tabs: const [
+              Tab(text: "Case Wise"),
+              Tab(text: "Time Wise"),
+              Tab(text: "IO Wise"),
+            ],
+          ),
         ),
       ),
       body: TabBarView(
