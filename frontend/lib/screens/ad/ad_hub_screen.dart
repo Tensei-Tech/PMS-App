@@ -212,6 +212,7 @@ class _AdHubScreenState extends State<AdHubScreen>
           moduleKey: widget.moduleKey,
           initialData: formData,
           sectionsInDisplayOrder: true,
+          showLoadingSpinner: false,
           onSubmitCustom: (payload, isEdit) async {
             final res = id == null
                 ? await _service.create(cat, payload)

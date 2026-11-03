@@ -305,15 +305,18 @@ def mask_aadhaar(value, settings):
     return mask * (len(s) - visible) + s[-visible:] if visible else mask * len(s)
 
 
-def display_value(f, values, settings):
-    """Text shown for one (non-list) field's answer."""
+def display_value(f, values, settings, defs_by_key=None):
+    """Text shown for one (non-list) field's answer. A ticked checkbox shows
+    its '<key>_date' beside it, unless that date is a form field of its own
+    (e.g. PM Date) shown on its own row."""
     raw = values.get(f.field_key)
     if _blank(raw):
         return ''
     if f.field_type == 'checkbox':
         if not _is_ticked(raw):
             return ''
-        when = _clean_str(values.get(f.field_key + CHECKBOX_DATE_SUFFIX))
+        date_key = f.field_key + CHECKBOX_DATE_SUFFIX
+        when = None if defs_by_key and date_key in defs_by_key else _clean_str(values.get(date_key))
         yes = settings.text('yes_value')
         return f'{yes} ({when})' if when else yes
     if f.field_type == 'aadhaar':
@@ -362,7 +365,7 @@ def build_display_sections(values, field_defs, settings):
                     for k in kids:
                         if not is_visible(k, row, kids_by_key):
                             continue
-                        text = display_value(k, row, settings)
+                        text = display_value(k, row, settings, kids_by_key)
                         if text:
                             block['rows'].append((k.field_label, text))
                 continue
@@ -371,7 +374,7 @@ def build_display_sections(values, field_defs, settings):
             for row in rows:
                 sec['rows'].append([display_value(k, row, settings) for k in kids])
             continue
-        text = display_value(f, values, settings)
+        text = display_value(f, values, settings, defs_by_key)
         if text:
             section(f.section or f.field_label, 'fields')['rows'].append((f.field_label, text))
     return sections
@@ -410,7 +413,7 @@ def build_list_card(values, field_defs, settings):
                 continue
             label, _ = entry
             f = defs_by_key.get(spec)
-            text = display_value(f, values, settings) if f is not None else entry[1]
+            text = display_value(f, values, settings, defs_by_key) if f is not None else entry[1]
             labels.append(label)
             if text:
                 texts.append(text)
