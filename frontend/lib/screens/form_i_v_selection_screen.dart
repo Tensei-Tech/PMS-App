@@ -323,6 +323,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
     collect(category);
     if (category.toLowerCase() == 'accident') {
       result.addAll([
+        'Other Accident',
         'Normal Accident',
         'Road Accident',
         'Death Due to Rash Driving',
