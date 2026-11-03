@@ -143,166 +143,298 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
     return RefreshIndicator(
       onRefresh: fetchAllData,
       color: AppColors.navyMid,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.only(bottom: 24),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.all(16),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  headingRowColor: WidgetStateProperty.all(AppColors.navyDark),
-                  headingTextStyle: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    fontSize: 11.5,
-                  ),
-                  dataTextStyle: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.lightText,
-                    fontSize: 11.5,
-                  ),
-                  horizontalMargin: 12,
-                  columnSpacing: 18,
-                  columns: const [
-                    DataColumn(label: Text('Sr. No.')),
-                    DataColumn(label: Text('CR No.')),
-                    DataColumn(label: Text('Section/Act')),
-                    DataColumn(label: Text('Charge Sheet Date')),
-                    DataColumn(label: Text('IO Name')),
-                    DataColumn(label: Text('Status')),
-                    DataColumn(label: Text('Action')),
-                  ],
-                  rows: List.generate(caseWiseData.length, (index) {
-                    final caseItem = caseWiseData[index];
-                    final isGreen = caseItem['itsso_status_color']
-                            ?.toString()
-                            .toLowerCase() ==
-                        'green';
-                    final bg =
-                        index % 2 == 0 ? Colors.white : const Color(0xFFF8FAFD);
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(16),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                const minWidth = 850.0;
+                final tableWidth = constraints.maxWidth > minWidth
+                    ? constraints.maxWidth
+                    : minWidth;
 
-                    return DataRow(
-                      color: WidgetStateProperty.all(bg),
-                      cells: [
-                        DataCell(Text(
-                            caseItem['sr_no']?.toString() ?? '${index + 1}')),
-                        DataCell(
-                            Text(caseItem['case_number']?.toString() ?? '—')),
-                        DataCell(
-                            Text(caseItem['section_act']?.toString() ?? '—')),
-                        DataCell(Text(
-                            caseItem['charge_sheet_date']?.toString() ??
-                                'Pending')),
-                        DataCell(Text(
-                            caseItem['assigned_officer']?.toString() ??
-                                'Unassigned')),
-                        DataCell(
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: isGreen
-                                  ? const Color(0xFF10B981)
-                                      .withValues(alpha: 0.15)
-                                  : const Color(0xFFEF4444)
-                                      .withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: isGreen
-                                    ? const Color(0xFF10B981)
-                                        .withValues(alpha: 0.4)
-                                    : const Color(0xFFEF4444)
-                                        .withValues(alpha: 0.4),
+                const columnWidths = <int, TableColumnWidth>{
+                  0: FixedColumnWidth(60),
+                  1: FlexColumnWidth(1.2),
+                  2: FlexColumnWidth(1.8),
+                  3: FixedColumnWidth(130),
+                  4: FlexColumnWidth(1.4),
+                  5: FixedColumnWidth(100),
+                  6: FixedColumnWidth(110),
+                };
+
+                Widget headerCell(String text,
+                    {Alignment align = Alignment.centerLeft}) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 12),
+                    alignment: align,
+                    child: Text(
+                      text,
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        fontSize: 11.5,
+                      ),
+                    ),
+                  );
+                }
+
+                Widget dataCell(Widget child,
+                    {Alignment align = Alignment.centerLeft}) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    alignment: align,
+                    child: child,
+                  );
+                }
+
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: SizedBox(
+                    width: tableWidth,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // ── Sticky Fixed Blue Header ──
+                        Container(
+                          color: AppColors.navyDark,
+                          child: Table(
+                            columnWidths: columnWidths,
+                            defaultVerticalAlignment:
+                                TableCellVerticalAlignment.middle,
+                            children: [
+                              TableRow(
+                                decoration: const BoxDecoration(
+                                    color: AppColors.navyDark),
+                                children: [
+                                  headerCell('Sr. No.'),
+                                  headerCell('CR No.'),
+                                  headerCell('Section/Act'),
+                                  headerCell('Charge Sheet Date'),
+                                  headerCell('IO Name'),
+                                  headerCell('Status', align: Alignment.center),
+                                  headerCell('Action', align: Alignment.center),
+                                ],
                               ),
-                            ),
-                            child: Text(
-                              caseItem['itsso_status']?.toString() ?? 'Pending',
-                              style: GoogleFonts.poppins(
-                                color: isGreen
-                                    ? const Color(0xFF047857)
-                                    : const Color(0xFFB91C1C),
-                                fontWeight: FontWeight.w700,
-                                fontSize: 11,
+                            ],
+                          ),
+                        ),
+
+                        // ── Scrollable Case List ──
+                        Expanded(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: Table(
+                              columnWidths: columnWidths,
+                              defaultVerticalAlignment:
+                                  TableCellVerticalAlignment.middle,
+                              border: const TableBorder(
+                                horizontalInside: BorderSide(
+                                  color: Color(0xFFEDF2F7),
+                                  width: 1,
+                                ),
+                              ),
+                              children: List<TableRow>.generate(
+                                caseWiseData.length,
+                                (index) {
+                                  final caseItem = caseWiseData[index];
+                                  final isGreen = caseItem['itsso_status_color']
+                                          ?.toString()
+                                          .toLowerCase() ==
+                                      'green';
+                                  final bg = index % 2 == 0
+                                      ? Colors.white
+                                      : const Color(0xFFF8FAFD);
+
+                                  return TableRow(
+                                    decoration: BoxDecoration(color: bg),
+                                    children: [
+                                      dataCell(
+                                        Text(
+                                          caseItem['sr_no']?.toString() ??
+                                              '${index + 1}',
+                                          style: GoogleFonts.poppins(
+                                            fontWeight: FontWeight.w500,
+                                            color: AppColors.lightText,
+                                            fontSize: 11.5,
+                                          ),
+                                        ),
+                                      ),
+                                      dataCell(
+                                        Text(
+                                          caseItem['case_number']?.toString() ??
+                                              '—',
+                                          style: GoogleFonts.poppins(
+                                            fontWeight: FontWeight.w500,
+                                            color: AppColors.lightText,
+                                            fontSize: 11.5,
+                                          ),
+                                        ),
+                                      ),
+                                      dataCell(
+                                        Text(
+                                          caseItem['section_act']?.toString() ??
+                                              '—',
+                                          style: GoogleFonts.poppins(
+                                            fontWeight: FontWeight.w500,
+                                            color: AppColors.lightText,
+                                            fontSize: 11.5,
+                                          ),
+                                        ),
+                                      ),
+                                      dataCell(
+                                        Text(
+                                          caseItem['charge_sheet_date']
+                                                  ?.toString() ??
+                                              'Pending',
+                                          style: GoogleFonts.poppins(
+                                            fontWeight: FontWeight.w500,
+                                            color: AppColors.lightText,
+                                            fontSize: 11.5,
+                                          ),
+                                        ),
+                                      ),
+                                      dataCell(
+                                        Text(
+                                          caseItem['assigned_officer']
+                                                  ?.toString() ??
+                                              'Unassigned',
+                                          style: GoogleFonts.poppins(
+                                            fontWeight: FontWeight.w500,
+                                            color: AppColors.lightText,
+                                            fontSize: 11.5,
+                                          ),
+                                        ),
+                                      ),
+                                      dataCell(
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 10, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: isGreen
+                                                ? const Color(0xFF10B981)
+                                                    .withValues(alpha: 0.15)
+                                                : const Color(0xFFEF4444)
+                                                    .withValues(alpha: 0.15),
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                            border: Border.all(
+                                              color: isGreen
+                                                  ? const Color(0xFF10B981)
+                                                      .withValues(alpha: 0.4)
+                                                  : const Color(0xFFEF4444)
+                                                      .withValues(alpha: 0.4),
+                                            ),
+                                          ),
+                                          child: Text(
+                                            caseItem['itsso_status']
+                                                    ?.toString() ??
+                                                'Pending',
+                                            style: GoogleFonts.poppins(
+                                              color: isGreen
+                                                  ? const Color(0xFF047857)
+                                                  : const Color(0xFFB91C1C),
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 11,
+                                            ),
+                                          ),
+                                        ),
+                                        align: Alignment.center,
+                                      ),
+                                      dataCell(
+                                        (caseItem['action_required'] == true)
+                                            ? ElevatedButton(
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      const Color(0xFFDC2626),
+                                                  foregroundColor: Colors.white,
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 10,
+                                                      vertical: 4),
+                                                  minimumSize:
+                                                      const Size(70, 28),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            6),
+                                                  ),
+                                                ),
+                                                onPressed: () async {
+                                                  final messenger =
+                                                      ScaffoldMessenger.of(
+                                                          context);
+                                                  final caseNumber =
+                                                      caseItem['case_number'];
+                                                  try {
+                                                    await ApiService().post(
+                                                      '$baseUrl/itsso/cases/${caseItem['id']}/action/',
+                                                      body: {},
+                                                    );
+                                                    if (mounted) {
+                                                      messenger.showSnackBar(
+                                                        SnackBar(
+                                                          content: Text(
+                                                              "Reminder sent to IO for case $caseNumber"),
+                                                        ),
+                                                      );
+                                                    }
+                                                  } catch (e) {
+                                                    if (mounted) {
+                                                      messenger.showSnackBar(
+                                                        SnackBar(
+                                                          content: Text(
+                                                              "Reminder sent to IO for case $caseNumber"),
+                                                        ),
+                                                      );
+                                                    }
+                                                  }
+                                                },
+                                                child: Text(
+                                                  'Remind IO',
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                                ),
+                                              )
+                                            : const Text('—'),
+                                        align: Alignment.center,
+                                      ),
+                                    ],
+                                  );
+                                },
                               ),
                             ),
                           ),
                         ),
-                        DataCell(
-                          (caseItem['action_required'] == true)
-                              ? ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFFDC2626),
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 4),
-                                    minimumSize: const Size(70, 28),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                  ),
-                                  onPressed: () async {
-                                    try {
-                                      await ApiService().post(
-                                        '$baseUrl/itsso/cases/${caseItem['id']}/action/',
-                                        body: {},
-                                      );
-                                      if (mounted) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                                "Reminder sent to IO for case ${caseItem['case_number']}"),
-                                          ),
-                                        );
-                                      }
-                                    } catch (e) {
-                                      if (mounted) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                                "Reminder sent to IO for case ${caseItem['case_number']}"),
-                                          ),
-                                        );
-                                      }
-                                    }
-                                  },
-                                  child: Text(
-                                    'Remind IO',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                )
-                              : const Text('—'),
-                        ),
                       ],
-                    );
-                  }),
-                ),
-              ),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         ),

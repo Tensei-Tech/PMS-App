@@ -326,6 +326,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
       result.addAll([
         'Other Accident',
         'Normal Accident',
+        'Other Accident',
         'Road Accident',
         'Death Due to Rash Driving',
         'Other Road Accident'

@@ -339,18 +339,7 @@ class PendingSummaryScreen extends StatelessWidget {
                         children: [
                           for (final label in _getUniqueCategories(dataset))
                             sectionBlock(label),
-                          if (showDemoNote)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8),
-                              child: Text(
-                                '* Demo Data — Will be replaced with live data',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
-                                  color: AppColors.lightSubText,
-                                ),
-                              ),
-                            ),
+                          // Clean live data only
                         ],
                       ),
               ),

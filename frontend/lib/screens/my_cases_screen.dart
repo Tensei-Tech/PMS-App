@@ -183,10 +183,11 @@ class _MyCasesScreenState extends State<MyCasesScreen> {
   }
 
   Widget _buildStatusTabBar() {
+    final isMobile = MediaQuery.of(context).size.width < 500;
     final tabs = [
       (
         index: 0,
-        label: 'Total Cases',
+        label: isMobile ? 'All' : 'Total Cases',
         count: _allCases?.length ?? 0,
         badgeBg: const Color(0xFFE8F1FC),
         badgeFg: const Color(0xFF1976D2),
@@ -207,86 +208,123 @@ class _MyCasesScreenState extends State<MyCasesScreen> {
       ),
     ];
 
-    return Center(
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Container(
-          padding: const EdgeInsets.all(4),
+    Widget tabItem(
+        ({
+          Color badgeBg,
+          Color badgeFg,
+          int count,
+          int index,
+          String label,
+        }) item) {
+      final isSelected = _selectedTabIndex == item.index;
+      return InkWell(
+        onTap: () {
+          if (_selectedTabIndex != item.index) {
+            setState(() => _selectedTabIndex = item.index);
+          }
+        },
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: EdgeInsets.symmetric(
+            horizontal: isMobile ? 8 : 16,
+            vertical: isMobile ? 7 : 8,
+          ),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Border.all(color: const Color(0xFFCBD5E1), width: 1.1),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
-                blurRadius: 4,
-                offset: const Offset(0, 1),
+            color: isSelected ? AppColors.navyDark : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
+          child: Row(
+            mainAxisSize: isMobile ? MainAxisSize.max : MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Flexible(
+                child: Text(
+                  TranslationHelper.translate(context, item.label),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: isMobile ? 11.5 : 12.5,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    color: isSelected ? Colors.white : AppColors.lightSubText,
+                  ),
+                ),
+              ),
+              SizedBox(width: isMobile ? 5 : 8),
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 5 : 7,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? Colors.white.withValues(alpha: 0.22)
+                      : item.badgeBg,
+                  borderRadius: BorderRadius.circular(AppRadius.full),
+                ),
+                child: Text(
+                  '${item.count}',
+                  style: GoogleFonts.poppins(
+                    fontSize: isMobile ? 10.5 : 11,
+                    fontWeight: FontWeight.w700,
+                    color: isSelected ? Colors.white : item.badgeFg,
+                  ),
+                ),
               ),
             ],
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: tabs.map((item) {
-              final isSelected = _selectedTabIndex == item.index;
-              return InkWell(
-                onTap: () {
-                  if (_selectedTabIndex != item.index) {
-                    setState(() => _selectedTabIndex = item.index);
-                  }
-                },
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isSelected ? AppColors.navyDark : Colors.transparent,
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        TranslationHelper.translate(context, item.label),
-                        style: GoogleFonts.poppins(
-                          fontSize: 12.5,
-                          fontWeight:
-                              isSelected ? FontWeight.w600 : FontWeight.w500,
-                          color: isSelected
-                              ? Colors.white
-                              : AppColors.lightSubText,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 7,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? Colors.white.withValues(alpha: 0.22)
-                              : item.badgeBg,
-                          borderRadius: BorderRadius.circular(AppRadius.full),
-                        ),
-                        child: Text(
-                          '${item.count}',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: isSelected ? Colors.white : item.badgeFg,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
         ),
-      ),
+      );
+    }
+
+    final row = Row(
+      mainAxisSize: isMobile ? MainAxisSize.max : MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: tabs.map((item) {
+        final w = tabItem(item);
+        return isMobile ? Expanded(child: w) : w;
+      }).toList(),
+    );
+
+    return Center(
+      child: isMobile
+          ? Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                border: Border.all(color: const Color(0xFFCBD5E1), width: 1.1),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.02),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+              child: row,
+            )
+          : SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
+                  border:
+                      Border.all(color: const Color(0xFFCBD5E1), width: 1.1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.02),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: row,
+              ),
+            ),
     );
   }
 
