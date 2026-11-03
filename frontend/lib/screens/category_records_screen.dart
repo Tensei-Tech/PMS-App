@@ -154,7 +154,7 @@ class CategoryRecordsScreen extends StatelessWidget {
               style: GoogleFonts.poppins(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.goldPrimary),
+                  color: AppColors.navyDark),
             ),
           ),
           const SizedBox(height: 6),
@@ -200,8 +200,9 @@ class CategoryRecordsScreen extends StatelessWidget {
                   AppColors.dangerRed, () {
                 PdfHelper.generateCasePdf(record);
               }),
-              _actionbtn(context, Icons.visibility_rounded, 'View',
-                  AppColors.goldPrimary, () {
+              _actionbtn(
+                  context, Icons.visibility_rounded, 'View', AppColors.navyDark,
+                  () {
                 Navigator.push(
                   context,
                   AppTheme.fadeSlideRoute(
