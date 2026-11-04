@@ -4,7 +4,7 @@ import '../../core/providers/base_module_provider.dart';
 
 class PassportProvider extends BaseModuleProvider {
   static const String statusPending = 'Pending';
-  static const String statusVerified = 'Verified / Report Submitted';
+  static const String statusVerified = 'Verified';
   static const String statusPartial = 'Partially Verified';
 
   PassportProvider() : super('passport');

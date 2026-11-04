@@ -32,7 +32,8 @@ void main() {
 
     TranslationHelper.activeLanguageCode = 'en';
     expect(TranslationHelper.translate(ctx, 'Juvenile'), 'CiCL');
-    expect(TranslationHelper.translate(ctx, 'Juvenile — Summary'),
-        'Juvenile — Summary');
+    // Composite labels (not in the exact-match list) pass through unchanged
+    expect(TranslationHelper.translate(ctx, 'CiCL - Under 1 month'),
+        'CiCL - Under 1 month');
   });
 }

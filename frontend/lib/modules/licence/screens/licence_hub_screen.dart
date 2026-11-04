@@ -958,12 +958,23 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
   Widget _buildTable(BuildContext context, List<ModuleRecord> records) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final tableMinWidth = math.max(880.0, constraints.maxWidth - 32);
+        final isMobile = constraints.maxWidth < 600;
+        final availW = constraints.maxWidth - (isMobile ? 24.0 : 32.0);
+        final tableMinWidth = math.max(isMobile ? 600.0 : 880.0, availW);
+
+        // On mobile phone view, compute name column widths so that the 4th column
+        // ('Licence/NOC') is visibly "half cut" (~65-75px peeking on the right edge),
+        // making it immediately obvious to the user that the table is horizontally scrollable.
+        final double nameColMaxW = isMobile
+            ? math.max(82.0, (availW - 145.0) / 2)
+            : 200.0;
+        final double colSpacing = isMobile ? 12.0 : 28.0;
+        final double horizMargin = isMobile ? 10.0 : 24.0;
 
         return Scrollbar(
           thumbVisibility: true,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(isMobile ? 12 : 16),
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(
@@ -988,18 +999,19 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
                     ),
                     child: DataTable(
                       showCheckboxColumn: false,
-                      columnSpacing: 28,
+                      columnSpacing: colSpacing,
+                      horizontalMargin: horizMargin,
                       headingRowColor:
                           WidgetStateProperty.all(const Color(0xFFF8FAFC)),
                       headingTextStyle: GoogleFonts.poppins(
-                        fontSize: 12,
+                        fontSize: isMobile ? 11.5 : 12,
                         fontWeight: FontWeight.w700,
                         color: AppColors.navyDark,
                       ),
                       dataRowMinHeight: 52,
                       dataRowMaxHeight: 64,
                       dataTextStyle: GoogleFonts.poppins(
-                        fontSize: 12,
+                        fontSize: isMobile ? 11.5 : 12,
                         color: AppColors.navyDark,
                       ),
                       columns: [
@@ -1008,16 +1020,30 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
                               Text(TranslationHelper.translate(context, 'Sr.')),
                         ),
                         DataColumn(
-                          label: Text(TranslationHelper.translate(
-                              context, 'Applicant Name')),
+                          label: ConstrainedBox(
+                            constraints: BoxConstraints(maxWidth: nameColMaxW),
+                            child: Text(
+                              TranslationHelper.translate(
+                                  context, 'Applicant Name'),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                        DataColumn(
+                          label: ConstrainedBox(
+                            constraints: BoxConstraints(maxWidth: nameColMaxW),
+                            child: Text(
+                              TranslationHelper.translate(
+                                  context, 'Business Name'),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ),
                         DataColumn(
                           label: Text(TranslationHelper.translate(
-                              context, 'Business Name')),
-                        ),
-                        DataColumn(
-                          label: Text(TranslationHelper.translate(
-                              context, 'Licence / NOC Type')),
+                              context, isMobile ? 'Licence/NOC' : 'Licence / NOC Type')),
                         ),
                         DataColumn(
                           label: Text(TranslationHelper.translate(
@@ -1070,24 +1096,39 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
                               ),
                             ),
                             DataCell(
-                              Text(
-                                applicantName.isNotEmpty ? applicantName : '—',
-                                style: GoogleFonts.poppins(
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.navyDark,
+                              ConstrainedBox(
+                                constraints:
+                                    BoxConstraints(maxWidth: nameColMaxW),
+                                child: Text(
+                                  applicantName.isNotEmpty ? applicantName : '—',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.navyDark,
+                                  ),
                                 ),
                               ),
                             ),
                             DataCell(
-                              Text(
-                                businessName.isNotEmpty ? businessName : '—',
-                                style: GoogleFonts.poppins(
-                                  color: AppColors.navyDark,
+                              ConstrainedBox(
+                                constraints:
+                                    BoxConstraints(maxWidth: nameColMaxW),
+                                child: Text(
+                                  businessName.isNotEmpty ? businessName : '—',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.poppins(
+                                    color: AppColors.navyDark,
+                                  ),
                                 ),
                               ),
                             ),
                             DataCell(
                               Container(
+                                constraints: BoxConstraints(
+                                  maxWidth: isMobile ? 120.0 : 220.0,
+                                ),
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
@@ -1096,6 +1137,8 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
                                 ),
                                 child: Text(
                                   licenceType.isNotEmpty ? licenceType : '—',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.poppins(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.w500,

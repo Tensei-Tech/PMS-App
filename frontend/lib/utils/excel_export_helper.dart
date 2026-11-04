@@ -353,6 +353,124 @@ class ExcelExportHelper {
     platformDownloadBytes(bytes, filename, 'text/csv;charset=utf-8');
   }
 
+  /// Exports Pending cases to CSV/Excel format with requested columns:
+  /// Sr. No., Cr. No., SEC & ACT, Head, IO Name, Police station
+  static void exportPendingToExcel({
+    required List<Map<String, String>> dataset,
+    String filename = 'Pending_Cases.csv',
+    bool isAbsconded = false,
+    bool isVictim = false,
+    bool isUndetected = false,
+  }) {
+    final List<List<dynamic>> rows = [];
+
+    if (isVictim) {
+      rows.add([
+        'Sr. No.',
+        'Cr. No.',
+        'SEC & ACT',
+        'Head',
+        'Name',
+        'Injured/Deceased',
+        'IO Name',
+      ]);
+      for (var i = 0; i < dataset.length; i++) {
+        final r = dataset[i];
+        final sr = r['sr']?.isNotEmpty == true ? r['sr']! : '';
+        final cr = r['cr']?.trim().isNotEmpty == true ? r['cr']!.trim() : '—';
+        final secAct = r['sections']?.trim().isNotEmpty == true
+            ? r['sections']!.trim()
+            : '—';
+        final head = (r['victim_head'] ?? r['head'])?.trim().isNotEmpty == true
+            ? (r['victim_head'] ?? r['head'])!.trim()
+            : '—';
+        final name = r['victim_name']?.trim().isNotEmpty == true
+            ? r['victim_name']!.trim()
+            : '—';
+        final injured = r['injured_deceased']?.trim().isNotEmpty == true
+            ? r['injured_deceased']!.trim()
+            : '—';
+        final io = r['io']?.trim().isNotEmpty == true ? r['io']!.trim() : '—';
+        rows.add([sr, cr, secAct, head, name, injured, io]);
+      }
+    } else if (isAbsconded) {
+      rows.add([
+        'Sr. No.',
+        'Cr. No.',
+        'SEC & ACT',
+        'Head',
+        'Accused Name (फरार आरोपी)',
+        'IO Name',
+      ]);
+      for (var i = 0; i < dataset.length; i++) {
+        final r = dataset[i];
+        final sr = r['sr']?.isNotEmpty == true ? r['sr']! : '';
+        final cr = r['cr']?.trim().isNotEmpty == true ? r['cr']!.trim() : '—';
+        final secAct = r['sections']?.trim().isNotEmpty == true
+            ? r['sections']!.trim()
+            : '—';
+        final head =
+            r['head']?.trim().isNotEmpty == true ? r['head']!.trim() : '—';
+        final accused =
+            r['accused']?.trim().isNotEmpty == true ? r['accused']!.trim() : '—';
+        final io = r['io']?.trim().isNotEmpty == true ? r['io']!.trim() : '—';
+        rows.add([sr, cr, secAct, head, accused, io]);
+      }
+    } else if (isUndetected) {
+      rows.add([
+        'Sr. No.',
+        'Cr. No.',
+        'SEC & ACT',
+        'Head',
+        'IO Name',
+      ]);
+      for (var i = 0; i < dataset.length; i++) {
+        final r = dataset[i];
+        final sr = r['sr']?.isNotEmpty == true ? r['sr']! : '';
+        final cr = r['cr']?.trim().isNotEmpty == true ? r['cr']!.trim() : '—';
+        final secAct = r['sections']?.trim().isNotEmpty == true
+            ? r['sections']!.trim()
+            : '—';
+        final head =
+            r['head']?.trim().isNotEmpty == true ? r['head']!.trim() : '—';
+        final io = r['io']?.trim().isNotEmpty == true ? r['io']!.trim() : '—';
+        rows.add([sr, cr, secAct, head, io]);
+      }
+    } else {
+      // Pending cases: Sr. No., Cr. No., SEC & ACT, Head, IO Name, Police station
+      rows.add([
+        'Sr. No.',
+        'Cr. No.',
+        'SEC & ACT',
+        'Head',
+        'IO Name',
+        'Police station',
+      ]);
+      for (var i = 0; i < dataset.length; i++) {
+        final r = dataset[i];
+        final sr = r['sr']?.isNotEmpty == true ? r['sr']! : '';
+        final cr = r['cr']?.trim().isNotEmpty == true ? r['cr']!.trim() : '—';
+        final secAct = r['sections']?.trim().isNotEmpty == true
+            ? r['sections']!.trim()
+            : '—';
+        final head =
+            r['head']?.trim().isNotEmpty == true ? r['head']!.trim() : '—';
+        final io = r['io']?.trim().isNotEmpty == true ? r['io']!.trim() : '—';
+        final station =
+            (r['station'] ?? r['police_station'])?.trim().isNotEmpty == true
+                ? (r['station'] ?? r['police_station'])!.trim()
+                : '—';
+        rows.add([sr, cr, secAct, head, io, station]);
+      }
+    }
+
+    final csvContent = const ListToCsvConverter().convert(rows);
+    // Add UTF-8 BOM so Excel opens Hindi, Marathi, and special symbols correctly
+    final bytes = [0xEF, 0xBB, 0xBF, ...utf8.encode(csvContent)];
+
+    platformDownloadBytes(bytes, filename, 'text/csv;charset=utf-8');
+  }
+
   /// Exports Repeat Offender cases to CSV/Excel format with requested columns:
   /// Sr. No., Accused Name, Cr. No., Sec/Act, Head, Police station
   static void exportRepeatOffenderToExcel({

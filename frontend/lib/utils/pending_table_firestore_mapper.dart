@@ -155,7 +155,18 @@ String _sectionsLine(ModuleRecord r) {
 String _headLine(ModuleRecord r) {
   final sub = r.subCategory?.trim();
   if (sub != null && sub.isNotEmpty) return sub;
-  return r.firestoreCategoryDisplayName.trim();
+  final cat = r.firestoreCategoryDisplayName.trim();
+  if (cat.isNotEmpty && cat.toLowerCase() != 'other') return cat;
+  final crimeTypeName = (r.extraFields['crime_type_name'] ??
+          r.extraFields['head'] ??
+          r.extraFields['crime_type'])
+      ?.toString()
+      .trim();
+  if (crimeTypeName != null && crimeTypeName.isNotEmpty) return crimeTypeName;
+  final t = r.title.trim();
+  if (t.isNotEmpty) return t;
+  if (cat.isNotEmpty) return cat;
+  return '—';
 }
 
 String _victimNamesLine(ModuleRecord r) {
@@ -233,7 +244,22 @@ Map<String, String> pendingModuleRecordToTableRow(
     'sections': _sectionsLine(r),
     'accused': r.accused.trim().isEmpty ? '—' : r.accused.trim(),
     'io': io.isEmpty ? '—' : io,
-    'station': r.stationName.trim().isEmpty ? '—' : r.stationName.trim(),
+    'station': r.stationName.trim().isNotEmpty
+        ? r.stationName.trim()
+        : (((r.extraFields['station_name'] ??
+                    r.extraFields['police_station'] ??
+                    r.extraFields['station'] ??
+                    '')
+                .toString()
+                .trim()
+                .isNotEmpty)
+            ? (r.extraFields['station_name'] ??
+                    r.extraFields['police_station'] ??
+                    r.extraFields['station'] ??
+                    '')
+                .toString()
+                .trim()
+            : '—'),
     'head': dynamicHead,
     'victim_head': dynamicHead,
     'victim_name': _victimNamesLine(r),

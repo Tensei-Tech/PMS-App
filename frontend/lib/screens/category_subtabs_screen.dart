@@ -112,13 +112,18 @@ class _CategorySubtabsScreenState extends State<CategorySubtabsScreen> {
             '${TranslationHelper.translate(context, 'I to V')} · ${widget.subtabs.length} types',
       ),
       body: GridView.builder(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        padding: (cols >= 3 && width < 550)
+            ? EdgeInsets.fromLTRB(
+                width < 380 ? 6 : 8, 16, width < 380 ? 6 : 8, 24)
+            : const EdgeInsets.fromLTRB(16, 16, 16, 24),
         itemCount: widget.subtabs.length,
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: cols,
-          crossAxisSpacing: 12,
+          crossAxisSpacing:
+              (cols >= 3 && width < 550) ? (width < 380 ? 4.0 : 6.0) : 12.0,
           mainAxisSpacing: 12,
-          mainAxisExtent: subtabCardHeight(width),
+          mainAxisExtent:
+              (cols >= 3 && width < 550) ? 76.0 : subtabCardHeight(width),
         ),
         itemBuilder: (context, i) {
           final (name, icon) = widget.subtabs[i];
@@ -148,12 +153,20 @@ class ModuleTabsScreen extends StatelessWidget {
   /// (label, icon, open)
   final List<(String, IconData, void Function(BuildContext))> tabs;
 
-  const ModuleTabsScreen({super.key, required this.title, required this.tabs});
+  /// When set, overrides the default column count from [subtabColumns].
+  final int? columnsOverride;
+
+  const ModuleTabsScreen({
+    super.key,
+    required this.title,
+    required this.tabs,
+    this.columnsOverride,
+  });
 
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final cols = subtabColumns(width);
+    final cols = columnsOverride ?? subtabColumns(width);
     return Scaffold(
       backgroundColor: AppColors.lightBg,
       appBar: ModuleHubScreenAppBar(
@@ -161,13 +174,18 @@ class ModuleTabsScreen extends StatelessWidget {
         subtitle: '${tabs.length} types',
       ),
       body: GridView.builder(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        padding: (cols >= 3 && width < 550)
+            ? EdgeInsets.fromLTRB(
+                width < 380 ? 6 : 8, 16, width < 380 ? 6 : 8, 24)
+            : const EdgeInsets.fromLTRB(16, 16, 16, 24),
         itemCount: tabs.length,
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: cols,
-          crossAxisSpacing: 12,
+          crossAxisSpacing:
+              (cols >= 3 && width < 550) ? (width < 380 ? 4.0 : 6.0) : 12.0,
           mainAxisSpacing: 12,
-          mainAxisExtent: subtabCardHeight(width),
+          mainAxisExtent:
+              (cols >= 3 && width < 550) ? 76.0 : subtabCardHeight(width),
         ),
         itemBuilder: (context, i) {
           final (name, icon, open) = tabs[i];
@@ -202,6 +220,7 @@ class PassportLicenceScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return ModuleTabsScreen(
       title: passportLabel,
+      columnsOverride: 3,
       tabs: [
         (
           passportTabLabel,
