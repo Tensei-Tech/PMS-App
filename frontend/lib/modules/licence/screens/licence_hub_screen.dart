@@ -965,9 +965,8 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
         // On mobile phone view, compute name column widths so that the 4th column
         // ('Licence/NOC') is visibly "half cut" (~65-75px peeking on the right edge),
         // making it immediately obvious to the user that the table is horizontally scrollable.
-        final double nameColMaxW = isMobile
-            ? math.max(82.0, (availW - 145.0) / 2)
-            : 200.0;
+        final double nameColMaxW =
+            isMobile ? math.max(82.0, (availW - 145.0) / 2) : 200.0;
         final double colSpacing = isMobile ? 12.0 : 28.0;
         final double horizMargin = isMobile ? 10.0 : 24.0;
 
@@ -1042,8 +1041,8 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
                           ),
                         ),
                         DataColumn(
-                          label: Text(TranslationHelper.translate(
-                              context, isMobile ? 'Licence/NOC' : 'Licence / NOC Type')),
+                          label: Text(TranslationHelper.translate(context,
+                              isMobile ? 'Licence/NOC' : 'Licence / NOC Type')),
                         ),
                         DataColumn(
                           label: Text(TranslationHelper.translate(
@@ -1100,7 +1099,9 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
                                 constraints:
                                     BoxConstraints(maxWidth: nameColMaxW),
                                 child: Text(
-                                  applicantName.isNotEmpty ? applicantName : '—',
+                                  applicantName.isNotEmpty
+                                      ? applicantName
+                                      : '—',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.poppins(

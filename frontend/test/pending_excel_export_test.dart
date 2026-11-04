@@ -3,7 +3,9 @@ import 'package:khakhi_diary/utils/excel_export_helper.dart';
 
 void main() {
   group('Pending Excel Export Tests', () {
-    test('exportPendingToExcel executes without error for standard pending cases', () {
+    test(
+        'exportPendingToExcel executes without error for standard pending cases',
+        () {
       final sample = [
         {
           'sr': '1',
@@ -23,7 +25,8 @@ void main() {
         },
       ];
 
-      expect(() => ExcelExportHelper.exportPendingToExcel(dataset: sample), returnsNormally);
+      expect(() => ExcelExportHelper.exportPendingToExcel(dataset: sample),
+          returnsNormally);
     });
 
     test('exportPendingToExcel handles absconded and undetected flags', () {
@@ -38,8 +41,14 @@ void main() {
         }
       ];
 
-      expect(() => ExcelExportHelper.exportPendingToExcel(dataset: sample, isAbsconded: true), returnsNormally);
-      expect(() => ExcelExportHelper.exportPendingToExcel(dataset: sample, isUndetected: true), returnsNormally);
+      expect(
+          () => ExcelExportHelper.exportPendingToExcel(
+              dataset: sample, isAbsconded: true),
+          returnsNormally);
+      expect(
+          () => ExcelExportHelper.exportPendingToExcel(
+              dataset: sample, isUndetected: true),
+          returnsNormally);
     });
   });
 }

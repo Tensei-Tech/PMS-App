@@ -411,8 +411,9 @@ class ExcelExportHelper {
             : '—';
         final head =
             r['head']?.trim().isNotEmpty == true ? r['head']!.trim() : '—';
-        final accused =
-            r['accused']?.trim().isNotEmpty == true ? r['accused']!.trim() : '—';
+        final accused = r['accused']?.trim().isNotEmpty == true
+            ? r['accused']!.trim()
+            : '—';
         final io = r['io']?.trim().isNotEmpty == true ? r['io']!.trim() : '—';
         rows.add([sr, cr, secAct, head, accused, io]);
       }
