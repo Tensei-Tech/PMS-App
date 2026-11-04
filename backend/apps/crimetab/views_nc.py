@@ -118,6 +118,26 @@ class NcConfigView(APIView):
 
 
 # ── Officers of the user's police station (IO / Registered By pickers) ──────────
+def station_officers(schema, stations):
+    """Active officers of the given stations, ONE query, as picker entries:
+    {'uid', 'name', 'designation', 'label'}. Raises DatabaseError."""
+    from django.db.models.functions import Lower, Trim
+    from apps.users.models import OfficerProfile
+    with TenantContext(schema):
+        rows = list(
+            OfficerProfile.objects.annotate(st=Lower(Trim('station_name')))
+            .filter(account_status='active', st__in=[s.lower() for s in stations])
+            .exclude(name__isnull=True).exclude(name='')
+            .order_by('name')
+            .values('uid', 'name', 'designation')
+        )
+    # 'label' is what the picker stores, so it is the name only
+    return [
+        {'uid': r['uid'], 'name': r['name'], 'designation': r['designation'] or '', 'label': r['name']}
+        for r in rows
+    ]
+
+
 class NcOfficersView(APIView):
     """GET /api/nc/officers/ - active officers of the user's station(s), ONE query."""
 
@@ -125,25 +145,11 @@ class NcOfficersView(APIView):
         schema, settings, stations, _main, err = _authorise(request, 'nc:view')
         if err:
             return err
-        from django.db.models.functions import Lower, Trim
-        from apps.users.models import OfficerProfile
         try:
-            with TenantContext(schema):
-                rows = list(
-                    OfficerProfile.objects.annotate(st=Lower(Trim('station_name')))
-                    .filter(account_status='active', st__in=[s.lower() for s in stations])
-                    .exclude(name__isnull=True).exclude(name='')
-                    .order_by('name')
-                    .values('uid', 'name', 'designation')
-                )
+            return Response(station_officers(schema, stations))
         except DatabaseError as e:
             logger.warning("[NC] officers failed: %s", e)
             return _err(settings, 'request_failed_message')
-        # 'label' is what the picker stores, so it is the name only
-        return Response([
-            {'uid': r['uid'], 'name': r['name'], 'designation': r['designation'] or '', 'label': r['name']}
-            for r in rows
-        ])
 
 
 # ── Counts (ONE query, cached) ──────────────────────────────────────────────────

@@ -1347,11 +1347,9 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
               width: 90,
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: AppColors.goldPrimary.withValues(alpha: 0.10),
+                color: const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: AppColors.goldPrimary.withValues(alpha: 0.35),
-                ),
+                border: Border.all(color: const Color(0xFFCBD5E1)),
               ),
               alignment: Alignment.center,
               child: Column(
@@ -1363,7 +1361,7 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
                     style: GoogleFonts.poppins(
                       fontSize: 9,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.goldPrimary,
+                      color: const Color(0xFF64748B),
                       height: 1.0,
                     ),
                   ),
@@ -1377,7 +1375,7 @@ class _HistorySheeterHubScreenState extends State<HistorySheeterHubScreen>
                       style: GoogleFonts.poppins(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.goldPrimary,
+                        color: AppColors.navyDark,
                         height: 1.0,
                       ),
                     ),

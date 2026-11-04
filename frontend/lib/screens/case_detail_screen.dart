@@ -347,14 +347,15 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
       final canEdit = PoliceRbacHelper.canEditRecord(_record, auth);
       final canSendReminder = PoliceRbacHelper.canSendReminder(auth);
 
-      Widget actionBtn({
-        required String label,
-        required IconData icon,
-        required VoidCallback onPressed,
-      }) {
-        return SizedBox(
-          width: 220,
-          child: ElevatedButton.icon(
+      return LayoutBuilder(builder: (context, constraints) {
+        final isSmall = constraints.maxWidth < 600;
+
+        Widget actionBtn({
+          required String label,
+          required IconData icon,
+          required VoidCallback onPressed,
+        }) {
+          final btn = ElevatedButton.icon(
             onPressed: onPressed,
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
@@ -364,100 +365,154 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: EdgeInsets.symmetric(
+                vertical: isSmall ? 10 : 16,
+                horizontal: isSmall ? 8 : 16,
+              ),
+              minimumSize: Size(0, isSmall ? 40 : 48),
+              tapTargetSize: isSmall
+                  ? MaterialTapTargetSize.shrinkWrap
+                  : MaterialTapTargetSize.padded,
             ),
-            icon: Icon(icon, size: 20),
+            icon: Icon(icon, size: isSmall ? 18 : 20),
             label: Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w600, fontSize: 14),
+                fontWeight: FontWeight.w600,
+                fontSize: isSmall ? 12.5 : 14,
+              ),
             ),
-          ),
-        );
-      }
+          );
 
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(
-            vertical: AppSpacing.md, horizontal: AppSpacing.lg),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: AppColors.lightBorder)),
-        ),
-        child: SafeArea(
-          child: Wrap(
+          if (isSmall) {
+            return btn;
+          }
+
+          return SizedBox(
+            width: 220,
+            child: btn,
+          );
+        }
+
+        final buttons = <Widget>[
+          actionBtn(
+            label: 'Download PDF',
+            icon: Icons.picture_as_pdf_rounded,
+            onPressed: () => PdfHelper.generateCasePdf(_record),
+          ),
+          if (canSendReminder)
+            actionBtn(
+              label: 'Send Reminder',
+              icon: Icons.notifications_active_rounded,
+              onPressed: () => SendReminderDialog.show(context, _record),
+            ),
+          if (canEdit)
+            actionBtn(
+              label: 'Edit Record',
+              icon: Icons.edit_note_rounded,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  AppTheme.fadeSlideRoute(
+                    page: CaseFormScreen(
+                      categoryName: _record.category,
+                      existingCase: _record,
+                    ),
+                  ),
+                );
+              },
+            ),
+          if (_record.status != 'Transferred Out')
+            actionBtn(
+              label: 'Transfer Case',
+              icon: Icons.swap_horiz_rounded,
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  AppTheme.fadeSlideRoute(
+                    page: TransferCaseFormScreen(record: _record),
+                  ),
+                );
+                if (result == true) {
+                  setState(() {
+                    _record = ModuleRecord(
+                      id: _record.id,
+                      moduleKey: _record.moduleKey,
+                      title: _record.title,
+                      caseNumber: _record.caseNumber,
+                      description: _record.description,
+                      complainant: _record.complainant,
+                      accused: _record.accused,
+                      location: _record.location,
+                      incidentDate: _record.incidentDate,
+                      priority: _record.priority,
+                      status: 'Transferred Out',
+                      assignedOfficer: _record.assignedOfficer,
+                      subCategory: _record.subCategory,
+                      createdAt: _record.createdAt,
+                      extraFields: _record.extraFields,
+                      createdBy: _record.createdBy,
+                      assignedOfficerUid: _record.assignedOfficerUid,
+                      stationName: _record.stationName,
+                    );
+                  });
+                }
+              },
+            ),
+        ];
+
+        if (buttons.isEmpty) return const SizedBox.shrink();
+
+        Widget child;
+        if (isSmall) {
+          final rows = <Widget>[];
+          for (int i = 0; i < buttons.length; i += 2) {
+            final hasSecond = i + 1 < buttons.length;
+            rows.add(
+              Row(
+                children: [
+                  Expanded(child: buttons[i]),
+                  if (hasSecond) ...[
+                    const SizedBox(width: 8),
+                    Expanded(child: buttons[i + 1]),
+                  ],
+                ],
+              ),
+            );
+            if (i + 2 < buttons.length) {
+              rows.add(const SizedBox(height: 8));
+            }
+          }
+          child = Column(
+            mainAxisSize: MainAxisSize.min,
+            children: rows,
+          );
+        } else {
+          child = Wrap(
             alignment: WrapAlignment.center,
             spacing: 12,
             runSpacing: 12,
-            children: [
-              actionBtn(
-                label: 'Download PDF',
-                icon: Icons.picture_as_pdf_rounded,
-                onPressed: () => PdfHelper.generateCasePdf(_record),
-              ),
-              if (canSendReminder)
-                actionBtn(
-                  label: 'Send Reminder',
-                  icon: Icons.notifications_active_rounded,
-                  onPressed: () => SendReminderDialog.show(context, _record),
-                ),
-              if (canEdit)
-                actionBtn(
-                  label: 'Edit Record',
-                  icon: Icons.edit_note_rounded,
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      AppTheme.fadeSlideRoute(
-                        page: CaseFormScreen(
-                          categoryName: _record.category,
-                          existingCase: _record,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              if (_record.status != 'Transferred Out')
-                actionBtn(
-                  label: 'Transfer Case',
-                  icon: Icons.swap_horiz_rounded,
-                  onPressed: () async {
-                    final result = await Navigator.push(
-                      context,
-                      AppTheme.fadeSlideRoute(
-                        page: TransferCaseFormScreen(record: _record),
-                      ),
-                    );
-                    if (result == true) {
-                      setState(() {
-                        _record = ModuleRecord(
-                          id: _record.id,
-                          moduleKey: _record.moduleKey,
-                          title: _record.title,
-                          caseNumber: _record.caseNumber,
-                          description: _record.description,
-                          complainant: _record.complainant,
-                          accused: _record.accused,
-                          location: _record.location,
-                          incidentDate: _record.incidentDate,
-                          priority: _record.priority,
-                          status: 'Transferred Out',
-                          assignedOfficer: _record.assignedOfficer,
-                          subCategory: _record.subCategory,
-                          createdAt: _record.createdAt,
-                          extraFields: _record.extraFields,
-                          createdBy: _record.createdBy,
-                          assignedOfficerUid: _record.assignedOfficerUid,
-                          stationName: _record.stationName,
-                        );
-                      });
-                    }
-                  },
-                ),
-            ],
+            children: buttons,
+          );
+        }
+
+        return Container(
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(
+            vertical: isSmall ? 10 : AppSpacing.md,
+            horizontal: isSmall ? 12 : AppSpacing.lg,
           ),
-        ),
-      );
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            border: Border(top: BorderSide(color: AppColors.lightBorder)),
+          ),
+          child: SafeArea(
+            child: child,
+          ),
+        );
+      });
     });
   }
 }

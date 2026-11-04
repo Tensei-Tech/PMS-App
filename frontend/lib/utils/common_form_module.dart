@@ -94,6 +94,7 @@ const Set<String> _kCommonFormBaselineCategoryNames = {
   // questions come from "Chain Snatching Extra Fields" in the database
   'crime against women',
   'accident',
+  'other accident',
   'normal accident',
   // Road Accident tabs open the dynamic form (see above)
   'sec 156(3)/175(3)(bnss)',

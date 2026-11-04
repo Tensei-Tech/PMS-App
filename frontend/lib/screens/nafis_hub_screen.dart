@@ -7,6 +7,7 @@ import '../modules/core/models/base_record.dart';
 import '../utils/arrested_table_firestore_mapper.dart';
 import '../utils/excel_export_helper.dart';
 import '../widgets/nafis_cases_data_table.dart';
+import '../widgets/sub_tab_host.dart';
 
 class NAFISHubScreen extends StatefulWidget {
   final String stationName;
@@ -538,19 +539,24 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
             },
           ),
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: AppColors.navyMid,
-          unselectedLabelColor: AppColors.lightSubText,
-          indicatorColor: AppColors.navyMid,
-          indicatorWeight: 3,
-          labelStyle:
-              GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13),
-          tabs: const [
-            Tab(text: "Case Wise"),
-            Tab(text: "Time Wise"),
-            Tab(text: "IO Wise"),
-          ],
+        // NAFIS | Fingerprint switch above these tabs when opened from the
+        // NAFIS/Fingerprint dashboard tile.
+        bottom: SubTabHost.appBarBottomAbove(
+          context,
+          TabBar(
+            controller: _tabController,
+            labelColor: AppColors.navyMid,
+            unselectedLabelColor: AppColors.lightSubText,
+            indicatorColor: AppColors.navyMid,
+            indicatorWeight: 3,
+            labelStyle:
+                GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13),
+            tabs: const [
+              Tab(text: "Case Wise"),
+              Tab(text: "Time Wise"),
+              Tab(text: "IO Wise"),
+            ],
+          ),
         ),
       ),
       body: TabBarView(

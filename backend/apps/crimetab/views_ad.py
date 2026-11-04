@@ -33,7 +33,7 @@ from apps.crimetab.case_access import can_edit_case
 from apps.core.tenancy import TenantContext
 from apps.crimetab.services import ad_service as svc
 from apps.crimetab.standalone_helpers import log_standalone_audit, resolve_tenant_and_auth
-from apps.crimetab.views_nc import _sections_json, _user_stations, render_record_pdf
+from apps.crimetab.views_nc import _sections_json, _user_stations, render_record_pdf, station_officers
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +78,21 @@ def _authorise(request, perm):
 def _category(request, settings):
     """The sub-tab named by ?category=<code>, or None."""
     return svc.find_sub_category(settings, request.query_params.get('category'))
+
+
+# ── Officers (IO Name picker) ────────────────────────────────────────────────
+class AdOfficersView(APIView):
+    """GET /api/ad/officers/ - active officers of the user's station(s)."""
+
+    def get(self, request):
+        schema, settings, stations, _main, err = _authorise(request, 'ad:view')
+        if err:
+            return err
+        try:
+            return Response(station_officers(schema, stations))
+        except DatabaseError as e:
+            logger.warning("[AD] officers failed: %s", e)
+            return _err(settings, 'request_failed_message')
 
 
 # ── Config ───────────────────────────────────────────────────────────────────
