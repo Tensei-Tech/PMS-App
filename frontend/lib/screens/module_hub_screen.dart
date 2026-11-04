@@ -61,7 +61,6 @@ import '../theme/app_theme.dart';
 import '../utils/ad_disposal_helper.dart';
 import '../utils/common_form_module.dart';
 import '../utils/module_pdf_helper.dart';
-import '../utils/pdf_auth_gate.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/forms_accordion_list.dart';
 import '../widgets/module_hub_report_card.dart';
@@ -2330,10 +2329,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   }
 
   void _handlePdf(BuildContext ctx, ModuleRecord record) {
-    runWithPdfAuthGate(
-      ctx,
-      () => ModulePdfHelper.generatePdf(record, ctx),
-    );
+    ModulePdfHelper.generatePdf(record, ctx);
   }
 
   Map<String, dynamic> _getDoc(ModuleRecord record) {
@@ -4210,10 +4206,7 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
                 icon: Icons.picture_as_pdf_outlined,
                 label: 'PDF',
                 onTap: () {
-                  runWithPdfAuthGate(
-                    context,
-                    () => ModulePdfHelper.generatePdf(record, context),
-                  );
+                  ModulePdfHelper.generatePdf(record, context);
                 },
               ),
             ],
