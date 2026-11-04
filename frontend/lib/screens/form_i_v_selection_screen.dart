@@ -2283,80 +2283,103 @@ class CategoryGridCardState extends State<CategoryGridCard> {
           child: InkWell(
             onTap: widget.onTap,
             borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              child: Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: widget.isAll
-                          ? const Color(0xFF1976D2).withValues(alpha: 0.1)
-                          : (hasCases
-                              ? const Color(0xFF0284C7).withValues(alpha: 0.1)
-                              : const Color(0xFFF1F5F9)),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: CategoryIconHelper.buildWidget(
-                      widget.isAll
-                          ? 'all'
-                          : (widget.rawCategory ?? widget.category),
-                      size: 20,
-                      color: widget.isAll
-                          ? const Color(0xFF1976D2)
-                          : (hasCases
-                              ? const Color(0xFF0284C7)
-                              : AppColors.lightSubText),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          widget.category,
-                          maxLines: 2,
-                          softWrap: true,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.poppins(
-                            fontSize: 12.0,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.navyDark,
-                            height: 1.18,
-                          ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isNarrow = constraints.maxWidth < 155;
+                final isVeryNarrow = constraints.maxWidth < 115;
+                final padH = isVeryNarrow ? 4.0 : (isNarrow ? 6.0 : 12.0);
+                final iconBoxSize =
+                    isVeryNarrow ? 26.0 : (isNarrow ? 28.0 : 40.0);
+                final iconGlyphSize =
+                    isVeryNarrow ? 14.0 : (isNarrow ? 16.0 : 20.0);
+                final gap = isNarrow ? 4.0 : 10.0;
+                final fontSz = isVeryNarrow ? 10.0 : (isNarrow ? 10.5 : 12.0);
+                final showChevron = constraints.maxWidth >= 150;
+
+                return Padding(
+                  padding: EdgeInsets.symmetric(horizontal: padH, vertical: 8),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: iconBoxSize,
+                        height: iconBoxSize,
+                        decoration: BoxDecoration(
+                          color: widget.isAll
+                              ? const Color(0xFF1976D2).withValues(alpha: 0.1)
+                              : (hasCases
+                                  ? const Color(0xFF0284C7)
+                                      .withValues(alpha: 0.1)
+                                  : const Color(0xFFF1F5F9)),
+                          borderRadius:
+                              BorderRadius.circular(isNarrow ? 8 : 10),
                         ),
-                        if (widget.showCount) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            widget.count == 1
-                                ? '1 case'
-                                : '${widget.count} cases',
-                            style: GoogleFonts.poppins(
-                              fontSize: 11,
-                              color: hasCases
-                                  ? const Color(0xFF1976D2)
-                                  : AppColors.lightSubText,
-                              fontWeight:
-                                  hasCases ? FontWeight.w600 : FontWeight.w400,
+                        child: CategoryIconHelper.buildWidget(
+                          widget.isAll
+                              ? 'all'
+                              : (widget.rawCategory ?? widget.category),
+                          size: iconGlyphSize,
+                          color: widget.isAll
+                              ? const Color(0xFF1976D2)
+                              : (hasCases
+                                  ? const Color(0xFF0284C7)
+                                  : AppColors.lightSubText),
+                        ),
+                      ),
+                      SizedBox(width: gap),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                widget.category,
+                                maxLines: 1,
+                                softWrap: false,
+                                style: GoogleFonts.poppins(
+                                  fontSize: fontSz,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.navyDark,
+                                  height: 1.15,
+                                ),
+                              ),
                             ),
-                          ),
-                        ],
+                            if (widget.showCount) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                widget.count == 1
+                                    ? '1 case'
+                                    : '${widget.count} cases',
+                                style: GoogleFonts.poppins(
+                                  fontSize: fontSz - 1,
+                                  color: hasCases
+                                      ? const Color(0xFF1976D2)
+                                      : AppColors.lightSubText,
+                                  fontWeight: hasCases
+                                      ? FontWeight.w600
+                                      : FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      if (showChevron) ...[
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          size: 16,
+                          color: _hovered
+                              ? const Color(0xFF1976D2)
+                              : const Color(0xFFCBD5E1),
+                        ),
                       ],
-                    ),
+                    ],
                   ),
-                  const SizedBox(width: 4),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    size: 16,
-                    color: _hovered
-                        ? const Color(0xFF1976D2)
-                        : const Color(0xFFCBD5E1),
-                  ),
-                ],
-              ),
+                );
+              },
             ),
           ),
         ),

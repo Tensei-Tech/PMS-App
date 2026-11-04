@@ -89,18 +89,19 @@ class PendingCasesDemoDataTable extends StatelessWidget {
               4: FixedColumnWidth(otherColW),
             };
           } else {
-            final otherColW = math.max(colUnitW * 1.4, 140.0);
-            tableWidth = srWidth + (colUnitW * 3) + otherColW;
+            final otherColW = math.max(colUnitW * 1.35, 140.0);
+            tableWidth = srWidth + (colUnitW * 4) + otherColW;
             columnWidths = <int, TableColumnWidth>{
               0: const FixedColumnWidth(srWidth),
               1: FixedColumnWidth(colUnitW),
               2: FixedColumnWidth(colUnitW),
               3: FixedColumnWidth(colUnitW),
-              4: FixedColumnWidth(otherColW),
+              4: FixedColumnWidth(colUnitW),
+              5: FixedColumnWidth(otherColW),
             };
           }
         } else {
-          tableWidth = math.max(constraints.maxWidth, 850.0);
+          tableWidth = math.max(constraints.maxWidth, 900.0);
           columnWidths = isVictim
               ? const <int, TableColumnWidth>{
                   0: IntrinsicColumnWidth(),
@@ -131,10 +132,11 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                         }
                       : const <int, TableColumnWidth>{
                           0: IntrinsicColumnWidth(),
-                          1: FlexColumnWidth(1.5),
-                          2: FlexColumnWidth(1.5),
-                          3: FlexColumnWidth(1.5),
-                          4: FlexColumnWidth(2.0),
+                          1: FlexColumnWidth(1.3),
+                          2: FlexColumnWidth(1.2),
+                          3: FlexColumnWidth(1.3),
+                          4: FlexColumnWidth(1.4),
+                          5: FlexColumnWidth(1.8),
                         };
         }
 
@@ -222,7 +224,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
           headerCell('Sr. No'),
           headerCell('Cr. No.'),
           headerCell('SEC & ACT'),
-          if (isAbsconded || isUndetected) headerCell('Head'),
+          if (!isVictim) headerCell('Head'),
           if (isAbsconded) headerCell('Accused Name (फरार आरोपी)'),
           if (isVictim) headerCell('Head'),
           if (isVictim) headerCell('Name'),
@@ -240,7 +242,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
               clickableCrCell(r),
               dataCell(
                   r['sections']?.isNotEmpty == true ? r['sections']! : '—'),
-              if (isAbsconded || isUndetected)
+              if (!isVictim)
                 dataCell(
                   r['head']?.isNotEmpty == true ? r['head']! : '—',
                   align: Alignment.centerLeft,

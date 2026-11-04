@@ -23,6 +23,7 @@ class JuvenileSummaryScreen extends StatelessWidget {
     super.key,
     this.liveRows,
     this.stationName = '',
+    this.title,
   });
 
   /// When non-null and non-empty, summary uses only this data (skips Firestore stream).
@@ -30,6 +31,17 @@ class JuvenileSummaryScreen extends StatelessWidget {
 
   /// Station scope
   final String stationName;
+
+  /// Optional title override (defaults to 'CiCL' without summary)
+  final String? title;
+
+  String _effectiveTitle() {
+    final raw =
+        title ?? UiConfigService.juvenileSummary['title']?.toString() ?? 'CiCL';
+    final cleaned =
+        raw.replaceAll(' — Summary', '').replaceAll(' - Summary', '').trim();
+    return cleaned.isNotEmpty ? cleaned : 'CiCL';
+  }
 
   static bool _usingExplicitLive(List<Map<String, String>>? live) =>
       live != null && live.isNotEmpty;
@@ -69,7 +81,7 @@ class JuvenileSummaryScreen extends StatelessWidget {
     final theme = await PdfUnicodeFonts.openSansTheme();
     final doc = DynamicMapPdf.buildLandscapeDataTableDocument(
       theme: theme,
-      title: 'CiCL — Summary (all periods)',
+      title: '${_effectiveTitle()} (all periods)',
       rows: flat
           .map((e) => {
                 'Cr. No.': e['cr'] ?? '—',
@@ -83,7 +95,8 @@ class JuvenileSummaryScreen extends StatelessWidget {
     );
     await Printing.sharePdf(
       bytes: await doc.save(),
-      filename: 'CiCL_Summary.pdf',
+      filename:
+          '${_effectiveTitle().replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}.pdf',
     );
   }
 
@@ -93,7 +106,7 @@ class JuvenileSummaryScreen extends StatelessWidget {
     required bool firedFromFirestoreExclusive,
     required bool showDemoNote,
   }) {
-    final title = UiConfigService.juvenileSummary['title'];
+    final title = _effectiveTitle();
     final anyRows = dataset.isNotEmpty;
 
     return Scaffold(

@@ -334,7 +334,7 @@ class _PassportHubScreenState extends State<PassportHubScreen> {
       PassportStatusFilter.totalReceived =>
         TranslationHelper.translate(context, 'Total Verification'),
       PassportStatusFilter.verified =>
-        TranslationHelper.translate(context, 'Verified / Report Submitted'),
+        TranslationHelper.translate(context, 'Verified'),
       PassportStatusFilter.pending =>
         TranslationHelper.translate(context, 'Pending'),
     };
@@ -375,7 +375,7 @@ class _PassportHubScreenState extends State<PassportHubScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 1. Top Metric Cards (Total Received, Verified / Report Submitted, Pending)
+          // 1. Top Metric Cards (Total Received, Verified, Pending)
           Container(
             color: Colors.white,
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
@@ -931,7 +931,7 @@ class _PassportHubScreenState extends State<PassportHubScreen> {
                         if (showVerified)
                           DataColumn(
                             label: Text(TranslationHelper.translate(
-                                context, 'Verified / Report Submitted')),
+                                context, 'Verified')),
                           ),
                         if (showPending)
                           DataColumn(
