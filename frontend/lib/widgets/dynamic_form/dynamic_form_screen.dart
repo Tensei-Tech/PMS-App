@@ -53,6 +53,11 @@ class DynamicFormScreen extends StatefulWidget {
   /// existing form unchanged.
   final bool showLoadingSpinner;
 
+  /// Show the 1, 2, 3... number badge on each section card. False shows the
+  /// section icon instead (used by A.D.). Default true keeps every existing
+  /// form unchanged.
+  final bool showSectionNumbers;
+
   const DynamicFormScreen({
     super.key,
     this.categoryId,
@@ -68,6 +73,7 @@ class DynamicFormScreen extends StatefulWidget {
     this.fieldMaxLengths,
     this.sectionsInDisplayOrder = false,
     this.showLoadingSpinner = true,
+    this.showSectionNumbers = true,
   });
 
   @override
@@ -3403,7 +3409,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         sectionCards.add(
           DynamicSectionCard(
             key: ValueKey('sec_${entry.key}'),
-            sectionIndex: idx,
+            sectionIndex: widget.showSectionNumbers ? idx : null,
             title: entry.key,
             icon: _iconForSection(entry.key),
             fields: entry.value,
@@ -3512,7 +3518,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         if (secFields != null && secFields.isNotEmpty) {
           final idx = sectionCounter++;
           final displayTitle = secKey == 'Officer'
-              ? 'Case Responsibility (Officer)'
+              ? 'IO / Registered By'
               : (secKey == 'Court Filing and Final Summary'
                   ? 'Court Filing & Final Summary'
                   : secKey);
