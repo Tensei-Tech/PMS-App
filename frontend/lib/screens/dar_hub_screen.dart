@@ -2450,7 +2450,7 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -2471,14 +2471,14 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: bgColor,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: color, size: 24),
+              child: Icon(icon, color: color, size: 20),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -2495,7 +2495,7 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
                 Text(
                   count.toString(),
                   style: GoogleFonts.poppins(
-                    fontSize: 24,
+                    fontSize: 20,
                     fontWeight: FontWeight.w800,
                     color: AppColors.navyDark,
                   ),
@@ -2645,23 +2645,12 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
                     ),
                   ];
 
-                  if (isMobile) {
-                    return Column(
-                      children: cards
-                          .map((c) => Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
-                                child: c,
-                              ))
-                          .toList(),
-                    );
-                  }
-
                   return Row(
                     children: cards
                         .map((c) => Expanded(
                               child: Padding(
                                 padding:
-                                    const EdgeInsets.symmetric(horizontal: 6),
+                                    const EdgeInsets.symmetric(horizontal: 4),
                                 child: c,
                               ),
                             ))
