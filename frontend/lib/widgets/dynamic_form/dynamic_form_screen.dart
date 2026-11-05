@@ -16,6 +16,8 @@ import '../../services/firestore_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/module_pdf_helper.dart';
 import '../../screens/transfer_case_form_screen.dart';
+import 'dynamic_control_factory.dart'
+    show panInputFormatters, panValidationError;
 import 'dynamic_field_model.dart';
 import 'dynamic_section_builder.dart';
 import '../repeating_cascading_charges_selector.dart';
@@ -46,6 +48,16 @@ class DynamicFormScreen extends StatefulWidget {
   /// modules such as N.C.). Default false keeps every existing form unchanged.
   final bool sectionsInDisplayOrder;
 
+  /// Show a spinner while the form definition loads. False leaves the page
+  /// empty until the fields arrive (used by A.D.). Default true keeps every
+  /// existing form unchanged.
+  final bool showLoadingSpinner;
+
+  /// Show the 1, 2, 3... number badge on each section card. False shows the
+  /// section icon instead (used by A.D.). Default true keeps every existing
+  /// form unchanged.
+  final bool showSectionNumbers;
+
   const DynamicFormScreen({
     super.key,
     this.categoryId,
@@ -60,6 +72,8 @@ class DynamicFormScreen extends StatefulWidget {
     this.dateOffsetRules,
     this.fieldMaxLengths,
     this.sectionsInDisplayOrder = false,
+    this.showLoadingSpinner = true,
+    this.showSectionNumbers = true,
   });
 
   @override
@@ -1869,7 +1883,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Please fill all required fields.',
+            'Please fill the required fields and fix the ones marked in red.',
             style: GoogleFonts.poppins(),
           ),
           backgroundColor: AppColors.dangerRed,
@@ -3425,6 +3439,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
+      if (!widget.showLoadingSpinner) return const SizedBox.shrink();
       return const Center(
         child: CircularProgressIndicator(color: AppColors.navyMid),
       );
@@ -3582,24 +3597,42 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       int firstOrder(List<DynamicFieldDef> fs) => fs.isEmpty
           ? 1 << 30
           : fs.map((f) => f.displayOrder).reduce((x, y) => x < y ? x : y);
-      final entries = groupedBySection.entries
+      final sorted = groupedBySection.entries
           .where((e) => e.value.isNotEmpty)
           .toList()
         ..sort((x, y) => firstOrder(x.value).compareTo(firstOrder(y.value)));
-      for (final entry in entries) {
+      // Sections whose fields sharing the same field_config 'card' are grouped;
+      // others each get their own card.
+      String cardOf(List<DynamicFieldDef> fs) =>
+          fs.first.fieldConfig?['card']?.toString().trim() ?? '';
+
+      final cards = <MapEntry<String, List<DynamicFieldDef>>>[];
+      final sectionsInCard = <String, int>{};
+      for (final e in sorted) {
         if (widget.readOnly &&
             _hideEmptyInViewMode &&
-            _isDynamicSectionEmpty(entry.value)) {
+            _isDynamicSectionEmpty(e.value)) {
           continue;
         }
+        final card = cardOf(e.value);
+        final i = card.isEmpty ? -1 : cards.indexWhere((c) => c.key == card);
+        if (i >= 0) {
+          cards[i].value.addAll(e.value);
+          sectionsInCard[card] = (sectionsInCard[card] ?? 1) + 1;
+        } else {
+          cards.add(MapEntry(card.isEmpty ? e.key : card, [...e.value]));
+        }
+      }
+      for (final entry in cards) {
         final idx = sectionCounter++;
         sectionCards.add(
           DynamicSectionCard(
             key: ValueKey('sec_${entry.key}'),
-            sectionIndex: idx,
+            sectionIndex: widget.showSectionNumbers ? idx : null,
             title: entry.key,
             icon: _iconForSection(entry.key),
             fields: entry.value,
+            showSectionHeadings: (sectionsInCard[entry.key] ?? 1) > 1,
             controllers: _controllers,
             values: _values,
             onValueChanged: _onDynamicFieldValueChanged,
@@ -3744,7 +3777,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           if (!(widget.readOnly && _hideEmptyInViewMode && isEmpty)) {
             final idx = sectionCounter++;
             final displayTitle = secKey == 'Officer'
-                ? 'Case Responsibility (Officer)'
+                ? 'IO / Registered By'
                 : (secKey == 'Court Filing and Final Summary'
                     ? 'Court Filing & Final Summary'
                     : secKey);
@@ -8324,11 +8357,45 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
     int maxLines = 1,
     TextInputType? keyboardType,
     bool isAge = false,
+    bool isMobile = false,
+    bool isAadhaar = false,
+    bool isPan = false,
   }) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth >= 280;
         final isMultiline = maxLines > 1;
+
+        // Mobile / Aadhaar / PAN are optional, but when filled they must be
+        // 10 digits / 12 digits / like ABCDE1234F
+        String? digitsError(String? v, int count) {
+          final value = v?.trim() ?? '';
+          if (value.isEmpty) return null;
+          return RegExp('^[0-9]{$count}\$').hasMatch(value)
+              ? null
+              : '$label must be exactly $count digits';
+        }
+
+        final List<TextInputFormatter>? checkedFormatters = isMobile
+            ? [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(10),
+              ]
+            : isAadhaar
+                ? [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(12),
+                  ]
+                : isPan
+                    ? panInputFormatters
+                    : null;
+        final FormFieldValidator<String>? checkedValidator = isMobile
+            ? (v) => digitsError(v, 10)
+            : isAadhaar
+                ? (v) => digitsError(v, 12)
+                : isPan
+                    ? (v) => panValidationError(v, label)
+                    : null;
 
         Widget box(List<TextInputFormatter>? formatters, String? errorText) =>
             TextFormField(
@@ -8336,7 +8403,14 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
               readOnly: widget.readOnly,
               maxLines: maxLines,
               keyboardType: keyboardType,
-              inputFormatters: formatters,
+              textCapitalization: isPan
+                  ? TextCapitalization.characters
+                  : TextCapitalization.none,
+              inputFormatters: checkedFormatters ?? formatters,
+              autovalidateMode: checkedValidator != null
+                  ? AutovalidateMode.onUserInteraction
+                  : null,
+              validator: checkedValidator,
               style:
                   GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
               decoration: _inputDeco(hint).copyWith(errorText: errorText),
@@ -8718,17 +8792,20 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
                   controller: _mobileCtrl,
                   hint: 'Enter Mobile Number',
                   keyboardType: TextInputType.phone,
+                  isMobile: true,
                 );
                 final aadhaarFld = _buildField(
                   label: 'Aadhar Number',
                   controller: _aadhaarCtrl,
                   hint: 'Enter Aadhar Number',
                   keyboardType: TextInputType.number,
+                  isAadhaar: true,
                 );
                 final panFld = _buildField(
                   label: 'PAN Number',
                   controller: _panCtrl,
-                  hint: 'Enter PAN Number',
+                  hint: 'ABCDE1234F',
+                  isPan: true,
                 );
                 final relFld = _buildField(
                   label: 'Religion',

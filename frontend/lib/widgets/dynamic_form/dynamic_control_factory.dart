@@ -135,6 +135,8 @@ class DynamicControlFactory extends StatelessWidget {
         return _buildEmailField(context);
       case 'aadhaar':
         return _buildAadhaarField(context);
+      case 'pan':
+        return _buildPanField(context);
       case 'year':
         return _buildFieldLayout(
           context,
@@ -381,6 +383,26 @@ class DynamicControlFactory extends StatelessWidget {
           }
           return null;
         },
+      ),
+    );
+  }
+
+  /// PAN card number: typed in capitals, at most 10 characters and, when
+  /// filled, 5 letters + 4 digits + 1 letter (e.g. ABCDE1234F).
+  Widget _buildPanField(BuildContext context) {
+    return _buildFieldLayout(
+      context,
+      TextFormField(
+        controller: controller,
+        readOnly: effectiveReadOnly,
+        onChanged: onChanged,
+        textCapitalization: TextCapitalization.characters,
+        inputFormatters: panInputFormatters,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+        style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
+        decoration: _inputDecoration(hint: 'ABCDE1234F'),
+        validator: (v) => panValidationError(v, fieldDef.fieldLabel,
+            isRequired: fieldDef.isRequired),
       ),
     );
   }
@@ -2371,6 +2393,27 @@ class AadhaarGroupFormatter extends TextInputFormatter {
       selection: TextSelection.collapsed(offset: text.length),
     );
   }
+}
+
+/// PAN card number input: letters and digits only, in capitals, at most 10.
+final List<TextInputFormatter> panInputFormatters = [
+  FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
+  LengthLimitingTextInputFormatter(10),
+  TextInputFormatter.withFunction((oldValue, newValue) =>
+      newValue.copyWith(text: newValue.text.toUpperCase())),
+];
+
+final RegExp _panPattern = RegExp(r'^[A-Z]{5}[0-9]{4}[A-Z]$');
+
+/// Error for a PAN card number, or null when it is fine. Empty is fine unless
+/// [isRequired]; otherwise it must look like ABCDE1234F.
+String? panValidationError(String? value, String label,
+    {bool isRequired = false}) {
+  final pan = (value ?? '').trim().toUpperCase();
+  if (pan.isEmpty) return isRequired ? '$label is required' : null;
+  return _panPattern.hasMatch(pan)
+      ? null
+      : '$label must be like ABCDE1234F (5 letters, 4 digits, 1 letter)';
 }
 
 /// Keeps a text at most [maxWords] words: an edit that would add a word past

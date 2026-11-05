@@ -14,7 +14,6 @@ import '../utils/category_navigation_helper.dart';
 import '../utils/common_form_module.dart';
 import '../utils/ad_disposal_helper.dart';
 import '../utils/case_report_pdf_helper.dart';
-import '../utils/pdf_auth_gate.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/form_iv_category_button.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
@@ -1832,60 +1831,72 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                 width: double.infinity,
                 // One line: the sub-tab's name and count, then the date filter
                 // and sort. The app bar's back arrow returns to the categories.
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              TranslationHelper.translate(
-                                context,
-                                _selectedCategory!,
+                child: Align(
+                  alignment: Alignment.center,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1600),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  TranslationHelper.translate(
+                                    context,
+                                    _selectedCategory!,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.navyDark,
+                                  ),
+                                ),
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.navyDark,
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE8F1FC),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.full,
+                                  ),
+                                ),
+                                child: Text(
+                                  '${visibleRecords.length}',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF1976D2),
+                                  ),
+                                ),
                               ),
-                            ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE8F1FC),
-                              borderRadius: BorderRadius.circular(
-                                AppRadius.full,
-                              ),
-                            ),
-                            child: Text(
-                              '${visibleRecords.length}',
-                              style: GoogleFonts.poppins(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: const Color(0xFF1976D2),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(width: 8),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: _buildDateAndSortControls(),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: _buildDateAndSortControls(),
-                    ),
-                  ],
+                  ),
                 ),
               ),
               if (_selectedDateRange != null)
-                _buildActiveDateFilterBanner(visibleRecords.length),
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1600),
+                    child: _buildActiveDateFilterBanner(visibleRecords.length),
+                  ),
+                ),
               Expanded(
                 child: visibleRecords.isEmpty
                     ? _EmptyCasesState(
@@ -1896,41 +1907,50 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                         selectedDateRange: _selectedDateRange,
                         onClearDateFilter: _clearDateFilter,
                       )
-                    : ListView.builder(
-                        key: PageStorageKey(
-                          'category_${_selectedCategory}_${_selectedStatusTab.name}',
-                        ),
-                        padding: const EdgeInsets.fromLTRB(
-                          AppSpacing.lg,
-                          AppSpacing.sm,
-                          AppSpacing.lg,
-                          88,
-                        ),
-                        itemCount: visibleRecords.length,
-                        itemBuilder: (context, index) {
-                          final record = visibleRecords[index];
-                          return _FormIVCaseCard(
-                            record: record,
-                            readOnly: _readOnly,
-                            selectedCategory: _selectedCategory,
-                            onChargeSheetSubmitted: () async {
-                              if (!mounted) return;
-                              await context.read<FormIVProvider>().refresh();
-                              if (!mounted) return;
-                              setState(() {
-                                _selectedStatusTab = FormIVStatusTab.disposal;
-                              });
-                            },
-                            onEdit: () => _openForm(
-                              record.subCategory?.isNotEmpty == true
-                                  ? record.subCategory!
-                                  : record.title,
-                              existingRecord: record,
+                    : Align(
+                        alignment: Alignment.topCenter,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 1600),
+                          child: ListView.builder(
+                            key: PageStorageKey(
+                              'category_${_selectedCategory}_${_selectedStatusTab.name}',
                             ),
-                            onView: () =>
-                                CaseReportPdfHelper.view(context, record),
-                          );
-                        },
+                            padding: const EdgeInsets.fromLTRB(
+                              AppSpacing.lg,
+                              AppSpacing.sm,
+                              AppSpacing.lg,
+                              88,
+                            ),
+                            itemCount: visibleRecords.length,
+                            itemBuilder: (context, index) {
+                              final record = visibleRecords[index];
+                              return _FormIVCaseCard(
+                                record: record,
+                                readOnly: _readOnly,
+                                selectedCategory: _selectedCategory,
+                                onChargeSheetSubmitted: () async {
+                                  if (!mounted) return;
+                                  await context
+                                      .read<FormIVProvider>()
+                                      .refresh();
+                                  if (!mounted) return;
+                                  setState(() {
+                                    _selectedStatusTab =
+                                        FormIVStatusTab.disposal;
+                                  });
+                                },
+                                onEdit: () => _openForm(
+                                  record.subCategory?.isNotEmpty == true
+                                      ? record.subCategory!
+                                      : record.title,
+                                  existingRecord: record,
+                                ),
+                                onView: () =>
+                                    CaseReportPdfHelper.view(context, record),
+                              );
+                            },
+                          ),
+                        ),
                       ),
               ),
             ],
@@ -1987,91 +2007,121 @@ class FormIVStatusTabBar extends StatelessWidget {
       ),
     ];
 
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.only(left: 16, right: 8),
-              child: Row(
-                children: tabs.map((item) {
-                  final isSelected = selectedTab == item.tab;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 24),
-                    child: InkWell(
-                      onTap: () => onTabChanged(item.tab),
-                      hoverColor: Colors.transparent,
-                      splashColor: AppColors.navyMid.withValues(alpha: 0.08),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(
-                              color: isSelected
-                                  ? const Color(0xFF1976D2)
-                                  : Colors.transparent,
-                              width: 2.5,
-                            ),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              TranslationHelper.translate(context, item.label),
-                              style: GoogleFonts.poppins(
-                                fontSize: 13.5,
-                                fontWeight: isSelected
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                                color: isSelected
-                                    ? AppColors.navyDark
-                                    : AppColors.lightSubText,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: item.badgeBg,
-                                borderRadius:
-                                    BorderRadius.circular(AppRadius.full),
-                              ),
-                              child: Text(
-                                '${item.count}',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: item.badgeFg,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+
+        Widget buildTabItem(
+          ({
+            FormIVStatusTab tab,
+            String label,
+            int count,
+            Color badgeBg,
+            Color badgeFg,
+          }) item, {
+          bool expand = false,
+        }) {
+          final isSelected = selectedTab == item.tab;
+          final tabContent = Container(
+            padding: EdgeInsets.symmetric(
+              vertical: 12,
+              horizontal: isMobile ? 4 : 12,
+            ),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color:
+                      isSelected ? const Color(0xFF1976D2) : Colors.transparent,
+                  width: 2.5,
+                ),
               ),
             ),
+            alignment: Alignment.center,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    TranslationHelper.translate(context, item.label),
+                    style: GoogleFonts.poppins(
+                      fontSize: isMobile ? 12.5 : 13.5,
+                      fontWeight:
+                          isSelected ? FontWeight.w700 : FontWeight.w500,
+                      color: isSelected
+                          ? AppColors.navyDark
+                          : AppColors.lightSubText,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: item.badgeBg,
+                      borderRadius: BorderRadius.circular(AppRadius.full),
+                    ),
+                    child: Text(
+                      '${item.count}',
+                      style: GoogleFonts.poppins(
+                        fontSize: isMobile ? 10.5 : 11,
+                        fontWeight: FontWeight.w700,
+                        color: item.badgeFg,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+
+          final inkWell = InkWell(
+            onTap: () => onTabChanged(item.tab),
+            hoverColor: Colors.transparent,
+            splashColor: AppColors.navyMid.withValues(alpha: 0.08),
+            child: tabContent,
+          );
+
+          return expand ? Expanded(child: inkWell) : inkWell;
+        }
+
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            border: Border(
+              bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
+            ),
           ),
-          if (trailingWidget != null) ...[
-            const SizedBox(width: 8),
-            trailingWidget!,
-            const SizedBox(width: 16),
-          ],
-        ],
-      ),
+          child: Row(
+            children: [
+              if (isMobile)
+                Expanded(
+                  child: Row(
+                    children:
+                        tabs.map((t) => buildTabItem(t, expand: true)).toList(),
+                  ),
+                )
+              else ...[
+                const SizedBox(width: 16),
+                for (final t in tabs) ...[
+                  buildTabItem(t, expand: false),
+                  const SizedBox(width: 16),
+                ],
+                const Spacer(),
+              ],
+              if (trailingWidget != null) ...[
+                const SizedBox(width: 8),
+                trailingWidget!,
+                const SizedBox(width: 16),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -2491,6 +2541,43 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
     }
   }
 
+  String _getOfficerOrLocation(ModuleRecord record, Map<String, dynamic> doc) {
+    final officer = record.assignedOfficer.trim();
+    if (officer.isNotEmpty && officer != '—' && officer != '-') return officer;
+
+    for (final key in [
+      'io_name',
+      'investigatingOfficer',
+      'assignedOfficer',
+      'ioName',
+      'officerName',
+    ]) {
+      final val = doc[key] ?? record.extraFields[key];
+      if (val != null && val.toString().trim().isNotEmpty) {
+        final s = val.toString().trim();
+        if (s != '—' && s != '-') return s;
+      }
+    }
+
+    final loc = record.location.trim();
+    if (loc.isNotEmpty && loc != '—' && loc != '-') return loc;
+
+    for (final key in [
+      'policeStation',
+      'ps',
+      'psName',
+      'location',
+    ]) {
+      final val = doc[key] ?? record.extraFields[key];
+      if (val != null && val.toString().trim().isNotEmpty) {
+        final s = val.toString().trim();
+        if (s != '—' && s != '-') return s;
+      }
+    }
+
+    return '—';
+  }
+
   Future<void> _showQuickDisposeDialog(
       BuildContext context, ModuleRecord record) async {
     final ccCtrl = TextEditingController();
@@ -2601,22 +2688,42 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
     final sectionAct = _getSectionAct(record, doc);
     final accusedName = _getNameOfAccused(record, doc);
     final crimeDate = _getCrimeDate(record, doc);
+    final officerOrLocation = _getOfficerOrLocation(record, doc);
 
-    final isDisposal = record.status.toLowerCase() == 'disposal' ||
-        record.status.toLowerCase() == 'closed' ||
-        record.status.toLowerCase() == 'resolved';
-    final isPending = record.status.toLowerCase() == 'pending' ||
-        record.status.toLowerCase() == 'open' ||
-        record.status.toLowerCase() == 'active';
+    final rawStatus = record.status.trim();
+    final isDisposal = isRecordDisposal(record) ||
+        rawStatus.toLowerCase() == 'disposal' ||
+        rawStatus.toLowerCase() == 'closed' ||
+        rawStatus.toLowerCase() == 'resolved' ||
+        rawStatus.toLowerCase() == 'disposed';
+    final String displayStatus;
+    if (isDisposal) {
+      displayStatus = 'Disposal';
+    } else if (rawStatus.toLowerCase() == 'detected' ||
+        rawStatus.toLowerCase() == 'pending' ||
+        rawStatus.toLowerCase() == 'open' ||
+        rawStatus.toLowerCase() == 'active' ||
+        rawStatus.isEmpty) {
+      displayStatus = 'Pending';
+    } else {
+      displayStatus = rawStatus;
+    }
+
     final Color statusColor = isDisposal
         ? const Color(0xFF2E7D32)
-        : (isPending ? const Color(0xFFE65100) : const Color(0xFFD32F2F));
+        : (displayStatus == 'Pending'
+            ? const Color(0xFFE65100)
+            : const Color(0xFF475569));
     final Color statusBg = isDisposal
         ? const Color(0xFFE8F5E9)
-        : (isPending ? const Color(0xFFFFF3E0) : const Color(0xFFFFEBEE));
+        : (displayStatus == 'Pending'
+            ? const Color(0xFFFFF3E0)
+            : const Color(0xFFF8FAFC));
     final Color statusBorder = isDisposal
         ? const Color(0xFFA5D6A7)
-        : (isPending ? const Color(0xFFFFCC80) : const Color(0xFFFFCDD2));
+        : (displayStatus == 'Pending'
+            ? const Color(0xFFFFCC80)
+            : const Color(0xFFCBD5E1));
 
     final categoryLabel = record.subCategory?.trim().isNotEmpty == true
         ? TranslationHelper.translate(context, record.subCategory!.trim())
@@ -2668,10 +2775,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
               label: 'PDF',
               color: AppColors.navyDark,
               width: 38,
-              onTap: () => runWithPdfAuthGate(
-                context,
-                () => CaseReportPdfHelper.download(context, record),
-              ),
+              onTap: () => CaseReportPdfHelper.download(context, record),
             ),
           ],
         ),
@@ -2738,11 +2842,9 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
               width: isExpandedMode ? 85 : 70,
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
               decoration: BoxDecoration(
-                color: AppColors.goldPrimary.withValues(alpha: 0.10),
+                color: const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: AppColors.goldPrimary.withValues(alpha: 0.35),
-                ),
+                border: Border.all(color: const Color(0xFFCBD5E1)),
               ),
               alignment: Alignment.center,
               child: Column(
@@ -2754,7 +2856,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                     style: GoogleFonts.poppins(
                       fontSize: 9,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.goldPrimary,
+                      color: const Color(0xFF64748B),
                       height: 1.0,
                     ),
                   ),
@@ -2768,7 +2870,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                       style: GoogleFonts.poppins(
                         fontSize: 11.0,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.goldPrimary,
+                        color: AppColors.navyDark,
                         height: 1.0,
                       ),
                     ),
@@ -2780,10 +2882,10 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
 
           _buildDivider(margin: divMargin),
 
-          // 3. Section / Act (flex: 3 on desktop, width 95 on mobile)
+          // 3. Section / Act (flex: 2 on desktop, width 95 on mobile)
           isExpandedMode
               ? Expanded(
-                  flex: 3,
+                  flex: 2,
                   child: _buildFieldColumn(
                     context: context,
                     label: 'Section / Act',
@@ -2805,10 +2907,10 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
 
           _buildDivider(margin: divMargin),
 
-          // 4. Name of Accused (flex: 4 on desktop, width 135 on mobile)
+          // 4. Name of Accused (flex: 3 on desktop, width 135 on mobile)
           isExpandedMode
               ? Expanded(
-                  flex: 4,
+                  flex: 3,
                   child: _buildFieldColumn(
                     context: context,
                     label: 'Accused Name',
@@ -2830,27 +2932,37 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
 
           _buildDivider(margin: divMargin),
 
-          // 5. Crime Date (flex: 2 on desktop, width 85 on mobile)
+          // 5. Officer / Location (flex: 3 on desktop, width 130 on mobile)
           isExpandedMode
               ? Expanded(
-                  flex: 2,
+                  flex: 3,
                   child: _buildFieldColumn(
                     context: context,
-                    label: 'Crime Date',
-                    value: (crimeDate.isEmpty || crimeDate == '-')
-                        ? '—'
-                        : crimeDate,
-                    icon: Icons.calendar_today_outlined,
+                    label: 'Officer / Location',
+                    value: officerOrLocation,
+                    icon: Icons.badge_outlined,
                   ),
                 )
               : _buildFieldColumn(
                   context: context,
-                  width: 85,
-                  label: 'Crime Date',
-                  value:
-                      (crimeDate.isEmpty || crimeDate == '-') ? '—' : crimeDate,
-                  icon: Icons.calendar_today_outlined,
+                  width: 130,
+                  label: 'Officer / Location',
+                  value: officerOrLocation,
+                  icon: Icons.badge_outlined,
                 ),
+
+          _buildDivider(margin: divMargin),
+
+          // 6. Crime Date (fixed width: 100 on desktop, 85 on mobile)
+          SizedBox(
+            width: isExpandedMode ? 100 : 85,
+            child: _buildFieldColumn(
+              context: context,
+              label: 'Crime Date',
+              value: (crimeDate.isEmpty || crimeDate == '-') ? '—' : crimeDate,
+              icon: Icons.calendar_today_outlined,
+            ),
+          ),
 
           _buildDivider(margin: divMargin),
 
@@ -2883,9 +2995,9 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                 const SizedBox(width: 5),
                 Flexible(
                   child: Tooltip(
-                    message: record.status,
+                    message: displayStatus,
                     child: Text(
-                      TranslationHelper.translate(context, record.status),
+                      TranslationHelper.translate(context, displayStatus),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
@@ -3210,10 +3322,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                           ),
                           const SizedBox(width: 8),
                           OutlinedButton.icon(
-                            onPressed: () => runWithPdfAuthGate(
-                              context,
-                              () => CaseReportPdfHelper.download(context, record),
-                            ),
+                            onPressed: () => CaseReportPdfHelper.download(context, record),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: const Color(0xFFC53030),
                               side: const BorderSide(color: Color(0xFFFEB2B2)),
@@ -3432,18 +3541,16 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppColors.goldPrimary.withValues(alpha: 0.12),
+                  color: const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: AppColors.goldPrimary.withValues(alpha: 0.35),
-                  ),
+                  border: Border.all(color: const Color(0xFFCBD5E1)),
                 ),
                 child: Text(
                   categoryLabel,
                   style: GoogleFonts.poppins(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.goldPrimary,
+                    color: AppColors.navyDark,
                   ),
                 ),
               ),
@@ -3456,13 +3563,20 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(color: statusColor.withValues(alpha: 0.35)),
               ),
-              child: Text(
-                TranslationHelper.translate(context, record.status),
-                style: GoogleFonts.poppins(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: statusColor,
-                ),
+              child: Builder(
+                builder: (context) {
+                  final raw = record.status.trim();
+                  final label =
+                      raw.toLowerCase() == 'detected' ? 'Pending' : raw;
+                  return Text(
+                    TranslationHelper.translate(context, label),
+                    style: GoogleFonts.poppins(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: statusColor,
+                    ),
+                  );
+                },
               ),
             ),
           ],
@@ -3525,10 +3639,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
             _buildCompactActionButton(
               icon: Icons.picture_as_pdf_outlined,
               label: 'PDF',
-              onTap: () => runWithPdfAuthGate(
-                context,
-                () => CaseReportPdfHelper.download(context, record),
-              ),
+              onTap: () => CaseReportPdfHelper.download(context, record),
             ),
           ],
         ),

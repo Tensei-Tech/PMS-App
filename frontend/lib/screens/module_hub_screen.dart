@@ -61,7 +61,6 @@ import '../theme/app_theme.dart';
 import '../utils/ad_disposal_helper.dart';
 import '../utils/common_form_module.dart';
 import '../utils/module_pdf_helper.dart';
-import '../utils/pdf_auth_gate.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/forms_accordion_list.dart';
 import '../widgets/module_hub_report_card.dart';
@@ -2330,10 +2329,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
   }
 
   void _handlePdf(BuildContext ctx, ModuleRecord record) {
-    runWithPdfAuthGate(
-      ctx,
-      () => ModulePdfHelper.generatePdf(record, ctx),
-    );
+    ModulePdfHelper.generatePdf(record, ctx);
   }
 
   Map<String, dynamic> _getDoc(ModuleRecord record) {
@@ -2889,18 +2885,16 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppColors.goldPrimary.withValues(alpha: 0.12),
+                  color: const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: AppColors.goldPrimary.withValues(alpha: 0.35),
-                  ),
+                  border: Border.all(color: const Color(0xFFCBD5E1)),
                 ),
                 child: Text(
                   categoryLabel,
                   style: GoogleFonts.poppins(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.goldPrimary,
+                    color: AppColors.navyDark,
                   ),
                 ),
               ),
@@ -3914,11 +3908,9 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
               width: isExpandedMode ? 85 : 70,
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
               decoration: BoxDecoration(
-                color: AppColors.goldPrimary.withValues(alpha: 0.10),
+                color: const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: AppColors.goldPrimary.withValues(alpha: 0.35),
-                ),
+                border: Border.all(color: const Color(0xFFCBD5E1)),
               ),
               alignment: Alignment.center,
               child: Column(
@@ -3930,7 +3922,7 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
                     style: GoogleFonts.poppins(
                       fontSize: 9,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.goldPrimary,
+                      color: const Color(0xFF64748B),
                       height: 1.0,
                     ),
                   ),
@@ -3944,7 +3936,7 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
                       style: GoogleFonts.poppins(
                         fontSize: 11.0,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.goldPrimary,
+                        color: AppColors.navyDark,
                         height: 1.0,
                       ),
                     ),
@@ -4210,10 +4202,7 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
                 icon: Icons.picture_as_pdf_outlined,
                 label: 'PDF',
                 onTap: () {
-                  runWithPdfAuthGate(
-                    context,
-                    () => ModulePdfHelper.generatePdf(record, context),
-                  );
+                  ModulePdfHelper.generatePdf(record, context);
                 },
               ),
             ],

@@ -7,6 +7,7 @@ import '../providers/auth_provider.dart';
 import '../services/case_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/translation_helper.dart';
+import '../widgets/my_cases_module_selector.dart';
 import '../widgets/view_case_card.dart';
 
 /// Tab indices for [MyCasesScreen].
@@ -31,26 +32,14 @@ class MyCasesScreen extends StatefulWidget {
 }
 
 class _MyCasesScreenState extends State<MyCasesScreen> {
-  final TextEditingController _searchCtrl = TextEditingController();
   List<ModuleRecord>? _allCases;
-  List<ModuleRecord>? _pendingCases;
-  List<ModuleRecord>? _disposalCases;
   bool _isLoading = true;
   String? _errorMessage;
-  int _selectedTabIndex = 0;
-  String _query = '';
 
   @override
   void initState() {
     super.initState();
-    _selectedTabIndex = widget.initialTab.clamp(0, 2);
     _loadCases();
-  }
-
-  @override
-  void dispose() {
-    _searchCtrl.dispose();
-    super.dispose();
   }
 
   Future<void> _loadCases() async {
@@ -60,16 +49,10 @@ class _MyCasesScreenState extends State<MyCasesScreen> {
     });
 
     try {
-      final results = await Future.wait([
-        CaseService().fetchMyCases(scope: 'all'),
-        CaseService().fetchMyCases(scope: 'pending'),
-        CaseService().fetchMyCases(scope: 'disposal'),
-      ]);
+      final cases = await CaseService().fetchMyCases(scope: 'all');
       if (!mounted) return;
       setState(() {
-        _allCases = results[0];
-        _pendingCases = results[1];
-        _disposalCases = results[2];
+        _allCases = cases;
         _isLoading = false;
       });
     } catch (e) {
@@ -79,47 +62,6 @@ class _MyCasesScreenState extends State<MyCasesScreen> {
         _isLoading = false;
       });
     }
-  }
-
-  List<ModuleRecord> _getCurrentList() {
-    switch (_selectedTabIndex) {
-      case 1:
-        return _pendingCases ?? const [];
-      case 2:
-        return _disposalCases ?? const [];
-      case 0:
-      default:
-        return _allCases ?? const [];
-    }
-  }
-
-  static String _safeTrim(dynamic val, [String fallback = '']) {
-    if (val == null) return fallback;
-    final s = val.toString().trim();
-    return s.isEmpty ? fallback : s;
-  }
-
-  List<ModuleRecord> _filter(List<ModuleRecord> list) {
-    final q = _safeTrim(_query).toLowerCase();
-    if (q.isEmpty) return list;
-    return list.where((r) {
-      try {
-        final t = _safeTrim(r.title).toLowerCase();
-        final c = _safeTrim(r.caseNumber).toLowerCase();
-        final comp = _safeTrim(r.complainant).toLowerCase();
-        final loc = _safeTrim(r.location).toLowerCase();
-        final off = _safeTrim(r.assignedOfficer).toLowerCase();
-        final cat = _safeTrim(r.firestoreCategoryDisplayName).toLowerCase();
-        return t.contains(q) ||
-            c.contains(q) ||
-            comp.contains(q) ||
-            loc.contains(q) ||
-            off.contains(q) ||
-            cat.contains(q);
-      } catch (_) {
-        return false;
-      }
-    }).toList();
   }
 
   @override
@@ -330,227 +272,62 @@ class _MyCasesScreenState extends State<MyCasesScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return CustomScrollView(
+      return SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(
           parent: BouncingScrollPhysics(),
         ),
-        slivers: [
-          SliverToBoxAdapter(
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1600),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md,
-                    AppSpacing.md,
-                    AppSpacing.md,
-                    AppSpacing.sm,
-                  ),
-                  child: Column(
-                    children: [
-                      _buildStatusTabBar(),
-                      const SizedBox(height: 14),
-                    ],
-                  ),
-                ),
-              ),
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1600),
+            child: const Padding(
+              padding: EdgeInsets.all(AppSpacing.md),
+              child: MyCasesPillsSkeleton(),
             ),
           ),
-          SliverToBoxAdapter(
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1600),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                  child: Column(
-                    children:
-                        List.generate(6, (_) => const ViewCaseCardSkeleton()),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
+        ),
       );
     }
 
     if (_errorMessage != null) {
-      return CustomScrollView(
+      return SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(
           parent: BouncingScrollPhysics(),
         ),
-        slivers: [
-          SliverToBoxAdapter(
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1600),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md,
-                    AppSpacing.md,
-                    AppSpacing.md,
-                    AppSpacing.sm,
-                  ),
-                  child: Column(
-                    children: [
-                      _buildStatusTabBar(),
-                      const SizedBox(height: 24),
-                      const ViewEmptyState(
-                        icon: Icons.cloud_off_rounded,
-                        iconColor: AppColors.dangerRed,
-                        title: 'Unable to load cases',
-                        message:
-                            'Check your connection and pull down to try again.',
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
-    }
-
-    final rawList = _getCurrentList();
-    final filtered = _filter(rawList);
-
-    return CustomScrollView(
-      physics: const AlwaysScrollableScrollPhysics(
-        parent: BouncingScrollPhysics(),
-      ),
-      slivers: [
-        SliverToBoxAdapter(
-          child: Align(
-            alignment: Alignment.topCenter,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1600),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.md,
-                  AppSpacing.md,
-                  AppSpacing.md,
-                  AppSpacing.sm,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildStatusTabBar(),
-                    const SizedBox(height: 14),
-                    TextField(
-                      controller: _searchCtrl,
-                      onChanged: (v) => setState(() => _query = v),
-                      style: GoogleFonts.poppins(
-                          fontSize: 13.5, color: AppColors.navyDark),
-                      decoration: InputDecoration(
-                        hintText: TranslationHelper.translate(
-                          context,
-                          'Search by FIR, title, location...',
-                        ),
-                        hintStyle: GoogleFonts.poppins(
-                          fontSize: 12.5,
-                          color: AppColors.lightSubText,
-                        ),
-                        prefixIcon: const Icon(Icons.search_rounded,
-                            color: AppColors.lightSubText, size: 20),
-                        suffixIcon: _query.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear_rounded, size: 18),
-                                onPressed: () {
-                                  _searchCtrl.clear();
-                                  setState(() => _query = '');
-                                },
-                              )
-                            : null,
-                        filled: true,
-                        fillColor: Colors.white,
-                        isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 10),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.md),
-                          borderSide:
-                              const BorderSide(color: Color(0xFFE2E8F0)),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.md),
-                          borderSide:
-                              const BorderSide(color: Color(0xFFE2E8F0)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.md),
-                          borderSide: const BorderSide(
-                              color: AppColors.navyMid, width: 1.5),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      _query.isNotEmpty
-                          ? 'Found ${filtered.length} of ${rawList.length} records'
-                          : 'Total: ${rawList.length} records',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.lightSubText,
-                      ),
-                    ),
-                  ],
-                ),
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1600),
+            child: const Padding(
+              padding: EdgeInsets.all(AppSpacing.md),
+              child: ViewEmptyState(
+                icon: Icons.cloud_off_rounded,
+                iconColor: AppColors.dangerRed,
+                title: 'Unable to load cases',
+                message: 'Check your connection and pull down to try again.',
               ),
             ),
           ),
         ),
-        if (filtered.isEmpty)
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: ViewEmptyState(
-              icon: Icons.folder_open_rounded,
-              iconColor: AppColors.lightSubText,
-              title: _query.isNotEmpty ? 'No matching cases' : 'No cases found',
-              message: _query.isNotEmpty
-                  ? 'Try searching with a different case number, title, or officer name.'
-                  : (_selectedTabIndex == 1
-                      ? 'No pending cases under your station/jurisdiction.'
-                      : (_selectedTabIndex == 2
-                          ? 'No disposed cases recorded yet.'
-                          : 'No cases recorded under this station.')),
-            ),
-          )
-        else
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              0,
-              AppSpacing.md,
-              AppSpacing.xxl,
-            ),
-            sliver: SliverToBoxAdapter(
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1600),
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: filtered.length,
-                    itemBuilder: (context, i) {
-                      return ViewCaseCard(
-                        record: filtered[i],
-                        index: i + 1,
-                        isDisposedTab: _selectedTabIndex == 2,
-                      );
-                    },
-                  ),
-                ),
-              ),
+      );
+    }
+
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1600),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: MyCasesPillsLandingView(
+              records: _allCases ?? const [],
             ),
           ),
-      ],
+        ),
+      ),
     );
   }
 }

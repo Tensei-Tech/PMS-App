@@ -27,7 +27,10 @@ def _seed_ad_public_data():
         CaseCategory.objects.create(category_name='A.D.', category_code='STAND_AD', display_order=40)
     for name in ('0121_ad_suicide_and_other_subtabs', '0125_ad_form_fields', '0126_ad_module_settings',
                  '0130_ad_disposal_rule_settings', '0161_ad_unknown_deceased_multiple',
-                 '0162_ad_registration_year_io_and_sdm_acp'):
+                 '0162_ad_registration_year_io_and_sdm_acp',
+                 '0165_ad_unknown_deceased_in_deceased_details', '0166_ad_pm_report',
+                 '0167_ad_yes_no_to_checkboxes', '0168_ad_deceased_and_inquiry_card',
+                 '0173_ad_deceased_person_list'):
         importlib.import_module(f'apps.crimetab.migrations.{name}').forwards(django_apps, None)
 
 
@@ -90,19 +93,19 @@ class AdBackendTests(TestCase):
         self.assertEqual(data['action_labels']['add'], 'Add A.D.')
 
     def test_create_lists_card_and_counts_per_sub_tab(self):
-        res = self.create({'case_number': 'TEST_AD_1', 'ad_deceased_identity': 'Known',
-                           'ad_deceased': [{'ad_deceased_name': 'TEST Ram', 'ad_deceased_age': '45'}, {}],
-                           'ad_cause_of_death': 'Hanging'})
+        ram = {'ad_deceased_identity': 'Known', 'ad_deceased_name': 'TEST Ram',
+               'ad_deceased_age': '45', 'ad_cause_of_death': 'Hanging'}
+        res = self.create({'case_number': 'TEST_AD_1', 'ad_persons': [ram, {}]})
         self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.data)
         rec = CaseRecord.objects.get(pk=res.data['id'])
         self.assertEqual((rec.module_key, rec.sub_category, rec.case_number), ('ad', 'Suicide', 'TEST_AD_1'))
-        self.assertEqual(rec.extra_fields['ad_deceased'], [{'ad_deceased_name': 'TEST Ram', 'ad_deceased_age': '45'}])
+        self.assertEqual(rec.extra_fields['ad_persons'], [ram])
 
         item = self.list().data['results'][0]
         cards = dict((r[0], r[1]) for r in item['card_rows'])
         self.assertEqual(cards['AD No.'], 'TEST_AD_1')
-        self.assertEqual(cards['Deceased Name'], 'TEST Ram')
-        self.assertEqual(cards['Cause of Death'], 'Hanging')
+        self.assertEqual(cards['Deceased Person Name'], 'TEST Ram')
+        self.assertEqual(cards['Deceased Person Cause of Death'], 'Hanging')
         self.assertEqual(self.counts(), {'total': 1, 'pending': 1, 'disposal': 0})
         self.assertEqual(self.counts(OTHER), {'total': 0, 'pending': 0, 'disposal': 0})
 
@@ -120,23 +123,22 @@ class AdBackendTests(TestCase):
         self.assertEqual(self.counts()['pending'], 1)
 
     def test_hidden_answers_are_dropped(self):
-        rid = self.create({'case_number': 'TEST_AD_3', 'ad_deceased_identity': 'Known',
-                           'ad_unknown_injury': 'TEST cut', 'ad_postmortem': 'No',
-                           'ad_postmortem_date': '01/10/2026'}).data['id']
-        extra = CaseRecord.objects.get(pk=rid).extra_fields
-        self.assertNotIn('ad_unknown_injury', extra)
-        self.assertNotIn('ad_postmortem_date', extra)
+        rid = self.create({'case_number': 'TEST_AD_3', 'ad_persons': [{
+            'ad_deceased_identity': 'Known', 'ad_unknown_injury': 'TEST cut',
+            'ad_postmortem': 'No', 'ad_postmortem_date': '01/10/2026'}]}).data['id']
+        person = CaseRecord.objects.get(pk=rid).extra_fields['ad_persons'][0]
+        self.assertEqual(person, {'ad_deceased_identity': 'Known'})
 
     def test_panchanama_checkbox_keeps_its_date_time(self):
-        rid = self.create({'ad_inquest_panchanama': True,
-                           'ad_inquest_panchanama_date': '21/10/2026 10:30'}).data['id']
+        rid = self.create({'ad_persons': [{'ad_inquest_panchanama': True,
+                                           'ad_inquest_panchanama_date': '21/10/2026 10:30'}]}).data['id']
         det = AdDetailView.as_view()(self._req('get', f'/api/ad/{rid}/'), pk=rid).data
-        self.assertEqual(det['form_data']['ad_inquest_panchanama_date'], '21/10/2026 10:30')
+        self.assertEqual(det['form_data']['ad_persons'][0]['ad_inquest_panchanama_date'], '21/10/2026 10:30')
         self.assertIn('Yes (21/10/2026 10:30)', str(det['sections']))
 
     def test_validation_and_bad_requests(self):
-        self.assertEqual(self.create({'ad_deceased_identity': 'Known',
-                                      'ad_deceased': [{'ad_deceased_mobile': '12'}]}).status_code, 400)
+        self.assertEqual(self.create({'ad_persons': [{'ad_deceased_identity': 'Known',
+                                                      'ad_deceased_mobile': '12'}]}).status_code, 400)
         self.assertEqual(self.create({}).status_code, 400)
         self.assertEqual(self.create({'case_number': 'X'}, category='NOPE').status_code, 400)
         self.assertEqual(self.list(tab='bad').status_code, 400)
@@ -149,9 +151,9 @@ class AdBackendTests(TestCase):
         self.assertEqual(res.status_code, 404)
 
     def test_view_masks_aadhaar_and_pdf_renders(self):
-        rid = self.create({'case_number': 'TEST_AD_5', 'ad_deceased_identity': 'Known',
-                           'ad_deceased': [{'ad_deceased_name': 'TEST', 'ad_deceased_aadhaar': '1234 5678 9012'}]}
-                          ).data['id']
+        rid = self.create({'case_number': 'TEST_AD_5', 'ad_persons': [{
+            'ad_deceased_identity': 'Known', 'ad_deceased_name': 'TEST',
+            'ad_deceased_aadhaar': '1234 5678 9012'}]}).data['id']
         det = AdDetailView.as_view()(self._req('get', f'/api/ad/{rid}/'), pk=rid).data
         self.assertEqual(det['category_code'], SUICIDE)
         self.assertIn('XXXXXXXX9012', str(det['sections']))
@@ -162,12 +164,13 @@ class AdBackendTests(TestCase):
 
     def test_card_layout_and_labels_follow_settings(self):
         ModuleSetting.objects.filter(module_key='ad', setting_key='list_card_fields').update(
-            setting_value='ad_cause_of_death+ad_cause_of_death_other')
+            setting_value='ad_persons.ad_cause_of_death+ad_persons.ad_cause_of_death_other')
         ModuleSetting.objects.filter(module_key='ad', setting_key='tab_pending_label').update(
             setting_value='TEST_Open')
-        self.create({'ad_cause_of_death': 'Other', 'ad_cause_of_death_other': 'TEST fall'})
+        self.create({'ad_persons': [{'ad_cause_of_death': 'Other', 'ad_cause_of_death_other': 'TEST fall'}]})
         item = self.list().data['results'][0]
-        self.assertEqual(item['card_rows'], [['Cause of Death / Other Cause (type)', 'Other\nTEST fall']])
+        self.assertEqual(item['card_rows'], [['Deceased Person Cause of Death / Deceased Person Other Cause (type)',
+                                              'Other\nTEST fall']])
         self.assertEqual(item['status_label'], 'TEST_Open')
 
     def test_search_and_keyset_pages(self):

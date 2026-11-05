@@ -1,5 +1,5 @@
 // lib/main.dart
-// App entry point: multi-provider setup, named routing, lifecycle auto-lock.
+// App entry point: multi-provider setup, named routing, lifecycle handling.
 
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -19,7 +19,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/app_localizations.dart';
 import 'theme/app_theme.dart';
 import 'utils/app_constants.dart';
-import 'utils/pdf_auth_gate.dart';
 import 'utils/pdf_loading_helper.dart';
 import 'utils/notification_service.dart';
 import 'services/fcm_service.dart';
@@ -39,12 +38,10 @@ import 'screens/login_security_screen.dart';
 import 'screens/app_settings_screen.dart';
 import 'screens/classification_list_screen.dart';
 import 'screens/standalone_selection_screen.dart';
-import 'screens/pin_reauth_screen.dart';
 import 'services/api_config.dart';
 import 'services/backend_case_service.dart';
 import 'widgets/app_update_gate.dart';
 import 'services/ui_config_service.dart';
-import 'services/biometric_service.dart';
 import 'services/case_service.dart';
 import 'providers/connectivity_provider.dart';
 import 'package:flutter_web_plugins/url_strategy.dart'; // PLATFORM FIX: Web path URL routing parity
@@ -178,120 +175,28 @@ class _PoliceMgmtAppState extends State<PoliceMgmtApp>
   final GlobalKey<NavigatorState> _navKey = GlobalKey<NavigatorState>();
 
   late final AppLifecycleListener _lifecycleListener;
-  bool _authPromptInFlight = false;
-  bool _skipFirstResume = true;
-  OverlayEntry? _lockOverlay;
-  // The system biometric prompt itself triggers a paused→resumed transition
-  // when it closes, which would otherwise re-fire `onResume` and pop a second
-  // prompt. Use a short cool-down after a successful auth to absorb that.
-  DateTime? _lastSuccessfulAuth;
-  static const Duration _resumeCooldown = Duration(seconds: 2);
-  final BiometricService _biometricService = BiometricService();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // AppLifecycleListener.onResume only fires on transition to
-    // AppLifecycleState.resumed — never on inactive/paused.
     _lifecycleListener = AppLifecycleListener(onResume: _handleAppResume);
   }
 
   @override
   void dispose() {
-    _removeLockOverlay();
     _lifecycleListener.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
-  Future<void> _handleAppResume() async {
-    if (mounted) {
-      unawaited(
-        context.read<ConnectivityProvider>().checkConnection(background: true),
-      );
-    }
-    // Skip the very first resume after cold start so we don't double-prompt
-    // on top of the normal launch flow.
-    if (_skipFirstResume) {
-      _skipFirstResume = false;
-      return;
-    }
-    // Web: do not enforce PIN/biometric overlay on resume.
-    if (kIsWeb) return;
-    // Don't stack prompts: PIN overlay already up, or auth already running.
-    if (_lockOverlay != null) return;
-    if (_authPromptInFlight) return;
-    // PDF download auth: cancelling the **first** biometric dismisses that
-    // UI and fires `resumed`, which must NOT stack the global resume biometric
-    // on top of the PDF PIN overlay (see `isPdfDownloadAuthGateActive`).
-    if (isPdfDownloadAuthGateActive) return;
-    // Cool-down: the system biometric prompt itself causes a spurious
-    // resume when it closes. Skip if we successfully authenticated very
-    // recently — otherwise the prompt would re-appear immediately.
-    final last = _lastSuccessfulAuth;
-    if (last != null && DateTime.now().difference(last) < _resumeCooldown) {
-      return;
-    }
-    final navState = _navKey.currentState;
-    if (navState == null) return;
-
-    _authPromptInFlight = true;
-    try {
-      // Small delay to let the OS finish bringing the app to the foreground.
-      // Without this, the biometric prompt can fail to appear or refuse the
-      // first fingerprint attempt right after AppLifecycleState.resumed.
-      await Future.delayed(const Duration(milliseconds: 300));
-      if (!mounted) return;
-
-      final hasBiometric = await _biometricService.isBiometricAvailable();
-      if (hasBiometric) {
-        // Show ONLY the system biometric prompt — no custom UI / no route push.
-        // The screen the user was on stays exactly where it was; on success
-        // there's nothing to remove, the system prompt simply dismisses.
-        bool ok = false;
-        try {
-          ok = await _biometricService.authenticate(
-            localizedReason: 'Authenticate to continue',
-          );
-        } catch (_) {
-          ok = false;
-        }
-        if (ok) {
-          _lastSuccessfulAuth = DateTime.now();
-          return;
-        }
-        // If biometrics fail/cancel, fall through to compulsory PIN.
-      }
-      // No fingerprint hardware / not enrolled / biometric failed → PIN
-      // shown as an OverlayEntry on top of the existing UI (no nav push,
-      // no pop to home). Removing the entry returns the user to the same
-      // screen they were on before backgrounding.
-      _showPinLockOverlay();
-    } finally {
-      _authPromptInFlight = false;
-    }
-  }
-
-  void _showPinLockOverlay() {
-    if (_lockOverlay != null) return;
-    final overlay = _navKey.currentState?.overlay;
-    if (overlay == null) return;
-
-    late final OverlayEntry entry;
-    entry = OverlayEntry(
-      builder: (_) => PinReauthScreen(onAuthSuccess: _removeLockOverlay),
+  // No PIN or fingerprint prompt on resume: the user stays on the screen
+  // they were using. Only the network status is refreshed.
+  void _handleAppResume() {
+    if (!mounted) return;
+    unawaited(
+      context.read<ConnectivityProvider>().checkConnection(background: true),
     );
-    _lockOverlay = entry;
-    overlay.insert(entry);
-  }
-
-  void _removeLockOverlay() {
-    final entry = _lockOverlay;
-    if (entry == null) return;
-    _lockOverlay = null;
-    entry.remove();
-    _lastSuccessfulAuth = DateTime.now();
   }
 
   @override

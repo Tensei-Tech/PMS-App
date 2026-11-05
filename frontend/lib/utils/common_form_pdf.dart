@@ -1098,10 +1098,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
     _f('IO Name', _v(cr8['ioName'])),
     _f('Reg. By Desig.', _v(cr8['regDesig'])),
     _f('Registrar Name', _v(cr8['regName'])),
-    if (_v(cr8['cctvValue']).isNotEmpty &&
-        _v(cr8['cctvValue']) != 'Not set' &&
-        _v(cr8['cctvValue']) != 'No')
-      _f('CCTV', _v(cr8['cctvValue'])),
+    _f('CCTV', _v(cr8['cctvValue'], or: 'Not set')),
     if (_v(cr8['cctvDateTime']).isNotEmpty)
       _f('CCTV Date & Time', _v(cr8['cctvDateTime'])),
   ];
@@ -1115,7 +1112,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
     sections.add(
       _card(
         secNum++,
-        'Case Responsibility (Officer)',
+        'IO / REGISTERED BY',
         _teal,
         _grid2(activeCr),
         fieldCount: activeCr.length,

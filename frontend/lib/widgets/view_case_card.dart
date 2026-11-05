@@ -17,175 +17,264 @@ String _safeTrim(dynamic val, [String fallback = '']) {
   return s.isEmpty ? fallback : s;
 }
 
-/// Modern horizontal single-row card for My Cases view.
-class ViewCaseCard extends StatelessWidget {
-  const ViewCaseCard({
+void _openCaseDetail(BuildContext context, ModuleRecord record) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => record.moduleKey == 'ad'
+          ? AdRecordDetailScreen(record: record)
+          : ModuleRecordDetailScreen(record: record),
+    ),
+  );
+}
+
+/// Modern unified data table for case lists in My Cases and Dashboard.
+class ViewCaseTable extends StatelessWidget {
+  const ViewCaseTable({
     super.key,
-    required this.record,
-    required this.index,
+    required this.records,
     this.isDisposedTab = false,
+    this.startIndex = 1,
   });
 
-  final ModuleRecord record;
-  final int index;
+  final List<ModuleRecord> records;
   final bool isDisposedTab;
+  final int startIndex;
 
-  Widget _buildDivider({double margin = 6}) {
-    return Container(
-      width: 1,
-      height: 26,
-      margin: EdgeInsets.symmetric(horizontal: margin),
-      color: const Color(0xFFE2E8F0),
+  static const double _minTableWidth = 910.0;
+
+  Widget _buildHeaderCell(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: Text(
+        TranslationHelper.translate(context, title),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: GoogleFonts.poppins(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: const Color(0xFF64748B),
+          letterSpacing: 0.1,
+        ),
+      ),
     );
   }
 
-  Widget _buildFieldColumn({
-    required BuildContext context,
-    required String label,
-    required String value,
-    IconData? icon,
-    Color? iconColor,
-    Color? valueColor,
-    double? width,
-  }) {
-    final s = _safeTrim(value);
-    final shown = (s.isEmpty || s == '-') ? '—' : s;
-    final translatedLabel = label.startsWith('# ')
-        ? '# ${TranslationHelper.translate(context, label.substring(2))}'
-        : TranslationHelper.translate(context, label);
-
-    final content = SizedBox(
-      height: 38,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
+  Widget _buildHeaderRow(BuildContext context, bool isExpanded) {
+    return Container(
+      height: 42,
+      decoration: const BoxDecoration(
+        color: Color(0xFFF8FAFC),
+        border: Border(
+          bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.2),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (icon != null) ...[
-                Icon(icon,
-                    size: 11.5, color: iconColor ?? const Color(0xFF64748B)),
-                const SizedBox(width: 3.5),
-              ],
-              Flexible(
-                child: Text(
-                  translatedLabel,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.poppins(
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFF64748B),
-                    height: 1.1,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 2),
-          Tooltip(
-            message: shown,
+          // 0. Sr. No. (#)
+          SizedBox(
+            width: 38,
             child: Text(
-              shown,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              '#',
+              textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w600,
-                color: valueColor ?? AppColors.navyDark,
-                height: 1.15,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF64748B),
+              ),
+            ),
+          ),
+
+          // 1. CR / Case No.
+          isExpanded
+              ? Expanded(
+                  flex: 3,
+                  child: _buildHeaderCell(context, 'CR / Case No.'),
+                )
+              : SizedBox(
+                  width: 132,
+                  child: _buildHeaderCell(context, 'CR / Case No.'),
+                ),
+
+          // 2. Category
+          isExpanded
+              ? Expanded(
+                  flex: 3,
+                  child: _buildHeaderCell(context, 'Category'),
+                )
+              : SizedBox(
+                  width: 110,
+                  child: _buildHeaderCell(context, 'Category'),
+                ),
+
+          // 3. Subject / Title
+          isExpanded
+              ? Expanded(
+                  flex: 5,
+                  child: _buildHeaderCell(context, 'Subject / Title'),
+                )
+              : SizedBox(
+                  width: 190,
+                  child: _buildHeaderCell(context, 'Subject / Title'),
+                ),
+
+          // 4. Registered Date
+          isExpanded
+              ? Expanded(
+                  flex: 3,
+                  child: _buildHeaderCell(context, 'Registered Date'),
+                )
+              : SizedBox(
+                  width: 110,
+                  child: _buildHeaderCell(context, 'Registered Date'),
+                ),
+
+          // 5. Officer / Location
+          isExpanded
+              ? Expanded(
+                  flex: 4,
+                  child: _buildHeaderCell(context, 'Officer / Location'),
+                )
+              : SizedBox(
+                  width: 130,
+                  child: _buildHeaderCell(context, 'Officer / Location'),
+                ),
+
+          // 6. Status
+          SizedBox(
+            width: 95,
+            child: Text(
+              TranslationHelper.translate(context, 'Status'),
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF64748B),
+              ),
+            ),
+          ),
+
+          // 7. Actions
+          SizedBox(
+            width: 85,
+            child: Text(
+              TranslationHelper.translate(context, 'Actions'),
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF64748B),
               ),
             ),
           ),
         ],
       ),
     );
-
-    return width != null ? SizedBox(width: width, child: content) : content;
   }
 
-  Widget _buildCompactActionButton({
-    required BuildContext context,
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    Color? color,
-    Color? borderColor,
-    Color? bgColor,
+  Widget _buildTextCell(
+    String text, {
+    bool isBold = false,
+    Color color = AppColors.navyDark,
   }) {
-    final fgColor = color ?? AppColors.navyDark;
-    return Tooltip(
-      message: TranslationHelper.translate(context, label),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(6),
-        child: Container(
-          height: 38,
-          width: 42,
-          padding: const EdgeInsets.symmetric(horizontal: 2),
-          decoration: BoxDecoration(
-            color: bgColor ?? Colors.white,
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(
-              color: borderColor ?? const Color(0xFFCBD5E1),
-              width: 1.1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 2,
-                offset: const Offset(0, 1),
-              ),
-            ],
-          ),
-          alignment: Alignment.center,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 14, color: fgColor),
-              const SizedBox(height: 1.5),
-              Text(
-                TranslationHelper.translate(context, label),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
-                  fontSize: 8.0,
-                  fontWeight: FontWeight.w600,
-                  color: fgColor,
-                  height: 1.0,
-                ),
-              ),
-            ],
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: Tooltip(
+        message: text,
+        child: Text(
+          text,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: isBold ? FontWeight.w600 : FontWeight.w500,
+            color: color,
           ),
         ),
       ),
     );
   }
 
-  void _openCaseDetail(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => record.moduleKey == 'ad'
-            ? AdRecordDetailScreen(record: record)
-            : ModuleRecordDetailScreen(record: record),
+  Widget _buildActionButton({
+    required BuildContext context,
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onTap,
+  }) {
+    return Tooltip(
+      message: TranslationHelper.translate(context, tooltip),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          height: 30,
+          width: 32,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: const Color(0xFFCBD5E1), width: 1),
+          ),
+          alignment: Alignment.center,
+          child: Icon(icon, size: 15, color: AppColors.navyDark),
+        ),
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final isDisposal = isRecordDisposal(record) || isDisposedTab;
-    final Color statusBg =
-        isDisposal ? const Color(0xFFF0FDF4) : const Color(0xFFFFFBEB);
-    final Color statusBorder =
-        isDisposal ? const Color(0xFFBBF7D0) : const Color(0xFFFDE68A);
-    final Color statusColor =
-        isDisposal ? const Color(0xFF16A34A) : const Color(0xFFD97706);
-    final String displayStatus = isDisposal ? 'Disposal' : 'Pending';
+  Widget _buildDataRow({
+    required BuildContext context,
+    required ModuleRecord record,
+    required int index,
+    required bool isLast,
+    required bool isExpanded,
+  }) {
+    final rawStatus = _safeTrim(record.status);
+    final isDisposal = isDisposedTab ||
+        isRecordDisposal(record) ||
+        rawStatus.toLowerCase() == 'disposal' ||
+        rawStatus.toLowerCase() == 'closed' ||
+        rawStatus.toLowerCase() == 'resolved' ||
+        rawStatus.toLowerCase() == 'disposed';
+
+    final String displayStatus;
+    if (isDisposedTab || isDisposal) {
+      displayStatus = 'Disposal';
+    } else if (rawStatus.toLowerCase() == 'detected' ||
+        rawStatus.toLowerCase() == 'pending' ||
+        rawStatus.toLowerCase() == 'open' ||
+        rawStatus.toLowerCase() == 'active' ||
+        rawStatus.isEmpty) {
+      displayStatus = 'Pending';
+    } else {
+      displayStatus = rawStatus;
+    }
+
+    final lowerStatus = displayStatus.toLowerCase();
+    final Color statusBg;
+    final Color statusBorder;
+    final Color statusColor;
+
+    if (isDisposal ||
+        lowerStatus == 'disposal' ||
+        lowerStatus == 'closed' ||
+        lowerStatus == 'resolved' ||
+        lowerStatus == 'disposed') {
+      statusBg = const Color(0xFFF0FDF4);
+      statusBorder = const Color(0xFFBBF7D0);
+      statusColor = const Color(0xFF16A34A);
+    } else if (lowerStatus == 'pending' ||
+        lowerStatus == 'open' ||
+        lowerStatus == 'active') {
+      statusBg = const Color(0xFFFFFBEB);
+      statusBorder = const Color(0xFFFDE68A);
+      statusColor = const Color(0xFFD97706);
+    } else {
+      statusBg = const Color(0xFFF8FAFC);
+      statusBorder = const Color(0xFFCBD5E1);
+      statusColor = const Color(0xFF475569);
+    }
 
     final firLabel = _safeTrim(record.caseNumber, '—');
     String cat = _safeTrim(record.firestoreCategoryDisplayName);
@@ -206,440 +295,295 @@ class ViewCaseCard extends StatelessWidget {
         ? officer
         : (location.isNotEmpty && location != '—' ? location : '—');
 
-    Widget buildDetailsRow(bool isExpandedMode) {
-      final divMargin = isExpandedMode ? 8.0 : 4.0;
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // 0. Sr. No. Badge
-          Container(
-            height: 38,
-            width: 36,
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: const Color(0xFFCBD5E1)),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              '$index',
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: AppColors.navyDark,
+    return _HoverableTableRow(
+      isLast: isLast,
+      onTap: () => _openCaseDetail(context, record),
+      child: Container(
+        height: 48,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // 0. Sr. No.
+            SizedBox(
+              width: 38,
+              child: Text(
+                '$index',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF64748B),
+                ),
               ),
             ),
-          ),
-          _buildDivider(margin: divMargin),
 
-          // 1. # CR / Case No.
-          isExpandedMode
-              ? Expanded(
-                  flex: 3,
-                  child: _buildFieldColumn(
-                    context: context,
-                    label: '# CR / Case No.',
-                    value: firLabel,
-                    valueColor: AppColors.infoBlue,
-                  ),
-                )
-              : _buildFieldColumn(
-                  context: context,
-                  width: 110,
-                  label: '# CR / Case No.',
-                  value: firLabel,
-                  valueColor: AppColors.infoBlue,
-                ),
-
-          _buildDivider(margin: divMargin),
-
-          // 2. Category badge
-          Container(
-            height: 38,
-            width: isExpandedMode ? 140 : 120,
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFEF3C7),
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: const Color(0xFFFCD34D)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  TranslationHelper.translate(context, 'Category'),
-                  style: GoogleFonts.poppins(
-                    fontSize: 8.5,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFF92400E),
-                    height: 1.0,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Tooltip(
-                  message: categoryName,
-                  child: Text(
-                    TranslationHelper.translate(context, categoryName),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF78350F),
-                      height: 1.1,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          _buildDivider(margin: divMargin),
-
-          // 3. Subject / Title
-          isExpandedMode
-              ? Expanded(
-                  flex: 5,
-                  child: _buildFieldColumn(
-                    context: context,
-                    label: 'Subject / Title',
-                    value: displayTitle,
-                    icon: Icons.description_outlined,
-                  ),
-                )
-              : _buildFieldColumn(
-                  context: context,
-                  width: 160,
-                  label: 'Subject / Title',
-                  value: displayTitle,
-                  icon: Icons.description_outlined,
-                ),
-
-          _buildDivider(margin: divMargin),
-
-          // 4. Registered Date
-          isExpandedMode
-              ? Expanded(
-                  flex: 3,
-                  child: _buildFieldColumn(
-                    context: context,
-                    label: 'Registered Date',
-                    value: dateStr,
-                    icon: Icons.calendar_today_outlined,
-                  ),
-                )
-              : _buildFieldColumn(
-                  context: context,
-                  width: 105,
-                  label: 'Registered Date',
-                  value: dateStr,
-                  icon: Icons.calendar_today_outlined,
-                ),
-
-          _buildDivider(margin: divMargin),
-
-          // 5. Officer / Location
-          isExpandedMode
-              ? Expanded(
-                  flex: 4,
-                  child: _buildFieldColumn(
-                    context: context,
-                    label: 'Officer / Location',
-                    value: officerOrLocation,
-                    icon: Icons.person_outline_rounded,
-                  ),
-                )
-              : _buildFieldColumn(
-                  context: context,
-                  width: 135,
-                  label: 'Officer / Location',
-                  value: officerOrLocation,
-                  icon: Icons.person_outline_rounded,
-                ),
-
-          _buildDivider(margin: divMargin),
-
-          // 6. Status Badge
-          Container(
-            height: 38,
-            width: isExpandedMode ? 105 : 95,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: statusBg,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: statusBorder),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: statusColor,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Text(
-                    TranslationHelper.translate(context, displayStatus),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: statusColor,
-                      height: 1.0,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          _buildDivider(margin: divMargin),
-
-          // 7. Action buttons
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildCompactActionButton(
-                context: context,
-                icon: Icons.visibility_outlined,
-                label: 'View',
-                onTap: () => _openCaseDetail(context),
-              ),
-              const SizedBox(width: 6),
-              _buildCompactActionButton(
-                context: context,
-                icon: Icons.picture_as_pdf_outlined,
-                label: 'PDF',
-                onTap: () => ModulePdfHelper.generatePdf(record, context),
-              ),
-            ],
-          ),
-        ],
-      );
-    }
-
-    Widget buildMobileCard() {
-      return InkWell(
-        onTap: () => _openCaseDetail(context),
-        borderRadius: BorderRadius.circular(10),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Row 1: Sr No, CR No, Category chip, and Status Pill on right
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    height: 24,
-                    width: 26,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(5),
-                      border: Border.all(
-                        color: const Color(0xFFCBD5E1),
-                        width: 0.8,
-                      ),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      '$index',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
+            // 1. CR / Case No.
+            isExpanded
+                ? Expanded(
+                    flex: 3,
+                    child: _buildTextCell(
                       firLabel,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.infoBlue,
-                      ),
+                      isBold: true,
+                      color: AppColors.navyDark,
+                    ),
+                  )
+                : SizedBox(
+                    width: 132,
+                    child: _buildTextCell(
+                      firLabel,
+                      isBold: true,
+                      color: AppColors.navyDark,
                     ),
                   ),
-                  const SizedBox(width: 6),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFEF3C7),
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(
-                        color: const Color(0xFFFCD34D),
-                        width: 0.8,
-                      ),
-                    ),
-                    child: Text(
+
+            // 2. Category
+            isExpanded
+                ? Expanded(
+                    flex: 3,
+                    child: _buildTextCell(
                       TranslationHelper.translate(context, categoryName),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF78350F),
-                      ),
+                      color: AppColors.navyDark,
+                    ),
+                  )
+                : SizedBox(
+                    width: 110,
+                    child: _buildTextCell(
+                      TranslationHelper.translate(context, categoryName),
+                      color: AppColors.navyDark,
                     ),
                   ),
-                  const Spacer(),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: statusBg,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: statusBorder),
+
+            // 3. Subject / Title
+            isExpanded
+                ? Expanded(
+                    flex: 5,
+                    child: _buildTextCell(
+                      displayTitle,
+                      color: AppColors.navyDark,
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 5,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: statusColor,
-                            shape: BoxShape.circle,
-                          ),
+                  )
+                : SizedBox(
+                    width: 190,
+                    child: _buildTextCell(
+                      displayTitle,
+                      color: AppColors.navyDark,
+                    ),
+                  ),
+
+            // 4. Registered Date
+            isExpanded
+                ? Expanded(
+                    flex: 3,
+                    child: _buildTextCell(
+                      dateStr,
+                      color: const Color(0xFF475569),
+                    ),
+                  )
+                : SizedBox(
+                    width: 110,
+                    child: _buildTextCell(
+                      dateStr,
+                      color: const Color(0xFF475569),
+                    ),
+                  ),
+
+            // 5. Officer / Location
+            isExpanded
+                ? Expanded(
+                    flex: 4,
+                    child: _buildTextCell(
+                      officerOrLocation,
+                      color: const Color(0xFF475569),
+                    ),
+                  )
+                : SizedBox(
+                    width: 130,
+                    child: _buildTextCell(
+                      officerOrLocation,
+                      color: const Color(0xFF475569),
+                    ),
+                  ),
+
+            // 6. Status Badge
+            SizedBox(
+              width: 95,
+              child: Center(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
+                  decoration: BoxDecoration(
+                    color: statusBg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: statusBorder),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 5.5,
+                        height: 5.5,
+                        decoration: BoxDecoration(
+                          color: statusColor,
+                          shape: BoxShape.circle,
                         ),
-                        const SizedBox(width: 4),
-                        Text(
+                      ),
+                      const SizedBox(width: 5),
+                      Flexible(
+                        child: Text(
                           TranslationHelper.translate(context, displayStatus),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.poppins(
-                            fontSize: 10,
+                            fontSize: 10.5,
                             fontWeight: FontWeight.w600,
                             color: statusColor,
+                            height: 1.0,
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-
-              // Row 2: Subject / Title
-              Text(
-                displayTitle,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.navyDark,
-                  height: 1.25,
                 ),
               ),
-              const SizedBox(height: 8),
+            ),
 
-              // Row 3: Meta info (Date, Officer) and Action buttons (View & PDF)
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+            // 7. Actions
+            SizedBox(
+              width: 85,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                    Icons.calendar_today_outlined,
-                    size: 11.5,
-                    color: Color(0xFF64748B),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    dateStr,
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: const Color(0xFF64748B),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  const Icon(
-                    Icons.person_outline_rounded,
-                    size: 12.5,
-                    color: Color(0xFF64748B),
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      officerOrLocation,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFF64748B),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  _buildCompactActionButton(
+                  _buildActionButton(
                     context: context,
                     icon: Icons.visibility_outlined,
-                    label: 'View',
-                    onTap: () => _openCaseDetail(context),
+                    tooltip: 'View',
+                    onTap: () => _openCaseDetail(context, record),
                   ),
                   const SizedBox(width: 6),
-                  _buildCompactActionButton(
+                  _buildActionButton(
                     context: context,
                     icon: Icons.picture_as_pdf_outlined,
-                    label: 'PDF',
+                    tooltip: 'PDF',
                     onTap: () => ModulePdfHelper.generatePdf(record, context),
                   ),
                 ],
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (records.isEmpty) return const SizedBox.shrink();
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= _minTableWidth;
+
+        Widget tableBody(bool isExpanded) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildHeaderRow(context, isExpanded),
+              for (int i = 0; i < records.length; i++)
+                _buildDataRow(
+                  context: context,
+                  record: records[i],
+                  index: startIndex + i,
+                  isLast: i == records.length - 1,
+                  isExpanded: isExpanded,
+                ),
+            ],
+          );
+        }
+
+        Widget content;
+        if (isWide) {
+          content = tableBody(true);
+        } else {
+          content = SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: SizedBox(
+              width: _minTableWidth,
+              child: tableBody(false),
+            ),
+          );
+        }
+
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
             ],
           ),
-        ),
-      );
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(11),
+            child: content,
           ),
-        ],
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isWide = constraints.maxWidth >= 700;
-          if (isWide) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              child: buildDetailsRow(true),
-            );
-          }
-          return buildMobileCard();
-        },
+        );
+      },
+    );
+  }
+}
+
+/// Hoverable table row with subtle highlight and bottom border.
+class _HoverableTableRow extends StatefulWidget {
+  final Widget child;
+  final bool isLast;
+  final VoidCallback onTap;
+
+  const _HoverableTableRow({
+    required this.child,
+    required this.isLast,
+    required this.onTap,
+  });
+
+  @override
+  State<_HoverableTableRow> createState() => _HoverableTableRowState();
+}
+
+class _HoverableTableRowState extends State<_HoverableTableRow> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            color: _isHovered ? const Color(0xFFF8FAFC) : Colors.white,
+            border: widget.isLast
+                ? null
+                : const Border(
+                    bottom: BorderSide(color: Color(0xFFF1F5F9), width: 1),
+                  ),
+          ),
+          child: widget.child,
+        ),
       ),
     );
   }
 }
 
-/// Shimmer placeholder skeleton matching [ViewCaseCard].
-class ViewCaseCardSkeleton extends StatelessWidget {
-  const ViewCaseCardSkeleton({super.key});
+/// Shimmer placeholder table skeleton matching [ViewCaseTable].
+class ViewCaseTableSkeleton extends StatelessWidget {
+  const ViewCaseTableSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -741,60 +685,147 @@ class ViewCaseCardSkeleton extends StatelessWidget {
             ),
           );
         }
+        // Desktop: table-style skeleton
         return Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          height: 54,
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(color: const Color(0xFFE2E8F0)),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          child: Row(
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                width: 90,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Container(
-                  height: 20,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(4),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(11),
+            child: Column(
+              children: [
+                Container(
+                  height: 42,
+                  color: const Color(0xFFF8FAFC),
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE2E8F0),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Container(
+                        width: 110,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE2E8F0),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      Container(
+                        width: 90,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE2E8F0),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      Expanded(
+                        child: Container(
+                          height: 14,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE2E8F0),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Container(
-                width: 80,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-              ),
-            ],
+                for (int i = 0; i < 6; i++)
+                  Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      border: i == 5
+                          ? null
+                          : const Border(
+                              bottom:
+                                  BorderSide(color: Color(0xFFF1F5F9), width: 1),
+                            ),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 24,
+                          height: 14,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        const SizedBox(width: 24),
+                        Container(
+                          width: 100,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        const SizedBox(width: 32),
+                        Container(
+                          width: 80,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        const SizedBox(width: 32),
+                        Expanded(
+                          child: Container(
+                            height: 16,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
           ),
-        );
-      },
     );
   }
 }
+
+/// Compatibility wrapper for existing single-card usages.
+class ViewCaseCard extends StatelessWidget {
+  const ViewCaseCard({
+    super.key,
+    required this.record,
+    required this.index,
+    this.isDisposedTab = false,
+  });
+
+  final ModuleRecord record;
+  final int index;
+  final bool isDisposedTab;
+
+  @override
+  Widget build(BuildContext context) {
+    return ViewCaseTable(
+      records: [record],
+      isDisposedTab: isDisposedTab,
+      startIndex: index,
+    );
+  }
+}
+
+/// Backwards compatibility alias for skeleton.
+typedef ViewCaseCardSkeleton = ViewCaseTableSkeleton;
 
 /// Empty state widget for case lists.
 class ViewEmptyState extends StatelessWidget {

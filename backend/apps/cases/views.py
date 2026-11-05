@@ -2036,6 +2036,17 @@ class TimeWiseRepeatOffenderView(TimeWisePendingView):
             logger.exception(f'[TimeWiseRepeatOffenderView] Database error: {e}')
             return Response({'error': 'Failed to retrieve Time-wise repeat offender counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+def _yes_no_answer(value):
+    """'yes', 'no' or '' for a Yes / No answer or a checkbox (true = yes)."""
+    answer = str(value if value is not None else '').strip().lower()
+    if answer in ('yes', 'true', '1'):
+        return 'yes'
+    if answer in ('no', 'false', '0'):
+        return 'no'
+    return answer
+
+
 class NAFISCaseWiseView(PendingCasesView):
     def _enrich_data(self, data_list):
         for item in data_list:
@@ -2044,11 +2055,20 @@ class NAFISCaseWiseView(PendingCasesView):
             extra = item['extra_fields']
             inv = extra.get('investigationNotes') or extra.get('commonForm', {}).get('investigationNotes') or {}
             
-            fp_val = str(extra.get('fingerprintVal') or inv.get('fingerprintVal') or '').strip().lower()
-            fp_date = str(extra.get('fingerprintDate') or inv.get('fingerprintDate') or '').strip()
-            nafis_val = str(extra.get('nafisFingerprint') or extra.get('nafis_fingerprint') or inv.get('nafisFingerprint') or '').strip().lower()
-            nafis_date = str(extra.get('nafisDate') or inv.get('nafisDate') or '').strip()
-            
+            # Older forms saved 'fingerprintVal' / 'nafisDate'; the Common Form's
+            # Evidence checkboxes save fingerprint_taken / nafis_fingerprint
+            # (true when ticked) with fingerprint_taken_date / nafis_fingerprint_date
+            fp_val = _yes_no_answer(
+                extra.get('fingerprintVal') or inv.get('fingerprintVal')
+                or extra.get('fingerprint_taken') or extra.get('fingerprintTaken'))
+            fp_date = str(extra.get('fingerprintDate') or inv.get('fingerprintDate')
+                          or extra.get('fingerprint_taken_date') or '').strip()
+            nafis_val = _yes_no_answer(
+                extra.get('nafisFingerprint') or extra.get('nafis_fingerprint')
+                or inv.get('nafisFingerprint'))
+            nafis_date = str(extra.get('nafisDate') or inv.get('nafisDate')
+                             or extra.get('nafis_fingerprint_date') or '').strip()
+
             # Check if pending: marked as 'no' or false or without any date
             is_pending = False
             reasons = []

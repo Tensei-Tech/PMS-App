@@ -624,6 +624,15 @@ def _parse_d(val):
     return dt.date() if dt else None
 
 
+def _id_number(val, upper=False):
+    """Aadhaar / PAN as stored: no spaces (the form shows Aadhaar as
+    'XXXX XXXX XXXX', which would not fit the 12-character column)."""
+    if val is None:
+        return None
+    s = ''.join(str(val).split())
+    return s.upper() if upper else s
+
+
 def _save_case_child_entities(case: CaseRecord, data: dict):
     """
     Saves or updates all 1:1 and 1:N relational entities from the JSON payload.
@@ -770,8 +779,8 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
                 gender=p.get('gender'),
                 occupation=p.get('occupation') or p.get('occ'),
                 mobile=p.get('mobile'),
-                aadhaar=p.get('aadhaar'),
-                pan=p.get('pan'),
+                aadhaar=_id_number(p.get('aadhaar')),
+                pan=_id_number(p.get('pan'), upper=True),
                 religion=p.get('religion'),
                 caste=p.get('caste'),
                 address=p.get('address'),
@@ -808,8 +817,8 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
                     gender=p_map.get('gender'),
                     occupation=p_map.get('occ') or p_map.get('occupation'),
                     mobile=p_map.get('mobile'),
-                    aadhaar=p_map.get('aadhaar'),
-                    pan=p_map.get('pan'),
+                    aadhaar=_id_number(p_map.get('aadhaar')),
+                    pan=_id_number(p_map.get('pan'), upper=True),
                     religion=p_map.get('religion'),
                     caste=p_map.get('caste'),
                     address=p_map.get('address'),

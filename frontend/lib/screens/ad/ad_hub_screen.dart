@@ -212,6 +212,8 @@ class _AdHubScreenState extends State<AdHubScreen>
           moduleKey: widget.moduleKey,
           initialData: formData,
           sectionsInDisplayOrder: true,
+          showLoadingSpinner: false,
+          showSectionNumbers: false,
           onSubmitCustom: (payload, isEdit) async {
             final res = id == null
                 ? await _service.create(cat, payload)
@@ -383,7 +385,7 @@ class _AdHubScreenState extends State<AdHubScreen>
         label: _cfg('sub_tab_labels', 'total').isNotEmpty
             ? _cfg('sub_tab_labels', 'total')
             : 'Total Cases',
-        count: _counts['total'] ?? 0,
+        count: (_counts['total'] as num?)?.toInt() ?? 0,
         badgeBg: const Color(0xFFE8F1FC),
         badgeFg: const Color(0xFF1976D2),
       ),
@@ -392,7 +394,7 @@ class _AdHubScreenState extends State<AdHubScreen>
         label: _cfg('sub_tab_labels', 'pending').isNotEmpty
             ? _cfg('sub_tab_labels', 'pending')
             : 'Pending',
-        count: _counts['pending'] ?? 0,
+        count: (_counts['pending'] as num?)?.toInt() ?? 0,
         badgeBg: const Color(0xFFFFF3E0),
         badgeFg: const Color(0xFFE65100),
       ),
@@ -401,97 +403,127 @@ class _AdHubScreenState extends State<AdHubScreen>
         label: _cfg('sub_tab_labels', 'disposal').isNotEmpty
             ? _cfg('sub_tab_labels', 'disposal')
             : 'Disposal',
-        count: _counts['disposal'] ?? 0,
+        count: (_counts['disposal'] as num?)?.toInt() ?? 0,
         badgeBg: const Color(0xFFE8F5E9),
         badgeFg: const Color(0xFF2E7D32),
       ),
     ];
 
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.only(left: 16, right: 8),
-              child: Row(
-                children: tabs.map((item) {
-                  final isSelected = _tab == item.key;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 24),
-                    child: InkWell(
-                      onTap: () {
-                        final idx = _tabKeys.indexOf(item.key);
-                        if (idx != -1 && idx != _tabController.index) {
-                          _tabController.animateTo(idx);
-                        }
-                      },
-                      hoverColor: Colors.transparent,
-                      splashColor: AppColors.navyMid.withValues(alpha: 0.08),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(
-                              color: isSelected
-                                  ? const Color(0xFF1976D2)
-                                  : Colors.transparent,
-                              width: 2.5,
-                            ),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              TranslationHelper.translate(context, item.label),
-                              style: GoogleFonts.poppins(
-                                fontSize: 13.5,
-                                fontWeight: isSelected
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                                color: isSelected
-                                    ? AppColors.navyDark
-                                    : AppColors.lightSubText,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: item.badgeBg,
-                                borderRadius:
-                                    BorderRadius.circular(AppRadius.full),
-                              ),
-                              child: Text(
-                                '${item.count ?? 0}',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: item.badgeFg,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+
+        Widget buildTabItem(
+          ({
+            String key,
+            String label,
+            int count,
+            Color badgeBg,
+            Color badgeFg,
+          }) item, {
+          bool expand = false,
+        }) {
+          final isSelected = _tab == item.key;
+          final tabContent = Container(
+            padding: EdgeInsets.symmetric(
+              vertical: 12,
+              horizontal: isMobile ? 4 : 12,
+            ),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color:
+                      isSelected ? const Color(0xFF1976D2) : Colors.transparent,
+                  width: 2.5,
+                ),
               ),
             ),
+            alignment: Alignment.center,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    TranslationHelper.translate(context, item.label),
+                    style: GoogleFonts.poppins(
+                      fontSize: isMobile ? 12.5 : 13.5,
+                      fontWeight:
+                          isSelected ? FontWeight.w700 : FontWeight.w500,
+                      color: isSelected
+                          ? AppColors.navyDark
+                          : AppColors.lightSubText,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: item.badgeBg,
+                      borderRadius: BorderRadius.circular(AppRadius.full),
+                    ),
+                    child: Text(
+                      '${item.count}',
+                      style: GoogleFonts.poppins(
+                        fontSize: isMobile ? 10.5 : 11,
+                        fontWeight: FontWeight.w700,
+                        color: item.badgeFg,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+
+          final inkWell = InkWell(
+            onTap: () {
+              final idx = _tabKeys.indexOf(item.key);
+              if (idx != -1 && idx != _tabController.index) {
+                _tabController.animateTo(idx);
+              }
+            },
+            hoverColor: Colors.transparent,
+            splashColor: AppColors.navyMid.withValues(alpha: 0.08),
+            child: tabContent,
+          );
+
+          return expand ? Expanded(child: inkWell) : inkWell;
+        }
+
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            border: Border(
+              bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
+            ),
           ),
-        ],
-      ),
+          child: Row(
+            children: [
+              if (isMobile)
+                Expanded(
+                  child: Row(
+                    children:
+                        tabs.map((t) => buildTabItem(t, expand: true)).toList(),
+                  ),
+                )
+              else ...[
+                const SizedBox(width: 16),
+                for (final t in tabs) ...[
+                  buildTabItem(t, expand: false),
+                  const SizedBox(width: 16),
+                ],
+                const Spacer(),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 
