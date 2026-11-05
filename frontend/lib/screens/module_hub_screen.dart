@@ -4024,8 +4024,8 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
                     label: 'Preventive Section Act',
                     value: prevSecAct,
                     icon: Icons.shield_outlined,
-                    iconColor: const Color(0xFF0EA5E9),
-                    valueColor: const Color(0xFF0284C7),
+                    iconColor: AppColors.navyMid,
+                    valueColor: AppColors.navyMid,
                   ),
                 )
               : _buildFieldColumn(
@@ -4034,8 +4034,8 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
                   label: 'Preventive Section Act',
                   value: prevSecAct,
                   icon: Icons.shield_outlined,
-                  iconColor: const Color(0xFF0EA5E9),
-                  valueColor: const Color(0xFF0284C7),
+                  iconColor: AppColors.navyMid,
+                  valueColor: AppColors.navyMid,
                 ),
 
           _buildDivider(margin: divMargin),

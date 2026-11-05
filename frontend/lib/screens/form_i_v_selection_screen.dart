@@ -1822,7 +1822,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 8,
+                  vertical: 6,
                 ),
                 decoration: const BoxDecoration(
                   color: Colors.white,
@@ -1917,7 +1917,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                             ),
                             padding: const EdgeInsets.fromLTRB(
                               AppSpacing.lg,
-                              AppSpacing.sm,
+                              5,
                               AppSpacing.lg,
                               88,
                             ),
@@ -2024,7 +2024,7 @@ class FormIVStatusTabBar extends StatelessWidget {
           final isSelected = selectedTab == item.tab;
           final tabContent = Container(
             padding: EdgeInsets.symmetric(
-              vertical: 12,
+              vertical: 9,
               horizontal: isMobile ? 4 : 12,
             ),
             decoration: BoxDecoration(
@@ -2266,13 +2266,13 @@ class CategoryGridCardState extends State<CategoryGridCard> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: _hovered ? const Color(0xFF1976D2) : const Color(0xFFE2E8F0),
+            color: _hovered ? AppColors.navyMid : const Color(0xFFE2E8F0),
             width: _hovered ? 1.5 : 1.0,
           ),
           boxShadow: [
             BoxShadow(
               color: _hovered
-                  ? const Color(0xFF1976D2).withValues(alpha: 0.12)
+                  ? AppColors.navyMid.withValues(alpha: 0.12)
                   : Colors.black.withValues(alpha: 0.03),
               blurRadius: _hovered ? 10 : 3,
               offset: Offset(0, _hovered ? 3 : 1),
@@ -2293,9 +2293,9 @@ class CategoryGridCardState extends State<CategoryGridCard> {
                     height: 40,
                     decoration: BoxDecoration(
                       color: widget.isAll
-                          ? const Color(0xFF1976D2).withValues(alpha: 0.1)
+                          ? AppColors.navyMid.withValues(alpha: 0.08)
                           : (hasCases
-                              ? const Color(0xFF0284C7).withValues(alpha: 0.1)
+                              ? AppColors.navyMid.withValues(alpha: 0.08)
                               : const Color(0xFFF1F5F9)),
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -2305,9 +2305,9 @@ class CategoryGridCardState extends State<CategoryGridCard> {
                           : (widget.rawCategory ?? widget.category),
                       size: 20,
                       color: widget.isAll
-                          ? const Color(0xFF1976D2)
+                          ? AppColors.navyMid
                           : (hasCases
-                              ? const Color(0xFF0284C7)
+                              ? AppColors.navyMid
                               : AppColors.lightSubText),
                     ),
                   ),
@@ -2338,7 +2338,7 @@ class CategoryGridCardState extends State<CategoryGridCard> {
                             style: GoogleFonts.poppins(
                               fontSize: 11,
                               color: hasCases
-                                  ? const Color(0xFF1976D2)
+                                  ? AppColors.navyMid
                                   : AppColors.lightSubText,
                               fontWeight:
                                   hasCases ? FontWeight.w600 : FontWeight.w400,
@@ -2352,9 +2352,8 @@ class CategoryGridCardState extends State<CategoryGridCard> {
                   Icon(
                     Icons.chevron_right_rounded,
                     size: 16,
-                    color: _hovered
-                        ? const Color(0xFF1976D2)
-                        : const Color(0xFFCBD5E1),
+                    color:
+                        _hovered ? AppColors.navyMid : const Color(0xFFCBD5E1),
                   ),
                 ],
               ),
@@ -2732,7 +2731,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
             record.firestoreCategoryDisplayName,
           );
 
-    final double actionsWidth = widget.readOnly ? 82.0 : 176.0;
+    final double actionsWidth = widget.readOnly ? 76.0 : 160.0;
 
     Widget buildActionButtons() {
       return SizedBox(
@@ -2747,34 +2746,34 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                 icon: Icons.fact_check_outlined,
                 label: 'Dispose',
                 color: AppColors.successGreen,
-                width: 44,
+                width: 40,
                 onTap: () => _showQuickDisposeDialog(context, record),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 4),
             ],
             if (!widget.readOnly) ...[
               _buildCompactActionButton(
                 icon: Icons.edit_outlined,
                 label: 'Edit',
                 color: AppColors.navyDark,
-                width: 38,
+                width: 36,
                 onTap: widget.onEdit,
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 4),
             ],
             _buildCompactActionButton(
               icon: Icons.visibility_outlined,
               label: 'View',
               color: AppColors.navyDark,
-              width: 38,
+              width: 36,
               onTap: widget.onView,
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 4),
             _buildCompactActionButton(
               icon: Icons.picture_as_pdf_outlined,
               label: 'PDF',
               color: AppColors.navyDark,
-              width: 38,
+              width: 36,
               onTap: () => runWithPdfAuthGate(
                 context,
                 () => CaseReportPdfHelper.download(context, record),
@@ -2790,14 +2789,14 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
         widget.selectedCategory!.trim().isNotEmpty;
     Widget buildDetailsRow(bool isExpandedMode) {
       final bool showCategory = isExpandedMode || !isSpecificCategory;
-      final divMargin = isExpandedMode ? 8.0 : 4.0;
+      final divMargin = isExpandedMode ? 5.0 : 3.0;
       return Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // 1. Identification: CR No. Badge
           Container(
-            height: 38,
-            width: isExpandedMode ? 105 : 82,
+            height: 35,
+            width: isExpandedMode ? 100 : 80,
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
             decoration: BoxDecoration(
               color: const Color(0xFFF8FAFC),
@@ -2812,13 +2811,13 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                 Text(
                   TranslationHelper.translate(context, 'CR No.'),
                   style: GoogleFonts.poppins(
-                    fontSize: 9,
+                    fontSize: 8.5,
                     fontWeight: FontWeight.w600,
                     color: const Color(0xFF64748B),
                     height: 1.0,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 1.5),
                 Tooltip(
                   message: crNo,
                   child: Text(
@@ -2826,7 +2825,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
-                      fontSize: 11.5,
+                      fontSize: 11.0,
                       fontWeight: FontWeight.w700,
                       color: AppColors.navyDark,
                       height: 1.0,
@@ -2839,10 +2838,10 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
 
           // 2. Category Badge (always shown on desktop; on compact only when not filtered)
           if (showCategory) ...[
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             Container(
-              height: 38,
-              width: isExpandedMode ? 85 : 70,
+              height: 35,
+              width: isExpandedMode ? 175 : 135,
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
               decoration: BoxDecoration(
                 color: const Color(0xFFF8FAFC),
@@ -2871,7 +2870,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
-                        fontSize: 11.0,
+                        fontSize: 10.0,
                         fontWeight: FontWeight.w700,
                         color: AppColors.navyDark,
                         height: 1.0,
@@ -2885,10 +2884,10 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
 
           _buildDivider(margin: divMargin),
 
-          // 3. Section / Act (flex: 2 on desktop, width 95 on mobile)
+          // 3. Section / Act (flex: 1 on desktop, width 95 on mobile)
           isExpandedMode
               ? Expanded(
-                  flex: 2,
+                  flex: 1,
                   child: _buildFieldColumn(
                     context: context,
                     label: 'Section / Act',
@@ -2910,10 +2909,10 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
 
           _buildDivider(margin: divMargin),
 
-          // 4. Name of Accused (flex: 3 on desktop, width 135 on mobile)
+          // 4. Name of Accused (flex: 1 on desktop, width 125 on mobile)
           isExpandedMode
               ? Expanded(
-                  flex: 3,
+                  flex: 1,
                   child: _buildFieldColumn(
                     context: context,
                     label: 'Accused Name',
@@ -2925,7 +2924,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                 )
               : _buildFieldColumn(
                   context: context,
-                  width: 135,
+                  width: 125,
                   label: 'Accused Name',
                   value: (accusedName.isEmpty || accusedName == '-')
                       ? '—'
@@ -2935,10 +2934,10 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
 
           _buildDivider(margin: divMargin),
 
-          // 5. Officer / Location (flex: 3 on desktop, width 130 on mobile)
+          // 5. Officer / Location (flex: 2 on desktop, width 125 on mobile)
           isExpandedMode
               ? Expanded(
-                  flex: 3,
+                  flex: 2,
                   child: _buildFieldColumn(
                     context: context,
                     label: 'Officer / Location',
@@ -2948,7 +2947,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                 )
               : _buildFieldColumn(
                   context: context,
-                  width: 130,
+                  width: 125,
                   label: 'Officer / Location',
                   value: officerOrLocation,
                   icon: Icons.badge_outlined,
@@ -2956,9 +2955,9 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
 
           _buildDivider(margin: divMargin),
 
-          // 6. Crime Date (fixed width: 100 on desktop, 85 on mobile)
+          // 6. Crime Date (fixed width: 92 on desktop, 82 on mobile)
           SizedBox(
-            width: isExpandedMode ? 100 : 85,
+            width: isExpandedMode ? 92 : 82,
             child: _buildFieldColumn(
               context: context,
               label: 'Crime Date',
@@ -2971,10 +2970,10 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
 
           // 6. Status Badge (Disposal / Pending in last before actions)
           Container(
-            height: 34,
-            width: isExpandedMode ? 105 : 82,
+            height: 32,
+            width: isExpandedMode ? 95 : 80,
             padding: EdgeInsets.symmetric(
-              horizontal: isExpandedMode ? 10 : 6,
+              horizontal: isExpandedMode ? 8 : 5,
               vertical: 2,
             ),
             alignment: Alignment.center,
@@ -2988,14 +2987,14 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 6,
-                  height: 6,
+                  width: 5.5,
+                  height: 5.5,
                   decoration: BoxDecoration(
                     color: statusColor,
                     shape: BoxShape.circle,
                   ),
                 ),
-                const SizedBox(width: 5),
+                const SizedBox(width: 4.5),
                 Flexible(
                   child: Tooltip(
                     message: displayStatus,
@@ -3004,7 +3003,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
-                        fontSize: 10.5,
+                        fontSize: 10.0,
                         fontWeight: FontWeight.w600,
                         color: statusColor,
                         height: 1.0,
@@ -3025,19 +3024,19 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 6),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: const Color(0xFFCBD5E1),
-          width: 1.1,
+          width: 1.0,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 3,
+            offset: const Offset(0, 1.5),
           ),
         ],
       ),
@@ -3048,7 +3047,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 10,
-              vertical: 8,
+              vertical: 5,
             ),
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -3366,10 +3365,10 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
     );
   }
 
-  Widget _buildDivider({double margin = 8}) {
+  Widget _buildDivider({double margin = 5}) {
     return Container(
       width: 1,
-      height: 26,
+      height: 22,
       margin: EdgeInsets.symmetric(horizontal: margin),
       color: const Color(0xFFE2E8F0),
     );
@@ -3458,13 +3457,13 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(6),
         child: Container(
-          height: 38,
-          width: width ?? 38,
+          height: 35,
+          width: width ?? 36,
           padding: const EdgeInsets.symmetric(horizontal: 2),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: const Color(0xFFCBD5E1), width: 1.1),
+            border: Border.all(color: const Color(0xFFCBD5E1), width: 1.0),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.03),
@@ -3478,8 +3477,8 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 14, color: fg),
-              const SizedBox(height: 1.5),
+              Icon(icon, size: 13, color: fg),
+              const SizedBox(height: 1.0),
               Text(
                 TranslationHelper.translate(context, label),
                 maxLines: 1,
