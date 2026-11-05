@@ -1087,7 +1087,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   sections.add(
     _card(
       secNum++,
-      'CASE RESPONSIBILITY',
+      'IO / REGISTERED BY',
       _teal,
       _grid2([
         _f('IO Designation', _v(cr8['ioDesig'])),

@@ -14,7 +14,6 @@ import '../utils/category_navigation_helper.dart';
 import '../utils/common_form_module.dart';
 import '../utils/ad_disposal_helper.dart';
 import '../utils/case_report_pdf_helper.dart';
-import '../utils/pdf_auth_gate.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/form_iv_category_button.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
@@ -2774,10 +2773,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
               label: 'PDF',
               color: AppColors.navyDark,
               width: 36,
-              onTap: () => runWithPdfAuthGate(
-                context,
-                () => CaseReportPdfHelper.download(context, record),
-              ),
+              onTap: () => CaseReportPdfHelper.download(context, record),
             ),
           ],
         ),
@@ -3324,10 +3320,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                           ),
                           const SizedBox(width: 8),
                           OutlinedButton.icon(
-                            onPressed: () => runWithPdfAuthGate(
-                              context,
-                              () => CaseReportPdfHelper.download(context, record),
-                            ),
+                            onPressed: () => CaseReportPdfHelper.download(context, record),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: const Color(0xFFC53030),
                               side: const BorderSide(color: Color(0xFFFEB2B2)),
@@ -3644,10 +3637,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
             _buildCompactActionButton(
               icon: Icons.picture_as_pdf_outlined,
               label: 'PDF',
-              onTap: () => runWithPdfAuthGate(
-                context,
-                () => CaseReportPdfHelper.download(context, record),
-              ),
+              onTap: () => CaseReportPdfHelper.download(context, record),
             ),
           ],
         ),
