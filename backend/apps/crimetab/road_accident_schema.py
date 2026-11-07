@@ -129,16 +129,33 @@ def _has_table(cursor, schema_name, table):
     return cursor.fetchone() is not None
 
 
+def _fk_target_schema(cursor, schema_name, table, name):
+    """Schema of the table a foreign key points to, or None if there is no such key."""
+    cursor.execute("""
+        SELECT rn.nspname FROM pg_constraint c
+        JOIN pg_class t ON t.oid = c.conrelid JOIN pg_namespace n ON n.oid = t.relnamespace
+        JOIN pg_class r ON r.oid = c.confrelid JOIN pg_namespace rn ON rn.oid = r.relnamespace
+        WHERE n.nspname = %s AND t.relname = %s AND c.conname = %s AND c.contype = 'f'
+    """, [schema_name, table, name])
+    row = cursor.fetchone()
+    return row[0] if row else None
+
+
 def link_road_accident_cases(cursor, schema_name: str) -> bool:
     """
     Add the case_id foreign keys and the one-record-per-case rule (idempotent).
-    Needs the schema's cases_caserecord; returns False and adds nothing without it.
+    Needs the schema's own cases_caserecord; returns False and adds nothing without it.
+    A key that still points at public's cases table (a database built by a
+    fresh migrate) is moved to the state's own table.
     """
     s = quote_schema(schema_name)
     if not _has_table(cursor, schema_name, 'cases_caserecord'):
         return False
     for table, fk in CASE_FK_NAMES.items():
-        if not _has_constraint(cursor, schema_name, table, fk):
+        target = _fk_target_schema(cursor, schema_name, table, fk)
+        if target not in (None, schema_name):
+            cursor.execute(f'ALTER TABLE {s}.{table} DROP CONSTRAINT {fk}')
+        if target != schema_name:
             cursor.execute(
                 f'ALTER TABLE {s}.{table} ADD CONSTRAINT {fk} FOREIGN KEY (case_id) '
                 f'REFERENCES {s}.cases_caserecord(id) ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED'

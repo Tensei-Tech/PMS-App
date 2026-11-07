@@ -82,6 +82,28 @@ class ProvisionRoadAccidentTablesTests(TestCase):
         for name in [*CASE_FK_NAMES.values(), CASE_UNIQUE_NAME]:
             self.assertIn(name, constraints)
 
-    def _tables(self, cursor):
-        cursor.execute('SELECT table_name FROM information_schema.tables WHERE table_schema = %s', [self.schema])
+    def test_link_to_public_cases_moves_to_the_states_own_table(self):
+        provision_state_schema(self.schema, state_code='TR', state_name='Test Road Accident')
+        with connection.cursor() as cursor:
+            if 'cases_caserecord' not in self._tables(cursor, 'public'):
+                self.skipTest('No cases table in public on this database')
+            if 'cases_caserecord' in self._tables(cursor):
+                self.skipTest('This state already has its own cases table')
+            fk = CASE_FK_NAMES['road_accident_records']
+            # As a fresh migrate leaves it: the key points at public's cases table
+            cursor.execute(f'ALTER TABLE "{self.schema}".road_accident_records ADD CONSTRAINT {fk} '
+                           f'FOREIGN KEY (case_id) REFERENCES public.cases_caserecord(id)')
+            cursor.execute(f'CREATE TABLE "{self.schema}".cases_caserecord (id VARCHAR(128) PRIMARY KEY)')
+            self.assertTrue(link_road_accident_cases(cursor, self.schema))
+            cursor.execute("""
+                SELECT rn.nspname FROM pg_constraint c
+                JOIN pg_class r ON r.oid = c.confrelid JOIN pg_namespace rn ON rn.oid = r.relnamespace
+                JOIN pg_namespace n ON n.oid = c.connamespace
+                WHERE n.nspname = %s AND c.conname = %s
+            """, [self.schema, fk])
+            self.assertEqual(cursor.fetchone()[0], self.schema)
+
+    def _tables(self, cursor, schema=None):
+        schema = schema or self.schema
+        cursor.execute('SELECT table_name FROM information_schema.tables WHERE table_schema = %s', [schema])
         return {r[0] for r in cursor.fetchall()}
