@@ -161,6 +161,10 @@ def sync_state_schema(schema_name, dry_run=False, seed=True):
                     for field in model._meta.local_concrete_fields:
                         if field.column in columns:
                             editor.add_field(model, field)
+        # Accident rows link to this state's own cases table (moved off public's if needed)
+        from apps.crimetab.road_accident_schema import link_road_accident_cases
+        with connection.cursor() as cursor:
+            link_road_accident_cases(cursor, schema)
         if seed:
             report['seeded'] = seed_state_config()
 

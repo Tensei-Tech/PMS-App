@@ -208,13 +208,9 @@ def provision_state_schema(schema_name: str, state_code: str = None, state_name:
         from apps.crimetab.road_accident_schema import create_road_accident_tables
         create_road_accident_tables(cursor, clean_schema)
     # Every other state table (cases, crime details, Muddemal, ...) from the models,
-    # plus the starting Muddemal configuration
+    # the accident rows' link to the new cases table, and the starting Muddemal configuration
     from apps.core.state_schema import sync_state_schema
     sync_state_schema(clean_schema)
-    # The cases table exists now, so the accident rows can be linked to it
-    with connection.cursor() as cursor:
-        from apps.crimetab.road_accident_schema import link_road_accident_cases
-        link_road_accident_cases(cursor, clean_schema)
     logger.info(f"[Tenancy] Provisioned PostgreSQL schema & tables: {clean_schema} (State: {resolved_name}/{resolved_code})")
 
 
