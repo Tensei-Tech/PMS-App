@@ -1004,6 +1004,14 @@ class DisposalCaseWiseView(APIView):
                 if io_uid:
                     queryset = queryset.filter(assigned_officer_uid=io_uid)
 
+                group_id = request.query_params.get('group_id')
+                if group_id:
+                    try:
+                        from apps.cases.group_filters import group_case_q
+                        queryset = queryset.filter(group_case_q(int(group_id)))
+                    except Exception:
+                        pass
+
                 from django.db.models.fields.json import KeyTextTransform
                 start_date = request.query_params.get('start_date') or request.query_params.get('from_date')
                 end_date = request.query_params.get('end_date') or request.query_params.get('to_date')
@@ -1099,6 +1107,14 @@ class TimeWiseDisposalView(APIView):
                     stations = PoliceStation.objects.filter(district__name__iexact=district).values_list('station_name', flat=True)
                     queryset = queryset.filter(station_name__in=stations)
 
+                group_id = request.query_params.get('group_id')
+                if group_id:
+                    try:
+                        from apps.cases.group_filters import group_case_q
+                        queryset = queryset.filter(group_case_q(int(group_id)))
+                    except Exception:
+                        pass
+
                 from django.db.models.fields.json import KeyTextTransform
                 from django.utils import timezone
                 from datetime import timedelta, datetime
@@ -1176,6 +1192,14 @@ class DesignationWiseDisposalView(APIView):
                     stations = PoliceStation.objects.filter(district__name__iexact=district).values_list('station_name', flat=True)
                     queryset = queryset.filter(station_name__in=stations)
 
+                group_id = request.query_params.get('group_id')
+                if group_id:
+                    try:
+                        from apps.cases.group_filters import group_case_q
+                        queryset = queryset.filter(group_case_q(int(group_id)))
+                    except Exception:
+                        pass
+
                 counts = queryset.values('assigned_officer_uid', 'assigned_officer', 'station_name').annotate(count=Count('id')).order_by('-count')
                 
                 from apps.users.models import OfficerProfile
@@ -1216,6 +1240,14 @@ class DisposalCrimeTypeWiseView(APIView):
                     stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                     queryset = queryset.filter(station_name__in=stations)
 
+                group_id = request.query_params.get('group_id')
+                if group_id:
+                    try:
+                        from apps.cases.group_filters import group_case_q
+                        queryset = queryset.filter(group_case_q(int(group_id)))
+                    except Exception:
+                        pass
+
                 counts = queryset.values('module_key', 'sub_category').annotate(count=Count('id'))
                 
                 from apps.crimetab.models.groupings import CaseCategory
@@ -1252,6 +1284,84 @@ class DisposalCrimeTypeWiseView(APIView):
             except Exception as e:
                 logger.exception(f"[DisposalCrimeTypeWiseView] Database error: {e}")
                 return Response({'error': 'Failed to retrieve Crime-wise counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class DisposalRemindIOView(APIView):
+    """
+    Action endpoint to send a formal reminder to the assigned Investigating Officer (IO)
+    for a case in Disposal whose CC/ST Number has not been entered.
+    Creates a NotificationRecord and AuditLog entry.
+    """
+    permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
+
+    def post(self, request, pk, *args, **kwargs):
+        user = request.user
+        try:
+            from apps.cases.models import CaseRecord
+            from apps.users.models import NotificationRecord
+            from apps.core.models import AuditLog
+            from apps.core.tenancy import get_active_tenant_schema, set_tenant_schema
+
+            schema = getattr(request, 'state_schema', None) or get_active_tenant_schema(request)
+            if not schema:
+                schema = getattr(user, 'state_schema', None)
+            if schema and schema != 'public':
+                set_tenant_schema(schema)
+
+            case = CaseRecord.objects.get(pk=pk)
+
+            target_uid = case.assigned_officer_uid
+            officer_name = case.assigned_officer or 'Investigating Officer'
+
+            title = f"Action Required: CC/ST No. Pending for Case {case.case_number}"
+            body = (
+                f"Please update the Court Disposal CC/ST Number for case {case.case_number} "
+                f"registered at {case.station_name}."
+            )
+
+            # Create notification for IO
+            NotificationRecord.objects.create(
+                target_user_uid=target_uid or '',
+                target_station_name=case.station_name,
+                title=title,
+                body=body,
+                category='reminder',
+                registration_uid=str(case.case_number),
+                status='pending'
+            )
+
+            # Audit trail
+            try:
+                AuditLog.objects.create(
+                    event='disposal_reminder_sent',
+                    category='case',
+                    uid=request.user.pk,
+                    user_name=getattr(request.user, 'name', ''),
+                    user_role=getattr(request.user, 'role', ''),
+                    station_name=getattr(request.user, 'station_name', ''),
+                    action_details=f"Disposal CC/ST No. reminder sent to IO {officer_name} for case {case.case_number}",
+                    metadata={'case_id': str(case.pk), 'assigned_officer_uid': target_uid}
+                )
+            except Exception as ae:
+                logger.warning(f"[DisposalRemindIOView] AuditLog creation skipped: {ae}")
+
+            return Response({
+                'status': 'success',
+                'message': f"Reminder sent to IO {officer_name} for case {case.case_number}.",
+                'case_id': str(case.pk),
+                'case_number': case.case_number,
+                'io_name': officer_name,
+                'io_uid': target_uid,
+            }, status=status.HTTP_200_OK)
+
+        except CaseRecord.DoesNotExist:
+            return Response({'error': 'Case not found.'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.exception(f"[DisposalRemindIOView] Error sending reminder: {e}")
+            return Response(
+                {'error': 'Failed to send reminder to IO.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class CasesByCrimeTypeView(APIView):
@@ -1926,6 +2036,17 @@ class TimeWiseRepeatOffenderView(TimeWisePendingView):
             logger.exception(f'[TimeWiseRepeatOffenderView] Database error: {e}')
             return Response({'error': 'Failed to retrieve Time-wise repeat offender counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+def _yes_no_answer(value):
+    """'yes', 'no' or '' for a Yes / No answer or a checkbox (true = yes)."""
+    answer = str(value if value is not None else '').strip().lower()
+    if answer in ('yes', 'true', '1'):
+        return 'yes'
+    if answer in ('no', 'false', '0'):
+        return 'no'
+    return answer
+
+
 class NAFISCaseWiseView(PendingCasesView):
     def _enrich_data(self, data_list):
         for item in data_list:
@@ -1934,11 +2055,20 @@ class NAFISCaseWiseView(PendingCasesView):
             extra = item['extra_fields']
             inv = extra.get('investigationNotes') or extra.get('commonForm', {}).get('investigationNotes') or {}
             
-            fp_val = str(extra.get('fingerprintVal') or inv.get('fingerprintVal') or '').strip().lower()
-            fp_date = str(extra.get('fingerprintDate') or inv.get('fingerprintDate') or '').strip()
-            nafis_val = str(extra.get('nafisFingerprint') or extra.get('nafis_fingerprint') or inv.get('nafisFingerprint') or '').strip().lower()
-            nafis_date = str(extra.get('nafisDate') or inv.get('nafisDate') or '').strip()
-            
+            # Older forms saved 'fingerprintVal' / 'nafisDate'; the Common Form's
+            # Evidence checkboxes save fingerprint_taken / nafis_fingerprint
+            # (true when ticked) with fingerprint_taken_date / nafis_fingerprint_date
+            fp_val = _yes_no_answer(
+                extra.get('fingerprintVal') or inv.get('fingerprintVal')
+                or extra.get('fingerprint_taken') or extra.get('fingerprintTaken'))
+            fp_date = str(extra.get('fingerprintDate') or inv.get('fingerprintDate')
+                          or extra.get('fingerprint_taken_date') or '').strip()
+            nafis_val = _yes_no_answer(
+                extra.get('nafisFingerprint') or extra.get('nafis_fingerprint')
+                or inv.get('nafisFingerprint'))
+            nafis_date = str(extra.get('nafisDate') or inv.get('nafisDate')
+                             or extra.get('nafis_fingerprint_date') or '').strip()
+
             # Check if pending: marked as 'no' or false or without any date
             is_pending = False
             reasons = []

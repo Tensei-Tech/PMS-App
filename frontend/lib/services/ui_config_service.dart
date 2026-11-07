@@ -29,13 +29,13 @@ class UiConfigService {
           "unknown_offender_label": "Unknown Offender",
           "other_bucket_label": "Other",
           "empty_placeholder": "—",
-          "error_message": "Could not load juvenile cases",
-          "add_button_label": "Add Juvenile",
+          "error_message": "Could not load CiCL cases",
+          "add_button_label": "Add CiCL",
           "form_module_key": "pocso",
           "form_sub_category": "Juvenile",
           "form_module_label": "Juvenile",
           "no_cases_label": "No cases",
-          "title": "Juvenile — Summary"
+          "title": "CiCL — Summary"
         };
   }
 

@@ -4,11 +4,15 @@ import 'package:provider/provider.dart';
 import '../modules/form_iv/providers/form_iv_provider.dart';
 import '../modules/licence/screens/licence_hub_screen.dart';
 import '../modules/passport/screens/passport_hub_screen.dart';
+import '../modules/pvr/providers/pvr_provider.dart';
+import '../modules/pvr/screens/pvr_hub_screen.dart';
 import '../theme/app_theme.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
+import '../widgets/sub_tab_host.dart';
 import 'dar_hub_screen.dart';
 import 'form_i_v_selection_screen.dart';
+import 'fingerprint_hub_screen.dart';
 import 'irad_hub_screen.dart';
 import 'nafis_hub_screen.dart';
 
@@ -82,21 +86,31 @@ class _CategorySubtabsScreenState extends State<CategorySubtabsScreen> {
     });
   }
 
+  static Widget _page(String category) => FormIVSelectionScreen(
+        openCategory: category,
+        customTitle: category,
+        mode: FormIVSelectionMode.browse,
+      );
+
   void _open(String category) {
     Navigator.push(
       context,
-      AppTheme.fadeSlideRoute(
-        page: FormIVSelectionScreen(
-          openCategory: category,
-          customTitle: category,
-          mode: FormIVSelectionMode.browse,
-        ),
-      ),
+      AppTheme.fadeSlideRoute(page: _page(category)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    // Two sub-tabs: open the first right away, with a switch to the other.
+    if (widget.subtabs.length == 2) {
+      return SubTabHost(
+        tabs: [
+          for (final (name, icon) in widget.subtabs)
+            SubTab(name, icon, (_) => _page(name)),
+        ],
+      );
+    }
+
     final records = context.watch<FormIVProvider>().records;
     final width = MediaQuery.of(context).size.width;
     final cols = subtabColumns(width);
@@ -137,18 +151,27 @@ class _CategorySubtabsScreenState extends State<CategorySubtabsScreen> {
 }
 
 /// A dashboard tile whose sub-tabs are separate modules (not "1 to 5"
-/// categories), laid out like the Murder tile's sub-tabs. Each card opens its
-/// own module's screen, so no case counts are shown here.
+/// categories). With two sub-tabs the first opens right away, with a switch to
+/// the other; with more, they are laid out like the Murder tile's sub-tabs and
+/// each card opens its own module's screen (no case counts shown here).
 class ModuleTabsScreen extends StatelessWidget {
   final String title;
 
-  /// (label, icon, open)
-  final List<(String, IconData, void Function(BuildContext))> tabs;
+  /// (label, icon, page)
+  final List<(String, IconData, WidgetBuilder)> tabs;
 
   const ModuleTabsScreen({super.key, required this.title, required this.tabs});
 
   @override
   Widget build(BuildContext context) {
+    if (tabs.length == 2) {
+      return SubTabHost(
+        tabs: [
+          for (final (name, icon, page) in tabs) SubTab(name, icon, page),
+        ],
+      );
+    }
+
     final width = MediaQuery.of(context).size.width;
     final cols = subtabColumns(width);
     return Scaffold(
@@ -167,14 +190,18 @@ class ModuleTabsScreen extends StatelessWidget {
           mainAxisExtent: subtabCardHeight(width),
         ),
         itemBuilder: (context, i) {
-          final (name, icon, open) = tabs[i];
+          final (name, icon, page) = tabs[i];
           return CategoryGridCard(
             category: TranslationHelper.translate(context, name),
+            rawCategory: name,
             icon: icon,
             count: 0,
             showCount: false,
             isAll: false,
-            onTap: () => open(context),
+            onTap: () => Navigator.push(
+              context,
+              AppTheme.fadeSlideRoute(page: Builder(builder: page)),
+            ),
           );
         },
       ),
@@ -190,8 +217,9 @@ class PassportLicenceScreen extends StatelessWidget {
   const PassportLicenceScreen({super.key, required this.stationName});
 
   static const String passportLabel = 'Passport/PVR/Licence';
-  static const String passportTabLabel = 'Passport/PVR';
+  static const String passportTabLabel = 'Passport';
   static const String licenceLabel = 'Licence';
+  static const String pvrLabel = 'PVR';
 
   @override
   Widget build(BuildContext context) {
@@ -201,22 +229,28 @@ class PassportLicenceScreen extends StatelessWidget {
         (
           passportTabLabel,
           Icons.badge_rounded,
-          (context) => Navigator.push(
-                context,
-                AppTheme.fadeSlideRoute(
-                  page: PassportHubScreen(stationName: stationName),
-                ),
-              ),
+          (_) => PassportHubScreen(stationName: stationName),
         ),
         (
           licenceLabel,
           Icons.assignment_ind_rounded,
-          (context) => Navigator.push(
-                context,
-                AppTheme.fadeSlideRoute(
-                  page: LicenceHubScreen(stationName: stationName),
-                ),
-              ),
+          (_) => LicenceHubScreen(stationName: stationName),
+        ),
+        (
+          pvrLabel,
+          Icons.fact_check_rounded,
+          (context) {
+            PvrProvider? existing;
+            try {
+              existing = context.read<PvrProvider>();
+            } catch (_) {}
+            return existing != null
+                ? PvrHubScreen(stationName: stationName)
+                : ChangeNotifierProvider(
+                    create: (_) => PvrProvider(),
+                    child: PvrHubScreen(stationName: stationName),
+                  );
+          },
         ),
       ],
     );
@@ -239,22 +273,12 @@ class NafisFingerprintScreen extends StatelessWidget {
         (
           'NAFIS',
           Icons.fingerprint_rounded,
-          (context) => Navigator.push(
-                context,
-                AppTheme.fadeSlideRoute(
-                  page: NAFISHubScreen(stationName: stationName),
-                ),
-              ),
+          (_) => NAFISHubScreen(stationName: stationName),
         ),
         (
           'Fingerprint',
           Icons.touch_app_rounded,
-          (context) => Navigator.push(
-                context,
-                AppTheme.fadeSlideRoute(
-                  page: const ComingSoonScreen(title: 'Fingerprint'),
-                ),
-              ),
+          (_) => FingerprintHubScreen(stationName: stationName),
         ),
       ],
     );
@@ -275,32 +299,42 @@ class ComingSoonScreen extends StatelessWidget {
         title: TranslationHelper.translate(context, title),
         subtitle: TranslationHelper.translate(context, 'Coming soon'),
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.construction_rounded,
-                  size: 48, color: Colors.grey.shade400),
-              const SizedBox(height: 12),
-              Text(
-                TranslationHelper.translate(context, 'Coming soon'),
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.navyDark,
-                ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ...SubTabHost.strip(context),
+          Expanded(child: _buildMessage(context)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessage(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.construction_rounded,
+                size: 48, color: Colors.grey.shade400),
+            const SizedBox(height: 12),
+            Text(
+              TranslationHelper.translate(context, 'Coming soon'),
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.navyDark,
               ),
-              const SizedBox(height: 6),
-              Text(
-                '${TranslationHelper.translate(context, title)} will be available here.',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 13, color: AppColors.lightSubText),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              '${TranslationHelper.translate(context, title)} will be available here.',
+              textAlign: TextAlign.center,
+              style:
+                  const TextStyle(fontSize: 13, color: AppColors.lightSubText),
+            ),
+          ],
         ),
       ),
     );
@@ -323,22 +357,12 @@ class DarIradScreen extends StatelessWidget {
         (
           'DAR',
           Icons.folder_rounded,
-          (context) => Navigator.push(
-                context,
-                AppTheme.fadeSlideRoute(
-                  page: DarHubScreen(stationName: stationName),
-                ),
-              ),
+          (_) => DarHubScreen(stationName: stationName),
         ),
         (
           'IRAD',
           Icons.analytics_rounded,
-          (context) => Navigator.push(
-                context,
-                AppTheme.fadeSlideRoute(
-                  page: IradHubScreen(stationName: stationName),
-                ),
-              ),
+          (_) => IradHubScreen(stationName: stationName),
         ),
       ],
     );

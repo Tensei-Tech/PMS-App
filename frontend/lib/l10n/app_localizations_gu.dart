@@ -12,7 +12,7 @@ class AppLocalizationsGu extends AppLocalizations {
   String get appTitle => 'પોલીસ મેનેજમેન્ટ સિસ્ટમ';
 
   @override
-  String get khakhiDiary => 'ખાખી ડાયરી';
+  String get khakhiDiary => 'PMS';
 
   @override
   String get safeSwiftSecure => 'સુરક્ષિત • ઝડપી • વિશ્વસનીય';

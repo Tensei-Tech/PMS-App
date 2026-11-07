@@ -796,7 +796,8 @@ class _RTIHubScreenState extends State<RTIHubScreen>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Sr.No',
+                  headers['sr_no']?.toString() ??
+                      TranslationHelper.translate(context, 'Sr.No'),
                   style: GoogleFonts.poppins(
                     fontSize: 9,
                     fontWeight: FontWeight.w600,
@@ -843,7 +844,8 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'RTI No.',
+                      headers['serial_no']?.toString() ??
+                          TranslationHelper.translate(context, 'RTI No.'),
                       style: GoogleFonts.poppins(
                         fontSize: 9,
                         fontWeight: FontWeight.w600,
@@ -1115,6 +1117,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
     final infoType = (item['info_type'] ?? '-').toString().trim();
     final status = (item['status'] ?? 'Pending').toString().trim();
 
+    final headers = (_config['chart_headers'] as Map?) ?? {};
     final actionLabels = (_config['row_action_labels'] as Map?) ?? {};
     final editLabel = actionLabels['edit']?.toString() ?? 'Edit';
     final viewLabel = actionLabels['view']?.toString() ?? 'View';
@@ -1182,7 +1185,8 @@ class _RTIHubScreenState extends State<RTIHubScreen>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Sr.No',
+                  headers['sr_no']?.toString() ??
+                      TranslationHelper.translate(context, 'Sr.No'),
                   style: GoogleFonts.poppins(
                     fontSize: 9,
                     fontWeight: FontWeight.w600,
@@ -1229,7 +1233,8 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'RTI No.',
+                      headers['serial_no']?.toString() ??
+                          TranslationHelper.translate(context, 'RTI No.'),
                       style: GoogleFonts.poppins(
                         fontSize: 9,
                         fontWeight: FontWeight.w600,

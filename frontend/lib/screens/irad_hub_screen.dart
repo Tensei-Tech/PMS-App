@@ -5,6 +5,7 @@ import '../services/api_config.dart';
 import '../theme/app_theme.dart';
 import '../modules/core/models/base_record.dart';
 import '../widgets/dynamic_form/dynamic_form_screen.dart';
+import '../widgets/sub_tab_host.dart';
 
 class IradHubScreen extends StatefulWidget {
   final String? stationName;
@@ -251,6 +252,8 @@ class _IradHubScreenState extends State<IradHubScreen> {
       backgroundColor: AppColors.lightBg,
       appBar: AppBar(
         backgroundColor: Colors.white,
+        // Tab switch when opened from a two-tab dashboard tile.
+        bottom: SubTabHost.appBarBottom(context),
         elevation: 1,
         iconTheme: const IconThemeData(color: AppColors.navyDark),
         title: Text(

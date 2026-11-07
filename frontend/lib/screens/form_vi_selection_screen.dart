@@ -12,7 +12,6 @@ import '../theme/app_theme.dart';
 import '../utils/category_navigation_helper.dart';
 import '../utils/common_form_module.dart';
 import '../utils/case_report_pdf_helper.dart';
-import '../utils/pdf_auth_gate.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/form_vi_category_button.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
@@ -48,11 +47,15 @@ class FormVISelectionScreen extends StatefulWidget {
   /// Open directly on this category's case list (e.g. from a dashboard tile);
   /// Back then closes the screen instead of showing the Part 6 grid.
   final String? openCategory;
+  final String? customTitle;
+  final FormVIStatusTab initialStatusTab;
 
   const FormVISelectionScreen({
     super.key,
     this.mode = FormVISelectionMode.add,
     this.openCategory,
+    this.customTitle,
+    this.initialStatusTab = FormVIStatusTab.total,
   });
 
   static bool recordMatchesCategory(
@@ -123,7 +126,7 @@ class FormVISelectionScreen extends StatefulWidget {
 }
 
 class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
-  FormVIStatusTab _selectedStatusTab = FormVIStatusTab.total;
+  late FormVIStatusTab _selectedStatusTab;
   String? _selectedCategory;
   final List<String> _categoryBreadcrumb = [];
   final Map<String, List<Map<String, dynamic>>> _categoryChildrenCache = {};
@@ -148,6 +151,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedStatusTab = widget.initialStatusTab;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<FormVIProvider>().ensureInitialized();
@@ -213,6 +217,9 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
             options.add(fallbackName);
           }
         }
+      }
+      if (!options.contains(FormVISelectionScreen.allFilterLabel)) {
+        options.insert(0, FormVISelectionScreen.allFilterLabel);
       }
       return options;
     }
@@ -1464,7 +1471,10 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
       child: Scaffold(
         backgroundColor: AppColors.lightBg,
         appBar: ModuleHubScreenAppBar(
-          title: TranslationHelper.translate(context, 'Form VI Cases'),
+          title: TranslationHelper.translate(
+            context,
+            widget.customTitle ?? 'Form VI Cases',
+          ),
           subtitle: subtitle,
           actionWidget: actionWidget,
           onBackPressed: _handleBackNavigation,
@@ -1698,7 +1708,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 8,
+                  vertical: 6,
                 ),
                 decoration: const BoxDecoration(
                   color: Colors.white,
@@ -1707,60 +1717,72 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                 width: double.infinity,
                 // One line: the sub-tab's name and count, then the date filter
                 // and sort. The app bar's back arrow returns to the categories.
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              TranslationHelper.translate(
-                                context,
-                                _selectedCategory!,
+                child: Align(
+                  alignment: Alignment.center,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1600),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  TranslationHelper.translate(
+                                    context,
+                                    _selectedCategory!,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.navyDark,
+                                  ),
+                                ),
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.navyDark,
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE8F1FC),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.full,
+                                  ),
+                                ),
+                                child: Text(
+                                  '${visibleRecords.length}',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF1976D2),
+                                  ),
+                                ),
                               ),
-                            ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE8F1FC),
-                              borderRadius: BorderRadius.circular(
-                                AppRadius.full,
-                              ),
-                            ),
-                            child: Text(
-                              '${visibleRecords.length}',
-                              style: GoogleFonts.poppins(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: const Color(0xFF1976D2),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(width: 8),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: _buildDateAndSortControls(),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: _buildDateAndSortControls(),
-                    ),
-                  ],
+                  ),
                 ),
               ),
               if (_selectedDateRange != null)
-                _buildActiveDateFilterBanner(visibleRecords.length),
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1600),
+                    child: _buildActiveDateFilterBanner(visibleRecords.length),
+                  ),
+                ),
               Expanded(
                 child: visibleRecords.isEmpty
                     ? _EmptyCasesState(
@@ -1771,40 +1793,50 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                         selectedDateRange: _selectedDateRange,
                         onClearDateFilter: _clearDateFilter,
                       )
-                    : ListView.builder(
-                        key: PageStorageKey(
-                          'category_${_selectedCategory}_${_selectedStatusTab.name}',
-                        ),
-                        padding: const EdgeInsets.fromLTRB(
-                          AppSpacing.lg,
-                          AppSpacing.sm,
-                          AppSpacing.lg,
-                          88,
-                        ),
-                        itemCount: visibleRecords.length,
-                        itemBuilder: (context, index) {
-                          final record = visibleRecords[index];
-                          return _FormIVCaseCard(
-                            record: record,
-                            readOnly: _readOnly,
-                            onChargeSheetSubmitted: () async {
-                              if (!mounted) return;
-                              await context.read<FormVIProvider>().refresh();
-                              if (!mounted) return;
-                              setState(() {
-                                _selectedStatusTab = FormVIStatusTab.disposal;
-                              });
-                            },
-                            onEdit: () => _openForm(
-                              record.subCategory?.isNotEmpty == true
-                                  ? record.subCategory!
-                                  : record.title,
-                              existingRecord: record,
+                    : Align(
+                        alignment: Alignment.topCenter,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 1600),
+                          child: ListView.builder(
+                            key: PageStorageKey(
+                              'category_${_selectedCategory}_${_selectedStatusTab.name}',
                             ),
-                            onView: () =>
-                                CaseReportPdfHelper.view(context, record),
-                          );
-                        },
+                            padding: const EdgeInsets.fromLTRB(
+                              AppSpacing.lg,
+                              5,
+                              AppSpacing.lg,
+                              88,
+                            ),
+                            itemCount: visibleRecords.length,
+                            itemBuilder: (context, index) {
+                              final record = visibleRecords[index];
+                              return _FormIVCaseCard(
+                                record: record,
+                                readOnly: _readOnly,
+                                selectedCategory: _selectedCategory,
+                                onChargeSheetSubmitted: () async {
+                                  if (!mounted) return;
+                                  await context
+                                      .read<FormVIProvider>()
+                                      .refresh();
+                                  if (!mounted) return;
+                                  setState(() {
+                                    _selectedStatusTab =
+                                        FormVIStatusTab.disposal;
+                                  });
+                                },
+                                onEdit: () => _openForm(
+                                  record.subCategory?.isNotEmpty == true
+                                      ? record.subCategory!
+                                      : record.title,
+                                  existingRecord: record,
+                                ),
+                                onView: () =>
+                                    CaseReportPdfHelper.view(context, record),
+                              );
+                            },
+                          ),
+                        ),
                       ),
               ),
             ],
@@ -1861,91 +1893,121 @@ class FormVIStatusTabBar extends StatelessWidget {
       ),
     ];
 
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.only(left: 16, right: 8),
-              child: Row(
-                children: tabs.map((item) {
-                  final isSelected = selectedTab == item.tab;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 24),
-                    child: InkWell(
-                      onTap: () => onTabChanged(item.tab),
-                      hoverColor: Colors.transparent,
-                      splashColor: AppColors.navyMid.withValues(alpha: 0.08),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(
-                              color: isSelected
-                                  ? const Color(0xFF1976D2)
-                                  : Colors.transparent,
-                              width: 2.5,
-                            ),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              TranslationHelper.translate(context, item.label),
-                              style: GoogleFonts.poppins(
-                                fontSize: 13.5,
-                                fontWeight: isSelected
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                                color: isSelected
-                                    ? AppColors.navyDark
-                                    : AppColors.lightSubText,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: item.badgeBg,
-                                borderRadius:
-                                    BorderRadius.circular(AppRadius.full),
-                              ),
-                              child: Text(
-                                '${item.count}',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: item.badgeFg,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+
+        Widget buildTabItem(
+          ({
+            FormVIStatusTab tab,
+            String label,
+            int count,
+            Color badgeBg,
+            Color badgeFg,
+          }) item, {
+          bool expand = false,
+        }) {
+          final isSelected = selectedTab == item.tab;
+          final tabContent = Container(
+            padding: EdgeInsets.symmetric(
+              vertical: 9,
+              horizontal: isMobile ? 4 : 12,
+            ),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color:
+                      isSelected ? const Color(0xFF1976D2) : Colors.transparent,
+                  width: 2.5,
+                ),
               ),
             ),
+            alignment: Alignment.center,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    TranslationHelper.translate(context, item.label),
+                    style: GoogleFonts.poppins(
+                      fontSize: isMobile ? 12.5 : 13.5,
+                      fontWeight:
+                          isSelected ? FontWeight.w700 : FontWeight.w500,
+                      color: isSelected
+                          ? AppColors.navyDark
+                          : AppColors.lightSubText,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: item.badgeBg,
+                      borderRadius: BorderRadius.circular(AppRadius.full),
+                    ),
+                    child: Text(
+                      '${item.count}',
+                      style: GoogleFonts.poppins(
+                        fontSize: isMobile ? 10.5 : 11,
+                        fontWeight: FontWeight.w700,
+                        color: item.badgeFg,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+
+          final inkWell = InkWell(
+            onTap: () => onTabChanged(item.tab),
+            hoverColor: Colors.transparent,
+            splashColor: AppColors.navyMid.withValues(alpha: 0.08),
+            child: tabContent,
+          );
+
+          return expand ? Expanded(child: inkWell) : inkWell;
+        }
+
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            border: Border(
+              bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
+            ),
           ),
-          if (trailingWidget != null) ...[
-            const SizedBox(width: 8),
-            trailingWidget!,
-            const SizedBox(width: 16),
-          ],
-        ],
-      ),
+          child: Row(
+            children: [
+              if (isMobile)
+                Expanded(
+                  child: Row(
+                    children:
+                        tabs.map((t) => buildTabItem(t, expand: true)).toList(),
+                  ),
+                )
+              else ...[
+                const SizedBox(width: 16),
+                for (final t in tabs) ...[
+                  buildTabItem(t, expand: false),
+                  const SizedBox(width: 16),
+                ],
+                const Spacer(),
+              ],
+              if (trailingWidget != null) ...[
+                const SizedBox(width: 8),
+                trailingWidget!,
+                const SizedBox(width: 16),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -2064,13 +2126,13 @@ class _CategoryGridCardState extends State<_CategoryGridCard> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: _hovered ? const Color(0xFF1976D2) : const Color(0xFFE2E8F0),
+            color: _hovered ? AppColors.navyMid : const Color(0xFFE2E8F0),
             width: _hovered ? 1.5 : 1.0,
           ),
           boxShadow: [
             BoxShadow(
               color: _hovered
-                  ? const Color(0xFF1976D2).withValues(alpha: 0.12)
+                  ? AppColors.navyMid.withValues(alpha: 0.12)
                   : Colors.black.withValues(alpha: 0.03),
               blurRadius: _hovered ? 10 : 3,
               offset: Offset(0, _hovered ? 3 : 1),
@@ -2091,9 +2153,9 @@ class _CategoryGridCardState extends State<_CategoryGridCard> {
                     height: 40,
                     decoration: BoxDecoration(
                       color: widget.isAll
-                          ? const Color(0xFF1976D2).withValues(alpha: 0.1)
+                          ? AppColors.navyMid.withValues(alpha: 0.08)
                           : (hasCases
-                              ? const Color(0xFF0284C7).withValues(alpha: 0.1)
+                              ? AppColors.navyMid.withValues(alpha: 0.08)
                               : const Color(0xFFF1F5F9)),
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -2103,9 +2165,9 @@ class _CategoryGridCardState extends State<_CategoryGridCard> {
                           : (widget.rawCategory ?? widget.category),
                       size: 20,
                       color: widget.isAll
-                          ? const Color(0xFF1976D2)
+                          ? AppColors.navyMid
                           : (hasCases
-                              ? const Color(0xFF0284C7)
+                              ? AppColors.navyMid
                               : AppColors.lightSubText),
                     ),
                   ),
@@ -2134,7 +2196,7 @@ class _CategoryGridCardState extends State<_CategoryGridCard> {
                           style: GoogleFonts.poppins(
                             fontSize: 11,
                             color: hasCases
-                                ? const Color(0xFF1976D2)
+                                ? AppColors.navyMid
                                 : AppColors.lightSubText,
                             fontWeight:
                                 hasCases ? FontWeight.w600 : FontWeight.w400,
@@ -2147,9 +2209,8 @@ class _CategoryGridCardState extends State<_CategoryGridCard> {
                   Icon(
                     Icons.chevron_right_rounded,
                     size: 16,
-                    color: _hovered
-                        ? const Color(0xFF1976D2)
-                        : const Color(0xFFCBD5E1),
+                    color:
+                        _hovered ? AppColors.navyMid : const Color(0xFFCBD5E1),
                   ),
                 ],
               ),
@@ -2170,6 +2231,7 @@ class FormIVCaseCard extends StatefulWidget {
     required this.onEdit,
     required this.onView,
     this.readOnly = false,
+    this.selectedCategory,
     this.onChargeSheetSubmitted,
   });
 
@@ -2177,6 +2239,7 @@ class FormIVCaseCard extends StatefulWidget {
   final VoidCallback onEdit;
   final VoidCallback onView;
   final bool readOnly;
+  final String? selectedCategory;
   final VoidCallback? onChargeSheetSubmitted;
 
   @override
@@ -2334,6 +2397,43 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
     }
   }
 
+  String _getOfficerOrLocation(ModuleRecord record, Map<String, dynamic> doc) {
+    final officer = record.assignedOfficer.trim();
+    if (officer.isNotEmpty && officer != '—' && officer != '-') return officer;
+
+    for (final key in [
+      'io_name',
+      'investigatingOfficer',
+      'assignedOfficer',
+      'ioName',
+      'officerName',
+    ]) {
+      final val = doc[key] ?? record.extraFields[key];
+      if (val != null && val.toString().trim().isNotEmpty) {
+        final s = val.toString().trim();
+        if (s != '—' && s != '-') return s;
+      }
+    }
+
+    final loc = record.location.trim();
+    if (loc.isNotEmpty && loc != '—' && loc != '-') return loc;
+
+    for (final key in [
+      'policeStation',
+      'ps',
+      'psName',
+      'location',
+    ]) {
+      final val = doc[key] ?? record.extraFields[key];
+      if (val != null && val.toString().trim().isNotEmpty) {
+        final s = val.toString().trim();
+        if (s != '—' && s != '-') return s;
+      }
+    }
+
+    return '—';
+  }
+
   Future<void> _showQuickDisposeDialog(
       BuildContext context, ModuleRecord record) async {
     final ccCtrl = TextEditingController();
@@ -2444,22 +2544,41 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
     final sectionAct = _getSectionAct(record, doc);
     final accusedName = _getNameOfAccused(record, doc);
     final crimeDate = _getCrimeDate(record, doc);
+    final officerOrLocation = _getOfficerOrLocation(record, doc);
 
-    final isDisposal = record.status.toLowerCase() == 'disposal' ||
-        record.status.toLowerCase() == 'closed' ||
-        record.status.toLowerCase() == 'resolved';
-    final isPending = record.status.toLowerCase() == 'pending' ||
-        record.status.toLowerCase() == 'open' ||
-        record.status.toLowerCase() == 'active';
+    final rawStatus = record.status.trim();
+    final isDisposal = rawStatus.toLowerCase() == 'disposal' ||
+        rawStatus.toLowerCase() == 'closed' ||
+        rawStatus.toLowerCase() == 'resolved' ||
+        rawStatus.toLowerCase() == 'disposed';
+    final String displayStatus;
+    if (isDisposal) {
+      displayStatus = 'Disposal';
+    } else if (rawStatus.toLowerCase() == 'detected' ||
+        rawStatus.toLowerCase() == 'pending' ||
+        rawStatus.toLowerCase() == 'open' ||
+        rawStatus.toLowerCase() == 'active' ||
+        rawStatus.isEmpty) {
+      displayStatus = 'Pending';
+    } else {
+      displayStatus = rawStatus;
+    }
+
     final Color statusColor = isDisposal
         ? const Color(0xFF2E7D32)
-        : (isPending ? const Color(0xFFE65100) : const Color(0xFFD32F2F));
+        : (displayStatus == 'Pending'
+            ? const Color(0xFFE65100)
+            : const Color(0xFF475569));
     final Color statusBg = isDisposal
         ? const Color(0xFFE8F5E9)
-        : (isPending ? const Color(0xFFFFF3E0) : const Color(0xFFFFEBEE));
+        : (displayStatus == 'Pending'
+            ? const Color(0xFFFFF3E0)
+            : const Color(0xFFF8FAFC));
     final Color statusBorder = isDisposal
         ? const Color(0xFFA5D6A7)
-        : (isPending ? const Color(0xFFFFCC80) : const Color(0xFFFFCDD2));
+        : (displayStatus == 'Pending'
+            ? const Color(0xFFFFCC80)
+            : const Color(0xFFCBD5E1));
 
     final categoryLabel = record.subCategory?.trim().isNotEmpty == true
         ? TranslationHelper.translate(context, record.subCategory!.trim())
@@ -2468,7 +2587,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
             record.firestoreCategoryDisplayName,
           );
 
-    final double actionsWidth = widget.readOnly ? 82.0 : 176.0;
+    final double actionsWidth = widget.readOnly ? 76.0 : 160.0;
 
     Widget buildActionButtons() {
       return SizedBox(
@@ -2483,53 +2602,55 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                 icon: Icons.fact_check_outlined,
                 label: 'Dispose',
                 color: AppColors.successGreen,
-                width: 44,
+                width: 40,
                 onTap: () => _showQuickDisposeDialog(context, record),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 4),
             ],
             if (!widget.readOnly) ...[
               _buildCompactActionButton(
                 icon: Icons.edit_outlined,
                 label: 'Edit',
                 color: AppColors.navyDark,
-                width: 38,
+                width: 36,
                 onTap: widget.onEdit,
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 4),
             ],
             _buildCompactActionButton(
               icon: Icons.visibility_outlined,
               label: 'View',
               color: AppColors.navyDark,
-              width: 38,
+              width: 36,
               onTap: widget.onView,
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 4),
             _buildCompactActionButton(
               icon: Icons.picture_as_pdf_outlined,
               label: 'PDF',
               color: AppColors.navyDark,
-              width: 38,
-              onTap: () => runWithPdfAuthGate(
-                context,
-                () => CaseReportPdfHelper.download(context, record),
-              ),
+              width: 36,
+              onTap: () => CaseReportPdfHelper.download(context, record),
             ),
           ],
         ),
       );
     }
 
+    final bool isSpecificCategory = widget.selectedCategory != null &&
+        widget.selectedCategory != FormVISelectionScreen.allFilterLabel &&
+        widget.selectedCategory!.trim().isNotEmpty;
     Widget buildDetailsRow(bool isExpandedMode) {
+      final bool showCategory = isExpandedMode || !isSpecificCategory;
+      final divMargin = isExpandedMode ? 5.0 : 3.0;
       return Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // 1. Identification: CR No. Badge + Category Badge
+          // 1. Identification: CR No. Badge
           Container(
-            height: 38,
-            width: 120,
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            height: 35,
+            width: isExpandedMode ? 100 : 80,
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
             decoration: BoxDecoration(
               color: const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(6),
@@ -2541,15 +2662,15 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'CR No.',
+                  TranslationHelper.translate(context, 'CR No.'),
                   style: GoogleFonts.poppins(
-                    fontSize: 9,
+                    fontSize: 8.5,
                     fontWeight: FontWeight.w600,
                     color: const Color(0xFF64748B),
                     height: 1.0,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 1.5),
                 Tooltip(
                   message: crNo,
                   child: Text(
@@ -2557,7 +2678,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
-                      fontSize: 12,
+                      fontSize: 11.0,
                       fontWeight: FontWeight.w700,
                       color: AppColors.navyDark,
                       height: 1.0,
@@ -2567,57 +2688,59 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          Container(
-            height: 38,
-            width: 90,
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: AppColors.goldPrimary.withValues(alpha: 0.10),
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: AppColors.goldPrimary.withValues(alpha: 0.35),
+
+          // 2. Category Badge (always shown on desktop; on compact only when not filtered)
+          if (showCategory) ...[
+            const SizedBox(width: 5),
+            Container(
+              height: 35,
+              width: isExpandedMode ? 175 : 135,
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0xFFCBD5E1)),
               ),
-            ),
-            alignment: Alignment.center,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Category',
-                  style: GoogleFonts.poppins(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.goldPrimary,
-                    height: 1.0,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Tooltip(
-                  message: categoryLabel.isNotEmpty ? categoryLabel : '—',
-                  child: Text(
-                    categoryLabel.isNotEmpty ? categoryLabel : '—',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    TranslationHelper.translate(context, 'Category'),
                     style: GoogleFonts.poppins(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.goldPrimary,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF64748B),
                       height: 1.0,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  Tooltip(
+                    message: categoryLabel.isNotEmpty ? categoryLabel : '—',
+                    child: Text(
+                      categoryLabel.isNotEmpty ? categoryLabel : '—',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 10.0,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.navyDark,
+                        height: 1.0,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+          ],
 
-          _buildDivider(),
+          _buildDivider(margin: divMargin),
 
-          // 2. Section / Act (flex: 3)
+          // 3. Section / Act (flex: 1 on desktop, width 95 on mobile)
           isExpandedMode
               ? Expanded(
-                  flex: 3,
+                  flex: 1,
                   child: _buildFieldColumn(
                     context: context,
                     label: 'Section / Act',
@@ -2629,7 +2752,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                 )
               : _buildFieldColumn(
                   context: context,
-                  width: 140,
+                  width: 95,
                   label: 'Section / Act',
                   value: (sectionAct.isEmpty || sectionAct == '-')
                       ? '—'
@@ -2637,12 +2760,12 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                   icon: Icons.gavel_rounded,
                 ),
 
-          _buildDivider(),
+          _buildDivider(margin: divMargin),
 
-          // 3. Name of Accused (flex: 4)
+          // 4. Name of Accused (flex: 1 on desktop, width 125 on mobile)
           isExpandedMode
               ? Expanded(
-                  flex: 4,
+                  flex: 1,
                   child: _buildFieldColumn(
                     context: context,
                     label: 'Accused Name',
@@ -2654,7 +2777,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                 )
               : _buildFieldColumn(
                   context: context,
-                  width: 180,
+                  width: 125,
                   label: 'Accused Name',
                   value: (accusedName.isEmpty || accusedName == '-')
                       ? '—'
@@ -2662,37 +2785,50 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                   icon: Icons.person_outline_rounded,
                 ),
 
-          _buildDivider(),
+          _buildDivider(margin: divMargin),
 
-          // 4. Crime Date (flex: 2)
+          // 5. Officer / Location (flex: 2 on desktop, width 125 on mobile)
           isExpandedMode
               ? Expanded(
                   flex: 2,
                   child: _buildFieldColumn(
                     context: context,
-                    label: 'Crime Date',
-                    value: (crimeDate.isEmpty || crimeDate == '-')
-                        ? '—'
-                        : crimeDate,
-                    icon: Icons.calendar_today_outlined,
+                    label: 'Officer / Location',
+                    value: officerOrLocation,
+                    icon: Icons.badge_outlined,
                   ),
                 )
               : _buildFieldColumn(
                   context: context,
-                  width: 110,
-                  label: 'Crime Date',
-                  value:
-                      (crimeDate.isEmpty || crimeDate == '-') ? '—' : crimeDate,
-                  icon: Icons.calendar_today_outlined,
+                  width: 125,
+                  label: 'Officer / Location',
+                  value: officerOrLocation,
+                  icon: Icons.badge_outlined,
                 ),
 
-          _buildDivider(),
+          _buildDivider(margin: divMargin),
 
-          // 5. Status Badge (Fixed width 110 matching RTI)
+          // 6. Crime Date (fixed width: 92 on desktop, 82 on mobile)
+          SizedBox(
+            width: isExpandedMode ? 92 : 82,
+            child: _buildFieldColumn(
+              context: context,
+              label: 'Crime Date',
+              value: (crimeDate.isEmpty || crimeDate == '-') ? '—' : crimeDate,
+              icon: Icons.calendar_today_outlined,
+            ),
+          ),
+
+          _buildDivider(margin: divMargin),
+
+          // 6. Status Badge (Disposal / Pending in last before actions)
           Container(
-            height: 34,
-            width: 110,
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            height: 32,
+            width: isExpandedMode ? 95 : 80,
+            padding: EdgeInsets.symmetric(
+              horizontal: isExpandedMode ? 8 : 5,
+              vertical: 2,
+            ),
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: statusBg,
@@ -2704,23 +2840,23 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 6,
-                  height: 6,
+                  width: 5.5,
+                  height: 5.5,
                   decoration: BoxDecoration(
                     color: statusColor,
                     shape: BoxShape.circle,
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 4.5),
                 Flexible(
                   child: Tooltip(
-                    message: record.status,
+                    message: displayStatus,
                     child: Text(
-                      TranslationHelper.translate(context, record.status),
+                      TranslationHelper.translate(context, displayStatus),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
-                        fontSize: 11,
+                        fontSize: 10.0,
                         fontWeight: FontWeight.w600,
                         color: statusColor,
                         height: 1.0,
@@ -2732,28 +2868,28 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
             ),
           ),
 
-          _buildDivider(),
+          _buildDivider(margin: divMargin),
 
-          // 6. Action buttons scrollable with the card at the end
+          // 7. Action buttons scrollable with the card at the end
           buildActionButtons(),
         ],
       );
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 6),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: const Color(0xFFCBD5E1),
-          width: 1.1,
+          width: 1.0,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 3,
+            offset: const Offset(0, 1.5),
           ),
         ],
       ),
@@ -2764,7 +2900,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 10,
-              vertical: 8,
+              vertical: 5,
             ),
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -3041,10 +3177,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                           ),
                           const SizedBox(width: 8),
                           OutlinedButton.icon(
-                            onPressed: () => runWithPdfAuthGate(
-                              context,
-                              () => CaseReportPdfHelper.download(context, record),
-                            ),
+                            onPressed: () => CaseReportPdfHelper.download(context, record),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: const Color(0xFFC53030),
                               side: const BorderSide(color: Color(0xFFFEB2B2)),
@@ -3082,11 +3215,11 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
     );
   }
 
-  Widget _buildDivider() {
+  Widget _buildDivider({double margin = 5}) {
     return Container(
       width: 1,
-      height: 26,
-      margin: const EdgeInsets.symmetric(horizontal: 8),
+      height: 22,
+      margin: EdgeInsets.symmetric(horizontal: margin),
       color: const Color(0xFFE2E8F0),
     );
   }
@@ -3174,13 +3307,13 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(6),
         child: Container(
-          height: 38,
-          width: width ?? 38,
+          height: 35,
+          width: width ?? 36,
           padding: const EdgeInsets.symmetric(horizontal: 2),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: const Color(0xFFCBD5E1), width: 1.1),
+            border: Border.all(color: const Color(0xFFCBD5E1), width: 1.0),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.03),
@@ -3194,8 +3327,8 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 14, color: fg),
-              const SizedBox(height: 1.5),
+              Icon(icon, size: 13, color: fg),
+              const SizedBox(height: 1.0),
               Text(
                 TranslationHelper.translate(context, label),
                 maxLines: 1,
@@ -3263,18 +3396,16 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppColors.goldPrimary.withValues(alpha: 0.12),
+                  color: const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: AppColors.goldPrimary.withValues(alpha: 0.35),
-                  ),
+                  border: Border.all(color: const Color(0xFFCBD5E1)),
                 ),
                 child: Text(
                   categoryLabel,
                   style: GoogleFonts.poppins(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.goldPrimary,
+                    color: AppColors.navyDark,
                   ),
                 ),
               ),
@@ -3287,13 +3418,20 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(color: statusColor.withValues(alpha: 0.35)),
               ),
-              child: Text(
-                TranslationHelper.translate(context, record.status),
-                style: GoogleFonts.poppins(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: statusColor,
-                ),
+              child: Builder(
+                builder: (context) {
+                  final raw = record.status.trim();
+                  final label =
+                      raw.toLowerCase() == 'detected' ? 'Pending' : raw;
+                  return Text(
+                    TranslationHelper.translate(context, label),
+                    style: GoogleFonts.poppins(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: statusColor,
+                    ),
+                  );
+                },
               ),
             ),
           ],
@@ -3356,10 +3494,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
             _buildCompactActionButton(
               icon: Icons.picture_as_pdf_outlined,
               label: 'PDF',
-              onTap: () => runWithPdfAuthGate(
-                context,
-                () => CaseReportPdfHelper.download(context, record),
-              ),
+              onTap: () => CaseReportPdfHelper.download(context, record),
             ),
           ],
         ),

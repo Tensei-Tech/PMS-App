@@ -252,181 +252,121 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
       );
     }).toList();
 
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.only(left: 16, right: 8),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+
+        Widget buildTabItem(
+          ({
+            Color badgeBg,
+            Color badgeFg,
+            int count,
+            String key,
+            String label,
+          }) item, {
+          bool expand = false,
+        }) {
+          final isSelected = _statusTab == item.key;
+          final tabContent = Container(
+            padding: EdgeInsets.symmetric(
+              vertical: 12,
+              horizontal: isMobile ? 4 : 12,
+            ),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color:
+                      isSelected ? const Color(0xFF1976D2) : Colors.transparent,
+                  width: 2.5,
+                ),
+              ),
+            ),
+            alignment: Alignment.center,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.center,
               child: Row(
-                children: tabs.map((item) {
-                  final isSelected = _statusTab == item.key;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 24),
-                    child: InkWell(
-                      onTap: () {
-                        setState(() {
-                          _statusTab = item.key;
-                          if (_tabController.index != 0) {
-                            _tabController.animateTo(0);
-                          }
-                        });
-                      },
-                      hoverColor: Colors.transparent,
-                      splashColor: AppColors.navyMid.withValues(alpha: 0.08),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(
-                              color: isSelected
-                                  ? const Color(0xFF1976D2)
-                                  : Colors.transparent,
-                              width: 2.5,
-                            ),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              TranslationHelper.translate(context, item.label),
-                              style: GoogleFonts.poppins(
-                                fontSize: 13.5,
-                                fontWeight: isSelected
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                                color: isSelected
-                                    ? const Color(0xFF1976D2)
-                                    : const Color(0xFF64748B),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: item.badgeBg,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                '${item.count}',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: item.badgeFg,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    TranslationHelper.translate(context, item.label),
+                    style: GoogleFonts.poppins(
+                      fontSize: isMobile ? 12.5 : 13.5,
+                      fontWeight:
+                          isSelected ? FontWeight.w700 : FontWeight.w500,
+                      color: isSelected
+                          ? const Color(0xFF1976D2)
+                          : const Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: item.badgeBg,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${item.count}',
+                      style: GoogleFonts.poppins(
+                        fontSize: isMobile ? 10.5 : 11,
+                        fontWeight: FontWeight.w700,
+                        color: item.badgeFg,
                       ),
                     ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildSubTabPill(
-                  index: 0,
-                  icon: Icons.list_alt_rounded,
-                  label: 'Records',
-                ),
-                const SizedBox(width: 6),
-                _buildSubTabPill(
-                  index: 1,
-                  icon: Icons.notifications_active_rounded,
-                  label: 'FSL Alerts',
-                  badgeCount: provider.fslAlerts['summary']?['total_alerts'],
-                ),
-                const SizedBox(width: 6),
-                _buildSubTabPill(
-                  index: 2,
-                  icon: Icons.analytics_rounded,
-                  label: 'Reports',
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSubTabPill({
-    required int index,
-    required IconData icon,
-    required String label,
-    dynamic badgeCount,
-  }) {
-    final isSelected = _tabController.index == index;
-    final int count = (badgeCount is num) ? badgeCount.toInt() : 0;
-
-    return InkWell(
-      onTap: () {
-        _tabController.animateTo(index);
-        setState(() {});
-      },
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.navyMid : const Color(0xFFF1F5F9),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? AppColors.navyMid : const Color(0xFFCBD5E1),
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 13,
-              color: isSelected ? Colors.white : const Color(0xFF475569),
-            ),
-            const SizedBox(width: 5),
-            Text(
-              TranslationHelper.translate(context, label),
-              style: GoogleFonts.poppins(
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? Colors.white : const Color(0xFF475569),
-              ),
-            ),
-            if (count > 0) ...[
-              const SizedBox(width: 5),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                decoration: BoxDecoration(
-                  color: isSelected ? Colors.white : AppColors.dangerRed,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '$count',
-                  style: GoogleFonts.poppins(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w700,
-                    color: isSelected ? AppColors.dangerRed : Colors.white,
                   ),
-                ),
+                ],
               ),
+            ),
+          );
+
+          final inkWell = InkWell(
+            onTap: () {
+              setState(() {
+                _statusTab = item.key;
+                if (_tabController.index != 0) {
+                  _tabController.animateTo(0);
+                }
+              });
+            },
+            hoverColor: Colors.transparent,
+            splashColor: AppColors.navyMid.withValues(alpha: 0.08),
+            child: tabContent,
+          );
+
+          return expand ? Expanded(child: inkWell) : inkWell;
+        }
+
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            border: Border(
+              bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
+            ),
+          ),
+          child: Row(
+            children: [
+              if (isMobile)
+                Expanded(
+                  child: Row(
+                    children:
+                        tabs.map((t) => buildTabItem(t, expand: true)).toList(),
+                  ),
+                )
+              else ...[
+                const SizedBox(width: 16),
+                for (final t in tabs) ...[
+                  buildTabItem(t, expand: false),
+                  const SizedBox(width: 16),
+                ],
+                const Spacer(),
+              ],
             ],
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 

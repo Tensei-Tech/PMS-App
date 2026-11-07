@@ -56,12 +56,13 @@ class ModuleHubScreenAppBar extends StatelessWidget
             color: textColor,
           ),
         ),
-        Text(
-          subtitle,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.poppins(fontSize: 11, color: subTextColor),
-        ),
+        if (subtitle.isNotEmpty)
+          Text(
+            subtitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.poppins(fontSize: 11, color: subTextColor),
+          ),
       ],
     );
 

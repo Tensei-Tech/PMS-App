@@ -141,6 +141,33 @@ class TenancyStackSafetyTests(TestCase):
                 self.assertTrue('public' in current_sp)
 
 
+    def test_health_checks_run_no_queries(self):
+        """
+        The app's online probe (GET /?_probe=...) and GET /api/ read no tenant data:
+        they must answer without touching the database. Setting search_path there
+        opened a Supabase connection per probe, which could outlast the app's
+        3.5 s probe timeout ("Broken pipe" in the server log).
+        """
+        from django.test import Client
+        from django.test.utils import CaptureQueriesContext
+
+        client = Client()
+        for path in ('/', '/api/'):
+            with CaptureQueriesContext(connection) as queries:
+                res = client.get(path, {'_probe': '1'})
+            self.assertEqual(res.status_code, 200, path)
+            self.assertEqual(res.json()['status'], 'healthy', path)
+            self.assertEqual(len(queries.captured_queries), 0, path)
+
+    def test_other_requests_still_set_tenant_schema(self):
+        """Only the health checks skip search_path; a state request still switches it."""
+        from apps.core.middleware import TenantMiddleware
+        rf = RequestFactory()
+        req = rf.get('/api/test/', HTTP_X_TENANT_SCHEMA='bihar')
+        TenantMiddleware(lambda r: None).process_request(req)
+        self.assertEqual(req.state_schema, 'bihar')
+        self.assertEqual(req.schema_resolution_source, 'header')
+
     def test_cross_request_connection_reuse_isolation(self):
         """
         Critical cross-request connection reuse test:

@@ -53,8 +53,8 @@ class ModulePdfHelper {
       ..remove(_kNcFormExtraFieldsKey);
     final sub = record.subCategory?.trim() ?? '';
     final formSubtitle = sub.isEmpty
-        ? '$displayName — Khakhi Diary · Maharashtra Police'
-        : '$sub · $displayName — Khakhi Diary · Maharashtra Police';
+        ? '$displayName — PMS · Maharashtra Police'
+        : '$sub · $displayName — PMS · Maharashtra Police';
     final formTitle = '${displayName.toUpperCase()} FORM';
     final bytes = await generateFormPdf(
       ncMap,
@@ -88,8 +88,8 @@ class ModulePdfHelper {
       ..remove(_kMissingFormExtraFieldsKey);
     final sub = record.subCategory?.trim() ?? '';
     final formSubtitle = sub.isEmpty
-        ? '$displayName — Khakhi Diary · Maharashtra Police'
-        : '$sub · $displayName — Khakhi Diary · Maharashtra Police';
+        ? '$displayName — PMS · Maharashtra Police'
+        : '$sub · $displayName — PMS · Maharashtra Police';
     final formTitle = '${displayName.toUpperCase()} FORM';
     final bytes = await generateFormPdf(
       missingMap,
@@ -195,8 +195,8 @@ class ModulePdfHelper {
           ..remove(kCommonFormExtraFieldsKey);
         final formSubtitle =
             sub.isEmpty || sub.toLowerCase() == displayName.toLowerCase()
-                ? '$displayName — Khakhi Diary · Maharashtra Police'
-                : '$sub · $displayName — Khakhi Diary · Maharashtra Police';
+                ? '$displayName — PMS · Maharashtra Police'
+                : '$sub · $displayName — PMS · Maharashtra Police';
         bytes = await generateFormPdf(
           commonMap,
           extraMap: extra,

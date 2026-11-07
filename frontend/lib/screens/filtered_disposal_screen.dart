@@ -13,6 +13,7 @@ class FilteredDisposalScreen extends StatefulWidget {
   final String? startDate;
   final String? endDate;
   final String? crimeType;
+  final int? groupId;
 
   const FilteredDisposalScreen({
     super.key,
@@ -21,6 +22,7 @@ class FilteredDisposalScreen extends StatefulWidget {
     this.startDate,
     this.endDate,
     this.crimeType,
+    this.groupId,
   });
 
   @override
@@ -73,7 +75,9 @@ class _FilteredDisposalScreenState extends State<FilteredDisposalScreen> {
         'Cr. No.': crNo,
         'Sec & Act': secAct,
         'Head': head,
-        'Case Summary': (courtNo.isNotEmpty && courtNo != '-') ? courtNo : '—',
+        'Disposal': (courtNo.isNotEmpty && courtNo != '-' && courtNo != '—')
+            ? courtNo
+            : 'Remind to IO',
         'IO Name': io,
       };
     }).toList();
@@ -88,7 +92,7 @@ class _FilteredDisposalScreenState extends State<FilteredDisposalScreen> {
         'Cr. No.',
         'Sec & Act',
         'Head',
-        'Case Summary',
+        'Disposal',
         'IO Name',
       ],
     );
@@ -216,6 +220,7 @@ class _FilteredDisposalScreenState extends State<FilteredDisposalScreen> {
                 startDate: widget.startDate,
                 endDate: widget.endDate,
                 crimeType: widget.crimeType,
+                groupId: widget.groupId,
                 onRecordsLoaded: (records) {
                   setState(() => _records = records);
                 },

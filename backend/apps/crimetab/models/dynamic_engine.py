@@ -48,6 +48,7 @@ class FieldTemplateField(models.Model):
         ('mobile', 'Mobile Number (10 digits)'),
         ('email', 'E-mail Address'),
         ('aadhaar', 'Aadhaar Number (12 digits)'),
+        ('pan', 'PAN Number (ABCDE1234F)'),
         ('year', 'Year (2001-2100)'),
     )
 

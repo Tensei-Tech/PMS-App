@@ -46,6 +46,7 @@ from apps.cases.views import (
     TimeWiseDisposalView,
     DesignationWiseDisposalView,
     DisposalCrimeTypeWiseView,
+    DisposalRemindIOView,
     DarCasesListView,
     DarSummaryStatsView,
     DarRemindIOView,
@@ -105,6 +106,7 @@ from apps.crimetab.views_ad import (
     AdCountsView,
     AdConfigView,
     AdDetailView,
+    AdOfficersView,
     AdPdfView,
 )
 
@@ -161,6 +163,7 @@ urlpatterns = [
     # A.D. Endpoints (Suicide / Other sub-tabs; case records with module_key 'ad')
     path('ad/counts/', AdCountsView.as_view(), name='ad-counts'),
     path('ad/config/', AdConfigView.as_view(), name='ad-config'),
+    path('ad/officers/', AdOfficersView.as_view(), name='ad-officers'),
     path('ad/<str:pk>/pdf/', AdPdfView.as_view(), name='ad-pdf'),
     path('ad/<str:pk>/', AdDetailView.as_view(), name='ad-detail'),
     path('ad/', AdListCreateView.as_view(), name='ad-list-create'),
@@ -196,6 +199,8 @@ urlpatterns = [
     path('cases/disposal/time-wise/', TimeWiseDisposalView.as_view(), name='disposal-time-wise'),
     path('cases/disposal/designation-wise/', DesignationWiseDisposalView.as_view(), name='disposal-designation-wise'),
     path('cases/disposal/crime-type-wise/', DisposalCrimeTypeWiseView.as_view(), name='disposal-crime-type-wise'),
+    path('cases/disposal/<str:pk>/remind/', DisposalRemindIOView.as_view(), name='cases-disposal-remind'),
+    path('cases/disposal/<str:pk>/action/', DisposalRemindIOView.as_view(), name='cases-disposal-action'),
     path('cases/monthly-comparative/', MonthlyCrimeComparativeView.as_view(), name='cases-monthly-comparative'),
     path('cases/summons-warrant/', SummonsWarrantReportView.as_view(), name='cases-summons-warrant-report'),
     path('cases/sam-warrant/', SummonsWarrantReportView.as_view(), name='cases-sam-warrant-report'),

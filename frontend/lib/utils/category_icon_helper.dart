@@ -63,6 +63,7 @@ class CategoryIconHelper {
       case '498 ipc':
         return 'assets/icons/crimewomen.svg';
       case 'accident':
+      case 'other accident':
       case 'normal accident':
       case 'road accident':
       case 'other road accident':
@@ -118,6 +119,9 @@ class CategoryIconHelper {
         return 'assets/icons/macoca.svg';
       case 'mpda':
         return 'assets/icons/mpda.svg';
+      case 'preventive':
+      case 'tadipar':
+        return 'assets/icons/tadipar.svg';
       case 'pending':
         return 'assets/icons/pending.svg';
       case 'disposal':
@@ -140,6 +144,10 @@ class CategoryIconHelper {
         return 'assets/icons/cctns.svg';
       case 'licence':
         return 'assets/icons/licence.svg';
+      case 'passport':
+      case 'passport/pvr':
+      case 'passport/pvr/licence':
+        return 'assets/icons/passport.svg';
       case 'repeat offender':
         return 'assets/icons/repeatoffender.svg';
       case 'dar':
@@ -277,6 +285,11 @@ class CategoryIconHelper {
       case 'sec 156(3)/175(3)(bnss)':
       case 'sec 156(3)/175(3)':
         return Icons.policy_rounded;
+      case 'passport':
+      case 'passport/pvr':
+        return Icons.badge_rounded;
+      case 'pvr':
+        return Icons.fact_check_rounded;
       case 'all':
       case 'all cases':
         return Icons.grid_view_rounded;
