@@ -8,7 +8,8 @@ Migration 0174: road accident rows linked to their case by a real foreign key
 text: the database did not check that the case exists, deleting a case left the
 accident rows behind, and one case could get two accident records.
 
-In every state schema that has the tables, this:
+In every state schema that has the accident tables (linked to the
+cases_caserecord that state reads: its own, else public's), this:
 1. clears `case_id` where it is empty or names no existing case (none on the
    shared database when this was written), so the foreign keys can be added;
 2. stops with a clear error if one case has two accident records (none either);
@@ -34,15 +35,26 @@ UNIQUE_NAME = 'road_accident_records_case_id_uniq'
 
 
 def schemas_with_tables(cursor):
-    """State schemas holding both the accident and the case tables."""
+    """State schemas holding the accident tables."""
     cursor.execute("""
-        SELECT table_schema FROM information_schema.tables
-        WHERE table_name IN ('road_accident_records', 'cases_caserecord')
-          AND NOT (table_schema = ANY(%s))
-        GROUP BY table_schema HAVING COUNT(DISTINCT table_name) = 2
+        SELECT DISTINCT table_schema FROM information_schema.tables
+        WHERE table_name = 'road_accident_records'
+          AND NOT (table_schema = ANY(%s)) AND table_schema <> 'public'
         ORDER BY table_schema
     """, [list(SYSTEM_SCHEMAS)])
     return [r[0] for r in cursor.fetchall()]
+
+
+def cases_table(cursor, schema):
+    """
+    The cases_caserecord the app reads for this state, found the way its
+    search_path (`<state>, public`) finds it: the state's own table, else public's.
+    A database built by a fresh `migrate` has it in public; the shared one in the state.
+    """
+    for candidate in (schema, 'public'):
+        if has_table(cursor, candidate, 'cases_caserecord'):
+            return f'"{candidate}".cases_caserecord'
+    return None
 
 
 def has_table(cursor, schema, table):
@@ -65,7 +77,9 @@ def forwards(apps, schema_editor):
         return  # tests build these tables straight from the models
     with schema_editor.connection.cursor() as cursor:
         for schema in schemas_with_tables(cursor):
-            cases = f'"{schema}".cases_caserecord'
+            cases = cases_table(cursor, schema)
+            if cases is None:
+                continue  # no case table to link to yet
             tables = [t for t in TABLES if has_table(cursor, schema, t)]
 
             # 1. ids that point nowhere cannot carry a foreign key
