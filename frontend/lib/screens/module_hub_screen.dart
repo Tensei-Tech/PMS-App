@@ -50,6 +50,8 @@ import '../modules/preventive/screens/preventive_view_screen.dart';
 import '../modules/sam_warrant/providers/sam_warrant_provider.dart';
 import '../modules/sand_theft/providers/sand_theft_provider.dart';
 import '../modules/st_drugs/providers/st_drugs_provider.dart';
+import '../modules/tadipar/providers/tadipar_provider.dart';
+
 import '../modules/theft/providers/theft_provider.dart';
 import '../modules/traffic/providers/traffic_provider.dart';
 import '../modules/two_four_wheeler/providers/two_four_wheeler_provider.dart';
@@ -57,6 +59,7 @@ import '../modules/uapa/providers/uapa_provider.dart';
 import '../modules/undetected/providers/undetected_provider.dart';
 import '../modules/victim/providers/victim_provider.dart';
 import '../providers/auth_provider.dart';
+import '../utils/case_visibility.dart';
 import '../theme/app_theme.dart';
 import '../utils/ad_disposal_helper.dart';
 import '../utils/common_form_module.dart';
@@ -172,174 +175,312 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     }
   }
 
+  BaseModuleProvider? _dynamicProvider;
+
   @override
   void dispose() {
     _searchCtrl.dispose();
+    _dynamicProvider?.removeListener(_onDynamicProviderChanged);
+    _dynamicProvider?.dispose();
+    _dynamicProvider = null;
     super.dispose();
   }
 
-  /// Watch the correct typed provider so UI rebuilds on data changes.
-  BaseModuleProvider _watchProvider(BuildContext context) {
-    switch (widget.moduleKey) {
-      case 'form_1_5':
-        return context.watch<FormIVProvider>();
-      case 'form_6':
-        return context.watch<FormVIProvider>();
-      case 'nc':
-        return context.watch<NcProvider>();
-      case 'preventive':
-        return context.watch<PreventiveProvider>();
-      case 'ad':
-        return context.watch<AdProvider>();
-      case 'missing':
-        return context.watch<MissingProvider>();
-      case 'kidnapping':
-        return context.watch<KidnappingProvider>();
-      case 'theft':
-        return context.watch<TheftProvider>();
-      case 'sand_theft':
-        return context.watch<SandTheftProvider>();
-      case 'hurt':
-        return context.watch<HurtProvider>();
-      case 'pocso':
-        return context.watch<PocsoProvider>();
-      case 'passport':
-        return context.watch<PassportProvider>();
-      case 'monthly':
-        return context.watch<MonthlyProvider>();
-      case 'pending':
-        return context.watch<PendingProvider>();
-      case 'detected':
-        return context.watch<DetectedProvider>();
-      case 'undetected':
-        return context.watch<UndetectedProvider>();
-      case 'disposal':
-        return context.watch<DisposalProvider>();
-      case 'two_four_wheeler':
-        return context.watch<TwoFourWheelerProvider>();
-      case 'arrested':
-        return context.watch<ArrestedProvider>();
-      case 'absconded':
-        return context.watch<AbscondedProvider>();
-      case 'crime_women':
-        return context.watch<CrimeWomenProvider>();
-      case 'juvenile':
-        return context.watch<JuvenileProvider>();
-      case 'victim':
-        return context.watch<VictimProvider>();
-      case 'accident':
-        return context.watch<AccidentProvider>();
-      case 'traffic':
-        return context.watch<TrafficProvider>();
-      case 'application':
-        return context.watch<ApplicationProvider>();
-      case 'sam_warrant':
-        return context.watch<SamWarrantProvider>();
-      case 'muddemal':
-        return context.watch<MuddemalProvider>();
-      case 'bnss':
-        return context.watch<BnssProvider>();
-      case 'ndps':
-        return context.watch<NdpsProvider>();
-      case 'gowans':
-        return context.watch<GowansProvider>();
-      case 'it_act':
-        return context.watch<ItActProvider>();
-      case 'mcoca':
-        return context.watch<McocaProvider>();
-      case 'uapa':
-        return context.watch<UapaProvider>();
-      case 'mpda':
-        return context.watch<MpdaProvider>();
-      case 'coin':
-        return context.watch<CoinProvider>();
-      case 'st_drugs':
-        return context.watch<StDrugsProvider>();
-      default:
-        return context.watch<FormIVProvider>();
+  void _onDynamicProviderChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _syncDynamicStationContext(BaseModuleProvider p, BuildContext context) {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    if (auth.isSessionActive && auth.uid.isNotEmpty) {
+      final station = auth.activeStation.isNotEmpty
+          ? auth.activeStation
+          : (auth.district.isNotEmpty ? auth.district : 'ALL');
+      p.setStationContext(
+        stationId: station,
+        uid: auth.uid,
+        visibilityMode: CaseVisibility.resolveFor(auth),
+      );
+    } else if (!auth.isSessionActive) {
+      p.clearStationContext(clearRecords: false);
     }
   }
 
-  /// Read (no listen) version for delete/update calls inside callbacks.
-  BaseModuleProvider _readProvider(BuildContext context) {
+  BaseModuleProvider _getDynamicProvider(BuildContext context) {
+    if (_dynamicProvider == null ||
+        _dynamicProvider!.moduleKey != widget.moduleKey) {
+      _dynamicProvider?.removeListener(_onDynamicProviderChanged);
+      _dynamicProvider?.dispose();
+      final p = BaseModuleProvider(widget.moduleKey);
+      _syncDynamicStationContext(p, context);
+      p.addListener(_onDynamicProviderChanged);
+      _dynamicProvider = p;
+    } else {
+      _syncDynamicStationContext(_dynamicProvider!, context);
+    }
+    return _dynamicProvider!;
+  }
+
+  T? _safeWatch<T extends BaseModuleProvider>(BuildContext context) {
+    try {
+      return Provider.of<T>(context, listen: true);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  T? _safeRead<T extends BaseModuleProvider>(BuildContext context) {
+    try {
+      return Provider.of<T>(context, listen: false);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Watch the correct typed provider so UI rebuilds on data changes.
+  /// Falls back safely to a dynamic backend-driven provider if not registered at root.
+  BaseModuleProvider _watchProvider(BuildContext context) {
+    BaseModuleProvider? prov;
     switch (widget.moduleKey) {
       case 'form_1_5':
-        return context.read<FormIVProvider>();
+        prov = _safeWatch<FormIVProvider>(context);
+        break;
       case 'form_6':
-        return context.read<FormVIProvider>();
+        prov = _safeWatch<FormVIProvider>(context);
+        break;
       case 'nc':
-        return context.read<NcProvider>();
+        prov = _safeWatch<NcProvider>(context);
+        break;
       case 'preventive':
-        return context.read<PreventiveProvider>();
+        prov = _safeWatch<PreventiveProvider>(context);
+        break;
       case 'ad':
-        return context.read<AdProvider>();
+        prov = _safeWatch<AdProvider>(context);
+        break;
       case 'missing':
-        return context.read<MissingProvider>();
+        prov = _safeWatch<MissingProvider>(context);
+        break;
       case 'kidnapping':
-        return context.read<KidnappingProvider>();
+        prov = _safeWatch<KidnappingProvider>(context);
+        break;
       case 'theft':
-        return context.read<TheftProvider>();
+        prov = _safeWatch<TheftProvider>(context);
+        break;
       case 'sand_theft':
-        return context.read<SandTheftProvider>();
+        prov = _safeWatch<SandTheftProvider>(context);
+        break;
       case 'hurt':
-        return context.read<HurtProvider>();
+        prov = _safeWatch<HurtProvider>(context);
+        break;
       case 'pocso':
-        return context.read<PocsoProvider>();
+        prov = _safeWatch<PocsoProvider>(context);
+        break;
       case 'passport':
-        return context.read<PassportProvider>();
+        prov = _safeWatch<PassportProvider>(context);
+        break;
       case 'monthly':
-        return context.read<MonthlyProvider>();
+        prov = _safeWatch<MonthlyProvider>(context);
+        break;
       case 'pending':
-        return context.read<PendingProvider>();
+        prov = _safeWatch<PendingProvider>(context);
+        break;
       case 'detected':
-        return context.read<DetectedProvider>();
+        prov = _safeWatch<DetectedProvider>(context);
+        break;
       case 'undetected':
-        return context.read<UndetectedProvider>();
+        prov = _safeWatch<UndetectedProvider>(context);
+        break;
       case 'disposal':
-        return context.read<DisposalProvider>();
+        prov = _safeWatch<DisposalProvider>(context);
+        break;
       case 'two_four_wheeler':
-        return context.read<TwoFourWheelerProvider>();
+        prov = _safeWatch<TwoFourWheelerProvider>(context);
+        break;
       case 'arrested':
-        return context.read<ArrestedProvider>();
+        prov = _safeWatch<ArrestedProvider>(context);
+        break;
       case 'absconded':
-        return context.read<AbscondedProvider>();
+        prov = _safeWatch<AbscondedProvider>(context);
+        break;
       case 'crime_women':
-        return context.read<CrimeWomenProvider>();
+        prov = _safeWatch<CrimeWomenProvider>(context);
+        break;
       case 'juvenile':
-        return context.read<JuvenileProvider>();
+        prov = _safeWatch<JuvenileProvider>(context);
+        break;
       case 'victim':
-        return context.read<VictimProvider>();
+        prov = _safeWatch<VictimProvider>(context);
+        break;
       case 'accident':
-        return context.read<AccidentProvider>();
+        prov = _safeWatch<AccidentProvider>(context);
+        break;
       case 'traffic':
-        return context.read<TrafficProvider>();
+        prov = _safeWatch<TrafficProvider>(context);
+        break;
       case 'application':
-        return context.read<ApplicationProvider>();
+        prov = _safeWatch<ApplicationProvider>(context);
+        break;
       case 'sam_warrant':
-        return context.read<SamWarrantProvider>();
+        prov = _safeWatch<SamWarrantProvider>(context);
+        break;
       case 'muddemal':
-        return context.read<MuddemalProvider>();
+        prov = _safeWatch<MuddemalProvider>(context);
+        break;
       case 'bnss':
-        return context.read<BnssProvider>();
+        prov = _safeWatch<BnssProvider>(context);
+        break;
       case 'ndps':
-        return context.read<NdpsProvider>();
+        prov = _safeWatch<NdpsProvider>(context);
+        break;
       case 'gowans':
-        return context.read<GowansProvider>();
+        prov = _safeWatch<GowansProvider>(context);
+        break;
       case 'it_act':
-        return context.read<ItActProvider>();
+        prov = _safeWatch<ItActProvider>(context);
+        break;
       case 'mcoca':
-        return context.read<McocaProvider>();
+        prov = _safeWatch<McocaProvider>(context);
+        break;
       case 'uapa':
-        return context.read<UapaProvider>();
+        prov = _safeWatch<UapaProvider>(context);
+        break;
       case 'mpda':
-        return context.read<MpdaProvider>();
+        prov = _safeWatch<MpdaProvider>(context);
+        break;
       case 'coin':
-        return context.read<CoinProvider>();
+        prov = _safeWatch<CoinProvider>(context);
+        break;
       case 'st_drugs':
-        return context.read<StDrugsProvider>();
-      default:
-        return context.read<FormIVProvider>();
+        prov = _safeWatch<StDrugsProvider>(context);
+        break;
+      case 'tadipar':
+        prov = _safeWatch<TadiparProvider>(context);
+        break;
     }
+    return prov ?? _getDynamicProvider(context);
+  }
+
+  /// Read (no listen) version for delete/update calls inside callbacks.
+  /// Falls back safely to a dynamic backend-driven provider if not registered at root.
+  BaseModuleProvider _readProvider(BuildContext context) {
+    BaseModuleProvider? prov;
+    switch (widget.moduleKey) {
+      case 'form_1_5':
+        prov = _safeRead<FormIVProvider>(context);
+        break;
+      case 'form_6':
+        prov = _safeRead<FormVIProvider>(context);
+        break;
+      case 'nc':
+        prov = _safeRead<NcProvider>(context);
+        break;
+      case 'preventive':
+        prov = _safeRead<PreventiveProvider>(context);
+        break;
+      case 'ad':
+        prov = _safeRead<AdProvider>(context);
+        break;
+      case 'missing':
+        prov = _safeRead<MissingProvider>(context);
+        break;
+      case 'kidnapping':
+        prov = _safeRead<KidnappingProvider>(context);
+        break;
+      case 'theft':
+        prov = _safeRead<TheftProvider>(context);
+        break;
+      case 'sand_theft':
+        prov = _safeRead<SandTheftProvider>(context);
+        break;
+      case 'hurt':
+        prov = _safeRead<HurtProvider>(context);
+        break;
+      case 'pocso':
+        prov = _safeRead<PocsoProvider>(context);
+        break;
+      case 'passport':
+        prov = _safeRead<PassportProvider>(context);
+        break;
+      case 'monthly':
+        prov = _safeRead<MonthlyProvider>(context);
+        break;
+      case 'pending':
+        prov = _safeRead<PendingProvider>(context);
+        break;
+      case 'detected':
+        prov = _safeRead<DetectedProvider>(context);
+        break;
+      case 'undetected':
+        prov = _safeRead<UndetectedProvider>(context);
+        break;
+      case 'disposal':
+        prov = _safeRead<DisposalProvider>(context);
+        break;
+      case 'two_four_wheeler':
+        prov = _safeRead<TwoFourWheelerProvider>(context);
+        break;
+      case 'arrested':
+        prov = _safeRead<ArrestedProvider>(context);
+        break;
+      case 'absconded':
+        prov = _safeRead<AbscondedProvider>(context);
+        break;
+      case 'crime_women':
+        prov = _safeRead<CrimeWomenProvider>(context);
+        break;
+      case 'juvenile':
+        prov = _safeRead<JuvenileProvider>(context);
+        break;
+      case 'victim':
+        prov = _safeRead<VictimProvider>(context);
+        break;
+      case 'accident':
+        prov = _safeRead<AccidentProvider>(context);
+        break;
+      case 'traffic':
+        prov = _safeRead<TrafficProvider>(context);
+        break;
+      case 'application':
+        prov = _safeRead<ApplicationProvider>(context);
+        break;
+      case 'sam_warrant':
+        prov = _safeRead<SamWarrantProvider>(context);
+        break;
+      case 'muddemal':
+        prov = _safeRead<MuddemalProvider>(context);
+        break;
+      case 'bnss':
+        prov = _safeRead<BnssProvider>(context);
+        break;
+      case 'ndps':
+        prov = _safeRead<NdpsProvider>(context);
+        break;
+      case 'gowans':
+        prov = _safeRead<GowansProvider>(context);
+        break;
+      case 'it_act':
+        prov = _safeRead<ItActProvider>(context);
+        break;
+      case 'mcoca':
+        prov = _safeRead<McocaProvider>(context);
+        break;
+      case 'uapa':
+        prov = _safeRead<UapaProvider>(context);
+        break;
+      case 'mpda':
+        prov = _safeRead<MpdaProvider>(context);
+        break;
+      case 'coin':
+        prov = _safeRead<CoinProvider>(context);
+        break;
+      case 'st_drugs':
+        prov = _safeRead<StDrugsProvider>(context);
+        break;
+      case 'tadipar':
+        prov = _safeRead<TadiparProvider>(context);
+        break;
+    }
+    return prov ?? _getDynamicProvider(context);
   }
 
   bool _isReportMode = false;
@@ -378,6 +519,10 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     records.addAll(context.watch<UapaProvider>().records);
     records.addAll(context.watch<MpdaProvider>().records);
     records.addAll(context.watch<CoinProvider>().records);
+    final tadiparProv = _safeWatch<TadiparProvider>(context);
+    if (tadiparProv != null) {
+      records.addAll(tadiparProv.records);
+    }
     final unique = <String, ModuleRecord>{};
     for (final r in records) {
       unique[r.id] = r;
@@ -484,7 +629,12 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               moduleKey: widget.moduleKey,
               subCategory: widget.subCategory,
             );
-      Navigator.push(context, AppTheme.fadeSlideRoute(page: page));
+      Navigator.push(context, AppTheme.fadeSlideRoute(page: page)).then((_) {
+        if (mounted) {
+          _readProvider(context).ensureInitialized(forceRefresh: true);
+          setState(() {});
+        }
+      });
     }
   }
 
@@ -2128,7 +2278,13 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                       subCategory: record.subCategory,
                       existingRecord: record,
                     );
-              Navigator.push(ctx, AppTheme.fadeSlideRoute(page: page));
+              Navigator.push(ctx, AppTheme.fadeSlideRoute(page: page))
+                  .then((_) {
+                if (mounted) {
+                  _readProvider(context).ensureInitialized(forceRefresh: true);
+                  setState(() {});
+                }
+              });
             }),
             Container(width: 1, height: 24, color: AppColors.lightBorder),
             _actionBtn(Icons.picture_as_pdf_rounded, 'PDF', AppColors.dangerRed,
