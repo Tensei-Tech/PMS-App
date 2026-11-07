@@ -2020,7 +2020,6 @@ class CrimeCaseManageView(APIView):
 
         from apps.core.tenancy import TenantContext
         from apps.core.cache import upstash_cache
-        from apps.crimetab.models.accident import RoadAccidentRecord
         with TenantContext(schema_name):
             case = CaseRecord.objects.filter(pk=pk).first()
             if not case or not can_access_station(request.user, case.station_name):
@@ -2029,9 +2028,7 @@ class CrimeCaseManageView(APIView):
                 return Response({'error': 'You can delete only cases you created.'}, status=status.HTTP_403_FORBIDDEN)
 
             with transaction.atomic():
-                # Accident rows point at the case by id text, not a foreign key.
-                RoadAccidentRecord.objects.filter(case_id=str(case.pk)).delete()
-                case.delete()  # persons, charges, seizures, ... cascade
+                case.delete()  # accident rows, persons, charges, seizures, ... cascade
         upstash_cache.delete_pattern("pms:cache:*:cases:*")
         logger.info(f"[CaseDelete] case {pk} deleted by {getattr(request.user, 'uid', '')}")
         return Response(status=status.HTTP_204_NO_CONTENT)
