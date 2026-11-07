@@ -204,6 +204,9 @@ def provision_state_schema(schema_name: str, state_code: str = None, state_name:
         );
         """)
         create_module_tables(cursor, clean_schema)
+        # Road Accident tables (same as migrations 0056 + 0102 + 0174 on existing states)
+        from apps.crimetab.road_accident_schema import create_road_accident_tables
+        create_road_accident_tables(cursor, clean_schema)
     logger.info(f"[Tenancy] Provisioned PostgreSQL schema & tables: {clean_schema} (State: {resolved_name}/{resolved_code})")
 
 
