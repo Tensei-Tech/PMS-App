@@ -114,11 +114,15 @@ def plan_state_schema(schema_name):
     schema = _clean(schema_name)
     with connection.cursor() as cursor:
         existing = _schema_columns(cursor, schema)
+        in_public = set(_schema_columns(cursor, 'public'))
     create, add = [], {}
     for model in state_models():
         table = model._meta.db_table
         if table not in existing:
-            create.append(table)
+            # The state already reads public's copy through its search_path
+            # (`<state>, public`); a new empty copy would hide that data.
+            if table not in in_public:
+                create.append(table)
             continue
         missing = [f.column for f in model._meta.local_concrete_fields if f.column not in existing[table]]
         if missing:
@@ -194,6 +198,12 @@ def seed_state_config():
                 defaults={'config_value': cfg['config_value'], 'description': cfg['description']},
             )
         seeded.append('muddemal')
+        if connection.vendor == 'postgresql':
+            # Check the seed rows' foreign keys now, so the new schema can be
+            # dropped or changed later in the same transaction
+            with connection.cursor() as cursor:
+                cursor.execute('SET CONSTRAINTS ALL IMMEDIATE')
+                cursor.execute('SET CONSTRAINTS ALL DEFERRED')
     return seeded
 
 

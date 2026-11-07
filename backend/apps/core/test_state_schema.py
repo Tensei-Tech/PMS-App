@@ -94,16 +94,39 @@ class StateSchemaSyncPostgresTests(TestCase):
 
     def test_missing_column_is_added_back(self):
         provision_state_schema(self.schema, state_code='TS', state_name='Test Sync')
+        # rti_applications is always in the state's own schema
         with connection.cursor() as cursor:
-            cursor.execute(f'ALTER TABLE "{self.schema}".cases_caserecord DROP COLUMN disposal_date')
-        self.assertEqual(plan_state_schema(self.schema)[1], {'cases_caserecord': ['disposal_date']})
+            cursor.execute(f'ALTER TABLE "{self.schema}".rti_applications DROP COLUMN remark')
+        self.assertEqual(plan_state_schema(self.schema)[1], {'rti_applications': ['remark']})
         report = sync_state_schema(self.schema)
-        self.assertEqual(report['columns_added'], {'cases_caserecord': ['disposal_date']})
+        self.assertEqual(report['columns_added'], {'rti_applications': ['remark']})
         self.assertEqual(plan_state_schema(self.schema)[1], {})
+
+    def test_public_tables_are_never_shadowed(self):
+        """A table the state already reads from public is not copied into the state."""
+        provision_state_schema(self.schema, state_code='TS', state_name='Test Sync')
+        with connection.cursor() as cursor:
+            cursor.execute("""SELECT table_name FROM information_schema.tables
+                              WHERE table_schema = 'public' AND table_name = ANY(%s)""", [list(STATE_TABLES)])
+            in_public = {r[0] for r in cursor.fetchall()}
+            cursor.execute('SELECT table_name FROM information_schema.tables WHERE table_schema = %s',
+                           [self.schema])
+            in_state = {r[0] for r in cursor.fetchall()}
+        # Tables provisioning writes by hand (raw DDL) are always the state's own;
+        # only the ones the sync builds from models must never copy public's
+        import inspect
+        import re
+        from apps.core import tenancy
+        from apps.crimetab import nc_schema, road_accident_schema
+        ddl = ''.join(inspect.getsource(m) for m in (tenancy, nc_schema, road_accident_schema))
+        hand_written = set(re.findall(r'CREATE TABLE IF NOT EXISTS \S+?\.(\w+)', ddl))
+        self.assertEqual((in_public & in_state) - hand_written, set())
+        # every state table is reachable: in the state or in public
+        self.assertEqual(STATE_TABLES - in_state - in_public, set())
 
     def test_dry_run_creates_nothing(self):
         report = sync_state_schema(self.schema, dry_run=True)
-        self.assertIn('cases_caserecord', report['created'])
+        self.assertEqual(report['created'], plan_state_schema(self.schema)[0])
         with connection.cursor() as cursor:
             cursor.execute('SELECT 1 FROM information_schema.schemata WHERE schema_name = %s', [self.schema])
             self.assertIsNone(cursor.fetchone())
