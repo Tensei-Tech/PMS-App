@@ -115,7 +115,6 @@ import 'admin_panel_screen.dart';
 import 'analytics_performance_screen.dart';
 import 'app_settings_screen.dart';
 import 'case_detail_screen.dart';
-import 'case_form_screen.dart';
 import 'common_form_screen.dart';
 import 'feedback_form_screen.dart';
 import 'form_i_v_selection_screen.dart';
@@ -3964,24 +3963,14 @@ class _HomeTabState extends State<_HomeTab> {
         ServiceData.dashboardTools.any((t) =>
             t.label.toLowerCase() == label.toLowerCase() ||
             (t.moduleKey != null && t.moduleKey == item.moduleKey))) {
-      final cleanLabel = label.trim().toLowerCase();
-      if (cleanLabel == 'history sheeter' || cleanLabel == 'history sheet') {
-        CategoryNavigationHelper.handleDashboardCategoryTap(
-          context: context,
-          categoryName: item.name,
-          moduleKey: item.moduleKey,
-          categoryId: item.categoryId,
-          categoryCode: item.categoryCode,
-          readOnly: false,
-        );
-      } else {
-        Navigator.push(
-          context,
-          AppTheme.fadeSlideRoute(
-            page: CaseFormScreen(categoryName: label),
-          ),
-        );
-      }
+      CategoryNavigationHelper.handleDashboardCategoryTap(
+        context: context,
+        categoryName: item.name,
+        moduleKey: item.moduleKey,
+        categoryId: item.categoryId,
+        categoryCode: item.categoryCode,
+        readOnly: false,
+      );
     } else if (item.moduleKey == 'chain_snatching') {
       // Same tab, case list and form as inside "1 to 5"
       Navigator.push(

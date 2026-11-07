@@ -44,6 +44,7 @@ import '../modules/uapa/providers/uapa_provider.dart';
 import '../modules/mpda/providers/mpda_provider.dart';
 import '../modules/coin/providers/coin_provider.dart';
 import '../modules/st_drugs/providers/st_drugs_provider.dart';
+import '../modules/tadipar/providers/tadipar_provider.dart';
 
 // ── Helper macro — wires AuthProvider → any BaseModuleProvider subclass ──────
 ChangeNotifierProxyProvider<AuthProvider, T>
@@ -108,6 +109,7 @@ List<SingleChildWidget> moduleProviders = [
   _wired<MpdaProvider>(() => MpdaProvider()),
   _wired<CoinProvider>(() => CoinProvider()),
   _wired<StDrugsProvider>(() => StDrugsProvider()),
+  _wired<TadiparProvider>(() => TadiparProvider()),
 ];
 
 // ── rest unchanged ─────────────────────────────────────────────────────────
@@ -168,6 +170,8 @@ const Map<String, String> labelToModuleKey = {
   'UAPA': 'uapa',
   'MPDA': 'mpda',
   'COIN': 'coin',
+  'Tadipar': 'tadipar',
+  'tadipar': 'tadipar',
 };
 
 final List<Type> allDataProviders = [
@@ -175,6 +179,7 @@ final List<Type> allDataProviders = [
   FormVIProvider,
   NcProvider,
   PreventiveProvider,
+  TadiparProvider,
   AdProvider,
   MissingProvider,
   KidnappingProvider,
@@ -286,6 +291,8 @@ BaseModuleProvider getProvider(BuildContext context, String label) {
       return context.read<CoinProvider>();
     case 'st_drugs':
       return context.read<StDrugsProvider>();
+    case 'tadipar':
+      return context.read<TadiparProvider>();
     default:
       return context.read<NcProvider>();
   }
@@ -331,5 +338,6 @@ List<BaseModuleProvider> getModuleProviders(BuildContext context) {
     context.read<MpdaProvider>(),
     context.read<CoinProvider>(),
     context.read<StDrugsProvider>(),
+    context.read<TadiparProvider>(),
   ];
 }

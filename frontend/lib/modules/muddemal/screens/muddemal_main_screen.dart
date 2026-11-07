@@ -86,6 +86,11 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
   Future<void> _handleAutoSync(MuddemalProvider provider) async {
     setState(() => _isSyncing = true);
     try {
+      final auth = context.read<AuthProvider>();
+      final station = auth.activeStation.isNotEmpty
+          ? auth.activeStation
+          : (auth.stationName.isNotEmpty ? auth.stationName : 'All Stations');
+      await provider.loadInitialMetadata(stationName: station);
       await provider.syncAllSources();
       await provider.loadFSLAlerts();
       await provider.loadDashboards();
@@ -758,6 +763,12 @@ class _MuddemalMainScreenState extends State<MuddemalMainScreen>
     final categories = provider.categories;
     final sourceModules = provider.sourceModules;
     final statuses = provider.propertyStatusOptions;
+
+    if ((sourceModules.isEmpty || statuses.isEmpty) && !provider.isLoading) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        provider.ensureConfigsLoaded();
+      });
+    }
 
     final hasFilters = _searchQuery.isNotEmpty ||
         _selectedCategoryFilter != null ||

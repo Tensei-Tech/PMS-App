@@ -10,30 +10,20 @@ import '../../../services/backend_case_service.dart';
 import '../../../services/case_service.dart';
 import '../../../services/dynamic_options_service.dart';
 import '../../../services/preventive_service.dart';
+import '../../../theme/app_theme.dart';
 import '../../../widgets/common_form/pocso_voice_banner.dart';
+import '../../../widgets/dynamic_form/dynamic_control_factory.dart';
 import '../../../widgets/dynamic_form/dynamic_field_model.dart';
 import '../../../widgets/voice_dictation_button.dart';
 
-// ── Palette matching Form 1 to 5 design system ──────────────────────────────
-const Color _kDark = Color(0xFF0f172a);
-const Color _kMid = Color(0xFF1e293b);
-const Color _kTeal = Color(0xFF0ea5e9);
-const Color _kGreen = Color(0xFF10b981);
-const Color _kRed = Color(0xFFef4444);
-const Color _kAmber = Color(0xFFf59e0b);
-const Color _kSec = Color(0xFF64748b);
-const Color _kMuted = Color(0xFF94a3b8);
-const Color _kInputBg = Color(0xFFf8fafc);
-const Color _kBorder = Color(0xFFe2e8f0);
-const Color _kCardBg = Color(0xFFffffff);
-const Color _kPageBg = Color(0xFFf4f7f9);
-
-const _tsLabel = TextStyle(
-  fontSize: 11,
-  fontWeight: FontWeight.w600,
-  color: _kDark,
-  letterSpacing: 0.3,
-);
+// ── Palette matching PMS standard design system ──────────────────────────────
+const Color _kDark = AppColors.navyDark;
+const Color _kMid = AppColors.navyMid;
+const Color _kTeal = AppColors.navyMid;
+const Color _kRed = AppColors.dangerRed;
+const Color _kSec = AppColors.lightSubText;
+const Color _kBorder = AppColors.lightBorder;
+const Color _kPageBg = AppColors.lightBg;
 
 /// Accused entry model for Preventive Form
 class PreventiveAccusedEntry {
@@ -117,6 +107,9 @@ class PreventiveFormState extends State<PreventiveForm> {
   late final ScrollController _scroll = ScrollController();
   final ValueNotifier<double> scrollProgress = ValueNotifier(0);
   String saveBarText = 'All changes unsaved';
+
+  // Accordion state: by default, all sections are expanded
+  final Set<String> _expandedSections = {'1', '2', '3', '4', '5', '6'};
 
   // ── Dynamic State & Definitions ───────────────────────────────────────────
   bool _isLoading = true;
@@ -1015,9 +1008,9 @@ class PreventiveFormState extends State<PreventiveForm> {
               children: [
                 Text(
                   saveBarText,
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.poppins(
                     fontSize: 12,
-                    color: _kSec,
+                    color: AppColors.lightSubText,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -1026,13 +1019,16 @@ class PreventiveFormState extends State<PreventiveForm> {
                   OutlinedButton.icon(
                     onPressed: clearForm,
                     icon: const Icon(Icons.refresh_rounded,
-                        size: 14, color: _kSec),
+                        size: 14, color: AppColors.lightSubText),
                     label: Text('Clear',
-                        style: GoogleFonts.inter(fontSize: 12, color: _kSec)),
+                        style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            color: AppColors.lightSubText,
+                            fontWeight: FontWeight.w500)),
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: _kBorder),
+                      side: const BorderSide(color: AppColors.lightBorder),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(6)),
+                          borderRadius: BorderRadius.circular(AppRadius.md)),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 6),
                     ),
@@ -1049,13 +1045,16 @@ class PreventiveFormState extends State<PreventiveForm> {
                       );
                     },
                     icon: const Icon(Icons.save_as_rounded,
-                        size: 14, color: _kTeal),
+                        size: 14, color: AppColors.navyMid),
                     label: Text('Save Draft',
-                        style: GoogleFonts.inter(fontSize: 12, color: _kTeal)),
+                        style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            color: AppColors.navyMid,
+                            fontWeight: FontWeight.w600)),
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: _kTeal),
+                      side: const BorderSide(color: AppColors.navyMid),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(6)),
+                          borderRadius: BorderRadius.circular(AppRadius.md)),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 6),
                     ),
@@ -1065,16 +1064,17 @@ class PreventiveFormState extends State<PreventiveForm> {
                 OutlinedButton.icon(
                   onPressed: widget.onExportPdf,
                   icon: const Icon(Icons.picture_as_pdf_rounded,
-                      size: 14, color: _kTeal),
+                      size: 14, color: AppColors.navyMid),
                   label: Text('Generate Preventive Form PDF',
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.poppins(
                           fontSize: 12,
-                          color: _kTeal,
+                          color: AppColors.navyMid,
                           fontWeight: FontWeight.w600)),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: _kTeal, width: 1.2),
+                    side:
+                        const BorderSide(color: AppColors.navyMid, width: 1.2),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6)),
+                        borderRadius: BorderRadius.circular(AppRadius.md)),
                     padding:
                         const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                   ),
@@ -1084,12 +1084,12 @@ class PreventiveFormState extends State<PreventiveForm> {
           ),
         ),
 
-        const Divider(height: 1, color: _kBorder),
+        const Divider(height: 1, color: AppColors.lightBorder),
 
         // Scrollable Form Content
         Expanded(
           child: Container(
-            color: _kPageBg,
+            color: AppColors.lightBg,
             child: SingleChildScrollView(
               controller: _scroll,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
@@ -1102,6 +1102,7 @@ class PreventiveFormState extends State<PreventiveForm> {
                       // Section 1: Case & Crime Reference
                       _buildCard(
                         secNum: '1',
+                        fieldCount: 4,
                         title: _formDef?.sectionTitles['case_ref'] ??
                             'Case & Crime Reference',
                         marathiTitle: 'गुन्हा व खटला संदर्भ',
@@ -1187,23 +1188,23 @@ class PreventiveFormState extends State<PreventiveForm> {
                                                       });
                                                     }
                                                   },
-                                            selectedColor:
-                                                const Color(0xFFE0E7FF),
-                                            backgroundColor: _kInputBg,
+                                            selectedColor: AppColors.navyMid
+                                                .withValues(alpha: 0.10),
+                                            backgroundColor: Colors.white,
                                             side: BorderSide(
                                               color: isSelected
-                                                  ? const Color(0xFF4F46E5)
-                                                  : _kBorder,
+                                                  ? AppColors.navyMid
+                                                  : AppColors.lightBorder,
                                               width: isSelected ? 1.5 : 1,
                                             ),
-                                            labelStyle: GoogleFonts.inter(
-                                              fontSize: 11,
+                                            labelStyle: GoogleFonts.poppins(
+                                              fontSize: 11.5,
                                               fontWeight: isSelected
-                                                  ? FontWeight.w700
+                                                  ? FontWeight.w600
                                                   : FontWeight.w500,
                                               color: isSelected
-                                                  ? const Color(0xFF4F46E5)
-                                                  : _kDark,
+                                                  ? AppColors.navyDark
+                                                  : AppColors.lightSubText,
                                             ),
                                           );
                                         }).toList(),
@@ -1230,6 +1231,7 @@ class PreventiveFormState extends State<PreventiveForm> {
                       // Section 2: Sections & Acts Filter
                       _buildCard(
                         secNum: '2',
+                        fieldCount: 3,
                         title: 'Sections & Acts (filter by section)',
                         marathiTitle: 'कलमे व कायदे (BNS / इतर कायदे)',
                         icon: Icons.gavel_rounded,
@@ -1246,13 +1248,13 @@ class PreventiveFormState extends State<PreventiveForm> {
                                 child: Row(
                                   children: [
                                     const Icon(Icons.error_outline,
-                                        size: 16, color: _kRed),
+                                        size: 16, color: AppColors.dangerRed),
                                     const SizedBox(width: 6),
                                     Text(
                                       'Error: Failed to load acts and sections from server.',
-                                      style: GoogleFonts.inter(
+                                      style: GoogleFonts.poppins(
                                           fontSize: 12,
-                                          color: _kRed,
+                                          color: AppColors.dangerRed,
                                           fontWeight: FontWeight.w500),
                                     ),
                                   ],
@@ -1281,19 +1283,23 @@ class PreventiveFormState extends State<PreventiveForm> {
                                                   });
                                                 }
                                               },
-                                        selectedColor:
-                                            _kTeal.withValues(alpha: 0.15),
-                                        backgroundColor: _kInputBg,
+                                        selectedColor: AppColors.navyMid
+                                            .withValues(alpha: 0.10),
+                                        backgroundColor: Colors.white,
                                         side: BorderSide(
-                                          color: isSelected ? _kTeal : _kBorder,
+                                          color: isSelected
+                                              ? AppColors.navyMid
+                                              : AppColors.lightBorder,
                                           width: isSelected ? 1.5 : 1,
                                         ),
-                                        labelStyle: GoogleFonts.inter(
-                                          fontSize: 11,
+                                        labelStyle: GoogleFonts.poppins(
+                                          fontSize: 11.5,
                                           fontWeight: isSelected
-                                              ? FontWeight.w700
+                                              ? FontWeight.w600
                                               : FontWeight.w500,
-                                          color: isSelected ? _kTeal : _kDark,
+                                          color: isSelected
+                                              ? AppColors.navyDark
+                                              : AppColors.lightSubText,
                                         ),
                                       ),
                                     );
@@ -1328,19 +1334,22 @@ class PreventiveFormState extends State<PreventiveForm> {
                                   return Chip(
                                     label: Text(
                                       '$_selectedAct $sec',
-                                      style: GoogleFonts.inter(
+                                      style: GoogleFonts.poppins(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
-                                        color: _kDark,
+                                        color: AppColors.navyDark,
                                       ),
                                     ),
-                                    backgroundColor: const Color(0xFFEEF2FF),
-                                    side: const BorderSide(
-                                        color: Color(0xFFC7D2FE)),
+                                    backgroundColor: AppColors.navyMid
+                                        .withValues(alpha: 0.08),
+                                    side: BorderSide(
+                                        color: AppColors.navyMid
+                                            .withValues(alpha: 0.2)),
                                     deleteIcon: widget.readOnly
                                         ? null
                                         : const Icon(Icons.close_rounded,
-                                            size: 14, color: _kRed),
+                                            size: 14,
+                                            color: AppColors.dangerRed),
                                     onDeleted: widget.readOnly
                                         ? null
                                         : () {
@@ -1371,6 +1380,7 @@ class PreventiveFormState extends State<PreventiveForm> {
                       // Section 3: Accused & Action Details
                       _buildCard(
                         secNum: '3',
+                        fieldCount: _accusedEntries.length,
                         title: _formDef?.sectionTitles['accused'] ??
                             'Accused & Preventive Action Details',
                         marathiTitle: 'आरोपी व प्रतिबंधक कारवाई तपशील',
@@ -1383,18 +1393,19 @@ class PreventiveFormState extends State<PreventiveForm> {
                                     size: 14, color: Colors.white),
                                 label: Text(
                                   '+ Add Accused',
-                                  style: GoogleFonts.inter(
-                                      fontSize: 11,
+                                  style: GoogleFonts.poppins(
+                                      fontSize: 11.5,
                                       fontWeight: FontWeight.w600,
                                       color: Colors.white),
                                 ),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: _kTeal,
+                                  backgroundColor: AppColors.navyDark,
                                   elevation: 0,
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 8),
+                                      horizontal: 14, vertical: 8),
                                   shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(6)),
+                                      borderRadius:
+                                          BorderRadius.circular(AppRadius.md)),
                                 ),
                               ),
                         child: Column(
@@ -1411,6 +1422,7 @@ class PreventiveFormState extends State<PreventiveForm> {
                       // Section 4: Preventive & Istegasha Details
                       _buildCard(
                         secNum: '4',
+                        fieldCount: 6,
                         title: _formDef?.sectionTitles['istegasha'] ??
                             'Preventive & Istegasha Details',
                         marathiTitle: 'प्रतिबंधक / इस्तेगाशा तपशील',
@@ -1530,6 +1542,7 @@ class PreventiveFormState extends State<PreventiveForm> {
                       // Section 5: Risk Flag & Action Status
                       _buildCard(
                         secNum: '5',
+                        fieldCount: 3,
                         title: _formDef?.sectionTitles['risk_status'] ??
                             'Risk Flag & Preventive Action Status',
                         marathiTitle: 'जोखीम ध्वज व कारवाई स्थिती',
@@ -1541,25 +1554,28 @@ class PreventiveFormState extends State<PreventiveForm> {
                             _buildLabel('Risk Flag (जोखीम वर्ग)'),
                             const SizedBox(height: 6),
                             Wrap(
-                              spacing: 10,
+                              spacing: 8,
                               runSpacing: 8,
                               children: _riskFlags.map((flag) {
                                 final isSelected = _riskFlag == flag;
                                 final isHigh = flag.contains('High');
                                 final isSensitive = flag.contains('Sensitive');
 
-                                Color activeBg = _kTeal.withValues(alpha: 0.12);
-                                Color activeBorder = _kTeal;
-                                Color activeText = _kTeal;
+                                Color activeBg =
+                                    AppColors.navyMid.withValues(alpha: 0.10);
+                                Color activeBorder = AppColors.navyMid;
+                                Color activeText = AppColors.navyDark;
 
                                 if (isHigh) {
-                                  activeBg = const Color(0xFFFEE2E2);
-                                  activeBorder = _kRed;
-                                  activeText = _kRed;
+                                  activeBg = AppColors.dangerRed
+                                      .withValues(alpha: 0.10);
+                                  activeBorder = AppColors.dangerRed;
+                                  activeText = AppColors.dangerRed;
                                 } else if (isSensitive) {
-                                  activeBg = const Color(0xFFFEF3C7);
-                                  activeBorder = _kAmber;
-                                  activeText = const Color(0xFFD97706);
+                                  activeBg = AppColors.warningOrange
+                                      .withValues(alpha: 0.12);
+                                  activeBorder = AppColors.warningOrange;
+                                  activeText = AppColors.warningOrange;
                                 }
 
                                 return ChoiceChip(
@@ -1576,17 +1592,21 @@ class PreventiveFormState extends State<PreventiveForm> {
                                           }
                                         },
                                   selectedColor: activeBg,
-                                  backgroundColor: _kInputBg,
+                                  backgroundColor: Colors.white,
                                   side: BorderSide(
-                                    color: isSelected ? activeBorder : _kBorder,
-                                    width: isSelected ? 1.8 : 1,
+                                    color: isSelected
+                                        ? activeBorder
+                                        : AppColors.lightBorder,
+                                    width: isSelected ? 1.5 : 1,
                                   ),
-                                  labelStyle: GoogleFonts.inter(
-                                    fontSize: 12,
+                                  labelStyle: GoogleFonts.poppins(
+                                    fontSize: 11.5,
                                     fontWeight: isSelected
-                                        ? FontWeight.w700
+                                        ? FontWeight.w600
                                         : FontWeight.w500,
-                                    color: isSelected ? activeText : _kDark,
+                                    color: isSelected
+                                        ? activeText
+                                        : AppColors.lightSubText,
                                   ),
                                 );
                               }).toList(),
@@ -1608,18 +1628,30 @@ class PreventiveFormState extends State<PreventiveForm> {
                                 final isNoAction =
                                     actionSt.contains('No Preventive');
 
-                                Color borderColor = _kBorder;
-                                Color bg = _kInputBg;
+                                Color borderColor = AppColors.lightBorder;
+                                Color bg = Colors.white;
+                                Color accentColor = AppColors.navyMid;
                                 if (isSelected) {
                                   if (isCompleted) {
-                                    borderColor = _kGreen;
-                                    bg = const Color(0xFFECFDF5);
+                                    borderColor = AppColors.successGreen;
+                                    bg = AppColors.successGreen
+                                        .withValues(alpha: 0.05);
+                                    accentColor = AppColors.successGreen;
                                   } else if (isPartial) {
-                                    borderColor = _kAmber;
-                                    bg = const Color(0xFFFFFBEB);
+                                    borderColor = AppColors.warningOrange;
+                                    bg = AppColors.warningOrange
+                                        .withValues(alpha: 0.05);
+                                    accentColor = AppColors.warningOrange;
                                   } else if (isNoAction) {
-                                    borderColor = _kRed;
-                                    bg = const Color(0xFFFEF2F2);
+                                    borderColor = AppColors.dangerRed;
+                                    bg = AppColors.dangerRed
+                                        .withValues(alpha: 0.05);
+                                    accentColor = AppColors.dangerRed;
+                                  } else {
+                                    borderColor = AppColors.navyMid;
+                                    bg = AppColors.navyMid
+                                        .withValues(alpha: 0.05);
+                                    accentColor = AppColors.navyMid;
                                   }
                                 }
 
@@ -1635,26 +1667,20 @@ class PreventiveFormState extends State<PreventiveForm> {
                                               _markUnsaved();
                                             });
                                           },
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius:
+                                        BorderRadius.circular(AppRadius.md),
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 14, vertical: 10),
                                       decoration: BoxDecoration(
                                         color: bg,
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border(
-                                          top: BorderSide(
-                                              color: borderColor,
-                                              width: isSelected ? 1.5 : 1),
-                                          bottom: BorderSide(
-                                              color: borderColor,
-                                              width: isSelected ? 1.5 : 1),
-                                          left: BorderSide(
-                                              color: borderColor,
-                                              width: isSelected ? 3.5 : 1),
-                                          right: BorderSide(
-                                              color: borderColor,
-                                              width: isSelected ? 1.5 : 1),
+                                        borderRadius:
+                                            BorderRadius.circular(AppRadius.md),
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? borderColor
+                                              : AppColors.lightBorder,
+                                          width: isSelected ? 1.5 : 1,
                                         ),
                                       ),
                                       child: Row(
@@ -1667,23 +1693,21 @@ class PreventiveFormState extends State<PreventiveForm> {
                                                     .radio_button_off_rounded,
                                             size: 18,
                                             color: isSelected
-                                                ? (isCompleted
-                                                    ? _kGreen
-                                                    : isPartial
-                                                        ? _kAmber
-                                                        : _kRed)
-                                                : _kMuted,
+                                                ? accentColor
+                                                : AppColors.lightSubText,
                                           ),
                                           const SizedBox(width: 10),
                                           Expanded(
                                             child: Text(
                                               actionSt,
-                                              style: GoogleFonts.inter(
-                                                fontSize: 12,
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 12.5,
                                                 fontWeight: isSelected
-                                                    ? FontWeight.w700
-                                                    : FontWeight.w500,
-                                                color: _kDark,
+                                                    ? FontWeight.w600
+                                                    : FontWeight.w400,
+                                                color: isSelected
+                                                    ? AppColors.navyDark
+                                                    : AppColors.lightText,
                                               ),
                                             ),
                                           ),
@@ -1712,6 +1736,67 @@ class PreventiveFormState extends State<PreventiveForm> {
                         ),
                       ),
 
+                      // Section 6: Additional Template Fields (if present from dynamic DB template)
+                      Builder(builder: (context) {
+                        final unhandledFields = _templateFields.where((f) {
+                          final k = f.fieldKey.toLowerCase();
+                          return !const {
+                            'crime_no',
+                            'reg_date',
+                            'crime_category',
+                            'case_status',
+                            'act',
+                            'sections',
+                            'other_sections',
+                            'preventive_section_act',
+                            'has_preventive_no',
+                            'preventive_no',
+                            'preventive_date',
+                            'outward_no',
+                            'io_name',
+                            'risk_flag',
+                            'preventive_action_status',
+                            'remarks'
+                          }.contains(k);
+                        }).toList();
+
+                        if (unhandledFields.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: _buildCard(
+                            secNum: '6',
+                            fieldCount: unhandledFields.length,
+                            title: 'Additional Information',
+                            marathiTitle: 'अतिरिक्त माहिती',
+                            icon: Icons.more_horiz_rounded,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: unhandledFields.map((f) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: DynamicControlFactory(
+                                    fieldDef: f,
+                                    controller:
+                                        _dynamicFieldControllers[f.fieldKey],
+                                    value: _dynamicFieldValues[f.fieldKey],
+                                    readOnly: widget.readOnly,
+                                    onChanged: (val) {
+                                      setState(() {
+                                        _dynamicFieldValues[f.fieldKey] = val;
+                                        _markUnsaved();
+                                      });
+                                    },
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        );
+                      }),
+
                       const SizedBox(height: 30),
                     ],
                   ),
@@ -1728,11 +1813,11 @@ class PreventiveFormState extends State<PreventiveForm> {
   Widget _buildAccusedRowCard(int index, PreventiveAccusedEntry entry) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: _kInputBg,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: _kBorder),
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: AppColors.lightBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1740,17 +1825,20 @@ class PreventiveFormState extends State<PreventiveForm> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: _kMid,
-                  borderRadius: BorderRadius.circular(4),
+                  color: AppColors.navyMid.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                      color: AppColors.navyMid.withValues(alpha: 0.2)),
                 ),
                 child: Text(
                   'Accused ${index + 1}',
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
+                  style: GoogleFonts.poppins(
+                    fontSize: 11.5,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: AppColors.navyDark,
                   ),
                 ),
               ),
@@ -1759,14 +1847,14 @@ class PreventiveFormState extends State<PreventiveForm> {
                 IconButton(
                   onPressed: () => _removeAccused(index),
                   icon: const Icon(Icons.delete_outline_rounded,
-                      size: 18, color: _kRed),
+                      size: 18, color: AppColors.dangerRed),
                   tooltip: 'Remove Accused',
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
 
           // Accused Name
           _buildTextField(
@@ -1778,7 +1866,7 @@ class PreventiveFormState extends State<PreventiveForm> {
               controller: entry.name,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
 
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1809,17 +1897,22 @@ class PreventiveFormState extends State<PreventiveForm> {
                                     });
                                   }
                                 },
-                          selectedColor: const Color(0xFFDCFCE7),
+                          selectedColor:
+                              AppColors.navyMid.withValues(alpha: 0.10),
                           backgroundColor: Colors.white,
                           side: BorderSide(
-                            color: isSel ? _kGreen : _kBorder,
+                            color: isSel
+                                ? AppColors.navyMid
+                                : AppColors.lightBorder,
                             width: isSel ? 1.5 : 1,
                           ),
-                          labelStyle: GoogleFonts.inter(
-                            fontSize: 10,
+                          labelStyle: GoogleFonts.poppins(
+                            fontSize: 11,
                             fontWeight:
-                                isSel ? FontWeight.w700 : FontWeight.w500,
-                            color: isSel ? const Color(0xFF15803D) : _kDark,
+                                isSel ? FontWeight.w600 : FontWeight.w500,
+                            color: isSel
+                                ? AppColors.navyDark
+                                : AppColors.lightSubText,
                           ),
                         );
                       }).toList(),
@@ -1855,21 +1948,23 @@ class PreventiveFormState extends State<PreventiveForm> {
                                       });
                                     }
                                   },
-                            selectedColor: isSel && b == 'Yes'
-                                ? const Color(0xFFDCFCE7)
-                                : const Color(0xFFF1F5F9),
+                            selectedColor: isSel
+                                ? AppColors.navyMid.withValues(alpha: 0.10)
+                                : Colors.white,
                             backgroundColor: Colors.white,
                             side: BorderSide(
                               color: isSel
-                                  ? (b == 'Yes' ? _kGreen : _kSec)
-                                  : _kBorder,
+                                  ? AppColors.navyMid
+                                  : AppColors.lightBorder,
                               width: isSel ? 1.5 : 1,
                             ),
-                            labelStyle: GoogleFonts.inter(
+                            labelStyle: GoogleFonts.poppins(
                               fontSize: 11,
                               fontWeight:
-                                  isSel ? FontWeight.w700 : FontWeight.w500,
-                              color: isSel ? _kDark : _kMuted,
+                                  isSel ? FontWeight.w600 : FontWeight.w500,
+                              color: isSel
+                                  ? AppColors.navyDark
+                                  : AppColors.lightSubText,
                             ),
                           ),
                         );
@@ -1882,7 +1977,7 @@ class PreventiveFormState extends State<PreventiveForm> {
           ),
 
           if (entry.bondTaken == 'Yes') ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             _buildTextField(
               label: 'Bond Amount / Surety Details',
               hint: 'e.g. ₹15,000 personal bond with one surety',
@@ -1901,12 +1996,15 @@ class PreventiveFormState extends State<PreventiveForm> {
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           children: [
-            const Icon(Icons.error_outline, size: 16, color: _kRed),
+            const Icon(Icons.error_outline,
+                size: 16, color: AppColors.dangerRed),
             const SizedBox(width: 6),
             Text(
               'Error: Failed to load acts and sections from server.',
-              style: GoogleFonts.inter(
-                  fontSize: 12, color: _kRed, fontWeight: FontWeight.w500),
+              style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: AppColors.dangerRed,
+                  fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -1933,17 +2031,18 @@ class PreventiveFormState extends State<PreventiveForm> {
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Text(
           'No matching sections found for "$filterQuery". You can type in custom sections below.',
-          style: GoogleFonts.inter(fontSize: 11, color: _kMuted),
+          style:
+              GoogleFonts.poppins(fontSize: 11, color: AppColors.lightSubText),
         ),
       );
     }
 
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: _kInputBg,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: _kBorder),
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: AppColors.lightBorder),
       ),
       child: Wrap(
         spacing: 6,
@@ -1955,19 +2054,21 @@ class PreventiveFormState extends State<PreventiveForm> {
 
           return ActionChip(
             label: Text(label),
-            backgroundColor:
-                isSelected ? const Color(0xFFC7D2FE) : Colors.white,
+            backgroundColor: isSelected
+                ? AppColors.navyMid.withValues(alpha: 0.10)
+                : Colors.white,
             side: BorderSide(
-              color: isSelected ? const Color(0xFF4F46E5) : _kBorder,
+              color: isSelected ? AppColors.navyMid : AppColors.lightBorder,
+              width: isSelected ? 1.5 : 1,
             ),
-            labelStyle: GoogleFonts.inter(
-              fontSize: 10,
-              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-              color: isSelected ? const Color(0xFF312E81) : _kDark,
+            labelStyle: GoogleFonts.poppins(
+              fontSize: 11,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              color: isSelected ? AppColors.navyDark : AppColors.lightText,
             ),
             avatar: isSelected
-                ? const Icon(Icons.check, size: 12, color: Color(0xFF312E81))
-                : const Icon(Icons.add, size: 12, color: _kSec),
+                ? const Icon(Icons.check, size: 14, color: AppColors.navyMid)
+                : const Icon(Icons.add, size: 14, color: AppColors.navyMid),
             onPressed: widget.readOnly
                 ? null
                 : () {
@@ -1994,17 +2095,21 @@ class PreventiveFormState extends State<PreventiveForm> {
     required IconData icon,
     required Widget child,
     Widget? trailing,
+    int? fieldCount,
   }) {
+    final bool isExpanded = _expandedSections.contains(secNum);
+
     return Container(
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: _kCardBg,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _kBorder),
-        boxShadow: const [
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: AppColors.lightBorder),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x08000000),
-            blurRadius: 6,
-            offset: Offset(0, 2),
+            color: AppColors.navyDark.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -2012,68 +2117,116 @@ class PreventiveFormState extends State<PreventiveForm> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Section Header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
-              color: Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-              border: Border(bottom: BorderSide(color: _kBorder)),
+          InkWell(
+            onTap: () {
+              setState(() {
+                if (isExpanded) {
+                  _expandedSections.remove(secNum);
+                } else {
+                  _expandedSections.add(secNum);
+                }
+              });
+            },
+            borderRadius: BorderRadius.vertical(
+              top: const Radius.circular(AppRadius.lg),
+              bottom: Radius.circular(isExpanded ? 0 : AppRadius.lg),
             ),
-            child: Row(
-              children: [
-                Container(
-                  width: 26,
-                  height: 26,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: _kMid,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    secNum,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: AppColors.navyMid.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      secNum,
+                      style: GoogleFonts.poppins(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.navyDark,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                Icon(icon, size: 18, color: _kTeal),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: _kDark,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.navyDark,
+                          ),
                         ),
-                      ),
-                      Text(
-                        marathiTitle,
-                        style: GoogleFonts.inter(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w500,
-                          color: _kSec,
-                        ),
-                      ),
-                    ],
+                        if (marathiTitle.isNotEmpty)
+                          Text(
+                            marathiTitle,
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.lightSubText,
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-                if (trailing != null) trailing,
-              ],
+                  if (trailing != null) ...[
+                    trailing,
+                    const SizedBox(width: 8),
+                  ],
+                  if (fieldCount != null && fieldCount > 0)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.navyMid.withValues(alpha: 0.07),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        secNum == '3'
+                            ? '$fieldCount ${_accusedEntries.length == 1 ? 'accused' : 'accused'}'
+                            : '$fieldCount fields',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.navyMid,
+                        ),
+                      ),
+                    ),
+                  const SizedBox(width: 6),
+                  Tooltip(
+                    message: isExpanded ? 'Collapse' : 'Expand',
+                    child: AnimatedRotation(
+                      turns: isExpanded ? 0.5 : 0.0,
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOutCubic,
+                      child: const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: AppColors.navyMid,
+                        size: 22,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
 
-          // Section Body
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: child,
-          ),
+          // Divider and Section Body
+          if (isExpanded) ...[
+            const Divider(height: 1, color: AppColors.lightBorder),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: child,
+            ),
+          ],
         ],
       ),
     );
@@ -2084,21 +2237,57 @@ class PreventiveFormState extends State<PreventiveForm> {
     final cleanText = text.trim().endsWith('*')
         ? text.trim().substring(0, text.trim().length - 1).trim()
         : text.trim();
-    return RichText(
-      text: TextSpan(
-        text: cleanText,
-        style: _tsLabel,
-        children: [
-          if (required)
-            const TextSpan(
-              text: ' *',
-              style: TextStyle(
-                color: _kRed,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Text.rich(
+        TextSpan(
+          text: cleanText,
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.navyDark,
+          ),
+          children: [
+            if (required)
+              const TextSpan(
+                text: ' *',
+                style: TextStyle(
+                  color: AppColors.dangerRed,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration({
+    String? hint,
+    Widget? prefixIcon,
+    Widget? suffixIcon,
+  }) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle:
+          GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText),
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      filled: true,
+      fillColor: widget.readOnly ? const Color(0xFFF8FAFC) : Colors.white,
+      prefixIcon: prefixIcon,
+      suffixIcon: suffixIcon,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        borderSide: const BorderSide(color: AppColors.lightBorder),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        borderSide: const BorderSide(color: AppColors.lightBorder),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        borderSide: const BorderSide(color: AppColors.navyMid, width: 1.5),
       ),
     );
   }
@@ -2119,12 +2308,11 @@ class PreventiveFormState extends State<PreventiveForm> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildLabel(label, required: required),
-        const SizedBox(height: 5),
         TextField(
           controller: controller,
           readOnly: widget.readOnly,
           maxLines: maxLines,
-          style: GoogleFonts.inter(fontSize: 12, color: _kDark),
+          style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
           onTap: () {
             _setActiveVoiceField(label, controller, section: section);
             if (onTap != null) onTap();
@@ -2133,30 +2321,12 @@ class PreventiveFormState extends State<PreventiveForm> {
             _markUnsaved();
             if (onChanged != null) onChanged(val);
           },
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: GoogleFonts.inter(fontSize: 11, color: _kMuted),
-            isDense: true,
-            filled: true,
-            fillColor: _kInputBg,
+          decoration: _inputDecoration(
+            hint: hint,
             prefixIcon: prefixIcon != null
-                ? Icon(prefixIcon, size: 16, color: _kSec)
+                ? Icon(prefixIcon, size: 18, color: AppColors.navyMid)
                 : null,
             suffixIcon: suffix,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(6),
-              borderSide: const BorderSide(color: _kBorder),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(6),
-              borderSide: const BorderSide(color: _kBorder),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(6),
-              borderSide: const BorderSide(color: _kTeal, width: 1.5),
-            ),
           ),
         ),
       ],
@@ -2173,32 +2343,18 @@ class PreventiveFormState extends State<PreventiveForm> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildLabel(label, required: required),
-        const SizedBox(height: 5),
         InkWell(
           onTap: widget.readOnly ? null : onTap,
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           child: IgnorePointer(
             child: TextField(
               controller: controller,
-              style: GoogleFonts.inter(fontSize: 12, color: _kDark),
-              decoration: InputDecoration(
-                hintText: 'DD/MM/YYYY',
-                hintStyle: GoogleFonts.inter(fontSize: 11, color: _kMuted),
-                isDense: true,
-                filled: true,
-                fillColor: _kInputBg,
+              style:
+                  GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
+              decoration: _inputDecoration(
+                hint: 'DD/MM/YYYY',
                 suffixIcon: const Icon(Icons.calendar_month_rounded,
-                    size: 18, color: _kTeal),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(6),
-                  borderSide: const BorderSide(color: _kBorder),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(6),
-                  borderSide: const BorderSide(color: _kBorder),
-                ),
+                    size: 18, color: AppColors.navyMid),
               ),
             ),
           ),
@@ -2214,53 +2370,44 @@ class PreventiveFormState extends State<PreventiveForm> {
     required ValueChanged<String?> onChanged,
     bool required = false,
   }) {
-    final effectiveVal = items.contains(value) ? value : items.first;
+    final effectiveVal =
+        items.contains(value) ? value : (items.isNotEmpty ? items.first : null);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildLabel(label, required: required),
-        const SizedBox(height: 5),
-        Container(
-          height: 42,
-          decoration: BoxDecoration(
-            color: _kInputBg,
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: _kBorder),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: effectiveVal,
-              isExpanded: true,
-              icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                  size: 20, color: _kSec),
-              style: GoogleFonts.inter(fontSize: 12, color: _kDark),
-              onChanged: widget.readOnly
-                  ? null
-                  : (val) {
-                      if (val != null) {
-                        _markUnsaved();
-                        onChanged(val);
-                      }
-                    },
-              items: items.map((item) {
-                return DropdownMenuItem<String>(
-                  value: item,
-                  child: Text(
-                    item,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight:
-                          item == value ? FontWeight.w600 : FontWeight.w500,
-                      color: _kDark,
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
+        DropdownButtonFormField<String>(
+          key: ValueKey('${label}_$effectiveVal'),
+          initialValue: effectiveVal,
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded,
+              size: 20, color: AppColors.navyMid),
+          style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
+          dropdownColor: Colors.white,
+          decoration: _inputDecoration(),
+          onChanged: widget.readOnly
+              ? null
+              : (val) {
+                  if (val != null) {
+                    _markUnsaved();
+                    onChanged(val);
+                  }
+                },
+          items: items.map((item) {
+            return DropdownMenuItem<String>(
+              value: item,
+              child: Text(
+                item,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: item == value ? FontWeight.w600 : FontWeight.w400,
+                  color: AppColors.lightText,
+                ),
+              ),
+            );
+          }).toList(),
         ),
       ],
     );

@@ -298,7 +298,7 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F7F9),
+      backgroundColor: AppColors.lightBg,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -324,17 +324,17 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
             ),
             Text(
               'Preventative Action · Istegasha Record (प्रतिबंधक कारवाई / इस्तेगाशा नोंद)',
-              style: GoogleFonts.inter(
+              style: GoogleFonts.poppins(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
-                color: const Color(0xFF64748B),
+                color: AppColors.lightSubText,
               ),
             ),
           ],
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(color: const Color(0xFFE2E8F0), height: 1),
+          child: Container(color: AppColors.lightBorder, height: 1),
         ),
       ),
       body: PreventiveForm(
@@ -348,7 +348,7 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: const BoxDecoration(
           color: Colors.white,
-          border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+          border: Border(top: BorderSide(color: AppColors.lightBorder)),
           boxShadow: [
             BoxShadow(
               color: Color(0x0A000000),
@@ -364,19 +364,19 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
               OutlinedButton.icon(
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.close_rounded,
-                    size: 16, color: Color(0xFF64748B)),
+                    size: 16, color: AppColors.lightSubText),
                 label: Text(
                   'Cancel',
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.poppins(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF64748B),
+                    color: AppColors.lightSubText,
                   ),
                 ),
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Color(0xFFE2E8F0)),
+                  side: const BorderSide(color: AppColors.lightBorder),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
+                      borderRadius: BorderRadius.circular(AppRadius.md)),
                   padding:
                       const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                 ),
@@ -385,19 +385,19 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
               OutlinedButton.icon(
                 onPressed: _previewPdf,
                 icon: const Icon(Icons.picture_as_pdf_rounded,
-                    size: 16, color: Color(0xFF0EA5E9)),
+                    size: 16, color: AppColors.navyMid),
                 label: Text(
                   'PDF Preview',
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.poppins(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF0EA5E9),
+                    color: AppColors.navyMid,
                   ),
                 ),
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Color(0xFF0EA5E9)),
+                  side: const BorderSide(color: AppColors.navyMid),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
+                      borderRadius: BorderRadius.circular(AppRadius.md)),
                   padding:
                       const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                 ),
@@ -419,17 +419,17 @@ class _PreventiveFormScreenState extends State<PreventiveFormScreen> {
                     _isSaving
                         ? 'Saving...'
                         : (_isEdit ? 'Update Record' : 'Done / Save Record'),
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.poppins(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0EA5E9),
+                    backgroundColor: AppColors.navyDark,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                        borderRadius: BorderRadius.circular(AppRadius.md)),
                     padding: const EdgeInsets.symmetric(
                         horizontal: 22, vertical: 12),
                   ),
