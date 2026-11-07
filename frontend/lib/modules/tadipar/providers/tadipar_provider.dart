@@ -21,4 +21,3 @@ class TadiparProvider extends BaseModuleProvider {
     return getFilteredRecords(subCategory).length;
   }
 }
-
