@@ -22,6 +22,7 @@ later = [importlib.import_module(f'apps.crimetab.migrations.{name}') for name in
     '0167_ad_yes_no_to_checkboxes',
     '0166_ad_pm_report',
     '0165_ad_unknown_deceased_in_deceased_details',
+    '0164_ad_identity_and_pm_labels',
     '0162_ad_registration_year_io_and_sdm_acp',
     '0161_ad_unknown_deceased_multiple',
 )]
