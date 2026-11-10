@@ -14,6 +14,7 @@ empty or wrong:
     procedural_checklist       the seven panchanama ticks
     crime_spot                 village / town, area, address, occurrence date-time
     crime_registration_info    registration date-time
+    final_verdict              charge sheet, CC/ST and final numbers, High Court dates
     cases_person               the complainant and the accused (added or filled in, never deleted)
 
 save_common_form_tables() fills them from a save request; it is also used by the
@@ -62,7 +63,8 @@ def sources_from(data=None, extra=None):
     common = extra.get('commonForm') if isinstance(extra.get('commonForm'), dict) else {}
     nested = []
     for src in (data, extra, common):
-        for key in ('cctv_technical', 'forensics', 'case_forensics', 'investigationNotes', 'crime_spot'):
+        for key in ('cctv_technical', 'forensics', 'case_forensics', 'investigationNotes', 'crime_spot',
+                    'final_verdict', 'court_filing', 'courtFiling'):
             if isinstance(src.get(key), dict):
                 nested.append(src[key])
     return [data, extra, common, *nested]
@@ -318,6 +320,7 @@ def save_common_form_tables(case, data=None, extra=None, write=True, keep_charge
         'charges_skipped': charges_skipped,
         'crime_spot': save_crime_spot(case, sources, write=write),
         'registration': save_registration(case, sources, write=write),
+        'final_verdict': save_final_verdict(case, sources, write=write),
         'people_added': people_added,
         'people_updated': people_updated,
         'cctv': save_cctv(case, sources, write=write),
@@ -331,6 +334,38 @@ def save_common_form_tables(case, data=None, extra=None, write=True, keep_charge
 def _parse_dt_value(value):
     from apps.crimetab.views import _parse_dt as parse
     return parse(value) if value not in EMPTY else None
+
+
+# final_verdict column -> form keys (flat key first, then older names)
+FINAL_VERDICT_TEXT = {
+    'charge_sheet_no': ('charge_sheet_no', 'chargeSheetNumber'),
+    'cc_st_number': ('cc_st_number', 'ccStNumber', 'ccStNo'),
+    'a_final_number': ('a_final_number', 'aFinalNo', 'aFinalNumber'),
+    'b_final_number': ('b_final_number', 'bFinalNo', 'bFinalNumber'),
+    'c_final_number': ('c_final_number', 'cFinalNo', 'cFinalNumber'),
+    'nc_final_number': ('nc_final_number', 'ncFinalNo', 'ncFinalNumber'),
+    'abeted_summary_no': ('abeted_summary_no', 'abatedSummaryNo', 'abetedSummaryNumber'),
+}
+FINAL_VERDICT_DATES = {
+    'stay_by_high_court_date': ('stay_by_high_court_date', 'stayHighCourtDate'),
+    'quashed_by_high_court_date': ('quashed_by_high_court_date', 'quashedHighCourt'),
+}
+
+
+def save_final_verdict(case, sources, write=True):
+    """final_verdict (charge sheet, CC/ST, A/B/C/NC final, abated summary, High Court dates)."""
+    from apps.crimetab.models.common_form import FinalVerdict
+    values = {}
+    for column, keys in FINAL_VERDICT_TEXT.items():
+        value = first(sources, *keys)
+        values[column] = str(value).strip()[:50] if value not in EMPTY else None
+    for column, keys in FINAL_VERDICT_DATES.items():
+        values[column] = as_date(first(sources, *keys))
+    if all(v in EMPTY for v in values.values()):
+        return False
+    if write:
+        FinalVerdict.objects.update_or_create(case=case, defaults=values)
+    return True
 
 
 def save_registration(case, sources, write=True):

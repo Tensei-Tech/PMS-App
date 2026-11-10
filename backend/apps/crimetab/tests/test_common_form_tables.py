@@ -207,3 +207,48 @@ class CommonFormPeopleAndPlaceTests(TestCase):
         self.assertEqual(CrimeSpot.objects.get(case=self.case).village_town, 'Beltarodi')
         call_command('backfill_common_form_tables', '--schema', 'maharashtra', stdout=StringIO())
         self.assertEqual(self._people('accused').count(), 1)
+
+
+class CommonFormCourtFilingTests(TestCase):
+
+    def setUp(self):
+        self.ctx = TenantContext('maharashtra')
+        self.ctx.__enter__()
+        self.case = CaseRecord.objects.create(id='TEST_CF_FV1', case_number='CR/CF/FV1', station_name='TEST')
+
+    def tearDown(self):
+        self.ctx.__exit__(None, None, None)
+
+    def _verdict(self):
+        from apps.crimetab.models.common_form import FinalVerdict
+        return FinalVerdict.objects.filter(case=self.case).first()
+
+    def test_court_numbers_from_flat_keys(self):
+        _save_case_child_entities(self.case, {'extra_fields': {'commonForm': {
+            'charge_sheet_no': '234567', 'cc_st_number': '4567895', 'a_final_number': '34567890',
+            'stay_by_high_court_date': '05/11/2026'}}})
+        v = self._verdict()
+        self.assertEqual((v.charge_sheet_no, v.cc_st_number, v.a_final_number), ('234567', '4567895', '34567890'))
+        self.assertEqual(str(v.stay_by_high_court_date), '2026-11-05')
+
+    def test_older_nested_object_still_works(self):
+        _save_case_child_entities(self.case, {'extra_fields': {'courtFiling': {'chargeSheetNumber': 'CS-9'}}})
+        self.assertEqual(self._verdict().charge_sheet_no, 'CS-9')
+
+    def test_long_values_are_cut_to_the_column(self):
+        _save_case_child_entities(self.case, {'extra_fields': {'b_final_number': 'x' * 80}})
+        self.assertEqual(len(self._verdict().b_final_number), 50)
+
+    def test_no_court_numbers_writes_nothing(self):
+        _save_case_child_entities(self.case, {'extra_fields': {'court': 'JMFC Nagpur'}})
+        self.assertIsNone(self._verdict())
+
+    def test_backfill_court_numbers(self):
+        self.case.extra_fields = {'cc_st_number': '3456789', 'nc_final_number': '23456789'}
+        self.case.save()
+        out = StringIO()
+        call_command('backfill_common_form_tables', '--schema', 'maharashtra', '--dry-run', stdout=out)
+        self.assertIn('court filing rows 1', out.getvalue())
+        self.assertIsNone(self._verdict())
+        call_command('backfill_common_form_tables', '--schema', 'maharashtra', stdout=StringIO())
+        self.assertEqual(self._verdict().cc_st_number, '3456789')
