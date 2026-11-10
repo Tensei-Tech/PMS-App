@@ -84,6 +84,77 @@ def get_repeat_offender_map(station_names=None):
     return repeat_case_ids, case_to_info
 
 
+def get_pending_excluded_crime_types_q():
+    """
+    Returns a Q query matching non-FIR administrative, preventive, and court process records
+    that must NOT appear in the Pending tab (or general pending FIR crime lists):
+    - Passport / PVR Verification (passport, pvr)
+    - Licence Verification (licence, license, arms_licence, arms_license)
+    - Preventive Actions & Tadipar (preventive, chapter_case, tadipar, externment)
+    - Summons & Warrants (sam_warrant, summons_warrant, warrant, summons)
+    - RTI Applications (rti)
+    - Citizen Applications (application)
+    """
+    return (
+        # Passport / PVR
+        Q(module_key__in=['passport', 'passport_pvr_lic', 'pvr']) |
+        Q(sub_category__icontains='passport') |
+        Q(sub_category__icontains='pvr') |
+        Q(title__icontains='passport') |
+        Q(title__icontains='pvr') |
+        Q(category_links__category__category_code__in=['STAND_PASSPORT', 'STAND_PVR']) |
+        Q(category_links__category__category_name__in=['Passport', 'PVR', 'Passport/PVR/Lic']) |
+
+        # Licence / License / Arms Licence
+        Q(module_key__in=['license', 'licence', 'arms_license', 'arms_licence']) |
+        Q(sub_category__icontains='license') |
+        Q(sub_category__icontains='licence') |
+        Q(title__icontains='license') |
+        Q(title__icontains='licence') |
+        Q(category_links__category__category_code__in=['STAND_LICENSE', 'STAND_LICENCE']) |
+        Q(category_links__category__category_name__in=['License', 'Licence', 'Arms License']) |
+
+        # Preventive & Tadipar (Chapter Cases, Externment)
+        Q(module_key__in=['preventive', 'preventive_action', 'preventive_actions', 'chapter_case', 'tadipar']) |
+        Q(sub_category__iexact='preventive') |
+        Q(sub_category__iexact='preventive_action') |
+        Q(sub_category__iexact='chapter case') |
+        Q(sub_category__iexact='chapter_case') |
+        Q(sub_category__iexact='प्रतिबंधक कारवाई') |
+        Q(sub_category__iexact='प्रतिबंधक') |
+        Q(sub_category__iexact='tadipar') |
+        Q(sub_category__icontains='externment') |
+        Q(sub_category__icontains='tadipar') |
+        Q(title__icontains='tadipar') |
+        Q(title__icontains='externment') |
+        Q(title__icontains='chapter case') |
+        Q(category_links__category__category_code__in=['STAND_TADIPAR', 'tadipar', 'preventive']) |
+        Q(category_links__category__category_name__in=['Tadipar', 'Preventive', 'Preventive Action']) |
+
+        # Summons & Warrants
+        Q(module_key__in=['sam_warrant', 'summons_warrant', 'warrant', 'summons']) |
+        Q(sub_category__icontains='warrant') |
+        Q(sub_category__icontains='summons') |
+        Q(sub_category__icontains='समंस') |
+        Q(sub_category__icontains='वारंट') |
+        Q(title__icontains='warrant') |
+        Q(title__icontains='summons') |
+        Q(title__icontains='समंस') |
+        Q(title__icontains='वारंट') |
+        Q(extra_fields__has_key='warrant_type') |
+        Q(extra_fields__has_key='warrantType') |
+
+        # RTI & Citizen Applications
+        Q(module_key__in=['rti', 'application']) |
+        Q(sub_category__iexact='rti') |
+        Q(sub_category__iexact='application') |
+        Q(title__istartswith='rti ') |
+        Q(title__iexact='rti') |
+        Q(category_links__category__category_code__iexact='STAND_RTI') |
+        Q(category_links__category__category_name__iexact='RTI')
+    )
+
+
 def get_cases_by_status(tab: str):
     """
     Returns cases strictly based on their persisted status field.
@@ -94,8 +165,13 @@ def get_cases_by_status(tab: str):
     if tab.lower() == 'disposal':
         return queryset.filter(status__iexact='Disposal')
     elif tab.lower() == 'pending':
-        # "Pending" includes anything that is not Disposal, Closed, or Resolved
-        return queryset.exclude(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved'])
+        # "Pending" includes active FIR crime cases that are not Disposal, Closed, or Resolved
+        # and excludes non-FIR administrative verifications, preventive/tadipar actions, summons/warrants, and RTI
+        return queryset.exclude(
+            status__in=['Disposal', 'Disposed', 'Closed', 'Resolved']
+        ).exclude(
+            get_pending_excluded_crime_types_q()
+        )
     elif tab.lower() == 'detected':
         # Exclude administrative service modules and missing reports (which are tracked as Traced/Untraced)
         return queryset.filter(status__iexact='Detected').exclude(

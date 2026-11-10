@@ -251,11 +251,6 @@ class PassportLicenceScreen extends StatelessWidget {
           (_) => PassportHubScreen(stationName: stationName),
         ),
         (
-          licenceLabel,
-          Icons.assignment_ind_rounded,
-          (_) => LicenceHubScreen(stationName: stationName),
-        ),
-        (
           pvrLabel,
           Icons.fact_check_rounded,
           (context) {
@@ -270,6 +265,11 @@ class PassportLicenceScreen extends StatelessWidget {
                     child: PvrHubScreen(stationName: stationName),
                   );
           },
+        ),
+        (
+          licenceLabel,
+          Icons.assignment_ind_rounded,
+          (_) => LicenceHubScreen(stationName: stationName),
         ),
       ],
     );

@@ -17,6 +17,7 @@ import '../utils/pdf_unicode_fonts.dart';
 import '../utils/pending_table_firestore_mapper.dart';
 import '../utils/case_visibility.dart';
 import '../widgets/pending_cases_demo_data_table.dart';
+import 'pending_hub_screen.dart';
 
 class PendingSummaryScreen extends StatelessWidget {
   const PendingSummaryScreen({
@@ -489,7 +490,11 @@ class _LivePendingSummaryLoaderState extends State<_LivePendingSummaryLoader> {
       if (!mounted) return;
 
       if (dataList != null) {
-        final records = dataList.map((m) => ModuleRecord.fromMap(m)).toList();
+        final records = dataList
+            .map((m) => ModuleRecord.fromMap(m))
+            .where((r) => !PendingHubScreen.isExcludedPendingCrimeType(
+                r.subCategory ?? r.moduleKey, r))
+            .toList();
         final auth = Provider.of<AuthProvider>(context, listen: false);
 
         setState(() {

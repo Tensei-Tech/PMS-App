@@ -19,6 +19,86 @@ class PendingHubScreen extends StatefulWidget {
     required this.stationName,
   });
 
+  /// Returns true for non-FIR administrative verifications, preventive/tadipar actions,
+  /// warrants, and citizen applications that must NOT be shown in Pending FIR Crime Cases.
+  static bool isExcludedPendingCrimeType(String head, [ModuleRecord? record]) {
+    final h = head.toLowerCase().trim();
+    final sub = (record?.subCategory ?? '').toLowerCase().trim();
+    final mod = (record?.moduleKey ?? '').toLowerCase().trim();
+    final title = (record?.title ?? '').toLowerCase().trim();
+
+    // Passport / PVR
+    if (h.contains('passport') ||
+        sub.contains('passport') ||
+        mod.contains('passport') ||
+        title.contains('passport') ||
+        h.contains('pvr') ||
+        sub.contains('pvr') ||
+        mod.contains('pvr') ||
+        title.contains('pvr')) {
+      return true;
+    }
+
+    // Licence / License / Arms Licence
+    if (h.contains('licence') ||
+        h.contains('license') ||
+        sub.contains('licence') ||
+        sub.contains('license') ||
+        mod.contains('licence') ||
+        mod.contains('license') ||
+        title.contains('licence') ||
+        title.contains('license')) {
+      return true;
+    }
+
+    // Preventive / Tadipar / Chapter cases / Externment
+    if (h.contains('preventive') ||
+        sub.contains('preventive') ||
+        mod.contains('preventive') ||
+        title.contains('preventive') ||
+        h.contains('tadipar') ||
+        sub.contains('tadipar') ||
+        mod.contains('tadipar') ||
+        title.contains('tadipar') ||
+        h.contains('प्रतिबंधक') ||
+        sub.contains('प्रतिबंधक') ||
+        h.contains('externment') ||
+        sub.contains('externment') ||
+        h.contains('chapter case') ||
+        sub.contains('chapter case')) {
+      return true;
+    }
+
+    // Summons & Warrants
+    if (h.contains('warrant') ||
+        sub.contains('warrant') ||
+        mod.contains('warrant') ||
+        title.contains('warrant') ||
+        h.contains('summons') ||
+        sub.contains('summons') ||
+        mod.contains('summons') ||
+        title.contains('summons') ||
+        h.contains('वारंट') ||
+        sub.contains('वारंट') ||
+        h.contains('समंस') ||
+        sub.contains('समंस')) {
+      return true;
+    }
+
+    // RTI & Administrative applications
+    if (h == 'rti' ||
+        sub == 'rti' ||
+        mod == 'rti' ||
+        title.startsWith('rti ') ||
+        title == 'rti' ||
+        mod == 'application' ||
+        sub == 'application') {
+      return true;
+    }
+
+    return false;
+  }
+
   @override
   State<PendingHubScreen> createState() => _PendingHubScreenState();
 }
@@ -96,6 +176,10 @@ class _PendingHubScreenState extends State<PendingHubScreen>
                     : (r.moduleKey.trim().isNotEmpty
                         ? r.moduleKey.trim()
                         : 'Other'));
+
+            if (PendingHubScreen.isExcludedPendingCrimeType(rawKey, r)) {
+              continue;
+            }
 
             if (!grouped.containsKey(rawKey)) {
               grouped[rawKey] = {

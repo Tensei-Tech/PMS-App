@@ -12,6 +12,7 @@ import '../widgets/pvr_status_cards.dart';
 import '../widgets/pvr_add_edit_dialog.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../theme/app_theme.dart';
+import '../../../utils/app_constants.dart';
 import '../../../utils/case_visibility.dart';
 import '../../../utils/dynamic_map_pdf.dart';
 import '../../../utils/excel_export_helper.dart';
@@ -209,11 +210,8 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
 
   void _exportExcel(List<PvrGroup> dataset) {
     if (dataset.isEmpty) return;
-    final rows = dataset.asMap().entries.map((entry) {
-      final i = entry.key + 1;
-      final g = entry.value;
+    final rows = dataset.map((g) {
       return [
-        '$i',
         g.label,
         '${g.totalCount}',
         '${g.verifiedCount}',
@@ -222,7 +220,7 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
     }).toList();
 
     ExcelExportHelper.exportTableToCsv(
-      headers: const ['Sr. No.', 'Month', 'Total', 'Verified', 'Pending'],
+      headers: const ['Month', 'Total', 'Verified', 'Pending'],
       rows: rows,
       filename:
           'PVR_MonthWise_${DateFormat('yyyyMMdd').format(DateTime.now())}.csv',
@@ -243,12 +241,8 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
     final showVerified = _selectedFilter != PvrStatusFilter.pending;
     final showPending = _selectedFilter != PvrStatusFilter.verified;
 
-    final rows = dataset.asMap().entries.map((entry) {
-      final i = entry.key + 1;
-      final g = entry.value;
-
+    final rows = dataset.map((g) {
       final row = <String, String>{
-        'Sr. No.': '$i',
         'Month': g.label,
       };
       if (showTotal) row['Total'] = '${g.totalCount}';
@@ -258,7 +252,6 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
     }).toList();
 
     final columnOrder = [
-      'Sr. No.',
       'Month',
       if (showTotal) 'Total',
       if (showVerified) 'Verified',
@@ -351,109 +344,110 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
           ),
 
           // 2. Secondary Filter & Actions Bar
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(
-                top: BorderSide(color: Color(0xFFF1F5F9)),
-                bottom: BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-            ),
-            child: LayoutBuilder(
-              builder: (context, filterConstraints) {
-                final isNarrow = filterConstraints.maxWidth < 620;
+          LayoutBuilder(
+            builder: (context, filterConstraints) {
+              final isNarrow = filterConstraints.maxWidth < Breakpoints.mobile;
 
-                final searchWidget = SizedBox(
-                  width: isNarrow ? 170.0 : null,
-                  height: 38,
-                  child: TextField(
-                    controller: _searchCtrl,
-                    style: GoogleFonts.poppins(
-                        fontSize: 12.5, color: AppColors.navyDark),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      filled: true,
-                      fillColor: const Color(0xFFF8FAFC),
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 8),
-                      hintText: TranslationHelper.translate(
-                        context,
-                        'Search...',
-                      ),
-                      hintStyle: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: AppColors.lightSubText.withValues(alpha: 0.7),
-                      ),
-                      prefixIcon: const Icon(Icons.search_rounded,
-                          size: 18, color: AppColors.navyMid),
-                      suffixIcon: _searchQuery.isNotEmpty
-                          ? InkWell(
-                              onTap: _searchCtrl.clear,
-                              child: const Icon(Icons.close_rounded,
-                                  size: 16, color: AppColors.lightSubText),
-                            )
-                          : null,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(
-                            color: Color(0xFF3B82F6), width: 1.5),
-                      ),
+              final searchWidget = SizedBox(
+                height: 38,
+                child: TextField(
+                  controller: _searchCtrl,
+                  style: GoogleFonts.poppins(
+                      fontSize: isNarrow ? 11.5 : 12.5,
+                      color: AppColors.navyDark),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    filled: true,
+                    fillColor: const Color(0xFFF8FAFC),
+                    contentPadding: EdgeInsets.symmetric(
+                        horizontal: isNarrow ? 8 : 10, vertical: 8),
+                    hintText: TranslationHelper.translate(
+                      context,
+                      'Search...',
+                    ),
+                    hintStyle: GoogleFonts.poppins(
+                      fontSize: isNarrow ? 11 : 12,
+                      color: AppColors.lightSubText.withValues(alpha: 0.7),
+                    ),
+                    prefixIcon: Icon(Icons.search_rounded,
+                        size: isNarrow ? 16 : 18, color: AppColors.navyMid),
+                    prefixIconConstraints: isNarrow
+                        ? const BoxConstraints(minWidth: 28, minHeight: 28)
+                        : null,
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? InkWell(
+                            onTap: _searchCtrl.clear,
+                            child: const Icon(Icons.close_rounded,
+                                size: 16, color: AppColors.lightSubText),
+                          )
+                        : null,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(
+                          color: Color(0xFF3B82F6), width: 1.5),
                     ),
                   ),
-                );
+                ),
+              );
 
-                final actionWidgets = [
-                  const SizedBox(width: 8),
-                  _buildDateFilterMenu(context),
-                  const SizedBox(width: 4),
-                  IconButton(
-                    tooltip: TranslationHelper.translate(context, 'Export PDF'),
-                    onPressed: visibleGroups.isNotEmpty
-                        ? () => _exportPdf(visibleGroups)
-                        : null,
-                    icon: const Icon(Icons.picture_as_pdf_outlined,
-                        color: Color(0xFFDC2626), size: 20),
+              return Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isNarrow ? 8 : 16,
+                  vertical: isNarrow ? 8 : 10,
+                ),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  border: Border(
+                    top: BorderSide(color: Color(0xFFF1F5F9)),
+                    bottom: BorderSide(color: Color(0xFFE2E8F0)),
                   ),
-                  IconButton(
-                    tooltip:
-                        TranslationHelper.translate(context, 'Export Excel'),
-                    onPressed: visibleGroups.isNotEmpty
-                        ? () => _exportExcel(visibleGroups)
-                        : null,
-                    icon: const Icon(Icons.table_chart_outlined,
-                        color: Color(0xFF16A34A), size: 20),
-                  ),
-                ];
-
-                if (isNarrow) {
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        searchWidget,
-                        ...actionWidgets,
-                      ],
-                    ),
-                  );
-                }
-
-                return Row(
+                ),
+                child: Row(
                   children: [
                     Expanded(child: searchWidget),
-                    ...actionWidgets,
+                    SizedBox(width: isNarrow ? 6 : 8),
+                    _buildDateFilterMenu(context, isNarrow: isNarrow),
+                    SizedBox(width: isNarrow ? 2 : 4),
+                    IconButton(
+                      tooltip:
+                          TranslationHelper.translate(context, 'Export PDF'),
+                      padding: EdgeInsets.all(isNarrow ? 4 : 8),
+                      constraints: isNarrow
+                          ? const BoxConstraints(minWidth: 32, minHeight: 32)
+                          : const BoxConstraints(minWidth: 40, minHeight: 40),
+                      onPressed: visibleGroups.isNotEmpty
+                          ? () => _exportPdf(visibleGroups)
+                          : null,
+                      icon: Icon(Icons.picture_as_pdf_outlined,
+                          color: const Color(0xFFDC2626),
+                          size: isNarrow ? 18 : 20),
+                    ),
+                    IconButton(
+                      tooltip:
+                          TranslationHelper.translate(context, 'Export Excel'),
+                      padding: EdgeInsets.all(isNarrow ? 4 : 8),
+                      constraints: isNarrow
+                          ? const BoxConstraints(minWidth: 32, minHeight: 32)
+                          : const BoxConstraints(minWidth: 40, minHeight: 40),
+                      onPressed: visibleGroups.isNotEmpty
+                          ? () => _exportExcel(visibleGroups)
+                          : null,
+                      icon: Icon(Icons.table_chart_outlined,
+                          color: const Color(0xFF16A34A),
+                          size: isNarrow ? 18 : 20),
+                    ),
                   ],
-                );
-              },
-            ),
+                ),
+              );
+            },
           ),
 
           // 3. Main Data Area
@@ -490,7 +484,7 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
     );
   }
 
-  Widget _buildDateFilterMenu(BuildContext context) {
+  Widget _buildDateFilterMenu(BuildContext context, {bool isNarrow = false}) {
     final hasFilter = _selectedDateRange != null;
     final now = DateTime.now();
 
@@ -643,11 +637,11 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
         ),
       ],
       child: Container(
-        height: 44,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        height: isNarrow ? 38 : 44,
+        padding: EdgeInsets.symmetric(horizontal: isNarrow ? 8 : 12),
         decoration: BoxDecoration(
           color: hasFilter ? const Color(0xFFEFF6FF) : Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(isNarrow ? 8 : 12),
           border: Border.all(
             color: hasFilter ? const Color(0xFF3B82F6) : AppColors.lightBorder,
           ),
@@ -664,16 +658,16 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
           children: [
             Icon(
               Icons.calendar_month_rounded,
-              size: 18,
+              size: isNarrow ? 14 : 18,
               color:
                   hasFilter ? const Color(0xFF1E40AF) : AppColors.lightSubText,
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: isNarrow ? 4 : 8),
             Text(
               _datePresetLabel ??
                   TranslationHelper.translate(context, 'Date Filter'),
               style: GoogleFonts.poppins(
-                fontSize: 13,
+                fontSize: isNarrow ? 11 : 13,
                 fontWeight: hasFilter ? FontWeight.w600 : FontWeight.w500,
                 color: hasFilter ? const Color(0xFF1E40AF) : AppColors.navyDark,
               ),
@@ -855,12 +849,18 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final tableMinWidth = math.max(450.0, constraints.maxWidth - 32);
+        final isPhone = constraints.maxWidth < Breakpoints.mobile;
+        final horizontalPadding = isPhone ? 8.0 : 16.0;
+        final availableWidth = constraints.maxWidth - (horizontalPadding * 2);
+        final tableMinWidth = isPhone ? availableWidth : math.max(450.0, availableWidth);
 
         return Scrollbar(
           thumbVisibility: true,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.symmetric(
+              horizontal: horizontalPadding,
+              vertical: isPhone ? 10 : 16,
+            ),
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(
@@ -885,25 +885,22 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
                     ),
                     child: DataTable(
                       showCheckboxColumn: false,
-                      columnSpacing: 28,
+                      horizontalMargin: isPhone ? 8 : 24,
+                      columnSpacing: isPhone ? 10 : 28,
                       headingRowColor:
                           WidgetStateProperty.all(const Color(0xFFF8FAFC)),
                       headingTextStyle: GoogleFonts.poppins(
-                        fontSize: 12,
+                        fontSize: isPhone ? 11 : 12,
                         fontWeight: FontWeight.w700,
                         color: AppColors.navyDark,
                       ),
-                      dataRowMinHeight: 52,
-                      dataRowMaxHeight: 64,
+                      dataRowMinHeight: isPhone ? 48 : 52,
+                      dataRowMaxHeight: isPhone ? 56 : 64,
                       dataTextStyle: GoogleFonts.poppins(
-                        fontSize: 12,
+                        fontSize: isPhone ? 11 : 12,
                         color: AppColors.navyDark,
                       ),
                       columns: [
-                        DataColumn(
-                          label:
-                              Text(TranslationHelper.translate(context, 'Sr.')),
-                        ),
                         DataColumn(
                           label: Text(
                             TranslationHelper.translate(context, 'Month'),
@@ -925,10 +922,7 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
                                 context, 'Pending')),
                           ),
                       ],
-                      rows: groups.asMap().entries.map((entry) {
-                        final idx = entry.key + 1;
-                        final g = entry.value;
-
+                      rows: groups.map((g) {
                         return DataRow(
                           onSelectChanged: (_) {
                             PvrAddEditDialog.show(
@@ -942,24 +936,15 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
                           },
                           cells: [
                             DataCell(
-                              Text(
-                                '$idx',
-                                style: GoogleFonts.poppins(
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.navyDark,
-                                ),
-                              ),
-                            ),
-                            DataCell(
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(
+                                  Icon(
                                     Icons.calendar_month_rounded,
-                                    size: 15,
+                                    size: isPhone ? 13 : 15,
                                     color: AppColors.navyMid,
                                   ),
-                                  const SizedBox(width: 8),
+                                  SizedBox(width: isPhone ? 4 : 8),
                                   Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -969,14 +954,14 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
                                         DateFormat('MMMM').format(g.date),
                                         style: GoogleFonts.poppins(
                                           fontWeight: FontWeight.w700,
-                                          fontSize: 13,
+                                          fontSize: isPhone ? 11.5 : 13,
                                           color: AppColors.navyDark,
                                         ),
                                       ),
                                       Text(
                                         '${g.date.year}',
                                         style: GoogleFonts.poppins(
-                                          fontSize: 11,
+                                          fontSize: isPhone ? 9.5 : 11,
                                           fontWeight: FontWeight.w500,
                                           color: AppColors.lightSubText,
                                         ),
@@ -989,8 +974,9 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
                             if (showTotal)
                               DataCell(
                                 Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 5),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: isPhone ? 6 : 10,
+                                      vertical: isPhone ? 4 : 5),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFEFF6FF),
                                     borderRadius: BorderRadius.circular(8),
@@ -1000,13 +986,14 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Icon(Icons.inventory_2_outlined,
-                                          size: 14, color: Color(0xFF1D4ED8)),
-                                      const SizedBox(width: 6),
+                                      Icon(Icons.inventory_2_outlined,
+                                          size: isPhone ? 12 : 14,
+                                          color: const Color(0xFF1D4ED8)),
+                                      SizedBox(width: isPhone ? 4 : 6),
                                       Text(
                                         '${g.totalCount}',
                                         style: GoogleFonts.poppins(
-                                          fontSize: 12,
+                                          fontSize: isPhone ? 11 : 12,
                                           fontWeight: FontWeight.w700,
                                           color: const Color(0xFF1D4ED8),
                                         ),
@@ -1018,8 +1005,9 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
                             if (showVerified)
                               DataCell(
                                 Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 5),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: isPhone ? 6 : 10,
+                                      vertical: isPhone ? 4 : 5),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFECFDF5),
                                     borderRadius: BorderRadius.circular(8),
@@ -1029,13 +1017,14 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Icon(Icons.check_circle_rounded,
-                                          size: 14, color: Color(0xFF047857)),
-                                      const SizedBox(width: 6),
+                                      Icon(Icons.check_circle_rounded,
+                                          size: isPhone ? 12 : 14,
+                                          color: const Color(0xFF047857)),
+                                      SizedBox(width: isPhone ? 4 : 6),
                                       Text(
                                         '${g.verifiedCount}',
                                         style: GoogleFonts.poppins(
-                                          fontSize: 12,
+                                          fontSize: isPhone ? 11 : 12,
                                           fontWeight: FontWeight.w700,
                                           color: const Color(0xFF047857),
                                         ),
@@ -1047,8 +1036,9 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
                             if (showPending)
                               DataCell(
                                 Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 5),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: isPhone ? 6 : 10,
+                                      vertical: isPhone ? 4 : 5),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFFFFBEB),
                                     borderRadius: BorderRadius.circular(8),
@@ -1058,13 +1048,14 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Icon(Icons.hourglass_top_rounded,
-                                          size: 14, color: Color(0xFFD97706)),
-                                      const SizedBox(width: 6),
+                                      Icon(Icons.hourglass_top_rounded,
+                                          size: isPhone ? 12 : 14,
+                                          color: const Color(0xFFD97706)),
+                                      SizedBox(width: isPhone ? 4 : 6),
                                       Text(
                                         '${g.pendingCount}',
                                         style: GoogleFonts.poppins(
-                                          fontSize: 12,
+                                          fontSize: isPhone ? 11 : 12,
                                           fontWeight: FontWeight.w700,
                                           color: const Color(0xFFD97706),
                                         ),
