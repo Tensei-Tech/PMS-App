@@ -588,6 +588,15 @@ from django.utils.dateparse import parse_datetime, parse_date
 
 
 def _parse_dt(val):
+    """A typed date-time as an aware value. Text without a timezone is Indian time
+    (settings.TIME_ZONE); ISO text with an offset keeps its own."""
+    dt = _parse_dt_naive(val)
+    if dt is not None and timezone.is_naive(dt):
+        dt = timezone.make_aware(dt)
+    return dt
+
+
+def _parse_dt_naive(val):
     if not val or not str(val).strip():
         return None
     s = str(val).strip()
@@ -620,7 +629,7 @@ def _parse_d(val):
     parsed = parse_date(s)
     if parsed:
         return parsed
-    dt = _parse_dt(s)
+    dt = _parse_dt_naive(s)  # the date as written, whatever its time or offset
     return dt.date() if dt else None
 
 

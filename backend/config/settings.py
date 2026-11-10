@@ -273,7 +273,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+# Times typed in the app are Indian time; stored values stay UTC (USE_TZ)
+TIME_ZONE = os.getenv('APP_TIME_ZONE', 'Asia/Kolkata')
 USE_I18N = True
 USE_TZ = True
 

@@ -13,6 +13,7 @@ empty or wrong:
     case_forensics             e-Sakshya, fingerprint, NAFIS (+ their dates)
     procedural_checklist       the seven panchanama ticks
     crime_spot                 village / town, area, address, occurrence date-time
+    crime_registration_info    registration date-time
     cases_person               the complainant and the accused (added or filled in, never deleted)
 
 save_common_form_tables() fills them from a save request; it is also used by the
@@ -316,6 +317,7 @@ def save_common_form_tables(case, data=None, extra=None, write=True, keep_charge
         'charges': charges_saved,
         'charges_skipped': charges_skipped,
         'crime_spot': save_crime_spot(case, sources, write=write),
+        'registration': save_registration(case, sources, write=write),
         'people_added': people_added,
         'people_updated': people_updated,
         'cctv': save_cctv(case, sources, write=write),
@@ -329,6 +331,20 @@ def save_common_form_tables(case, data=None, extra=None, write=True, keep_charge
 def _parse_dt_value(value):
     from apps.crimetab.views import _parse_dt as parse
     return parse(value) if value not in EMPTY else None
+
+
+def save_registration(case, sources, write=True):
+    """crime_registration_info.registered_datetime from the form's own field."""
+    from apps.crimetab.models.common_form import CrimeRegistrationInfo
+    dt = _parse_dt_value(first(sources, 'registered_datetime', 'regDate'))
+    if dt is None:
+        return False
+    if write:
+        updated = CrimeRegistrationInfo.objects.filter(case=case).update(registered_datetime=dt)
+        if not updated:
+            CrimeRegistrationInfo.objects.create(case=case, cr_number=(case.case_number or '')[:30] or None,
+                                                 registered_datetime=dt)
+    return True
 
 
 def save_crime_spot(case, sources, write=True):
