@@ -39,6 +39,7 @@ class Command(BaseCommand):
                     totals['charges not found'] += done['charges_skipped']
                     totals['cases with charges'] += 1 if done['charges'] else 0
                     totals['crime spot rows'] += int(done['crime_spot'])
+                    totals['registration times'] += int(done['registration'])
                     totals['people added'] += done['people_added']
                     totals['people filled in'] += done['people_updated']
                     totals['cctv rows'] += int(done['cctv'])
