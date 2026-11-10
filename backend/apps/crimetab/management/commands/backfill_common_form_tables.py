@@ -8,8 +8,9 @@ from apps.crimetab.common_form_tables import save_common_form_tables
 
 
 class Command(BaseCommand):
-    help = ('Copy the Common Form answers saved only in case JSON (charges, CCTV, e-Sakshya / '
-            'fingerprint / NAFIS, panchanama ticks) into their tables. The JSON is not changed. '
+    help = ('Copy the Common Form answers saved only in case JSON (charges, crime spot, complainant '
+            'and accused, CCTV, e-Sakshya / fingerprint / NAFIS, panchanama ticks) into their '
+            'tables. The JSON is not changed and no person is deleted. '
             'Default: every active state; --dry-run reads only.')
 
     def add_arguments(self, parser):
@@ -37,6 +38,9 @@ class Command(BaseCommand):
                     totals['charge rows'] += done['charges']
                     totals['charges not found'] += done['charges_skipped']
                     totals['cases with charges'] += 1 if done['charges'] else 0
+                    totals['crime spot rows'] += int(done['crime_spot'])
+                    totals['people added'] += done['people_added']
+                    totals['people filled in'] += done['people_updated']
                     totals['cctv rows'] += int(done['cctv'])
                     totals['forensics rows'] += int(done['forensics'])
                     totals['panchanama rows'] += done['panchanama']

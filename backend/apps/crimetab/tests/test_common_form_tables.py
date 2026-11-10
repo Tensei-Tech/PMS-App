@@ -128,3 +128,82 @@ class CommonFormTablesTests(TestCase):
         self.case.save()
         call_command('backfill_common_form_tables', '--schema', 'maharashtra', stdout=StringIO())
         self.assertEqual(CrimeCaseActsSections.objects.filter(case=self.case).count(), 1)
+
+
+class CommonFormPeopleAndPlaceTests(TestCase):
+
+    def setUp(self):
+        self.ctx = TenantContext('maharashtra')
+        self.ctx.__enter__()
+        self.case = CaseRecord.objects.create(id='TEST_CF_P1', case_number='CR/CF/P1', station_name='TEST')
+
+    def tearDown(self):
+        self.ctx.__exit__(None, None, None)
+
+    def _save(self, extra, **top):
+        _save_case_child_entities(self.case, {'extra_fields': extra, **top})
+
+    def _people(self, role):
+        from apps.crimetab.models.common_form import CasesPerson
+        return CasesPerson.objects.filter(case=self.case, role=role)
+
+    def test_crime_spot_from_flat_keys(self):
+        from apps.crimetab.models.common_form import CrimeSpot
+        self._save({'commonForm': {'village_town': 'Beltarodi', 'area_name': 'Ward 4',
+                                   'full_address': 'Near temple', 'occurrence_datetime': '07/10/2026 20:41'}})
+        spot = CrimeSpot.objects.get(case=self.case)
+        self.assertEqual((spot.village_town, spot.area_name, spot.full_address),
+                         ('Beltarodi', 'Ward 4', 'Near temple'))
+        self.assertEqual(spot.occurrence_datetime.strftime('%d/%m/%Y'), '07/10/2026')
+
+    def test_complainant_from_flat_keys_over_empty_object(self):
+        self._save({'complainant': {'name': '', 'age': ''},
+                    'complainant_name': 'Ramesh Patil', 'complainant_age': '42',
+                    'complainant_mobile': '98765 43210', 'complainant_aadhaar': '1234 5678 9012'})
+        person = self._people('complainant').get()
+        self.assertEqual((person.name, person.age, person.mobile, person.aadhaar),
+                         ('Ramesh Patil', 42, '9876543210', '123456789012'))
+
+    def test_accused_list_survives_the_plain_text_accused_field(self):
+        # The request's own `accused` is the case's text column; the list is in the JSON
+        self._save({'commonForm': {'accused': [{'name': 'Rohit', 'age': '', 'gender': 'Male'},
+                                               {'name': 'Amit', 'age': '25'}]}}, accused='Rohit, Amit')
+        self.assertEqual(set(self._people('accused').values_list('name', flat=True)), {'Rohit', 'Amit'})
+        self.assertIsNone(self._people('accused').get(name='Rohit').age)
+
+    def test_accused_list_with_other_key_names_and_single_flat_accused(self):
+        self._save({'accused_list': [{'name': 'Sunil', 'pan_number': 'abcde1234f', 'aadhar_number': '111122223333'}],
+                    'accused_name': 'Vijay'})
+        sunil = self._people('accused').get(name='Sunil')
+        self.assertEqual((sunil.pan, sunil.aadhaar), ('ABCDE1234F', '111122223333'))
+        self.assertTrue(self._people('accused').filter(name='Vijay').exists())
+
+    def test_bad_values_are_dropped_not_crashing(self):
+        self._save({'complainant_name': 'X' * 200, 'complainant_mobile': '12345',
+                    'complainant_age': 'forty', 'complainant_pan': 'not-a-pan'})
+        person = self._people('complainant').get()
+        self.assertEqual(len(person.name), 150)
+        self.assertEqual((person.mobile, person.age, person.pan), (None, None, None))
+
+    def test_saving_twice_adds_no_duplicates_and_fills_details(self):
+        self._save({'accused_name': 'Rohit'})
+        self._save({'accused_name': 'Rohit', 'accused_age': '30'})
+        rows = self._people('accused')
+        self.assertEqual(rows.count(), 1)
+        self.assertEqual(rows.get().age, 30)
+
+    def test_backfill_people_and_place(self):
+        from apps.crimetab.models.common_form import CrimeSpot
+        self.case.extra_fields = {'village_town': 'Beltarodi', 'complainant_name': 'Roch',
+                                  'commonForm': {'accused': [{'name': 'Rohit'}]}}
+        self.case.save()
+        out = StringIO()
+        call_command('backfill_common_form_tables', '--schema', 'maharashtra', '--dry-run', stdout=out)
+        self.assertIn('people added 2', out.getvalue())
+        self.assertFalse(self._people('accused').exists())
+        call_command('backfill_common_form_tables', '--schema', 'maharashtra', stdout=StringIO())
+        self.assertTrue(self._people('complainant').filter(name='Roch').exists())
+        self.assertTrue(self._people('accused').filter(name='Rohit').exists())
+        self.assertEqual(CrimeSpot.objects.get(case=self.case).village_town, 'Beltarodi')
+        call_command('backfill_common_form_tables', '--schema', 'maharashtra', stdout=StringIO())
+        self.assertEqual(self._people('accused').count(), 1)

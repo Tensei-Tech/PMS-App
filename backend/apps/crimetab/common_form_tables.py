@@ -12,6 +12,8 @@ empty or wrong:
     cctv_technical             CCTV checked, CDR sent / received
     case_forensics             e-Sakshya, fingerprint, NAFIS (+ their dates)
     procedural_checklist       the seven panchanama ticks
+    crime_spot                 village / town, area, address, occurrence date-time
+    cases_person               the complainant and the accused (added or filled in, never deleted)
 
 save_common_form_tables() fills them from a save request; it is also used by the
 `backfill_common_form_tables` command for cases saved before this fix.
@@ -59,7 +61,7 @@ def sources_from(data=None, extra=None):
     common = extra.get('commonForm') if isinstance(extra.get('commonForm'), dict) else {}
     nested = []
     for src in (data, extra, common):
-        for key in ('cctv_technical', 'forensics', 'case_forensics', 'investigationNotes'):
+        for key in ('cctv_technical', 'forensics', 'case_forensics', 'investigationNotes', 'crime_spot'):
             if isinstance(src.get(key), dict):
                 nested.append(src[key])
     return [data, extra, common, *nested]
@@ -309,10 +311,135 @@ def save_common_form_tables(case, data=None, extra=None, write=True, keep_charge
     sources = sources_from(data, extra)
     charges_saved, charges_skipped = save_charges(
         case, sources, write=write, keep_when_empty=keep_charges_when_empty)
+    people_added, people_updated = save_people(case, sources, write=write)
     return {
         'charges': charges_saved,
         'charges_skipped': charges_skipped,
+        'crime_spot': save_crime_spot(case, sources, write=write),
+        'people_added': people_added,
+        'people_updated': people_updated,
         'cctv': save_cctv(case, sources, write=write),
         'forensics': save_forensics(case, sources, write=write),
         'panchanama': save_panchanama(case, sources, write=write),
     }
+
+
+# ------------------------------------------------------------------ place, complainant, accused
+
+def _parse_dt_value(value):
+    from apps.crimetab.views import _parse_dt as parse
+    return parse(value) if value not in EMPTY else None
+
+
+def save_crime_spot(case, sources, write=True):
+    """crime_spot from the flat keys the app sends (older names still accepted)."""
+    from apps.crimetab.models.common_form import CrimeSpot
+    values = {
+        'village_town': first(sources, 'village_town', 'spotVillage'),
+        'area_name': first(sources, 'area_name', 'spotArea'),
+        'full_address': first(sources, 'full_address', 'spotAddress', 'location'),
+        'occurrence_datetime': _parse_dt_value(
+            first(sources, 'occurrence_datetime', 'occurrenceDateTime', 'incident_date')),
+    }
+    if all(v in EMPTY for v in values.values()):
+        return False
+    for key in ('village_town', 'area_name'):
+        if values[key] is not None:
+            values[key] = str(values[key]).strip()[:255]
+    if write:
+        CrimeSpot.objects.update_or_create(case=case, defaults=values)
+    return True
+
+
+def _digits(value):
+    return ''.join(ch for ch in str(value or '') if ch.isdigit())
+
+
+def clean_person(raw):
+    """A person dict from the form, cut to what cases_person can hold; None without a name."""
+    def get(*keys):
+        for key in keys:
+            value = raw.get(key)
+            if value not in EMPTY:
+                return value
+        return None
+
+    name = str(get('name', 'accusedName', 'person_name') or '').strip()
+    if not name:
+        return None
+    age = _digits(get('age'))
+    mobile = _digits(get('mobile', 'mobile_no', 'mobile_number'))
+    aadhaar = _digits(get('aadhaar', 'aadhar', 'aadhaar_number', 'aadhar_number', 'aadhaar_no'))
+    pan = ''.join(str(get('pan', 'pan_number', 'pan_no') or '').split()).upper()
+
+    def text(value, limit):
+        return str(value).strip()[:limit] if value not in EMPTY else None
+
+    return {
+        'name': name[:150],
+        'age': int(age) if age and 0 < int(age) < 1000 else None,
+        'gender': text(get('gender'), 10),
+        'occupation': text(get('occupation', 'occ'), 100),
+        'mobile': mobile if len(mobile) == 10 else None,
+        'aadhaar': aadhaar if len(aadhaar) == 12 else None,
+        'pan': pan if len(pan) == 10 and pan.isalnum() else None,
+        'religion': text(get('religion'), 50),
+        'caste': text(get('caste', 'cast'), 50),
+        'address': text(get('address'), 10000),
+    }
+
+
+def _flat_person(sources, prefix):
+    """complainant_name, complainant_age, ... -> one person dict."""
+    fields = ('name', 'age', 'gender', 'occupation', 'mobile', 'aadhaar', 'pan', 'religion', 'caste', 'address')
+    return {f: first(sources, f'{prefix}_{f}') for f in fields}
+
+
+def people_from(sources):
+    """[(role, person), ...] for the complainant and the accused named in the form."""
+    found = []
+    complainant = clean_person(_flat_person(sources, 'complainant'))
+    if not complainant:
+        nested = first(sources, 'complainant')
+        complainant = clean_person(nested) if isinstance(nested, dict) else None
+    if complainant:
+        found.append(('complainant', complainant))
+
+    accused = []
+    for key in ('accused', 'accused_list', 'accusedDetails'):
+        # The request's own `accused` is the case's plain-text field; take the
+        # first source where the key holds a non-empty list of people
+        value = next((s[key] for s in sources if isinstance(s.get(key), list) and s[key]), [])
+        accused += [clean_person(a) for a in value if isinstance(a, dict)]
+    single = clean_person(_flat_person(sources, 'accused'))
+    if single:
+        accused.append(single)
+    seen = set()
+    for person in accused:
+        if person and person['name'].lower() not in seen:
+            seen.add(person['name'].lower())
+            found.append(('accused', person))
+    return found
+
+
+def save_people(case, sources, write=True):
+    """
+    Add the complainant and accused to cases_person, or fill in details of a person
+    already saved with the same name and role. Nobody is deleted here: arrests,
+    remand and seizures point at these rows.
+    """
+    from apps.crimetab.models.common_form import CasesPerson
+    added = updated = 0
+    for role, person in people_from(sources):
+        existing = CasesPerson.objects.filter(case=case, role=role, name__iexact=person['name']).first()
+        if existing:
+            changes = {k: v for k, v in person.items() if v is not None and getattr(existing, k) in (None, '')}
+            if changes:
+                updated += 1
+                if write:
+                    CasesPerson.objects.filter(pk=existing.pk).update(**changes)
+        else:
+            added += 1
+            if write:
+                CasesPerson.objects.create(case=case, role=role, **person)
+    return added, updated
