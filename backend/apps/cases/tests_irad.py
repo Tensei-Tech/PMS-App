@@ -70,7 +70,7 @@ class RoadAccidentIradTests(TestCase):
         self.case_pending_no = CaseRecord.objects.create(
             case_number='CR/2026/IRAD-02',
             title='City Intersection Collision',
-            sub_category='Normal Accident',
+            sub_category='Other Road Accident',
             module_key='accident',
             station_name='TUMSAR',
             assigned_officer='PSI Suresh Shinde',

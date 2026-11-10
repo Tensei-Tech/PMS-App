@@ -1464,15 +1464,24 @@ def _save_road_accident_child_entities(case: CaseRecord, data: dict):
     acc_dt = _parse_accident_datetime(_get_val('accident_datetime'))
     acc_spot = _get_val('accident_spot')
 
-    raw_vehs = data.get('acc_vehicles') or m.get('acc_vehicles') or dyn.get('acc_vehicles') or data.get('vehicles') or m.get('vehicles') or []
-    raw_inj = data.get('acc_injured') or m.get('acc_injured') or dyn.get('acc_injured') or data.get('injured') or m.get('injured') or []
-    raw_dec = data.get('acc_deceased') or m.get('acc_deceased') or dyn.get('acc_deceased') or data.get('deceased') or m.get('deceased') or []
+    # Only a Road Accident case (or one carrying the accident form's own answers)
+    # gets an accident row. The generic `vehicles` / `injured` / `deceased` keys
+    # belong to other forms too, and the Common Form's accused fields also start
+    # with acc_, which used to create empty accident rows for Tadipar, Murder and
+    # other cases.
+    from apps.cases.road_accident_cases import is_road_accident_case
+    is_road = is_road_accident_case(case)
+    raw_vehs = data.get('acc_vehicles') or m.get('acc_vehicles') or dyn.get('acc_vehicles') or (
+        (data.get('vehicles') or m.get('vehicles') or []) if is_road else [])
+    raw_inj = data.get('acc_injured') or m.get('acc_injured') or dyn.get('acc_injured') or (
+        (data.get('injured') or m.get('injured') or []) if is_road else [])
+    raw_dec = data.get('acc_deceased') or m.get('acc_deceased') or dyn.get('acc_deceased') or (
+        (data.get('deceased') or m.get('deceased') or []) if is_road else [])
 
-    has_acc_data = bool(
+    has_acc_data = is_road or bool(
         nature or nature_other or veh_abandoned or driver_traced or
         victim_ident or witness_ident or irad or irad_dt or dar or dar_dt or acc_dt or acc_spot or
-        raw_vehs or raw_inj or raw_dec or
-        (case.sub_category and any(w in case.sub_category.lower() for w in ['accident', 'rash', 'road']))
+        raw_vehs or raw_inj or raw_dec
     )
 
     if not has_acc_data:
