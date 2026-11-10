@@ -40,6 +40,7 @@ class Command(BaseCommand):
                     totals['cases with charges'] += 1 if done['charges'] else 0
                     totals['crime spot rows'] += int(done['crime_spot'])
                     totals['registration times'] += int(done['registration'])
+                    totals['court filing rows'] += int(done['final_verdict'])
                     totals['people added'] += done['people_added']
                     totals['people filled in'] += done['people_updated']
                     totals['cctv rows'] += int(done['cctv'])
