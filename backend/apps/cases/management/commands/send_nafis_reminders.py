@@ -30,22 +30,10 @@ class Command(BaseCommand):
             Q(extra_fields__has_key='ccStNumber')
         ) & ~Q(extra_fields__charge_sheet_number='') & ~Q(extra_fields__charge_sheet_no='') & ~Q(extra_fields__cc_st_number='') & ~Q(extra_fields__ccStNumber='')
 
-        nafis_q = (
-            Q(forensics__nafis_fingerprint__isnull=False) |
-            Q(forensics__fingerprint_taken__isnull=False) |
-            Q(extra_fields__has_key='nafis_fingerprint') |
-            Q(extra_fields__has_key='nafisFingerprint') |
-            Q(extra_fields__has_key='fingerprintVal') |
-            Q(extra_fields__has_key='fingerprint_taken') |
-            Q(extra_fields__investigationNotes__has_key='nafisFingerprint') |
-            Q(extra_fields__investigationNotes__has_key='fingerprintVal') |
-            Q(extra_fields__investigation_notes__has_key='nafis_fingerprint') |
-            Q(extra_fields__investigation_notes__has_key='fingerprint_taken') |
-            Q(extra_fields__commonForm__investigationNotes__has_key='nafisFingerprint') |
-            Q(extra_fields__commonForm__investigationNotes__has_key='fingerprintVal')
-        )
-
-        all_nafis = CaseRecord.objects.filter(nafis_q).distinct()
+        # The NAFIS tab's own list: crime cases with fingerprint / NAFIS details
+        # (service records such as licence or passport are left out)
+        from apps.cases.utils import get_cases_by_status
+        all_nafis = get_cases_by_status('nafis').select_related('forensics')
         from apps.cases.serializers import NafisCaseRecordSerializer
         dummy_serializer = NafisCaseRecordSerializer()
 

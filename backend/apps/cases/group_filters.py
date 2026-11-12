@@ -23,18 +23,44 @@ def _as_key(text):
     return re.sub(r'[^a-z0-9]+', '_', (text or '').lower()).strip('_')
 
 
+def _names_q(names):
+    q = Q(pk__in=[])
+    for name in names:
+        q |= Q(sub_category__iexact=name)
+    return q
+
+
 def group_case_q(group_id):
-    """Q() over CaseRecord for the cases of category group `group_id`."""
-    keys = {GROUP_MODULE_KEYS[group_id]}
-    q = Q(category_links__category__group_id=group_id)
-    for name, code in CaseCategory.objects.filter(group_id=group_id).values_list(
-            'category_name', 'category_code'):
+    """
+    Q() over CaseRecord for the cases of category group `group_id`, so that a
+    case belongs to exactly one group:
+    1. its category link, when it is linked to a category of either group;
+    2. otherwise its sub-tab name (sub_category), when that names a category
+       of either group;
+    3. otherwise its module (the group's own 'form_1_5' / 'form_6', or a
+       category code or name of the group).
+    A Part 6 crime saved from the "1 to 5" module (module form_1_5, sub-tab
+    Gambling) is therefore counted only in Part 6.
+    """
+    names_by_group, keys = {}, {GROUP_MODULE_KEYS[group_id]}
+    for gid, name, code in CaseCategory.objects.filter(group_id__in=GROUP_MODULE_KEYS).values_list(
+            'group_id', 'category_name', 'category_code'):
         if name:
-            keys.add(_as_key(name))
-            q |= Q(sub_category__iexact=name)
-        if code:
-            keys.add(code.lower().strip())
-    return q | Q(module_key__in=sorted(keys))
+            names_by_group.setdefault(gid, set()).add(name)
+        if gid == group_id:
+            if name:
+                keys.add(_as_key(name))
+            if code:
+                keys.add(code.lower().strip())
+    all_names = set().union(*names_by_group.values()) if names_by_group else set()
+
+    linked_to_a_group = Q(category_links__category__group_id__in=list(GROUP_MODULE_KEYS))
+    named_after_a_group = _names_q(all_names)
+    by_link = Q(category_links__category__group_id=group_id)
+    by_name = ~linked_to_a_group & _names_q(names_by_group.get(group_id, set()))
+    by_module = (~linked_to_a_group & (Q(sub_category__isnull=True) | ~named_after_a_group)
+                 & Q(module_key__in=sorted(keys)))
+    return by_link | by_name | by_module
 
 
 def get_preventive_eligible_categories_qs():

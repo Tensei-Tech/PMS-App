@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.db.models.functions import Coalesce
 
 from apps.cases.models import CaseRecord
+from apps.cases.utils import crime_case_q, named_accused_case_ids
 from apps.crimetab.models.groupings import CaseCategory
 
 logger = logging.getLogger(__name__)
@@ -123,7 +124,16 @@ def get_comparative_date_ranges(
     }
 
 
-def classify_case_record(case: CaseRecord) -> Tuple[str, str]:
+def _group_twin(name):
+    """The group of the grouped category named like this standalone one."""
+    key = (name or '').strip()
+    if not key:
+        return None
+    twin = CaseCategory.objects.filter(category_name__iexact=key, group__isnull=False).select_related('group').first()
+    return twin.group if twin else None
+
+
+def classify_case_record(case: CaseRecord, twins=None) -> Tuple[str, str]:
     """
     Maps a CaseRecord instance to its crime group ('IPC' or 'SLL') and standard crime head.
     Utilizes:
@@ -144,12 +154,16 @@ def classify_case_record(case: CaseRecord) -> Tuple[str, str]:
             cat = link.category
             if not cat:
                 continue
-            group_code = (cat.group.group_code if cat.group else '') or ''
-            group_name = (cat.group.group_name if cat.group else '') or ''
+            # A standalone tab (no group) counts in the group of the tab with the
+            # same name: standalone Prohibition is Part 6, not IPC
+            group = cat.group or (twins.get((cat.category_name or '').strip().lower()) if twins is not None
+                                  else _group_twin(cat.category_name))
+            group_code = (group.group_code if group else '') or ''
+            group_name = (group.group_name if group else '') or ''
             cat_name = (cat.category_name or '').strip().upper()
 
             is_sll = (
-                (cat.group and cat.group.group_id == 2) or
+                (group and group.group_id == 2) or
                 'VI' in group_code.upper() or
                 '6' in group_name
             )
@@ -338,7 +352,7 @@ def _normalize_head_name(raw_name: str, group: str) -> str:
     return name_upper
 
 
-def is_case_detected(case: CaseRecord) -> bool:
+def is_case_detected(case: CaseRecord, named_accused_ids=None) -> bool:
     """
     Determines if a case is Detected (DET) for police comparative reporting:
     - Status in ['Detected', 'Disposal', 'Disposed', 'Closed', 'Resolved']
@@ -347,6 +361,9 @@ def is_case_detected(case: CaseRecord) -> bool:
     status_str = (getattr(case, 'status', '') or '').strip().lower()
     if status_str in ['detected', 'disposal', 'disposed', 'closed', 'resolved']:
         return True
+
+    if named_accused_ids is not None and str(case.pk) in named_accused_ids:
+        return True  # accused named in the persons table
 
     accused = (getattr(case, 'accused', '') or '').strip()
     if accused and accused.lower() not in ['unknown', 'अज्ञात', 'unidentified', 'none', 'null']:
@@ -392,7 +409,8 @@ class MonthlyCrimeComparativeService:
         ).filter(
             record_date__gte=overall_start,
             record_date__lte=overall_end
-        ).prefetch_related('category_links__category__group')
+        ).filter(crime_case_q()).exclude(module_key__in=['ad', 'preventive']).prefetch_related(
+            'category_links__category__group')
 
         # Station filtering & multi-tenancy
         if self.station_name:
@@ -401,6 +419,11 @@ class MonthlyCrimeComparativeService:
             queryset = queryset.filter(station_name__in=self.allowed_stations)
 
         cases = list(queryset)
+        named_ids = {str(r['case_id']) for r in named_accused_case_ids()}
+        # standalone tab name -> group of the grouped tab with that name, read once
+        twins = {}
+        for cat in CaseCategory.objects.filter(group__isnull=False).select_related('group'):
+            twins.setdefault((cat.category_name or '').strip().lower(), cat.group)
 
         # Build dynamic list of active heads from database CaseCategory tables
         ipc_heads_order: List[str] = []
@@ -445,8 +468,8 @@ class MonthlyCrimeComparativeService:
                 continue
 
             case_id = str(case.pk or case.id)
-            detected = is_case_detected(case)
-            grp, head = classify_case_record(case)
+            detected = is_case_detected(case, named_ids)
+            grp, head = classify_case_record(case, twins)
 
             target_agg = ipc_agg if grp == 'IPC' else sll_agg
             if head not in target_agg:
