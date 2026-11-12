@@ -468,6 +468,10 @@ class MuddemalProvider extends BaseModuleProvider {
       _configs = results[0] as Map<String, dynamic>;
       _categories = results[1] as List<MuddemalCategory>;
 
+      if (_configs.isEmpty) {
+        _configs = await _muddemalApi.fetchConfigs();
+      }
+
       if (stationName != null && stationName.isNotEmpty) {
         _filterStation = stationName;
       }
@@ -484,7 +488,19 @@ class MuddemalProvider extends BaseModuleProvider {
     }
   }
 
-  /// 1a. Centralized auto-fetched properties for station/filters
+  /// Ensures dynamic configuration (source modules, statuses) is loaded from backend
+  Future<void> ensureConfigsLoaded() async {
+    if (_configs.isEmpty ||
+        sourceModules.isEmpty ||
+        propertyStatusOptions.isEmpty) {
+      final cfg = await _muddemalApi.fetchConfigs();
+      if (cfg.isNotEmpty) {
+        _configs = cfg;
+        notifyListeners();
+      }
+    }
+  }
+
   Future<void> loadProperties({
     String? stationName,
     bool forceSync = false,

@@ -1,6 +1,7 @@
 // lib/modules/muddemal/services/muddemal_api_service.dart
 // HTTP client service for Digital Muddemal / Property Management Module.
 // Strictly speaks to Django REST backend APIs.
+import '../../../constants/app_constants.dart';
 import '../../../services/api_config.dart';
 import '../../../services/api_service.dart';
 import '../../../widgets/dynamic_form/dynamic_field_model.dart';
@@ -22,7 +23,10 @@ class MuddemalApiService {
 
   /// 1. Fetch system configs (alert thresholds, measurement units, statuses)
   Future<Map<String, dynamic>> fetchConfigs() async {
-    final res = await _api.get('$_base/configs/');
+    final res = await _api.get(
+      '$_base/configs/',
+      timeout: ApiConstants.longReceiveTimeout,
+    );
     if (res.isSuccess && res.data is Map && res.data['configs'] is Map) {
       return Map<String, dynamic>.from(res.data['configs'] as Map);
     }

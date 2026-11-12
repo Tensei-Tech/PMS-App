@@ -46,7 +46,6 @@ const Set<String> _kCommonFormBaselineModules = {
   'mv_act',
   'm_v_act',
   'uapa',
-  'tadipar',
   'absconded',
   'arrested',
   'juvenile',
@@ -110,7 +109,6 @@ const Set<String> _kCommonFormBaselineCategoryNames = {
   'm.v act',
   'mv act',
   'uapa',
-  'tadipar',
   // Forms tab & dedicated form subcategories
   'crime detail form',
   'property & seizure form',
@@ -173,7 +171,8 @@ bool isDedicatedFormTab(String? moduleKeyOrCategory) {
   return clean == 'ad' ||
       clean == 'nc' ||
       clean == 'missing' ||
-      clean == 'preventive';
+      clean == 'preventive' ||
+      clean == 'tadipar';
 }
 
 /// Only returns true if the tab is linked to "Common Form Baseline Template".

@@ -64,7 +64,7 @@ class MuddemalTenantMixin:
     """
     def initial(self, request, *args, **kwargs):
         super().initial(request, *args, **kwargs)
-        from apps.core.tenancy import set_tenant_schema
+        from apps.core.tenancy import set_tenant_schema, _get_schema_stack
         schema = getattr(request, 'state_schema', None)
         if not schema or schema == 'public':
             state_code = getattr(request, 'state_code', None) or (
@@ -75,7 +75,11 @@ class MuddemalTenantMixin:
                 schema = _STATE_SCHEMA_CACHE.get(str(state_code).upper(), 'maharashtra')
             else:
                 schema = 'maharashtra'
+        request.state_schema = schema
         set_tenant_schema(schema)
+        stack = _get_schema_stack()
+        if not stack or stack[-1] != schema:
+            stack.append(schema)
 
 
 class MuddemalConfigView(MuddemalTenantMixin, APIView):

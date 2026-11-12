@@ -39,7 +39,10 @@ class MuddemalPropertyCategorySerializer(serializers.ModelSerializer):
         ]
 
     def get_fields_count(self, obj) -> int:
-        return obj.field_definitions.filter(is_active=True).count()
+        try:
+            return obj.field_definitions.filter(is_active=True).count()
+        except Exception:
+            return 0
 
     def get_category_label(self, obj) -> str:
         try:
