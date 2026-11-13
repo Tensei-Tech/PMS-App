@@ -1132,7 +1132,8 @@ class _VictimHubScreenState extends State<VictimHubScreen>
                                                       horizontal: 6,
                                                       vertical: 1.5),
                                                   decoration: BoxDecoration(
-                                                    color: (isChecked || count > 0)
+                                                    color: (isChecked ||
+                                                            count > 0)
                                                         ? AppColors.navyMid
                                                         : AppColors.navyMid
                                                             .withValues(
@@ -1147,7 +1148,8 @@ class _VictimHubScreenState extends State<VictimHubScreen>
                                                       fontSize: 10.5,
                                                       fontWeight:
                                                           FontWeight.w700,
-                                                      color: (isChecked || count > 0)
+                                                      color: (isChecked ||
+                                                              count > 0)
                                                           ? Colors.white
                                                           : AppColors.navyMid,
                                                     ),

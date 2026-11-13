@@ -334,7 +334,9 @@ class _DarHubScreenState extends State<DarHubScreen>
   // ---------------------------------------------------------------------------
 
   bool _isAccidentCategoryCase(DarCaseItem c) {
-    final combined = '${c.actAndSection} ${c.rawMap['sub_category'] ?? ''} ${c.rawMap['title'] ?? ''} ${c.rawMap['category_name'] ?? ''} ${c.rawMap['module_key'] ?? ''}'.toLowerCase();
+    final combined =
+        '${c.actAndSection} ${c.rawMap['sub_category'] ?? ''} ${c.rawMap['title'] ?? ''} ${c.rawMap['category_name'] ?? ''} ${c.rawMap['module_key'] ?? ''}'
+            .toLowerCase();
     return combined.contains('accident') || combined.contains('rash');
   }
 
@@ -2377,7 +2379,9 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
         height: 38,
         padding: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
-          color: hasFilter ? AppColors.navyMid.withValues(alpha: 0.08) : Colors.white,
+          color: hasFilter
+              ? AppColors.navyMid.withValues(alpha: 0.08)
+              : Colors.white,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: hasFilter ? AppColors.navyMid : const Color(0xFFCBD5E1),
@@ -2614,7 +2618,6 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
               // Top 3 Stat Cards
               LayoutBuilder(
                 builder: (context, constraints) {
-                  final isMobile = constraints.maxWidth < 650;
                   final cards = [
                     _buildStatCard(
                       title: 'Total',

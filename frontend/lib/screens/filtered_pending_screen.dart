@@ -124,7 +124,8 @@ class _FilteredPendingScreenState extends State<FilteredPendingScreen> {
         if (widget.endDate != null) {
           final eDate = DateTime.tryParse(widget.endDate!);
           if (eDate != null) {
-            final eDateEnd = DateTime(eDate.year, eDate.month, eDate.day, 23, 59, 59);
+            final eDateEnd =
+                DateTime(eDate.year, eDate.month, eDate.day, 23, 59, 59);
             records = records.where((r) {
               final d = r.createdAt.year > 2000 ? r.createdAt : r.incidentDate;
               return !d.isAfter(eDateEnd);

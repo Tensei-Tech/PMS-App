@@ -583,7 +583,7 @@ class _HoverableTableRowState extends State<_HoverableTableRow> {
 
 /// Shimmer placeholder table skeleton matching [ViewCaseTable].
 class ViewCaseTableSkeleton extends StatelessWidget {
-  ViewCaseTableSkeleton({super.key});
+  const ViewCaseTableSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -748,8 +748,8 @@ class ViewCaseTableSkeleton extends StatelessWidget {
                       border: i == 5
                           ? null
                           : const Border(
-                              bottom:
-                                  BorderSide(color: Color(0xFFF1F5F9), width: 1),
+                              bottom: BorderSide(
+                                  color: Color(0xFFF1F5F9), width: 1),
                             ),
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: 10),

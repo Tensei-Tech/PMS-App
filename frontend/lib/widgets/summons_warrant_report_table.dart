@@ -520,7 +520,8 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
                     _fetchReport();
                   }
                 },
-                icon: const Icon(Icons.add_rounded, size: 15, color: Colors.white),
+                icon: const Icon(Icons.add_rounded,
+                    size: 15, color: Colors.white),
                 label: Text(
                   'Add Case',
                   style: GoogleFonts.poppins(
@@ -531,7 +532,8 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.navyMid,
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
@@ -551,7 +553,8 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
                 ),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: AppColors.navyMid, width: 1.2),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
@@ -591,7 +594,8 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
                           : AppColors.navyMid,
                       width: 1.2,
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
@@ -602,7 +606,8 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
               IconButton(
                 tooltip: 'Refresh Report',
                 onPressed: _fetchReport,
-                icon: const Icon(Icons.refresh_rounded, color: AppColors.navyMid),
+                icon:
+                    const Icon(Icons.refresh_rounded, color: AppColors.navyMid),
               ),
               const SizedBox(width: 4),
               ElevatedButton.icon(
@@ -616,7 +621,8 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
                         color: Colors.white)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.navyMid,
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppRadius.sm)),
                 ),
@@ -717,8 +723,8 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
           const SizedBox(width: 8),
           SizedBox(
             width: 130,
-            child: _summaryCard('Pending (अखेर)', '$pending', AppColors.dangerRed,
-                const Color(0xFFFEF2F2)),
+            child: _summaryCard('Pending (अखेर)', '$pending',
+                AppColors.dangerRed, const Color(0xFFFEF2F2)),
           ),
         ],
       ),

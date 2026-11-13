@@ -334,7 +334,9 @@ class _IradHubScreenState extends State<IradHubScreen>
   // ---------------------------------------------------------------------------
 
   bool _isAccidentCategoryCase(IradCaseItem c) {
-    final combined = '${c.actAndSection} ${c.rawMap['sub_category'] ?? ''} ${c.rawMap['title'] ?? ''} ${c.rawMap['category_name'] ?? ''} ${c.rawMap['module_key'] ?? ''}'.toLowerCase();
+    final combined =
+        '${c.actAndSection} ${c.rawMap['sub_category'] ?? ''} ${c.rawMap['title'] ?? ''} ${c.rawMap['category_name'] ?? ''} ${c.rawMap['module_key'] ?? ''}'
+            .toLowerCase();
     return combined.contains('accident') || combined.contains('rash');
   }
 
@@ -2377,7 +2379,9 @@ class _IradCasesDetailScreenState extends State<IradCasesDetailScreen> {
         height: 38,
         padding: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
-          color: hasFilter ? AppColors.navyMid.withValues(alpha: 0.08) : Colors.white,
+          color: hasFilter
+              ? AppColors.navyMid.withValues(alpha: 0.08)
+              : Colors.white,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: hasFilter ? AppColors.navyMid : const Color(0xFFCBD5E1),

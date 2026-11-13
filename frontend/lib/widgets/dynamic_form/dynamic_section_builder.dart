@@ -330,8 +330,7 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                             ),
                           )
                         : Icon(widget.icon,
-                            size: isCompact ? 16 : 18,
-                            color: Colors.white),
+                            size: isCompact ? 16 : 18, color: Colors.white),
                   ),
                   SizedBox(width: isCompact ? 10 : 12),
                   Expanded(

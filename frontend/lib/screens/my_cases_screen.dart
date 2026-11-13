@@ -152,7 +152,7 @@ class _MyCasesScreenState extends State<MyCasesScreen> {
           alignment: Alignment.topCenter,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1600),
-            child: Padding(
+            child: const Padding(
               padding: EdgeInsets.all(AppSpacing.md),
               child: ViewEmptyState(
                 icon: Icons.cloud_off_rounded,

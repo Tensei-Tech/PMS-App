@@ -187,7 +187,8 @@ class _AddWarrantCaseDialogState extends State<AddWarrantCaseDialog> {
       setState(() {
         _isSubmitting = false;
         _hasAddedAnyCase = true;
-        _successMessage = 'Case "$caseNum" registered successfully! You can register another case below.';
+        _successMessage =
+            'Case "$caseNum" registered successfully! You can register another case below.';
         _caseNumberCtrl.clear();
         _accusedNameCtrl.clear();
         _courtNameCtrl.clear();
@@ -275,8 +276,9 @@ class _AddWarrantCaseDialogState extends State<AddWarrantCaseDialog> {
                     ),
                   ),
                   IconButton(
-                    onPressed:
-                        _isSubmitting ? null : () => Navigator.pop(context, _hasAddedAnyCase),
+                    onPressed: _isSubmitting
+                        ? null
+                        : () => Navigator.pop(context, _hasAddedAnyCase),
                     icon:
                         const Icon(Icons.close_rounded, color: Colors.white70),
                   ),

@@ -949,7 +949,6 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
     }
   }
 
-
   // ── §10 Suspected Accused ──────────────────────────────────────────────
   List<dynamic> suspectedList = [];
   if (m['suspectedAccused'] is List) {
@@ -1283,15 +1282,15 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
       _f('E-Shakshya', 'Yes'),
       if (_v(m['eshakshDt']).isNotEmpty)
         _f('E-Shakshya Date & Time', _v(m['eshakshDt'])),
-    ] else if (m['eshakshValue'] == 'no' && _v(m['eshakshReason']).isNotEmpty) ...[
+    ] else if (m['eshakshValue'] == 'no' &&
+        _v(m['eshakshReason']).isNotEmpty) ...[
       _f('E-Shakshya', 'No'),
       _f('Reason for No E-Shakshya', _v(m['eshakshReason'])),
     ],
     if (m['fingerprint_taken'] == true ||
         m['fingerprint_taken']?.toString() == 'true')
       _f('Fingerprints Taken', 'Yes'),
-    if (m['cctv_checked'] == true ||
-        m['cctv_checked']?.toString() == 'true')
+    if (m['cctv_checked'] == true || m['cctv_checked']?.toString() == 'true')
       _f('CCTV Footage Checked', 'Yes'),
   ];
   final vehicleGridFields = <_FD>[
@@ -2221,8 +2220,8 @@ pw.Widget _card(
               ),
               if (fieldCount != null && fieldCount > 1) ...[
                 pw.Container(
-                  padding: const pw.EdgeInsets.symmetric(
-                      horizontal: 6, vertical: 2),
+                  padding:
+                      const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: pw.BoxDecoration(
                     color: const PdfColor.fromInt(0xFFEEF2FF),
                     borderRadius: pw.BorderRadius.circular(10),
@@ -2437,7 +2436,6 @@ pw.Widget _personBlock(String title, Map<String, dynamic> person) =>
         ],
       ),
     );
-
 
 pw.Widget _chargeBlock(int num, String act, List<String> secs) => pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 4),
