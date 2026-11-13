@@ -2357,7 +2357,6 @@ class CategoryGridCardState extends State<CategoryGridCard> {
                 ],
               ),
             ),
-            ),
           ),
         ),
       ),
