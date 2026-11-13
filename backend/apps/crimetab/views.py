@@ -588,6 +588,15 @@ from django.utils.dateparse import parse_datetime, parse_date
 
 
 def _parse_dt(val):
+    """A typed date-time as an aware value. Text without a timezone is Indian time
+    (settings.TIME_ZONE); ISO text with an offset keeps its own."""
+    dt = _parse_dt_naive(val)
+    if dt is not None and timezone.is_naive(dt):
+        dt = timezone.make_aware(dt)
+    return dt
+
+
+def _parse_dt_naive(val):
     if not val or not str(val).strip():
         return None
     s = str(val).strip()
@@ -620,7 +629,7 @@ def _parse_d(val):
     parsed = parse_date(s)
     if parsed:
         return parsed
-    dt = _parse_dt(s)
+    dt = _parse_dt_naive(s)  # the date as written, whatever its time or offset
     return dt.date() if dt else None
 
 
@@ -697,74 +706,8 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
             }
         )
 
-    # 4. Charges (Acts & Sections)
-    def _resolve_act(act_raw):
-        if not act_raw:
-            return None
-        s = str(act_raw).strip()
-        if s.isdigit():
-            act = Act.objects.filter(act_id=int(s)).first()
-            if act:
-                return act
-        act = Act.objects.filter(Q(act_name__iexact=s) | Q(act_name__icontains=s)).first()
-        if act:
-            return act
-        s_lower = s.lower()
-        if 'bns' in s_lower:
-            return Act.objects.filter(act_name__icontains='Bharatiya Nyaya').first() or Act.objects.first()
-        if 'ipc' in s_lower:
-            return Act.objects.filter(act_name__icontains='Indian Penal').first() or Act.objects.first()
-        if 'bnss' in s_lower or 'crpc' in s_lower:
-            return Act.objects.filter(act_name__icontains='Nagarik').first() or Act.objects.first()
-        return Act.objects.first()
-
-    charges_data = m.get('charges') or m.get('acts_sections') or data.get('acts_sections')
-    if charges_data is not None:
-        CrimeCaseActsSections.objects.filter(case=case).delete()
-        if isinstance(charges_data, dict):
-            for _, ch in charges_data.items():
-                if isinstance(ch, dict):
-                    act_name = ch.get('act') or ch.get('act_name')
-                    sections = ch.get('sections', [])
-                    if isinstance(sections, str):
-                        sections = [sections]
-                    act_obj = _resolve_act(act_name)
-                    if act_obj:
-                        for s_num in sections:
-                            s_str = str(s_num).strip()
-                            sec_q = Q(section_number__iexact=s_str)
-                            if s_str.isdigit():
-                                sec_q |= Q(section_id=int(s_str))
-                            sec_obj = ActSection.objects.filter(act=act_obj).filter(sec_q).first()
-                            if sec_obj:
-                                CrimeCaseActsSections.objects.create(
-                                    case=case,
-                                    act=act_obj,
-                                    section=sec_obj,
-                                )
-        elif isinstance(charges_data, list):
-            for ch in charges_data:
-                if isinstance(ch, dict):
-                    act_raw = ch.get('act') or ch.get('act_name') or ch.get('act_id')
-                    sec_raw = ch.get('section') or ch.get('section_number') or ch.get('section_id')
-                    subsection_id = ch.get('subsection_id') or ch.get('subsection')
-
-                    act_obj = _resolve_act(act_raw)
-                    sec_obj = None
-                    if act_obj and sec_raw:
-                        s_str = str(sec_raw).strip()
-                        sec_q = Q(section_number__iexact=s_str)
-                        if s_str.isdigit():
-                            sec_q |= Q(section_id=int(s_str))
-                        sec_obj = ActSection.objects.filter(act=act_obj).filter(sec_q).first()
-
-                    if act_obj and sec_obj:
-                        CrimeCaseActsSections.objects.create(
-                            case=case,
-                            act=act_obj,
-                            section=sec_obj,
-                            subsection_id=int(subsection_id) if str(subsection_id).isdigit() else None,
-                        )
+    # 4. Charges (Acts & Sections): saved with the CCTV, forensics and
+    # panchanama tables at the end (step 19), from the keys the app sends.
 
     # 5. Persons
     persons_data = m.get('persons')
@@ -1253,65 +1196,7 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
             seized_from_person_id=resolved_pid
         )
 
-    # 9. CCTV & Technical
-    cctv_data = m.get('cctv_technical') or {}
-    cctv_chk = cctv_data.get('cctv_checked') if 'cctv_checked' in cctv_data else m.get('cctvChecked')
-    cdr_s = _parse_d(cctv_data.get('cdr_sent_date') or m.get('cdrSent'))
-    cdr_r = _parse_d(cctv_data.get('cdr_received_date') or m.get('cdrRecv'))
-    if cctv_chk is not None or cdr_s or cdr_r:
-        CctvTechnical.objects.update_or_create(
-            case=case,
-            defaults={
-                'cctv_checked': cctv_chk,
-                'cdr_sent_date': cdr_s,
-                'cdr_received_date': cdr_r,
-            }
-        )
-
-    for_data = m.get('forensics') or m.get('case_forensics') or {}
-    inv_notes = m.get('investigationNotes') or {}
-    e_sh = for_data.get('e_shakshya') if 'e_shakshya' in for_data else (m.get('eshakshValue') in ['Yes', 'yes', True])
-    fp_raw = for_data.get('fingerprint_taken') if 'fingerprint_taken' in for_data else inv_notes.get('fingerprintVal')
-    fp = fp_raw in ['Yes', 'yes', True, 'true'] if fp_raw is not None else None
-    nafis_raw = for_data.get('nafis_fingerprint') if 'nafis_fingerprint' in for_data else inv_notes.get('nafisFingerprint')
-    nafis = nafis_raw in ['Yes', 'yes', True, 'true'] if nafis_raw is not None else None
-    if e_sh is not None or fp is not None or nafis is not None or for_data or inv_notes:
-        CaseForensics.objects.update_or_create(
-            case=case,
-            defaults={
-                'e_shakshya': e_sh,
-                'fingerprint_taken': fp,
-                'nafis_fingerprint': nafis,
-            }
-        )
-
-    # 11. Checklists
-    checklist_data = m.get('procedural_checklists')
-    if checklist_data is not None and isinstance(checklist_data, list):
-        ProceduralChecklist.objects.filter(case=case).delete()
-        for item in checklist_data:
-            if isinstance(item, dict):
-                item_name = item.get('item_name')
-                if item_name:
-                    ProceduralChecklist.objects.create(
-                        case=case,
-                        item_name=item_name,
-                        is_checked=bool(item.get('is_checked', False)),
-                        event_datetime=_parse_dt(item.get('event_datetime')),
-                    )
-    elif 'proceduralChecks' in m:
-        p_checks = m.get('proceduralChecks') or {}
-        p_dates = m.get('proceduralDates') or {}
-        ProceduralChecklist.objects.filter(case=case).delete()
-        for k, v in p_checks.items():
-            if v:
-                dt = _parse_dt(p_dates.get(k))
-                ProceduralChecklist.objects.create(
-                    case=case,
-                    item_name=k,
-                    is_checked=True,
-                    event_datetime=dt,
-                )
+    # 9-11. CCTV, forensics and panchanama: see step 19.
 
     # 12. Preventive Action Items & Bond
     prev_actions = m.get('preventive_actions') or m.get('preventive_action_items') or m.get('preventiveActions')
@@ -1489,6 +1374,10 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
     # 18. Road Accident Records & Repeating Child Entities (Vehicles, Injured, Deceased)
     _save_road_accident_child_entities(case, data)
 
+    # 19. Charges, CCTV, forensics and panchanama into their own tables
+    from apps.crimetab.common_form_tables import save_common_form_tables
+    save_common_form_tables(case, data)
+
 
 # Road Accident Extra Template questions saved in the road_accident_* tables
 # (step 18); they are removed from the case's extra_fields JSON once saved.
@@ -1575,15 +1464,24 @@ def _save_road_accident_child_entities(case: CaseRecord, data: dict):
     acc_dt = _parse_accident_datetime(_get_val('accident_datetime'))
     acc_spot = _get_val('accident_spot')
 
-    raw_vehs = data.get('acc_vehicles') or m.get('acc_vehicles') or dyn.get('acc_vehicles') or data.get('vehicles') or m.get('vehicles') or []
-    raw_inj = data.get('acc_injured') or m.get('acc_injured') or dyn.get('acc_injured') or data.get('injured') or m.get('injured') or []
-    raw_dec = data.get('acc_deceased') or m.get('acc_deceased') or dyn.get('acc_deceased') or data.get('deceased') or m.get('deceased') or []
+    # Only a Road Accident case (or one carrying the accident form's own answers)
+    # gets an accident row. The generic `vehicles` / `injured` / `deceased` keys
+    # belong to other forms too, and the Common Form's accused fields also start
+    # with acc_, which used to create empty accident rows for Tadipar, Murder and
+    # other cases.
+    from apps.cases.road_accident_cases import is_road_accident_case
+    is_road = is_road_accident_case(case)
+    raw_vehs = data.get('acc_vehicles') or m.get('acc_vehicles') or dyn.get('acc_vehicles') or (
+        (data.get('vehicles') or m.get('vehicles') or []) if is_road else [])
+    raw_inj = data.get('acc_injured') or m.get('acc_injured') or dyn.get('acc_injured') or (
+        (data.get('injured') or m.get('injured') or []) if is_road else [])
+    raw_dec = data.get('acc_deceased') or m.get('acc_deceased') or dyn.get('acc_deceased') or (
+        (data.get('deceased') or m.get('deceased') or []) if is_road else [])
 
-    has_acc_data = bool(
+    has_acc_data = is_road or bool(
         nature or nature_other or veh_abandoned or driver_traced or
         victim_ident or witness_ident or irad or irad_dt or dar or dar_dt or acc_dt or acc_spot or
-        raw_vehs or raw_inj or raw_dec or
-        (case.sub_category and any(w in case.sub_category.lower() for w in ['accident', 'rash', 'road']))
+        raw_vehs or raw_inj or raw_dec
     )
 
     if not has_acc_data:
@@ -2020,7 +1918,6 @@ class CrimeCaseManageView(APIView):
 
         from apps.core.tenancy import TenantContext
         from apps.core.cache import upstash_cache
-        from apps.crimetab.models.accident import RoadAccidentRecord
         with TenantContext(schema_name):
             case = CaseRecord.objects.filter(pk=pk).first()
             if not case or not can_access_station(request.user, case.station_name):
@@ -2029,9 +1926,7 @@ class CrimeCaseManageView(APIView):
                 return Response({'error': 'You can delete only cases you created.'}, status=status.HTTP_403_FORBIDDEN)
 
             with transaction.atomic():
-                # Accident rows point at the case by id text, not a foreign key.
-                RoadAccidentRecord.objects.filter(case_id=str(case.pk)).delete()
-                case.delete()  # persons, charges, seizures, ... cascade
+                case.delete()  # accident rows, persons, charges, seizures, ... cascade
         upstash_cache.delete_pattern("pms:cache:*:cases:*")
         logger.info(f"[CaseDelete] case {pk} deleted by {getattr(request.user, 'uid', '')}")
         return Response(status=status.HTTP_204_NO_CONTENT)

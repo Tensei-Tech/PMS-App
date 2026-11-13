@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from apps.cases.models import CaseRecord
 from .models.accident import (
     RoadAccidentRecord,
     RoadAccidentVehicle,
@@ -50,6 +51,10 @@ class RoadAccidentDeceasedSerializer(serializers.ModelSerializer):
 
 
 class RoadAccidentRecordSerializer(serializers.ModelSerializer):
+    # Same `case_id` key as before; an id with no case is a 400, not a saved row
+    case_id = serializers.PrimaryKeyRelatedField(
+        source='case', queryset=CaseRecord.objects.all(), required=False, allow_null=True,
+    )
     vehicles = RoadAccidentVehicleSerializer(many=True, read_only=True)
     injured_persons = RoadAccidentInjuredSerializer(many=True, read_only=True)
     deceased_persons = RoadAccidentDeceasedSerializer(many=True, read_only=True)

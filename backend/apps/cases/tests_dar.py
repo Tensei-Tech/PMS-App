@@ -1,3 +1,4 @@
+import datetime
 import json
 from django.test import TestCase
 from django.urls import reverse
@@ -70,7 +71,7 @@ class RoadAccidentDarTests(TestCase):
         self.case_pending_no = CaseRecord.objects.create(
             case_number='CR/2026/ACC-02',
             title='City Intersection Collision',
-            sub_category='Normal Accident',
+            sub_category='Other Road Accident',
             module_key='accident',
             station_name='TUMSAR',
             assigned_officer='PSI Suresh Shinde',
@@ -112,7 +113,7 @@ class RoadAccidentDarTests(TestCase):
         self.case_other_station = CaseRecord.objects.create(
             case_number='CR/2026/ACC-BHD',
             title='Bhandara Ring Road Accident',
-            sub_category='Normal Accident',
+            sub_category='Other Road Accident',
             module_key='accident',
             station_name='BHANDARA',
             assigned_officer='PI Vikas Kale',
@@ -261,3 +262,31 @@ class RoadAccidentDarTests(TestCase):
         resp_stats = self.client.get('/api/dar/stats/')
         self.assertEqual(resp_stats.status_code, status.HTTP_200_OK)
         self.assertEqual(resp_stats.json()['total_dar'], 3)
+
+
+class RoadAccidentSelectionTests(TestCase):
+    """DAR / IRAD list Road Accident cases only, and read the answers from road_accident_records."""
+
+    def _case(self, cr, sub, module='form_1_5', extra=None):
+        return CaseRecord.objects.create(case_number=cr, sub_category=sub, module_key=module,
+                                         station_name='TUMSAR', extra_fields=extra or {})
+
+    def test_other_accident_and_acc_prefixed_murder_are_not_road_accidents(self):
+        road = self._case('CR/RA/1', 'Road Accident')
+        other = self._case('CR/RA/2', 'Other Accident', module='accident', extra={'acc_dar': 'No'})
+        murder = self._case('CR/RA/3', 'Murder', extra={'acc_dar': 'No', 'acc_id': 'x', 'title': 'accident'})
+        ids = {str(i) for i in RoadAccidentDarService(station_name='TUMSAR').get_base_queryset()
+               .values_list('id', flat=True)}
+        self.assertIn(str(road.id), ids)
+        self.assertNotIn(str(other.id), ids)
+        self.assertNotIn(str(murder.id), ids)
+
+    def test_dar_answer_read_from_the_table(self):
+        from apps.crimetab.models.accident import RoadAccidentRecord
+        case = self._case('CR/RA/4', 'Road Accident', extra={})  # the form moved acc_dar out of the JSON
+        RoadAccidentRecord.objects.create(case=case, dar='Yes', dar_date=datetime.date(2026, 10, 15),
+                                          irad='No')
+        case = RoadAccidentDarService(station_name='TUMSAR').get_base_queryset().get(id=case.id)
+        self.assertEqual(RoadAccidentDarService.evaluate_case_dar(case)['status'], 'Filled')
+        from apps.cases.irad_service import RoadAccidentIradService
+        self.assertEqual(RoadAccidentIradService.evaluate_case_irad(case)['status'], 'Pending')

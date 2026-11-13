@@ -360,13 +360,13 @@ class _MyCasesPillCardState extends State<MyCasesPillCard> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: _hovered ? const Color(0xFF1976D2) : const Color(0xFFE2E8F0),
+            color: _hovered ? AppColors.navyMid : const Color(0xFFE2E8F0),
             width: _hovered ? 1.5 : 1.0,
           ),
           boxShadow: [
             BoxShadow(
               color: _hovered
-                  ? const Color(0xFF1976D2).withValues(alpha: 0.12)
+                  ? AppColors.navyMid.withValues(alpha: 0.12)
                   : Colors.black.withValues(alpha: 0.03),
               blurRadius: _hovered ? 8 : 3,
               offset: Offset(0, _hovered ? 3 : 1),
@@ -390,7 +390,7 @@ class _MyCasesPillCardState extends State<MyCasesPillCard> {
                     height: isCompact ? 38 : 42,
                     decoration: BoxDecoration(
                       color: hasCases
-                          ? const Color(0xFF0284C7).withValues(alpha: 0.1)
+                          ? AppColors.navyMid.withValues(alpha: 0.08)
                           : const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -399,7 +399,7 @@ class _MyCasesPillCardState extends State<MyCasesPillCard> {
                         widget.pill.rawCategory,
                         size: isCompact ? 19 : 20,
                         color: hasCases
-                            ? const Color(0xFF0284C7)
+                            ? AppColors.navyMid
                             : AppColors.lightSubText,
                       ),
                     ),
@@ -431,7 +431,7 @@ class _MyCasesPillCardState extends State<MyCasesPillCard> {
                           style: GoogleFonts.poppins(
                             fontSize: isCompact ? 10.5 : 11.5,
                             color: hasCases
-                                ? const Color(0xFF1976D2)
+                                ? AppColors.navyMid
                                 : AppColors.lightSubText,
                             fontWeight:
                                 hasCases ? FontWeight.w600 : FontWeight.w400,
@@ -444,9 +444,8 @@ class _MyCasesPillCardState extends State<MyCasesPillCard> {
                   Icon(
                     Icons.chevron_right_rounded,
                     size: isCompact ? 15 : 18,
-                    color: _hovered
-                        ? const Color(0xFF1976D2)
-                        : const Color(0xFFCBD5E1),
+                    color:
+                        _hovered ? AppColors.navyMid : const Color(0xFFCBD5E1),
                   ),
                 ],
               ),
