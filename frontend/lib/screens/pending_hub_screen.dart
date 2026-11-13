@@ -19,6 +19,115 @@ class PendingHubScreen extends StatefulWidget {
     required this.stationName,
   });
 
+  static final Set<String> _excludedModuleKeys = {
+    'passport',
+    'pvr',
+    'passport_pvr_lic',
+    'licence',
+    'license',
+    'arms_license',
+    'arms_licence',
+    'preventive',
+    'preventive_action',
+    'preventive_actions',
+    'chapter_case',
+    'tadipar',
+    'externment',
+    'sam_warrant',
+    'summons_warrant',
+    'warrant',
+    'summons',
+    'rti',
+    'application',
+    'history_sheeter',
+    'mpda',
+    'muddemal',
+  };
+
+  static final Set<String> _excludedCategoryCodes = {
+    'stand_passport',
+    'stand_pvr',
+    'stand_licence',
+    'stand_license',
+    'stand_preventive',
+    'stand_tadipar',
+    'stand_sam_warrant',
+    'stand_warrant',
+    'stand_rti',
+    'stand_muddemal',
+    'stand_history_sheeter',
+    'stand_mpda',
+  };
+
+  static final Set<String> _excludedCategoryNames = {
+    'passport',
+    'passport verification',
+    'pvr',
+    'pvr verification',
+    'licence',
+    'license',
+    'licence verification',
+    'license verification',
+    'arms licence',
+    'arms license',
+    'preventive',
+    'preventive action',
+    'chapter case',
+    'chapter_case',
+    'प्रतिबंधक कारवाई',
+    'प्रतिबंधक',
+    'tadipar',
+    'externment',
+    'समंस',
+    'वारंट',
+    'warrant',
+    'summons',
+    'sam_warrant',
+    'sam/warrant',
+    'rti',
+    'application',
+    'history sheeter',
+    'history_sheeter',
+    'mpda',
+    'muddemal',
+  };
+
+  /// Returns true for non-FIR administrative verifications, preventive/tadipar actions,
+  /// warrants, and citizen applications that must NOT be shown in Pending FIR Crime Cases.
+  static bool isExcludedPendingCrimeType(String head, [ModuleRecord? record]) {
+    final h = head.toLowerCase().trim();
+    final sub = (record?.subCategory ?? '').toLowerCase().trim();
+    final mod = (record?.moduleKey ?? '').toLowerCase().trim();
+
+    // 1. Non-crime module keys & codes
+    if (_excludedModuleKeys.contains(mod) ||
+        _excludedCategoryCodes.contains(mod)) {
+      return true;
+    }
+
+    // 2. Non-crime sub-categories & heads
+    if (_excludedCategoryNames.contains(h) ||
+        _excludedCategoryNames.contains(sub)) {
+      return true;
+    }
+
+    // 3. Category code directly passed as head
+    if (_excludedCategoryCodes.contains(h)) {
+      return true;
+    }
+
+    // 4. Record-level warrant extra attributes
+    final extra = record?.extraFields;
+    if (extra != null) {
+      if (extra.containsKey('warrant_type') ||
+          extra.containsKey('warrantType')) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   @override
   State<PendingHubScreen> createState() => _PendingHubScreenState();
 }
@@ -96,6 +205,10 @@ class _PendingHubScreenState extends State<PendingHubScreen>
                     : (r.moduleKey.trim().isNotEmpty
                         ? r.moduleKey.trim()
                         : 'Other'));
+
+            if (PendingHubScreen.isExcludedPendingCrimeType(rawKey, r)) {
+              continue;
+            }
 
             if (!grouped.containsKey(rawKey)) {
               grouped[rawKey] = {

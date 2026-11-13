@@ -23,14 +23,14 @@ void main() {
     );
   }
 
-  testWidgets('Passport/PVR/Licence shows the Passport, Licence, and PVR tabs',
+  testWidgets('Passport/PVR/Licence shows the Passport, PVR, and Licence tabs',
       (tester) async {
     await tester.pumpWidget(createTestWidget());
     await tester.pump();
     expect(find.text('Passport/PVR/Licence'), findsOneWidget); // title
     expect(find.text('Passport'), findsOneWidget); // first tab
-    expect(find.text('Licence'), findsOneWidget); // second tab
-    expect(find.text('PVR'), findsOneWidget); // third tab
+    expect(find.text('PVR'), findsOneWidget); // second tab
+    expect(find.text('Licence'), findsOneWidget); // third tab
     expect(find.textContaining('cases'), findsNothing);
   });
 

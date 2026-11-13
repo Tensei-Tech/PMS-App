@@ -395,15 +395,16 @@ class CaseCountsView(APIView):
                 stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                 queryset = queryset.filter(station_name__in=stations)
 
+            from apps.cases.utils import crime_case_q
             disposal_q = Q(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved'])
-            pending_q = ~disposal_q
+            pending_q = ~disposal_q & crime_case_q()
             detected_q = (
                 Q(accused__isnull=False) &
                 ~Q(accused__exact='') &
                 ~Q(accused__iexact='unknown') &
                 ~Q(accused__iexact='अज्ञात') &
                 ~Q(accused__iexact='unidentified')
-            ) & ~disposal_q
+            ) & ~disposal_q & crime_case_q()
 
             # 1. Overall counts
             overall = queryset.aggregate(
