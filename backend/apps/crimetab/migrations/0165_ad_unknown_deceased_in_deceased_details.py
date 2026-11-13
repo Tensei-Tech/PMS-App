@@ -40,7 +40,7 @@ def backwards(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('crimetab', '0163_rename_normal_accident_to_other_accident'),
+        ('crimetab', '0164_ad_identity_and_pm_labels'),
     ]
 
     operations = [

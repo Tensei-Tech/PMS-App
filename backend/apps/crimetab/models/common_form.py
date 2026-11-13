@@ -431,8 +431,11 @@ class CaseForensics(models.Model):
         related_name='forensics'
     )
     e_shakshya = models.BooleanField(null=True, blank=True)
+    e_shakshya_date = models.DateField(null=True, blank=True)
     fingerprint_taken = models.BooleanField(null=True, blank=True)
+    fingerprint_taken_date = models.DateField(null=True, blank=True)
     nafis_fingerprint = models.BooleanField(null=True, blank=True)
+    nafis_fingerprint_date = models.DateField(null=True, blank=True)
 
     class Meta:
         db_table = 'case_forensics'

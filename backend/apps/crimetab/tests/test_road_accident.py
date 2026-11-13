@@ -249,3 +249,66 @@ class RoadAccidentTestCase(TestCase):
             self.assertEqual(extra['accident_datetime'], '14/10/2026 18:45')
             self.assertEqual(extra['accident_spot'], 'Pune-Satara Highway, near toll plaza')
             self.assertEqual(extra['acc_vehicles'][0]['acc_veh_number'], 'MH-12-XY-9999')
+
+
+class RoadAccidentCaseLinkTests(TestCase):
+    """Accident rows are tied to their case by a real foreign key (migration 0174)."""
+
+    def _case(self, case_id='ACC_FK_1'):
+        return CaseRecord.objects.create(
+            id=case_id, case_number=f'CR/{case_id}', title='TEST', sub_category='Road Accident',
+            module_key='form_1_5', station_name='Central Police Station', extra_fields={},
+        )
+
+    def _accident_with_children(self, case):
+        rec = RoadAccidentRecord.objects.create(case=case, station_name=case.station_name)
+        RoadAccidentVehicle.objects.create(accident_record=rec, case=case, vehicle_number='MH-12-FK-1')
+        RoadAccidentInjured.objects.create(accident_record=rec, case=case, name='TEST Injured')
+        RoadAccidentDeceased.objects.create(accident_record=rec, case=case, name='TEST Deceased')
+        return rec
+
+    def test_deleting_case_deletes_accident_and_children(self):
+        with TenantContext('maharashtra'):
+            case = self._case()
+            self._accident_with_children(case)
+            other = self._case('ACC_FK_KEEP')
+            self._accident_with_children(other)
+
+            case.delete()
+
+            for model in (RoadAccidentRecord, RoadAccidentVehicle, RoadAccidentInjured, RoadAccidentDeceased):
+                self.assertFalse(model.objects.filter(case_id='ACC_FK_1').exists(), model.__name__)
+                self.assertTrue(model.objects.filter(case_id='ACC_FK_KEEP').exists(), model.__name__)
+
+    def test_case_id_still_reads_and_filters_as_text(self):
+        with TenantContext('maharashtra'):
+            case = self._case()
+            rec = self._accident_with_children(case)
+            self.assertEqual(rec.case_id, 'ACC_FK_1')
+            self.assertEqual(RoadAccidentRecord.objects.get(case_id='ACC_FK_1'), rec)
+            self.assertEqual(case.road_accident, rec)
+
+    def test_database_refuses_unknown_case(self):
+        from django.db import IntegrityError, transaction
+        with TenantContext('maharashtra'):
+            with self.assertRaises(IntegrityError), transaction.atomic():
+                RoadAccidentRecord.objects.create(case_id='NO_SUCH_CASE')
+                connection.check_constraints()
+
+    def test_api_serializer_checks_case_id(self):
+        from apps.crimetab.serializers_accident import RoadAccidentRecordSerializer
+        with TenantContext('maharashtra'):
+            self._case()
+            bad = RoadAccidentRecordSerializer(data={'case_id': 'NO_SUCH_CASE'})
+            self.assertFalse(bad.is_valid())
+            self.assertIn('case_id', bad.errors)
+
+            good = RoadAccidentRecordSerializer(data={'case_id': 'ACC_FK_1', 'accident_spot': 'TEST spot'})
+            self.assertTrue(good.is_valid(), good.errors)
+            rec = good.save()
+            self.assertEqual(rec.case_id, 'ACC_FK_1')
+            self.assertEqual(RoadAccidentRecordSerializer(rec).data['case_id'], 'ACC_FK_1')
+
+            standalone = RoadAccidentRecordSerializer(data={'accident_spot': 'TEST no case'})
+            self.assertTrue(standalone.is_valid(), standalone.errors)
+            self.assertIsNone(standalone.save().case_id)

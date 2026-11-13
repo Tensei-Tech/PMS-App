@@ -6,7 +6,7 @@ import jwt
 
 from django.conf import settings
 from django.core.cache import cache
-from django.db import connection
+from django.db import IntegrityError, connection, transaction
 from django.test import TestCase
 from django.test.utils import CaptureQueriesContext
 from rest_framework.test import APIClient
@@ -83,10 +83,12 @@ class CaseListSpeedTests(TestCase):
         self.assertNotIn('road_accident', without_acc)
         self.assertEqual(without_acc['extra_fields'], {'k': 'v'})
 
-    def test_first_accident_record_wins_as_before(self):
+    def test_one_accident_record_per_case(self):
+        # Two records for one case used to be possible; the database now refuses it
         self._add_cases(1, with_accident=False)
         with TenantContext('maharashtra'):
             RoadAccidentRecord.objects.create(case_id='speed-1', station_name=STATION, accident_spot='FIRST')
-            RoadAccidentRecord.objects.create(case_id='speed-1', station_name=STATION, accident_spot='SECOND')
+            with self.assertRaises(IntegrityError), transaction.atomic():
+                RoadAccidentRecord.objects.create(case_id='speed-1', station_name=STATION, accident_spot='SECOND')
         row = self.client.get('/api/cases/').json()['results'][0]
         self.assertEqual(row['road_accident']['accident_spot'], 'FIRST')

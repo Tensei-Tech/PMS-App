@@ -95,10 +95,10 @@ def get_cases_by_status(tab: str):
         return queryset.filter(status__iexact='Disposal')
     elif tab.lower() == 'pending':
         # "Pending" includes anything that is not Disposal, Closed, or Resolved
-        return queryset.exclude(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved'])
+        return queryset.exclude(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved']).filter(crime_case_q())
     elif tab.lower() == 'detected':
         # Exclude administrative service modules and missing reports (which are tracked as Traced/Untraced)
-        return queryset.filter(status__iexact='Detected').exclude(
+        return queryset.filter(status__iexact='Detected').filter(crime_case_q()).exclude(
             Q(module_key__in=['passport', 'licence', 'application', 'missing']) |
             Q(sub_category__iexact='missing')
         )
@@ -209,7 +209,8 @@ def get_cases_by_status(tab: str):
                 
         return CaseRecord.objects.filter(id__in=juvenile_ids).distinct()
     elif tab.lower() in ['nafis', 'nafis_pending']:
-        return queryset.filter(
+        return queryset.filter(crime_case_q()).filter(
+            Q(forensics__isnull=False) |
             # Forensics relational table checks
             Q(forensics__nafis_fingerprint__isnull=False) |
             Q(forensics__fingerprint_taken__isnull=False) |
@@ -295,15 +296,12 @@ def get_absconded_cases():
     if schema and schema != 'public':
         set_tenant_schema(schema)
     
-    detected_q = (
-        Q(accused__isnull=False) &
-        ~Q(accused__exact='') &
-        ~Q(accused__iexact='unknown') &
-        ~Q(accused__iexact='अज्ञात') &
-        ~Q(accused__iexact='unidentified')
-    )
-    
-    queryset = CaseRecord.objects.filter(detected_q).exclude(get_license_passport_excluded_q())
+    # Accused named in the persons table or the case's accused text; crime cases only;
+    # anyone arrested in the arrest table is not absconding
+    queryset = (CaseRecord.objects.filter(accused_known_q()).filter(crime_case_q())
+                .exclude(get_license_passport_excluded_q())
+                .exclude(id__in=arrested_in_table_case_ids())
+                .exclude(module_key__in=['ad', 'preventive']))
     
     # Check arrest date: if arrested date is null/missing -> absconded
     absconded_ids = []
@@ -422,16 +420,66 @@ def get_undetected_base_queryset(queryset=None):
     if queryset is None:
         queryset = CaseRecord.objects.all()
 
-    undetected_q = (
-        Q(accused__isnull=True) |
-        Q(accused__exact='') |
-        Q(accused__iexact='unknown') |
-        Q(accused__iexact='अज्ञात') |
-        Q(accused__iexact='unidentified')
-    )
-    return queryset.filter(undetected_q).exclude(
-        status__in=['Disposal', 'Disposed', 'Closed', 'Resolved']
+    # Nobody named in the persons table or the accused text, and not marked
+    # Detected, so a case is never in both Detected and Undetected
+    return queryset.exclude(accused_known_q()).filter(crime_case_q()).exclude(
+        status__in=['Disposal', 'Disposed', 'Closed', 'Resolved', 'Detected']
+    ).exclude(
+        # accidental death and preventive records have no accused to trace
+        module_key__in=['ad', 'preventive']
     ).exclude(
         get_undetected_excluded_crime_types_q()
     ).distinct()
 
+
+
+# ---------------------------------------------------------------------------
+# Shared rules for the fetching tabs (Pending, Detected, Undetected, Absconded,
+# NAFIS): crime cases only, one meaning of "accused known", arrests from the
+# arrest table as well as the case JSON.
+# ---------------------------------------------------------------------------
+
+# Service records kept in the case table but not crimes: passport / PVR /
+# licence verification, summons / warrant, externment, RTI applications.
+NON_CRIME_MODULES = (
+    'passport', 'pvr', 'licence', 'license', 'arms_license', 'arms_licence', 'passport_pvr_lic',
+    'sam_warrant', 'tadipar', 'application', 'rti',
+)
+
+
+def crime_case_q():
+    """Q() keeping crime cases and leaving out service records."""
+    return ~(
+        Q(module_key__in=NON_CRIME_MODULES)
+        | Q(sub_category__icontains='passport')
+        | Q(sub_category__icontains='licence')
+        | Q(sub_category__icontains='license')
+        | Q(sub_category__iexact='sam/warrant')
+        | Q(sub_category__iexact='tadipar')
+    )
+
+
+def accused_known_text_q():
+    """The case's own `accused` text names someone."""
+    return (
+        Q(accused__isnull=False) & ~Q(accused__exact='') & ~Q(accused__iexact='unknown')
+        & ~Q(accused__iexact='अज्ञात') & ~Q(accused__iexact='unidentified')
+    )
+
+
+def named_accused_case_ids():
+    """Cases with a named accused or suspected accused in the persons table."""
+    from apps.crimetab.models.common_form import CasesPerson
+    qs = CasesPerson.objects.filter(role__in=['accused', 'suspected_accused']).exclude(name__isnull=True)
+    for ignored in IGNORED_ACCUSED_NAMES:
+        qs = qs.exclude(name__iexact=ignored)
+    return qs.values('case_id')
+
+
+def accused_known_q():
+    """One meaning of "accused known" for every tab: persons table or the case's accused text."""
+    return accused_known_text_q() | Q(id__in=named_accused_case_ids())
+
+
+def arrested_in_table_case_ids():
+    return CaseRecord.objects.filter(persons__arrest_status__arrest_datetime__isnull=False).values('id')

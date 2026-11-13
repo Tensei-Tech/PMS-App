@@ -4,10 +4,19 @@ from django.db import models
 class RoadAccidentRecord(models.Model):
     """
     Main road accident record stored inside tenant state schema (e.g. `<schema>.road_accident_records`).
-    Can link to a CaseRecord via case_id.
+    Linked to its CaseRecord by a foreign key on `case_id`.
     """
     id = models.BigAutoField(primary_key=True)
-    case_id = models.CharField(max_length=128, blank=True, null=True, db_index=True)
+    # Real link to the case (column stays `case_id`). One accident per case;
+    # deleting the case deletes the accident and its vehicles / people.
+    case = models.OneToOneField(
+        'cases.CaseRecord',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='road_accident',
+        db_column='case_id',
+    )
     station_id = models.BigIntegerField(blank=True, null=True)
     station_name = models.CharField(max_length=255, blank=True, null=True)
     nature_of_accident = models.CharField(max_length=100, blank=True, null=True)
@@ -46,7 +55,14 @@ class RoadAccidentVehicle(models.Model):
         related_name='vehicles',
         db_column='accident_record_id'
     )
-    case_id = models.CharField(max_length=128, blank=True, null=True, db_index=True)
+    case = models.ForeignKey(
+        'cases.CaseRecord',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='+',
+        db_column='case_id',
+    )
     display_order = models.SmallIntegerField(default=1)
     vehicle_number = models.CharField(max_length=100, blank=True, null=True)
     vehicle_name = models.CharField(max_length=100, blank=True, null=True)
@@ -78,7 +94,14 @@ class RoadAccidentInjured(models.Model):
         related_name='injured_persons',
         db_column='accident_record_id'
     )
-    case_id = models.CharField(max_length=128, blank=True, null=True, db_index=True)
+    case = models.ForeignKey(
+        'cases.CaseRecord',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='+',
+        db_column='case_id',
+    )
     display_order = models.SmallIntegerField(default=1)
     name = models.CharField(max_length=255, blank=True, null=True)
     age = models.IntegerField(blank=True, null=True)
@@ -115,7 +138,14 @@ class RoadAccidentDeceased(models.Model):
         related_name='deceased_persons',
         db_column='accident_record_id'
     )
-    case_id = models.CharField(max_length=128, blank=True, null=True, db_index=True)
+    case = models.ForeignKey(
+        'cases.CaseRecord',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='+',
+        db_column='case_id',
+    )
     display_order = models.SmallIntegerField(default=1)
     name = models.CharField(max_length=255, blank=True, null=True)
     age = models.IntegerField(blank=True, null=True)

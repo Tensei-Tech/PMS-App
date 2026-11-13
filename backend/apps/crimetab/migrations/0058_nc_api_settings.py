@@ -34,7 +34,7 @@ def unseed(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('crimetab', '0056_road_accident_tenant_tables'),
+        ('crimetab', '0057_unlink_common_form_from_road_accident'),
     ]
 
     operations = [

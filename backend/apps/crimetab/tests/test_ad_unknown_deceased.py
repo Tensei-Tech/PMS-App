@@ -329,7 +329,7 @@ class AdPersonsApiTests(AdBackendTests):
         self.assertEqual(set(blocks), {'Deceased Person 1', 'Deceased Person 2'})
         self.assertEqual(blocks['Deceased Person 1']['Relative Name'], 'TEST Sita')
         # PM's date is its own row, not repeated beside the tick. Labels come
-        # from the form: "PM (Post Mortem)" reads "PM" only after another branch
+        # from the form: "PM (Post Mortem)" reads "PM" after 0164
         labels = {f.field_key: f.field_label for f in FieldTemplateField.objects.filter(
             field_key__in=('ad_postmortem', 'ad_postmortem_date'))}
         person_one = blocks['Deceased Person 1']

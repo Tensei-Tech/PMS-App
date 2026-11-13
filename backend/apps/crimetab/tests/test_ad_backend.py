@@ -27,7 +27,7 @@ def _seed_ad_public_data():
         CaseCategory.objects.create(category_name='A.D.', category_code='STAND_AD', display_order=40)
     for name in ('0121_ad_suicide_and_other_subtabs', '0125_ad_form_fields', '0126_ad_module_settings',
                  '0130_ad_disposal_rule_settings', '0161_ad_unknown_deceased_multiple',
-                 '0162_ad_registration_year_io_and_sdm_acp',
+                 '0162_ad_registration_year_io_and_sdm_acp', '0164_ad_identity_and_pm_labels',
                  '0165_ad_unknown_deceased_in_deceased_details', '0166_ad_pm_report',
                  '0167_ad_yes_no_to_checkboxes', '0168_ad_deceased_and_inquiry_card',
                  '0173_ad_deceased_person_list'):

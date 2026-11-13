@@ -2049,6 +2049,10 @@ def _yes_no_answer(value):
 
 class NAFISCaseWiseView(PendingCasesView):
     def _enrich_data(self, data_list):
+        # case_forensics (where the Common Form saves it) first, then the case JSON
+        from apps.crimetab.models.common_form import CaseForensics
+        forensics = {f.case_id: f for f in CaseForensics.objects.filter(
+            case_id__in=[i.get('id') for i in data_list if i.get('id')])}
         for item in data_list:
             if not isinstance(item.get('extra_fields'), dict):
                 item['extra_fields'] = {}
@@ -2068,6 +2072,16 @@ class NAFISCaseWiseView(PendingCasesView):
                 or inv.get('nafisFingerprint'))
             nafis_date = str(extra.get('nafisDate') or inv.get('nafisDate')
                              or extra.get('nafis_fingerprint_date') or '').strip()
+            table = forensics.get(item.get('id'))
+            if table is not None:
+                if table.fingerprint_taken is not None:
+                    fp_val = 'yes' if table.fingerprint_taken else 'no'
+                if table.fingerprint_taken_date:
+                    fp_date = table.fingerprint_taken_date.strftime('%d/%m/%Y')
+                if table.nafis_fingerprint is not None:
+                    nafis_val = 'yes' if table.nafis_fingerprint else 'no'
+                if table.nafis_fingerprint_date:
+                    nafis_date = table.nafis_fingerprint_date.strftime('%d/%m/%Y')
 
             # Check if pending: marked as 'no' or false or without any date
             is_pending = False
