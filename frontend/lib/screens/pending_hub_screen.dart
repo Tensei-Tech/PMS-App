@@ -19,81 +19,107 @@ class PendingHubScreen extends StatefulWidget {
     required this.stationName,
   });
 
+  static final Set<String> _excludedModuleKeys = {
+    'passport',
+    'pvr',
+    'passport_pvr_lic',
+    'licence',
+    'license',
+    'arms_license',
+    'arms_licence',
+    'preventive',
+    'preventive_action',
+    'preventive_actions',
+    'chapter_case',
+    'tadipar',
+    'externment',
+    'sam_warrant',
+    'summons_warrant',
+    'warrant',
+    'summons',
+    'rti',
+    'application',
+    'history_sheeter',
+    'mpda',
+    'muddemal',
+  };
+
+  static final Set<String> _excludedCategoryCodes = {
+    'stand_passport',
+    'stand_pvr',
+    'stand_licence',
+    'stand_license',
+    'stand_preventive',
+    'stand_tadipar',
+    'stand_sam_warrant',
+    'stand_warrant',
+    'stand_rti',
+    'stand_muddemal',
+    'stand_history_sheeter',
+    'stand_mpda',
+  };
+
+  static final Set<String> _excludedCategoryNames = {
+    'passport',
+    'passport verification',
+    'pvr',
+    'pvr verification',
+    'licence',
+    'license',
+    'licence verification',
+    'license verification',
+    'arms licence',
+    'arms license',
+    'preventive',
+    'preventive action',
+    'chapter case',
+    'chapter_case',
+    'प्रतिबंधक कारवाई',
+    'प्रतिबंधक',
+    'tadipar',
+    'externment',
+    'समंस',
+    'वारंट',
+    'warrant',
+    'summons',
+    'sam_warrant',
+    'sam/warrant',
+    'rti',
+    'application',
+    'history sheeter',
+    'history_sheeter',
+    'mpda',
+    'muddemal',
+  };
+
   /// Returns true for non-FIR administrative verifications, preventive/tadipar actions,
   /// warrants, and citizen applications that must NOT be shown in Pending FIR Crime Cases.
   static bool isExcludedPendingCrimeType(String head, [ModuleRecord? record]) {
     final h = head.toLowerCase().trim();
     final sub = (record?.subCategory ?? '').toLowerCase().trim();
     final mod = (record?.moduleKey ?? '').toLowerCase().trim();
-    final title = (record?.title ?? '').toLowerCase().trim();
 
-    // Passport / PVR
-    if (h.contains('passport') ||
-        sub.contains('passport') ||
-        mod.contains('passport') ||
-        title.contains('passport') ||
-        h.contains('pvr') ||
-        sub.contains('pvr') ||
-        mod.contains('pvr') ||
-        title.contains('pvr')) {
+    // 1. Non-crime module keys & codes
+    if (_excludedModuleKeys.contains(mod) || _excludedCategoryCodes.contains(mod)) {
       return true;
     }
 
-    // Licence / License / Arms Licence
-    if (h.contains('licence') ||
-        h.contains('license') ||
-        sub.contains('licence') ||
-        sub.contains('license') ||
-        mod.contains('licence') ||
-        mod.contains('license') ||
-        title.contains('licence') ||
-        title.contains('license')) {
+    // 2. Non-crime sub-categories & heads
+    if (_excludedCategoryNames.contains(h) || _excludedCategoryNames.contains(sub)) {
       return true;
     }
 
-    // Preventive / Tadipar / Chapter cases / Externment
-    if (h.contains('preventive') ||
-        sub.contains('preventive') ||
-        mod.contains('preventive') ||
-        title.contains('preventive') ||
-        h.contains('tadipar') ||
-        sub.contains('tadipar') ||
-        mod.contains('tadipar') ||
-        title.contains('tadipar') ||
-        h.contains('प्रतिबंधक') ||
-        sub.contains('प्रतिबंधक') ||
-        h.contains('externment') ||
-        sub.contains('externment') ||
-        h.contains('chapter case') ||
-        sub.contains('chapter case')) {
+    // 3. Category code directly passed as head
+    if (_excludedCategoryCodes.contains(h)) {
       return true;
     }
 
-    // Summons & Warrants
-    if (h.contains('warrant') ||
-        sub.contains('warrant') ||
-        mod.contains('warrant') ||
-        title.contains('warrant') ||
-        h.contains('summons') ||
-        sub.contains('summons') ||
-        mod.contains('summons') ||
-        title.contains('summons') ||
-        h.contains('वारंट') ||
-        sub.contains('वारंट') ||
-        h.contains('समंस') ||
-        sub.contains('समंस')) {
-      return true;
-    }
-
-    // RTI & Administrative applications
-    if (h == 'rti' ||
-        sub == 'rti' ||
-        mod == 'rti' ||
-        title.startsWith('rti ') ||
-        title == 'rti' ||
-        mod == 'application' ||
-        sub == 'application') {
-      return true;
+    // 4. Record-level warrant extra attributes
+    final extra = record?.extraFields;
+    if (extra != null) {
+      if (extra.containsKey('warrant_type') || extra.containsKey('warrantType')) {
+        return true;
+      }
     }
 
     return false;
