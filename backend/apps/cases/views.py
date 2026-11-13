@@ -3591,18 +3591,64 @@ class SummonsWarrantReportView(APIView):
                 except (ValueError, TypeError):
                     cutoff_day = None
 
-            # Station / District filtering with multi-tenancy access checks
-            can_view_all = check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')
+            # Station / District filtering with multi-tenancy & hierarchical jurisdiction access checks
+            from apps.authentication.approval_scope import (
+                caller_level, STATE, DISTRICT, DIVISION, STATION,
+            )
+            from apps.stations.models import PoliceStation
+            from django.db.models import Q
+
+            level = caller_level(user)
+            desig = (getattr(user, 'designation', '') or '').strip().lower()
+            role = (getattr(user, 'role_id', '') or '').strip().lower()
+
+            if level < STATE:
+                if any(k in desig for k in ['dgp', 'ig', 'dig']) or role in ('super_admin', 'state_super_admin', 'admin'):
+                    level = STATE
+                elif any(k in desig for k in ['sp', 'cp', 'dcp']) or role in ('district_admin', 'city_admin'):
+                    level = max(level, DISTRICT)
+                elif any(k in desig for k in ['sdpo', 'acp', 'dy. sp', 'dysp', 'asp']) or role in ('division_admin',):
+                    level = max(level, DIVISION)
+
+            user_district = (getattr(user, 'district', None) or '').strip()
+            user_division = (getattr(user, 'division_name', None) or getattr(user, 'zone', None) or '').strip()
+
             target_station = request.query_params.get('station_name')
             target_district = request.query_params.get('district') or request.query_params.get('district_name')
             allowed_stations = None
 
-            if not can_view_all:
+            if level >= STATE:
+                # State leadership / SuperAdmin: can see all stations or filter by requested district
+                pass
+            elif level == DISTRICT:
+                # District leadership: strictly limited to police stations under their district
+                target_district = user_district or target_district
+            elif level == DIVISION:
+                # Division head (SDPO / ACP): strictly police stations under their sub-division
+                div_stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                div_stations = [s for s in div_stations if s]
+                if user_division:
+                    div_qs = PoliceStation.objects.filter(
+                        Q(zone__iexact=user_division) |
+                        (Q(district_name__iexact=user_district) & Q(zone__iexact=user_division))
+                    )
+                    db_stations = list(div_qs.values_list('station_name', flat=True))
+                    div_stations = list(set(div_stations + db_stations))
+
+                if target_station:
+                    if target_station not in div_stations:
+                        raise exceptions.PermissionDenied("You do not have access to view data for this police station.")
+                    allowed_stations = [target_station]
+                else:
+                    allowed_stations = div_stations
+            else:
+                # Station level and regular officers (PL level and below): strictly their own assigned station(s)
                 user_stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                 user_stations = [s for s in user_stations if s]
                 if target_station:
                     if target_station not in user_stations:
                         raise exceptions.PermissionDenied("You do not have access to view data for this police station.")
+                    allowed_stations = [target_station]
                 else:
                     allowed_stations = user_stations
 

@@ -1,5 +1,6 @@
 // lib/widgets/add_warrant_case_dialog.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -53,6 +54,8 @@ class _AddWarrantCaseDialogState extends State<AddWarrantCaseDialog> {
   DateTime _selectedDate = DateTime.now();
   String _executionStatus = 'pending'; // 'pending', 'executed', 'unserved'
   bool _isSubmitting = false;
+  bool _hasAddedAnyCase = false;
+  String? _successMessage;
 
   @override
   void initState() {
@@ -181,17 +184,24 @@ class _AddWarrantCaseDialogState extends State<AddWarrantCaseDialog> {
       }
 
       if (!mounted) return;
-      setState(() => _isSubmitting = false);
-
-      Navigator.of(context).pop(true);
+      setState(() {
+        _isSubmitting = false;
+        _hasAddedAnyCase = true;
+        _successMessage = 'Case "$caseNum" registered successfully! You can register another case below.';
+        _caseNumberCtrl.clear();
+        _accusedNameCtrl.clear();
+        _courtNameCtrl.clear();
+        _notesCtrl.clear();
+      });
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Warrant case "$caseNum" registered successfully!',
+            'Case "$caseNum" registered successfully!',
             style: GoogleFonts.poppins(color: Colors.white),
           ),
           backgroundColor: AppColors.successGreen,
+          duration: const Duration(seconds: 3),
         ),
       );
     } catch (e) {
@@ -266,7 +276,7 @@ class _AddWarrantCaseDialogState extends State<AddWarrantCaseDialog> {
                   ),
                   IconButton(
                     onPressed:
-                        _isSubmitting ? null : () => Navigator.pop(context),
+                        _isSubmitting ? null : () => Navigator.pop(context, _hasAddedAnyCase),
                     icon:
                         const Icon(Icons.close_rounded, color: Colors.white70),
                   ),
@@ -283,6 +293,43 @@ class _AddWarrantCaseDialogState extends State<AddWarrantCaseDialog> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      if (_successMessage != null) ...[
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8F5E9),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: const Color(0xFFA5D6A7)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.check_circle_rounded,
+                                  color: AppColors.successGreen, size: 20),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  _successMessage!,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF1B5E20),
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                icon: const Icon(Icons.close,
+                                    size: 16, color: Color(0xFF2E7D32)),
+                                onPressed: () =>
+                                    setState(() => _successMessage = null),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       // Process Type Selector
                       _buildSectionLabel('1. Process Type (प्रकार) *'),
                       const SizedBox(height: 6),
@@ -337,13 +384,24 @@ class _AddWarrantCaseDialogState extends State<AddWarrantCaseDialog> {
                       const SizedBox(height: 6),
                       TextFormField(
                         controller: _accusedNameCtrl,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                            RegExp(r'[a-zA-Z\s\u0900-\u0965\u0970-\u097F.]'),
+                          ),
+                        ],
                         decoration: _inputDecoration(
-                          hint: 'Enter full name of subject',
+                          hint: 'Enter full name of subject (alphabets only)',
                           icon: Icons.person_outline_rounded,
                         ),
-                        validator: (v) => (v == null || v.trim().isEmpty)
-                            ? 'Name is required'
-                            : null,
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) {
+                            return 'Name is required';
+                          }
+                          if (RegExp(r'[0-9\u0966-\u096F]').hasMatch(v)) {
+                            return 'Only alphabets are allowed (no numbers)';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
 
@@ -481,14 +539,17 @@ class _AddWarrantCaseDialogState extends State<AddWarrantCaseDialog> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed:
-                        _isSubmitting ? null : () => Navigator.pop(context),
+                    onPressed: _isSubmitting
+                        ? null
+                        : () => Navigator.pop(context, _hasAddedAnyCase),
                     child: Text(
-                      'Cancel',
+                      _hasAddedAnyCase ? 'Done' : 'Cancel',
                       style: GoogleFonts.poppins(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.lightSubText,
+                        color: _hasAddedAnyCase
+                            ? AppColors.navyMid
+                            : AppColors.lightSubText,
                       ),
                     ),
                   ),
@@ -517,7 +578,7 @@ class _AddWarrantCaseDialogState extends State<AddWarrantCaseDialog> {
                           )
                         : const Icon(Icons.check_rounded, size: 18),
                     label: Text(
-                      _isSubmitting ? 'Saving...' : 'Register Warrant',
+                      _isSubmitting ? 'Saving...' : 'Register',
                       style: GoogleFonts.poppins(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,

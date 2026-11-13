@@ -149,7 +149,7 @@ const List<VictimFilterItem> kVictimFilterItems = [
     key: 'deceased',
     label: 'Deceased Victims',
     group: 'Condition & Tracing',
-    icon: Icons.heart_broken_rounded,
+    icon: Icons.filter_vintage_rounded,
     color: AppColors.navyMid,
   ),
   VictimFilterItem(

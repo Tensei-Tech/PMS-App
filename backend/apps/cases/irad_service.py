@@ -53,14 +53,16 @@ class RoadAccidentIradService:
     """
 
     @classmethod
-    def get_road_accident_category_codes(cls) -> List[str]:
-        """Dynamically fetch all accident category codes from database."""
+    def get_road_accident_category_codes(cls) -> List[str]:  # kept for callers; selection uses road_accident_case_q
+        """Dynamically fetch all accident and road-rash category codes from database."""
         try:
             from apps.crimetab.models.groupings import CaseCategory
             codes = list(CaseCategory.objects.filter(
                 Q(category_name__icontains='accident') |
+                Q(category_name__icontains='rash') |
                 Q(parent_category__category_name__icontains='accident') |
-                Q(category_code__startswith='ACC')
+                Q(category_code__startswith='ACC') |
+                Q(category_code__icontains='acc')
             ).values_list('category_code', flat=True))
             return [str(c).strip() for c in codes if c]
         except Exception:
@@ -73,11 +75,19 @@ class RoadAccidentIradService:
     @classmethod
     def get_road_accident_query(cls) -> Q:
         """
-        Constructs the dynamic database Q filter to find all Accident cases
-        across database categories, module keys, sub-categories, and titles.
+        Constructs the dynamic database Q filter to find all Road Accident cases.
+        Integrates road_accident_case_q() from origin/dev with branch category/parent-category
+        and other_accident matching.
         """
+        base_q = None
+        try:
+            from apps.cases.road_accident_cases import road_accident_case_q
+            base_q = road_accident_case_q()
+        except ImportError:
+            pass
+
         dynamic_codes = cls.get_road_accident_category_codes()
-        q_filter = (
+        branch_q = (
             Q(module_key__iexact='accident')
             | Q(module_key__iexact='road_accident')
             | Q(module_key__iexact='road accident')
@@ -91,13 +101,20 @@ class RoadAccidentIradService:
             | Q(title__icontains='rash driving')
         )
         if dynamic_codes:
-            q_filter |= Q(category_links__category__category_code__in=dynamic_codes)
-        return q_filter
+            branch_q |= Q(category_links__category__category_code__in=dynamic_codes)
+
+        if base_q is not None:
+            return base_q | branch_q
+        return branch_q
 
     def get_base_queryset(self):
         """Returns scoped CaseRecord queryset for road accident cases."""
         q_filter = self.get_road_accident_query()
         queryset = CaseRecord.objects.filter(q_filter).distinct()
+
+        # Safely apply select_related('road_accident') when the OneToOne relation exists
+        if any(f.name == 'road_accident' for f in CaseRecord._meta.get_fields()):
+            queryset = queryset.select_related('road_accident')
 
         if self.station_name:
             queryset = queryset.filter(station_name__iexact=self.station_name)
@@ -117,7 +134,12 @@ class RoadAccidentIradService:
         - If no IRAD fields are answered or field is blank/null, consider IRAD as Pending.
         - Status color: Green for Filled, Red for Pending.
         """
-        extra = case.extra_fields if isinstance(case.extra_fields, dict) else {}
+        # road_accident_records first (where the form saves it), then the case JSON
+        try:
+            from apps.cases.road_accident_cases import with_table_answers
+            extra = with_table_answers(case, {'acc_irad': ('irad', False), 'acc_irad_date': ('irad_date', True)})
+        except (ImportError, Exception):
+            extra = case.extra_fields if isinstance(case.extra_fields, dict) else {}
         irad_fields: Dict[str, Any] = {}
 
         # 1. Primary IRAD fields
@@ -135,14 +157,14 @@ class RoadAccidentIradService:
                 irad_fields[k] = v
 
         for k, v in extra.items():
-            if 'irad' in k.lower() and k not in irad_fields:
+            if (k.startswith('acc_irad') or k.startswith('irad_') or 'irad' in k.lower()) and k not in irad_fields:
                 irad_fields[k] = v
 
         # 3. Dynamic template fields for IRAD
         try:
             template_irad_fields = list(
                 FieldTemplateField.objects.filter(
-                    Q(field_key__icontains='irad') | Q(section__icontains='irad')
+                    Q(field_key__startswith='acc_irad') | Q(field_key__startswith='irad_') | Q(section__icontains='irad')
                 ).values('field_key', 'is_required', 'field_label')
             )
         except Exception:

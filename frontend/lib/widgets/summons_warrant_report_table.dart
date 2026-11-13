@@ -12,6 +12,9 @@ import '../services/api_service.dart';
 import '../services/backend_case_service.dart';
 import '../theme/app_theme.dart';
 import 'add_warrant_case_dialog.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+import '../utils/police_rbac_helper.dart';
 
 /// Summons & Warrant dynamic report table widget.
 /// Fetches all data dynamically from backend database (/cases/summons-warrant/).
@@ -447,6 +450,8 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
   }
 
   Widget _buildHeader() {
+    final auth = context.watch<AuthProvider>();
+    final isAbovePl = PoliceRbacHelper.isAbovePlLevel(auth);
     final meta = _reportData?['metadata'] as Map<String, dynamic>? ?? {};
     final month = meta['month'] ?? widget.selectedMonth;
     final year = meta['year'] ?? widget.selectedYear;
@@ -553,42 +558,46 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
                 ),
               ),
               const SizedBox(width: 8),
-              // Station-wise breakdown toggle
-              OutlinedButton.icon(
-                onPressed: () => setState(
-                    () => _showStationBreakdown = !_showStationBreakdown),
-                icon: Icon(
-                  _showStationBreakdown
-                      ? Icons.table_chart_rounded
-                      : Icons.location_city_rounded,
-                  size: 15,
-                  color: _showStationBreakdown
-                      ? AppColors.goldPrimary
-                      : AppColors.navyMid,
-                ),
-                label: Text(
-                  _showStationBreakdown ? 'Section View' : 'Station Breakdown',
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
+              if (isAbovePl) ...[
+                const SizedBox(width: 8),
+                // PS-wise breakdown toggle (only for officers above PL level)
+                OutlinedButton.icon(
+                  onPressed: () => setState(
+                      () => _showStationBreakdown = !_showStationBreakdown),
+                  icon: Icon(
+                    Icons.location_city_rounded,
+                    size: 15,
                     color: _showStationBreakdown
                         ? AppColors.goldPrimary
                         : AppColors.navyMid,
                   ),
-                ),
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(
-                    color: _showStationBreakdown
-                        ? AppColors.goldPrimary
-                        : AppColors.navyMid,
-                    width: 1.2,
+                  label: Text(
+                    'PS Breakdown',
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: _showStationBreakdown
+                          ? AppColors.goldPrimary
+                          : AppColors.navyMid,
+                    ),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: _showStationBreakdown
+                        ? AppColors.goldPrimary.withValues(alpha: 0.12)
+                        : Colors.transparent,
+                    side: BorderSide(
+                      color: _showStationBreakdown
+                          ? AppColors.goldPrimary
+                          : AppColors.navyMid,
+                      width: 1.2,
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                    ),
                   ),
                 ),
-              ),
+              ],
               const SizedBox(width: 8),
               IconButton(
                 tooltip: 'Refresh Report',
@@ -624,7 +633,7 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          _pillButton('All Sections (सर्व)', 'all'),
+          _pillButton('All Sam/Warrant (सर्व)', 'all'),
           ...sections.map((s) {
             final key = s['key']?.toString() ?? '';
             final titleMr = s['title_mr']?.toString() ?? '';
@@ -748,7 +757,9 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
 
   Widget _buildReportTable(
       List<dynamic> sections, Map<String, dynamic> grandTotal) {
-    if (_showStationBreakdown) {
+    final auth = context.watch<AuthProvider>();
+    final isAbovePl = PoliceRbacHelper.isAbovePlLevel(auth);
+    if (_showStationBreakdown && isAbovePl) {
       return _buildStationBreakdownTable(sections);
     }
 
@@ -932,7 +943,7 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
                   borderRadius: BorderRadius.vertical(top: Radius.circular(9)),
                 ),
                 child: Text(
-                  '$title — Station Breakdown',
+                  '$title — PS Breakdown',
                   style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,

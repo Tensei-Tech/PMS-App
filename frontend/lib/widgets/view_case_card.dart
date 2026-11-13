@@ -797,6 +797,8 @@ class ViewCaseTableSkeleton extends StatelessWidget {
               ],
             ),
           ),
+        );
+      },
     );
   }
 }
