@@ -294,12 +294,20 @@ Widget _buildGridIcon(
         svgPath.contains('passport') ||
         svgPath.contains('mvact');
     // Wide icons need a slight constraint so they don't crowd card borders
-    final isWide = svgPath.contains('2-4wheeler') ||
-        svgPath.contains('accident') ||
-        svgPath.contains('chain_snatching');
+    final isWide =
+        svgPath.contains('2-4wheeler') || svgPath.contains('accident');
+    // Ultra-wide or sparse scene icons need an optical boost to balance visual mass with solid badges
+    final isChainSnatching = svgPath.contains('chain_snatching');
+    final isSparseScene =
+        svgPath.contains('murder') || svgPath.contains('dacoity');
 
-    final double scale =
-        isSolidBadge ? 1.20 : (isTall ? 1.50 : (isWide ? 1.34 : 1.42));
+    final double scale = isSolidBadge
+        ? 1.20
+        : (isChainSnatching
+            ? 1.45
+            : (isSparseScene
+                ? 1.45
+                : (isTall ? 1.50 : (isWide ? 1.38 : 1.42))));
 
     return SvgPicture.asset(
       svgPath,
