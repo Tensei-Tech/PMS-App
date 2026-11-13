@@ -865,7 +865,8 @@ class _PassportHubScreenState extends State<PassportHubScreen> {
         final isPhone = constraints.maxWidth < Breakpoints.mobile;
         final horizontalPadding = isPhone ? 8.0 : 16.0;
         final availableWidth = constraints.maxWidth - (horizontalPadding * 2);
-        final tableMinWidth = isPhone ? availableWidth : math.max(450.0, availableWidth);
+        final tableMinWidth =
+            isPhone ? availableWidth : math.max(450.0, availableWidth);
 
         return Scrollbar(
           thumbVisibility: true,

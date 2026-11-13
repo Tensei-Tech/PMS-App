@@ -100,12 +100,14 @@ class PendingHubScreen extends StatefulWidget {
     final mod = (record?.moduleKey ?? '').toLowerCase().trim();
 
     // 1. Non-crime module keys & codes
-    if (_excludedModuleKeys.contains(mod) || _excludedCategoryCodes.contains(mod)) {
+    if (_excludedModuleKeys.contains(mod) ||
+        _excludedCategoryCodes.contains(mod)) {
       return true;
     }
 
     // 2. Non-crime sub-categories & heads
-    if (_excludedCategoryNames.contains(h) || _excludedCategoryNames.contains(sub)) {
+    if (_excludedCategoryNames.contains(h) ||
+        _excludedCategoryNames.contains(sub)) {
       return true;
     }
 
@@ -117,7 +119,8 @@ class PendingHubScreen extends StatefulWidget {
     // 4. Record-level warrant extra attributes
     final extra = record?.extraFields;
     if (extra != null) {
-      if (extra.containsKey('warrant_type') || extra.containsKey('warrantType')) {
+      if (extra.containsKey('warrant_type') ||
+          extra.containsKey('warrantType')) {
         return true;
       }
     }
