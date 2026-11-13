@@ -314,6 +314,10 @@ class DynamicControlFactory extends StatelessWidget {
       fillColor: effectiveReadOnly ? const Color(0xFFF8FAFC) : Colors.white,
       prefixIcon: prefixIcon,
       suffixIcon: suffixIcon,
+      suffixIconConstraints: const BoxConstraints(
+        minWidth: 40,
+        minHeight: 40,
+      ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
         borderSide: const BorderSide(color: AppColors.lightBorder),
@@ -891,27 +895,33 @@ class DynamicControlFactory extends StatelessWidget {
   }
 
   Widget _buildMultiSelectField(BuildContext context) {
-    return _DynamicMultiSelectWidget(
-      fieldDef: fieldDef,
-      controller: controller,
-      value: value,
-      onChanged: onChanged,
-      readOnly: readOnly,
-      labelWidget: _buildLabel(context),
-      decoration: _inputDecoration(hint: 'Select ${fieldDef.fieldLabel}'),
+    return _buildFieldLayout(
+      context,
+      _DynamicMultiSelectWidget(
+        fieldDef: fieldDef,
+        controller: controller,
+        value: value,
+        onChanged: onChanged,
+        readOnly: readOnly,
+        labelWidget: const SizedBox.shrink(),
+        decoration: _inputDecoration(hint: 'Select ${fieldDef.fieldLabel}'),
+      ),
     );
   }
 
   Widget _buildOfficerPicker(BuildContext context) {
-    return _DynamicOfficerPickerWidget(
-      fieldDef: fieldDef,
-      controller: controller,
-      value: value,
-      onChanged: onChanged,
-      readOnly: readOnly,
-      stationId: stationId,
-      labelWidget: _buildLabel(context),
-      onMultiFieldChanged: onMultiFieldChanged,
+    return _buildFieldLayout(
+      context,
+      _DynamicOfficerPickerWidget(
+        fieldDef: fieldDef,
+        controller: controller,
+        value: value,
+        onChanged: onChanged,
+        readOnly: readOnly,
+        stationId: stationId,
+        labelWidget: const SizedBox.shrink(),
+        onMultiFieldChanged: onMultiFieldChanged,
+      ),
     );
   }
 
@@ -1433,14 +1443,12 @@ class DynamicControlFactory extends StatelessWidget {
         : ['Option 1', 'Option 2', 'Option 3'];
     final currentVal = value?.toString() ?? controller?.text ?? '';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel(context),
-        Wrap(
-          spacing: 8,
-          runSpacing: 6,
-          children: opts.map((opt) {
+    return _buildFieldLayout(
+      context,
+      Wrap(
+        spacing: 8,
+        runSpacing: 6,
+        children: opts.map((opt) {
             final isSelected = opt == currentVal;
             return ChoiceChip(
               label: Text(
@@ -1463,19 +1471,16 @@ class DynamicControlFactory extends StatelessWidget {
                     },
             );
           }).toList(),
-        ),
-      ],
+      ),
     );
   }
 
   Widget _buildFileField(BuildContext context) {
     final filePath = controller?.text ?? value?.toString() ?? '';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel(context),
-        Container(
+    return _buildFieldLayout(
+      context,
+      Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -1521,9 +1526,8 @@ class DynamicControlFactory extends StatelessWidget {
                       Text('Attach', style: GoogleFonts.poppins(fontSize: 12)),
                 ),
             ],
-          ),
         ),
-      ],
+      ),
     );
   }
 }
@@ -1628,88 +1632,94 @@ class _DynamicDropdownWidgetState extends State<_DynamicDropdownWidget> {
     final validVal = _options.contains(currentVal) ? currentVal : null;
 
     if (_isLoading) {
-      if (widget.labelWidget is SizedBox) {
-        return const Padding(
-          padding: EdgeInsets.symmetric(vertical: 8),
-          child: SizedBox(
-            width: 16,
-            height: 16,
-            child: CircularProgressIndicator(
-                strokeWidth: 2, color: AppColors.navyMid),
+      final loadingDecorator = InputDecorator(
+        decoration: widget.decoration.copyWith(
+          suffixIconConstraints: const BoxConstraints.tightFor(
+            width: 40,
+            height: 40,
           ),
-        );
+          suffixIcon: const Center(
+            child: SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppColors.navyMid,
+              ),
+            ),
+          ),
+        ),
+        child: Text(
+          'Loading options...',
+          style: GoogleFonts.poppins(
+              fontSize: 12, color: AppColors.lightSubText),
+        ),
+      );
+
+      if (widget.labelWidget is SizedBox) {
+        return loadingDecorator;
       }
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           widget.labelWidget,
-          InputDecorator(
-            decoration: widget.decoration.copyWith(
-              suffixIcon: const Padding(
-                padding: EdgeInsets.all(12),
-                child: SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                      strokeWidth: 2, color: AppColors.navyMid),
-                ),
-              ),
-            ),
-            child: Text(
-              'Loading options...',
-              style: GoogleFonts.poppins(
-                  fontSize: 12, color: AppColors.lightSubText),
-            ),
-          ),
+          const SizedBox(height: 6),
+          loadingDecorator,
         ],
       );
     }
 
     if (_error != null) {
+      final errorDecorator = InputDecorator(
+        decoration: widget.decoration.copyWith(
+          suffixIcon: IconButton(
+            icon: const Icon(Icons.refresh,
+                size: 18, color: AppColors.dangerRed),
+            onPressed: () {
+              setState(() {
+                _isLoading = true;
+                _error = null;
+              });
+              final src = widget.fieldDef.optionsSource;
+              if (src != null) {
+                DynamicOptionsService()
+                    .fetchOptions(src,
+                        stationId: widget.stationId, forceRefresh: true)
+                    .then((opts) {
+                  if (mounted) {
+                    setState(() {
+                      _options = opts;
+                      _isLoading = false;
+                    });
+                  }
+                }).catchError((e) {
+                  if (mounted) {
+                    setState(() {
+                      _error = 'Failed to load options';
+                      _isLoading = false;
+                    });
+                  }
+                });
+              }
+            },
+          ),
+        ),
+        child: Text(
+          _error!,
+          style:
+              GoogleFonts.poppins(fontSize: 12, color: AppColors.dangerRed),
+        ),
+      );
+
+      if (widget.labelWidget is SizedBox) {
+        return errorDecorator;
+      }
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           widget.labelWidget,
-          InputDecorator(
-            decoration: widget.decoration.copyWith(
-              suffixIcon: IconButton(
-                icon: const Icon(Icons.refresh,
-                    size: 18, color: AppColors.dangerRed),
-                onPressed: () {
-                  setState(() {
-                    _isLoading = true;
-                    _error = null;
-                  });
-                  final src = widget.fieldDef.optionsSource;
-                  if (src != null) {
-                    DynamicOptionsService()
-                        .fetchOptions(src,
-                            stationId: widget.stationId, forceRefresh: true)
-                        .then((opts) {
-                      if (mounted) {
-                        setState(() {
-                          _options = opts;
-                          _isLoading = false;
-                        });
-                      }
-                    }).catchError((e) {
-                      if (mounted) {
-                        setState(() {
-                          _error = 'Failed to load options';
-                          _isLoading = false;
-                        });
-                      }
-                    });
-                  }
-                },
-              ),
-            ),
-            child: Text(
-              _error!,
-              style:
-                  GoogleFonts.poppins(fontSize: 12, color: AppColors.dangerRed),
-            ),
-          ),
+          const SizedBox(height: 6),
+          errorDecorator,
         ],
       );
     }
@@ -1856,29 +1866,38 @@ class _DynamicRadioWidgetState extends State<_DynamicRadioWidget> {
         widget.value?.toString() ?? widget.controller?.text ?? '';
 
     if (_isLoading) {
-      if (widget.labelWidget is SizedBox) {
-        return const Padding(
-          padding: EdgeInsets.symmetric(vertical: 8),
-          child: SizedBox(
+      final loadingWidget = Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(
             width: 16,
             height: 16,
             child: CircularProgressIndicator(
                 strokeWidth: 2, color: AppColors.navyMid),
           ),
+          const SizedBox(width: 8),
+          Text(
+            'Loading choices...',
+            style: GoogleFonts.poppins(
+                fontSize: 12, color: AppColors.lightSubText),
+          ),
+        ],
+      );
+
+      if (widget.labelWidget is SizedBox) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: loadingWidget,
         );
       }
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           widget.labelWidget,
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 8),
-            child: SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(
-                  strokeWidth: 2, color: AppColors.navyMid),
-            ),
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: loadingWidget,
           ),
         ],
       );
@@ -2060,6 +2079,10 @@ class _DynamicMultiSelectWidgetState extends State<_DynamicMultiSelectWidget> {
     if (oldWidget.value != widget.value) {
       _initSelected();
     }
+    if (oldWidget.fieldDef.optionsSource != widget.fieldDef.optionsSource ||
+        oldWidget.fieldDef.options != widget.fieldDef.options) {
+      _initOptions();
+    }
   }
 
   void _initSelected() {
@@ -2135,7 +2158,20 @@ class _DynamicMultiSelectWidgetState extends State<_DynamicMultiSelectWidget> {
           contentPadding: const EdgeInsets.symmetric(vertical: 8),
           content: SizedBox(
             width: 400,
-            child: ListView(
+            child: _options.isEmpty
+                ? Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Center(
+                      child: Text(
+                        'No options available',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: AppColors.lightSubText,
+                        ),
+                      ),
+                    ),
+                  )
+                : ListView(
               shrinkWrap: true,
               children: _options.map((opt) {
                 return CheckboxListTile(
@@ -2177,26 +2213,31 @@ class _DynamicMultiSelectWidgetState extends State<_DynamicMultiSelectWidget> {
   @override
   Widget build(BuildContext context) {
     final hasValue = _selected.isNotEmpty;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        widget.labelWidget,
-        InkWell(
+    final control = InkWell(
           onTap: widget.readOnly || _isLoading ? null : _openPicker,
           borderRadius: BorderRadius.circular(10),
           child: InputDecorator(
             isEmpty: !hasValue,
             decoration: widget.decoration.copyWith(
+              suffixIconConstraints: const BoxConstraints.tightFor(
+                width: 40,
+                height: 40,
+              ),
               suffixIcon: _isLoading
-                  ? const Padding(
-                      padding: EdgeInsets.all(12),
+                  ? const Center(
                       child: SizedBox(
-                          height: 16,
-                          width: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2)),
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.navyMid,
+                        ),
+                      ),
                     )
-                  : const Icon(Icons.arrow_drop_down_rounded,
-                      color: AppColors.navyMid),
+                  : const Icon(
+                      Icons.arrow_drop_down_rounded,
+                      color: AppColors.navyMid,
+                    ),
             ),
             child: hasValue
                 ? Text(
@@ -2206,7 +2247,17 @@ class _DynamicMultiSelectWidgetState extends State<_DynamicMultiSelectWidget> {
                   )
                 : null,
           ),
-        ),
+        );
+
+    if (widget.labelWidget is SizedBox) {
+      return control;
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        widget.labelWidget,
+        const SizedBox(height: 6),
+        control,
       ],
     );
   }
@@ -2305,11 +2356,7 @@ class _DynamicOfficerPickerWidgetState
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        widget.labelWidget,
-        Autocomplete<String>(
+    final picker = Autocomplete<String>(
           initialValue: TextEditingValue(text: _textCtrl.text),
           optionsBuilder: (TextEditingValue val) {
             if (val.text.isEmpty) {
@@ -2328,6 +2375,7 @@ class _DynamicOfficerPickerWidgetState
               style:
                   GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
               decoration: InputDecoration(
+                isDense: true,
                 filled: true,
                 fillColor:
                     widget.readOnly ? const Color(0xFFF8FAFC) : Colors.white,
@@ -2346,20 +2394,34 @@ class _DynamicOfficerPickerWidgetState
                   borderSide:
                       const BorderSide(color: AppColors.navyMid, width: 1.5),
                 ),
-                hintText: null,
+                hintText: 'Enter ${widget.fieldDef.fieldLabel}',
                 hintStyle: GoogleFonts.poppins(
-                    fontSize: 13, color: AppColors.lightSubText),
+                    fontSize: 12, color: AppColors.lightSubText),
+                suffixIconConstraints: const BoxConstraints.tightFor(
+                  width: 40,
+                  height: 40,
+                ),
                 suffixIcon: _isLoading
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: Padding(
-                            padding: EdgeInsets.all(12),
-                            child: CircularProgressIndicator(strokeWidth: 2)),
+                    ? const Center(
+                        child: SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.navyMid,
+                          ),
+                        ),
                       )
                     : const Icon(Icons.person_search_rounded,
                         size: 20, color: AppColors.navyMid),
               ),
+              validator: (v) {
+                if (widget.fieldDef.isRequired &&
+                    (v == null || v.trim().isEmpty)) {
+                  return '${widget.fieldDef.fieldLabel} is required';
+                }
+                return null;
+              },
               onChanged: (text) {
                 _textCtrl.text = text;
                 widget.onChanged?.call(text);
@@ -2370,7 +2432,17 @@ class _DynamicOfficerPickerWidgetState
               },
             );
           },
-        ),
+        );
+
+    if (widget.labelWidget is SizedBox) {
+      return picker;
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        widget.labelWidget,
+        const SizedBox(height: 6),
+        picker,
       ],
     );
   }
