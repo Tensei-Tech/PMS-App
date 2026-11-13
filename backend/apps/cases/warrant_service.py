@@ -277,6 +277,8 @@ class SummonsWarrantReportService:
         # Multi-tenancy & Station/District filters
         if self.station_name:
             queryset = queryset.filter(station_name__iexact=self.station_name)
+        elif self.allowed_stations is not None:
+            queryset = queryset.filter(station_name__in=self.allowed_stations)
         elif self.district_name:
             # Match stations belonging to this district
             st_names = list(
@@ -288,8 +290,6 @@ class SummonsWarrantReportService:
                 queryset = queryset.filter(station_name__in=st_names)
             else:
                 queryset = queryset.filter(station_name__iexact=self.district_name)
-        elif self.allowed_stations is not None:
-            queryset = queryset.filter(station_name__in=self.allowed_stations)
 
         return queryset
 
@@ -364,6 +364,8 @@ class SummonsWarrantReportService:
             # Ensure station exists in by_station dict
             for s_key in section_data:
                 if st_name and st_name not in section_data[s_key]['by_station']:
+                    if self.allowed_stations is not None and st_name not in self.allowed_stations:
+                        continue
                     section_data[s_key]['by_station'][st_name] = _empty_stats()
                     if st_name not in station_rows:
                         station_rows.append(st_name)
@@ -506,15 +508,15 @@ class SummonsWarrantReportService:
         if self.station_name:
             return [self.station_name]
 
+        if self.allowed_stations is not None:
+            return sorted(list(self.allowed_stations))
+
         station_names: List[str] = []
         if self.district_name:
             ps_qs = PoliceStation.objects.filter(
                 Q(district_name__iexact=self.district_name) | Q(district__name__iexact=self.district_name)
             ).order_by('station_name')
             station_names = list(ps_qs.values_list('station_name', flat=True))
-
-        if not station_names and self.allowed_stations:
-            station_names = list(self.allowed_stations)
 
         if not station_names:
             # Query distinct stations with existing records

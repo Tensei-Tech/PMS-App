@@ -39,8 +39,8 @@ class ModuleHubScreenAppBar extends StatelessWidget
         ? Colors.white.withValues(alpha: 0.7)
         : AppColors.lightSubText;
     final iconColor = isDarkHeader ? Colors.white : AppColors.navyDark;
-    final btnBg = isDarkHeader ? AppColors.goldPrimary : AppColors.navyDark;
-    final btnFg = isDarkHeader ? AppColors.navyDark : Colors.white;
+    final btnBg = isDarkHeader ? AppColors.goldPrimary : AppColors.navyMid;
+    final btnFg = isDarkHeader ? AppColors.navyMid : Colors.white;
 
     final titleColumn = Column(
       crossAxisAlignment: CrossAxisAlignment.start,

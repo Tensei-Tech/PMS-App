@@ -193,10 +193,16 @@ class ModulePdfHelper {
       } else {
         final extra = Map<String, dynamic>.from(record.extraFields)
           ..remove(kCommonFormExtraFieldsKey);
+        final caseNo = record.caseNumber.trim().isNotEmpty
+            ? record.caseNumber.trim()
+            : (commonMap['crNo']?.toString().trim() ?? '');
+        if (caseNo.isNotEmpty) {
+          formTitle = caseNo;
+        }
         final formSubtitle =
             sub.isEmpty || sub.toLowerCase() == displayName.toLowerCase()
                 ? '$displayName — PMS · Maharashtra Police'
-                : '$sub · $displayName — PMS · Maharashtra Police';
+                : '$sub — PMS · Maharashtra Police';
         bytes = await generateFormPdf(
           commonMap,
           extraMap: extra,

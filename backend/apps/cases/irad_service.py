@@ -60,6 +60,8 @@ class RoadAccidentIradService:
             codes = list(CaseCategory.objects.filter(
                 Q(category_name__icontains='accident') |
                 Q(category_name__icontains='rash') |
+                Q(parent_category__category_name__icontains='accident') |
+                Q(category_code__startswith='ACC') |
                 Q(category_code__icontains='acc')
             ).values_list('category_code', flat=True))
             return [str(c).strip() for c in codes if c]
@@ -119,14 +121,14 @@ class RoadAccidentIradService:
                 irad_fields[k] = v
 
         for k, v in extra.items():
-            if (k.startswith('acc_irad') or k.startswith('irad_')) and k not in irad_fields:
+            if (k.startswith('acc_irad') or k.startswith('irad_') or 'irad' in k.lower()) and k not in irad_fields:
                 irad_fields[k] = v
 
         # 3. Dynamic template fields for IRAD
         try:
             template_irad_fields = list(
                 FieldTemplateField.objects.filter(
-                    Q(field_key__startswith='acc_irad') | Q(field_key__startswith='irad_')
+                    Q(field_key__startswith='acc_irad') | Q(field_key__startswith='irad_') | Q(section__icontains='irad')
                 ).values('field_key', 'is_required', 'field_label')
             )
         except Exception:

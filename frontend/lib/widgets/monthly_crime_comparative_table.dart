@@ -36,16 +36,20 @@ class _MonthlyCrimeComparativeTableState
   String? _errorMessage;
   Map<String, dynamic>? _reportData;
 
-  // Column width definitions (Total width = 964px)
+  // Column width definitions
+  static const double _dividerWidth = 1.0;
   static const double _colSrWidth = 44.0;
   static const double _colHeadWidth = 210.0;
   static const double _colDataWidth = 56.0;
   static const double _colIncDecWidth = 66.0;
-  static const double _colGroupWidth = _colDataWidth * 2; // 112.0
+  static const double _colGroupWidth =
+      (_colDataWidth * 2) + _dividerWidth; // 113.0
   static const double _totalTableWidth = _colSrWidth +
       _colHeadWidth +
       (_colDataWidth * 10) +
-      (_colIncDecWidth * 2); // 44 + 210 + 560 + 132 = 946.0
+      (_colIncDecWidth * 2) +
+      (_dividerWidth * 13) +
+      6.0; // 44 + 210 + 560 + 132 + 13 + 6 = 965.0
 
   @override
   void initState() {
@@ -578,93 +582,123 @@ class _MonthlyCrimeComparativeTableState
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // Action & Report Header Strip
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          decoration: BoxDecoration(
-            color: AppColors.navyMid.withValues(alpha: 0.04),
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            border: Border.all(color: AppColors.lightBorder),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      metadata['report_title']?.toString() ??
-                          'STATEMENT SHOWING IPC & SLL CRIMES COMPARITIVE',
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Station: ${metadata['station_name']}  •  Total Cases Analyzed: ${metadata['total_cases_analyzed']}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.lightSubText,
-                      ),
-                    ),
-                  ],
+        LayoutBuilder(
+          builder: (context, headerConstraints) {
+            final isCompact = headerConstraints.maxWidth < 650;
+            final titleWidget = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  metadata['report_title']?.toString() ??
+                      'STATEMENT SHOWING IPC & SLL CRIMES COMPARITIVE',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.navyDark,
+                    letterSpacing: 0.3,
+                  ),
                 ),
-              ),
-              OutlinedButton.icon(
-                onPressed: _openAllAnalyzedCases,
-                icon: const Icon(Icons.folder_shared_rounded,
-                    size: 16, color: AppColors.navyMid),
-                label: Text(
-                  'View All Cases (${metadata['total_cases_analyzed'] ?? 0})',
+                const SizedBox(height: 2),
+                Text(
+                  'Station: ${metadata['station_name']}  •  Total Cases Analyzed: ${metadata['total_cases_analyzed']}',
                   style: GoogleFonts.poppins(
                     fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.navyMid,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.lightSubText,
                   ),
                 ),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.navyMid, width: 1.2),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                tooltip: 'Refresh live data',
-                icon: const Icon(Icons.refresh_rounded,
-                    color: AppColors.navyMid, size: 20),
-                onPressed: _fetchComparativeData,
-              ),
-              const SizedBox(width: 4),
-              ElevatedButton.icon(
-                onPressed: _exportPdf,
-                icon: const Icon(Icons.picture_as_pdf_rounded,
-                    size: 16, color: Colors.white),
-                label: Text(
-                  'Export PDF',
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.navyMid,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
+              ],
+            );
+
+            final viewAllBtn = OutlinedButton.icon(
+              onPressed: _openAllAnalyzedCases,
+              icon: const Icon(Icons.folder_shared_rounded,
+                  size: 16, color: AppColors.navyMid),
+              label: Text(
+                'View All Cases (${metadata['total_cases_analyzed'] ?? 0})',
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.navyMid,
                 ),
               ),
-            ],
-          ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: AppColors.navyMid, width: 1.2),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+              ),
+            );
+
+            final refreshBtn = IconButton(
+              tooltip: 'Refresh live data',
+              icon: const Icon(Icons.refresh_rounded,
+                  color: AppColors.navyMid, size: 20),
+              onPressed: _fetchComparativeData,
+            );
+
+            final exportPdfBtn = ElevatedButton.icon(
+              onPressed: _exportPdf,
+              icon: const Icon(Icons.picture_as_pdf_rounded,
+                  size: 16, color: Colors.white),
+              label: Text(
+                'Export PDF',
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.navyMid,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+              ),
+            );
+
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.navyMid.withValues(alpha: 0.04),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(color: AppColors.lightBorder),
+              ),
+              child: isCompact
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        titleWidget,
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            viewAllBtn,
+                            exportPdfBtn,
+                            refreshBtn,
+                          ],
+                        ),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        Expanded(child: titleWidget),
+                        const SizedBox(width: 8),
+                        viewAllBtn,
+                        const SizedBox(width: 8),
+                        refreshBtn,
+                        const SizedBox(width: 4),
+                        exportPdfBtn,
+                      ],
+                    ),
+            );
+          },
         ),
 
         const SizedBox(height: 12),
@@ -756,6 +790,7 @@ class _MonthlyCrimeComparativeTableState
       ),
       child: IntrinsicHeight(
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             // SR NO
             _buildHeaderCellBox(
@@ -887,9 +922,10 @@ class _MonthlyCrimeComparativeTableState
               height: 1, thickness: 0.8, color: AppColors.lightBorder),
           // Bottom Sub-columns
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               SizedBox(
-                width: _colDataWidth - 0.5,
+                width: _colDataWidth,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Text(
@@ -903,9 +939,9 @@ class _MonthlyCrimeComparativeTableState
                   ),
                 ),
               ),
-              Container(width: 1, height: 16, color: AppColors.lightBorder),
+              _buildCellDivider(),
               SizedBox(
-                width: _colDataWidth - 0.5,
+                width: _colDataWidth,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Text(
@@ -937,6 +973,7 @@ class _MonthlyCrimeComparativeTableState
         ),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             width: 4,
@@ -947,13 +984,16 @@ class _MonthlyCrimeComparativeTableState
             ),
           ),
           const SizedBox(width: 8),
-          Text(
-            title,
-            style: GoogleFonts.poppins(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-              letterSpacing: 0.5,
+          Expanded(
+            child: Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+                letterSpacing: 0.5,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -1052,6 +1092,7 @@ class _MonthlyCrimeComparativeTableState
       ),
       child: IntrinsicHeight(
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             // SR NO
             _buildDataCellBox(
@@ -1427,7 +1468,7 @@ class _MonthlyCrimeComparativeTableState
 
   Widget _buildCellDivider() {
     return Container(
-      width: 0.6,
+      width: _dividerWidth,
       color: AppColors.lightBorder,
     );
   }

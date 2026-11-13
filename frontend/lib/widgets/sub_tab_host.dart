@@ -159,11 +159,7 @@ class _SubTabStrip extends StatelessWidget implements PreferredSizeWidget {
                   width: segmentWidth,
                   child: Container(
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [AppColors.navyMid, AppColors.navyAccent],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                      color: AppColors.navyMid,
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(

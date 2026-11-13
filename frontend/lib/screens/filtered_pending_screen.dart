@@ -17,6 +17,7 @@ class FilteredPendingScreen extends StatefulWidget {
   final bool isUndetected;
   final bool isAbsconded;
   final bool isVictim;
+  final String? victimFilter;
 
   const FilteredPendingScreen({
     super.key,
@@ -29,6 +30,7 @@ class FilteredPendingScreen extends StatefulWidget {
     this.isUndetected = false,
     this.isAbsconded = false,
     this.isVictim = false,
+    this.victimFilter,
   });
 
   @override
@@ -70,6 +72,7 @@ class _FilteredPendingScreenState extends State<FilteredPendingScreen> {
           category: widget.category,
           startDate: widget.startDate,
           endDate: widget.endDate,
+          victimFilter: widget.victimFilter,
         );
       } else {
         dataList = await _backend.fetchPendingCases(
@@ -100,28 +103,32 @@ class _FilteredPendingScreenState extends State<FilteredPendingScreen> {
         }
         final targetCat = (widget.crimeType ?? widget.category)?.trim();
         if (targetCat != null && targetCat.isNotEmpty) {
-          records = records
-              .where((r) => pendingRecordMatchesDashboardCategory(
-                    r: r,
-                    dashboardCategory: targetCat,
-                  ))
-              .toList();
+          if (targetCat.toLowerCase() != 'itsso') {
+            records = records
+                .where((r) => pendingRecordMatchesDashboardCategory(
+                      r: r,
+                      dashboardCategory: targetCat,
+                    ))
+                .toList();
+          }
         }
         if (widget.startDate != null) {
           final sDate = DateTime.tryParse(widget.startDate!);
           if (sDate != null) {
             records = records.where((r) {
               final d = r.createdAt.year > 2000 ? r.createdAt : r.incidentDate;
-              return !d.isBefore(sDate);
+              return !d.isBefore(DateTime(sDate.year, sDate.month, sDate.day));
             }).toList();
           }
         }
         if (widget.endDate != null) {
           final eDate = DateTime.tryParse(widget.endDate!);
           if (eDate != null) {
+            final eDateEnd =
+                DateTime(eDate.year, eDate.month, eDate.day, 23, 59, 59);
             records = records.where((r) {
               final d = r.createdAt.year > 2000 ? r.createdAt : r.incidentDate;
-              return !d.isAfter(eDate);
+              return !d.isAfter(eDateEnd);
             }).toList();
           }
         }

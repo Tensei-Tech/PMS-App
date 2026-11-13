@@ -278,6 +278,10 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
         ? baseFields.where((f) => !_isFieldEmpty(f)).toList()
         : baseFields;
 
+    if (widget.readOnly && widget.hideEmptyFields && visibleFields.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     final screenWidth = MediaQuery.sizeOf(context).width;
     final isCompact = screenWidth < 600;
 
@@ -312,7 +316,7 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                     width: isCompact ? 28 : 32,
                     height: isCompact ? 28 : 32,
                     decoration: BoxDecoration(
-                      color: AppColors.navyMid.withValues(alpha: 0.08),
+                      color: AppColors.navyMid,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     alignment: Alignment.center,
@@ -322,12 +326,11 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                             style: GoogleFonts.poppins(
                               fontSize: isCompact ? 12.0 : 13.5,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.navyDark,
+                              color: Colors.white,
                             ),
                           )
                         : Icon(widget.icon,
-                            size: isCompact ? 16 : 18,
-                            color: AppColors.navyMid),
+                            size: isCompact ? 16 : 18, color: Colors.white),
                   ),
                   SizedBox(width: isCompact ? 10 : 12),
                   Expanded(
@@ -347,10 +350,13 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                   if (visibleFields.length > 1)
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 7, vertical: 2.5),
+                          horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: AppColors.navyMid.withValues(alpha: 0.07),
-                        borderRadius: BorderRadius.circular(10),
+                        color: AppColors.navyMid.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.navyMid.withValues(alpha: 0.18),
+                        ),
                       ),
                       child: Text(
                         '${visibleFields.length} fields',

@@ -12,6 +12,9 @@ import '../services/api_service.dart';
 import '../services/backend_case_service.dart';
 import '../theme/app_theme.dart';
 import 'add_warrant_case_dialog.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+import '../utils/police_rbac_helper.dart';
 
 /// Summons & Warrant dynamic report table widget.
 /// Fetches all data dynamically from backend database (/cases/summons-warrant/).
@@ -447,6 +450,8 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
   }
 
   Widget _buildHeader() {
+    final auth = context.watch<AuthProvider>();
+    final isAbovePl = PoliceRbacHelper.isAbovePlLevel(auth);
     final meta = _reportData?['metadata'] as Map<String, dynamic>? ?? {};
     final month = meta['month'] ?? widget.selectedMonth;
     final year = meta['year'] ?? widget.selectedYear;
@@ -499,123 +504,131 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
             ),
           ],
         ),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ElevatedButton.icon(
-              onPressed: () async {
-                final added = await AddWarrantCaseDialog.show(
-                  context,
-                  initialYear: widget.selectedYear,
-                  initialMonth: widget.selectedMonth,
-                );
-                if (added == true) {
-                  _fetchReport();
-                }
-              },
-              icon:
-                  const Icon(Icons.add_rounded, size: 15, color: Colors.white),
-              label: Text(
-                'Add Case',
-                style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.navyMid,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            OutlinedButton.icon(
-              onPressed: _openAllAnalyzedCases,
-              icon: const Icon(Icons.folder_shared_rounded,
-                  size: 15, color: AppColors.navyMid),
-              label: Text(
-                'View All Cases ($totalAnalyzed)',
-                style: GoogleFonts.poppins(
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () async {
+                  final added = await AddWarrantCaseDialog.show(
+                    context,
+                    initialYear: widget.selectedYear,
+                    initialMonth: widget.selectedMonth,
+                  );
+                  if (added == true) {
+                    _fetchReport();
+                  }
+                },
+                icon: const Icon(Icons.add_rounded,
+                    size: 15, color: Colors.white),
+                label: Text(
+                  'Add Case',
+                  style: GoogleFonts.poppins(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.navyMid),
-              ),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: AppColors.navyMid, width: 1.2),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                    color: Colors.white,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.navyMid,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 8),
-            // Station-wise breakdown toggle
-            OutlinedButton.icon(
-              onPressed: () => setState(
-                  () => _showStationBreakdown = !_showStationBreakdown),
-              icon: Icon(
-                _showStationBreakdown
-                    ? Icons.table_chart_rounded
-                    : Icons.location_city_rounded,
-                size: 15,
-                color: _showStationBreakdown
-                    ? AppColors.goldPrimary
-                    : AppColors.navyMid,
-              ),
-              label: Text(
-                _showStationBreakdown ? 'Section View' : 'Station Breakdown',
-                style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: _showStationBreakdown
-                      ? AppColors.goldPrimary
-                      : AppColors.navyMid,
-                ),
-              ),
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(
-                  color: _showStationBreakdown
-                      ? AppColors.goldPrimary
-                      : AppColors.navyMid,
-                  width: 1.2,
-                ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            IconButton(
-              tooltip: 'Refresh Report',
-              onPressed: _fetchReport,
-              icon: const Icon(Icons.refresh_rounded, color: AppColors.navyMid),
-            ),
-            const SizedBox(width: 4),
-            ElevatedButton.icon(
-              onPressed: _exportPdf,
-              icon: const Icon(Icons.picture_as_pdf_rounded,
-                  size: 15, color: Colors.white),
-              label: Text('Export PDF',
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: _openAllAnalyzedCases,
+                icon: const Icon(Icons.folder_shared_rounded,
+                    size: 15, color: AppColors.navyMid),
+                label: Text(
+                  'View All Cases ($totalAnalyzed)',
                   style: GoogleFonts.poppins(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.navyMid,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.sm)),
+                      color: AppColors.navyMid),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.navyMid, width: 1.2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                  ),
+                ),
               ),
-            ),
-          ],
+              const SizedBox(width: 8),
+              if (isAbovePl) ...[
+                const SizedBox(width: 8),
+                // PS-wise breakdown toggle (only for officers above PL level)
+                OutlinedButton.icon(
+                  onPressed: () => setState(
+                      () => _showStationBreakdown = !_showStationBreakdown),
+                  icon: Icon(
+                    Icons.location_city_rounded,
+                    size: 15,
+                    color: _showStationBreakdown
+                        ? AppColors.goldPrimary
+                        : AppColors.navyMid,
+                  ),
+                  label: Text(
+                    'PS Breakdown',
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: _showStationBreakdown
+                          ? AppColors.goldPrimary
+                          : AppColors.navyMid,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: _showStationBreakdown
+                        ? AppColors.goldPrimary.withValues(alpha: 0.12)
+                        : Colors.transparent,
+                    side: BorderSide(
+                      color: _showStationBreakdown
+                          ? AppColors.goldPrimary
+                          : AppColors.navyMid,
+                      width: 1.2,
+                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(width: 8),
+              IconButton(
+                tooltip: 'Refresh Report',
+                onPressed: _fetchReport,
+                icon:
+                    const Icon(Icons.refresh_rounded, color: AppColors.navyMid),
+              ),
+              const SizedBox(width: 4),
+              ElevatedButton.icon(
+                onPressed: _exportPdf,
+                icon: const Icon(Icons.picture_as_pdf_rounded,
+                    size: 15, color: Colors.white),
+                label: Text('Export PDF',
+                    style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.navyMid,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.sm)),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -626,7 +639,7 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          _pillButton('All Sections (सर्व)', 'all'),
+          _pillButton('All Sam/Warrant (सर्व)', 'all'),
           ...sections.map((s) {
             final key = s['key']?.toString() ?? '';
             final titleMr = s['title_mr']?.toString() ?? '';
@@ -686,28 +699,35 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
     final unserved = targetSummary['unserved'] ?? 0;
     final pending = targetSummary['pending'] ?? 0;
 
-    return Row(
-      children: [
-        Expanded(
-          child: _summaryCard('Total (बेरीज)', '$total',
-              const Color(0xFF1E293B), const Color(0xFFF8FAFC)),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _summaryCard('Executed (तामील)', '$executed ($executedPct)',
-              Colors.green.shade800, Colors.green.shade50),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _summaryCard('Unserved (अदम)', '$unserved',
-              Colors.orange.shade800, Colors.orange.shade50),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _summaryCard('Pending (अखेर)', '$pending', AppColors.dangerRed,
-              const Color(0xFFFEF2F2)),
-        ),
-      ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          SizedBox(
+            width: 130,
+            child: _summaryCard('Total (बेरीज)', '$total',
+                const Color(0xFF1E293B), const Color(0xFFF8FAFC)),
+          ),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 160,
+            child: _summaryCard('Executed (तामील)', '$executed ($executedPct)',
+                Colors.green.shade800, Colors.green.shade50),
+          ),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 130,
+            child: _summaryCard('Unserved (अदम)', '$unserved',
+                Colors.orange.shade800, Colors.orange.shade50),
+          ),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 130,
+            child: _summaryCard('Pending (अखेर)', '$pending',
+                AppColors.dangerRed, const Color(0xFFFEF2F2)),
+          ),
+        ],
+      ),
     );
   }
 
@@ -743,7 +763,9 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
 
   Widget _buildReportTable(
       List<dynamic> sections, Map<String, dynamic> grandTotal) {
-    if (_showStationBreakdown) {
+    final auth = context.watch<AuthProvider>();
+    final isAbovePl = PoliceRbacHelper.isAbovePlLevel(auth);
+    if (_showStationBreakdown && isAbovePl) {
       return _buildStationBreakdownTable(sections);
     }
 
@@ -927,7 +949,7 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
                   borderRadius: BorderRadius.vertical(top: Radius.circular(9)),
                 ),
                 child: Text(
-                  '$title — Station Breakdown',
+                  '$title — PS Breakdown',
                   style: GoogleFonts.poppins(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,

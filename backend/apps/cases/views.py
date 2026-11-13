@@ -2310,6 +2310,282 @@ class NafisActionView(APIView):
 
 
 
+def extract_case_victims(case):
+    """
+    Extracts a list of normalized victim dictionaries from a CaseRecord.
+    Handles nested commonForm['victims'], extra_fields['victims'],
+    extra_fields['persons'], cheating_victims, pocso_victims, or top-level fields.
+    """
+    import re
+    extra = case.extra_fields if isinstance(case.extra_fields, dict) else {}
+    cf = extra.get('commonForm') or extra.get('common_form') or {}
+    if not isinstance(cf, dict):
+        cf = {}
+
+    mod = str(case.module_key or '').lower().strip()
+    sub = str(case.sub_category or '').lower().strip()
+    status_str = str(case.status or '').lower().strip()
+    is_missing_case = (
+        mod in ['missing', 'kidnapping'] or
+        'missing' in sub or
+        'kidnapping' in sub
+    )
+    is_traced_case = is_missing_case and (
+        status_str in ['detected', 'disposal', 'disposed', 'closed', 'resolved', 'traced']
+    )
+    is_pending_tracing_case = is_missing_case and not is_traced_case
+
+    def parse_gender(val):
+        g = str(val or '').lower().strip()
+        if g in ['male', 'm', 'पुरुष']:
+            return 'male'
+        elif g in ['female', 'f', 'स्त्री', 'महिला']:
+            return 'female'
+        elif g in ['transgender', 'trans', 'tg', 'तृतीयपंथी']:
+            return 'transgender'
+        elif g:
+            return 'other'
+        return ''
+
+    def parse_age(val):
+        if val is None or val == '':
+            return None
+        try:
+            m = re.search(r'\d+', str(val))
+            if m:
+                return int(m.group(0))
+        except Exception:
+            pass
+        return None
+
+    def parse_bool(val):
+        if val is True:
+            return True
+        st = str(val or '').lower().strip()
+        return st in ['yes', 'y', 'true', '1']
+
+    def parse_condition(val):
+        c = str(val or '').lower().strip()
+        if any(w in c for w in ['injur', 'जखमी']):
+            return 'injured'
+        elif any(w in c for w in ['deceas', 'dead', 'मयत', 'मृत']):
+            return 'deceased'
+        return ''
+
+    victim_records = []
+
+    candidates = (
+        cf.get('victims') or
+        extra.get('victims') or
+        extra.get('cheating_victims') or
+        extra.get('pocso_victims') or
+        cf.get('persons') or
+        extra.get('persons')
+    )
+
+    if isinstance(candidates, list) and candidates:
+        for v in candidates:
+            if not isinstance(v, dict):
+                continue
+            role = str(v.get('role') or v.get('person_type') or '').lower().strip()
+            if ('persons' in str(candidates) or 'person' in str(candidates)) and role and 'victim' not in role:
+                continue
+
+            g = parse_gender(v.get('gender') or v.get('victim_gender') or v.get('cheating_victim_gender'))
+            age = parse_age(v.get('age') or v.get('victim_age') or v.get('cheating_victim_age'))
+            pwd = parse_bool(v.get('pwd') or v.get('victim_pwd') or v.get('disability'))
+            mv = parse_bool(v.get('mentally_vulnerable') or v.get('is_mentally_vulnerable'))
+            cond = parse_condition(v.get('status') or v.get('condition') or v.get('injured_deceased') or v.get('health_status'))
+
+            if not g and (mod in ['crime_women', '498_a_ipc'] or 'women' in sub):
+                g = 'female'
+            if age is None and (mod in ['pocso'] or 'pocso' in sub):
+                age = 15
+
+            victim_records.append({
+                'gender': g,
+                'age': age,
+                'pwd': pwd,
+                'mentally_vulnerable': mv,
+                'condition': cond,
+                'is_missing': is_missing_case,
+                'is_traced': is_traced_case,
+                'is_pending_tracing': is_pending_tracing_case,
+            })
+
+    if not victim_records:
+        g = parse_gender(
+            cf.get('victim_gender') or extra.get('victim_gender') or
+            extra.get('pocso_victim_gender') or extra.get('caw_victim_gender') or
+            extra.get('cheating_victim_gender') or extra.get('missing_person_gender')
+        )
+        age = parse_age(
+            cf.get('victim_age') or extra.get('victim_age') or
+            extra.get('pocso_victim_age') or extra.get('caw_victim_age') or
+            extra.get('cheating_victim_age') or extra.get('missing_person_age')
+        )
+        pwd = parse_bool(cf.get('pwd') or extra.get('pwd') or extra.get('victim_pwd'))
+        mv = parse_bool(cf.get('mentally_vulnerable') or extra.get('mentally_vulnerable'))
+        cond = parse_condition(
+            cf.get('injured_deceased') or extra.get('injured_deceased') or
+            cf.get('condition') or extra.get('condition') or
+            cf.get('victim_condition') or extra.get('victim_condition')
+        )
+
+        if not g and (mod in ['crime_women', '498_a_ipc'] or 'women' in sub):
+            g = 'female'
+        if age is None and (mod in ['pocso'] or 'pocso' in sub):
+            age = 15
+
+        victim_records.append({
+            'gender': g,
+            'age': age,
+            'pwd': pwd,
+            'mentally_vulnerable': mv,
+            'condition': cond,
+            'is_missing': is_missing_case,
+            'is_traced': is_traced_case,
+            'is_pending_tracing': is_pending_tracing_case,
+        })
+
+    return victim_records
+
+
+def victim_matches_single_filter(v, k):
+    g = v.get('gender', '')
+    age = v.get('age')
+    pwd = v.get('pwd', False)
+    mv = v.get('mentally_vulnerable', False)
+    cond = v.get('condition', '')
+    is_missing = v.get('is_missing', False)
+    is_traced = v.get('is_traced', False)
+    is_pending_tracing = v.get('is_pending_tracing', False)
+
+    if k in ['male', 'male_victims']:
+        return g == 'male'
+    elif k in ['female', 'female_victims']:
+        return g == 'female'
+    elif k in ['transgender', 'transgender_victims']:
+        return g == 'transgender'
+    elif k in ['other', 'other_gender', 'other_victims']:
+        return g == 'other'
+    elif k in ['adult', 'adult_victims']:
+        return age is not None and 18 <= age < 60
+    elif k in ['pwd', 'disability']:
+        return bool(pwd)
+    elif k in ['minor', 'child', 'minor_under_18']:
+        return age is not None and age < 18
+    elif k in ['minor_male']:
+        return age is not None and age < 18 and g == 'male'
+    elif k in ['minor_female']:
+        return age is not None and age < 18 and g == 'female'
+    elif k in ['women']:
+        return g == 'female' and (age is None or age >= 18)
+    elif k in ['senior', 'senior_citizen', 'senior_60_plus']:
+        return age is not None and age >= 60
+    elif k in ['senior_male']:
+        return age is not None and age >= 60 and g == 'male'
+    elif k in ['senior_female']:
+        return age is not None and age >= 60 and g == 'female'
+    elif k in ['mentally_vulnerable']:
+        return bool(mv)
+    elif k in ['injured', 'injured_victims']:
+        return cond == 'injured'
+    elif k in ['deceased', 'deceased_victims']:
+        return cond == 'deceased'
+    elif k in ['missing', 'missing_victims']:
+        return bool(is_missing)
+    elif k in ['traced', 'victims_traced']:
+        return bool(is_traced)
+    elif k in ['pending_tracing', 'victims_pending_tracing']:
+        return bool(is_pending_tracing)
+    elif k in ['age_below_5', 'below_5']:
+        return age is not None and age < 5
+    elif k in ['age_5_10', '5_10']:
+        return age is not None and 5 <= age <= 10
+    elif k in ['age_11_15', '11_15']:
+        return age is not None and 11 <= age <= 15
+    elif k in ['age_16_18', '16_18']:
+        return age is not None and 16 <= age <= 18
+    elif k in ['age_18_59', '18_59']:
+        return age is not None and 18 <= age <= 59
+    elif k in ['age_60_plus', '60_plus', '60_above', 'above_60', 'age_above_60']:
+        return age is not None and age >= 60
+    return False
+
+GENDER_KEYS = {'male', 'male_victims', 'female', 'female_victims', 'transgender', 'transgender_victims', 'other', 'other_gender', 'other_victims'}
+SPECIAL_KEYS = {'adult', 'adult_victims', 'pwd', 'disability', 'minor', 'child', 'minor_under_18', 'minor_male', 'minor_female', 'women', 'senior', 'senior_citizen', 'senior_60_plus', 'senior_male', 'senior_female', 'mentally_vulnerable'}
+CONDITION_KEYS = {'injured', 'injured_victims', 'deceased', 'deceased_victims', 'missing', 'missing_victims', 'traced', 'victims_traced', 'pending_tracing', 'victims_pending_tracing'}
+AGE_KEYS = {'age_below_5', 'below_5', 'age_5_10', '5_10', 'age_11_15', '11_15', 'age_16_18', '16_18', 'age_18_59', '18_59', 'age_60_plus', '60_plus', '60_above', 'above_60', 'age_above_60'}
+
+
+def case_matches_victim_filter(case, filter_key):
+    """Checks if any victim in the case matches the specified filter key(s)."""
+    if not filter_key or filter_key.lower() in ['all', 'total', 'total_victims']:
+        return True
+
+    raw_keys = [k.strip().lower() for k in str(filter_key).split(',') if k.strip()]
+    raw_keys = [k for k in raw_keys if k not in ['all', 'total', 'total_victims']]
+    if not raw_keys:
+        return True
+
+    victims = extract_case_victims(case)
+    if not victims:
+        return False
+
+    selected_gender = [k for k in raw_keys if k in GENDER_KEYS]
+    selected_special = [k for k in raw_keys if k in SPECIAL_KEYS]
+    selected_condition = [k for k in raw_keys if k in CONDITION_KEYS]
+    selected_age = [k for k in raw_keys if k in AGE_KEYS]
+    other_keys = [k for k in raw_keys if k not in GENDER_KEYS and k not in SPECIAL_KEYS and k not in CONDITION_KEYS and k not in AGE_KEYS]
+
+    # 1. First check if any single victim satisfies all active groups
+    for v in victims:
+        if selected_gender and not any(victim_matches_single_filter(v, k) for k in selected_gender):
+            continue
+        if selected_special and not any(victim_matches_single_filter(v, k) for k in selected_special):
+            continue
+        if selected_condition and not any(victim_matches_single_filter(v, k) for k in selected_condition):
+            continue
+        if selected_age and not any(victim_matches_single_filter(v, k) for k in selected_age):
+            continue
+        if other_keys and not any(victim_matches_single_filter(v, k) for k in other_keys):
+            continue
+        return True
+
+    # 2. Also check if the case as a whole satisfies each group across its victims
+    if selected_gender and not any(any(victim_matches_single_filter(v, k) for k in selected_gender) for v in victims):
+        return False
+    if selected_special and not any(any(victim_matches_single_filter(v, k) for k in selected_special) for v in victims):
+        return False
+    if selected_condition and not any(any(victim_matches_single_filter(v, k) for k in selected_condition) for v in victims):
+        return False
+    if selected_age and not any(any(victim_matches_single_filter(v, k) for k in selected_age) for v in victims):
+        return False
+    if other_keys and not any(any(victim_matches_single_filter(v, k) for k in other_keys) for v in victims):
+        return False
+
+    return True
+
+
+def apply_victim_filter_queryset(queryset, victim_filter):
+    """
+    Applies victim filtering to a queryset.
+    Uses .only(...) to fetch only required fields for matching, reducing DB load and memory.
+    """
+    if not victim_filter or str(victim_filter).lower().strip() in ['all', 'total', 'total_victims', '']:
+        return queryset
+
+    raw_keys = [k.strip().lower() for k in str(victim_filter).split(',') if k.strip()]
+    raw_keys = [k for k in raw_keys if k not in ['all', 'total', 'total_victims']]
+    if not raw_keys:
+        return queryset
+
+    filtered_candidates = queryset.only('id', 'extra_fields', 'module_key', 'sub_category', 'status')
+    matching_ids = [c.id for c in filtered_candidates if case_matches_victim_filter(c, victim_filter)]
+    return queryset.filter(id__in=matching_ids)
+
+
 class VictimCaseWiseView(APIView):
     permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
@@ -2326,14 +2602,18 @@ class VictimCaseWiseView(APIView):
 
             category = request.query_params.get('category') or request.query_params.get('crime_type')
             if category:
-                norm_cat = category.replace('_', ' ').strip()
-                queryset = queryset.filter(
-                    Q(module_key__iexact=category) |
-                    Q(sub_category__iexact=category) |
-                    Q(sub_category__iexact=norm_cat) |
-                    Q(category_links__category__category_name__iexact=norm_cat) |
-                    Q(category_links__category__category_code__iexact=category)
-                ).distinct()
+                if category.lower() == 'itsso':
+                    from apps.cases.itsso_service import ItssoService
+                    queryset = ItssoService.get_itsso_cases_queryset()
+                else:
+                    norm_cat = category.replace('_', ' ').strip()
+                    queryset = queryset.filter(
+                        Q(module_key__iexact=category) |
+                        Q(sub_category__iexact=category) |
+                        Q(sub_category__iexact=norm_cat) |
+                        Q(category_links__category__category_name__iexact=norm_cat) |
+                        Q(category_links__category__category_code__iexact=category)
+                    ).distinct()
 
             start_date = request.query_params.get('start_date')
             end_date = request.query_params.get('end_date')
@@ -2341,6 +2621,9 @@ class VictimCaseWiseView(APIView):
                 queryset = queryset.filter(created_at__date__gte=start_date)
             if end_date:
                 queryset = queryset.filter(created_at__date__lte=end_date)
+
+            victim_filter = request.query_params.get('victim_filter') or request.query_params.get('filter_type')
+            queryset = apply_victim_filter_queryset(queryset, victim_filter)
 
             from apps.cases.serializers import CaseRecordSerializer
             paginator = PageNumberPagination()
@@ -2354,6 +2637,7 @@ class VictimCaseWiseView(APIView):
         except Exception as e:
             logger.exception(f"[VictimCaseWiseView] Database error: {e}")
             return Response({'error': 'Failed to retrieve victim cases.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class VictimStatsView(APIView):
     permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
@@ -2369,93 +2653,133 @@ class VictimStatsView(APIView):
                 queryset = queryset.filter(station_name__in=stations)
 
             stats = {
-                'gender': {'male': 0, 'female': 0, 'other': 0},
-                'age': {'minor': 0, 'adult': 0, 'senior': 0},
+                # Legacy keys for backward compatibility
+                'gender': {'male': 0, 'female': 0, 'transgender': 0, 'other': 0},
+                'age': {
+                    'minor': 0, 'adult': 0, 'senior': 0,
+                    'below_5': 0, '5_10': 0, '11_15': 0, '16_18': 0, '18_59': 0, 'above_60': 0,
+                },
+                'total_victims': 0,
+                'male': 0,
+                'female': 0,
+                'transgender': 0,
+                'other': 0,
+                'adult': 0,
                 'pwd': 0,
+                'minor': 0,
+                'minor_male': 0,
+                'minor_female': 0,
+                'women': 0,
+                'senior': 0,
+                'senior_male': 0,
+                'senior_female': 0,
                 'mentally_vulnerable': 0,
                 'injured': 0,
                 'deceased': 0,
                 'missing': 0,
                 'traced': 0,
                 'pending_tracing': 0,
+                'age_categories': {
+                    'below_5': 0,
+                    '5_10': 0,
+                    '11_15': 0,
+                    '16_18': 0,
+                    '18_59': 0,
+                    'above_60': 0,
+                },
             }
 
-            for case in queryset:
-                mod = str(case.module_key or '').lower()
-                status_str = str(case.status or '').lower()
-                sub = str(case.sub_category or '').lower()
-                if mod in ['missing', 'kidnapping'] or 'missing' in sub or 'kidnapping' in sub:
-                    stats['missing'] += 1
-                    if status_str in ['detected', 'disposal', 'disposed', 'closed', 'resolved']:
+            total_victims_count = 0
+            for case in queryset.only('id', 'extra_fields', 'module_key', 'sub_category', 'status'):
+                victims = extract_case_victims(case)
+                for v in victims:
+                    total_victims_count += 1
+                    g = v.get('gender')
+                    age = v.get('age')
+                    pwd = v.get('pwd')
+                    mv = v.get('mentally_vulnerable')
+                    cond = v.get('condition')
+                    is_missing = v.get('is_missing')
+                    is_traced = v.get('is_traced')
+                    is_pending = v.get('is_pending_tracing')
+
+                    if g == 'male':
+                        stats['male'] += 1
+                        stats['gender']['male'] += 1
+                    elif g == 'female':
+                        stats['female'] += 1
+                        stats['gender']['female'] += 1
+                        stats['women'] += 1
+                    elif g == 'transgender':
+                        stats['transgender'] += 1
+                        stats['gender']['transgender'] += 1
+                        stats['gender']['other'] += 1
+                    elif g == 'other':
+                        stats['other'] += 1
+                        stats['gender']['other'] += 1
+
+                    if age is not None:
+                        if age < 18:
+                            stats['minor'] += 1
+                            stats['age']['minor'] += 1
+                            if g == 'male':
+                                stats['minor_male'] += 1
+                            elif g == 'female':
+                                stats['minor_female'] += 1
+                        elif age >= 60:
+                            stats['senior'] += 1
+                            stats['age']['senior'] += 1
+                            if g == 'male':
+                                stats['senior_male'] += 1
+                            elif g == 'female':
+                                stats['senior_female'] += 1
+                        else:
+                            stats['adult'] += 1
+                            stats['age']['adult'] += 1
+
+                        # Age brackets
+                        if age < 5:
+                            stats['age_categories']['below_5'] += 1
+                            stats['age']['below_5'] += 1
+                        elif 5 <= age <= 10:
+                            stats['age_categories']['5_10'] += 1
+                            stats['age']['5_10'] += 1
+                        elif 11 <= age <= 15:
+                            stats['age_categories']['11_15'] += 1
+                            stats['age']['11_15'] += 1
+                        elif 16 <= age <= 18:
+                            stats['age_categories']['16_18'] += 1
+                            stats['age']['16_18'] += 1
+                        elif 19 <= age <= 59:
+                            stats['age_categories']['18_59'] += 1
+                            stats['age']['18_59'] += 1
+                        elif age >= 60:
+                            stats['age_categories']['above_60'] += 1
+                            stats['age']['above_60'] += 1
+
+                    if pwd:
+                        stats['pwd'] += 1
+                    if mv:
+                        stats['mentally_vulnerable'] += 1
+                    if cond == 'injured':
+                        stats['injured'] += 1
+                    elif cond == 'deceased':
+                        stats['deceased'] += 1
+
+                    if is_missing:
+                        stats['missing'] += 1
+                    if is_traced:
                         stats['traced'] += 1
-                    else:
+                    if is_pending:
                         stats['pending_tracing'] += 1
 
-                extra = case.extra_fields if isinstance(case.extra_fields, dict) else {}
-                cf = extra.get('commonForm', {}) if isinstance(extra.get('commonForm'), dict) else {}
-                
-                victim_list = cf.get('victims') or extra.get('victims') or []
-                if isinstance(victim_list, list) and victim_list:
-                    for v in victim_list:
-                        if not isinstance(v, dict):
-                            continue
-                        # Gender
-                        g = str(v.get('gender') or v.get('victim_gender') or '').lower().strip()
-                        if g in ['male', 'm', 'पुरुष']:
-                            stats['gender']['male'] += 1
-                        elif g in ['female', 'f', 'स्त्री', 'महिला']:
-                            stats['gender']['female'] += 1
-                        elif g:
-                            stats['gender']['other'] += 1
-
-                        # Age
-                        raw_age = v.get('age') or v.get('victim_age')
-                        try:
-                            age_int = int(str(raw_age).strip())
-                            if age_int < 18:
-                                stats['age']['minor'] += 1
-                            elif age_int >= 60:
-                                stats['age']['senior'] += 1
-                            else:
-                                stats['age']['adult'] += 1
-                        except (ValueError, TypeError):
-                            pass
-
-                        # PWD & Mentally vulnerable
-                        if v.get('pwd') is True or str(v.get('pwd', '')).lower() in ['yes', 'y', 'true']:
-                            stats['pwd'] += 1
-                        if v.get('mentally_vulnerable') is True or str(v.get('mentally_vulnerable', '')).lower() in ['yes', 'y', 'true']:
-                            stats['mentally_vulnerable'] += 1
-
-                        # Condition
-                        cond = str(v.get('status') or v.get('condition') or v.get('injured_deceased') or v.get('health_status') or '').lower()
-                        if 'injur' in cond or 'जखमी' in cond:
-                            stats['injured'] += 1
-                        elif 'deceas' in cond or 'dead' in cond or 'मृत' in cond:
-                            stats['deceased'] += 1
-                else:
-                    g = str(cf.get('victim_gender') or extra.get('victim_gender') or '').lower().strip()
-                    if g in ['male', 'm', 'पुरुष']:
-                        stats['gender']['male'] += 1
-                    elif g in ['female', 'f', 'स्त्री', 'महिला']:
-                        stats['gender']['female'] += 1
-
-                    raw_age = cf.get('victim_age') or extra.get('victim_age')
-                    try:
-                        age_int = int(str(raw_age).strip())
-                        if age_int < 18:
-                            stats['age']['minor'] += 1
-                        elif age_int >= 60:
-                            stats['age']['senior'] += 1
-                        else:
-                            stats['age']['adult'] += 1
-                    except (ValueError, TypeError):
-                        pass
+            stats['total_victims'] = total_victims_count
 
             return Response({'stats': stats, 'total_cases': queryset.count()})
         except Exception as e:
             logger.exception(f"[VictimStatsView] Database error: {e}")
             return Response({'error': 'Failed to retrieve victim stats.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class VictimTimeWiseView(APIView):
     permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
@@ -2471,6 +2795,9 @@ class VictimTimeWiseView(APIView):
             if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
                 stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                 queryset = queryset.filter(station_name__in=stations)
+
+            victim_filter = request.query_params.get('victim_filter') or request.query_params.get('filter_type')
+            queryset = apply_victim_filter_queryset(queryset, victim_filter)
 
             now = timezone.now()
             month_1 = now - timedelta(days=30)
@@ -2498,6 +2825,7 @@ class VictimTimeWiseView(APIView):
             logger.exception(f'[VictimTimeWiseView] Database error: {e}')
             return Response({'error': 'Failed to retrieve Time-wise victim counts.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
 class VictimIOWiseView(APIView):
     permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
@@ -2511,6 +2839,9 @@ class VictimIOWiseView(APIView):
             if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
                 stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                 queryset = queryset.filter(station_name__in=stations)
+
+            victim_filter = request.query_params.get('victim_filter') or request.query_params.get('filter_type')
+            queryset = apply_victim_filter_queryset(queryset, victim_filter)
 
             counts = queryset.values('assigned_officer', 'station_name').annotate(count=Count('id')).order_by('-count')
             results = []
@@ -2532,15 +2863,14 @@ class VictimIOWiseView(APIView):
 
 
 from apps.cases.serializers import ItssoCaseRecordSerializer
+from apps.cases.itsso_service import ItssoService
 
 class ItssoCasesView(APIView):
     permission_classes = [permissions.IsAuthenticated, HasPermission('case:view')]
 
     def get(self, request):
         from django.db.models import Q
-        # POCSO cases only
-        pocso_q = Q(module_key__iexact='pocso') | Q(sub_category__iexact='pocso') | Q(sub_category__icontains='pocso')
-        queryset = CaseRecord.objects.filter(pocso_q).distinct()
+        queryset = ItssoService.get_itsso_cases_queryset()
 
         user = request.user
         if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
@@ -2596,8 +2926,7 @@ class ItssoIOWiseView(APIView):
 
     def get(self, request):
         from django.db.models import Q, Count
-        pocso_q = Q(module_key__iexact='pocso') | Q(sub_category__iexact='pocso') | Q(sub_category__icontains='pocso')
-        queryset = CaseRecord.objects.filter(pocso_q).distinct()
+        queryset = ItssoService.get_itsso_cases_queryset()
 
         user = request.user
         if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
@@ -2635,8 +2964,7 @@ class ItssoTimeWiseView(APIView):
         from django.utils import timezone
         from datetime import timedelta
         
-        pocso_q = Q(module_key__iexact='pocso') | Q(sub_category__iexact='pocso') | Q(sub_category__icontains='pocso')
-        queryset = CaseRecord.objects.filter(pocso_q).distinct()
+        queryset = ItssoService.get_itsso_cases_queryset()
 
         user = request.user
         if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
@@ -3277,18 +3605,64 @@ class SummonsWarrantReportView(APIView):
                 except (ValueError, TypeError):
                     cutoff_day = None
 
-            # Station / District filtering with multi-tenancy access checks
-            can_view_all = check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')
+            # Station / District filtering with multi-tenancy & hierarchical jurisdiction access checks
+            from apps.authentication.approval_scope import (
+                caller_level, STATE, DISTRICT, DIVISION, STATION,
+            )
+            from apps.stations.models import PoliceStation
+            from django.db.models import Q
+
+            level = caller_level(user)
+            desig = (getattr(user, 'designation', '') or '').strip().lower()
+            role = (getattr(user, 'role_id', '') or '').strip().lower()
+
+            if level < STATE:
+                if any(k in desig for k in ['dgp', 'ig', 'dig']) or role in ('super_admin', 'state_super_admin', 'admin'):
+                    level = STATE
+                elif any(k in desig for k in ['sp', 'cp', 'dcp']) or role in ('district_admin', 'city_admin'):
+                    level = max(level, DISTRICT)
+                elif any(k in desig for k in ['sdpo', 'acp', 'dy. sp', 'dysp', 'asp']) or role in ('division_admin',):
+                    level = max(level, DIVISION)
+
+            user_district = (getattr(user, 'district', None) or '').strip()
+            user_division = (getattr(user, 'division_name', None) or getattr(user, 'zone', None) or '').strip()
+
             target_station = request.query_params.get('station_name')
             target_district = request.query_params.get('district') or request.query_params.get('district_name')
             allowed_stations = None
 
-            if not can_view_all:
+            if level >= STATE:
+                # State leadership / SuperAdmin: can see all stations or filter by requested district
+                pass
+            elif level == DISTRICT:
+                # District leadership: strictly limited to police stations under their district
+                target_district = user_district or target_district
+            elif level == DIVISION:
+                # Division head (SDPO / ACP): strictly police stations under their sub-division
+                div_stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
+                div_stations = [s for s in div_stations if s]
+                if user_division:
+                    div_qs = PoliceStation.objects.filter(
+                        Q(zone__iexact=user_division) |
+                        (Q(district_name__iexact=user_district) & Q(zone__iexact=user_division))
+                    )
+                    db_stations = list(div_qs.values_list('station_name', flat=True))
+                    div_stations = list(set(div_stations + db_stations))
+
+                if target_station:
+                    if target_station not in div_stations:
+                        raise exceptions.PermissionDenied("You do not have access to view data for this police station.")
+                    allowed_stations = [target_station]
+                else:
+                    allowed_stations = div_stations
+            else:
+                # Station level and regular officers (PL level and below): strictly their own assigned station(s)
                 user_stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                 user_stations = [s for s in user_stations if s]
                 if target_station:
                     if target_station not in user_stations:
                         raise exceptions.PermissionDenied("You do not have access to view data for this police station.")
+                    allowed_stations = [target_station]
                 else:
                     allowed_stations = user_stations
 
