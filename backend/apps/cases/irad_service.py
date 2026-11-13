@@ -74,47 +74,14 @@ class RoadAccidentIradService:
 
     @classmethod
     def get_road_accident_query(cls) -> Q:
-        """
-        Constructs the dynamic database Q filter to find all Road Accident cases.
-        Integrates road_accident_case_q() from origin/dev with branch category/parent-category
-        and other_accident matching.
-        """
-        base_q = None
-        try:
-            from apps.cases.road_accident_cases import road_accident_case_q
-            base_q = road_accident_case_q()
-        except ImportError:
-            pass
-
-        dynamic_codes = cls.get_road_accident_category_codes()
-        branch_q = (
-            Q(module_key__iexact='accident')
-            | Q(module_key__iexact='road_accident')
-            | Q(module_key__iexact='road accident')
-            | Q(module_key__iexact='other_accident')
-            | Q(module_key__iexact='irad')
-            | Q(module_key__iexact='dar')
-            | Q(sub_category__icontains='accident')
-            | Q(category_links__category__category_name__icontains='accident')
-            | Q(category_links__category__parent_category__category_name__icontains='accident')
-            | Q(title__icontains='accident')
-            | Q(title__icontains='rash driving')
-        )
-        if dynamic_codes:
-            branch_q |= Q(category_links__category__category_code__in=dynamic_codes)
-
-        if base_q is not None:
-            return base_q | branch_q
-        return branch_q
+        """Road Accident cases only: see apps/cases/road_accident_cases.py."""
+        from apps.cases.road_accident_cases import road_accident_case_q
+        return road_accident_case_q()
 
     def get_base_queryset(self):
         """Returns scoped CaseRecord queryset for road accident cases."""
         q_filter = self.get_road_accident_query()
-        queryset = CaseRecord.objects.filter(q_filter).distinct()
-
-        # Safely apply select_related('road_accident') when the OneToOne relation exists
-        if any(f.name == 'road_accident' for f in CaseRecord._meta.get_fields()):
-            queryset = queryset.select_related('road_accident')
+        queryset = CaseRecord.objects.filter(q_filter).distinct().select_related('road_accident')
 
         if self.station_name:
             queryset = queryset.filter(station_name__iexact=self.station_name)
@@ -135,11 +102,8 @@ class RoadAccidentIradService:
         - Status color: Green for Filled, Red for Pending.
         """
         # road_accident_records first (where the form saves it), then the case JSON
-        try:
-            from apps.cases.road_accident_cases import with_table_answers
-            extra = with_table_answers(case, {'acc_irad': ('irad', False), 'acc_irad_date': ('irad_date', True)})
-        except (ImportError, Exception):
-            extra = case.extra_fields if isinstance(case.extra_fields, dict) else {}
+        from apps.cases.road_accident_cases import with_table_answers
+        extra = with_table_answers(case, {'acc_irad': ('irad', False), 'acc_irad_date': ('irad_date', True)})
         irad_fields: Dict[str, Any] = {}
 
         # 1. Primary IRAD fields
