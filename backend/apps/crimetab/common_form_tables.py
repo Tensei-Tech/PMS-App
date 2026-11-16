@@ -42,6 +42,10 @@ PANCHANAMA_ITEMS = {
     'memorandum_panchanama': 'Memorandum Panchanama',
     'identification_panchanama': 'Identification Panchanama',
     'identification_parade_panchanama': 'Identification Parade Panchanama',
+    # Investigation steps (yes / no) of the Common Form, kept the same way
+    'witness_summons': 'Witness Summons',
+    'mobile_spot_recording': 'Mobile Spot Recording',
+    'vehicle_log_book_entry': 'Vehicle Log Book Entry',
 }
 
 # case_forensics column -> (form keys for the tick, form keys for its date)
@@ -64,7 +68,7 @@ def sources_from(data=None, extra=None):
     nested = []
     for src in (data, extra, common):
         for key in ('cctv_technical', 'forensics', 'case_forensics', 'investigationNotes', 'crime_spot',
-                    'final_verdict', 'court_filing', 'courtFiling'):
+                    'final_verdict', 'court_filing', 'courtFiling', 'dynamic_extra_fields'):
             if isinstance(src.get(key), dict):
                 nested.append(src[key])
     return [data, extra, common, *nested]
@@ -299,7 +303,8 @@ def save_panchanama(case, sources, write=True):
         if as_bool(first(sources, key)):
             if write:
                 ProceduralChecklist.objects.update_or_create(
-                    case=case, item_name=item_name, defaults={'is_checked': True})
+                    case=case, item_name=item_name,
+                    defaults={'is_checked': True, 'event_datetime': _parse_dt_value(first(sources, f'{key}_date'))})
             ticked += 1
         elif write:
             ProceduralChecklist.objects.filter(case=case, item_name=item_name).delete()
@@ -345,7 +350,9 @@ FINAL_VERDICT_TEXT = {
     'c_final_number': ('c_final_number', 'cFinalNo', 'cFinalNumber'),
     'nc_final_number': ('nc_final_number', 'ncFinalNo', 'ncFinalNumber'),
     'abeted_summary_no': ('abeted_summary_no', 'abatedSummaryNo', 'abetedSummaryNumber'),
+    'court_name': ('court_name', 'courtName'),
 }
+FINAL_VERDICT_SIZE = {'court_name': 255}  # the others hold 50
 FINAL_VERDICT_DATES = {
     'stay_by_high_court_date': ('stay_by_high_court_date', 'stayHighCourtDate'),
     'quashed_by_high_court_date': ('quashed_by_high_court_date', 'quashedHighCourt'),
@@ -358,7 +365,7 @@ def save_final_verdict(case, sources, write=True):
     values = {}
     for column, keys in FINAL_VERDICT_TEXT.items():
         value = first(sources, *keys)
-        values[column] = str(value).strip()[:50] if value not in EMPTY else None
+        values[column] = str(value).strip()[:FINAL_VERDICT_SIZE.get(column, 50)] if value not in EMPTY else None
     for column, keys in FINAL_VERDICT_DATES.items():
         values[column] = as_date(first(sources, *keys))
     if all(v in EMPTY for v in values.values()):
@@ -528,6 +535,11 @@ def _fmt_dt(value):
     return value.strftime('%d/%m/%Y %H:%M')
 
 
+def _local_date(value):
+    from django.utils import timezone
+    return timezone.localtime(value).date() if timezone.is_aware(value) else value.date()
+
+
 def _person_dict(p):
     out = {f: getattr(p, f, None) for f in PERSON_FIELDS}
     out['age'] = str(out['age']) if out['age'] is not None else None
@@ -563,10 +575,13 @@ def common_form_values(case):
             values[column] = getattr(forensics, column)
             values[f'{column}_date'] = _fmt_date(getattr(forensics, f'{column}_date'))
 
-    ticked = {row.item_name for row in case.procedural_checklists.all() if row.is_checked}
+    ticked = {row.item_name: row for row in case.procedural_checklists.all() if row.is_checked}
     if ticked:  # unticked items have no row; with no row at all the JSON answers stay
         for key, item_name in PANCHANAMA_ITEMS.items():
             values[key] = item_name in ticked
+            if item_name in ticked:
+                values[f'{key}_date'] = _fmt_date(ticked[item_name].event_datetime and
+                                                  _local_date(ticked[item_name].event_datetime))
 
     verdict = _one(case, 'final_verdict')
     if verdict is not None:
@@ -639,6 +654,15 @@ def _merge_accused(table_people, json_people):
     return merged
 
 
+def _same_shape(value, current):
+    """A tick written the way the JSON holds it: "true" / "false" or "Yes" / "No" text stays text."""
+    if isinstance(value, bool) and isinstance(current, str) and current.strip():
+        if current.strip().lower() in ('yes', 'no'):
+            return 'Yes' if value else 'No'
+        return 'true' if value else 'false'
+    return value
+
+
 def overlay_common_form(extra, case):
     """
     Lay the table values over the case JSON (top level and, when present, the
@@ -658,11 +682,15 @@ def overlay_common_form(extra, case):
             text = str(extra[key]).strip()
             guesses |= {text, text[:10] + ' 00:00'}
     targets = [extra]
-    if isinstance(extra.get('commonForm'), dict):
-        targets.append(extra['commonForm'])
+    for nested in ('commonForm', 'dynamic_extra_fields'):
+        if isinstance(extra.get(nested), dict):
+            targets.append(extra[nested])
     for target in targets:
         for key, value in table.items():
+            if target is not extra and target is extra.get('dynamic_extra_fields') and key not in target:
+                continue  # only answers the template already holds
             current = target.get(key)
+            value = _same_shape(value, current)
             if key == 'charges':
                 target[key] = _merge_charges(value, current)
             elif key == 'accused':

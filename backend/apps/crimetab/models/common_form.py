@@ -396,6 +396,9 @@ class ProceduralChecklist(models.Model):
         ('Memorandum Panchanama', 'Memorandum Panchanama'),
         ('Identification Panchanama', 'Identification Panchanama'),
         ('Identification Parade Panchanama', 'Identification Parade Panchanama'),
+        ('Witness Summons', 'Witness Summons'),
+        ('Mobile Spot Recording', 'Mobile Spot Recording'),
+        ('Vehicle Log Book Entry', 'Vehicle Log Book Entry'),
     )
 
     checklist_id = models.BigAutoField(primary_key=True)
@@ -616,6 +619,7 @@ class FinalVerdict(models.Model):
     cc_st_number = models.CharField(max_length=50, null=True, blank=True)
     stay_by_high_court_date = models.DateField(null=True, blank=True)
     quashed_by_high_court_date = models.DateField(null=True, blank=True)
+    court_name = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         db_table = 'final_verdict'
