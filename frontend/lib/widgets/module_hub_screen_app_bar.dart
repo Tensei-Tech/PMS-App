@@ -35,26 +35,33 @@ class ModuleHubScreenAppBar extends StatelessWidget
   }) {
     final bg = backgroundColor ?? AppColors.navyMid;
     final fg = foregroundColor ?? Colors.white;
-    return ElevatedButton.icon(
+    return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: bg,
         foregroundColor: fg,
         elevation: 0,
-        minimumSize: const Size(0, 32),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+        minimumSize: const Size(0, 34),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
         visualDensity: VisualDensity.compact,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: const StadiumBorder(),
       ),
-      icon: Icon(Icons.add_rounded, size: 15, color: fg),
-      label: Text(
-        TranslationHelper.translate(context, 'Add Case'),
-        style: GoogleFonts.poppins(
-          fontSize: 11.5,
-          fontWeight: FontWeight.w600,
-          color: fg,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.add_rounded, size: 16, color: fg),
+          const SizedBox(width: 6),
+          Text(
+            TranslationHelper.translate(context, 'Add Case'),
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: fg,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
       ),
     );
   }
