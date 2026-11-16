@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/app_theme.dart';
+import '../utils/category_icon_helper.dart';
 import '../utils/translation_helper.dart';
 
 /// One sub-tab of a dashboard tile (e.g. "NAFIS" inside "NAFIS/Fingerprint").
@@ -120,28 +121,41 @@ class _SubTabStrip extends StatelessWidget implements PreferredSizeWidget {
 
   const _SubTabStrip({required this.scope});
 
-  static const double _height = 64;
-  static const double _trackHeight = 46;
-  static const double _inset = 4;
-  static const Duration _slide = Duration(milliseconds: 240);
+  static const double _height = 50;
+  static const double _trackHeight = 38;
+  static const double _inset = 3;
+  static const Duration _slide = Duration(milliseconds: 200);
 
   @override
   Size get preferredSize => const Size.fromHeight(_height);
+
+  Widget _buildIcon(SubTab tab, Color color) {
+    final svg = CategoryIconHelper.getSvgPath(tab.label);
+    if (svg != null) {
+      return CategoryIconHelper.buildWidget(tab.label, color: color, size: 15);
+    }
+    return Icon(tab.icon, size: 15, color: color);
+  }
 
   @override
   Widget build(BuildContext context) {
     final count = scope.tabs.length;
     return Container(
       height: _height,
-      color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(14, 6, 14, 12),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       alignment: Alignment.center,
       child: Container(
         height: _trackHeight,
         decoration: BoxDecoration(
-          color: AppColors.lightBg,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.navyMid.withValues(alpha: 0.10)),
+          color: const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
         ),
         padding: const EdgeInsets.all(_inset),
         child: LayoutBuilder(
@@ -159,17 +173,13 @@ class _SubTabStrip extends StatelessWidget implements PreferredSizeWidget {
                   width: segmentWidth,
                   child: Container(
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [AppColors.navyMid, AppColors.navyAccent],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(10),
+                      color: AppColors.navyDark,
+                      borderRadius: BorderRadius.circular(8),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.navyMid.withValues(alpha: 0.30),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
+                          color: AppColors.navyDark.withValues(alpha: 0.12),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1.5),
                         ),
                       ],
                     ),
@@ -192,15 +202,15 @@ class _SubTabStrip extends StatelessWidget implements PreferredSizeWidget {
   Widget _segment(BuildContext context, int i) {
     final tab = scope.tabs[i];
     final selected = i == scope.selected;
-    final fg = selected ? Colors.white : AppColors.navyMid;
+    final fg = selected ? Colors.white : AppColors.navyDark;
     return Semantics(
       selected: selected,
       button: true,
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
         child: InkWell(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(8),
           onTap: () => scope.onSelect(i),
           child: SizedBox.expand(
             child: Padding(
@@ -208,24 +218,19 @@ class _SubTabStrip extends StatelessWidget implements PreferredSizeWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  AnimatedSwitcher(
-                    duration: _slide,
-                    child: Icon(
-                      tab.icon,
-                      key: ValueKey(selected),
-                      size: 17,
-                      color: fg.withValues(alpha: selected ? 1 : 0.75),
-                    ),
+                  _buildIcon(
+                    tab,
+                    fg.withValues(alpha: selected ? 1.0 : 0.75),
                   ),
                   const SizedBox(width: 7),
                   Flexible(
                     child: AnimatedDefaultTextStyle(
                       duration: _slide,
                       style: GoogleFonts.poppins(
-                        fontSize: 13,
+                        fontSize: 12.5,
                         fontWeight:
-                            selected ? FontWeight.w700 : FontWeight.w600,
-                        color: fg.withValues(alpha: selected ? 1 : 0.75),
+                            selected ? FontWeight.w600 : FontWeight.w500,
+                        color: fg.withValues(alpha: selected ? 1.0 : 0.85),
                       ),
                       child: Text(
                         TranslationHelper.translate(context, tab.label),
