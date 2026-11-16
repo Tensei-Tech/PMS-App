@@ -7,7 +7,9 @@ from apps.cases.constants import DISPOSAL_KEYS
 IGNORED_ACCUSED_NAMES = {
     'default accused', 'unknown', 'unknown accused', 'अज्ञात',
     'unidentified', 'na', 'n/a', 'none', 'null', 'test accused',
-    'suspect', 'accused', 'passport verification', ''
+    'suspect', 'accused', 'passport verification', '',
+    # placeholders the forms use for a non-person party
+    'business / entity', 'business', 'entity', 'company', 'firm', 'other', 'others',
 }
 
 def extract_accused_names_for_case(case):
@@ -44,43 +46,79 @@ def extract_accused_names_for_case(case):
     return {n for n in names if n.strip().lower() not in IGNORED_ACCUSED_NAMES and len(n.strip()) > 1}
 
 
+def _accused_ages_for_case(case):
+    """{name_lower: age or None} of a case's accused (persons table, then the case JSON)."""
+    ages = {}
+
+    def put(name, age):
+        name = (name or '').strip()
+        if not name or name.lower() in IGNORED_ACCUSED_NAMES or len(name) < 2:
+            return
+        digits = ''.join(ch for ch in str(age or '') if ch.isdigit())
+        value = int(digits) if digits and 0 < int(digits) < 120 else None
+        key = name.lower()
+        if ages.get(key) is None:
+            ages[key] = value
+
+    for p in case.persons.all():
+        if p.role in ('accused', 'suspected_accused', 'suspect'):
+            put(p.name, p.age)
+    ef = case.extra_fields if isinstance(case.extra_fields, dict) else {}
+    cf = ef.get('commonForm') if isinstance(ef.get('commonForm'), dict) else {}
+    for container in (ef, cf):
+        for key in ('accused_list', 'accused'):
+            val = container.get(key)
+            if isinstance(val, list):
+                for x in val:
+                    if isinstance(x, dict):
+                        put(x.get('name'), x.get('age'))
+        if isinstance(container.get('accused_name'), str):
+            put(container['accused_name'], container.get('accused_age'))
+    for name in extract_accused_names_for_case(case):
+        put(name, None)
+    return ages
+
+
+def _same_person(age_a, age_b):
+    """Same name is the same person unless both ages are known and more than 2 years apart."""
+    return age_a is None or age_b is None or abs(age_a - age_b) <= 2
+
+
 def get_repeat_offender_map(station_names=None):
+    """
+    Accused who appear in more than one case (different CR numbers). Same name
+    (ignoring case) and, where both ages are known, ages within 2 years;
+    placeholder names such as "Business / Entity" are ignored.
+    """
     from collections import defaultdict
     qs = CaseRecord.objects.all()
     if station_names:
         qs = qs.filter(station_name__in=station_names)
-        
-    name_to_cases = defaultdict(dict)  # name_lower -> {case_id: cr_number}
-    name_display = {}
 
+    by_name = defaultdict(list)  # name_lower -> [(case_id, cr, age)]
+    name_display = {}
     for c in qs.prefetch_related('persons'):
         cr = (c.case_number or '').strip()
         if not cr or cr in ['—', '-']:
             continue
-        names = extract_accused_names_for_case(c)
-        for n in names:
-            nl = n.lower()
-            name_to_cases[nl][c.id] = cr
-            if nl not in name_display or (name_display[nl].islower() and not n.islower()):
-                name_display[nl] = n.title() if (n.islower() or n.isupper()) else n
-
-    repeat_accused = {nl: cdict for nl, cdict in name_to_cases.items() if len(set(cdict.values())) > 1}
+        for nl, age in _accused_ages_for_case(c).items():
+            by_name[nl].append((c.id, cr, age))
+            name_display.setdefault(nl, nl.title())
 
     repeat_case_ids = set()
     case_to_info = {}
-
-    for nl, cdict in repeat_accused.items():
-        disp_name = name_display.get(nl, nl.title())
-        all_crs = set(cdict.values())
-        for cid, cr in cdict.items():
+    for nl, entries in by_name.items():
+        for cid, cr, age in entries:
+            others = sorted({o_cr for o_id, o_cr, o_age in entries
+                             if o_cr != cr and _same_person(age, o_age)})
+            if not others:
+                continue
             repeat_case_ids.add(cid)
-            other_crs = sorted([other for other in all_crs if other != cr])
             case_to_info[cid] = {
-                'accused_name': disp_name,
-                'other_crs': other_crs,
-                'multiple_cr': ', '.join(other_crs) if other_crs else '-'
+                'accused_name': name_display[nl],
+                'other_crs': others,
+                'multiple_cr': ', '.join(others),
             }
-
     return repeat_case_ids, case_to_info
 
 
@@ -331,16 +369,19 @@ def get_victim_cases():
         'pocso', 'crime_women', 'accident', 'cheating', '498_a_ipc', 'missing', 'kidnapping', 'victim'
     ]
     
+    # The same groups as sub-tabs: crimes saved from "1 to 5" carry module
+    # form_1_5, so their sub-tab name is what says they have a victim
+    victim_tabs = [
+        'pocso', 'crime against women', 'rape', 'molestation', '498 (a) ipc',
+        'cheating', 'missing', 'kidnapping', 'kidnapping/missing',
+        'accident', 'road accident', 'other road accident', 'death due to rash driving', 'other accident',
+    ]
+    tab_q = Q(pk__in=[])
+    for tab in victim_tabs:
+        tab_q |= Q(sub_category__iexact=tab)
     queryset = CaseRecord.objects.filter(
-        Q(module_key__in=target_modules) |
-        Q(sub_category__iexact='pocso') |
-        Q(sub_category__iexact='crime against women') |
-        Q(sub_category__iexact='accident') |
-        Q(sub_category__iexact='cheating') |
-        Q(sub_category__iexact='498 (a) ipc') |
-        Q(sub_category__iexact='missing') |
-        Q(sub_category__iexact='kidnapping')
-    ).distinct()
+        Q(module_key__in=target_modules) | tab_q
+    ).filter(crime_case_q()).distinct()
     
     if schema and schema != 'public':
         set_tenant_schema(schema)
