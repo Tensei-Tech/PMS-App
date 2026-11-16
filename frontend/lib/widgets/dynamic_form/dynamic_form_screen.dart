@@ -19,6 +19,7 @@ import '../../screens/transfer_case_form_screen.dart';
 import 'dynamic_control_factory.dart'
     show panInputFormatters, panValidationError;
 import 'dynamic_field_model.dart';
+import 'dynamic_repeater_value.dart';
 import 'dynamic_section_builder.dart';
 import '../repeating_cascading_charges_selector.dart';
 import '../../services/dynamic_options_service.dart';
@@ -1721,8 +1722,17 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     if (val == null) return;
     final cleanKey = key.trim();
     if (cleanKey.isEmpty) return;
+    // A repeater's rows may come back as text (JSON, or the server's
+    // Python-style text): read as rows; other text is an older typed answer
+    final isRepeater = _formDef?.fields
+            .any((f) => f.fieldKey == cleanKey && f.fieldType == 'repeater') ??
+        false;
+    if (isRepeater && val is String) {
+      final saved = RepeaterValue.parse(val);
+      val = saved.legacyText ?? saved.rows;
+    }
     // Junk strings from older saves (serialized maps, 'null', '[]') are not shown
-    if (val is! List && val is! Map) {
+    if (!isRepeater && val is! List && val is! Map) {
       final rawTrimmed = val.toString().trim();
       if (rawTrimmed.startsWith('[{') ||
           rawTrimmed.startsWith('{') ||
@@ -1950,7 +1960,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     final dynamicExtraVals = <String, dynamic>{};
     for (final f in _formDef?.fields ?? <DynamicFieldDef>[]) {
       if (f.fieldSource == 'custom' && _isFieldVisible(f)) {
-        final val = _controllers[f.fieldKey]?.text ?? _values[f.fieldKey];
+        // A repeater's rows live in _values; its text box copy is not kept
+        final val = f.fieldType == 'repeater'
+            ? _values[f.fieldKey]
+            : _controllers[f.fieldKey]?.text ?? _values[f.fieldKey];
         if (val != null) {
           dynamicExtraVals[f.fieldKey] = val;
         }

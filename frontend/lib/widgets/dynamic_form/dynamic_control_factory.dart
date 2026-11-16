@@ -10,7 +10,9 @@ import 'package:intl/intl.dart';
 import '../../services/dynamic_options_service.dart';
 import '../../theme/app_theme.dart';
 import '../person_select_or_custom_field.dart';
+import 'dynamic_dependent_dropdown.dart';
 import 'dynamic_field_model.dart';
+import 'dynamic_repeater_value.dart';
 import 'dynamic_repeating_group_widget.dart';
 import '../repeating_cascading_charges_selector.dart';
 import '../age_digits_limit.dart';
@@ -173,6 +175,10 @@ class DynamicControlFactory extends StatelessWidget {
         return _buildMultiSelectField(context);
       case 'repeating_group':
         return _buildRepeatingGroup(context);
+      case 'repeater':
+        return _buildRepeater(context);
+      case 'dependent_dropdown':
+        return _buildDependentDropdown(context);
       case 'charges':
         return _buildChargesField(context);
       case 'text':
@@ -926,6 +932,88 @@ class DynamicControlFactory extends StatelessWidget {
           // Inside a repeating group row: exactly one Act / Section / Subsection
           maxCharges: fieldDef.parentFieldKey != null ? 1 : null,
           onChargesChanged: (charges) => onChanged?.call(charges),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDependentDropdown(BuildContext context) {
+    var def = fieldDef;
+    final parentKey = def.fieldConfig?['depends_on']?.toString();
+    if (parentKey != null &&
+        def.fieldConfig?['depends_on_label'] == null &&
+        allFields != null) {
+      final parent =
+          allFields!.where((f) => f.fieldKey == parentKey).firstOrNull;
+      if (parent != null) {
+        def = def.copyWith(fieldConfig: {
+          ...?def.fieldConfig,
+          'depends_on_label': parent.fieldLabel,
+        });
+      }
+    }
+    return _buildFieldLayout(
+      context,
+      DynamicDependentDropdown(
+        fieldDef: def,
+        value: value,
+        formValues: formValues,
+        controller: controller,
+        onChanged: onChanged,
+        readOnly: effectiveReadOnly,
+        decoration: _inputDecoration(hint: 'Select ${fieldDef.fieldLabel}'),
+      ),
+    );
+  }
+
+  /// Rows whose columns come from field_config.fields, saved as a list of
+  /// maps under the field key. Older records may hold text instead: it is
+  /// shown read-only above the rows until rows are added.
+  Widget _buildRepeater(BuildContext context) {
+    final saved = RepeaterValue.parse(value);
+    final group = DynamicRepeatingGroupWidget(
+      fieldDef: fieldDef,
+      childFields: repeaterColumnFields(fieldDef),
+      value: saved.rows,
+      onChanged: (rows) => onChanged?.call(rows),
+      readOnly: effectiveReadOnly,
+      formValues: formValues,
+    );
+    final oldText = saved.legacyText;
+    if (oldText == null) return group;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        group,
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            border: Border.all(color: AppColors.lightBorder),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                effectiveReadOnly
+                    ? 'Saved earlier as text'
+                    : 'Saved earlier as text (adding rows replaces it)',
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.lightSubText,
+                ),
+              ),
+              const SizedBox(height: 4),
+              SelectableText(
+                oldText,
+                style: GoogleFonts.poppins(
+                    fontSize: 13, color: AppColors.lightText),
+              ),
+            ],
+          ),
         ),
       ],
     );
