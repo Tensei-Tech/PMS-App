@@ -566,7 +566,7 @@ class _LoginScreenState extends State<LoginScreen>
             // Login Button
             SizedBox(
               width: double.infinity,
-              height: isCompact ? 48 : 54,
+              height: isCompact ? 50 : 54,
               child: ElevatedButton(
                 onPressed: (_isLoading || _isLockedOut) ? null : _handleLogin,
                 style: ElevatedButton.styleFrom(
@@ -576,6 +576,7 @@ class _LoginScreenState extends State<LoginScreen>
                       AppColors.navyMid.withValues(alpha: 0.7),
                   disabledForegroundColor: Colors.white,
                   elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
@@ -620,7 +621,7 @@ class _LoginScreenState extends State<LoginScreen>
             // Biometric Sign-In Button
             SizedBox(
               width: double.infinity,
-              height: isCompact ? 44 : 48,
+              height: isCompact ? 48 : 52,
               child: OutlinedButton.icon(
                 onPressed:
                     (_isLoading || _isLockedOut) ? null : _handleBiometricLogin,
@@ -634,6 +635,7 @@ class _LoginScreenState extends State<LoginScreen>
                       color: AppColors.navyDark),
                 ),
                 style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                   side: const BorderSide(color: AppColors.navyDark, width: 1.2),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppRadius.md)),
