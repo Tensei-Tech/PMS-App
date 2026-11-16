@@ -93,3 +93,42 @@ class LicenceRecord(models.Model):
     class Meta:
         db_table = 'licence_records'
         verbose_name = 'Licence Record'
+
+
+class TadiparRecord(models.Model):
+    """tadipar_records: one externment (Tadipar) order. Column names follow the form keys."""
+
+    case = models.OneToOneField(
+        'cases.CaseRecord',
+        on_delete=models.CASCADE,
+        primary_key=True,
+        db_column='case_id',
+        related_name='tadipar',
+    )
+    sr_no = models.IntegerField(null=True, blank=True)
+    externed_name = models.CharField(max_length=255, null=True, blank=True)
+    alias = models.CharField(max_length=255, null=True, blank=True)
+    nickname = models.CharField(max_length=255, null=True, blank=True)
+    age = models.IntegerField(null=True, blank=True)
+    gender = models.CharField(max_length=20, null=True, blank=True)
+    mo_no = models.CharField(max_length=15, null=True, blank=True)
+    address = models.TextField(null=True, blank=True)
+    order_date = models.DateField(null=True, blank=True)
+    order_number = models.CharField(max_length=100, null=True, blank=True)
+    # The app shows these as text boxes: kept as typed
+    act_id = models.CharField(max_length=255, null=True, blank=True)
+    section_id = models.CharField(max_length=255, null=True, blank=True)
+    subsection_id = models.CharField(max_length=255, null=True, blank=True)
+    act_section = models.TextField(null=True, blank=True)
+    period_from = models.DateField(null=True, blank=True)
+    period_to = models.DateField(null=True, blank=True)
+    revoked_date = models.DateField(null=True, blank=True)
+    current_address = models.TextField(null=True, blank=True)
+    prohibited_areas = models.CharField(max_length=255, null=True, blank=True)
+    crime_chart_entries = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'tadipar_records'
+        verbose_name = 'Tadipar Record'

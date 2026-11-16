@@ -1,8 +1,8 @@
 """
 Service tab answers saved in their own tables (steps B4 - B9).
 
-Sam/Warrant (sam_warrant_records), Passport / PVR (passport_pvr_records) and
-Licence (licence_records) so far. The app still sends the
+Sam/Warrant (sam_warrant_records), Passport / PVR (passport_pvr_records),
+Licence (licence_records) and Tadipar (tadipar_records) so far. The app still sends the
 answers inside extra_fields; save_service_tab_tables() copies them into the
 table on every save, the case API lays the table back over the JSON for the
 app, and the warrant report reads the table first. The backfill command
@@ -243,6 +243,86 @@ def save_licence(case, extra=None, write=True):
     return values
 
 
+# ------------------------------------------------------------------ Tadipar
+
+TADIPAR_MODULES = ('tadipar',)
+
+# table column -> (form keys, size). The app shows Act / Section / Subsection and the
+# Crime Chart as text boxes, so they are kept as the text typed.
+TADIPAR_TEXT = {
+    'externed_name': (('externed_name', 'externedName', 'name'), 255),
+    'alias': (('alias',), 255),
+    'nickname': (('nickname',), 255),
+    'gender': (('gender',), 20),
+    'mo_no': (('mo_no', 'mobile_no', 'mobile'), 15),
+    'address': (('address',), 100000),
+    'order_number': (('order_number', 'orderNumber'), 100),
+    'act_id': (('act_id',), 255),
+    'section_id': (('section_id',), 255),
+    'subsection_id': (('subsection_id',), 255),
+    'act_section': (('act_section',), 100000),
+    'current_address': (('current_address', 'currentAddress'), 100000),
+    'prohibited_areas': (('prohibited_areas',), 255),
+    'crime_chart_entries': (('crime_chart_entries',), 100000),
+}
+TADIPAR_NUMBERS = {'sr_no': ('sr_no', 'srNo'), 'age': ('age',)}
+TADIPAR_DATES = {
+    'order_date': ('order_date', 'orderDate'),
+    'period_from': ('period_from', 'periodFrom'),
+    'period_to': ('period_to', 'periodTo'),
+    'revoked_date': ('revoked_date', 'revokedDate'),
+}
+
+
+def is_tadipar_case(case):
+    return (case.module_key or '').strip().lower() in TADIPAR_MODULES
+
+
+def _text_of(value):
+    if value in EMPTY:
+        return None
+    if isinstance(value, (list, tuple)):
+        return ', '.join(str(v).strip() for v in value if v not in EMPTY) or None
+    if isinstance(value, dict):
+        return None
+    return str(value).strip() or None
+
+
+def tadipar_values(case, extra=None):
+    """Answers from the request / JSON top level first, then the dynamic form copies."""
+    extra = extra if isinstance(extra, dict) else (case.extra_fields if isinstance(case.extra_fields, dict) else {})
+    sources = [extra] + [extra[n] for n in NESTED_COPIES if isinstance(extra.get(n), dict)]
+
+    def pick(keys):
+        for src in sources:
+            value = _first(src, keys)
+            if value is not None:
+                return value
+        return None
+
+    values = {}
+    for column, (keys, size) in TADIPAR_TEXT.items():
+        text = _text_of(pick(keys))
+        values[column] = text[:size] if text else None
+    for column, keys in TADIPAR_NUMBERS.items():
+        values[column] = _count(pick(keys))
+    if values['age'] is not None and not 0 < values['age'] < 130:
+        values['age'] = None
+    for column, keys in TADIPAR_DATES.items():
+        values[column] = _as_date(pick(keys))
+    return values
+
+
+def save_tadipar(case, extra=None, write=True):
+    from apps.crimetab.models.service_tabs import TadiparRecord
+    if not is_tadipar_case(case):
+        return None
+    values = tadipar_values(case, extra)
+    if write:
+        TadiparRecord.objects.update_or_create(case=case, defaults={**values, 'updated_at': timezone.now()})
+    return values
+
+
 # ------------------------------------------------------------------ all service tabs
 
 # tab -> (is it this tab, save, related name, JSON keys laid back for the app)
@@ -252,7 +332,12 @@ TABS = {
                      tuple(PASSPORT_TEXT) + tuple(PASSPORT_COUNTS) + tuple(PASSPORT_DATES)),
     'licence': (is_licence_case, save_licence, 'licence',
                 tuple(LICENCE_TEXT) + tuple(LICENCE_DATES) + tuple(LICENCE_DATETIMES)),
+    'tadipar': (is_tadipar_case, save_tadipar, 'tadipar',
+                tuple(TADIPAR_TEXT) + tuple(TADIPAR_NUMBERS) + tuple(TADIPAR_DATES)),
 }
+
+# related name -> date format the tab writes in its JSON (default: ISO)
+DATE_FORMATS = {'tadipar': '%d/%m/%Y'}
 
 
 def save_service_tab_tables(case, data=None, write=True):
@@ -274,21 +359,41 @@ def warrant_row(case):
     return _row(case, 'sam_warrant')
 
 
-def lay_row_over(extra, row, keys):
-    """The row answers over the JSON (the table wins). Changes `extra` in place."""
+# JSON containers the dynamic form also copies its answers into
+NESTED_COPIES = ('extra_field_values', 'dynamic_extra_fields')
+
+
+def _shaped(value, current, date_format):
+    """A table value written the way the JSON holds it; None when the JSON already says the same."""
+    if isinstance(value, datetime):
+        if _as_datetime(current) == value:
+            return None  # same moment: keep the app's own text
+        return timezone.localtime(value).isoformat()
+    if isinstance(value, date):
+        if _as_date(current) == value:
+            return None  # same day: keep the app's own text
+        if '/' in str(current or '') or (current in EMPTY and date_format):
+            return value.strftime(date_format or '%d/%m/%Y')
+        return value.isoformat()
+    if isinstance(value, int) and not isinstance(value, bool) and isinstance(current, str):
+        return None if current.strip() == str(value) else str(value)  # numbers the app keeps as text
+    return None if current == value else value
+
+
+def lay_row_over(extra, row, keys, date_format=None):
+    """The row answers over the JSON (the table wins), also inside the dynamic form copies
+    for answers they already hold. Changes `extra` in place."""
+    targets = [extra] + [extra[n] for n in NESTED_COPIES if isinstance(extra.get(n), dict)]
     for column in keys:
         value = getattr(row, column)
         if value in EMPTY:
             continue
-        if isinstance(value, datetime):
-            if _as_datetime(extra.get(column)) == value:
-                continue  # same moment: keep the app's own text
-            value = timezone.localtime(value).isoformat()
-        elif isinstance(value, date):
-            if _as_date(extra.get(column)) == value:
-                continue  # same day: keep the app's own text (ISO date-time)
-            value = value.isoformat()
-        extra[column] = value
+        for target in targets:
+            if target is not extra and column not in target:
+                continue
+            shaped = _shaped(value, target.get(column), date_format)
+            if shaped is not None:
+                target[column] = shaped
     return extra
 
 
@@ -298,15 +403,17 @@ def overlay_service_tabs(extra, case, row=None):
         if is_tab(case):
             row = row if row is not None else _row(case, related_name)
             if row is not None:
-                lay_row_over(extra, row, keys)
+                lay_row_over(extra, row, keys, DATE_FORMATS.get(related_name))
             break
     return extra
 
 
 def service_rows_by_case(records):
     """{case id: row} for a page of cases, one query per tab (case list API)."""
-    from apps.crimetab.models.service_tabs import LicenceRecord, PassportPvrRecord, SamWarrantRecord
-    models = {'sam_warrant': SamWarrantRecord, 'passport_pvr': PassportPvrRecord, 'licence': LicenceRecord}
+    from apps.crimetab.models.service_tabs import (
+        LicenceRecord, PassportPvrRecord, SamWarrantRecord, TadiparRecord)
+    models = {'sam_warrant': SamWarrantRecord, 'passport_pvr': PassportPvrRecord, 'licence': LicenceRecord,
+              'tadipar': TadiparRecord}
     rows = {}
     for tab, (is_tab, _save, _rel, _keys) in TABS.items():
         ids = [r.pk for r in records if is_tab(r)]
