@@ -175,17 +175,16 @@ class _ConnectivityBannerWrapperState extends State<ConnectivityBannerWrapper> {
           widget.child ?? const SizedBox.shrink(),
           if (isOffline)
             Positioned(
-              top: 0,
+              bottom: 0,
               left: 0,
               right: 0,
               child: Material(
-                color: Colors.transparent,
+                color: const Color(0xFFDC2626),
                 child: SafeArea(
-                  bottom: false,
+                  top: false,
                   child: Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    color: const Color(0xFFDC2626),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -196,7 +195,7 @@ class _ConnectivityBannerWrapperState extends State<ConnectivityBannerWrapper> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'You are currently offline. Station sync paused.',
+                          'You are currently offline.',
                           style: GoogleFonts.poppins(
                             color: Colors.white,
                             fontSize: 12,
@@ -207,7 +206,7 @@ class _ConnectivityBannerWrapperState extends State<ConnectivityBannerWrapper> {
                         InkWell(
                           onTap: connectivity.isChecking
                               ? null
-                              : () => connectivity?.checkConnection(),
+                              : () => connectivity!.checkConnection(),
                           child: Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 2),
