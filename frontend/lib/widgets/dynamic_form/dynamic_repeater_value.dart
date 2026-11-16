@@ -35,9 +35,7 @@ class RepeaterValue {
     for (final candidate in [text, '[$text]']) {
       final parsed = _tryJson(candidate) ?? _PyLiteral.tryParse(candidate);
       if (parsed is List && parsed.every((r) => r is Map)) {
-        return parsed
-            .map((r) => Map<String, dynamic>.from(r as Map))
-            .toList();
+        return parsed.map((r) => Map<String, dynamic>.from(r as Map)).toList();
       }
     }
     return null;
@@ -128,8 +126,8 @@ class _PyLiteral {
     if (c == '[') return _seq(']');
     if (c == '(') return _seq(')');
     if (c == "'" || c == '"') return _str();
-    for (final word in const {'None': null, 'True': true, 'False': false}
-        .entries) {
+    for (final word
+        in const {'None': null, 'True': true, 'False': false}.entries) {
       if (s.startsWith(word.key, i)) {
         i += word.key.length;
         return word.value;

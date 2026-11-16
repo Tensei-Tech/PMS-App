@@ -21,8 +21,8 @@ const _sectionConfig = {
   'depends_on': 'act_id',
 };
 
-DynamicFieldDef _field(String key, String label, String type,
-        Map<String, dynamic> config) =>
+DynamicFieldDef _field(
+        String key, String label, String type, Map<String, dynamic> config) =>
     DynamicFieldDef(
       fieldDefId: 1,
       fieldKey: key,
@@ -190,8 +190,8 @@ void main() {
     expect(cols.map((c) => c.fieldKey), ['cr_number', 'act_id', 'section_id']);
     expect(cols.map((c) => c.fieldType),
         ['text', 'dependent_dropdown', 'dependent_dropdown']);
-    expect(cols.every((c) => c.parentFieldKey == 'crime_chart_entries'),
-        isTrue);
+    expect(
+        cols.every((c) => c.parentFieldKey == 'crime_chart_entries'), isTrue);
     expect(cols[2].fieldConfig?['depends_on_label'], 'Act');
   });
 
