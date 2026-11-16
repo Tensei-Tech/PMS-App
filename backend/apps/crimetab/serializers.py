@@ -446,6 +446,8 @@ class FullCaseDetailSerializer(serializers.ModelSerializer):
                 extra = {}
                 data['extra_fields'] = extra
             overlay_common_form(extra, instance)
+            from apps.crimetab.service_tab_tables import overlay_service_tabs
+            overlay_service_tabs(extra, instance)
         except Exception as e:
             import logging
             logging.getLogger(__name__).warning(f"[FullCaseDetailSerializer] common form tables not loaded: {e}")
