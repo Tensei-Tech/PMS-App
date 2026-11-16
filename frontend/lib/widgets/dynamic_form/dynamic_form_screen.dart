@@ -104,6 +104,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   bool _readOnlyAllCollapsed = false;
   bool _isHydrated = false;
   bool _isGeneratingPdf = false;
+  bool _isSubmitting = false;
 
   bool _isSectionExpanded(String sectionKey) {
     if (widget.readOnly) {
@@ -1879,11 +1880,38 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   }
 
   Future<void> _submitForm() async {
+    if (_isSubmitting) return;
     if (!_formKey.currentState!.validate()) {
+      DynamicFieldDef? firstErrorField;
+      for (final f in _formDef?.fields ?? <DynamicFieldDef>[]) {
+        if (f.isRequired && _isFieldVisible(f)) {
+          final ctrl = _controllers[f.fieldKey];
+          final val = ctrl?.text.trim() ?? _values[f.fieldKey];
+          final isEmpty = val == null ||
+              (val is String && val.trim().isEmpty) ||
+              (val is List && val.isEmpty);
+          if (isEmpty) {
+            firstErrorField = f;
+            break;
+          }
+        }
+      }
+
+      if (firstErrorField != null) {
+        final sec = firstErrorField.section;
+        if (sec != null && sec.isNotEmpty) {
+          setState(() {
+            _expandedSectionKey = sec;
+          });
+        }
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Please fill the required fields and fix the ones marked in red.',
+            firstErrorField != null
+                ? 'Please fill required field: ${firstErrorField.fieldLabel}'
+                : 'Please fill the required fields and fix the ones marked in red.',
             style: GoogleFonts.poppins(),
           ),
           backgroundColor: AppColors.dangerRed,
@@ -1891,6 +1919,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       );
       return;
     }
+
+    setState(() => _isSubmitting = true);
+    try {
 
     final auth = context.read<AuthProvider>();
     final caseNo = _controllers['cr_number']?.text.trim() ??
@@ -2682,6 +2713,11 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         ),
       );
     }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
   }
 
   @override
@@ -2782,6 +2818,18 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                           setState(() => _isGeneratingPdf = true);
                           try {
                             await ModulePdfHelper.generatePdf(record, context);
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Failed to generate PDF: ${e.toString().replaceFirst("Exception: ", "")}',
+                                    style: GoogleFonts.poppins(),
+                                  ),
+                                  backgroundColor: AppColors.dangerRed,
+                                ),
+                              );
+                            }
                           } finally {
                             if (mounted) {
                               setState(() => _isGeneratingPdf = false);
@@ -3626,7 +3674,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                         ],
                       ),
                       child: ElevatedButton.icon(
-                        onPressed: _submitForm,
+                        onPressed: _isSubmitting ? null : _submitForm,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
                           shadowColor: Colors.transparent,
@@ -3634,14 +3682,25 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                               borderRadius:
                                   BorderRadius.circular(AppRadius.lg)),
                         ),
-                        icon: const Icon(Icons.check_circle_rounded,
-                            color: Colors.white),
+                        icon: _isSubmitting
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(Icons.check_circle_rounded,
+                                color: Colors.white),
                         label: Text(
-                          isEdit
+                          _isSubmitting
+                              ? 'Saving...'
+                              : (isEdit
                               ? (widget.onSubmitCustom != null
                                   ? 'Save Changes'
                                   : 'Update Case Record')
-                              : 'Submit',
+                              : 'Submit'),
                           style: GoogleFonts.poppins(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,

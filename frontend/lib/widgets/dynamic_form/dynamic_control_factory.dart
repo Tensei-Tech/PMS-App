@@ -40,6 +40,7 @@ class DynamicControlFactory extends StatelessWidget {
   final int? maxLength;
   final List<String>? designationOptions;
   final List<String>? preventiveOptions;
+  final bool hideLabel;
 
   const DynamicControlFactory({
     super.key,
@@ -59,6 +60,7 @@ class DynamicControlFactory extends StatelessWidget {
     this.maxLength,
     this.designationOptions,
     this.preventiveOptions,
+    this.hideLabel = false,
   });
 
   static const String _rowsOptionsPrefix = 'rows:';
@@ -188,6 +190,9 @@ class DynamicControlFactory extends StatelessWidget {
 
   Widget _buildFieldLayout(BuildContext context, Widget control,
       {bool forceStacked = false, bool isMultiline = false}) {
+    if (hideLabel) {
+      return control;
+    }
     if (forceStacked) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -277,6 +282,7 @@ class DynamicControlFactory extends StatelessWidget {
   }
 
   Widget _buildLabel(BuildContext context) {
+    if (hideLabel) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Text.rich(
@@ -1720,6 +1726,38 @@ class _DynamicDropdownWidgetState extends State<_DynamicDropdownWidget> {
           widget.labelWidget,
           const SizedBox(height: 6),
           errorDecorator,
+        ],
+      );
+    }
+
+    if (_options.isEmpty) {
+      final emptyDecorator = InputDecorator(
+        decoration: widget.decoration.copyWith(
+          enabled: false,
+          hintText: 'No options available',
+          hintStyle: GoogleFonts.poppins(
+            fontSize: 13,
+            color: AppColors.lightSubText,
+          ),
+        ),
+        child: Text(
+          'No options available',
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            color: AppColors.lightSubText,
+          ),
+        ),
+      );
+
+      if (widget.labelWidget is SizedBox) {
+        return emptyDecorator;
+      }
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          widget.labelWidget,
+          const SizedBox(height: 6),
+          emptyDecorator,
         ],
       );
     }

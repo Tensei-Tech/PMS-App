@@ -155,6 +155,82 @@ class ConnectivityBannerWrapper extends StatefulWidget {
 class _ConnectivityBannerWrapperState extends State<ConnectivityBannerWrapper> {
   @override
   Widget build(BuildContext context) {
-    return widget.child ?? const SizedBox.shrink();
+    final connectivity = context.watch<ConnectivityProvider>();
+    final isOffline = !connectivity.isConnected;
+
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Stack(
+        children: [
+          widget.child ?? const SizedBox.shrink(),
+          if (isOffline)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Material(
+                color: Colors.transparent,
+                child: SafeArea(
+                  bottom: false,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    color: const Color(0xFFDC2626),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.wifi_off_rounded,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'You are currently offline. Station sync paused.',
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        InkWell(
+                          onTap: connectivity.isChecking
+                              ? null
+                              : () => connectivity.checkConnection(),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: connectivity.isChecking
+                                ? const SizedBox(
+                                    width: 10,
+                                    height: 10,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 1.5,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : Text(
+                                    'Retry',
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.white,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }

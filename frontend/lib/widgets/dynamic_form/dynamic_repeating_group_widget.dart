@@ -255,7 +255,37 @@ class _DynamicRepeatingGroupWidgetState
           ],
         ),
         if (_rows.isEmpty)
-          const SizedBox.shrink()
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(top: 8),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: AppColors.lightBorder,
+                style: BorderStyle.solid,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.inbox_outlined,
+                  size: 16,
+                  color: AppColors.lightSubText.withValues(alpha: 0.7),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'No ${widget.fieldDef.fieldLabel} added yet',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: AppColors.lightSubText,
+                  ),
+                ),
+              ],
+            ),
+          )
         else
           ListView.separated(
             shrinkWrap: true,
@@ -340,17 +370,27 @@ class _DynamicRepeatingGroupWidgetState
             builder: (context, constraints) {
               final isWide = constraints.maxWidth > 550;
 
+              String? headingOf(DynamicFieldDef child) {
+                final h = child.fieldConfig?['heading']?.toString().trim();
+                return (h == null || h.isEmpty) ? null : h;
+              }
+
               Widget control(DynamicFieldDef child) {
                 final val = row[child.fieldKey];
                 final ctrl = _getController(index, child.fieldKey, val);
                 // A checkbox's own date-time (e.g. Inquest Panchanama) is
                 // kept in the row as '<key>_date'
                 final dateKey = '${child.fieldKey}_date';
+                final h = headingOf(child);
+                final isDuplicateHeading = h != null &&
+                    child.fieldLabel.trim().toLowerCase() ==
+                        h.trim().toLowerCase();
                 return DynamicControlFactory(
                   fieldDef: child,
                   controller: ctrl,
                   value: val,
                   readOnly: widget.readOnly,
+                  hideLabel: isDuplicateHeading,
                   formValues: widget.formValues,
                   dateController: child.fieldType == 'checkbox'
                       ? _getController(index, dateKey, row[dateKey])
@@ -371,10 +411,6 @@ class _DynamicRepeatingGroupWidgetState
 
               // field_config 'heading' puts a heading above that field, so
               // a long row reads in parts (e.g. Post Mortem, FSL / CA)
-              String? headingOf(DynamicFieldDef child) {
-                final h = child.fieldConfig?['heading']?.toString().trim();
-                return (h == null || h.isEmpty) ? null : h;
-              }
 
               Widget heading(String text, bool first) => Padding(
                     padding: EdgeInsets.only(top: first ? 0 : 6, bottom: 2),
