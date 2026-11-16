@@ -421,6 +421,10 @@ class FullCaseDetailSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
+        if isinstance(data.get('extra_fields'), dict):
+            # a copy: the values laid over it below must not change the case in memory
+            import copy
+            data['extra_fields'] = copy.deepcopy(data['extra_fields'])
         # Table-stored template fields go back into extra_fields for the form
         try:
             from apps.crimetab.services.table_field_values import table_values_for_case
@@ -434,6 +438,17 @@ class FullCaseDetailSerializer(serializers.ModelSerializer):
         except Exception as e:
             import logging
             logging.getLogger(__name__).warning(f"[FullCaseDetailSerializer] table field values not loaded: {e}")
+        # Common Form answers come from their tables; the JSON copy is only a fallback
+        try:
+            from apps.crimetab.common_form_tables import overlay_common_form
+            extra = data.get('extra_fields')
+            if not isinstance(extra, dict):
+                extra = {}
+                data['extra_fields'] = extra
+            overlay_common_form(extra, instance)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"[FullCaseDetailSerializer] common form tables not loaded: {e}")
         try:
             from apps.crimetab.models.accident import RoadAccidentRecord
             from apps.crimetab.serializers_accident import RoadAccidentRecordSerializer
