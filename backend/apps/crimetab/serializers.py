@@ -299,7 +299,7 @@ class CaseListSerializer(serializers.ModelSerializer):
                 extra = {}
                 data['extra_fields'] = extra
 
-            # Service tab answers from their own tables (Sam/Warrant, Passport / PVR)
+            # Service tab answers from their own tables (Sam/Warrant, Passport / PVR, Licence)
             service_row = self.context.get('service_rows', {}).get(instance.pk)
             if service_row is not None:
                 from apps.crimetab.service_tab_tables import overlay_service_tabs

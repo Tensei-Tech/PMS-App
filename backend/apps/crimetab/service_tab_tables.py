@@ -1,8 +1,8 @@
 """
 Service tab answers saved in their own tables (steps B4 - B9).
 
-Sam/Warrant (sam_warrant_records) and Passport / PVR (passport_pvr_records)
-so far. The app still sends the
+Sam/Warrant (sam_warrant_records), Passport / PVR (passport_pvr_records) and
+Licence (licence_records) so far. The app still sends the
 answers inside extra_fields; save_service_tab_tables() copies them into the
 table on every save, the case API lays the table back over the JSON for the
 app, and the warrant report reads the table first. The backfill command
@@ -91,6 +91,19 @@ def _as_date(value):
         except ValueError:
             continue
     return None
+
+
+def _as_datetime(value):
+    if value in EMPTY:
+        return None
+    if isinstance(value, datetime):
+        parsed = value
+    else:
+        try:
+            parsed = datetime.fromisoformat(str(value).strip().replace('Z', '+00:00'))
+        except ValueError:
+            return None
+    return parsed if timezone.is_aware(parsed) else timezone.make_aware(parsed)
 
 
 def is_sam_warrant_case(case):
@@ -183,6 +196,53 @@ def save_passport_pvr(case, extra=None, write=True):
     return values
 
 
+# ------------------------------------------------------------------ Licence
+
+LICENCE_MODULES = ('licence', 'license', 'arms_licence', 'arms_license')
+
+# table column -> (JSON keys, size)
+LICENCE_TEXT = {
+    'licence_number': (('licence_number', 'license_number', 'licenceNumber'), 100),
+    'licence_type': (('licence_type', 'license_type', 'licenceType'), 255),
+    'base_licence_type': (('base_licence_type', 'baseLicenceType'), 255),
+    'other_noc_type': (('other_noc_type', 'otherNocType'), 255),
+    'applicant_name': (('applicant_name', 'applicantName'), 255),
+    'business_name': (('business_name', 'businessName'), 255),
+    'licence_status': (('licence_status', 'license_status', 'licenceStatus'), 20),
+    'remarks': (('remarks', 'notes'), 100000),
+}
+LICENCE_DATES = {'received_date': ('received_date', 'receivedDate')}
+LICENCE_DATETIMES = {'status_updated_at': ('status_updated_at', 'statusUpdatedAt')}
+
+
+def is_licence_case(case):
+    return (case.module_key or '').strip().lower() in LICENCE_MODULES
+
+
+def licence_values(case, extra=None):
+    extra = extra if isinstance(extra, dict) else (case.extra_fields if isinstance(case.extra_fields, dict) else {})
+    values = {}
+    for column, (keys, size) in LICENCE_TEXT.items():
+        value = _first(extra, keys)
+        values[column] = str(value).strip()[:size] if value is not None else None
+    values['licence_number'] = values['licence_number'] or (case.case_number or '')[:100] or None
+    for column, keys in LICENCE_DATES.items():
+        values[column] = _as_date(_first(extra, keys))
+    for column, keys in LICENCE_DATETIMES.items():
+        values[column] = _as_datetime(_first(extra, keys))
+    return values
+
+
+def save_licence(case, extra=None, write=True):
+    from apps.crimetab.models.service_tabs import LicenceRecord
+    if not is_licence_case(case):
+        return None
+    values = licence_values(case, extra)
+    if write:
+        LicenceRecord.objects.update_or_create(case=case, defaults={**values, 'updated_at': timezone.now()})
+    return values
+
+
 # ------------------------------------------------------------------ all service tabs
 
 # tab -> (is it this tab, save, related name, JSON keys laid back for the app)
@@ -190,6 +250,8 @@ TABS = {
     'sam_warrant': (is_sam_warrant_case, save_sam_warrant, 'sam_warrant', tuple(WARRANT_KEYS)),
     'passport_pvr': (is_passport_pvr_case, save_passport_pvr, 'passport_pvr',
                      tuple(PASSPORT_TEXT) + tuple(PASSPORT_COUNTS) + tuple(PASSPORT_DATES)),
+    'licence': (is_licence_case, save_licence, 'licence',
+                tuple(LICENCE_TEXT) + tuple(LICENCE_DATES) + tuple(LICENCE_DATETIMES)),
 }
 
 
@@ -218,7 +280,11 @@ def lay_row_over(extra, row, keys):
         value = getattr(row, column)
         if value in EMPTY:
             continue
-        if isinstance(value, date):
+        if isinstance(value, datetime):
+            if _as_datetime(extra.get(column)) == value:
+                continue  # same moment: keep the app's own text
+            value = timezone.localtime(value).isoformat()
+        elif isinstance(value, date):
             if _as_date(extra.get(column)) == value:
                 continue  # same day: keep the app's own text (ISO date-time)
             value = value.isoformat()
@@ -239,8 +305,8 @@ def overlay_service_tabs(extra, case, row=None):
 
 def service_rows_by_case(records):
     """{case id: row} for a page of cases, one query per tab (case list API)."""
-    from apps.crimetab.models.service_tabs import PassportPvrRecord, SamWarrantRecord
-    models = {'sam_warrant': SamWarrantRecord, 'passport_pvr': PassportPvrRecord}
+    from apps.crimetab.models.service_tabs import LicenceRecord, PassportPvrRecord, SamWarrantRecord
+    models = {'sam_warrant': SamWarrantRecord, 'passport_pvr': PassportPvrRecord, 'licence': LicenceRecord}
     rows = {}
     for tab, (is_tab, _save, _rel, _keys) in TABS.items():
         ids = [r.pk for r in records if is_tab(r)]
