@@ -118,6 +118,11 @@ class _DynamicRepeatingGroupWidgetState
     }
   }
 
+  /// The form values with this row's answers on top, so a row control that
+  /// follows another column (e.g. Section after the row's Act) reads the row.
+  Map<String, dynamic> _rowScoped(Map<String, dynamic> row) =>
+      {...?widget.formValues, ...row};
+
   /// A group limited to one row always shows that row, with no Add / Remove
   bool get _isSingleRow => widget.maxItems == 1;
 
@@ -150,8 +155,25 @@ class _DynamicRepeatingGroupWidgetState
 
   void _updateRowField(int index, String fieldKey, dynamic val) {
     if (index >= 0 && index < _rows.length) {
+      final old = _rows[index][fieldKey];
       _rows[index][fieldKey] = val;
+      if (old != null && old.toString() != (val?.toString() ?? '')) {
+        _clearDependents(index, fieldKey);
+      }
       widget.onChanged?.call(List.from(_rows));
+    }
+  }
+
+  /// Empties the row's columns that follow [fieldKey] (field_config
+  /// depends_on, e.g. Section after Act), and theirs in turn.
+  void _clearDependents(int index, String fieldKey, [int depth = 0]) {
+    if (depth > 5) return;
+    for (final child in widget.childFields) {
+      if (child.fieldConfig?['depends_on']?.toString() != fieldKey) continue;
+      if (_rows[index][child.fieldKey] == null) continue;
+      _rows[index][child.fieldKey] = null;
+      _rowControllers['${index}_${child.fieldKey}']?.clear();
+      _clearDependents(index, child.fieldKey, depth + 1);
     }
   }
 
@@ -351,7 +373,7 @@ class _DynamicRepeatingGroupWidgetState
                   controller: ctrl,
                   value: val,
                   readOnly: widget.readOnly,
-                  formValues: widget.formValues,
+                  formValues: _rowScoped(row),
                   dateController: child.fieldType == 'checkbox'
                       ? _getController(index, dateKey, row[dateKey])
                       : null,
@@ -694,7 +716,7 @@ class _DynamicRepeatingGroupWidgetState
                       controller: ctrl,
                       value: val,
                       readOnly: widget.readOnly,
-                      formValues: widget.formValues,
+                      formValues: _rowScoped(row),
                       onChanged: (newVal) {
                         _updateRowField(index, child.fieldKey, newVal);
                       },
@@ -716,7 +738,7 @@ class _DynamicRepeatingGroupWidgetState
                     controller: ctrl,
                     value: val,
                     readOnly: widget.readOnly,
-                    formValues: widget.formValues,
+                    formValues: _rowScoped(row),
                     onChanged: (newVal) {
                       _updateRowField(index, child.fieldKey, newVal);
                     },
