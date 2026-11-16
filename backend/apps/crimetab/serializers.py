@@ -299,6 +299,12 @@ class CaseListSerializer(serializers.ModelSerializer):
                 extra = {}
                 data['extra_fields'] = extra
 
+            # Service tab answers from their own tables (Sam/Warrant, Passport / PVR)
+            service_row = self.context.get('service_rows', {}).get(instance.pk)
+            if service_row is not None:
+                from apps.crimetab.service_tab_tables import overlay_service_tabs
+                overlay_service_tabs(extra, instance, row=service_row)
+
             p_items = list(instance.preventive_action_items.all())
             if p_items:
                 serialized_pa = [
@@ -380,7 +386,9 @@ def road_accidents_by_case(case_ids):
 def serialize_case_list(records):
     """CaseListSerializer data for many cases without one accident query per row."""
     records = list(records)
-    context = {'road_accidents': road_accidents_by_case([r.id for r in records])}
+    from apps.crimetab.service_tab_tables import service_rows_by_case
+    context = {'road_accidents': road_accidents_by_case([r.id for r in records]),
+               'service_rows': service_rows_by_case(records)}
     return CaseListSerializer(records, many=True, context=context).data
 
 

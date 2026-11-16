@@ -34,3 +34,34 @@ class SamWarrantRecord(models.Model):
     class Meta:
         db_table = 'sam_warrant_records'
         verbose_name = 'Summons / Warrant Record'
+
+
+class PassportPvrRecord(models.Model):
+    """passport_pvr_records: one Passport or PVR verification entry (one batch with its counts)."""
+
+    case = models.OneToOneField(
+        'cases.CaseRecord',
+        on_delete=models.CASCADE,
+        primary_key=True,
+        db_column='case_id',
+        related_name='passport_pvr',
+    )
+    kind = models.CharField(max_length=10, choices=(('passport', 'Passport'), ('pvr', 'PVR')))
+    file_number = models.CharField(max_length=100, null=True, blank=True)
+    total_count = models.IntegerField(null=True, blank=True)
+    verified_count = models.IntegerField(null=True, blank=True)
+    pending_count = models.IntegerField(null=True, blank=True)
+    verification_status = models.CharField(max_length=50, null=True, blank=True)
+    verification_date = models.DateField(null=True, blank=True)
+    # older single-applicant records
+    applicant_name = models.CharField(max_length=255, null=True, blank=True)
+    applicant_phone = models.CharField(max_length=20, null=True, blank=True)
+    applicant_address = models.TextField(null=True, blank=True)
+    verification_outcome = models.CharField(max_length=100, null=True, blank=True)
+    remarks = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'passport_pvr_records'
+        verbose_name = 'Passport / PVR Record'
