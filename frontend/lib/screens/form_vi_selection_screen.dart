@@ -1969,8 +1969,7 @@ class FormVIStatusTabBar extends StatelessWidget {
           child: Row(
             children: [
               if (isMobile) ...[
-                for (final t in tabs)
-                  buildTabItem(t, expand: true),
+                for (final t in tabs) buildTabItem(t, expand: true),
               ] else ...[
                 const SizedBox(width: 16),
                 for (final t in tabs) ...[

@@ -173,7 +173,8 @@ class _ConnectivityBannerWrapperState extends State<ConnectivityBannerWrapper> {
                 child: SafeArea(
                   bottom: false,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     color: const Color(0xFFDC2626),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,

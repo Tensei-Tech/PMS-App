@@ -1932,800 +1932,804 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
 
     setState(() => _isSubmitting = true);
     try {
+      final auth = context.read<AuthProvider>();
+      final caseNo = _controllers['cr_number']?.text.trim() ??
+          _controllers['crNo']?.text.trim() ??
+          _controllers['case_number']?.text.trim() ??
+          widget.existingRecord?.caseNumber ??
+          'CR/${DateTime.now().millisecondsSinceEpoch}';
 
-    final auth = context.read<AuthProvider>();
-    final caseNo = _controllers['cr_number']?.text.trim() ??
-        _controllers['crNo']?.text.trim() ??
-        _controllers['case_number']?.text.trim() ??
-        widget.existingRecord?.caseNumber ??
-        'CR/${DateTime.now().millisecondsSinceEpoch}';
+      final title = _controllers['title']?.text.trim().isNotEmpty == true
+          ? _controllers['title']!.text.trim()
+          : '${widget.subCategory ?? widget.moduleLabel} $caseNo';
 
-    final title = _controllers['title']?.text.trim().isNotEmpty == true
-        ? _controllers['title']!.text.trim()
-        : '${widget.subCategory ?? widget.moduleLabel} $caseNo';
+      final loc = _controllers['crime_spot_address']?.text.trim() ??
+          _controllers['spotAddress']?.text.trim() ??
+          _controllers['location']?.text.trim() ??
+          '';
 
-    final loc = _controllers['crime_spot_address']?.text.trim() ??
-        _controllers['spotAddress']?.text.trim() ??
-        _controllers['location']?.text.trim() ??
-        '';
+      final complainant = _controllers['complainant_name']?.text.trim() ??
+          _controllers['complainant']?.text.trim() ??
+          '';
 
-    final complainant = _controllers['complainant_name']?.text.trim() ??
-        _controllers['complainant']?.text.trim() ??
-        '';
+      final accused = _accusedList.isNotEmpty
+          ? _accusedList
+              .map((a) => _sanitizeName(a['name']))
+              .where((n) => n.isNotEmpty)
+              .join(', ')
+          : _sanitizeName(_controllers['accused_name']?.text ??
+              _controllers['accused']?.text);
 
-    final accused = _accusedList.isNotEmpty
-        ? _accusedList
-            .map((a) => _sanitizeName(a['name']))
-            .where((n) => n.isNotEmpty)
-            .join(', ')
-        : _sanitizeName(_controllers['accused_name']?.text ??
-            _controllers['accused']?.text);
-
-    final List<Map<String, dynamic>> finalAccusedList = [];
-    if (_accusedList.isNotEmpty) {
-      for (final a in _accusedList) {
-        finalAccusedList.add(Map<String, dynamic>.from(a));
+      final List<Map<String, dynamic>> finalAccusedList = [];
+      if (_accusedList.isNotEmpty) {
+        for (final a in _accusedList) {
+          finalAccusedList.add(Map<String, dynamic>.from(a));
+        }
+      } else if (accused.isNotEmpty) {
+        finalAccusedList.add({
+          'name': accused,
+          'age': _controllers['accused_age']?.text.trim(),
+          'gender': _values['accused_gender'] ??
+              _controllers['accused_gender']?.text.trim() ??
+              '',
+          'occupation': _controllers['accused_occupation']?.text.trim(),
+          'mobile': _controllers['accused_mobile']?.text.trim(),
+          'aadhaar': _controllers['accused_aadhaar']?.text.trim(),
+          'pan': _controllers['accused_pan']?.text.trim(),
+          'religion': _controllers['accused_religion']?.text.trim(),
+          'caste': _controllers['accused_caste']?.text.trim(),
+          'address': _controllers['accused_address']?.text.trim(),
+          'role': 'accused',
+        });
       }
-    } else if (accused.isNotEmpty) {
-      finalAccusedList.add({
-        'name': accused,
-        'age': _controllers['accused_age']?.text.trim(),
-        'gender': _values['accused_gender'] ??
-            _controllers['accused_gender']?.text.trim() ??
-            '',
-        'occupation': _controllers['accused_occupation']?.text.trim(),
-        'mobile': _controllers['accused_mobile']?.text.trim(),
-        'aadhaar': _controllers['accused_aadhaar']?.text.trim(),
-        'pan': _controllers['accused_pan']?.text.trim(),
-        'religion': _controllers['accused_religion']?.text.trim(),
-        'caste': _controllers['accused_caste']?.text.trim(),
-        'address': _controllers['accused_address']?.text.trim(),
-        'role': 'accused',
-      });
-    }
 
-    // Prune any hidden fields before compiling payload
-    _pruneHiddenFields();
+      // Prune any hidden fields before compiling payload
+      _pruneHiddenFields();
 
-    // Compile dynamic extra fields values (dropping hidden fields)
-    final dynamicExtraVals = <String, dynamic>{};
-    for (final f in _formDef?.fields ?? <DynamicFieldDef>[]) {
-      if (f.fieldSource == 'custom' && _isFieldVisible(f)) {
-        // A repeater's rows live in _values; its text box copy is not kept
-        final val = f.fieldType == 'repeater'
-            ? _values[f.fieldKey]
-            : _controllers[f.fieldKey]?.text ?? _values[f.fieldKey];
-        if (val != null) {
-          dynamicExtraVals[f.fieldKey] = val;
+      // Compile dynamic extra fields values (dropping hidden fields)
+      final dynamicExtraVals = <String, dynamic>{};
+      for (final f in _formDef?.fields ?? <DynamicFieldDef>[]) {
+        if (f.fieldSource == 'custom' && _isFieldVisible(f)) {
+          // A repeater's rows live in _values; its text box copy is not kept
+          final val = f.fieldType == 'repeater'
+              ? _values[f.fieldKey]
+              : _controllers[f.fieldKey]?.text ?? _values[f.fieldKey];
+          if (val != null) {
+            dynamicExtraVals[f.fieldKey] = val;
+          }
         }
       }
-    }
 
-    // Capture all form field values (common and custom)
-    final allFormFields = <String, dynamic>{};
-    for (final entry in _controllers.entries) {
-      allFormFields[entry.key] = entry.value.text;
-    }
-    for (final entry in _values.entries) {
-      if (entry.value != null) {
-        allFormFields[entry.key] = entry.value;
+      // Capture all form field values (common and custom)
+      final allFormFields = <String, dynamic>{};
+      for (final entry in _controllers.entries) {
+        allFormFields[entry.key] = entry.value.text;
       }
-    }
-
-    // Arrest structure
-    final List<Map<String, dynamic>> finalArrestsList = [];
-    if (_arrestRecordsList.isNotEmpty) {
-      for (final a in _arrestRecordsList) {
-        finalArrestsList.add(Map<String, dynamic>.from(a));
+      for (final entry in _values.entries) {
+        if (entry.value != null) {
+          allFormFields[entry.key] = entry.value;
+        }
       }
-    } else {
-      final arrestedPerson =
-          _controllers['arrested_person_name']?.text.trim() ??
-              _values['arrested_person_name']?.toString().trim() ??
-              '';
-      if (arrestedPerson.isNotEmpty) {
-        finalArrestsList.add({
-          'arrested_person_name': arrestedPerson,
-          'person_name': arrestedPerson,
-          'name': arrestedPerson,
-          'arrest_datetime': _controllers['arrest_datetime']?.text.trim(),
-          'sec_47_48_bnss': _values['sec_47_48_bnss'] == true ||
-              _controllers['sec_47_48_bnss']?.text.toLowerCase() == 'true',
-          'relative_friend_name':
-              _controllers['relative_friend_name']?.text.trim(),
-          'relative_friend_relation':
-              _controllers['relative_friend_relation']?.text.trim(),
-          'release_on_notice': _values['release_on_notice'] == true ||
-              _controllers['release_on_notice']?.text.toLowerCase() == 'true',
-          'release_on_notice_datetime':
-              _controllers['release_on_notice_datetime']?.text.trim(),
-          'anticipatory_bail': _values['anticipatory_bail'] == true ||
-              _controllers['anticipatory_bail']?.text.toLowerCase() == 'true',
-          'anticipatory_bail_datetime':
-              _controllers['anticipatory_bail_datetime']?.text.trim(),
-          'death_of_accused': _values['death_of_accused'] == true ||
-              _controllers['death_of_accused']?.text.toLowerCase() == 'true',
-          'death_of_accused_datetime':
-              _controllers['death_of_accused_datetime']?.text.trim(),
-        });
+
+      // Arrest structure
+      final List<Map<String, dynamic>> finalArrestsList = [];
+      if (_arrestRecordsList.isNotEmpty) {
+        for (final a in _arrestRecordsList) {
+          finalArrestsList.add(Map<String, dynamic>.from(a));
+        }
+      } else {
+        final arrestedPerson =
+            _controllers['arrested_person_name']?.text.trim() ??
+                _values['arrested_person_name']?.toString().trim() ??
+                '';
+        if (arrestedPerson.isNotEmpty) {
+          finalArrestsList.add({
+            'arrested_person_name': arrestedPerson,
+            'person_name': arrestedPerson,
+            'name': arrestedPerson,
+            'arrest_datetime': _controllers['arrest_datetime']?.text.trim(),
+            'sec_47_48_bnss': _values['sec_47_48_bnss'] == true ||
+                _controllers['sec_47_48_bnss']?.text.toLowerCase() == 'true',
+            'relative_friend_name':
+                _controllers['relative_friend_name']?.text.trim(),
+            'relative_friend_relation':
+                _controllers['relative_friend_relation']?.text.trim(),
+            'release_on_notice': _values['release_on_notice'] == true ||
+                _controllers['release_on_notice']?.text.toLowerCase() == 'true',
+            'release_on_notice_datetime':
+                _controllers['release_on_notice_datetime']?.text.trim(),
+            'anticipatory_bail': _values['anticipatory_bail'] == true ||
+                _controllers['anticipatory_bail']?.text.toLowerCase() == 'true',
+            'anticipatory_bail_datetime':
+                _controllers['anticipatory_bail_datetime']?.text.trim(),
+            'death_of_accused': _values['death_of_accused'] == true ||
+                _controllers['death_of_accused']?.text.toLowerCase() == 'true',
+            'death_of_accused_datetime':
+                _controllers['death_of_accused_datetime']?.text.trim(),
+          });
+        }
       }
-    }
 
-    if (finalArrestsList.isNotEmpty) {
-      final first = finalArrestsList.first;
-      allFormFields['arrested_person_name'] = first['arrested_person_name'];
-      allFormFields['arrest_datetime'] = first['arrest_datetime'];
-      allFormFields['sec_47_48_bnss'] = first['sec_47_48_bnss'];
-      allFormFields['relative_friend_name'] = first['relative_friend_name'];
-      allFormFields['relative_friend_relation'] =
-          first['relative_friend_relation'];
-      allFormFields['release_on_notice'] = first['release_on_notice'];
-      allFormFields['release_on_notice_datetime'] =
-          first['release_on_notice_datetime'];
-      allFormFields['anticipatory_bail'] = first['anticipatory_bail'];
-      allFormFields['anticipatory_bail_datetime'] =
-          first['anticipatory_bail_datetime'];
-      allFormFields['death_of_accused'] = first['death_of_accused'];
-      allFormFields['death_of_accused_datetime'] =
-          first['death_of_accused_datetime'];
-    }
-    allFormFields['arrests'] = finalArrestsList;
-    allFormFields['arrest_records'] = finalArrestsList;
-
-    // Charges structure
-    final chargesMap = <String, Map<String, dynamic>>{};
-    var chSeq = 1;
-    for (final entry in _selectedCharges.entries) {
-      if (entry.value.isNotEmpty) {
-        chargesMap['charge-${chSeq++}'] = {
-          'act': entry.key,
-          'sections': entry.value.toList(),
-        };
+      if (finalArrestsList.isNotEmpty) {
+        final first = finalArrestsList.first;
+        allFormFields['arrested_person_name'] = first['arrested_person_name'];
+        allFormFields['arrest_datetime'] = first['arrest_datetime'];
+        allFormFields['sec_47_48_bnss'] = first['sec_47_48_bnss'];
+        allFormFields['relative_friend_name'] = first['relative_friend_name'];
+        allFormFields['relative_friend_relation'] =
+            first['relative_friend_relation'];
+        allFormFields['release_on_notice'] = first['release_on_notice'];
+        allFormFields['release_on_notice_datetime'] =
+            first['release_on_notice_datetime'];
+        allFormFields['anticipatory_bail'] = first['anticipatory_bail'];
+        allFormFields['anticipatory_bail_datetime'] =
+            first['anticipatory_bail_datetime'];
+        allFormFields['death_of_accused'] = first['death_of_accused'];
+        allFormFields['death_of_accused_datetime'] =
+            first['death_of_accused_datetime'];
       }
-    }
+      allFormFields['arrests'] = finalArrestsList;
+      allFormFields['arrest_records'] = finalArrestsList;
 
-    // Discharged Accused data
-    final dischargeByAccused = <String, bool>{};
-    final dischargeDetails = <String, Map<String, dynamic>>{};
-    final dischargesList = <Map<String, dynamic>>[];
-
-    for (final name in _dischargedAccusedList) {
-      final n = name.trim();
-      if (n.isNotEmpty) {
-        final dDate = _dischargeDateControllers[n]?.text.trim() ?? '';
-        dischargeByAccused[n] = true;
-        dischargeDetails[n] = {
-          'date': dDate,
-        };
-        dischargesList.add({
-          'name': n,
-          'is_discharged': true,
-          'discharge_date': dDate,
-          'date': dDate,
-        });
+      // Charges structure
+      final chargesMap = <String, Map<String, dynamic>>{};
+      var chSeq = 1;
+      for (final entry in _selectedCharges.entries) {
+        if (entry.value.isNotEmpty) {
+          chargesMap['charge-${chSeq++}'] = {
+            'act': entry.key,
+            'sections': entry.value.toList(),
+          };
+        }
       }
-    }
 
-    final List<Map<String, dynamic>> finalSuspectedList = [];
-    if (_suspectedAccusedList.isNotEmpty) {
-      for (final s in _suspectedAccusedList) {
-        finalSuspectedList.add(Map<String, dynamic>.from(s));
+      // Discharged Accused data
+      final dischargeByAccused = <String, bool>{};
+      final dischargeDetails = <String, Map<String, dynamic>>{};
+      final dischargesList = <Map<String, dynamic>>[];
+
+      for (final name in _dischargedAccusedList) {
+        final n = name.trim();
+        if (n.isNotEmpty) {
+          final dDate = _dischargeDateControllers[n]?.text.trim() ?? '';
+          dischargeByAccused[n] = true;
+          dischargeDetails[n] = {
+            'date': dDate,
+          };
+          dischargesList.add({
+            'name': n,
+            'is_discharged': true,
+            'discharge_date': dDate,
+            'date': dDate,
+          });
+        }
       }
-    } else {
-      final suspectedName =
-          _controllers['suspected_accused_name']?.text.trim() ??
-              _controllers['suspected_name']?.text.trim() ??
-              '';
-      if (suspectedName.isNotEmpty) {
-        finalSuspectedList.add({
-          'name': suspectedName,
-          'age': _controllers['suspected_accused_age']?.text.trim(),
-          'gender': _values['suspected_accused_gender'] ??
-              _controllers['suspected_accused_gender']?.text.trim() ??
-              '',
-          'occupation':
-              _controllers['suspected_accused_occupation']?.text.trim(),
-          'mobile': _controllers['suspected_accused_mobile']?.text.trim(),
-          'aadhaar': _controllers['suspected_accused_aadhaar']?.text.trim(),
-          'pan': _controllers['suspected_accused_pan']?.text.trim(),
-          'religion': _controllers['suspected_accused_religion']?.text.trim(),
-          'caste': _controllers['suspected_accused_caste']?.text.trim(),
-          'address': _controllers['suspected_accused_address']?.text.trim(),
-          'role': 'suspected_accused',
-        });
+
+      final List<Map<String, dynamic>> finalSuspectedList = [];
+      if (_suspectedAccusedList.isNotEmpty) {
+        for (final s in _suspectedAccusedList) {
+          finalSuspectedList.add(Map<String, dynamic>.from(s));
+        }
+      } else {
+        final suspectedName =
+            _controllers['suspected_accused_name']?.text.trim() ??
+                _controllers['suspected_name']?.text.trim() ??
+                '';
+        if (suspectedName.isNotEmpty) {
+          finalSuspectedList.add({
+            'name': suspectedName,
+            'age': _controllers['suspected_accused_age']?.text.trim(),
+            'gender': _values['suspected_accused_gender'] ??
+                _controllers['suspected_accused_gender']?.text.trim() ??
+                '',
+            'occupation':
+                _controllers['suspected_accused_occupation']?.text.trim(),
+            'mobile': _controllers['suspected_accused_mobile']?.text.trim(),
+            'aadhaar': _controllers['suspected_accused_aadhaar']?.text.trim(),
+            'pan': _controllers['suspected_accused_pan']?.text.trim(),
+            'religion': _controllers['suspected_accused_religion']?.text.trim(),
+            'caste': _controllers['suspected_accused_caste']?.text.trim(),
+            'address': _controllers['suspected_accused_address']?.text.trim(),
+            'role': 'suspected_accused',
+          });
+        }
       }
-    }
-    if (finalSuspectedList.isNotEmpty) {
-      final first = finalSuspectedList.first;
-      allFormFields['suspected_accused_name'] = first['name'];
-      allFormFields['suspected_accused_age'] = first['age'];
-      allFormFields['suspected_accused_gender'] = first['gender'];
-      allFormFields['suspected_accused_occupation'] = first['occupation'];
-      allFormFields['suspected_accused_mobile'] = first['mobile'];
-      allFormFields['suspected_accused_aadhaar'] = first['aadhaar'];
-      allFormFields['suspected_accused_pan'] = first['pan'];
-      allFormFields['suspected_accused_religion'] = first['religion'];
-      allFormFields['suspected_accused_caste'] = first['caste'];
-      allFormFields['suspected_accused_address'] = first['address'];
-    }
-    allFormFields['suspectedAccused'] = finalSuspectedList;
-    allFormFields['suspected_accused'] = finalSuspectedList;
-
-    // Unidentified Accused packaging
-    final List<Map<String, dynamic>> finalUnidentifiedList = [];
-    if (_unidentifiedAccusedList.isNotEmpty) {
-      for (final u in _unidentifiedAccusedList) {
-        finalUnidentifiedList.add(Map<String, dynamic>.from(u));
+      if (finalSuspectedList.isNotEmpty) {
+        final first = finalSuspectedList.first;
+        allFormFields['suspected_accused_name'] = first['name'];
+        allFormFields['suspected_accused_age'] = first['age'];
+        allFormFields['suspected_accused_gender'] = first['gender'];
+        allFormFields['suspected_accused_occupation'] = first['occupation'];
+        allFormFields['suspected_accused_mobile'] = first['mobile'];
+        allFormFields['suspected_accused_aadhaar'] = first['aadhaar'];
+        allFormFields['suspected_accused_pan'] = first['pan'];
+        allFormFields['suspected_accused_religion'] = first['religion'];
+        allFormFields['suspected_accused_caste'] = first['caste'];
+        allFormFields['suspected_accused_address'] = first['address'];
       }
-    } else {
-      final approxAge = _controllers['approximate_age']?.text.trim() ?? '';
-      final skinCol = _controllers['skin_colour']?.text.trim() ?? '';
-      final identMark = _controllers['identification_mark']?.text.trim() ?? '';
-      final desc = _controllers['description']?.text.trim() ?? '';
-      if (approxAge.isNotEmpty ||
-          skinCol.isNotEmpty ||
-          identMark.isNotEmpty ||
-          desc.isNotEmpty) {
-        finalUnidentifiedList.add({
-          'approximate_age': approxAge,
-          'gender': _values['unidentified_gender'] ??
-              _controllers['unidentified_gender']?.text.trim() ??
-              '',
-          'skin_colour': skinCol,
-          'possible_occupation':
-              _controllers['possible_occupation']?.text.trim() ?? '',
-          'identification_mark': identMark,
-          'height': _controllers['height']?.text.trim() ?? '',
-          'description': desc,
-          'address': _controllers['unidentified_address']?.text.trim() ?? '',
-          'role': 'unidentified_accused',
-        });
+      allFormFields['suspectedAccused'] = finalSuspectedList;
+      allFormFields['suspected_accused'] = finalSuspectedList;
+
+      // Unidentified Accused packaging
+      final List<Map<String, dynamic>> finalUnidentifiedList = [];
+      if (_unidentifiedAccusedList.isNotEmpty) {
+        for (final u in _unidentifiedAccusedList) {
+          finalUnidentifiedList.add(Map<String, dynamic>.from(u));
+        }
+      } else {
+        final approxAge = _controllers['approximate_age']?.text.trim() ?? '';
+        final skinCol = _controllers['skin_colour']?.text.trim() ?? '';
+        final identMark =
+            _controllers['identification_mark']?.text.trim() ?? '';
+        final desc = _controllers['description']?.text.trim() ?? '';
+        if (approxAge.isNotEmpty ||
+            skinCol.isNotEmpty ||
+            identMark.isNotEmpty ||
+            desc.isNotEmpty) {
+          finalUnidentifiedList.add({
+            'approximate_age': approxAge,
+            'gender': _values['unidentified_gender'] ??
+                _controllers['unidentified_gender']?.text.trim() ??
+                '',
+            'skin_colour': skinCol,
+            'possible_occupation':
+                _controllers['possible_occupation']?.text.trim() ?? '',
+            'identification_mark': identMark,
+            'height': _controllers['height']?.text.trim() ?? '',
+            'description': desc,
+            'address': _controllers['unidentified_address']?.text.trim() ?? '',
+            'role': 'unidentified_accused',
+          });
+        }
       }
-    }
-    if (finalUnidentifiedList.isNotEmpty) {
-      final first = finalUnidentifiedList.first;
-      allFormFields['approximate_age'] = first['approximate_age'];
-      allFormFields['unidentified_gender'] = first['gender'];
-      allFormFields['skin_colour'] = first['skin_colour'];
-      allFormFields['possible_occupation'] = first['possible_occupation'];
-      allFormFields['identification_mark'] = first['identification_mark'];
-      allFormFields['height'] = first['height'];
-      allFormFields['description'] = first['description'];
-    }
-    allFormFields['unidentifiedList'] = finalUnidentifiedList;
-    allFormFields['unidentified_accused'] = finalUnidentifiedList;
-
-    final isUnknown = _unknownAccusedList.isNotEmpty ||
-        _values['is_unknown_accused'] == true ||
-        _controllers['is_unknown_accused']?.text.toLowerCase() == 'true';
-    allFormFields['is_unknown_accused'] = isUnknown;
-    allFormFields['isUnknownAccused'] = isUnknown;
-    allFormFields['isUnknownUntraced'] = isUnknown;
-    allFormFields['unknown_accused'] = _unknownAccusedList;
-    allFormFields['unknownAccused'] = _unknownAccusedList;
-
-    // Procedural checklists (Panchanama)
-    final proceduralList = <Map<String, dynamic>>[];
-    final proceduralChecks = <String, bool>{};
-    final proceduralDates = <String, String>{};
-    for (final entry in _panchanamaKeyToName.entries) {
-      final key = entry.key;
-      final name = entry.value;
-      final isChecked = _values[key] == true ||
-          _controllers[key]?.text.toLowerCase() == 'true' ||
-          _values['chk$name'] == true;
-      final dt = _controllers['${key}_date']?.text.trim() ??
-          _values['${key}_date']?.toString().trim() ??
-          '';
-      if (isChecked) {
-        final effectiveDt = dt.isNotEmpty
-            ? dt
-            : DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
-        proceduralChecks[name] = true;
-        proceduralDates[name] = effectiveDt;
-        proceduralList.add({
-          'item_name': name,
-          'is_checked': true,
-          'event_datetime': effectiveDt,
-        });
+      if (finalUnidentifiedList.isNotEmpty) {
+        final first = finalUnidentifiedList.first;
+        allFormFields['approximate_age'] = first['approximate_age'];
+        allFormFields['unidentified_gender'] = first['gender'];
+        allFormFields['skin_colour'] = first['skin_colour'];
+        allFormFields['possible_occupation'] = first['possible_occupation'];
+        allFormFields['identification_mark'] = first['identification_mark'];
+        allFormFields['height'] = first['height'];
+        allFormFields['description'] = first['description'];
       }
-    }
-    allFormFields['procedural_checklists'] = proceduralList;
-    allFormFields['proceduralChecks'] = proceduralChecks;
-    allFormFields['proceduralDates'] = proceduralDates;
+      allFormFields['unidentifiedList'] = finalUnidentifiedList;
+      allFormFields['unidentified_accused'] = finalUnidentifiedList;
 
-    // Preventive Action packaging
-    final List<Map<String, dynamic>> prevActionsToSubmit = [];
-    for (final item in _preventiveActionsList) {
-      final name = item['name']?.toString().trim() ?? '';
-      final actType = item['action_type']?.toString().trim() ?? '';
-      final actDate = item['action_date']?.toString().trim() ?? '';
-      final outward = item['outward_number']?.toString().trim() ?? '';
-      if (actType.isNotEmpty) {
-        final effectiveDate = actDate.isNotEmpty ? actDate : '';
-        prevActionsToSubmit.add({
-          'name': name,
-          'accusedName': name,
-          'person_name': name,
-          'existing_person_id': item['existing_person_id'] ?? item['person_id'],
-          'person_id': item['person_id'],
-          'action': actType,
-          'action_type': actType,
-          'actionDate': effectiveDate,
-          'action_date': effectiveDate,
-          'outwardNumber': outward,
-          'outward_number': outward,
-          'bond_date': item['bond_date'],
-          'bondDate': item['bond_date'],
-          'bond_cancellation_date': item['bond_cancellation_date'],
-          'bondCancellationDate': item['bond_cancellation_date'],
-          'preventive_number': item['preventive_number'],
-          'preventiveNumber': item['preventive_number'],
-        });
-      }
-    }
+      final isUnknown = _unknownAccusedList.isNotEmpty ||
+          _values['is_unknown_accused'] == true ||
+          _controllers['is_unknown_accused']?.text.toLowerCase() == 'true';
+      allFormFields['is_unknown_accused'] = isUnknown;
+      allFormFields['isUnknownAccused'] = isUnknown;
+      allFormFields['isUnknownUntraced'] = isUnknown;
+      allFormFields['unknown_accused'] = _unknownAccusedList;
+      allFormFields['unknownAccused'] = _unknownAccusedList;
 
-    // Fallback if list was empty but individual controllers were filled
-    if (prevActionsToSubmit.isEmpty) {
-      final prevType = _controllers['preventive_action_type']?.text.trim() ??
-          _values['preventive_action_type']?.toString().trim() ??
-          '';
-      final prevDate = _controllers['preventive_action_date']?.text.trim() ??
-          _values['preventive_action_date']?.toString().trim() ??
-          '';
-      final prevOutward = _controllers['preventive_outward_no']?.text.trim() ??
-          _values['preventive_outward_no']?.toString().trim() ??
-          '';
-      if (prevType.isNotEmpty) {
-        final effectiveDate = prevDate.isNotEmpty ? prevDate : '';
-        prevActionsToSubmit.add({
-          'name': accused,
-          'accusedName': accused,
-          'person_name': accused,
-          'action': prevType,
-          'action_type': prevType,
-          'actionDate': effectiveDate,
-          'action_date': effectiveDate,
-          'outwardNumber': prevOutward,
-          'outward_number': prevOutward,
-        });
-      }
-    }
-
-    if (prevActionsToSubmit.isNotEmpty) {
-      final first = prevActionsToSubmit.first;
-      allFormFields['preventive_action_type'] = first['action_type'];
-      allFormFields['preventive_action_date'] = first['action_date'];
-      allFormFields['preventive_outward_no'] = first['outward_number'];
-      allFormFields['preventive_action_outward_no'] = first['outward_number'];
-      allFormFields['preventive_actions'] = prevActionsToSubmit;
-      allFormFields['preventive_action_items'] = prevActionsToSubmit;
-      allFormFields['preventive'] = {
-        'items': prevActionsToSubmit,
-        'actions': prevActionsToSubmit,
-        'action': first['action_type'],
-        'action_type': first['action_type'],
-        'actionDate': first['action_date'],
-        'action_date': first['action_date'],
-        'outwardNumber': first['outward_number'],
-        'outward_number': first['outward_number'],
-      };
-    } else {
-      allFormFields['preventive_actions'] = [];
-      allFormFields['preventive_action_items'] = [];
-    }
-
-    // Remand & Custody packaging
-    final List<Map<String, dynamic>> custodyToSubmit = [];
-    for (final item in _custodyRecordsList) {
-      final name = item['name']?.toString().trim() ?? '';
-      if (name.isNotEmpty) {
-        custodyToSubmit.add({
-          'name': name,
-          'accusedName': name,
-          'person_name': name,
-          'pcr_days': item['pcr_days']?.toString().trim(),
-          'pcrDays': item['pcr_days']?.toString().trim(),
-          'mcr': item['mcr'] == true,
-          'isMcr': item['mcr'] == true,
-          'pr_bond': item['pr_bond'] == true,
-          'isPrBond': item['pr_bond'] == true,
-          'pr_bond_date': item['pr_bond_date']?.toString().trim(),
-          'prBondDate': item['pr_bond_date']?.toString().trim(),
-          'bail': item['bail'] == true,
-          'isBail': item['bail'] == true,
-          'surety_name': item['surety_name']?.toString().trim(),
-          'suretyName': item['surety_name']?.toString().trim(),
-          'surety_age': item['surety_age']?.toString().trim(),
-          'suretyAge': item['surety_age']?.toString().trim(),
-          'surety_gender': item['surety_gender']?.toString().trim(),
-          'suretyGender': item['surety_gender']?.toString().trim(),
-          'surety_occupation': item['surety_occupation']?.toString().trim(),
-          'suretyOccupation': item['surety_occupation']?.toString().trim(),
-          'surety_mobile': item['surety_mobile']?.toString().trim(),
-          'suretyMobile': item['surety_mobile']?.toString().trim(),
-          'surety_aadhaar': item['surety_aadhaar']?.toString().trim(),
-          'suretyAadhaar': item['surety_aadhaar']?.toString().trim(),
-          'surety_pan': item['surety_pan']?.toString().trim(),
-          'suretyPan': item['surety_pan']?.toString().trim(),
-          'surety_address': item['surety_address']?.toString().trim(),
-          'suretyAddress': item['surety_address']?.toString().trim(),
-          'surety_relation': item['surety_relation']?.toString().trim(),
-          'suretyRelation': item['surety_relation']?.toString().trim(),
-          'relation_with_accused': item['surety_relation']?.toString().trim(),
-          'jail': item['jail'] == true,
-          'isJail': item['jail'] == true,
-          'jail_date': item['jail_date']?.toString().trim(),
-          'jailDate': item['jail_date']?.toString().trim(),
-        });
-      }
-    }
-
-    if (custodyToSubmit.isNotEmpty) {
-      final first = custodyToSubmit.first;
-      allFormFields['pcr_days'] = first['pcr_days'];
-      allFormFields['mcr'] = first['mcr'];
-      allFormFields['pr_bond'] = first['pr_bond'];
-      allFormFields['pr_bond_date'] = first['pr_bond_date'];
-      allFormFields['bail'] = first['bail'];
-      allFormFields['surety_name'] = first['surety_name'];
-      allFormFields['surety_age'] = first['surety_age'];
-      allFormFields['surety_gender'] = first['surety_gender'];
-      allFormFields['surety_occupation'] = first['surety_occupation'];
-      allFormFields['surety_mobile'] = first['surety_mobile'];
-      allFormFields['surety_aadhaar'] = first['surety_aadhaar'];
-      allFormFields['surety_pan'] = first['surety_pan'];
-      allFormFields['surety_address'] = first['surety_address'];
-      allFormFields['surety_relation'] = first['surety_relation'];
-      allFormFields['jail'] = first['jail'];
-      allFormFields['jail_date'] = first['jail_date'];
-
-      allFormFields['custody_records'] = custodyToSubmit;
-      allFormFields['remand_custody'] = custodyToSubmit;
-      allFormFields['custodyInfo'] = custodyToSubmit;
-      allFormFields['custody'] = custodyToSubmit;
-    } else {
-      allFormFields['custody_records'] = [];
-      allFormFields['remand_custody'] = [];
-      allFormFields['custodyInfo'] = [];
-      allFormFields['custody'] = [];
-    }
-
-    // Scrutiny Pipeline packaging
-    final scrutinyMap = {
-      'sdpo_acp_send_date': _controllers['sdpo_acp_send_date']?.text.trim() ??
-          _values['sdpo_acp_send_date']?.toString().trim() ??
-          '',
-      'sdpoSend': _controllers['sdpo_acp_send_date']?.text.trim() ??
-          _values['sdpo_acp_send_date']?.toString().trim() ??
-          '',
-      'sdpo_acp_grant_date': _controllers['sdpo_acp_grant_date']?.text.trim() ??
-          _values['sdpo_acp_grant_date']?.toString().trim() ??
-          '',
-      'sdpoGrant': _controllers['sdpo_acp_grant_date']?.text.trim() ??
-          _values['sdpo_acp_grant_date']?.toString().trim() ??
-          '',
-      'addl_sp_dcp_send_date':
-          _controllers['addl_sp_dcp_send_date']?.text.trim() ??
-              _values['addl_sp_dcp_send_date']?.toString().trim() ??
-              '',
-      'dcpSend': _controllers['addl_sp_dcp_send_date']?.text.trim() ??
-          _values['addl_sp_dcp_send_date']?.toString().trim() ??
-          '',
-      'addl_sp_dcp_grant_date':
-          _controllers['addl_sp_dcp_grant_date']?.text.trim() ??
-              _values['addl_sp_dcp_grant_date']?.toString().trim() ??
-              '',
-      'dcpGrant': _controllers['addl_sp_dcp_grant_date']?.text.trim() ??
-          _values['addl_sp_dcp_grant_date']?.toString().trim() ??
-          '',
-      'addl_cp_send_date': _controllers['addl_cp_send_date']?.text.trim() ??
-          _values['addl_cp_send_date']?.toString().trim() ??
-          '',
-      'addlCpSend': _controllers['addl_cp_send_date']?.text.trim() ??
-          _values['addl_cp_send_date']?.toString().trim() ??
-          '',
-      'addl_cp_grant_date': _controllers['addl_cp_grant_date']?.text.trim() ??
-          _values['addl_cp_grant_date']?.toString().trim() ??
-          '',
-      'addlCpGrant': _controllers['addl_cp_grant_date']?.text.trim() ??
-          _values['addl_cp_grant_date']?.toString().trim() ??
-          '',
-      'app_send_date': _controllers['app_send_date']?.text.trim() ??
-          _values['app_send_date']?.toString().trim() ??
-          '',
-      'appSend': _controllers['app_send_date']?.text.trim() ??
-          _values['app_send_date']?.toString().trim() ??
-          '',
-      'app_grant_date': _controllers['app_grant_date']?.text.trim() ??
-          _values['app_grant_date']?.toString().trim() ??
-          '',
-      'appGrant': _controllers['app_grant_date']?.text.trim() ??
-          _values['app_grant_date']?.toString().trim() ??
-          '',
-    };
-    allFormFields['scrutiny'] = scrutinyMap;
-    allFormFields['scrutiny_pipeline'] = scrutinyMap;
-
-    // Build structured sub-documents
-    final compData = <String, dynamic>{
-      'name': complainant,
-      'age': _controllers['complainant_age']?.text.trim() ?? '',
-      'gender': _values['complainant_gender'] ??
-          _controllers['complainant_gender']?.text.trim() ??
-          'Male',
-      'occupation': _controllers['complainant_occupation']?.text.trim() ?? '',
-      'occ': _controllers['complainant_occupation']?.text.trim() ?? '',
-      'mobile': _controllers['complainant_mobile']?.text.trim() ?? '',
-      'aadhaar': _controllers['complainant_aadhaar']?.text.trim() ?? '',
-      'pan': _controllers['complainant_pan']?.text.trim() ?? '',
-      'religion': _controllers['complainant_religion']?.text.trim() ?? '',
-      'caste': _controllers['complainant_caste']?.text.trim() ?? '',
-      'address': _controllers['complainant_address']?.text.trim() ?? '',
-    };
-
-    final deceasedName = _controllers['deceased_name']?.text.trim() ?? '';
-    final deceasedData = <String, dynamic>{
-      'name': deceasedName,
-      'age': _controllers['deceased_age']?.text.trim() ?? '',
-      'gender': _values['deceased_gender'] ??
-          _controllers['deceased_gender']?.text.trim() ??
-          'Male',
-      'occupation': _controllers['deceased_occupation']?.text.trim() ?? '',
-      'occ': _controllers['deceased_occupation']?.text.trim() ?? '',
-      'mobile': _controllers['deceased_mobile']?.text.trim() ?? '',
-      'aadhaar': _controllers['deceased_aadhaar']?.text.trim() ?? '',
-      'pan': _controllers['deceased_pan']?.text.trim() ?? '',
-      'religion': _controllers['deceased_religion']?.text.trim() ?? '',
-      'caste': _controllers['deceased_caste']?.text.trim() ?? '',
-      'address': _controllers['deceased_address']?.text.trim() ?? '',
-    };
-
-    final caseRespData = <String, dynamic>{
-      'ioDesig': _controllers['io_designation']?.text.trim().isNotEmpty == true
-          ? _controllers['io_designation']!.text.trim()
-          : 'PSI',
-      'ioName': _controllers['io_name']?.text.trim().isNotEmpty == true
-          ? _controllers['io_name']!.text.trim()
-          : auth.displayName,
-      'regDesig':
-          _controllers['registered_by_designation']?.text.trim().isNotEmpty ==
-                  true
-              ? _controllers['registered_by_designation']!.text.trim()
-              : 'HC',
-      'regName':
-          _controllers['registered_by_name']?.text.trim().isNotEmpty == true
-              ? _controllers['registered_by_name']!.text.trim()
-              : auth.displayName,
-      'cctvValue': (_values['cctv_available'] == true ||
-              _values['cctv_checked'] == true ||
-              _controllers['cctv_available']?.text.toLowerCase() == 'true')
-          ? 'Yes'
-          : 'No',
-      'cctvDateTime':
-          _controllers['cctv_collected_datetime']?.text.trim() ?? '',
-    };
-
-    final courtData = <String, dynamic>{
-      'chargeSheetNumber': _controllers['charge_sheet_no']?.text.trim() ?? '',
-      'chargeSheetDate': _controllers['charge_sheet_date']?.text.trim() ?? '',
-      'ccStNumber': _controllers['cc_st_number']?.text.trim() ?? '',
-      'finalSummary': _values['final_summary'] ??
-          _controllers['final_summary']?.text.trim() ??
-          '',
-      'quashedHighCourt':
-          _controllers['quashed_high_court']?.text.trim() ?? 'No',
-    };
-
-    final List<Map<String, dynamic>> seizuresList = [];
-    final seizedDesc =
-        _controllers['seized_property_description']?.text.trim() ??
-            _controllers['seized_property_type']?.text.trim() ??
+      // Procedural checklists (Panchanama)
+      final proceduralList = <Map<String, dynamic>>[];
+      final proceduralChecks = <String, bool>{};
+      final proceduralDates = <String, String>{};
+      for (final entry in _panchanamaKeyToName.entries) {
+        final key = entry.key;
+        final name = entry.value;
+        final isChecked = _values[key] == true ||
+            _controllers[key]?.text.toLowerCase() == 'true' ||
+            _values['chk$name'] == true;
+        final dt = _controllers['${key}_date']?.text.trim() ??
+            _values['${key}_date']?.toString().trim() ??
             '';
-    if (seizedDesc.isNotEmpty || _values['seized_property_type'] != null) {
-      seizuresList.add({
-        'desc': seizedDesc.isNotEmpty ? seizedDesc : 'Incriminating Articles',
-        'property':
-            seizedDesc.isNotEmpty ? seizedDesc : 'Incriminating Articles',
-        'fromWhom':
-            _controllers['seized_from_person']?.text.trim() ?? 'Crime Spot',
-        'quantity': _controllers['seized_quantity']?.text.trim() ?? '1',
-        'estValue': _controllers['seized_value']?.text.trim() ?? '5000',
-        'status': _values['seized_status'] ??
-            _controllers['seized_status']?.text.trim() ??
-            'In Police Custody',
-        'custodyLoc': 'Police Station Malkhana',
-        'recoveryDate': DateFormat('dd/MM/yyyy').format(DateTime.now()),
-      });
-    }
+        if (isChecked) {
+          final effectiveDt = dt.isNotEmpty
+              ? dt
+              : DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
+          proceduralChecks[name] = true;
+          proceduralDates[name] = effectiveDt;
+          proceduralList.add({
+            'item_name': name,
+            'is_checked': true,
+            'event_datetime': effectiveDt,
+          });
+        }
+      }
+      allFormFields['procedural_checklists'] = proceduralList;
+      allFormFields['proceduralChecks'] = proceduralChecks;
+      allFormFields['proceduralDates'] = proceduralDates;
 
-    // Build commonForm document map for full backward compatibility
-    final commonFormDoc = <String, dynamic>{
-      ...allFormFields,
-      'crNo': caseNo,
-      'regDate': DateFormat('dd/MM/yyyy').format(
-          isEdit ? widget.existingRecord!.incidentDate : DateTime.now()),
-      'incidentDate': DateFormat('dd/MM/yyyy').format(
-          isEdit ? widget.existingRecord!.incidentDate : DateTime.now()),
-      'spotVillage':
-          _controllers['village_town']?.text.trim().isNotEmpty == true
-              ? _controllers['village_town']!.text.trim()
-              : loc,
-      'spotArea': _controllers['area_name']?.text.trim() ?? '',
-      'spotAddress': loc,
-      'charges': chargesMap,
-      'complainant': compData,
-      'deceased': deceasedData,
-      'caseResponsibility': caseRespData,
-      'court': courtData,
-      'scrutiny': scrutinyMap,
-      'accused': finalAccusedList,
-      'suspectedAccused': finalSuspectedList,
-      'unidentifiedList': finalUnidentifiedList,
-      'unidentified_accused': finalUnidentifiedList,
-      'isUnknownAccused': isUnknown,
-      'is_unknown_accused': isUnknown,
-      'isUnknownUntraced': isUnknown,
-      'unknown_accused': _unknownAccusedList,
-      'unknownAccused': _unknownAccusedList,
-      'dischargeByAccused': dischargeByAccused,
-      'dischargeDetails': dischargeDetails,
-      'discharges': dischargesList,
-      'arrests': finalArrestsList,
-      'arrest_records': finalArrestsList,
-      'arrestRelease': finalArrestsList,
-      'preventive_actions': prevActionsToSubmit,
-      'preventive_action_items': prevActionsToSubmit,
-      'custody_records': custodyToSubmit,
-      'remand_custody': custodyToSubmit,
-      'custodyInfo': custodyToSubmit,
-      'seizures': seizuresList,
-      'proceduralChecks': proceduralChecks,
-      'proceduralDates': proceduralDates,
-      'dynamic_extra_fields': dynamicExtraVals,
-    };
+      // Preventive Action packaging
+      final List<Map<String, dynamic>> prevActionsToSubmit = [];
+      for (final item in _preventiveActionsList) {
+        final name = item['name']?.toString().trim() ?? '';
+        final actType = item['action_type']?.toString().trim() ?? '';
+        final actDate = item['action_date']?.toString().trim() ?? '';
+        final outward = item['outward_number']?.toString().trim() ?? '';
+        if (actType.isNotEmpty) {
+          final effectiveDate = actDate.isNotEmpty ? actDate : '';
+          prevActionsToSubmit.add({
+            'name': name,
+            'accusedName': name,
+            'person_name': name,
+            'existing_person_id':
+                item['existing_person_id'] ?? item['person_id'],
+            'person_id': item['person_id'],
+            'action': actType,
+            'action_type': actType,
+            'actionDate': effectiveDate,
+            'action_date': effectiveDate,
+            'outwardNumber': outward,
+            'outward_number': outward,
+            'bond_date': item['bond_date'],
+            'bondDate': item['bond_date'],
+            'bond_cancellation_date': item['bond_cancellation_date'],
+            'bondCancellationDate': item['bond_cancellation_date'],
+            'preventive_number': item['preventive_number'],
+            'preventiveNumber': item['preventive_number'],
+          });
+        }
+      }
 
-    final extraFields = Map<String, dynamic>.from(
-      widget.existingRecord?.extraFields ?? {},
-    );
-    extraFields.addAll(allFormFields);
-    extraFields['commonForm'] = commonFormDoc;
-    extraFields['charges'] = chargesMap;
-    extraFields['complainant'] = compData;
-    extraFields['deceased'] = deceasedData;
-    extraFields['caseResponsibility'] = caseRespData;
-    extraFields['court'] = courtData;
-    extraFields['scrutiny'] = scrutinyMap;
-    extraFields['accused'] = finalAccusedList;
-    extraFields['suspectedAccused'] = finalSuspectedList;
-    extraFields['unidentifiedList'] = finalUnidentifiedList;
-    extraFields['unidentified_accused'] = finalUnidentifiedList;
-    extraFields['is_unknown_accused'] = isUnknown;
-    extraFields['isUnknownAccused'] = isUnknown;
-    extraFields['isUnknownUntraced'] = isUnknown;
-    extraFields['unknown_accused'] = _unknownAccusedList;
-    extraFields['unknownAccused'] = _unknownAccusedList;
-    extraFields['extra_field_values'] = dynamicExtraVals;
-    extraFields['dischargeByAccused'] = dischargeByAccused;
-    extraFields['dischargeDetails'] = dischargeDetails;
-    extraFields['discharges'] = dischargesList;
-    extraFields['arrests'] = finalArrestsList;
-    extraFields['arrest_records'] = finalArrestsList;
-    extraFields['arrestRelease'] = finalArrestsList;
-    extraFields['preventive_actions'] = prevActionsToSubmit;
-    extraFields['preventive_action_items'] = prevActionsToSubmit;
-    extraFields['custody_records'] = custodyToSubmit;
-    extraFields['remand_custody'] = custodyToSubmit;
-    extraFields['custodyInfo'] = custodyToSubmit;
-    extraFields['seizures'] = seizuresList;
-    extraFields['proceduralChecks'] = proceduralChecks;
-    extraFields['proceduralDates'] = proceduralDates;
-    extraFields['is_discharged'] = _dischargedAccusedList.isNotEmpty;
-    extraFields['lastEditedBy'] = auth.displayName;
-    extraFields['lastEditedAt'] = DateTime.now().toIso8601String();
+      // Fallback if list was empty but individual controllers were filled
+      if (prevActionsToSubmit.isEmpty) {
+        final prevType = _controllers['preventive_action_type']?.text.trim() ??
+            _values['preventive_action_type']?.toString().trim() ??
+            '';
+        final prevDate = _controllers['preventive_action_date']?.text.trim() ??
+            _values['preventive_action_date']?.toString().trim() ??
+            '';
+        final prevOutward =
+            _controllers['preventive_outward_no']?.text.trim() ??
+                _values['preventive_outward_no']?.toString().trim() ??
+                '';
+        if (prevType.isNotEmpty) {
+          final effectiveDate = prevDate.isNotEmpty ? prevDate : '';
+          prevActionsToSubmit.add({
+            'name': accused,
+            'accusedName': accused,
+            'person_name': accused,
+            'action': prevType,
+            'action_type': prevType,
+            'actionDate': effectiveDate,
+            'action_date': effectiveDate,
+            'outwardNumber': prevOutward,
+            'outward_number': prevOutward,
+          });
+        }
+      }
 
-    // Independent modules (N.C., RTI, MPDA, A.D. ...) save through their own API
-    if (widget.onSubmitCustom != null) {
-      try {
-        final payload = Map<String, dynamic>.from(allFormFields);
-        final res = await widget.onSubmitCustom!(payload, isEdit);
-        if (!mounted) return;
-        if (res != null && res.containsKey('error')) {
+      if (prevActionsToSubmit.isNotEmpty) {
+        final first = prevActionsToSubmit.first;
+        allFormFields['preventive_action_type'] = first['action_type'];
+        allFormFields['preventive_action_date'] = first['action_date'];
+        allFormFields['preventive_outward_no'] = first['outward_number'];
+        allFormFields['preventive_action_outward_no'] = first['outward_number'];
+        allFormFields['preventive_actions'] = prevActionsToSubmit;
+        allFormFields['preventive_action_items'] = prevActionsToSubmit;
+        allFormFields['preventive'] = {
+          'items': prevActionsToSubmit,
+          'actions': prevActionsToSubmit,
+          'action': first['action_type'],
+          'action_type': first['action_type'],
+          'actionDate': first['action_date'],
+          'action_date': first['action_date'],
+          'outwardNumber': first['outward_number'],
+          'outward_number': first['outward_number'],
+        };
+      } else {
+        allFormFields['preventive_actions'] = [];
+        allFormFields['preventive_action_items'] = [];
+      }
+
+      // Remand & Custody packaging
+      final List<Map<String, dynamic>> custodyToSubmit = [];
+      for (final item in _custodyRecordsList) {
+        final name = item['name']?.toString().trim() ?? '';
+        if (name.isNotEmpty) {
+          custodyToSubmit.add({
+            'name': name,
+            'accusedName': name,
+            'person_name': name,
+            'pcr_days': item['pcr_days']?.toString().trim(),
+            'pcrDays': item['pcr_days']?.toString().trim(),
+            'mcr': item['mcr'] == true,
+            'isMcr': item['mcr'] == true,
+            'pr_bond': item['pr_bond'] == true,
+            'isPrBond': item['pr_bond'] == true,
+            'pr_bond_date': item['pr_bond_date']?.toString().trim(),
+            'prBondDate': item['pr_bond_date']?.toString().trim(),
+            'bail': item['bail'] == true,
+            'isBail': item['bail'] == true,
+            'surety_name': item['surety_name']?.toString().trim(),
+            'suretyName': item['surety_name']?.toString().trim(),
+            'surety_age': item['surety_age']?.toString().trim(),
+            'suretyAge': item['surety_age']?.toString().trim(),
+            'surety_gender': item['surety_gender']?.toString().trim(),
+            'suretyGender': item['surety_gender']?.toString().trim(),
+            'surety_occupation': item['surety_occupation']?.toString().trim(),
+            'suretyOccupation': item['surety_occupation']?.toString().trim(),
+            'surety_mobile': item['surety_mobile']?.toString().trim(),
+            'suretyMobile': item['surety_mobile']?.toString().trim(),
+            'surety_aadhaar': item['surety_aadhaar']?.toString().trim(),
+            'suretyAadhaar': item['surety_aadhaar']?.toString().trim(),
+            'surety_pan': item['surety_pan']?.toString().trim(),
+            'suretyPan': item['surety_pan']?.toString().trim(),
+            'surety_address': item['surety_address']?.toString().trim(),
+            'suretyAddress': item['surety_address']?.toString().trim(),
+            'surety_relation': item['surety_relation']?.toString().trim(),
+            'suretyRelation': item['surety_relation']?.toString().trim(),
+            'relation_with_accused': item['surety_relation']?.toString().trim(),
+            'jail': item['jail'] == true,
+            'isJail': item['jail'] == true,
+            'jail_date': item['jail_date']?.toString().trim(),
+            'jailDate': item['jail_date']?.toString().trim(),
+          });
+        }
+      }
+
+      if (custodyToSubmit.isNotEmpty) {
+        final first = custodyToSubmit.first;
+        allFormFields['pcr_days'] = first['pcr_days'];
+        allFormFields['mcr'] = first['mcr'];
+        allFormFields['pr_bond'] = first['pr_bond'];
+        allFormFields['pr_bond_date'] = first['pr_bond_date'];
+        allFormFields['bail'] = first['bail'];
+        allFormFields['surety_name'] = first['surety_name'];
+        allFormFields['surety_age'] = first['surety_age'];
+        allFormFields['surety_gender'] = first['surety_gender'];
+        allFormFields['surety_occupation'] = first['surety_occupation'];
+        allFormFields['surety_mobile'] = first['surety_mobile'];
+        allFormFields['surety_aadhaar'] = first['surety_aadhaar'];
+        allFormFields['surety_pan'] = first['surety_pan'];
+        allFormFields['surety_address'] = first['surety_address'];
+        allFormFields['surety_relation'] = first['surety_relation'];
+        allFormFields['jail'] = first['jail'];
+        allFormFields['jail_date'] = first['jail_date'];
+
+        allFormFields['custody_records'] = custodyToSubmit;
+        allFormFields['remand_custody'] = custodyToSubmit;
+        allFormFields['custodyInfo'] = custodyToSubmit;
+        allFormFields['custody'] = custodyToSubmit;
+      } else {
+        allFormFields['custody_records'] = [];
+        allFormFields['remand_custody'] = [];
+        allFormFields['custodyInfo'] = [];
+        allFormFields['custody'] = [];
+      }
+
+      // Scrutiny Pipeline packaging
+      final scrutinyMap = {
+        'sdpo_acp_send_date': _controllers['sdpo_acp_send_date']?.text.trim() ??
+            _values['sdpo_acp_send_date']?.toString().trim() ??
+            '',
+        'sdpoSend': _controllers['sdpo_acp_send_date']?.text.trim() ??
+            _values['sdpo_acp_send_date']?.toString().trim() ??
+            '',
+        'sdpo_acp_grant_date':
+            _controllers['sdpo_acp_grant_date']?.text.trim() ??
+                _values['sdpo_acp_grant_date']?.toString().trim() ??
+                '',
+        'sdpoGrant': _controllers['sdpo_acp_grant_date']?.text.trim() ??
+            _values['sdpo_acp_grant_date']?.toString().trim() ??
+            '',
+        'addl_sp_dcp_send_date':
+            _controllers['addl_sp_dcp_send_date']?.text.trim() ??
+                _values['addl_sp_dcp_send_date']?.toString().trim() ??
+                '',
+        'dcpSend': _controllers['addl_sp_dcp_send_date']?.text.trim() ??
+            _values['addl_sp_dcp_send_date']?.toString().trim() ??
+            '',
+        'addl_sp_dcp_grant_date':
+            _controllers['addl_sp_dcp_grant_date']?.text.trim() ??
+                _values['addl_sp_dcp_grant_date']?.toString().trim() ??
+                '',
+        'dcpGrant': _controllers['addl_sp_dcp_grant_date']?.text.trim() ??
+            _values['addl_sp_dcp_grant_date']?.toString().trim() ??
+            '',
+        'addl_cp_send_date': _controllers['addl_cp_send_date']?.text.trim() ??
+            _values['addl_cp_send_date']?.toString().trim() ??
+            '',
+        'addlCpSend': _controllers['addl_cp_send_date']?.text.trim() ??
+            _values['addl_cp_send_date']?.toString().trim() ??
+            '',
+        'addl_cp_grant_date': _controllers['addl_cp_grant_date']?.text.trim() ??
+            _values['addl_cp_grant_date']?.toString().trim() ??
+            '',
+        'addlCpGrant': _controllers['addl_cp_grant_date']?.text.trim() ??
+            _values['addl_cp_grant_date']?.toString().trim() ??
+            '',
+        'app_send_date': _controllers['app_send_date']?.text.trim() ??
+            _values['app_send_date']?.toString().trim() ??
+            '',
+        'appSend': _controllers['app_send_date']?.text.trim() ??
+            _values['app_send_date']?.toString().trim() ??
+            '',
+        'app_grant_date': _controllers['app_grant_date']?.text.trim() ??
+            _values['app_grant_date']?.toString().trim() ??
+            '',
+        'appGrant': _controllers['app_grant_date']?.text.trim() ??
+            _values['app_grant_date']?.toString().trim() ??
+            '',
+      };
+      allFormFields['scrutiny'] = scrutinyMap;
+      allFormFields['scrutiny_pipeline'] = scrutinyMap;
+
+      // Build structured sub-documents
+      final compData = <String, dynamic>{
+        'name': complainant,
+        'age': _controllers['complainant_age']?.text.trim() ?? '',
+        'gender': _values['complainant_gender'] ??
+            _controllers['complainant_gender']?.text.trim() ??
+            'Male',
+        'occupation': _controllers['complainant_occupation']?.text.trim() ?? '',
+        'occ': _controllers['complainant_occupation']?.text.trim() ?? '',
+        'mobile': _controllers['complainant_mobile']?.text.trim() ?? '',
+        'aadhaar': _controllers['complainant_aadhaar']?.text.trim() ?? '',
+        'pan': _controllers['complainant_pan']?.text.trim() ?? '',
+        'religion': _controllers['complainant_religion']?.text.trim() ?? '',
+        'caste': _controllers['complainant_caste']?.text.trim() ?? '',
+        'address': _controllers['complainant_address']?.text.trim() ?? '',
+      };
+
+      final deceasedName = _controllers['deceased_name']?.text.trim() ?? '';
+      final deceasedData = <String, dynamic>{
+        'name': deceasedName,
+        'age': _controllers['deceased_age']?.text.trim() ?? '',
+        'gender': _values['deceased_gender'] ??
+            _controllers['deceased_gender']?.text.trim() ??
+            'Male',
+        'occupation': _controllers['deceased_occupation']?.text.trim() ?? '',
+        'occ': _controllers['deceased_occupation']?.text.trim() ?? '',
+        'mobile': _controllers['deceased_mobile']?.text.trim() ?? '',
+        'aadhaar': _controllers['deceased_aadhaar']?.text.trim() ?? '',
+        'pan': _controllers['deceased_pan']?.text.trim() ?? '',
+        'religion': _controllers['deceased_religion']?.text.trim() ?? '',
+        'caste': _controllers['deceased_caste']?.text.trim() ?? '',
+        'address': _controllers['deceased_address']?.text.trim() ?? '',
+      };
+
+      final caseRespData = <String, dynamic>{
+        'ioDesig':
+            _controllers['io_designation']?.text.trim().isNotEmpty == true
+                ? _controllers['io_designation']!.text.trim()
+                : 'PSI',
+        'ioName': _controllers['io_name']?.text.trim().isNotEmpty == true
+            ? _controllers['io_name']!.text.trim()
+            : auth.displayName,
+        'regDesig':
+            _controllers['registered_by_designation']?.text.trim().isNotEmpty ==
+                    true
+                ? _controllers['registered_by_designation']!.text.trim()
+                : 'HC',
+        'regName':
+            _controllers['registered_by_name']?.text.trim().isNotEmpty == true
+                ? _controllers['registered_by_name']!.text.trim()
+                : auth.displayName,
+        'cctvValue': (_values['cctv_available'] == true ||
+                _values['cctv_checked'] == true ||
+                _controllers['cctv_available']?.text.toLowerCase() == 'true')
+            ? 'Yes'
+            : 'No',
+        'cctvDateTime':
+            _controllers['cctv_collected_datetime']?.text.trim() ?? '',
+      };
+
+      final courtData = <String, dynamic>{
+        'chargeSheetNumber': _controllers['charge_sheet_no']?.text.trim() ?? '',
+        'chargeSheetDate': _controllers['charge_sheet_date']?.text.trim() ?? '',
+        'ccStNumber': _controllers['cc_st_number']?.text.trim() ?? '',
+        'finalSummary': _values['final_summary'] ??
+            _controllers['final_summary']?.text.trim() ??
+            '',
+        'quashedHighCourt':
+            _controllers['quashed_high_court']?.text.trim() ?? 'No',
+      };
+
+      final List<Map<String, dynamic>> seizuresList = [];
+      final seizedDesc =
+          _controllers['seized_property_description']?.text.trim() ??
+              _controllers['seized_property_type']?.text.trim() ??
+              '';
+      if (seizedDesc.isNotEmpty || _values['seized_property_type'] != null) {
+        seizuresList.add({
+          'desc': seizedDesc.isNotEmpty ? seizedDesc : 'Incriminating Articles',
+          'property':
+              seizedDesc.isNotEmpty ? seizedDesc : 'Incriminating Articles',
+          'fromWhom':
+              _controllers['seized_from_person']?.text.trim() ?? 'Crime Spot',
+          'quantity': _controllers['seized_quantity']?.text.trim() ?? '1',
+          'estValue': _controllers['seized_value']?.text.trim() ?? '5000',
+          'status': _values['seized_status'] ??
+              _controllers['seized_status']?.text.trim() ??
+              'In Police Custody',
+          'custodyLoc': 'Police Station Malkhana',
+          'recoveryDate': DateFormat('dd/MM/yyyy').format(DateTime.now()),
+        });
+      }
+
+      // Build commonForm document map for full backward compatibility
+      final commonFormDoc = <String, dynamic>{
+        ...allFormFields,
+        'crNo': caseNo,
+        'regDate': DateFormat('dd/MM/yyyy').format(
+            isEdit ? widget.existingRecord!.incidentDate : DateTime.now()),
+        'incidentDate': DateFormat('dd/MM/yyyy').format(
+            isEdit ? widget.existingRecord!.incidentDate : DateTime.now()),
+        'spotVillage':
+            _controllers['village_town']?.text.trim().isNotEmpty == true
+                ? _controllers['village_town']!.text.trim()
+                : loc,
+        'spotArea': _controllers['area_name']?.text.trim() ?? '',
+        'spotAddress': loc,
+        'charges': chargesMap,
+        'complainant': compData,
+        'deceased': deceasedData,
+        'caseResponsibility': caseRespData,
+        'court': courtData,
+        'scrutiny': scrutinyMap,
+        'accused': finalAccusedList,
+        'suspectedAccused': finalSuspectedList,
+        'unidentifiedList': finalUnidentifiedList,
+        'unidentified_accused': finalUnidentifiedList,
+        'isUnknownAccused': isUnknown,
+        'is_unknown_accused': isUnknown,
+        'isUnknownUntraced': isUnknown,
+        'unknown_accused': _unknownAccusedList,
+        'unknownAccused': _unknownAccusedList,
+        'dischargeByAccused': dischargeByAccused,
+        'dischargeDetails': dischargeDetails,
+        'discharges': dischargesList,
+        'arrests': finalArrestsList,
+        'arrest_records': finalArrestsList,
+        'arrestRelease': finalArrestsList,
+        'preventive_actions': prevActionsToSubmit,
+        'preventive_action_items': prevActionsToSubmit,
+        'custody_records': custodyToSubmit,
+        'remand_custody': custodyToSubmit,
+        'custodyInfo': custodyToSubmit,
+        'seizures': seizuresList,
+        'proceduralChecks': proceduralChecks,
+        'proceduralDates': proceduralDates,
+        'dynamic_extra_fields': dynamicExtraVals,
+      };
+
+      final extraFields = Map<String, dynamic>.from(
+        widget.existingRecord?.extraFields ?? {},
+      );
+      extraFields.addAll(allFormFields);
+      extraFields['commonForm'] = commonFormDoc;
+      extraFields['charges'] = chargesMap;
+      extraFields['complainant'] = compData;
+      extraFields['deceased'] = deceasedData;
+      extraFields['caseResponsibility'] = caseRespData;
+      extraFields['court'] = courtData;
+      extraFields['scrutiny'] = scrutinyMap;
+      extraFields['accused'] = finalAccusedList;
+      extraFields['suspectedAccused'] = finalSuspectedList;
+      extraFields['unidentifiedList'] = finalUnidentifiedList;
+      extraFields['unidentified_accused'] = finalUnidentifiedList;
+      extraFields['is_unknown_accused'] = isUnknown;
+      extraFields['isUnknownAccused'] = isUnknown;
+      extraFields['isUnknownUntraced'] = isUnknown;
+      extraFields['unknown_accused'] = _unknownAccusedList;
+      extraFields['unknownAccused'] = _unknownAccusedList;
+      extraFields['extra_field_values'] = dynamicExtraVals;
+      extraFields['dischargeByAccused'] = dischargeByAccused;
+      extraFields['dischargeDetails'] = dischargeDetails;
+      extraFields['discharges'] = dischargesList;
+      extraFields['arrests'] = finalArrestsList;
+      extraFields['arrest_records'] = finalArrestsList;
+      extraFields['arrestRelease'] = finalArrestsList;
+      extraFields['preventive_actions'] = prevActionsToSubmit;
+      extraFields['preventive_action_items'] = prevActionsToSubmit;
+      extraFields['custody_records'] = custodyToSubmit;
+      extraFields['remand_custody'] = custodyToSubmit;
+      extraFields['custodyInfo'] = custodyToSubmit;
+      extraFields['seizures'] = seizuresList;
+      extraFields['proceduralChecks'] = proceduralChecks;
+      extraFields['proceduralDates'] = proceduralDates;
+      extraFields['is_discharged'] = _dischargedAccusedList.isNotEmpty;
+      extraFields['lastEditedBy'] = auth.displayName;
+      extraFields['lastEditedAt'] = DateTime.now().toIso8601String();
+
+      // Independent modules (N.C., RTI, MPDA, A.D. ...) save through their own API
+      if (widget.onSubmitCustom != null) {
+        try {
+          final payload = Map<String, dynamic>.from(allFormFields);
+          final res = await widget.onSubmitCustom!(payload, isEdit);
+          if (!mounted) return;
+          if (res != null && res.containsKey('error')) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  res['error'].toString(),
+                  style: GoogleFonts.poppins(),
+                ),
+                backgroundColor: AppColors.dangerRed,
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  isEdit ? 'Updated successfully!' : 'Saved successfully!',
+                  style: GoogleFonts.poppins(),
+                ),
+                backgroundColor: AppColors.successGreen,
+              ),
+            );
+            Navigator.pop(context, true);
+          }
+        } catch (e) {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                res['error'].toString(),
+                'Error saving: $e',
                 style: GoogleFonts.poppins(),
               ),
               backgroundColor: AppColors.dangerRed,
             ),
           );
-        } else {
+        }
+        return;
+      }
+
+      final record = ModuleRecord(
+        id: isEdit
+            ? widget.existingRecord!.id
+            : '${DateTime.now().millisecondsSinceEpoch}',
+        moduleKey: widget.moduleKey,
+        title: title,
+        caseNumber: caseNo,
+        description: _controllers['brief_description']?.text ?? '',
+        complainant: complainant,
+        accused: accused,
+        location: loc,
+        incidentDate:
+            isEdit ? widget.existingRecord!.incidentDate : DateTime.now(),
+        priority: isEdit ? widget.existingRecord!.priority : 'Medium',
+        status: isEdit ? widget.existingRecord!.status : 'Pending',
+        assignedOfficer:
+            isEdit ? widget.existingRecord!.assignedOfficer : auth.displayName,
+        subCategory: widget.subCategory ?? widget.moduleLabel,
+        createdAt: isEdit ? widget.existingRecord!.createdAt : DateTime.now(),
+        extraFields: extraFields,
+        stationName: auth.stationName,
+        createdBy: auth.uid,
+        assignedOfficerUid: auth.uid,
+      );
+
+      try {
+        final success = await _caseService.saveCase(record, isCreate: !isEdit);
+        if (!mounted) return;
+
+        if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                isEdit ? 'Updated successfully!' : 'Saved successfully!',
+                isEdit
+                    ? 'Case updated successfully!'
+                    : 'Case registered in Database!',
                 style: GoogleFonts.poppins(),
               ),
               backgroundColor: AppColors.successGreen,
             ),
           );
-          Navigator.pop(context, true);
+          Navigator.pop(context, record);
+        } else {
+          // The server's reason, e.g. a CR number already used in this tab
+          throw Exception(
+              _caseService.lastSaveError ?? 'Backend returned failure status.');
         }
       } catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Error saving: $e',
+              'Failed to save case: ${e.toString().replaceFirst('Exception: ', '')}',
               style: GoogleFonts.poppins(),
             ),
             backgroundColor: AppColors.dangerRed,
           ),
         );
       }
-      return;
-    }
-
-    final record = ModuleRecord(
-      id: isEdit
-          ? widget.existingRecord!.id
-          : '${DateTime.now().millisecondsSinceEpoch}',
-      moduleKey: widget.moduleKey,
-      title: title,
-      caseNumber: caseNo,
-      description: _controllers['brief_description']?.text ?? '',
-      complainant: complainant,
-      accused: accused,
-      location: loc,
-      incidentDate:
-          isEdit ? widget.existingRecord!.incidentDate : DateTime.now(),
-      priority: isEdit ? widget.existingRecord!.priority : 'Medium',
-      status: isEdit ? widget.existingRecord!.status : 'Pending',
-      assignedOfficer:
-          isEdit ? widget.existingRecord!.assignedOfficer : auth.displayName,
-      subCategory: widget.subCategory ?? widget.moduleLabel,
-      createdAt: isEdit ? widget.existingRecord!.createdAt : DateTime.now(),
-      extraFields: extraFields,
-      stationName: auth.stationName,
-      createdBy: auth.uid,
-      assignedOfficerUid: auth.uid,
-    );
-
-    try {
-      final success = await _caseService.saveCase(record, isCreate: !isEdit);
-      if (!mounted) return;
-
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              isEdit
-                  ? 'Case updated successfully!'
-                  : 'Case registered in Database!',
-              style: GoogleFonts.poppins(),
-            ),
-            backgroundColor: AppColors.successGreen,
-          ),
-        );
-        Navigator.pop(context, record);
-      } else {
-        // The server's reason, e.g. a CR number already used in this tab
-        throw Exception(
-            _caseService.lastSaveError ?? 'Backend returned failure status.');
-      }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Failed to save case: ${e.toString().replaceFirst('Exception: ', '')}',
-            style: GoogleFonts.poppins(),
-          ),
-          backgroundColor: AppColors.dangerRed,
-        ),
-      );
-    }
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
@@ -3710,10 +3714,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                           _isSubmitting
                               ? 'Saving...'
                               : (isEdit
-                              ? (widget.onSubmitCustom != null
-                                  ? 'Save Changes'
-                                  : 'Update Case Record')
-                              : 'Submit'),
+                                  ? (widget.onSubmitCustom != null
+                                      ? 'Save Changes'
+                                      : 'Update Case Record')
+                                  : 'Submit'),
                           style: GoogleFonts.poppins(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,

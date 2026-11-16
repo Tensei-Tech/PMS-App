@@ -1543,28 +1543,28 @@ class DynamicControlFactory extends StatelessWidget {
         spacing: 8,
         runSpacing: 6,
         children: opts.map((opt) {
-            final isSelected = opt == currentVal;
-            return ChoiceChip(
-              label: Text(
-                opt,
-                style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  color: isSelected ? Colors.white : AppColors.lightText,
-                ),
+          final isSelected = opt == currentVal;
+          return ChoiceChip(
+            label: Text(
+              opt,
+              style: GoogleFonts.poppins(
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected ? Colors.white : AppColors.lightText,
               ),
-              selected: isSelected,
-              selectedColor: AppColors.navyMid,
-              backgroundColor: Colors.white,
-              onSelected: readOnly
-                  ? null
-                  : (selected) {
-                      final chosen = selected ? opt : '';
-                      controller?.text = chosen;
-                      onChanged?.call(chosen);
-                    },
-            );
-          }).toList(),
+            ),
+            selected: isSelected,
+            selectedColor: AppColors.navyMid,
+            backgroundColor: Colors.white,
+            onSelected: readOnly
+                ? null
+                : (selected) {
+                    final chosen = selected ? opt : '';
+                    controller?.text = chosen;
+                    onChanged?.call(chosen);
+                  },
+          );
+        }).toList(),
       ),
     );
   }
@@ -1575,51 +1575,50 @@ class DynamicControlFactory extends StatelessWidget {
     return _buildFieldLayout(
       context,
       Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            border: Border.all(color: AppColors.lightBorder),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: AppColors.navyMid.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.upload_file_rounded,
-                    color: AppColors.navyMid, size: 20),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(color: AppColors.lightBorder),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: AppColors.navyMid.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  filePath.isNotEmpty ? filePath : 'No file attached',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: filePath.isNotEmpty
-                        ? AppColors.lightText
-                        : AppColors.lightSubText,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+              child: const Icon(Icons.upload_file_rounded,
+                  color: AppColors.navyMid, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                filePath.isNotEmpty ? filePath : 'No file attached',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: filePath.isNotEmpty
+                      ? AppColors.lightText
+                      : AppColors.lightSubText,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              if (!readOnly)
-                TextButton.icon(
-                  onPressed: () {
-                    // For web/mobile demo file reference
-                    controller?.text =
-                        'attached_doc_${DateTime.now().millisecondsSinceEpoch}.pdf';
-                    onChanged?.call(controller?.text);
-                  },
-                  icon: const Icon(Icons.attach_file, size: 16),
-                  label:
-                      Text('Attach', style: GoogleFonts.poppins(fontSize: 12)),
-                ),
-            ],
+            ),
+            if (!readOnly)
+              TextButton.icon(
+                onPressed: () {
+                  // For web/mobile demo file reference
+                  controller?.text =
+                      'attached_doc_${DateTime.now().millisecondsSinceEpoch}.pdf';
+                  onChanged?.call(controller?.text);
+                },
+                icon: const Icon(Icons.attach_file, size: 16),
+                label: Text('Attach', style: GoogleFonts.poppins(fontSize: 12)),
+              ),
+          ],
         ),
       ),
     );
@@ -1745,8 +1744,8 @@ class _DynamicDropdownWidgetState extends State<_DynamicDropdownWidget> {
         ),
         child: Text(
           'Loading options...',
-          style: GoogleFonts.poppins(
-              fontSize: 12, color: AppColors.lightSubText),
+          style:
+              GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText),
         ),
       );
 
@@ -1767,8 +1766,8 @@ class _DynamicDropdownWidgetState extends State<_DynamicDropdownWidget> {
       final errorDecorator = InputDecorator(
         decoration: widget.decoration.copyWith(
           suffixIcon: IconButton(
-            icon: const Icon(Icons.refresh,
-                size: 18, color: AppColors.dangerRed),
+            icon:
+                const Icon(Icons.refresh, size: 18, color: AppColors.dangerRed),
             onPressed: () {
               setState(() {
                 _isLoading = true;
@@ -1800,8 +1799,7 @@ class _DynamicDropdownWidgetState extends State<_DynamicDropdownWidget> {
         ),
         child: Text(
           _error!,
-          style:
-              GoogleFonts.poppins(fontSize: 12, color: AppColors.dangerRed),
+          style: GoogleFonts.poppins(fontSize: 12, color: AppColors.dangerRed),
         ),
       );
 
@@ -2298,26 +2296,26 @@ class _DynamicMultiSelectWidgetState extends State<_DynamicMultiSelectWidget> {
                     ),
                   )
                 : ListView(
-              shrinkWrap: true,
-              children: _options.map((opt) {
-                return CheckboxListTile(
-                  value: temp.contains(opt),
-                  dense: true,
-                  activeColor: AppColors.navyMid,
-                  controlAffinity: ListTileControlAffinity.leading,
-                  title: Text(opt,
-                      style: GoogleFonts.poppins(
-                          fontSize: 13, color: AppColors.lightText)),
-                  onChanged: (checked) => setDialogState(() {
-                    if (checked == true) {
-                      temp.add(opt);
-                    } else {
-                      temp.remove(opt);
-                    }
-                  }),
-                );
-              }).toList(),
-            ),
+                    shrinkWrap: true,
+                    children: _options.map((opt) {
+                      return CheckboxListTile(
+                        value: temp.contains(opt),
+                        dense: true,
+                        activeColor: AppColors.navyMid,
+                        controlAffinity: ListTileControlAffinity.leading,
+                        title: Text(opt,
+                            style: GoogleFonts.poppins(
+                                fontSize: 13, color: AppColors.lightText)),
+                        onChanged: (checked) => setDialogState(() {
+                          if (checked == true) {
+                            temp.add(opt);
+                          } else {
+                            temp.remove(opt);
+                          }
+                        }),
+                      );
+                    }).toList(),
+                  ),
           ),
           actions: [
             TextButton(
@@ -2340,40 +2338,40 @@ class _DynamicMultiSelectWidgetState extends State<_DynamicMultiSelectWidget> {
   Widget build(BuildContext context) {
     final hasValue = _selected.isNotEmpty;
     final control = InkWell(
-          onTap: widget.readOnly || _isLoading ? null : _openPicker,
-          borderRadius: BorderRadius.circular(10),
-          child: InputDecorator(
-            isEmpty: !hasValue,
-            decoration: widget.decoration.copyWith(
-              suffixIconConstraints: const BoxConstraints.tightFor(
-                width: 40,
-                height: 40,
-              ),
-              suffixIcon: _isLoading
-                  ? const Center(
-                      child: SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppColors.navyMid,
-                        ),
-                      ),
-                    )
-                  : const Icon(
-                      Icons.arrow_drop_down_rounded,
+      onTap: widget.readOnly || _isLoading ? null : _openPicker,
+      borderRadius: BorderRadius.circular(10),
+      child: InputDecorator(
+        isEmpty: !hasValue,
+        decoration: widget.decoration.copyWith(
+          suffixIconConstraints: const BoxConstraints.tightFor(
+            width: 40,
+            height: 40,
+          ),
+          suffixIcon: _isLoading
+              ? const Center(
+                  child: SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
                       color: AppColors.navyMid,
                     ),
-            ),
-            child: hasValue
-                ? Text(
-                    _selected.join(', '),
-                    style: GoogleFonts.poppins(
-                        fontSize: 13, color: AppColors.lightText),
-                  )
-                : null,
-          ),
-        );
+                  ),
+                )
+              : const Icon(
+                  Icons.arrow_drop_down_rounded,
+                  color: AppColors.navyMid,
+                ),
+        ),
+        child: hasValue
+            ? Text(
+                _selected.join(', '),
+                style: GoogleFonts.poppins(
+                    fontSize: 13, color: AppColors.lightText),
+              )
+            : null,
+      ),
+    );
 
     if (widget.labelWidget is SizedBox) {
       return control;
@@ -2483,82 +2481,79 @@ class _DynamicOfficerPickerWidgetState
   @override
   Widget build(BuildContext context) {
     final picker = Autocomplete<String>(
-          initialValue: TextEditingValue(text: _textCtrl.text),
-          optionsBuilder: (TextEditingValue val) {
-            if (val.text.isEmpty) {
-              return _officers.map((o) => o['name'].toString());
+      initialValue: TextEditingValue(text: _textCtrl.text),
+      optionsBuilder: (TextEditingValue val) {
+        if (val.text.isEmpty) {
+          return _officers.map((o) => o['name'].toString());
+        }
+        return _officers.map((o) => o['name'].toString()).where(
+            (name) => name.toLowerCase().contains(val.text.toLowerCase()));
+      },
+      onSelected: (selection) => _onOfficerPicked(selection),
+      fieldViewBuilder:
+          (context, fieldTextEditingController, focusNode, onFieldSubmitted) {
+        return TextFormField(
+          controller: fieldTextEditingController,
+          focusNode: focusNode,
+          readOnly: widget.readOnly,
+          style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
+          decoration: InputDecoration(
+            isDense: true,
+            filled: true,
+            fillColor: widget.readOnly ? const Color(0xFFF8FAFC) : Colors.white,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderSide: const BorderSide(color: AppColors.lightBorder),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderSide: const BorderSide(color: AppColors.lightBorder),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderSide:
+                  const BorderSide(color: AppColors.navyMid, width: 1.5),
+            ),
+            hintText: 'Enter ${widget.fieldDef.fieldLabel}',
+            hintStyle: GoogleFonts.poppins(
+                fontSize: 12, color: AppColors.lightSubText),
+            suffixIconConstraints: const BoxConstraints.tightFor(
+              width: 40,
+              height: 40,
+            ),
+            suffixIcon: _isLoading
+                ? const Center(
+                    child: SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.navyMid,
+                      ),
+                    ),
+                  )
+                : const Icon(Icons.person_search_rounded,
+                    size: 20, color: AppColors.navyMid),
+          ),
+          validator: (v) {
+            if (widget.fieldDef.isRequired && (v == null || v.trim().isEmpty)) {
+              return '${widget.fieldDef.fieldLabel} is required';
             }
-            return _officers.map((o) => o['name'].toString()).where(
-                (name) => name.toLowerCase().contains(val.text.toLowerCase()));
+            return null;
           },
-          onSelected: (selection) => _onOfficerPicked(selection),
-          fieldViewBuilder: (context, fieldTextEditingController, focusNode,
-              onFieldSubmitted) {
-            return TextFormField(
-              controller: fieldTextEditingController,
-              focusNode: focusNode,
-              readOnly: widget.readOnly,
-              style:
-                  GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
-              decoration: InputDecoration(
-                isDense: true,
-                filled: true,
-                fillColor:
-                    widget.readOnly ? const Color(0xFFF8FAFC) : Colors.white,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  borderSide: const BorderSide(color: AppColors.lightBorder),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  borderSide: const BorderSide(color: AppColors.lightBorder),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  borderSide:
-                      const BorderSide(color: AppColors.navyMid, width: 1.5),
-                ),
-                hintText: 'Enter ${widget.fieldDef.fieldLabel}',
-                hintStyle: GoogleFonts.poppins(
-                    fontSize: 12, color: AppColors.lightSubText),
-                suffixIconConstraints: const BoxConstraints.tightFor(
-                  width: 40,
-                  height: 40,
-                ),
-                suffixIcon: _isLoading
-                    ? const Center(
-                        child: SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: AppColors.navyMid,
-                          ),
-                        ),
-                      )
-                    : const Icon(Icons.person_search_rounded,
-                        size: 20, color: AppColors.navyMid),
-              ),
-              validator: (v) {
-                if (widget.fieldDef.isRequired &&
-                    (v == null || v.trim().isEmpty)) {
-                  return '${widget.fieldDef.fieldLabel} is required';
-                }
-                return null;
-              },
-              onChanged: (text) {
-                _textCtrl.text = text;
-                widget.onChanged?.call(text);
-                widget.onMultiFieldChanged?.call({
-                  widget.fieldDef.fieldKey: text,
-                  'mpda_io_name': text,
-                });
-              },
-            );
+          onChanged: (text) {
+            _textCtrl.text = text;
+            widget.onChanged?.call(text);
+            widget.onMultiFieldChanged?.call({
+              widget.fieldDef.fieldKey: text,
+              'mpda_io_name': text,
+            });
           },
         );
+      },
+    );
 
     if (widget.labelWidget is SizedBox) {
       return picker;

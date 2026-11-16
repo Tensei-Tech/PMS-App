@@ -576,7 +576,8 @@ class _LoginScreenState extends State<LoginScreen>
                       AppColors.navyMid.withValues(alpha: 0.7),
                   disabledForegroundColor: Colors.white,
                   elevation: 0,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
@@ -635,7 +636,8 @@ class _LoginScreenState extends State<LoginScreen>
                       color: AppColors.navyDark),
                 ),
                 style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                   side: const BorderSide(color: AppColors.navyDark, width: 1.2),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppRadius.md)),

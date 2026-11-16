@@ -714,72 +714,76 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   parent: BouncingScrollPhysics(),
                 ),
                 slivers: [
-                if (widget.moduleKey == 'monthly') ...[
-                  // Monthly module is report-only (no records section).
-                  SliverToBoxAdapter(
-                      child: _buildMonthlyReport(context, allRecords)),
-                ] else if (widget.moduleKey == 'sam_warrant') ...[
-                  // Sam/Warrant module is report-only (fetching dynamically from database).
-                  SliverToBoxAdapter(
-                      child: _buildSamWarrantModuleReportOnly(context)),
-                ] else if (widget.moduleKey == 'pending') ...[
-                  SliverToBoxAdapter(
-                      child: _buildPendingModuleReportOnly(context)),
-                ] else if (widget.moduleLabel == 'Forms' &&
-                    widget.moduleKey == 'form_1_5') ...[
-                  SliverToBoxAdapter(
-                      child: _buildFormsModuleReportOnly(context)),
-                ] else ...[
-                  if (widget.moduleKey == 'disposal')
-                    SliverToBoxAdapter(child: _buildModuleTabs()),
-                  if (_isReportMode && widget.moduleKey == 'disposal')
+                  if (widget.moduleKey == 'monthly') ...[
+                    // Monthly module is report-only (no records section).
                     SliverToBoxAdapter(
-                        child: _buildMonthlyReport(context, allRecords))
-                  else ...[
-                    if (displayRecords.isEmpty)
-                      (isProviderLoading
-                          ? _buildSkeletonList()
-                          : (hasProviderError
-                              ? SliverToBoxAdapter(
-                                  child: _buildErrorCard(
-                                    _watchProvider(context).errorMessage ??
-                                        'Failed to load records.',
-                                  ),
-                                )
-                              : SliverToBoxAdapter(
-                                  child: isTheftOrFormIVStyle
-                                      ? FormIVEmptyCasesState(
-                                          category: (widget.subCategory != null &&
-                                                  widget.subCategory!.isNotEmpty)
-                                              ? widget.subCategory!
-                                              : widget.moduleLabel,
-                                          readOnly: true,
-                                          statusTab: selectedTab,
-                                          onNewCase: null,
-                                          selectedDateRange: _selectedDateRange,
-                                          onClearDateFilter: () => setState(
-                                              () => _selectedDateRange = null),
-                                        )
-                                      : _buildEmpty(),
-                                )))
-                    else
-                      SliverPadding(
-                        padding: const EdgeInsets.all(AppSpacing.lg),
-                        sliver: SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (ctx, i) => _buildCard(ctx, displayRecords[i],
-                                index: i + 1),
-                            childCount: displayRecords.length,
+                        child: _buildMonthlyReport(context, allRecords)),
+                  ] else if (widget.moduleKey == 'sam_warrant') ...[
+                    // Sam/Warrant module is report-only (fetching dynamically from database).
+                    SliverToBoxAdapter(
+                        child: _buildSamWarrantModuleReportOnly(context)),
+                  ] else if (widget.moduleKey == 'pending') ...[
+                    SliverToBoxAdapter(
+                        child: _buildPendingModuleReportOnly(context)),
+                  ] else if (widget.moduleLabel == 'Forms' &&
+                      widget.moduleKey == 'form_1_5') ...[
+                    SliverToBoxAdapter(
+                        child: _buildFormsModuleReportOnly(context)),
+                  ] else ...[
+                    if (widget.moduleKey == 'disposal')
+                      SliverToBoxAdapter(child: _buildModuleTabs()),
+                    if (_isReportMode && widget.moduleKey == 'disposal')
+                      SliverToBoxAdapter(
+                          child: _buildMonthlyReport(context, allRecords))
+                    else ...[
+                      if (displayRecords.isEmpty)
+                        (isProviderLoading
+                            ? _buildSkeletonList()
+                            : (hasProviderError
+                                ? SliverToBoxAdapter(
+                                    child: _buildErrorCard(
+                                      _watchProvider(context).errorMessage ??
+                                          'Failed to load records.',
+                                    ),
+                                  )
+                                : SliverToBoxAdapter(
+                                    child: isTheftOrFormIVStyle
+                                        ? FormIVEmptyCasesState(
+                                            category:
+                                                (widget.subCategory != null &&
+                                                        widget.subCategory!
+                                                            .isNotEmpty)
+                                                    ? widget.subCategory!
+                                                    : widget.moduleLabel,
+                                            readOnly: true,
+                                            statusTab: selectedTab,
+                                            onNewCase: null,
+                                            selectedDateRange:
+                                                _selectedDateRange,
+                                            onClearDateFilter: () => setState(
+                                                () =>
+                                                    _selectedDateRange = null),
+                                          )
+                                        : _buildEmpty(),
+                                  )))
+                      else
+                        SliverPadding(
+                          padding: const EdgeInsets.all(AppSpacing.lg),
+                          sliver: SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (ctx, i) => _buildCard(ctx, displayRecords[i],
+                                  index: i + 1),
+                              childCount: displayRecords.length,
+                            ),
                           ),
                         ),
-                      ),
+                    ],
                   ],
+                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
                 ],
-                const SliverToBoxAdapter(child: SizedBox(height: 100)),
-              ],
+              ),
             ),
           ),
-        ),
         ],
       ),
       floatingActionButton: null,
@@ -1897,7 +1901,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               onPressed: () {
                 _watchProvider(context).refresh();
               },
-              icon: const Icon(Icons.refresh_rounded, size: 16, color: Colors.white),
+              icon: const Icon(Icons.refresh_rounded,
+                  size: 16, color: Colors.white),
               label: Text(
                 TranslationHelper.translate(context, 'Retry'),
                 style: GoogleFonts.poppins(
@@ -1976,8 +1981,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               hasFilter
                   ? TranslationHelper.translate(
                       context, 'Try clearing filters to see more results.')
-                  : TranslationHelper.translate(context,
-                      'No registered entries found in this category.'),
+                  : TranslationHelper.translate(
+                      context, 'No registered entries found in this category.'),
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 fontSize: 12,
