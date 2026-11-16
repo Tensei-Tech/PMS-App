@@ -184,6 +184,8 @@ class CaseExtraFieldValue(models.Model):
     field_value = models.TextField(blank=True, null=True)
     # Repeating-list row / multi-select position (0 for a single value)
     row_no = models.IntegerField(default=0)
+    # The date / time written beside a ticked checkbox (A.D. form), as the form sends it
+    value_date = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

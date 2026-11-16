@@ -9,6 +9,7 @@ A.D. (Accidental Death) module service.
 - Sub-tabs: active child categories of ad.target_category_code.
 - Every label, message and the list card layout come from module_settings 'ad'.
 """
+import json
 import logging
 import re
 
@@ -272,8 +273,116 @@ def clean_form_data(data, field_defs, settings):
     return values
 
 
-def record_form_data(record, field_defs):
-    """Stored answers keyed by the form's field keys (prefills an edit)."""
+# ── Answers in case_extra_field_values (step B4) ─────────────────────────────
+# One row per answer: a top-level field at row_no 0, a person-list field at the
+# person's position. A ticked checkbox is 'Yes' with its date in value_date; a
+# multi-select is one row holding the chosen options as a JSON list.
+def _to_text(f, value):
+    if f.field_type == 'checkbox':
+        return 'Yes' if _is_ticked(value) else None
+    if f.field_type == 'multi_select':
+        chosen = _as_list(value)
+        return json.dumps(chosen, ensure_ascii=False) if chosen else None
+    return _clean_str(value)
+
+
+def _from_text(f, text):
+    if f.field_type == 'checkbox':
+        return True if _is_ticked(text) else None
+    if f.field_type == 'multi_select':
+        try:
+            chosen = json.loads(text)
+        except (TypeError, ValueError):
+            chosen = _as_list(text)
+        return [str(c) for c in chosen] if isinstance(chosen, list) else _as_list(text)
+    return text
+
+
+def build_answer_rows(record, values, field_defs):
+    """Unsaved CaseExtraFieldValue rows for the cleaned answers `values`."""
+    from apps.crimetab.models import CaseExtraFieldValue
+    kids = {}
+    for f in field_defs:
+        if f.parent_field_key:
+            kids.setdefault(f.parent_field_key, []).append(f)
+    rows = []
+
+    def add(f, value, date, row_no):
+        text = _to_text(f, value)
+        if text is None:
+            return
+        rows.append(CaseExtraFieldValue(case=record, field_def=f, row_no=row_no, field_value=text,
+                                        value_date=_clean_str(date) if f.field_type == 'checkbox' else None))
+
+    for f in field_defs:
+        if f.parent_field_key or f.field_key not in values:
+            continue
+        if f.field_type == 'repeating_group':
+            for row_no, person in enumerate(values[f.field_key] if isinstance(values[f.field_key], list) else []):
+                for k in kids.get(f.field_key, []):
+                    if isinstance(person, dict) and k.field_key in person:
+                        add(k, person[k.field_key], person.get(k.field_key + CHECKBOX_DATE_SUFFIX), row_no)
+        else:
+            add(f, values[f.field_key], values.get(f.field_key + CHECKBOX_DATE_SUFFIX), 0)
+    return rows
+
+
+def save_answers(record, values, field_defs):
+    """Replace the record's A.D. answer rows with `values` (the cleaned form answers)."""
+    from apps.crimetab.models import CaseExtraFieldValue
+    CaseExtraFieldValue.objects.filter(case=record, field_def__in=field_defs).delete()
+    CaseExtraFieldValue.objects.bulk_create(build_answer_rows(record, values, field_defs))
+
+
+def answers_from_rows(rows, field_defs):
+    """The form answers rebuilt from answer rows, in the shape clean_form_data gives them."""
+    by_id = {f.field_def_id: f for f in field_defs}
+    out, groups = {}, {}
+    for r in sorted(rows, key=lambda x: (x.row_no, x.field_def_id)):
+        f = by_id.get(r.field_def_id)
+        if f is None:
+            continue
+        value = _from_text(f, r.field_value)
+        if _blank(value):
+            continue
+        target = (groups.setdefault(f.parent_field_key, {}).setdefault(r.row_no, {})
+                  if f.parent_field_key else out)
+        target[f.field_key] = value
+        if r.value_date:
+            # a real field with the same key (e.g. Postmortem Date) wins over the checkbox date
+            target.setdefault(f.field_key + CHECKBOX_DATE_SUFFIX, r.value_date)
+    for parent, persons in groups.items():
+        out[parent] = [persons[i] for i in sorted(persons)]
+    return out
+
+
+def answer_rows_by_case(records, field_defs):
+    """{case id: [rows]} for a page of records, in one query."""
+    from apps.crimetab.models import CaseExtraFieldValue
+    ids = [r.pk for r in records]
+    rows = {}
+    if ids and field_defs:
+        for row in CaseExtraFieldValue.objects.filter(case_id__in=ids,
+                                                      field_def_id__in=[f.field_def_id for f in field_defs]):
+            rows.setdefault(row.case_id, []).append(row)
+    return rows
+
+
+def record_form_data(record, field_defs, rows=None):
+    """
+    Stored answers keyed by the form's field keys (prefills an edit). Read from
+    case_extra_field_values; the JSON is the fallback for records not saved since.
+    `rows` may be pre-fetched (answer_rows_by_case).
+    """
+    if rows is None:
+        rows = answer_rows_by_case([record], field_defs).get(record.pk, [])
+    if rows:
+        return answers_from_rows(rows, field_defs)
+    return json_form_data(record, field_defs)
+
+
+def json_form_data(record, field_defs):
+    """The answers as stored in the case JSON."""
     extra = record.extra_fields if isinstance(record.extra_fields, dict) else {}
     out = {}
     for f in field_defs:
