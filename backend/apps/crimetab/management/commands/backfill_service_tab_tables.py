@@ -4,12 +4,13 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from apps.core.tenancy import TenantContext
-from apps.crimetab.service_tab_tables import save_sam_warrant
+from apps.crimetab.service_tab_tables import (
+    PASSPORT_PVR_MODULES, save_passport_pvr, save_sam_warrant)
 
 
 class Command(BaseCommand):
     help = ('Copy service tab answers saved only in case JSON into their tables '
-            '(Sam/Warrant -> sam_warrant_records). The JSON is not changed and running it '
+            '(Sam/Warrant -> sam_warrant_records, Passport / PVR -> passport_pvr_records). The JSON is not changed and running it '
             'again only refreshes the rows. Default: every active state; --dry-run reads only.')
 
     def add_arguments(self, parser):
@@ -33,6 +34,11 @@ class Command(BaseCommand):
                         totals['type unclear'] += 1
                         self.stdout.write(f'  {case.pk}: type unclear '
                                           f'({case.extra_fields.get("warrant_type")!r}, {case.sub_category!r})')
+                for case in CaseRecord.objects.filter(module_key__in=PASSPORT_PVR_MODULES).iterator():
+                    values = save_passport_pvr(case, write=not dry_run)
+                    totals['passport/pvr rows'] += 1
+                    if values['total_count'] is None:
+                        totals['passport/pvr without counts'] += 1
             verb = 'would write' if dry_run else 'wrote'
             self.stdout.write(self.style.SUCCESS(f'{schema}: {verb} ' + (', '.join(
                 f'{k} {v}' for k, v in totals.items()) or 'nothing')))
