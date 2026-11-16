@@ -403,12 +403,14 @@ class MuddemalProvider extends BaseModuleProvider {
 
   // UI state
   bool _isLoading = false;
+  // ignore: annotate_overrides
   bool get isLoading => _isLoading;
 
   bool _isFieldsLoading = false;
   bool get isFieldsLoading => _isFieldsLoading;
 
   String? _errorMessage;
+  // ignore: annotate_overrides
   String? get errorMessage => _errorMessage;
 
   String _filterStation = '';

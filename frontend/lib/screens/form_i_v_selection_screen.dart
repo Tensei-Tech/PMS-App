@@ -1533,25 +1533,9 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
     }
 
     final Widget? actionWidget = _showNewCaseFab
-        ? ElevatedButton.icon(
+        ? ModuleHubScreenAppBar.buildAddCaseButton(
+            context: context,
             onPressed: _onNewCase,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.navyMid,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            icon: const Icon(Icons.add_rounded, size: 16),
-            label: Text(
-              TranslationHelper.translate(context, 'Add Case'),
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
           )
         : null;
 
@@ -2097,14 +2081,9 @@ class FormIVStatusTabBar extends StatelessWidget {
           ),
           child: Row(
             children: [
-              if (isMobile)
-                Expanded(
-                  child: Row(
-                    children:
-                        tabs.map((t) => buildTabItem(t, expand: true)).toList(),
-                  ),
-                )
-              else ...[
+              if (isMobile) ...[
+                for (final t in tabs) buildTabItem(t, expand: true),
+              ] else ...[
                 const SizedBox(width: 16),
                 for (final t in tabs) ...[
                   buildTabItem(t, expand: false),
@@ -2115,7 +2094,7 @@ class FormIVStatusTabBar extends StatelessWidget {
               if (trailingWidget != null) ...[
                 const SizedBox(width: 8),
                 trailingWidget!,
-                const SizedBox(width: 16),
+                if (!isMobile) const SizedBox(width: 16),
               ],
             ],
           ),

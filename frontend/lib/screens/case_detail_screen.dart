@@ -13,6 +13,7 @@ import '../utils/case_visibility.dart';
 import '../utils/police_rbac_helper.dart';
 import '../widgets/send_reminder_dialog.dart';
 import '../utils/common_form_module.dart';
+import '../utils/translation_helper.dart';
 import '../utils/pdf_helper.dart';
 import '../widgets/access_denied_view.dart';
 import '../widgets/dynamic_form/dynamic_form_screen.dart';
@@ -41,6 +42,7 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
   late ModuleRecord _record;
   bool _recordDeleted = false;
   bool _accessDenied = false;
+  bool _isConnectionError = false;
   StreamSubscription<ModuleRecord?>? _subscription;
 
   @override
@@ -62,13 +64,17 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
           setState(() {
             _recordDeleted = false;
             _accessDenied = false;
+            _isConnectionError = false;
             _record = next;
           });
         }
       },
       onError: (_) {
         if (!mounted) return;
-        setState(() => _accessDenied = true);
+        setState(() {
+          _isConnectionError = true;
+          _accessDenied = false;
+        });
       },
     );
   }
@@ -82,6 +88,7 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
         setState(() {
           _recordDeleted = false;
           _accessDenied = false;
+          _isConnectionError = false;
           _record = fresh;
         });
       }
@@ -100,6 +107,12 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
     final canView = CaseVisibility.canViewRecord(record: _record, auth: auth);
     final showContent = !_recordDeleted && !_accessDenied && canView;
 
+    if (_isConnectionError) {
+      return Scaffold(
+        backgroundColor: AppColors.lightBg,
+        body: _buildConnectionErrorBody(context),
+      );
+    }
     if (_accessDenied || !canView) {
       return Scaffold(
         backgroundColor: AppColors.lightBg,
@@ -129,6 +142,85 @@ class _CaseDetailScreenState extends State<CaseDetailScreen> {
       bottomNavigationBar: widget.showFloatingActions
           ? _buildStickyBottomActions(context, showContent)
           : null,
+    );
+  }
+
+  Widget _buildConnectionErrorBody(BuildContext context) {
+    return CustomScrollView(
+      slivers: [
+        _buildSliverAppBar(context),
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: AppColors.dangerRed.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.cloud_off_rounded,
+                      size: 32,
+                      color: AppColors.dangerRed,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    TranslationHelper.translate(
+                        context, 'Unable to connect to case feed'),
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.lightText,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    TranslationHelper.translate(context,
+                        'Check your station internet connection and retry.'),
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: AppColors.lightSubText,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      setState(() => _isConnectionError = false);
+                      _subscribeToRecord();
+                    },
+                    icon: const Icon(Icons.refresh_rounded,
+                        size: 16, color: Colors.white),
+                    label: Text(
+                      TranslationHelper.translate(context, 'Reconnect'),
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.navyMid,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
