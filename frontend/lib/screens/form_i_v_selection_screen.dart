@@ -2024,7 +2024,7 @@ class FormIVStatusTabBar extends StatelessWidget {
           final tabContent = Container(
             padding: EdgeInsets.symmetric(
               vertical: 9,
-              horizontal: isMobile ? 8 : 14,
+              horizontal: isMobile ? 8 : 12,
             ),
             decoration: BoxDecoration(
               border: Border(
@@ -2096,15 +2096,26 @@ class FormIVStatusTabBar extends StatelessWidget {
             ),
           ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment:
+                isMobile ? MainAxisAlignment.center : MainAxisAlignment.start,
             children: [
-              for (int i = 0; i < tabs.length; i++) ...[
-                if (i > 0) SizedBox(width: isMobile ? 8 : 16),
-                buildTabItem(tabs[i], expand: false),
+              if (isMobile) ...[
+                for (int i = 0; i < tabs.length; i++) ...[
+                  if (i > 0) const SizedBox(width: 8),
+                  buildTabItem(tabs[i], expand: false),
+                ],
+              ] else ...[
+                const SizedBox(width: 16),
+                for (final t in tabs) ...[
+                  buildTabItem(t, expand: false),
+                  const SizedBox(width: 16),
+                ],
+                const Spacer(),
               ],
               if (trailingWidget != null) ...[
                 const SizedBox(width: 8),
                 trailingWidget!,
+                if (!isMobile) const SizedBox(width: 16),
               ],
             ],
           ),
