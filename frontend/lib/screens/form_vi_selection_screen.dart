@@ -1911,7 +1911,7 @@ class FormVIStatusTabBar extends StatelessWidget {
           final tabContent = Container(
             padding: EdgeInsets.symmetric(
               vertical: 9,
-              horizontal: isMobile ? 8 : 12,
+              horizontal: isMobile ? 4 : 12,
             ),
             decoration: BoxDecoration(
               border: Border(
@@ -1983,14 +1983,10 @@ class FormVIStatusTabBar extends StatelessWidget {
             ),
           ),
           child: Row(
-            mainAxisAlignment:
-                isMobile ? MainAxisAlignment.center : MainAxisAlignment.start,
             children: [
               if (isMobile) ...[
-                for (int i = 0; i < tabs.length; i++) ...[
-                  if (i > 0) const SizedBox(width: 8),
-                  buildTabItem(tabs[i], expand: false),
-                ],
+                for (final t in tabs)
+                  buildTabItem(t, expand: true),
               ] else ...[
                 const SizedBox(width: 16),
                 for (final t in tabs) ...[
