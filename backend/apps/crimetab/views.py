@@ -1385,6 +1385,10 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
     from apps.crimetab.common_form_tables import save_common_form_tables
     save_common_form_tables(case, data)
 
+    # 20. Service tabs (Sam/Warrant, ...) into their own tables
+    from apps.crimetab.service_tab_tables import save_service_tab_tables
+    save_service_tab_tables(case, data)
+
 
 # Road Accident Extra Template questions saved in the road_accident_* tables
 # (step 18); they are removed from the case's extra_fields JSON once saved.
