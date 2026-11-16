@@ -65,3 +65,31 @@ class PassportPvrRecord(models.Model):
     class Meta:
         db_table = 'passport_pvr_records'
         verbose_name = 'Passport / PVR Record'
+
+
+class LicenceRecord(models.Model):
+    """licence_records: one Licence / NOC verification application (Licence tab)."""
+
+    case = models.OneToOneField(
+        'cases.CaseRecord',
+        on_delete=models.CASCADE,
+        primary_key=True,
+        db_column='case_id',
+        related_name='licence',
+    )
+    licence_number = models.CharField(max_length=100, null=True, blank=True)
+    licence_type = models.CharField(max_length=255, null=True, blank=True)
+    base_licence_type = models.CharField(max_length=255, null=True, blank=True)
+    other_noc_type = models.CharField(max_length=255, null=True, blank=True)
+    applicant_name = models.CharField(max_length=255, null=True, blank=True)
+    business_name = models.CharField(max_length=255, null=True, blank=True)
+    received_date = models.DateField(null=True, blank=True)
+    licence_status = models.CharField(max_length=20, null=True, blank=True)
+    status_updated_at = models.DateTimeField(null=True, blank=True)
+    remarks = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'licence_records'
+        verbose_name = 'Licence Record'
