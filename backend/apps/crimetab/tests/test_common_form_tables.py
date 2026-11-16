@@ -252,3 +252,23 @@ class CommonFormCourtFilingTests(TestCase):
         self.assertIsNone(self._verdict())
         call_command('backfill_common_form_tables', '--schema', 'maharashtra', stdout=StringIO())
         self.assertEqual(self._verdict().cc_st_number, '3456789')
+
+
+class UnknownAccusedOnceTests(TestCase):
+
+    def setUp(self):
+        self.ctx = TenantContext('maharashtra')
+        self.ctx.__enter__()
+        self.case = CaseRecord.objects.create(id='TEST_UNK_1', case_number='CR/UNK/1', station_name='TEST')
+
+    def tearDown(self):
+        self.ctx.__exit__(None, None, None)
+
+    def test_saving_again_adds_no_second_unknown_or_unidentified(self):
+        from apps.crimetab.models.common_form import CasesPerson
+        extra = {'is_unknown_accused': True, 'approximate_age': '30', 'unidentified_gender': 'Male',
+                 'description': 'Tall, scar on left hand'}
+        for _ in range(3):
+            _save_case_child_entities(self.case, {'extra_fields': extra})
+        self.assertEqual(CasesPerson.objects.filter(case=self.case, role='unknown_accused').count(), 1)
+        self.assertEqual(CasesPerson.objects.filter(case=self.case, role='unidentified').count(), 1)
