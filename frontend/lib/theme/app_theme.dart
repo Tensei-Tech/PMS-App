@@ -132,6 +132,8 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.navyMid,
           foregroundColor: Colors.white,
+          disabledBackgroundColor: AppColors.navyMid.withValues(alpha: 0.65),
+          disabledForegroundColor: Colors.white.withValues(alpha: 0.8),
           elevation: 0,
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
           shape: RoundedRectangleBorder(
@@ -205,6 +207,34 @@ class AppTheme {
           fontSize: 12,
           color: AppColors.lightSubText,
         ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
+        titleTextStyle: GoogleFonts.poppins(
+          fontSize: 17,
+          fontWeight: FontWeight.w700,
+          color: AppColors.navyDark,
+        ),
+        contentTextStyle: GoogleFonts.poppins(
+          fontSize: 13.5,
+          color: AppColors.lightText,
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: AppColors.navyDark,
+        contentTextStyle: GoogleFonts.poppins(
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          color: Colors.white,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }

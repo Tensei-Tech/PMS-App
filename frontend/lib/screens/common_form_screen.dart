@@ -165,6 +165,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
       GlobalKey<PocsoExtraFieldsState>();
 
   bool _isExportingPdf = false;
+  bool _isSubmitting = false;
 
   bool get _isEdit => widget.existingRecord != null;
   bool get _isAbForm => widget.subCategory == 'AB Form';
@@ -1107,6 +1108,8 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
   }
 
   Future<void> _submit() async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
     final auth = context.read<AuthProvider>();
     final provider = _getProvider(context);
 
@@ -1121,13 +1124,14 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
         : auth.uid;
 
     if (!_isEdit && stationName.isEmpty) {
+      setState(() => _isSubmitting = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             'Station not assigned. Please log out and log in again.',
             style: GoogleFonts.poppins(),
           ),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.dangerRed,
         ),
       );
       return;
@@ -1764,6 +1768,10 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
           backgroundColor: AppColors.dangerRed,
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
   }
 
@@ -2046,7 +2054,7 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                   width: 95,
                   height: 46,
                   child: ElevatedButton(
-                    onPressed: _submit,
+                    onPressed: _isSubmitting ? null : _submit,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.navyMid,
                       foregroundColor: Colors.white,
@@ -2054,13 +2062,22 @@ class _CommonFormScreenState extends State<CommonFormScreen> {
                         borderRadius: BorderRadius.circular(AppRadius.lg),
                       ),
                     ),
-                    child: Text(
-                      TranslationHelper.translate(context, 'Done'),
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                    child: _isSubmitting
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(
+                            TranslationHelper.translate(context, 'Done'),
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                   ),
                 ),
                 const SizedBox(width: 8),
