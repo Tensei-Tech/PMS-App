@@ -1533,25 +1533,9 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
     }
 
     final Widget? actionWidget = _showNewCaseFab
-        ? ElevatedButton.icon(
+        ? ModuleHubScreenAppBar.buildAddCaseButton(
+            context: context,
             onPressed: _onNewCase,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.navyMid,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            icon: const Icon(Icons.add_rounded, size: 16),
-            label: Text(
-              TranslationHelper.translate(context, 'Add Case'),
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
           )
         : null;
 

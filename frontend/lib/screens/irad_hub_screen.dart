@@ -1,3 +1,4 @@
+import '../widgets/module_hub_screen_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/api_service.dart';
@@ -265,25 +266,9 @@ class _IradHubScreenState extends State<IradHubScreen> {
           ),
         ),
         actions: [
-          ElevatedButton.icon(
+          ModuleHubScreenAppBar.buildAddCaseButton(
+            context: context,
             onPressed: _openNewCaseForm,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.navyMid,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            icon: const Icon(Icons.add_rounded, size: 18),
-            label: Text(
-              'Add Case',
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
           ),
           const SizedBox(width: 6),
           IconButton(

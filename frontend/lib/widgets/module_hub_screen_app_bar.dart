@@ -26,6 +26,39 @@ class ModuleHubScreenAppBar extends StatelessWidget
     this.backgroundColor,
   });
 
+  /// Factory for standard compact pill '+ Add Case' button used across module headers.
+  static Widget buildAddCaseButton({
+    required BuildContext context,
+    required VoidCallback onPressed,
+    Color? backgroundColor,
+    Color? foregroundColor,
+  }) {
+    final bg = backgroundColor ?? AppColors.navyMid;
+    final fg = foregroundColor ?? Colors.white;
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: bg,
+        foregroundColor: fg,
+        elevation: 0,
+        minimumSize: const Size(0, 32),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+        visualDensity: VisualDensity.compact,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: const StadiumBorder(),
+      ),
+      icon: Icon(Icons.add_rounded, size: 15, color: fg),
+      label: Text(
+        TranslationHelper.translate(context, 'Add Case'),
+        style: GoogleFonts.poppins(
+          fontSize: 11.5,
+          fontWeight: FontWeight.w600,
+          color: fg,
+        ),
+      ),
+    );
+  }
+
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
