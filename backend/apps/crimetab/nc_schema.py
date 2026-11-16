@@ -118,6 +118,10 @@ NC_TENANT_DDL = [
     """
     ALTER TABLE {s}.nc_preventive_actions ADD COLUMN IF NOT EXISTS outward_date DATE
     """,
+    # lookups by person alone (e.g. deleting a person) cannot use (nc_id, person_id)
+    """
+    CREATE INDEX IF NOT EXISTS nc_prev_person_idx ON {s}.nc_preventive_actions (person_id)
+    """,
 ]
 
 

@@ -32,6 +32,7 @@ class DynamicOptionsService {
   /// Clears the in-memory session cache (called on logout)
   void clearCache() {
     _optionsCache.clear();
+    _recordsCache.clear();
   }
 
   /// Synchronously checks if options are cached
@@ -44,6 +45,48 @@ class DynamicOptionsService {
   bool hasCached(String route, {String? stationId}) {
     final key = buildCacheKey(route, stationId: stationId);
     return _optionsCache.containsKey(key);
+  }
+
+  /// Full URL for a route such as `acts/` or `/api/options/gender/`.
+  static String absoluteUrl(String route) {
+    var url = route.trim();
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    if (!url.startsWith('/')) url = '/$url';
+    if (!url.startsWith('/api/')) url = '/api$url';
+    final base = ApiConfig.baseUrl.replaceAll(RegExp(r'/api/?$'), '');
+    return '$base$url';
+  }
+
+  final Map<String, List<Map<String, dynamic>>> _recordsCache = {};
+
+  /// The raw rows of a route (e.g. `acts/`, `act-sections/?act_id=3`), for
+  /// controls that keep an id and show a label (dependent dropdowns).
+  /// Cached per route for the session; errors are thrown, not cached.
+  Future<List<Map<String, dynamic>>> fetchRecords(String route) async {
+    final trimmed = route.trim();
+    if (trimmed.isEmpty) return const [];
+    final key = trimmed.toLowerCase();
+    final cached = _recordsCache[key];
+    if (cached != null) return cached;
+
+    final response = await _api.get(absoluteUrl(trimmed));
+    if (!response.isSuccess) {
+      throw Exception('Could not load options (${response.statusCode})');
+    }
+    final data = response.data;
+    final items = data is List
+        ? data
+        : data is Map
+            ? ((data['results'] ?? data['options'] ?? data['values'])
+                    as List?) ??
+                const []
+            : const [];
+    final rows = items
+        .whereType<Map>()
+        .map((m) => Map<String, dynamic>.from(m))
+        .toList();
+    _recordsCache[key] = rows;
+    return rows;
   }
 
   /// Loads options from route, parses them, and caches them in memory.
@@ -61,17 +104,7 @@ class DynamicOptionsService {
     }
 
     try {
-      String url = trimmedRoute;
-      if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        if (!url.startsWith('/')) {
-          url = '/$url';
-        }
-        if (!url.startsWith('/api/')) {
-          url = '/api$url';
-        }
-        final base = ApiConfig.baseUrl.replaceAll(RegExp(r'/api/?$'), '');
-        url = '$base$url';
-      }
+      final url = absoluteUrl(trimmedRoute);
 
       final queryParams = <String, dynamic>{};
       final cleanRoute = trimmedRoute.toLowerCase();

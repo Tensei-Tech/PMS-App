@@ -14,6 +14,7 @@ from .dynamic_engine import (
     ModuleSetting,
 )
 from .rti import RTIApplication
+from .service_tabs import LicenceRecord, PassportPvrRecord, SamWarrantRecord, TadiparRecord
 from .history_sheeter import (
     HistorySheeter,
     HistorySheeterRelatedPerson,
@@ -61,6 +62,10 @@ from .accident import (
 )
 
 __all__ = [
+    'SamWarrantRecord',
+    'PassportPvrRecord',
+    'LicenceRecord',
+    'TadiparRecord',
     'CaseCategoryGroup',
     'CaseCategory',
     'CaseCategoryLink',

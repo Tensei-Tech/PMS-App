@@ -106,6 +106,13 @@ def get_comparative_date_ranges(
     }
 
 
+def _warrant_row(record):
+    try:
+        return record.sam_warrant
+    except Exception:  # no row (not saved since the table came) or not a warrant
+        return None
+
+
 def classify_warrant_record(record: CaseRecord) -> Optional[str]:
     """
     Classifies a CaseRecord into one of 3 Warrant sections:
@@ -115,7 +122,11 @@ def classify_warrant_record(record: CaseRecord) -> Optional[str]:
     
     Checks extra_fields, sub_category, title, module_key, and description.
     Returns None if the record does not belong to summons / warrant.
+    The sam_warrant_records row is read first; the JSON is the fallback.
     """
+    row = _warrant_row(record)
+    if row is not None and row.warrant_type in (WARRANT_TYPE_SUMMONS, WARRANT_TYPE_BW, WARRANT_TYPE_NBW):
+        return row.warrant_type
     extra = record.extra_fields if isinstance(record.extra_fields, dict) else {}
 
     raw_type = (
@@ -170,7 +181,11 @@ def get_warrant_execution_status(record: CaseRecord) -> str:
     - 'executed' (तामील / Executed / Served)
     - 'unserved' (अदम / Unserved / Returned Unexecuted)
     - 'pending' (अखेर / Pending)
+    The sam_warrant_records row is read first; the JSON is the fallback.
     """
+    row = _warrant_row(record)
+    if row is not None and row.execution_status:
+        return row.execution_status
     extra = record.extra_fields if isinstance(record.extra_fields, dict) else {}
 
     raw_status = (
@@ -268,11 +283,12 @@ class SummonsWarrantReportService:
             | Q(title__icontains='वारंट')
             | Q(extra_fields__has_key='warrant_type')
             | Q(extra_fields__has_key='warrantType')
+            | Q(sam_warrant__isnull=False)
         )
 
         queryset = CaseRecord.objects.annotate(
             record_date=Coalesce('incident_date', 'created_at')
-        ).filter(q_filter)
+        ).filter(q_filter).select_related('sam_warrant')
 
         # Multi-tenancy & Station/District filters
         if self.station_name:
