@@ -8,9 +8,38 @@ Migration 0181: court name, and three more ticks in procedural_checklist
   backfill_common_form_tables command fills it for saved cases).
 - procedural_checklist.item_name accepts Witness Summons, Mobile Spot Recording
   and Vehicle Log Book Entry, kept like the panchanama ticks (a row when
-  ticked, its date in event_datetime). Only the choices change: no column.
+  ticked, its date in event_datetime). No column; the database's own
+  check rule procedural_checklist_item_name_check (from 0004, it allowed only
+  the seven panchanama names) is replaced in every schema that has it.
 Other states get the column from the state sync that runs after migrate.
 """
+
+PANCHANAMA = ('Spot Panchanama', 'Seizure Panchanama', 'Search Panchanama', 'Personal Search Panchanama',
+              'Memorandum Panchanama', 'Identification Panchanama', 'Identification Parade Panchanama')
+STEPS = ('Witness Summons', 'Mobile Spot Recording', 'Vehicle Log Book Entry')
+CHECK = 'procedural_checklist_item_name_check'
+
+
+def _set_check(schema_editor, names, validate):
+    if schema_editor.connection.vendor != 'postgresql':
+        return
+    allowed = ', '.join("'" + n.replace("'", "''") + "'" for n in names)
+    with schema_editor.connection.cursor() as cursor:
+        cursor.execute("""SELECT table_schema FROM information_schema.tables
+                          WHERE table_name = 'procedural_checklist'""")
+        for (schema,) in cursor.fetchall():
+            cursor.execute(f'ALTER TABLE "{schema}".procedural_checklist DROP CONSTRAINT IF EXISTS {CHECK}')
+            cursor.execute(f'ALTER TABLE "{schema}".procedural_checklist ADD CONSTRAINT {CHECK} '
+                           f'CHECK (item_name IN ({allowed})){"" if validate else " NOT VALID"}')
+
+
+def allow_steps(apps, schema_editor):
+    _set_check(schema_editor, PANCHANAMA + STEPS, validate=True)
+
+
+def panchanama_only(apps, schema_editor):
+    # rows of the three steps may exist by then: kept, only new ones are refused
+    _set_check(schema_editor, PANCHANAMA, validate=False)
 
 
 class Migration(migrations.Migration):
@@ -37,4 +66,5 @@ class Migration(migrations.Migration):
                 ('Vehicle Log Book Entry', 'Vehicle Log Book Entry'),
             ]),
         ),
+        migrations.RunPython(allow_steps, panchanama_only),
     ]
