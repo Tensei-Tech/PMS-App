@@ -342,6 +342,19 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     }
   }
 
+  Future<void> _onRefresh() async {
+    if (widget.moduleKey != 'pending' &&
+        widget.moduleKey != 'disposal' &&
+        widget.moduleKey != 'absconded' &&
+        widget.moduleKey != 'monthly' &&
+        widget.moduleKey != 'sam_warrant') {
+      await _readProvider(context).refresh();
+    } else {
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (mounted) setState(() {});
+    }
+  }
+
   bool _isReportMode = false;
 
   List<ModuleRecord> _getConsolidatedRecords(BuildContext context) {
@@ -692,9 +705,15 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             _buildStatsRow(totalCount, disposalCount, pendingCount),
           if (isTheftOrFormIVStyle) _buildToolbar(displayRecords.length),
           Expanded(
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
+            child: RefreshIndicator(
+              color: AppColors.navyMid,
+              backgroundColor: Colors.white,
+              onRefresh: _onRefresh,
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                slivers: [
                 if (widget.moduleKey == 'monthly') ...[
                   // Monthly module is report-only (no records section).
                   SliverToBoxAdapter(
@@ -760,6 +779,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               ],
             ),
           ),
+        ),
         ],
       ),
       floatingActionButton: null,
