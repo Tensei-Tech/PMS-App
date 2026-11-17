@@ -510,6 +510,10 @@ class PreventiveActionItems(models.Model):
     bond_date = models.DateField(null=True, blank=True)
     bond_cancellation_date = models.DateField(null=True, blank=True)
     preventive_number = models.CharField(max_length=100, null=True, blank=True)
+    # Preventive tab: what was done to this person (Arrested, ...), and the bond
+    accused_action = models.CharField(max_length=100, null=True, blank=True)
+    bond_taken = models.BooleanField(null=True, blank=True)
+    bond_details = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
