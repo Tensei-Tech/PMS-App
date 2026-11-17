@@ -46,14 +46,8 @@ class NAFISCasesDataTable extends StatelessWidget {
         final double col6W = isMobile ? 100.0 : 110.0;
         final double col7W = isMobile ? 130.0 : 135.0;
 
-        final double totalColumnsWidth = col0W +
-            col1W +
-            col2W +
-            col3W +
-            col4W +
-            col5W +
-            col6W +
-            col7W;
+        final double totalColumnsWidth =
+            col0W + col1W + col2W + col3W + col4W + col5W + col6W + col7W;
         final double tableWidth = math.max(w, totalColumnsWidth);
 
         Widget headerCell(String s, {Alignment align = Alignment.centerLeft}) =>
