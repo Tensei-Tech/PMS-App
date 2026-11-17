@@ -117,7 +117,8 @@ class AppTheme {
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.lightSurface,
         elevation: 0,
-        shadowColor: Colors.black12,
+        scrolledUnderElevation: 0,
+        shadowColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         centerTitle: false,
         titleTextStyle: GoogleFonts.poppins(

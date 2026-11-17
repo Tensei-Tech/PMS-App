@@ -109,6 +109,9 @@ class ModuleHubScreenAppBar extends StatelessWidget
     return AppBar(
       backgroundColor: bg,
       elevation: 0,
+      scrolledUnderElevation: 0,
+      shadowColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
       leading: IconButton(
         onPressed: onBackPressed ?? () => Navigator.pop(context),
         icon: Icon(
