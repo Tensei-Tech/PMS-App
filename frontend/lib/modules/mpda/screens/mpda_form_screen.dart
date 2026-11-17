@@ -257,7 +257,7 @@ class _MpdaFormScreenState extends State<MpdaFormScreen> {
                   child: ElevatedButton(
                     onPressed: _isSaving ? null : _submit,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1E293B),
+                      backgroundColor: AppColors.navyMid,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),

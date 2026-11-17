@@ -396,6 +396,9 @@ class ProceduralChecklist(models.Model):
         ('Memorandum Panchanama', 'Memorandum Panchanama'),
         ('Identification Panchanama', 'Identification Panchanama'),
         ('Identification Parade Panchanama', 'Identification Parade Panchanama'),
+        ('Witness Summons', 'Witness Summons'),
+        ('Mobile Spot Recording', 'Mobile Spot Recording'),
+        ('Vehicle Log Book Entry', 'Vehicle Log Book Entry'),
     )
 
     checklist_id = models.BigAutoField(primary_key=True)
@@ -507,6 +510,10 @@ class PreventiveActionItems(models.Model):
     bond_date = models.DateField(null=True, blank=True)
     bond_cancellation_date = models.DateField(null=True, blank=True)
     preventive_number = models.CharField(max_length=100, null=True, blank=True)
+    # Preventive tab: what was done to this person (Arrested, ...), and the bond
+    accused_action = models.CharField(max_length=100, null=True, blank=True)
+    bond_taken = models.BooleanField(null=True, blank=True)
+    bond_details = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
@@ -616,6 +623,7 @@ class FinalVerdict(models.Model):
     cc_st_number = models.CharField(max_length=50, null=True, blank=True)
     stay_by_high_court_date = models.DateField(null=True, blank=True)
     quashed_by_high_court_date = models.DateField(null=True, blank=True)
+    court_name = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         db_table = 'final_verdict'

@@ -311,11 +311,14 @@ class CategoryIconHelper {
   }) {
     final svg = getSvgPath(category);
     if (svg != null) {
+      final isChainSnatching = svg.contains('chain_snatching');
+      final isSparseScene = svg.contains('murder') || svg.contains('dacoity');
+      final scale = isChainSnatching ? 1.15 : (isSparseScene ? 1.10 : 1.0);
       return Center(
         child: SvgPicture.asset(
           svg,
-          width: size,
-          height: size,
+          width: size * scale,
+          height: size * scale,
           colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
         ),
       );

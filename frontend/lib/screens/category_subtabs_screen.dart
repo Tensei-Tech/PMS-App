@@ -45,8 +45,8 @@ class CategorySubtabsScreen extends StatefulWidget {
     'murder': (
       'Murder',
       [
-        ('Murder', Icons.warning_amber_rounded),
-        ('Attempt to Murder', Icons.warning_amber_rounded),
+        ('Murder', Icons.gavel_rounded),
+        ('Attempt to Murder', Icons.gavel_rounded),
       ]
     ),
     'dacoity': (

@@ -299,6 +299,12 @@ class CaseListSerializer(serializers.ModelSerializer):
                 extra = {}
                 data['extra_fields'] = extra
 
+            # Service tab answers from their own tables (Sam/Warrant, Passport / PVR, Licence, Tadipar)
+            service_row = self.context.get('service_rows', {}).get(instance.pk)
+            if service_row is not None:
+                from apps.crimetab.service_tab_tables import overlay_service_tabs
+                overlay_service_tabs(extra, instance, row=service_row)
+
             p_items = list(instance.preventive_action_items.all())
             if p_items:
                 serialized_pa = [
@@ -380,7 +386,9 @@ def road_accidents_by_case(case_ids):
 def serialize_case_list(records):
     """CaseListSerializer data for many cases without one accident query per row."""
     records = list(records)
-    context = {'road_accidents': road_accidents_by_case([r.id for r in records])}
+    from apps.crimetab.service_tab_tables import service_rows_by_case
+    context = {'road_accidents': road_accidents_by_case([r.id for r in records]),
+               'service_rows': service_rows_by_case(records)}
     return CaseListSerializer(records, many=True, context=context).data
 
 
@@ -421,6 +429,10 @@ class FullCaseDetailSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
+        if isinstance(data.get('extra_fields'), dict):
+            # a copy: the values laid over it below must not change the case in memory
+            import copy
+            data['extra_fields'] = copy.deepcopy(data['extra_fields'])
         # Table-stored template fields go back into extra_fields for the form
         try:
             from apps.crimetab.services.table_field_values import table_values_for_case
@@ -434,6 +446,19 @@ class FullCaseDetailSerializer(serializers.ModelSerializer):
         except Exception as e:
             import logging
             logging.getLogger(__name__).warning(f"[FullCaseDetailSerializer] table field values not loaded: {e}")
+        # Common Form answers come from their tables; the JSON copy is only a fallback
+        try:
+            from apps.crimetab.common_form_tables import overlay_common_form
+            extra = data.get('extra_fields')
+            if not isinstance(extra, dict):
+                extra = {}
+                data['extra_fields'] = extra
+            overlay_common_form(extra, instance)
+            from apps.crimetab.service_tab_tables import overlay_service_tabs
+            overlay_service_tabs(extra, instance)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"[FullCaseDetailSerializer] common form tables not loaded: {e}")
         try:
             from apps.crimetab.models.accident import RoadAccidentRecord
             from apps.crimetab.serializers_accident import RoadAccidentRecordSerializer

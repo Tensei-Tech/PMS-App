@@ -42,6 +42,10 @@ PANCHANAMA_ITEMS = {
     'memorandum_panchanama': 'Memorandum Panchanama',
     'identification_panchanama': 'Identification Panchanama',
     'identification_parade_panchanama': 'Identification Parade Panchanama',
+    # Investigation steps (yes / no) of the Common Form, kept the same way
+    'witness_summons': 'Witness Summons',
+    'mobile_spot_recording': 'Mobile Spot Recording',
+    'vehicle_log_book_entry': 'Vehicle Log Book Entry',
 }
 
 # case_forensics column -> (form keys for the tick, form keys for its date)
@@ -64,7 +68,7 @@ def sources_from(data=None, extra=None):
     nested = []
     for src in (data, extra, common):
         for key in ('cctv_technical', 'forensics', 'case_forensics', 'investigationNotes', 'crime_spot',
-                    'final_verdict', 'court_filing', 'courtFiling'):
+                    'final_verdict', 'court_filing', 'courtFiling', 'dynamic_extra_fields'):
             if isinstance(src.get(key), dict):
                 nested.append(src[key])
     return [data, extra, common, *nested]
@@ -299,7 +303,8 @@ def save_panchanama(case, sources, write=True):
         if as_bool(first(sources, key)):
             if write:
                 ProceduralChecklist.objects.update_or_create(
-                    case=case, item_name=item_name, defaults={'is_checked': True})
+                    case=case, item_name=item_name,
+                    defaults={'is_checked': True, 'event_datetime': _parse_dt_value(first(sources, f'{key}_date'))})
             ticked += 1
         elif write:
             ProceduralChecklist.objects.filter(case=case, item_name=item_name).delete()
@@ -345,7 +350,9 @@ FINAL_VERDICT_TEXT = {
     'c_final_number': ('c_final_number', 'cFinalNo', 'cFinalNumber'),
     'nc_final_number': ('nc_final_number', 'ncFinalNo', 'ncFinalNumber'),
     'abeted_summary_no': ('abeted_summary_no', 'abatedSummaryNo', 'abetedSummaryNumber'),
+    'court_name': ('court_name', 'courtName'),
 }
+FINAL_VERDICT_SIZE = {'court_name': 255}  # the others hold 50
 FINAL_VERDICT_DATES = {
     'stay_by_high_court_date': ('stay_by_high_court_date', 'stayHighCourtDate'),
     'quashed_by_high_court_date': ('quashed_by_high_court_date', 'quashedHighCourt'),
@@ -358,7 +365,7 @@ def save_final_verdict(case, sources, write=True):
     values = {}
     for column, keys in FINAL_VERDICT_TEXT.items():
         value = first(sources, *keys)
-        values[column] = str(value).strip()[:50] if value not in EMPTY else None
+        values[column] = str(value).strip()[:FINAL_VERDICT_SIZE.get(column, 50)] if value not in EMPTY else None
     for column, keys in FINAL_VERDICT_DATES.items():
         values[column] = as_date(first(sources, *keys))
     if all(v in EMPTY for v in values.values()):
@@ -494,3 +501,214 @@ def save_people(case, sources, write=True):
             if write:
                 CasesPerson.objects.create(case=case, role=role, **person)
     return added, updated
+
+
+# ------------------------------------------------------------------ reading back for the form
+#
+# The case API and the case PDF fill the Common Form from these tables, so the
+# JSON copy is no longer the source (a step towards removing the commonForm copy).
+# Values come out in the shapes the app saves: ticks as true / false, dates as
+# dd/mm/yyyy, date-times as "dd/mm/yyyy HH:MM" in India time, and charges as
+# [{act, act_id, section, section_id, ...}] holding ids.
+
+PERSON_FIELDS = ('name', 'age', 'gender', 'occupation', 'mobile', 'aadhaar', 'pan', 'religion', 'caste',
+                 'address', 'medical')
+
+
+def _one(case, attr):
+    try:
+        return getattr(case, attr)
+    except Exception:  # RelatedObjectDoesNotExist: no row for this case
+        return None
+
+
+def _fmt_date(value):
+    return value.strftime('%d/%m/%Y') if value else None
+
+
+def _fmt_dt(value):
+    if not value:
+        return None
+    from django.utils import timezone
+    if timezone.is_aware(value):
+        value = timezone.localtime(value)
+    return value.strftime('%d/%m/%Y %H:%M')
+
+
+def _local_date(value):
+    from django.utils import timezone
+    return timezone.localtime(value).date() if timezone.is_aware(value) else value.date()
+
+
+def _person_dict(p):
+    out = {f: getattr(p, f, None) for f in PERSON_FIELDS}
+    out['age'] = str(out['age']) if out['age'] is not None else None
+    out['role'] = p.role
+    return {k: v for k, v in out.items() if v not in EMPTY}
+
+
+def common_form_values(case):
+    """
+    The Common Form answers held in the tables, as {form key: value}. Keys with
+    nothing in the tables are left out, so the JSON value (if any) still shows.
+    """
+    values = {}
+
+    reg = _one(case, 'registration_info')
+    if reg is not None:
+        values['registered_datetime'] = _fmt_dt(reg.registered_datetime)
+
+    spot = _one(case, 'spot')
+    if spot is not None:
+        values.update({'village_town': spot.village_town, 'area_name': spot.area_name,
+                       'full_address': spot.full_address,
+                       'occurrence_datetime': _fmt_dt(spot.occurrence_datetime)})
+
+    cctv = _one(case, 'cctv_technical')
+    if cctv is not None:
+        values.update({'cctv_checked': cctv.cctv_checked, 'cdr_sent_date': _fmt_date(cctv.cdr_sent_date),
+                       'cdr_received_date': _fmt_date(cctv.cdr_received_date)})
+
+    forensics = _one(case, 'forensics')
+    if forensics is not None:
+        for column in FORENSIC_FIELDS:
+            values[column] = getattr(forensics, column)
+            values[f'{column}_date'] = _fmt_date(getattr(forensics, f'{column}_date'))
+
+    ticked = {row.item_name: row for row in case.procedural_checklists.all() if row.is_checked}
+    if ticked:  # unticked items have no row; with no row at all the JSON answers stay
+        for key, item_name in PANCHANAMA_ITEMS.items():
+            values[key] = item_name in ticked
+            if item_name in ticked:
+                values[f'{key}_date'] = _fmt_date(ticked[item_name].event_datetime and
+                                                  _local_date(ticked[item_name].event_datetime))
+
+    verdict = _one(case, 'final_verdict')
+    if verdict is not None:
+        for column in FINAL_VERDICT_TEXT:
+            values[column] = getattr(verdict, column)
+        for column in FINAL_VERDICT_DATES:
+            values[column] = _fmt_date(getattr(verdict, column))
+
+    persons = list(case.persons.all())
+    complainant = next((p for p in persons if p.role == 'complainant'), None)
+    if complainant is not None:
+        for field, value in _person_dict(complainant).items():
+            if field != 'role':
+                values[f'complainant_{field}'] = value
+    accused = [_person_dict(p) for p in persons if p.role == 'accused' and p.name]
+    if accused:
+        values['accused'] = accused
+
+    charges = []
+    for ch in case.charges.select_related('act', 'section', 'subsection').all():
+        sub = ch.subsection
+        charges.append({
+            'act': ch.act_id, 'act_id': ch.act_id, 'act_name': ch.act.act_name if ch.act_id else None,
+            'section': ch.section_id, 'section_id': ch.section_id,
+            'section_number': ch.section.section_number if ch.section_id else None,
+            'section_title': ch.section.section_title if ch.section_id else None,
+            'subsection': sub.pk if sub else None, 'subsection_id': sub.pk if sub else None,
+            'subsection_code': sub.subsection_code if sub else None,
+        })
+    if charges:
+        values['charges'] = charges
+
+    return {k: v for k, v in values.items() if v not in EMPTY}
+
+
+def _same_text(table_value, json_value):
+    """Same answer; a table text cut to its column size still matches the longer JSON text."""
+    a, b = str(table_value).strip(), str(json_value).strip()
+    return a == b or (len(a) >= 50 and b.startswith(a))
+
+
+def _merge_charges(table_charges, json_charges):
+    """Table charges, keeping the act name the app saved for the same section (e.g. "BNS")."""
+    saved = {}
+    for ch in json_charges if isinstance(json_charges, list) else []:
+        if isinstance(ch, dict) and ch.get('section_id') and ch.get('act_name'):
+            saved[str(ch['section_id'])] = ch['act_name']
+    return [dict(ch, act_name=saved.get(str(ch['section_id']), ch['act_name'])) for ch in table_charges]
+
+
+def _merge_accused(table_people, json_people):
+    """
+    The accused from the JSON list, each field it leaves empty filled from the
+    table; people only in the table are added. Fields with no table column
+    (medical date, ...) are kept from the JSON.
+    """
+    by_name = {p['name'].strip().lower(): p for p in table_people}
+    merged, used = [], set()
+    for person in json_people if isinstance(json_people, list) else []:
+        if not isinstance(person, dict):
+            continue
+        key = str(person.get('name') or '').strip().lower()
+        table = by_name.get(key)
+        if table is None:
+            merged.append(person)
+            continue
+        used.add(key)
+        merged.append({**person, **{k: v for k, v in table.items() if k != 'role' and person.get(k) in EMPTY}})
+    merged += [p for k, p in by_name.items() if k not in used]
+    return merged
+
+
+def _same_shape(value, current):
+    """A tick written the way the JSON holds it: "true" / "false" or "Yes" / "No" text stays text."""
+    if isinstance(value, bool) and isinstance(current, str) and current.strip():
+        if current.strip().lower() in ('yes', 'no'):
+            return 'Yes' if value else 'No'
+        return 'true' if value else 'false'
+    return value
+
+
+def overlay_common_form(extra, case):
+    """
+    Lay the table values over the case JSON (top level and, when present, the
+    commonForm copy) for the form and the PDF. The table wins; keys and list
+    fields the tables cannot hold stay as they are. Changes `extra` in place.
+    """
+    table = common_form_values(case)
+    if not table:
+        return extra
+    # With these left blank, the save code put the case's incident date into the
+    # tables; that guess must not show in the form as if it had been entered
+    guesses = set()
+    if isinstance(case.incident_date, datetime):
+        guesses |= {_fmt_dt(case.incident_date), _fmt_dt(case.incident_date)[:10] + ' 00:00'}
+    for key in ('incident_date', 'incidentDate', 'incident_datetime'):
+        if extra.get(key) not in EMPTY:
+            text = str(extra[key]).strip()
+            guesses |= {text, text[:10] + ' 00:00'}
+    targets = [extra]
+    for nested in ('commonForm', 'dynamic_extra_fields'):
+        if isinstance(extra.get(nested), dict):
+            targets.append(extra[nested])
+    for target in targets:
+        for key, value in table.items():
+            if target is not extra and target is extra.get('dynamic_extra_fields') and key not in target:
+                continue  # only answers the template already holds
+            current = target.get(key)
+            value = _same_shape(value, current)
+            if key == 'charges':
+                target[key] = _merge_charges(value, current)
+            elif key == 'accused':
+                target[key] = _merge_accused(value, current)
+            elif current in EMPTY and (value is False or (
+                    key in GUESSED_TIMES and value in guesses
+                    and first(sources_from(extra=extra), *GUESSED_TIMES[key]) in EMPTY)):
+                continue  # nothing to add: an unticked box, or the incident-date guess
+            elif isinstance(value, str) and current not in EMPTY and (
+                    _same_text(value, current) or value == f'{str(current).strip()} 00:00'):
+                continue  # same answer: keep the app's own spelling, full length, date only
+            else:
+                target[key] = value
+    return extra
+
+
+# form key -> every name the app has used for it
+GUESSED_TIMES = {
+    'registered_datetime': ('registered_datetime', 'regDate'),
+    'occurrence_datetime': ('occurrence_datetime', 'occurrenceDateTime'),
+}

@@ -791,11 +791,18 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
                 'caste': m.get('suspected_accused_caste') or data.get('suspected_accused_caste'),
                 'address': m.get('suspected_accused_address') or data.get('suspected_accused_address'),
             })
+        def _add_person_once(**fields):
+            """Unknown / unidentified accused are re-sent on every save: add each once."""
+            match = {k: v for k, v in fields.items()
+                     if k in ('case', 'role', 'name', 'approximate_age', 'gender', 'description')}
+            if not CasesPerson.objects.filter(**match).exists():
+                CasesPerson.objects.create(**fields)
+
         unid_list = m.get('unidentifiedList') or m.get('unknownAccusedList') or m.get('unknown_accused_list')
         if unid_list is not None and isinstance(unid_list, list):
             for unid in unid_list:
                 if isinstance(unid, dict):
-                    CasesPerson.objects.create(
+                    _add_person_once(
                         case=case,
                         role=unid.get('role') or 'unidentified',
                         name=unid.get('description') or unid.get('name') or 'Unidentified Person',
@@ -818,7 +825,7 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
             u_addr = m.get('unidentified_address')
             u_desc = m.get('description')
             if any([u_age, u_gen, u_skin, u_occ, u_mark, u_hgt, u_addr, u_desc]):
-                CasesPerson.objects.create(
+                _add_person_once(
                     case=case,
                     role='unidentified',
                     name=u_desc or 'Unidentified Person',
@@ -840,13 +847,13 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
                     name = unk.get('name') or unk.get('description') or 'Unknown Accused'
                 elif isinstance(unk, str) and unk.strip():
                     name = unk.strip()
-                CasesPerson.objects.create(
+                _add_person_once(
                     case=case,
                     role='unknown_accused',
                     name=name
                 )
         elif m.get('is_unknown_accused') is True or str(m.get('is_unknown_accused')).lower() == 'true':
-            CasesPerson.objects.create(
+            _add_person_once(
                 case=case,
                 role='unknown_accused',
                 name='Unknown Accused'
@@ -1377,6 +1384,10 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
     # 19. Charges, CCTV, forensics and panchanama into their own tables
     from apps.crimetab.common_form_tables import save_common_form_tables
     save_common_form_tables(case, data)
+
+    # 20. Service tabs (Sam/Warrant, ...) into their own tables
+    from apps.crimetab.service_tab_tables import save_service_tab_tables
+    save_service_tab_tables(case, data)
 
 
 # Road Accident Extra Template questions saved in the road_accident_* tables
