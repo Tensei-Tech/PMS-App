@@ -186,7 +186,9 @@ class ModuleTabsScreen extends StatelessWidget {
     }
 
     final width = MediaQuery.of(context).size.width;
-    final cols = columnsOverride ?? subtabColumns(width);
+    final cols = columnsOverride ??
+        (tabs.length >= 3 && width < 550 ? tabs.length : subtabColumns(width));
+    final isCompactRow = cols >= 3 && width < 550;
     return Scaffold(
       backgroundColor: AppColors.lightBg,
       appBar: ModuleHubScreenAppBar(
@@ -194,18 +196,15 @@ class ModuleTabsScreen extends StatelessWidget {
         subtitle: '${tabs.length} types',
       ),
       body: GridView.builder(
-        padding: (cols >= 3 && width < 550)
-            ? EdgeInsets.fromLTRB(
-                width < 380 ? 6 : 8, 16, width < 380 ? 6 : 8, 24)
+        padding: isCompactRow
+            ? const EdgeInsets.fromLTRB(10, 16, 10, 24)
             : const EdgeInsets.fromLTRB(16, 16, 16, 24),
         itemCount: tabs.length,
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: cols,
-          crossAxisSpacing:
-              (cols >= 3 && width < 550) ? (width < 380 ? 4.0 : 6.0) : 12.0,
-          mainAxisSpacing: 12,
-          mainAxisExtent:
-              (cols >= 3 && width < 550) ? 76.0 : subtabCardHeight(width),
+          crossAxisSpacing: isCompactRow ? 8.0 : 12.0,
+          mainAxisSpacing: 12.0,
+          mainAxisExtent: isCompactRow ? 92.0 : subtabCardHeight(width),
         ),
         itemBuilder: (context, i) {
           final (name, icon, page) = tabs[i];

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../modules/core/models/base_record.dart';
 import '../services/backend_case_service.dart';
+import '../theme/app_theme.dart';
 import '../utils/excel_export_helper.dart';
 import 'send_reminder_dialog.dart';
 
@@ -31,16 +32,35 @@ class NAFISCasesDataTable extends StatelessWidget {
       builder: (context, constraints) {
         final w = constraints.maxWidth;
         final isMobile = w < 880;
-        final double tableWidth = math.max(w, 880.0);
         final double cellFontSize = isMobile ? 12.0 : 13.0;
         final double headerFontSize = isMobile ? 12.0 : 13.5;
         final double hPad = isMobile ? 10.0 : 14.0;
         final double vPad = isMobile ? 10.0 : 12.0;
 
+        final double col0W = isMobile ? 60.0 : 70.0;
+        final double col1W = isMobile ? 150.0 : 160.0;
+        final double col2W = isMobile ? 100.0 : 110.0;
+        final double col3W = isMobile ? 130.0 : 140.0;
+        final double col4W = isMobile ? 120.0 : 130.0;
+        final double col5W = isMobile ? 140.0 : 150.0;
+        final double col6W = isMobile ? 100.0 : 110.0;
+        final double col7W = isMobile ? 130.0 : 135.0;
+
+        final double totalColumnsWidth = col0W +
+            col1W +
+            col2W +
+            col3W +
+            col4W +
+            col5W +
+            col6W +
+            col7W;
+        final double tableWidth = math.max(w, totalColumnsWidth);
+
         Widget headerCell(String s, {Alignment align = Alignment.centerLeft}) =>
             Container(
               padding:
-                  EdgeInsets.symmetric(horizontal: hPad, vertical: vPad + 2),
+                  EdgeInsets.symmetric(horizontal: hPad, vertical: vPad + 3),
+              color: AppColors.navyDark,
               alignment: align,
               child: Text(
                 s,
@@ -52,9 +72,9 @@ class NAFISCasesDataTable extends StatelessWidget {
                     : TextAlign.left,
                 style: GoogleFonts.poppins(
                   fontSize: headerFontSize,
-                  fontWeight: FontWeight.w600,
-                  color:
-                      const Color(0xFF1E293B), // Navy/Slate matching screenshot
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  letterSpacing: 0.2,
                 ),
               ),
             );
@@ -189,15 +209,15 @@ class NAFISCasesDataTable extends StatelessWidget {
         }
 
         final columnWidths = isMobile
-            ? const <int, TableColumnWidth>{
-                0: FixedColumnWidth(64), // Sr. No.
-                1: FixedColumnWidth(160), // Accused Name
-                2: FixedColumnWidth(100), // CR No.
-                3: FixedColumnWidth(140), // Section/Act
-                4: FixedColumnWidth(130), // Head
-                5: FixedColumnWidth(150), // IO Name
-                6: FixedColumnWidth(110), // Status
-                7: FixedColumnWidth(126), // Action
+            ? <int, TableColumnWidth>{
+                0: FixedColumnWidth(col0W), // Sr. No.
+                1: FixedColumnWidth(col1W), // Accused Name
+                2: FixedColumnWidth(col2W), // CR No.
+                3: FixedColumnWidth(col3W), // Section/Act
+                4: FixedColumnWidth(col4W), // Head
+                5: FixedColumnWidth(col5W), // IO Name
+                6: FixedColumnWidth(col6W), // Status
+                7: FixedColumnWidth(col7W), // Remind to IO
               }
             : const <int, TableColumnWidth>{
                 0: FixedColumnWidth(70),
@@ -206,8 +226,8 @@ class NAFISCasesDataTable extends StatelessWidget {
                 3: FlexColumnWidth(1.4),
                 4: FlexColumnWidth(1.3),
                 5: FlexColumnWidth(1.5),
-                6: FixedColumnWidth(120),
-                7: FixedColumnWidth(126),
+                6: FixedColumnWidth(110),
+                7: FixedColumnWidth(135),
               };
 
         final headers = <Widget>[
@@ -218,7 +238,7 @@ class NAFISCasesDataTable extends StatelessWidget {
           headerCell('Head'),
           headerCell('IO Name'),
           headerCell('Status', align: Alignment.center),
-          headerCell('Action', align: Alignment.center),
+          headerCell('Remind to IO', align: Alignment.center),
         ];
 
         TableRow rowFor(int idx, Map<String, dynamic> r) {
@@ -340,22 +360,22 @@ class NAFISCasesDataTable extends StatelessWidget {
         final double estHeight = 44.0 * (rows.length + 1) + 20.0;
         final double containerHeight = hasFiniteHeight
             ? maxH
-            : math.min(MediaQuery.of(context).size.height * 0.65, estHeight);
+            : math.max(MediaQuery.of(context).size.height * 0.75, estHeight);
 
         final headerTable = Container(
           decoration: const BoxDecoration(
-            color: Color(0xFFF8FAFC),
+            color: AppColors.navyDark,
           ),
           child: Table(
             columnWidths: columnWidths,
             defaultVerticalAlignment: TableCellVerticalAlignment.middle,
             border: const TableBorder(
-              verticalInside: BorderSide(color: Color(0xFFE2E8F0), width: 1),
-              bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.5),
+              verticalInside: BorderSide(color: Color(0xFF1E293B), width: 1),
+              bottom: BorderSide(color: Color(0xFF1E293B), width: 1.5),
             ),
             children: [
               TableRow(
-                decoration: const BoxDecoration(color: Color(0xFFF8FAFC)),
+                decoration: const BoxDecoration(color: AppColors.navyDark),
                 children: headers,
               ),
             ],
@@ -408,6 +428,7 @@ class NAFISCasesDataTable extends StatelessWidget {
                   child: Scrollbar(
                     thumbVisibility: true,
                     child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
                       scrollDirection: Axis.vertical,
                       child: bodyTable,
                     ),

@@ -4,11 +4,32 @@ from django.db.models.fields.json import KeyTextTransform
 from django.db import models
 from apps.cases.models import CaseRecord
 from apps.cases.constants import DISPOSAL_KEYS
+import re
+
 IGNORED_ACCUSED_NAMES = {
     'default accused', 'unknown', 'unknown accused', 'अज्ञात',
     'unidentified', 'na', 'n/a', 'none', 'null', 'test accused',
     'suspect', 'accused', 'passport verification', ''
 }
+
+ENTITY_KEYWORDS_PATTERN = re.compile(
+    r'\b(m/s|pvt|ltd|limited|enterprises?|traders?|transport|agency|agencies|corporation|bank|company|co\.|hotel|shop|store|stores|jewellers?|industries|firm|solutions|services|dhaba|hospital|clinic|trust|school|college|bureau|department|associates?|works|petroleum)\b',
+    re.IGNORECASE
+)
+
+def _is_valid_person_name(name: str) -> bool:
+    if not name:
+        return False
+    clean = name.strip()
+    clean_lower = clean.lower()
+    if clean_lower in IGNORED_ACCUSED_NAMES or len(clean) <= 1:
+        return False
+    if clean_lower.startswith('m/s') or ENTITY_KEYWORDS_PATTERN.search(clean_lower):
+        return False  # Exclude Business / Entity from natural persons
+    parts = clean.split()
+    if len(parts) < 2:
+        return False  # Do not match on first name only
+    return True
 
 def extract_accused_names_for_case(case):
     names = set()
@@ -41,7 +62,7 @@ def extract_accused_names_for_case(case):
                         names.add(str(x['name']).strip())
                     elif isinstance(x, str) and x.strip():
                         names.add(x.strip())
-    return {n for n in names if n.strip().lower() not in IGNORED_ACCUSED_NAMES and len(n.strip()) > 1}
+    return {n for n in names if _is_valid_person_name(n)}
 
 
 def get_repeat_offender_map(station_names=None):
@@ -92,10 +113,16 @@ def get_cases_by_status(tab: str):
     queryset = CaseRecord.objects.all()
     
     if tab.lower() == 'disposal':
-        return queryset.filter(status__iexact='Disposal')
+        return queryset.filter(
+            Q(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved']) |
+            Q(final_verdict__isnull=False)
+        ).distinct()
     elif tab.lower() == 'pending':
-        # "Pending" includes anything that is not Disposal, Closed, or Resolved
-        return queryset.exclude(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved']).filter(crime_case_q())
+        # "Pending" includes anything that is not Disposal, Disposed, Closed, or Resolved
+        return queryset.exclude(
+            Q(status__in=['Disposal', 'Disposed', 'Closed', 'Resolved']) |
+            Q(final_verdict__isnull=False)
+        ).filter(crime_case_q())
     elif tab.lower() == 'detected':
         # Exclude administrative service modules and missing reports (which are tracked as Traced/Untraced)
         return queryset.filter(status__iexact='Detected').filter(crime_case_q()).exclude(
@@ -317,8 +344,11 @@ def get_absconded_cases():
 
 def get_victim_cases():
     """
-    Returns cases that fall under Victim categories.
-    Modules: POCSO, Crime Against Women, Accident, Cheating/Fraud, Domestic Violence, Missing/Kidnapping.
+    Returns cases that fall under Victim categories:
+    - Dedicated victim/women/child crime modules: POCSO, Crime Against Women, Rape, Molestation,
+      Domestic Violence / 498(A), Cheating, Missing, Kidnapping.
+    - Any crime case where an actual victim is registered in the persons table (role='victim').
+    - Excludes generic non-injury accident cases ('Other Accident') that have no victim.
     """
     from apps.core.tenancy import get_active_tenant_schema, set_tenant_schema
     from django.db.models import Q
@@ -328,19 +358,29 @@ def get_victim_cases():
         set_tenant_schema(schema)
         
     target_modules = [
-        'pocso', 'crime_women', 'accident', 'cheating', '498_a_ipc', 'missing', 'kidnapping', 'victim'
+        'pocso', 'crime_women', 'crime_against_women', 'caw', 'rape', 'molestation',
+        'cheating', '498_a_ipc', 'missing', 'kidnapping', 'victim'
     ]
     
     queryset = CaseRecord.objects.filter(
         Q(module_key__in=target_modules) |
         Q(sub_category__iexact='pocso') |
         Q(sub_category__iexact='crime against women') |
-        Q(sub_category__iexact='accident') |
+        Q(sub_category__icontains='rape') |
+        Q(sub_category__icontains='molestation') |
         Q(sub_category__iexact='cheating') |
         Q(sub_category__iexact='498 (a) ipc') |
         Q(sub_category__iexact='missing') |
-        Q(sub_category__iexact='kidnapping')
+        Q(sub_category__iexact='kidnapping') |
+        Q(persons__role='victim')
     ).distinct()
+    
+    # Exclude cases that are solely Other Accident / accident with no victim
+    queryset = queryset.exclude(
+        (Q(sub_category__iexact='other accident') | Q(sub_category__iexact='accident') | Q(module_key__iexact='accident')) &
+        ~Q(persons__role='victim') &
+        ~Q(extra_fields__has_key='victims')
+    )
     
     if schema and schema != 'public':
         set_tenant_schema(schema)

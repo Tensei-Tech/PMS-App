@@ -34,7 +34,12 @@ def group_case_q(group_id):
             q |= Q(sub_category__iexact=name)
         if code:
             keys.add(code.lower().strip())
-    return q | Q(module_key__in=sorted(keys))
+    base_q = q | Q(module_key__in=sorted(keys))
+    if group_id == 2:
+        # Group 1 (Form 1 to 5 / IPC) takes precedence over Group 2 (Part 6 / SLL).
+        # A case belonging to Form 1-5 is never counted in Form 6.
+        base_q &= ~group_case_q(1)
+    return base_q
 
 
 def get_preventive_eligible_categories_qs():

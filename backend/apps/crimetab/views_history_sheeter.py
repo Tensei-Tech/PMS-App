@@ -14,10 +14,14 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, KeepTogether
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+try:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, KeepTogether
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+except ImportError:
+    A4 = colors = SimpleDocTemplate = Paragraph = Spacer = Table = TableStyle = KeepTogether = None
+    getSampleStyleSheet = ParagraphStyle = None
 
 from apps.core.tenancy import TenantContext
 from apps.crimetab.views_mpda import MpdaNumberedCanvas, resolve_pdf_dept_title

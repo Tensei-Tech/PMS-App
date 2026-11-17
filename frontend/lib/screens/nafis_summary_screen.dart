@@ -307,7 +307,8 @@ class NAFISSummaryScreen extends StatelessWidget {
                               ],
                             ),
                           )
-                        : SingleChildScrollView(
+                        : Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                             child: NAFISCasesDataTable(
                               realDataRows: dataset,
                               rawRecords: records,

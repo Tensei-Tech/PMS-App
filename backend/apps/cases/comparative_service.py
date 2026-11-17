@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.db.models.functions import Coalesce
 
 from apps.cases.models import CaseRecord
+from apps.cases.utils import crime_case_q
 from apps.crimetab.models.groupings import CaseCategory
 
 logger = logging.getLogger(__name__)
@@ -341,18 +342,10 @@ def _normalize_head_name(raw_name: str, group: str) -> str:
 def is_case_detected(case: CaseRecord) -> bool:
     """
     Determines if a case is Detected (DET) for police comparative reporting:
-    - Status in ['Detected', 'Disposal', 'Disposed', 'Closed', 'Resolved']
-    - Or accused person is identified.
+    - Status in ['Detected', 'Disposal', 'Disposed', 'Closed', 'Resolved'].
     """
     status_str = (getattr(case, 'status', '') or '').strip().lower()
-    if status_str in ['detected', 'disposal', 'disposed', 'closed', 'resolved']:
-        return True
-
-    accused = (getattr(case, 'accused', '') or '').strip()
-    if accused and accused.lower() not in ['unknown', 'अज्ञात', 'unidentified', 'none', 'null']:
-        return True
-
-    return False
+    return status_str in ['detected', 'disposal', 'disposed', 'closed', 'resolved']
 
 
 class MonthlyCrimeComparativeService:
@@ -392,7 +385,7 @@ class MonthlyCrimeComparativeService:
         ).filter(
             record_date__gte=overall_start,
             record_date__lte=overall_end
-        ).prefetch_related('category_links__category__group')
+        ).filter(crime_case_q()).prefetch_related('category_links__category__group')
 
         # Station filtering & multi-tenancy
         if self.station_name:
