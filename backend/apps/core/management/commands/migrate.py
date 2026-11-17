@@ -13,9 +13,38 @@ class Command(BuiltinMigrateCommand):
     Primary DB ('default') AND all active Replica DBs ('replica_1', 'replica_2') in one run!
     """
 
+    def add_arguments(self, parser):
+        super().add_arguments(parser)
+        parser.add_argument(
+            '--allow-rollback', action='store_true',
+            help='Allow running migrations backwards on the shared database (it can drop tables and data).')
+
+    def _refuse_rollback(self, options):
+        """E1: going backwards on the shared database needs --allow-rollback (see apps.core.migration_safety)."""
+        from django.core.management.base import CommandError
+        from django.db import connections
+        from django.db.migrations.executor import MigrationExecutor
+        from apps.core.migration_safety import is_shared_database, rollback_plan
+
+        if options.get('allow_rollback') or options.get('plan'):
+            return
+        connection = connections[options.get('database') or 'default']
+        if not is_shared_database(connection):
+            return
+        backwards = rollback_plan(MigrationExecutor(connection), options.get('app_label'),
+                                  options.get('migration_name'))
+        if backwards:
+            names = ', '.join(f'{m.app_label}.{m.name}' for m in backwards[:8])
+            more = f' and {len(backwards) - 8} more' if len(backwards) > 8 else ''
+            raise CommandError(
+                f'Refused: this would undo {len(backwards)} migration(s) on the shared database '
+                f'({names}{more}). That can drop tables and data. Check with --plan first; if it is '
+                f'really needed, run again with --allow-rollback.')
+
     def handle(self, *args, **options):
         target_db = options.get('database') or 'default'
-        
+        self._refuse_rollback(options)
+
         # 1. Execute migration on target database
         super().handle(*args, **options)
 
