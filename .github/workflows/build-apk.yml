@@ -45,6 +45,24 @@ jobs:
           cd frontend
           flutter pub get
 
+      # Flutter's own Gradle build (flutter_tools/gradle, inside the SDK) looks for
+      # its Kotlin plugins only on the Gradle Plugin Portal. When the portal fails
+      # to serve them, the APK build stops with "Could not find
+      # org.jetbrains.kotlin:kotlin-stdlib". Every Gradle build of this job,
+      # Flutter's included one too, may also use Maven Central and Google.
+      - name: Let every Gradle build use Maven Central and Google
+        run: |
+          mkdir -p ~/.gradle/init.d
+          cat > ~/.gradle/init.d/plugin-repositories.gradle <<'EOF'
+          beforeSettings { settings ->
+              settings.pluginManagement.repositories {
+                  gradlePluginPortal()
+                  mavenCentral()
+                  google()
+              }
+          }
+          EOF
+
       # A release APK without API_BASE_URL falls back to 127.0.0.1, which a
       # phone cannot reach ("Could not connect to authentication server").
       - name: Check API_BASE_URL in config/prod.json
