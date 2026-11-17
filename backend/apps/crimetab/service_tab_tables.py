@@ -302,7 +302,11 @@ def tadipar_values(case, extra=None):
 
     values = {}
     for column, (keys, size) in TADIPAR_TEXT.items():
-        text = _text_of(pick(keys))
+        raw = pick(keys)
+        if isinstance(raw, (list, dict)) and column == 'crime_chart_entries':
+            values[column] = None
+            continue
+        text = _text_of(raw)
         values[column] = text[:size] if text else None
     for column, keys in TADIPAR_NUMBERS.items():
         values[column] = _count(pick(keys))
@@ -313,13 +317,69 @@ def tadipar_values(case, extra=None):
     return values
 
 
+CHART_KEY = 'crime_chart_entries'
+
+
+def _chart_answer(extra):
+    """The Crime Chart answer: (found, value), top level first, then the dynamic form copies."""
+    for src in [extra] + [extra[n] for n in NESTED_COPIES if isinstance(extra.get(n), dict)]:
+        if CHART_KEY in src and src[CHART_KEY] not in (None, ''):
+            return True, src[CHART_KEY]
+    return False, None
+
+
+def _id(value):
+    number = _count(value)
+    return number if number else None
+
+
+def chart_rows(case, rows):
+    """Unsaved TadiparCrimeChartEntry rows from the app's list; Act / Section names are copied
+    so a row stays readable if the Acts master is imported again."""
+    from apps.crimetab.models.common_form import Act, ActSection
+    from apps.crimetab.models.service_tabs import TadiparCrimeChartEntry
+    from apps.stations.models import PoliceStation
+    clean = [r for r in rows if isinstance(r, dict) and any(v not in EMPTY for v in r.values())]
+    act_ids = {_id(r.get('act_id')) for r in clean} - {None}
+    section_ids = {_id(r.get('section_id')) for r in clean} - {None}
+    station_ids = {_id(r.get('police_station_id')) for r in clean} - {None}
+    acts = dict(Act.objects.filter(act_id__in=act_ids).values_list('act_id', 'act_name')) if act_ids else {}
+    sections = (dict(ActSection.objects.filter(section_id__in=section_ids).values_list('section_id', 'section_number'))
+                if section_ids else {})
+    stations = {}
+    if station_ids:
+        try:
+            stations = dict(PoliceStation.objects.filter(pk__in=station_ids).values_list('pk', 'station_name'))
+        except Exception:  # stations table not reachable here: names stay empty
+            stations = {}
+    out = []
+    for row_no, r in enumerate(clean):
+        act, section, station = _id(r.get('act_id')), _id(r.get('section_id')), _id(r.get('police_station_id'))
+        out.append(TadiparCrimeChartEntry(
+            record_id=case.pk, row_no=row_no,
+            cr_number=_text_of(r.get('cr_number'))[:100] if _text_of(r.get('cr_number')) else None,
+            crime_head=_text_of(r.get('crime_head')),
+            act_id=act, act_name=acts.get(act), section_id=section, section_number=sections.get(section),
+            register_date=_as_date(r.get('register_date')),
+            police_station_id=station, police_station_name=stations.get(station),
+        ))
+    return out
+
+
 def save_tadipar(case, extra=None, write=True):
-    from apps.crimetab.models.service_tabs import TadiparRecord
+    from apps.crimetab.models.service_tabs import TadiparCrimeChartEntry, TadiparRecord
     if not is_tadipar_case(case):
         return None
+    extra = extra if isinstance(extra, dict) else (case.extra_fields if isinstance(case.extra_fields, dict) else {})
     values = tadipar_values(case, extra)
+    found, chart = _chart_answer(extra)
+    if isinstance(chart, list):
+        values[CHART_KEY] = None  # rows go to their own table; the column keeps typed text only
     if write:
         TadiparRecord.objects.update_or_create(case=case, defaults={**values, 'updated_at': timezone.now()})
+        if isinstance(chart, list):
+            TadiparCrimeChartEntry.objects.filter(record_id=case.pk).delete()
+            TadiparCrimeChartEntry.objects.bulk_create(chart_rows(case, chart))
     return values
 
 
@@ -377,6 +437,8 @@ def _shaped(value, current, date_format):
         return value.isoformat()
     if isinstance(value, int) and not isinstance(value, bool) and isinstance(current, str):
         return None if current.strip() == str(value) else str(value)  # numbers the app keeps as text
+    if isinstance(value, str) and isinstance(current, int) and not isinstance(current, bool):
+        return None if value.strip() == str(current) else value  # an id the app sends as a number
     return None if current == value else value
 
 
@@ -397,6 +459,28 @@ def lay_row_over(extra, row, keys, date_format=None):
     return extra
 
 
+def chart_answer_from_rows(entries):
+    """The Crime Chart as the app sends it: a list of row dicts, dates dd/mm/yyyy, ids as numbers."""
+    out = []
+    for e in sorted(entries, key=lambda x: x.row_no):
+        row = {'cr_number': e.cr_number, 'crime_head': e.crime_head, 'act_id': e.act_id,
+               'section_id': e.section_id,
+               'register_date': e.register_date.strftime('%d/%m/%Y') if e.register_date else None,
+               'police_station_id': e.police_station_id}
+        out.append({k: v for k, v in row.items() if v not in EMPTY})
+    return out
+
+
+def _lay_chart_over(extra, record):
+    entries = list(record.crime_chart.all())
+    if not entries:
+        return
+    answer = chart_answer_from_rows(entries)
+    for target in [extra] + [extra[n] for n in NESTED_COPIES if isinstance(extra.get(n), dict)]:
+        if target is extra or CHART_KEY in target:
+            target[CHART_KEY] = answer
+
+
 def overlay_service_tabs(extra, case, row=None):
     """For one case (detail API); `row` saves the query when the caller already has it."""
     for is_tab, _save, related_name, keys in TABS.values():
@@ -404,6 +488,8 @@ def overlay_service_tabs(extra, case, row=None):
             row = row if row is not None else _row(case, related_name)
             if row is not None:
                 lay_row_over(extra, row, keys, DATE_FORMATS.get(related_name))
+                if related_name == 'tadipar':
+                    _lay_chart_over(extra, row)
             break
     return extra
 
@@ -418,5 +504,8 @@ def service_rows_by_case(records):
     for tab, (is_tab, _save, _rel, _keys) in TABS.items():
         ids = [r.pk for r in records if is_tab(r)]
         if ids:
-            rows.update({row.case_id: row for row in models[tab].objects.filter(case_id__in=ids)})
+            qs = models[tab].objects.filter(case_id__in=ids)
+            if tab == 'tadipar':
+                qs = qs.prefetch_related('crime_chart')
+            rows.update({row.case_id: row for row in qs})
     return rows
