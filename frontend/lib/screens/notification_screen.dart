@@ -10,9 +10,39 @@ import '../providers/notification_provider.dart';
 import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_constants.dart';
+import '../utils/translation_helper.dart';
+import '../widgets/module_hub_screen_app_bar.dart';
 
-class NotificationScreen extends StatelessWidget {
+class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
+
+  @override
+  State<NotificationScreen> createState() => _NotificationScreenState();
+}
+
+class _NotificationScreenState extends State<NotificationScreen> {
+  Stream<List<Map<String, dynamic>>>? _remindersStream;
+  String? _lastStreamKey;
+
+  Stream<List<Map<String, dynamic>>> _getRemindersStream(
+    AuthProvider auth,
+    FirestoreService firestore,
+  ) {
+    final key = '${auth.designation}|${auth.uid}|${auth.stationName}';
+    if (_remindersStream != null && _lastStreamKey == key) {
+      return _remindersStream!;
+    }
+    _lastStreamKey = key;
+    _remindersStream = SeniorOfficerRoles.isCpLevel(auth.designation) ||
+            SeniorOfficerRoles.isSpLevel(auth.designation)
+        ? firestore.getAllRemindersStream()
+        : (auth.isSupervisor || auth.isAdmin)
+            ? firestore.getSentRemindersStream(auth.uid)
+            : (auth.stationName.isNotEmpty
+                ? firestore.getStationRemindersStream(auth.stationName)
+                : firestore.getIoRemindersStream(auth.uid));
+    return _remindersStream!;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,104 +50,245 @@ class NotificationScreen extends StatelessWidget {
     final auth = context.watch<AuthProvider>();
     final items = provider.notifications;
     final firestore = FirestoreService();
+    final reminderCount =
+        provider.rtiReminders.length + provider.detentionReminders.length;
 
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         backgroundColor: AppColors.lightBg,
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          surfaceTintColor: Colors.transparent,
-          leading: IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: AppColors.navyDark,
-            ),
+        appBar: ModuleHubScreenAppBar(
+          title:
+              TranslationHelper.translate(context, 'Notifications & Reminders'),
+          subtitle: TranslationHelper.translate(
+            context,
+            'Directives, Case Reminders & System Alerts',
           ),
-          title: Text(
-            'Notifications & Reminders',
-            style: GoogleFonts.poppins(
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-              color: AppColors.navyDark,
-            ),
-          ),
-          bottom: TabBar(
-            labelColor: AppColors.warningOrange,
-            unselectedLabelColor: AppColors.lightSubText,
-            indicatorColor: AppColors.warningOrange,
-            indicatorWeight: 3,
-            labelStyle: GoogleFonts.poppins(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
-            tabs: const [
-              Tab(
-                icon: Icon(Icons.notifications_active_rounded, size: 18),
-                text: 'Case Reminders',
-              ),
-              Tab(
-                icon: Icon(Icons.mark_email_unread_rounded, size: 18),
-                text: 'System Alerts',
-              ),
-            ],
-          ),
+          actionWidget: items.any((n) => !n.isRead)
+              ? TextButton.icon(
+                  onPressed: () =>
+                      context.read<NotificationProvider>().clearBadge(),
+                  icon: const Icon(
+                    Icons.done_all_rounded,
+                    size: 16,
+                    color: Color(0xFF1976D2),
+                  ),
+                  label: Text(
+                    TranslationHelper.translate(context, 'Mark Read'),
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF1976D2),
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    backgroundColor: const Color(0xFFE8F1FC),
+                    shape: const StadiumBorder(),
+                  ),
+                )
+              : null,
         ),
-        body: TabBarView(
+        body: Column(
           children: [
-            // ── TAB 1: MPDA detention reminders + live Case Reminders ─────
-            Column(
-              children: [
-                if (provider.rtiReminders.isNotEmpty)
-                  _buildReminderSection(
-                      provider.rtiReminders, provider.rtiReminderLabel),
-                if (provider.detentionReminders.isNotEmpty)
-                  _buildDetentionReminders(provider),
-                Expanded(
-                  child: StreamBuilder<List<Map<String, dynamic>>>(
-                    stream: SeniorOfficerRoles.isCpLevel(auth.designation) ||
-                            SeniorOfficerRoles.isSpLevel(auth.designation)
-                        ? firestore.getAllRemindersStream()
-                        : (auth.isSupervisor || auth.isAdmin)
-                            ? firestore.getSentRemindersStream(auth.uid)
-                            : (auth.stationName.isNotEmpty
-                                ? firestore
-                                    .getStationRemindersStream(auth.stationName)
-                                : firestore.getIoRemindersStream(auth.uid)),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-
-                      final reminders = snapshot.data ?? [];
-                      final isSenior =
-                          SeniorOfficerRoles.isCpLevel(auth.designation) ||
-                              SeniorOfficerRoles.isSpLevel(auth.designation) ||
-                              auth.isSupervisor;
-
-                      if (reminders.isEmpty) {
-                        return _buildEmptyRemindersState(isSenior: isSenior);
-                      }
-
-                      return ListView.separated(
-                        padding: const EdgeInsets.all(AppSpacing.md),
-                        itemCount: reminders.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final r = reminders[index];
-                          return _buildReminderCard(r, isSenior: isSenior);
-                        },
-                      );
-                    },
+            // ── Police Theme Sub-Tab Bar Strip ──
+            Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                border: Border(
+                  bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
+                ),
+              ),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 860),
+                  child: TabBar(
+                    labelColor: AppColors.navyDark,
+                    unselectedLabelColor: AppColors.lightSubText,
+                    indicatorColor: const Color(0xFF1976D2),
+                    indicatorWeight: 2.5,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    dividerColor: Colors.transparent,
+                    labelStyle: GoogleFonts.poppins(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    unselectedLabelStyle: GoogleFonts.poppins(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    tabs: [
+                      Tab(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.notifications_active_outlined,
+                              size: 17,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              TranslationHelper.translate(
+                                context,
+                                'Case Reminders',
+                              ),
+                            ),
+                            if (reminderCount > 0) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 7,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE8F1FC),
+                                  borderRadius:
+                                      BorderRadius.circular(AppRadius.full),
+                                ),
+                                child: Text(
+                                  '$reminderCount',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF1976D2),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      Tab(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.mark_email_unread_outlined,
+                              size: 17,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              TranslationHelper.translate(
+                                context,
+                                'System Alerts',
+                              ),
+                            ),
+                            if (provider.unreadCount > 0) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 7,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFF3E0),
+                                  borderRadius:
+                                      BorderRadius.circular(AppRadius.full),
+                                ),
+                                child: Text(
+                                  '${provider.unreadCount}',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFFE65100),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
 
-            // ── TAB 2: System / FCM Alerts ────────────────────────────────
-            items.isEmpty ? _buildEmptyState() : _buildList(items),
+            // ── Tab Contents Centered & Constrained for Desktop ──
+            Expanded(
+              child: TabBarView(
+                children: [
+                  // ── TAB 1: MPDA detention reminders + live Case Reminders ─────
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 860),
+                      child: Column(
+                        children: [
+                          if (provider.rtiReminders.isNotEmpty)
+                            _buildReminderSection(
+                              provider.rtiReminders,
+                              provider.rtiReminderLabel,
+                            ),
+                          if (provider.detentionReminders.isNotEmpty)
+                            _buildDetentionReminders(provider),
+                          Expanded(
+                            child: StreamBuilder<List<Map<String, dynamic>>>(
+                              initialData: const <Map<String, dynamic>>[],
+                              stream: _getRemindersStream(auth, firestore),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                }
+
+                                final reminders = snapshot.data ?? [];
+                                final isSenior = SeniorOfficerRoles.isCpLevel(
+                                      auth.designation,
+                                    ) ||
+                                    SeniorOfficerRoles.isSpLevel(
+                                      auth.designation,
+                                    ) ||
+                                    auth.isSupervisor;
+
+                                if (reminders.isEmpty) {
+                                  return _buildEmptyRemindersState(
+                                    isSenior: isSenior,
+                                    context: context,
+                                  );
+                                }
+
+                                return ListView.separated(
+                                  padding: const EdgeInsets.all(AppSpacing.md),
+                                  itemCount: reminders.length,
+                                  separatorBuilder: (_, __) =>
+                                      const SizedBox(height: 12),
+                                  itemBuilder: (context, index) {
+                                    final r = reminders[index];
+                                    return _buildReminderCard(
+                                      r,
+                                      isSenior: isSenior,
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // ── TAB 2: System / FCM Alerts ────────────────────────────────
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 860),
+                      child: items.isEmpty
+                          ? _buildEmptyState(context)
+                          : _buildList(items),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -142,11 +313,14 @@ class NotificationScreen extends StatelessWidget {
           if (label.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: Text(label,
-                  style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.navyDark)),
+              child: Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.navyDark,
+                ),
+              ),
             ),
           for (final r in items)
             Container(
@@ -156,19 +330,30 @@ class NotificationScreen extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(AppRadius.lg),
                 border: Border.all(
-                    color: AppColors.dangerRed.withValues(alpha: 0.35)),
+                  color: const Color(0xFFFECACA),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
                     padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.dangerRed.withValues(alpha: 0.1),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFEE2E2),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.event_busy_rounded,
-                        size: 18, color: AppColors.dangerRed),
+                    child: const Icon(
+                      Icons.event_busy_rounded,
+                      size: 18,
+                      color: Color(0xFFDC2626),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -176,14 +361,21 @@ class NotificationScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if ('${r['title'] ?? ''}'.isNotEmpty)
-                          Text('${r['title']}',
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.dangerRed)),
-                        Text('${r['message'] ?? ''}',
+                          Text(
+                            '${r['title']}',
                             style: GoogleFonts.poppins(
-                                fontSize: 12.5, color: AppColors.navyDark)),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFFDC2626),
+                            ),
+                          ),
+                        Text(
+                          '${r['message'] ?? ''}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12.5,
+                            color: AppColors.navyDark,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -192,16 +384,21 @@ class NotificationScreen extends StatelessWidget {
                     const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: AppColors.dangerRed.withValues(alpha: 0.1),
+                        color: const Color(0xFFFEE2E2),
                         borderRadius: BorderRadius.circular(AppRadius.full),
                       ),
-                      child: Text('${r['days_left']}',
-                          style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.dangerRed)),
+                      child: Text(
+                        '${r['days_left']}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFFDC2626),
+                        ),
+                      ),
                     ),
                   ],
                 ],
@@ -212,7 +409,10 @@ class NotificationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyRemindersState({required bool isSenior}) {
+  Widget _buildEmptyRemindersState({
+    required bool isSenior,
+    required BuildContext context,
+  }) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -220,35 +420,45 @@ class NotificationScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.warningOrange.withValues(alpha: 0.1),
+              padding: const EdgeInsets.all(22),
+              decoration: const BoxDecoration(
+                color: Color(0xFFE8F1FC),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.notifications_none_rounded,
-                size: 48,
-                color: AppColors.warningOrange,
+                Icons.notifications_active_outlined,
+                size: 46,
+                color: Color(0xFF1976D2),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
             Text(
-              isSenior ? 'No Directives Issued Yet' : 'No Case Reminders',
+              TranslationHelper.translate(
+                context,
+                isSenior ? 'No Directives Issued Yet' : 'No Case Reminders',
+              ),
               style: GoogleFonts.poppins(
-                fontSize: 17,
+                fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: AppColors.navyDark,
               ),
             ),
             const SizedBox(height: 6),
-            Text(
-              isSenior
-                  ? 'Supervisory reminders (PCR, FSL, Charge Sheet) you issue to Investigating Officers will be tracked here.'
-                  : 'Supervisory reminders sent by Senior Officers will appear here.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: 12.5,
-                color: AppColors.lightSubText,
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Text(
+                TranslationHelper.translate(
+                  context,
+                  isSenior
+                      ? 'Supervisory directives (PCR, FSL, Charge Sheet) you issue to Investigating Officers will appear here.'
+                      : 'Supervisory directives sent by Senior Officers will appear here.',
+                ),
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 12.5,
+                  color: AppColors.lightSubText,
+                  height: 1.4,
+                ),
               ),
             ),
           ],
@@ -258,7 +468,7 @@ class NotificationScreen extends StatelessWidget {
   }
 
   Widget _buildReminderCard(Map<String, dynamic> r, {required bool isSenior}) {
-    final reminderType = r['reminderType'] ?? 'Supervisory Reminder';
+    final reminderType = r['reminderType'] ?? 'Supervisory Directive';
     final caseNo = r['caseNumber'] ?? r['caseTitle'] ?? 'Case';
     final sentByName = r['sentByName'] ?? 'Senior Officer';
     final sentByRank = r['sentByDesignation'] ?? '';
@@ -271,13 +481,13 @@ class NotificationScreen extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(
-          color: AppColors.warningOrange.withValues(alpha: 0.3),
+          color: const Color(0xFFE2E8F0),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 8,
-            offset: const Offset(0, 3),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -293,7 +503,7 @@ class NotificationScreen extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.warningOrange.withValues(alpha: 0.12),
+                  color: const Color(0xFFE8F1FC),
                   borderRadius: BorderRadius.circular(AppRadius.full),
                 ),
                 child: Text(
@@ -301,17 +511,28 @@ class NotificationScreen extends StatelessWidget {
                   style: GoogleFonts.poppins(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.warningOrange,
+                    color: const Color(0xFF1976D2),
                   ),
                 ),
               ),
               const Spacer(),
-              Text(
-                caseNo,
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.navyMid,
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 3,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Text(
+                  caseNo,
+                  style: GoogleFonts.poppins(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.navyDark,
+                  ),
                 ),
               ),
             ],
@@ -347,21 +568,41 @@ class NotificationScreen extends StatelessWidget {
             ),
           ],
           if (notes.isNotEmpty) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppColors.lightBg,
+                color: const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-              child: Text(
-                'Directive: $notes',
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontStyle: FontStyle.italic,
-                  color: AppColors.navyDark,
+                border: const Border(
+                  left: BorderSide(color: Color(0xFF1976D2), width: 3),
+                  top: BorderSide(color: Color(0xFFE2E8F0)),
+                  right: BorderSide(color: Color(0xFFE2E8F0)),
+                  bottom: BorderSide(color: Color(0xFFE2E8F0)),
                 ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.format_quote_rounded,
+                    size: 16,
+                    color: Color(0xFF1976D2),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      notes,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                        color: AppColors.navyDark,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -370,47 +611,52 @@ class NotificationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              color: AppColors.navyMid.withValues(alpha: 0.06),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.notifications_off_rounded,
-              size: 48,
-              color: AppColors.navyMid.withValues(alpha: 0.3),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'No System Alerts',
-            style: GoogleFonts.poppins(
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-              color: AppColors.navyDark,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 48),
-            child: Text(
-              'You\'re all caught up! Push notifications will appear here.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                color: AppColors.lightSubText,
-                height: 1.5,
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(22),
+              decoration: const BoxDecoration(
+                color: Color(0xFFE8F1FC),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.notifications_off_outlined,
+                size: 46,
+                color: Color(0xFF1976D2),
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 18),
+            Text(
+              TranslationHelper.translate(context, 'No System Alerts'),
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.navyDark,
+              ),
+            ),
+            const SizedBox(height: 6),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Text(
+                TranslationHelper.translate(
+                  context,
+                  'You\'re all caught up! Push notifications and system alerts will appear here.',
+                ),
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 12.5,
+                  color: AppColors.lightSubText,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -444,14 +690,10 @@ class _NotificationCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isUnread
-            ? AppColors.goldPrimary.withValues(alpha: 0.04)
-            : Colors.white,
+        color: isUnread ? const Color(0xFFF8FAFC) : Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(
-          color: isUnread
-              ? AppColors.goldPrimary.withValues(alpha: 0.2)
-              : AppColors.lightBorder.withValues(alpha: 0.5),
+          color: isUnread ? const Color(0xFFBFDBFE) : const Color(0xFFE2E8F0),
         ),
         boxShadow: [
           BoxShadow(
@@ -466,19 +708,19 @@ class _NotificationCard extends StatelessWidget {
         children: [
           // ── Icon ────────────────────────────────────────────────────────────
           Container(
-            width: 42,
-            height: 42,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              color: isUnread
-                  ? AppColors.goldPrimary.withValues(alpha: 0.12)
-                  : AppColors.navyMid.withValues(alpha: 0.08),
+              color:
+                  isUnread ? const Color(0xFFE8F1FC) : const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: Icon(
               isUnread
                   ? Icons.notifications_active_rounded
-                  : Icons.notifications_rounded,
-              color: isUnread ? AppColors.goldPrimary : AppColors.navyMid,
+                  : Icons.notifications_none_rounded,
+              color:
+                  isUnread ? const Color(0xFF1976D2) : AppColors.lightSubText,
               size: 20,
             ),
           ),
@@ -494,7 +736,7 @@ class _NotificationCard extends StatelessWidget {
                       child: Text(
                         item.title,
                         style: GoogleFonts.poppins(
-                          fontSize: 14,
+                          fontSize: 13.5,
                           fontWeight:
                               isUnread ? FontWeight.w700 : FontWeight.w600,
                           color: AppColors.navyDark,
@@ -509,7 +751,7 @@ class _NotificationCard extends StatelessWidget {
                         height: 8,
                         margin: const EdgeInsets.only(left: 8),
                         decoration: const BoxDecoration(
-                          color: AppColors.goldPrimary,
+                          color: Color(0xFF1976D2),
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -520,7 +762,7 @@ class _NotificationCard extends StatelessWidget {
                   Text(
                     item.body,
                     style: GoogleFonts.poppins(
-                      fontSize: 13,
+                      fontSize: 12.5,
                       color: AppColors.lightSubText,
                       height: 1.4,
                     ),

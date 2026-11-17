@@ -710,6 +710,8 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
               backgroundColor: Colors.white,
               onRefresh: _onRefresh,
               child: CustomScrollView(
+                key: PageStorageKey<String>(
+                    'module_hub_${widget.moduleKey}_scroll'),
                 physics: const AlwaysScrollableScrollPhysics(
                   parent: BouncingScrollPhysics(),
                 ),
