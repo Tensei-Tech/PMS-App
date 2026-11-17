@@ -16,7 +16,9 @@ class FirestoreService {
   static const String colStations = 'stations';
 
   static Stream<T> _broadcastStream<T>(T value) =>
-      Stream<T>.value(value).asBroadcastStream();
+      Stream<T>.multi((controller) {
+        controller.add(value);
+      });
 
   Future<void> saveUser(UserModel user) async {}
 

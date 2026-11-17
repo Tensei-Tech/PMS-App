@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../services/api_config.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_error_popup.dart';
+import '../widgets/app_success_popup.dart';
 import 'filtered_pending_screen.dart';
 
 class ItssoHubScreen extends StatefulWidget {
@@ -268,22 +270,19 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
                                         body: {},
                                       );
                                       if (mounted) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                                "Reminder sent to IO for case ${caseItem['case_number']}"),
-                                          ),
+                                        AppSuccessPopup.show(
+                                          context,
+                                          title: 'Reminder Sent',
+                                          message:
+                                              "Reminder sent to IO for case ${caseItem['case_number']}",
                                         );
                                       }
                                     } catch (e) {
                                       if (mounted) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                                "Reminder sent to IO for case ${caseItem['case_number']}"),
-                                          ),
+                                        AppErrorPopup.show(
+                                          context,
+                                          title: 'Error',
+                                          message: 'Failed to send reminder: $e',
                                         );
                                       }
                                     }

@@ -48,6 +48,13 @@ void main() {
     // Verify Tab 2 empty state
     expect(find.text('No System Alerts'), findsOneWidget);
     expect(find.byIcon(Icons.notifications_off_outlined), findsOneWidget);
+
+    // Switch back to Tab 1
+    await tester.tap(find.text('Case Reminders'));
+    await tester.pumpAndSettle();
+
+    // Verify Tab 1 empty state without crashing
+    expect(find.text('No Case Reminders'), findsOneWidget);
   });
 
   testWidgets('NotificationScreen displays notifications and Mark Read button', (tester) async {
