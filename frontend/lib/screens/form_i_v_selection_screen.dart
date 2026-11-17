@@ -2338,49 +2338,51 @@ class CategoryGridCardState extends State<CategoryGridCard> {
                         widget.onTap();
             },
             borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              child: Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: widget.isAll
-                          ? AppColors.navyMid.withValues(alpha: 0.08)
-                          : (hasCases
-                              ? AppColors.navyMid.withValues(alpha: 0.08)
-                              : const Color(0xFFF1F5F9)),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: CategoryIconHelper.buildWidget(
-                      widget.isAll
-                          ? 'all'
-                          : (widget.rawCategory ?? widget.category),
-                      size: 20,
-                      color: widget.isAll
-                          ? AppColors.navyMid
-                          : (hasCases
-                              ? AppColors.navyMid
-                              : AppColors.lightSubText),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isCompact = constraints.maxWidth < 135;
+                if (isCompact) {
+                  return Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
+                        Container(
+                          width: 34,
+                          height: 34,
+                          decoration: BoxDecoration(
+                            color: widget.isAll
+                                ? AppColors.navyMid.withValues(alpha: 0.08)
+                                : (hasCases
+                                    ? AppColors.navyMid.withValues(alpha: 0.08)
+                                    : const Color(0xFFF1F5F9)),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: CategoryIconHelper.buildWidget(
+                            widget.isAll
+                                ? 'all'
+                                : (widget.rawCategory ?? widget.category),
+                            size: 18,
+                            color: widget.isAll
+                                ? AppColors.navyMid
+                                : (hasCases
+                                    ? AppColors.navyMid
+                                    : AppColors.lightSubText),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
                         Text(
                           widget.category,
-                          maxLines: 2,
-                          softWrap: true,
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
                           style: GoogleFonts.poppins(
                             fontSize: 12.0,
                             fontWeight: FontWeight.w600,
                             color: AppColors.navyDark,
-                            height: 1.18,
+                            height: 1.15,
                           ),
                         ),
                         if (widget.showCount) ...[
@@ -2389,8 +2391,11 @@ class CategoryGridCardState extends State<CategoryGridCard> {
                             widget.count == 1
                                 ? '1 case'
                                 : '${widget.count} cases',
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.poppins(
-                              fontSize: 11,
+                              fontSize: 10,
                               color: hasCases
                                   ? AppColors.navyMid
                                   : AppColors.lightSubText,
@@ -2401,16 +2406,87 @@ class CategoryGridCardState extends State<CategoryGridCard> {
                         ],
                       ],
                     ),
+                  );
+                }
+
+                return Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: widget.isAll
+                              ? AppColors.navyMid.withValues(alpha: 0.08)
+                              : (hasCases
+                                  ? AppColors.navyMid.withValues(alpha: 0.08)
+                                  : const Color(0xFFF1F5F9)),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: CategoryIconHelper.buildWidget(
+                          widget.isAll
+                              ? 'all'
+                              : (widget.rawCategory ?? widget.category),
+                          size: 20,
+                          color: widget.isAll
+                              ? AppColors.navyMid
+                              : (hasCases
+                                  ? AppColors.navyMid
+                                  : AppColors.lightSubText),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              widget.category,
+                              maxLines: 2,
+                              softWrap: true,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.poppins(
+                                fontSize: 12.0,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.navyDark,
+                                height: 1.18,
+                              ),
+                            ),
+                            if (widget.showCount) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                widget.count == 1
+                                    ? '1 case'
+                                    : '${widget.count} cases',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  color: hasCases
+                                      ? AppColors.navyMid
+                                      : AppColors.lightSubText,
+                                  fontWeight: hasCases
+                                      ? FontWeight.w600
+                                      : FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        size: 16,
+                        color: _hovered
+                            ? AppColors.navyMid
+                            : const Color(0xFFCBD5E1),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 4),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    size: 16,
-                    color:
-                        _hovered ? AppColors.navyMid : const Color(0xFFCBD5E1),
-                  ),
-                ],
-              ),
+                );
+              },
             ),
           ),
         ),

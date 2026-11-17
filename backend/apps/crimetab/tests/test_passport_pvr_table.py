@@ -1,15 +1,20 @@
 """B6: Passport / PVR entries in passport_pvr_records."""
-from datetime import date
+from datetime import date, datetime
 from io import StringIO
 
 from django.core.management import call_command
 from django.test import TestCase
+from django.utils import timezone
 
 from apps.cases.models import CaseRecord
 from apps.core.tenancy import TenantContext
 from apps.crimetab.models.service_tabs import PassportPvrRecord
 from apps.crimetab.serializers import FullCaseDetailSerializer, serialize_case_list
 from apps.crimetab.views import _save_case_child_entities
+
+
+def _ist(*day):
+    return timezone.make_aware(datetime(*day))
 
 # What passport_add_edit_dialog.dart sends
 PASSPORT_EXTRA = {
@@ -45,7 +50,7 @@ class PassportPvrTableTests(TestCase):
         self.assertEqual((row.kind, row.file_number), ('passport', 'PV-261105-123'))
         self.assertEqual((row.total_count, row.verified_count, row.pending_count), (5, 3, 2))
         self.assertEqual(row.verification_status, 'Partially Verified')
-        self.assertEqual(row.verification_date, date(2026, 11, 5))
+        self.assertEqual(timezone.localtime(row.verification_date), _ist(2026, 11, 5))  # the day, at midnight India time
 
     def test_pvr_saved_without_a_date_and_counts_as_text(self):
         case = self._case('PP2', {**PVR_EXTRA, 'verified_count': '2', 'pending_count': 'x'}, module='pvr')

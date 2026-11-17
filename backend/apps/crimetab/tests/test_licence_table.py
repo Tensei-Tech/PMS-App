@@ -1,5 +1,5 @@
 """B7: Licence applications in licence_records."""
-from datetime import date
+from datetime import date, datetime
 from io import StringIO
 
 from django.core.management import call_command
@@ -11,6 +11,10 @@ from apps.core.tenancy import TenantContext
 from apps.crimetab.models.service_tabs import LicenceRecord
 from apps.crimetab.serializers import FullCaseDetailSerializer, serialize_case_list
 from apps.crimetab.views import _save_case_child_entities
+
+
+def _ist(*day):
+    return timezone.make_aware(datetime(*day))
 
 # What licence_add_edit_dialog.dart sends
 LICENCE_EXTRA = {
@@ -43,7 +47,7 @@ class LicenceTableTests(TestCase):
         self.assertEqual((row.applicant_name, row.business_name, row.licence_status),
                          ('Sneha Patil', 'Patil Arms', 'Pending'))
         self.assertIsNone(row.other_noc_type)
-        self.assertEqual(row.received_date, date(2026, 11, 5))
+        self.assertEqual(timezone.localtime(row.received_date), _ist(2026, 11, 5))  # the day, at midnight India time
         local = timezone.localtime(row.status_updated_at)
         self.assertEqual((local.date(), local.hour, local.minute), (date(2026, 11, 5), 14, 30))
 

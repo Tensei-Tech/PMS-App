@@ -825,7 +825,8 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
                       ],
                     ),
                   )
-                : SingleChildScrollView(
+                : Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                     child: NAFISCasesDataTable(
                       realDataRows: visibleRows,
                       rawRecords: _caseRecords,
