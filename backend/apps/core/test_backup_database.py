@@ -3,6 +3,7 @@ import os
 import tempfile
 import time
 from pathlib import Path
+from unittest import mock
 
 from django.core.management import call_command
 from django.core.management.base import CommandError
@@ -27,8 +28,11 @@ class BackupDatabaseTests(SimpleTestCase):
                               'pms_db_20261114_1200.dump'])
 
     def test_needs_postgresql(self):
-        with self.assertRaises(CommandError):  # the test database is SQLite
-            call_command('backup_database', '--dir', tempfile.gettempdir())
+        # CI tests run on PostgreSQL, local ones on SQLite: pretend another engine either way
+        from django.conf import settings
+        with mock.patch.dict(settings.DATABASES['default'], {'ENGINE': 'django.db.backends.sqlite3'}):
+            with self.assertRaises(CommandError):
+                call_command('backup_database', '--dir', tempfile.gettempdir())
 
     def test_pg_bin_dir_is_used_first(self):
         with tempfile.TemporaryDirectory() as folder:
