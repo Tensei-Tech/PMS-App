@@ -35,7 +35,7 @@ class UiConfigService {
           "form_sub_category": "Juvenile",
           "form_module_label": "Juvenile",
           "no_cases_label": "No cases",
-          "title": "CiCL — Summary"
+          "title": "CiCL"
         };
   }
 

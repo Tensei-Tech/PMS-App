@@ -448,6 +448,15 @@ class CaseRecord(models.Model):
         verbose_name_plural = 'Case Records'
         ordering = ['-created_at', '-id']
 
+    @classmethod
+    def from_db(cls, db, field_names, values, *args, **kwargs):
+        instance = super().from_db(db, field_names, values, *args, **kwargs)
+        # Service-tab answers stored only in their tables come back into the JSON,
+        # so every reader sees it as the app sent it (apps/crimetab/table_copies.py)
+        from apps.crimetab.table_copies import restore_on_load
+        restore_on_load(instance)
+        return instance
+
     def save(self, *args, **kwargs):
         # 1. Reject client status overrides (handled before save if we want, but enforced here)
         # Actually, if we just want to compute it:

@@ -51,7 +51,7 @@ class PassportStatusCards extends StatelessWidget {
             filter: PassportStatusFilter.verified,
             title: TranslationHelper.translate(
               context,
-              'Verified / Report Submitted',
+              'Verified',
             ),
             count: verifiedCount,
             icon: Icons.verified_user_rounded,

@@ -1,15 +1,20 @@
 """B8: Sam/Warrant answers in sam_warrant_records."""
-from datetime import date
+from datetime import date, datetime
 from io import StringIO
 
 from django.core.management import call_command
 from django.test import TestCase
+from django.utils import timezone
 
 from apps.cases.models import CaseRecord
 from apps.cases.warrant_service import classify_warrant_record, get_warrant_execution_status
 from apps.core.tenancy import TenantContext
 from apps.crimetab.models.service_tabs import SamWarrantRecord
 from apps.crimetab.views import _save_case_child_entities
+
+
+def _ist(*day):
+    return timezone.make_aware(datetime(*day))
 
 # What add_warrant_case_dialog.dart sends
 APP_EXTRA = {
@@ -40,7 +45,7 @@ class SamWarrantTableTests(TestCase):
         self.assertEqual((row.warrant_type, row.execution_status), ('nbw', 'pending'))
         self.assertEqual((row.warrant_number, row.accused_name, row.court_name),
                          ('W/12/2026', 'Rohit Patil', 'JMFC Nagpur'))
-        self.assertEqual(row.issue_date, date(2026, 11, 5))
+        self.assertEqual(timezone.localtime(row.issue_date), _ist(2026, 11, 5))  # the day, at midnight India time
         self.assertEqual(row.notes, 'Serve at home address')
 
     def test_other_tabs_get_no_row(self):

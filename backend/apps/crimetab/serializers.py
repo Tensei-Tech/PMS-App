@@ -297,7 +297,11 @@ class CaseListSerializer(serializers.ModelSerializer):
             extra = data.get('extra_fields')
             if not isinstance(extra, dict):
                 extra = {}
-                data['extra_fields'] = extra
+            else:
+                # a copy: the values laid over it below must not change the case in memory
+                import copy
+                extra = copy.deepcopy(extra)
+            data['extra_fields'] = extra
 
             # Service tab answers from their own tables (Sam/Warrant, Passport / PVR, Licence, Tadipar)
             service_row = self.context.get('service_rows', {}).get(instance.pk)

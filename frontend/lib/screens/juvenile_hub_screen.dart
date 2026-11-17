@@ -274,6 +274,7 @@ class _JuvenileHubScreenState extends State<JuvenileHubScreen>
                       page: JuvenileSummaryScreen(
                         liveRows: cases,
                         stationName: widget.stationName,
+                        title: head,
                       ),
                     ),
                   );

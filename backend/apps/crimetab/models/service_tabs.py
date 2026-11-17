@@ -25,7 +25,7 @@ class SamWarrantRecord(models.Model):
     warrant_number = models.CharField(max_length=100, null=True, blank=True)
     accused_name = models.CharField(max_length=255, null=True, blank=True)
     court_name = models.CharField(max_length=255, null=True, blank=True)
-    issue_date = models.DateField(null=True, blank=True)
+    issue_date = models.DateTimeField(null=True, blank=True)  # date and time as the app sends it
     execution_status = models.CharField(max_length=10, choices=STATUS_CHOICES, null=True, blank=True)
     notes = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
@@ -52,7 +52,7 @@ class PassportPvrRecord(models.Model):
     verified_count = models.IntegerField(null=True, blank=True)
     pending_count = models.IntegerField(null=True, blank=True)
     verification_status = models.CharField(max_length=50, null=True, blank=True)
-    verification_date = models.DateField(null=True, blank=True)
+    verification_date = models.DateTimeField(null=True, blank=True)  # date and time as the app sends it
     # older single-applicant records
     applicant_name = models.CharField(max_length=255, null=True, blank=True)
     applicant_phone = models.CharField(max_length=20, null=True, blank=True)
@@ -83,7 +83,7 @@ class LicenceRecord(models.Model):
     other_noc_type = models.CharField(max_length=255, null=True, blank=True)
     applicant_name = models.CharField(max_length=255, null=True, blank=True)
     business_name = models.CharField(max_length=255, null=True, blank=True)
-    received_date = models.DateField(null=True, blank=True)
+    received_date = models.DateTimeField(null=True, blank=True)  # date and time as the app sends it
     licence_status = models.CharField(max_length=20, null=True, blank=True)
     status_updated_at = models.DateTimeField(null=True, blank=True)
     remarks = models.TextField(null=True, blank=True)

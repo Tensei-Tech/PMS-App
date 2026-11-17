@@ -299,13 +299,12 @@ class _PassportAddEditDialogState extends State<PassportAddEditDialog> {
                 ),
                 const SizedBox(height: 16),
 
-                // 2. Verified / Report Submitted
+                // 2. Verified
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      TranslationHelper.translate(
-                          context, 'Verified / Report Submitted'),
+                      TranslationHelper.translate(context, 'Verified'),
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,

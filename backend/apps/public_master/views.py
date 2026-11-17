@@ -364,7 +364,7 @@ DEFAULT_UI_CONFIG = {
         "form_sub_category": "Juvenile",
         "form_module_label": "Juvenile",
         "no_cases_label": "No cases",
-        "title": "CiCL — Summary"
+        "title": "CiCL"
     }
 }
 

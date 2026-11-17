@@ -196,7 +196,7 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
       onRefresh: _loadCaseWise,
       color: AppColors.navyMid,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
         child: NAFISCasesDataTable(
           realDataRows: _caseWiseList,
           rawRecords: _caseRecords,

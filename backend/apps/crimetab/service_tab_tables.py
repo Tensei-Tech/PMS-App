@@ -108,6 +108,15 @@ def _as_datetime(value):
     return parsed if timezone.is_aware(parsed) else timezone.make_aware(parsed)
 
 
+def _as_moment(value):
+    """A date answer kept with its time: ISO text keeps its time, a day alone (05/11/2026) is midnight."""
+    moment = _as_datetime(value)
+    if moment is None:
+        day = _as_date(value)
+        moment = timezone.make_aware(datetime(day.year, day.month, day.day)) if day else None
+    return moment
+
+
 def is_sam_warrant_case(case):
     return (case.module_key or '').strip().lower() == 'sam_warrant'
 
@@ -122,7 +131,7 @@ def warrant_values(case, extra=None):
         'warrant_number': text('warrant_number', 100) or (case.case_number or '')[:100] or None,
         'accused_name': text('accused_name', 255) or (case.accused or '')[:255] or None,
         'court_name': text('court_name', 255),
-        'issue_date': _as_date(_first(extra, WARRANT_KEYS['issue_date'])),
+        'issue_date': _as_moment(_first(extra, WARRANT_KEYS['issue_date'])),
         'execution_status': execution_status_of(_first(extra, WARRANT_KEYS['execution_status'])),
         'notes': text('notes', 100000),
     }
@@ -184,7 +193,7 @@ def passport_pvr_values(case, extra=None):
     for column, keys in PASSPORT_COUNTS.items():
         values[column] = _count(_first(extra, keys))
     for column, keys in PASSPORT_DATES.items():
-        values[column] = _as_date(_first(extra, keys))
+        values[column] = _as_moment(_first(extra, keys))
     return values
 
 
@@ -213,8 +222,9 @@ LICENCE_TEXT = {
     'licence_status': (('licence_status', 'license_status', 'licenceStatus'), 20),
     'remarks': (('remarks', 'notes'), 100000),
 }
-LICENCE_DATES = {'received_date': ('received_date', 'receivedDate')}
-LICENCE_DATETIMES = {'status_updated_at': ('status_updated_at', 'statusUpdatedAt')}
+LICENCE_DATES = {}
+LICENCE_DATETIMES = {'received_date': ('received_date', 'receivedDate'),
+                     'status_updated_at': ('status_updated_at', 'statusUpdatedAt')}
 
 
 def is_licence_case(case):
@@ -231,7 +241,7 @@ def licence_values(case, extra=None):
     for column, keys in LICENCE_DATES.items():
         values[column] = _as_date(_first(extra, keys))
     for column, keys in LICENCE_DATETIMES.items():
-        values[column] = _as_datetime(_first(extra, keys))
+        values[column] = _as_moment(_first(extra, keys))
     return values
 
 
@@ -592,7 +602,7 @@ NESTED_COPIES = ('extra_field_values', 'dynamic_extra_fields')
 def _shaped(value, current, date_format):
     """A table value written the way the JSON holds it; None when the JSON already says the same."""
     if isinstance(value, datetime):
-        if _as_datetime(current) == value:
+        if _as_moment(current) == value:
             return None  # same moment: keep the app's own text
         return timezone.localtime(value).isoformat()
     if isinstance(value, date):
