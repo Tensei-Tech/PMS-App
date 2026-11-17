@@ -184,7 +184,7 @@ const List<IradFilterItem> kIradFilterItems = [
     key: 'fatal',
     label: 'Fatal Accident',
     group: 'Accident Category',
-    icon: Icons.heart_broken_rounded,
+    icon: Icons.dangerous_rounded,
     color: AppColors.navyMid,
   ),
   IradFilterItem(

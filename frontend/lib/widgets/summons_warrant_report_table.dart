@@ -718,7 +718,7 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
           SizedBox(
             width: 130,
             child: _summaryCard('Unserved (अदम)', '$unserved',
-                Colors.orange.shade800, Colors.orange.shade50),
+                AppColors.navyMid, AppColors.lightBg),
           ),
           const SizedBox(width: 8),
           SizedBox(
@@ -747,7 +747,7 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
             label,
             style: GoogleFonts.poppins(
                 fontSize: 11,
-                color: textColor.withValues(alpha: 0.8),
+                color: textColor,
                 fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 2),
@@ -842,7 +842,7 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
                   '${sum['unserved'] ?? 0}',
                   caseIds['unserved'] as List<dynamic>? ?? [],
                   '$title - Unserved',
-                  color: Colors.orange.shade800,
+                  color: AppColors.navyMid,
                 ),
                 _clickableCell(
                   '${sum['pending'] ?? 0}',
@@ -904,7 +904,7 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
                   '${grandTotal['unserved'] ?? 0}',
                   grandTotal['case_ids']?['unserved'] as List<dynamic>? ?? [],
                   'Grand Total Unserved',
-                  color: Colors.orange.shade800,
+                  color: AppColors.navyMid,
                   isBold: true,
                 ),
                 _clickableCell(
@@ -1017,7 +1017,7 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
                           '${st['unserved'] ?? 0}',
                           caseIds['unserved'] as List<dynamic>? ?? [],
                           '$stName - Unserved',
-                          color: Colors.orange.shade800,
+                          color: AppColors.navyMid,
                         ),
                         _clickableCell(
                           '${st['pending'] ?? 0}',
