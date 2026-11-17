@@ -14,11 +14,17 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, KeepTogether
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.pdfgen import canvas
+try:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, KeepTogether
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.pdfgen import canvas
+    _CanvasBase = canvas.Canvas
+except ImportError:
+    A4 = colors = SimpleDocTemplate = Paragraph = Spacer = Table = TableStyle = KeepTogether = None
+    getSampleStyleSheet = ParagraphStyle = canvas = None
+    _CanvasBase = object
 
 from apps.core.tenancy import TenantContext
 from apps.crimetab.models.mpda import (
@@ -1344,7 +1350,7 @@ class MpdaDetailView(APIView):
                 return Response({'error': f"Failed to update MPDA proposal: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class MpdaNumberedCanvas(canvas.Canvas):
+class MpdaNumberedCanvas(_CanvasBase):
     """
     Two-pass canvas to dynamically compute total pages and render running footer.
     """

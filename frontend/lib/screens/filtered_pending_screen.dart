@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/backend_case_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/excel_export_helper.dart';
 import '../utils/pending_table_firestore_mapper.dart';
 import '../widgets/pending_cases_demo_data_table.dart';
 import '../modules/core/models/base_record.dart';
@@ -215,6 +216,66 @@ class _FilteredPendingScreenState extends State<FilteredPendingScreen> {
                           ),
                         ],
                       ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  GestureDetector(
+                    onTap: _tableRows.isEmpty
+                        ? null
+                        : () {
+                            final sanitizedTitle = widget.title
+                                .replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_')
+                                .replaceAll(RegExp(r'_+'), '_');
+                            ExcelExportHelper.exportPendingToExcel(
+                              dataset: _tableRows,
+                              filename: '${sanitizedTitle}_Cases.csv',
+                              isAbsconded: widget.isAbsconded,
+                              isVictim: widget.isVictim,
+                              isUndetected: widget.isUndetected,
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                    '${widget.title} exported to Excel successfully.'),
+                                backgroundColor: const Color(0xFF107C41),
+                              ),
+                            );
+                          },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: _tableRows.isEmpty
+                            ? Colors.grey.shade400
+                            : const Color(0xFF107C41),
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: _tableRows.isEmpty
+                            ? []
+                            : [
+                                BoxShadow(
+                                  color: const Color(0xFF107C41)
+                                      .withValues(alpha: 0.25),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.download_rounded,
+                              size: 16, color: Colors.white),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Excel',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
