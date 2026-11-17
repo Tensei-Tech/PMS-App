@@ -132,3 +132,28 @@ class TadiparRecord(models.Model):
     class Meta:
         db_table = 'tadipar_records'
         verbose_name = 'Tadipar Record'
+
+
+class TadiparCrimeChartEntry(models.Model):
+    """tadipar_crime_chart_entries: one row of a Tadipar order's Crime Chart. Act / Section /
+    station names are copied beside their ids so a row stays readable if the master changes."""
+
+    id = models.BigAutoField(primary_key=True)
+    record = models.ForeignKey(TadiparRecord, on_delete=models.CASCADE, related_name='crime_chart',
+                               db_column='case_id')
+    row_no = models.IntegerField(default=0)
+    cr_number = models.CharField(max_length=100, null=True, blank=True)
+    crime_head = models.TextField(null=True, blank=True)
+    act_id = models.BigIntegerField(null=True, blank=True)
+    act_name = models.TextField(null=True, blank=True)
+    section_id = models.BigIntegerField(null=True, blank=True)
+    section_number = models.CharField(max_length=50, null=True, blank=True)
+    register_date = models.DateField(null=True, blank=True)
+    police_station_id = models.BigIntegerField(null=True, blank=True)
+    police_station_name = models.CharField(max_length=255, null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'tadipar_crime_chart_entries'
+        verbose_name = 'Tadipar Crime Chart Entry'
+        unique_together = ('record', 'row_no')

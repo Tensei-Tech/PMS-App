@@ -45,7 +45,7 @@ STATE_TABLES = frozenset({
     'preventive_action_items', 'preventive_bond',
     # modules
     'rti_applications', 'sam_warrant_records', 'passport_pvr_records',
-    'licence_records', 'tadipar_records',
+    'licence_records', 'tadipar_records', 'tadipar_crime_chart_entries',
     'history_sheeters', 'history_sheeter_crimes', 'history_sheeter_related_persons',
     'history_sheeter_preventive_actions',
     'mpda_proposals', 'mpda_accused_persons', 'mpda_gang_members', 'mpda_crime_chart_entries',
