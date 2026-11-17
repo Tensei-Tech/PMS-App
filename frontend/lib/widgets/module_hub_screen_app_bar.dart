@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/app_theme.dart';
@@ -14,6 +15,9 @@ class ModuleHubScreenAppBar extends StatelessWidget
   final Widget? actionWidget;
   final VoidCallback? onBackPressed;
   final Color? backgroundColor;
+  final FocusNode? searchFocusNode;
+  final VoidCallback? onSearchShortcut;
+  final VoidCallback? onEscapePressed;
 
   const ModuleHubScreenAppBar({
     super.key,
@@ -24,6 +28,9 @@ class ModuleHubScreenAppBar extends StatelessWidget
     this.actionWidget,
     this.onBackPressed,
     this.backgroundColor,
+    this.searchFocusNode,
+    this.onSearchShortcut,
+    this.onEscapePressed,
   });
 
   /// Factory for standard compact pill '+ Add Case' button used across module headers.
@@ -106,7 +113,7 @@ class ModuleHubScreenAppBar extends StatelessWidget
       ],
     );
 
-    return AppBar(
+    final appBar = AppBar(
       backgroundColor: bg,
       elevation: 0,
       scrolledUnderElevation: 0,
@@ -188,6 +195,35 @@ class ModuleHubScreenAppBar extends StatelessWidget
             ),
           ),
       ],
+    );
+
+    return CallbackShortcuts(
+      bindings: <ShortcutActivator, VoidCallback>{
+        const SingleActivator(LogicalKeyboardKey.escape): () {
+          if (onEscapePressed != null) {
+            onEscapePressed!();
+          } else if (onBackPressed != null) {
+            onBackPressed!();
+          } else {
+            Navigator.maybePop(context);
+          }
+        },
+        if (searchFocusNode != null || onSearchShortcut != null)
+          const SingleActivator(LogicalKeyboardKey.slash): () {
+            final focused = FocusManager.instance.primaryFocus?.context?.widget;
+            if (focused is! EditableText) {
+              if (searchFocusNode != null) {
+                searchFocusNode!.requestFocus();
+              } else if (onSearchShortcut != null) {
+                onSearchShortcut!();
+              }
+            }
+          },
+      },
+      child: Focus(
+        autofocus: true,
+        child: appBar,
+      ),
     );
   }
 }

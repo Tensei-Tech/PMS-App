@@ -1,143 +1,28 @@
-// lib/widgets/connectivity_banner.dart
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/connectivity_provider.dart';
-import '../theme/app_theme.dart';
+import 'app_error_popup.dart';
 
 /// Clean, theme-consistent alert dialog alerting user when offline with a Retry button.
 class OfflineWarningDialog extends StatelessWidget {
   const OfflineWarningDialog({super.key});
 
-  /// Convenient helper to display the offline modal popup (disabled)
-  static Future<void> show(BuildContext context) {
-    return Future<void>.value();
+  /// Convenient helper to display the offline modal popup
+  static Future<void> show(BuildContext context, {Future<void> Function()? onRetry}) {
+    return AppErrorPopup.showNetworkError(context, onRetry: onRetry);
   }
 
   @override
   Widget build(BuildContext context) {
-    final connectivity = context.watch<ConnectivityProvider>();
-    final isChecking = connectivity.isChecking;
-    final isConnected = connectivity.isConnected;
-
-    // If connection restores automatically while dialog is open, dismiss it
-    if (isConnected) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) {
-          Navigator.of(context).pop();
-        }
-      });
-    }
-
-    return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      backgroundColor: Colors.white,
-      surfaceTintColor: Colors.transparent,
-      titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-      actionsPadding: const EdgeInsets.fromLTRB(20, 12, 20, 14),
-      title: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(7),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFEE2E2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(
-              Icons.wifi_off_rounded,
-              color: AppColors.dangerRed,
-              size: 18,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'No Internet Connection',
-              style: GoogleFonts.inter(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppColors.navyDark,
-              ),
-            ),
-          ),
-        ],
-      ),
-      content: Text(
-        'You are currently offline. Please check your internet connection.',
-        style: GoogleFonts.inter(
-          fontSize: 13,
-          color: const Color(0xFF475569),
-          height: 1.4,
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          style: TextButton.styleFrom(
-            foregroundColor: const Color(0xFF64748B),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          ),
-          child: Text(
-            'OK',
-            style: GoogleFonts.inter(
-              fontWeight: FontWeight.w500,
-              fontSize: 13,
-              color: const Color(0xFF64748B),
-            ),
-          ),
-        ),
-        ElevatedButton(
-          onPressed: isChecking
-              ? null
-              : () async {
-                  final online = await connectivity.checkConnection();
-                  if (online && context.mounted) {
-                    Navigator.of(context).pop();
-                  }
-                },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.navyDark,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          child: isChecking
-              ? const SizedBox(
-                  width: 14,
-                  height: 14,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                )
-              : Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.refresh_rounded, size: 15),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Retry',
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-        ),
-      ],
-    );
+    return const SizedBox.shrink();
   }
 }
 
 /// Global Application Wrapper that monitors network status and alerts
-/// the user with [OfflineWarningDialog] whenever internet connection is lost.
+/// the user with [AppErrorPopup] whenever internet connection is lost.
 class ConnectivityBannerWrapper extends StatefulWidget {
   final GlobalKey<NavigatorState>? navigatorKey;
   final Widget? child;
@@ -153,6 +38,17 @@ class ConnectivityBannerWrapper extends StatefulWidget {
 }
 
 class _ConnectivityBannerWrapperState extends State<ConnectivityBannerWrapper> {
+  bool _hasShownOfflinePopup = false;
+  bool _wasOffline = false;
+  bool _showRestoredBanner = false;
+  Timer? _restoredTimer;
+
+  @override
+  void dispose() {
+    _restoredTimer?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     ConnectivityProvider? connectivity;
@@ -168,18 +64,43 @@ class _ConnectivityBannerWrapperState extends State<ConnectivityBannerWrapper> {
 
     final isOffline = !connectivity.isConnected;
 
+    if (isOffline && !_hasShownOfflinePopup) {
+      _hasShownOfflinePopup = true;
+      _wasOffline = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final targetContext = widget.navigatorKey?.currentContext ?? context;
+        AppErrorPopup.showNetworkError(
+          targetContext,
+          onRetry: () async {
+            await connectivity?.checkConnection();
+          },
+        );
+      });
+    } else if (!isOffline && _wasOffline) {
+      _hasShownOfflinePopup = false;
+      _wasOffline = false;
+      _showRestoredBanner = true;
+      _restoredTimer?.cancel();
+      _restoredTimer = Timer(const Duration(seconds: 2), () {
+        if (mounted) {
+          setState(() => _showRestoredBanner = false);
+        }
+      });
+    }
+
     return Directionality(
       textDirection: TextDirection.ltr,
       child: Stack(
         children: [
           widget.child ?? const SizedBox.shrink(),
-          if (isOffline)
+          if (_showRestoredBanner)
             Positioned(
               bottom: 0,
               left: 0,
               right: 0,
               child: Material(
-                color: const Color(0xFFDC2626),
+                color: const Color(0xFF16A34A),
                 child: SafeArea(
                   top: false,
                   child: Container(
@@ -189,48 +110,17 @@ class _ConnectivityBannerWrapperState extends State<ConnectivityBannerWrapper> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Icon(
-                          Icons.wifi_off_rounded,
+                          Icons.wifi_rounded,
                           color: Colors.white,
                           size: 16,
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'You are currently offline.',
+                          'Connection restored. Back online.',
                           style: GoogleFonts.poppins(
                             color: Colors.white,
                             fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        InkWell(
-                          onTap: connectivity.isChecking
-                              ? null
-                              : () => connectivity!.checkConnection(),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: connectivity.isChecking
-                                ? const SizedBox(
-                                    width: 10,
-                                    height: 10,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 1.5,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : Text(
-                                    'Retry',
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],

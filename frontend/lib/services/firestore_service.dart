@@ -15,13 +15,16 @@ class FirestoreService {
   static const String colWanted = 'wanted';
   static const String colStations = 'stations';
 
+  static Stream<T> _broadcastStream<T>(T value) =>
+      Stream<T>.value(value).asBroadcastStream();
+
   Future<void> saveUser(UserModel user) async {}
 
   Future<void> updateUserField(String uid, String field, dynamic value) async {}
 
   Future<UserModel?> getUser(String uid) async => null;
 
-  Stream<UserModel?> watchUser(String uid) => Stream.value(null);
+  Stream<UserModel?> watchUser(String uid) => _broadcastStream(null);
 
   Future<UserModel?> getUserByEmail(String email) async => null;
 
@@ -29,43 +32,43 @@ class FirestoreService {
 
   Future<void> deleteCase(String id, {required String moduleKey}) async {}
 
-  Stream<ModuleRecord?> watchCaseById(String id) => Stream.value(null);
+  Stream<ModuleRecord?> watchCaseById(String id) => _broadcastStream(null);
 
   Stream<Map<String, dynamic>?> watchDocumentData(
     String collection,
     String docId,
   ) =>
-      Stream.value(null);
+      _broadcastStream(null);
 
   Stream<List<ModuleRecord>> getCasesStream(
     String moduleKey,
     String stationId,
   ) =>
-      Stream.value(const []);
+      _broadcastStream(const <ModuleRecord>[]);
 
   Stream<List<ModuleRecord>> watchAssignedCasesStream(
     String officerUid, {
     required bool activeOnly,
   }) =>
-      Stream.value(const []);
+      _broadcastStream(const <ModuleRecord>[]);
 
   Stream<List<ModuleRecord>> getRecentCasesStream(
     int limit,
     String stationId,
   ) =>
-      Stream.value(const []);
+      _broadcastStream(const <ModuleRecord>[]);
 
   Stream<List<ModuleRecord>> getStationCasesStream(String stationId) =>
-      Stream.value(const []);
+      _broadcastStream(const <ModuleRecord>[]);
 
   Stream<List<ModuleRecord>> getPendingCasesStream(String stationId) =>
-      Stream.value(const []);
+      _broadcastStream(const <ModuleRecord>[]);
 
   Future<List<ModuleRecord>> fetchPendingCasesOnce(String stationId) async =>
       [];
 
   Stream<List<ModuleRecord>> getDisposalCasesStream(String stationId) =>
-      Stream.value(const []);
+      _broadcastStream(const <ModuleRecord>[]);
 
   Future<void> saveFir(Map<String, dynamic> firData) async {}
 
@@ -86,7 +89,7 @@ class FirestoreService {
 
   Future<List<String>> getAllStationNames() async => const [];
 
-  Stream<dynamic> watchUserAppPreferences(String uid) => Stream.value(null);
+  Stream<dynamic> watchUserAppPreferences(String uid) => _broadcastStream(null);
 
   Future<void> mergeUserAppPreferences(
     String uid,
@@ -110,7 +113,7 @@ class FirestoreService {
     required String approverZone,
     required String approverStation,
   }) =>
-      Stream.value(const []);
+      _broadcastStream(const <UserModel>[]);
 
   Future<void> approveUserRegistration(String uid) async {}
 
@@ -131,16 +134,16 @@ class FirestoreService {
   }) async {}
 
   Stream<List<Map<String, dynamic>>> getIoRemindersStream(String ioUid) =>
-      Stream.value(const []);
+      _broadcastStream(const <Map<String, dynamic>>[]);
 
   Stream<List<Map<String, dynamic>>> getStationRemindersStream(
     String stationName,
   ) =>
-      Stream.value(const []);
+      _broadcastStream(const <Map<String, dynamic>>[]);
 
   Stream<List<Map<String, dynamic>>> getSentRemindersStream(String sentByUid) =>
-      Stream.value(const []);
+      _broadcastStream(const <Map<String, dynamic>>[]);
 
   Stream<List<Map<String, dynamic>>> getAllRemindersStream() =>
-      Stream.value(const []);
+      _broadcastStream(const <Map<String, dynamic>>[]);
 }

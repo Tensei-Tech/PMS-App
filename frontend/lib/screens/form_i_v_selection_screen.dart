@@ -1141,6 +1141,72 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
     _openForm(category);
   }
 
+  Widget _buildCaseListSkeleton() {
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1600),
+        child: ListView.builder(
+          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 5, AppSpacing.lg, 88),
+          itemCount: 4,
+          itemBuilder: (_, __) => Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 18,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      width: 60,
+                      height: 18,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  width: 220,
+                  height: 14,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE2E8F0),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  width: 150,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildDateAndSortControls() {
     final hasDateFilter = _selectedDateRange != null;
     final dateText = hasDateFilter
@@ -1799,6 +1865,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                   records: statusRecords,
                   getDescendantNames: _getDescendantCategoryNames,
                   onCategorySelected: _handleCategoryTap,
+                  statusTabName: _selectedStatusTab.name,
                 ),
               ),
             ] else ...[
@@ -1882,14 +1949,16 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                 ),
               Expanded(
                 child: visibleRecords.isEmpty
-                    ? _EmptyCasesState(
+                    ? (provider.isLoading
+                        ? _buildCaseListSkeleton()
+                        : _EmptyCasesState(
                         category: _selectedCategory!,
                         readOnly: _readOnly,
                         statusTab: _selectedStatusTab,
                         onNewCase: _showNewCaseFab ? _onNewCase : null,
                         selectedDateRange: _selectedDateRange,
                         onClearDateFilter: _clearDateFilter,
-                      )
+                      ))
                     : Align(
                         alignment: Alignment.topCenter,
                         child: ConstrainedBox(
@@ -2063,7 +2132,9 @@ class FormIVStatusTabBar extends StatelessWidget {
           );
 
           final inkWell = InkWell(
-            onTap: () => onTabChanged(item.tab),
+            onTap: () {
+              onTabChanged(item.tab);
+            },
             hoverColor: Colors.transparent,
             splashColor: AppColors.navyMid.withValues(alpha: 0.08),
             child: tabContent,
@@ -2110,12 +2181,14 @@ class _CategoryGridView extends StatelessWidget {
     required this.records,
     required this.onCategorySelected,
     this.getDescendantNames,
+    this.statusTabName = 'total',
   });
 
   final List<String> categories;
   final List<ModuleRecord> records;
   final ValueChanged<String> onCategorySelected;
   final Set<String> Function(String category)? getDescendantNames;
+  final String statusTabName;
 
   int _countFor(String category) {
     if (category == FormIVSelectionScreen.allFilterLabel) {
@@ -2169,6 +2242,7 @@ class _CategoryGridView extends StatelessWidget {
         }
 
         return GridView.builder(
+          key: PageStorageKey<String>('form_iv_category_grid_$statusTabName'),
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 88),
           itemCount: categories.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -2260,7 +2334,9 @@ class CategoryGridCardState extends State<CategoryGridCard> {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: widget.onTap,
+            onTap: () {
+                        widget.onTap();
+            },
             borderRadius: BorderRadius.circular(12),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -2560,48 +2636,190 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
     final ccCtrl = TextEditingController();
     final bool? confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: Text('Quick Dispose',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-                'Enter CC / ST Number (Optional) to mark this case as disposed.',
-                style: GoogleFonts.poppins(fontSize: 13)),
-            const SizedBox(height: 16),
-            TextField(
-              controller: ccCtrl,
-              decoration: InputDecoration(
-                labelText: 'CC / ST No.',
-                labelStyle: GoogleFonts.poppins(fontSize: 13),
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                isDense: true,
-              ),
-            ),
-          ],
+      barrierDismissible: true,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('Cancel',
-                style: GoogleFonts.poppins(color: AppColors.lightSubText)),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.successGreen,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 440),
+          child: Padding(
+            padding: const EdgeInsets.all(22),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE8F1FC),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.gavel_rounded,
+                        size: 20,
+                        color: Color(0xFF1976D2),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            TranslationHelper.translate(context, 'Quick Dispose'),
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.navyDark,
+                            ),
+                          ),
+                          Text(
+                            TranslationHelper.translate(
+                              context,
+                              'Mark case as disposed with court details',
+                            ),
+                            style: GoogleFonts.poppins(
+                              fontSize: 11.5,
+                              color: AppColors.lightSubText,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      icon: const Icon(Icons.close_rounded, size: 20),
+                      color: AppColors.lightSubText,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  TranslationHelper.translate(
+                    context,
+                    'CC / ST Number (Optional)',
+                  ),
+                  style: GoogleFonts.poppins(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.navyDark,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: ccCtrl,
+                  style: GoogleFonts.poppins(
+                    fontSize: 13.5,
+                    color: AppColors.navyDark,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'e.g. CC/104/2026',
+                    hintStyle: GoogleFonts.poppins(
+                      fontSize: 12.5,
+                      color: AppColors.lightSubText.withValues(alpha: 0.6),
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFFF8FAFF),
+                    prefixIcon: const Icon(
+                      Icons.tag_rounded,
+                      size: 18,
+                      color: AppColors.navyMid,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF1976D2),
+                        width: 1.5,
+                      ),
+                    ),
+                    isDense: true,
+                  ),
+                ),
+                const SizedBox(height: 22),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFFCFD8DC)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 11),
+                        ),
+                        child: Text(
+                          TranslationHelper.translate(context, 'Cancel'),
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.lightSubText,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.navyMid,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 11),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.check_circle_outline_rounded,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              TranslationHelper.translate(
+                                context,
+                                'Dispose Case',
+                              ),
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            child: Text('Dispose Case',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
           ),
-        ],
+        ),
       ),
     );
 
@@ -2644,15 +2862,55 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
 
     widget.onChargeSheetSubmitted?.call();
 
-    ScaffoldMessenger.of(context).showSnackBar(
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
       SnackBar(
-        content: Text(
-          ccVal.isNotEmpty
-              ? 'Case disposed with CC/ST No. $ccVal'
-              : 'Case marked as disposed',
-          style: GoogleFonts.poppins(),
+        duration: const Duration(seconds: 5),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        backgroundColor: AppColors.navyDark,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          side: const BorderSide(color: Color(0xFF1A2D5A), width: 1),
         ),
-        backgroundColor: AppColors.successGreen,
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Color(0xFF2E7D32),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.check_rounded,
+                size: 14,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                ccVal.isNotEmpty
+                    ? 'Case disposed with CC/ST No. $ccVal'
+                    : 'Case marked as disposed',
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+        action: SnackBarAction(
+          label: 'UNDO',
+          textColor: AppColors.goldPrimary,
+          onPressed: () async {
+            await context.read<FormIVProvider>().updateRecord(currentRecord);
+            widget.onChargeSheetSubmitted?.call();
+          },
+        ),
       ),
     );
   }
@@ -2723,7 +2981,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
               _buildCompactActionButton(
                 icon: Icons.fact_check_outlined,
                 label: 'Dispose',
-                color: AppColors.successGreen,
+                color: const Color(0xFF2E7D32),
                 width: 40,
                 onTap: () => _showQuickDisposeDialog(context, record),
               ),
