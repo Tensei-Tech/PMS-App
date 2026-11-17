@@ -6,12 +6,12 @@ from django.db import transaction
 from apps.core.tenancy import TenantContext
 from apps.crimetab.service_tab_tables import (
     LICENCE_MODULES, PASSPORT_PVR_MODULES, TADIPAR_MODULES, save_licence, save_passport_pvr, save_sam_warrant,
-    save_tadipar)
+    save_tadipar, PREVENTIVE_MODULES, save_preventive)
 
 
 class Command(BaseCommand):
     help = ('Copy service tab answers saved only in case JSON into their tables '
-            '(Sam/Warrant -> sam_warrant_records, Passport / PVR -> passport_pvr_records, Licence -> licence_records, Tadipar -> tadipar_records, A.D. -> case_extra_field_values). The JSON is not changed and running it '
+            '(Sam/Warrant -> sam_warrant_records, Passport / PVR -> passport_pvr_records, Licence -> licence_records, Tadipar -> tadipar_records, A.D. -> case_extra_field_values, Preventive -> preventive_records). The JSON is not changed and running it '
             'again only refreshes the rows. Default: every active state; --dry-run reads only.')
 
     def add_arguments(self, parser):
@@ -46,6 +46,9 @@ class Command(BaseCommand):
                 for case in CaseRecord.objects.filter(module_key__in=TADIPAR_MODULES).iterator():
                     save_tadipar(case, write=not dry_run)
                     totals['tadipar rows'] += 1
+                for case in CaseRecord.objects.filter(module_key__in=PREVENTIVE_MODULES).iterator():
+                    save_preventive(case, write=not dry_run)
+                    totals['preventive rows'] += 1
                 # A.D.: the form answers as one row each in case_extra_field_values
                 from apps.crimetab.services import ad_service
                 ad_defs = ad_service.load_field_defs(ad_service.AdSettings())

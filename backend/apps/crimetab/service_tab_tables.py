@@ -2,12 +2,14 @@
 Service tab answers saved in their own tables (steps B4 - B9).
 
 Sam/Warrant (sam_warrant_records), Passport / PVR (passport_pvr_records),
-Licence (licence_records) and Tadipar (tadipar_records) so far. The app still sends the
+Licence (licence_records), Tadipar (tadipar_records) and Preventive
+(preventive_records + preventive_action_items). The app still sends the
 answers inside extra_fields; save_service_tab_tables() copies them into the
 table on every save, the case API lays the table back over the JSON for the
 app, and the warrant report reads the table first. The backfill command
 `backfill_service_tab_tables` copies records saved before this.
 """
+import json
 import logging
 from datetime import date, datetime
 
@@ -302,7 +304,11 @@ def tadipar_values(case, extra=None):
 
     values = {}
     for column, (keys, size) in TADIPAR_TEXT.items():
-        text = _text_of(pick(keys))
+        raw = pick(keys)
+        if isinstance(raw, (list, dict)) and column == 'crime_chart_entries':
+            values[column] = None
+            continue
+        text = _text_of(raw)
         values[column] = text[:size] if text else None
     for column, keys in TADIPAR_NUMBERS.items():
         values[column] = _count(pick(keys))
@@ -313,14 +319,232 @@ def tadipar_values(case, extra=None):
     return values
 
 
+CHART_KEY = 'crime_chart_entries'
+
+
+def _chart_answer(extra):
+    """The Crime Chart answer: (found, value), top level first, then the dynamic form copies."""
+    for src in [extra] + [extra[n] for n in NESTED_COPIES if isinstance(extra.get(n), dict)]:
+        if CHART_KEY in src and src[CHART_KEY] not in (None, ''):
+            return True, src[CHART_KEY]
+    return False, None
+
+
+def _id(value):
+    number = _count(value)
+    return number if number else None
+
+
+def chart_rows(case, rows):
+    """Unsaved TadiparCrimeChartEntry rows from the app's list; Act / Section names are copied
+    so a row stays readable if the Acts master is imported again."""
+    from apps.crimetab.models.common_form import Act, ActSection
+    from apps.crimetab.models.service_tabs import TadiparCrimeChartEntry
+    from apps.stations.models import PoliceStation
+    clean = [r for r in rows if isinstance(r, dict) and any(v not in EMPTY for v in r.values())]
+    act_ids = {_id(r.get('act_id')) for r in clean} - {None}
+    section_ids = {_id(r.get('section_id')) for r in clean} - {None}
+    station_ids = {_id(r.get('police_station_id')) for r in clean} - {None}
+    acts = dict(Act.objects.filter(act_id__in=act_ids).values_list('act_id', 'act_name')) if act_ids else {}
+    sections = (dict(ActSection.objects.filter(section_id__in=section_ids).values_list('section_id', 'section_number'))
+                if section_ids else {})
+    stations = {}
+    if station_ids:
+        try:
+            stations = dict(PoliceStation.objects.filter(pk__in=station_ids).values_list('pk', 'station_name'))
+        except Exception:  # stations table not reachable here: names stay empty
+            stations = {}
+    out = []
+    for row_no, r in enumerate(clean):
+        act, section, station = _id(r.get('act_id')), _id(r.get('section_id')), _id(r.get('police_station_id'))
+        out.append(TadiparCrimeChartEntry(
+            record_id=case.pk, row_no=row_no,
+            cr_number=_text_of(r.get('cr_number'))[:100] if _text_of(r.get('cr_number')) else None,
+            crime_head=_text_of(r.get('crime_head')),
+            act_id=act, act_name=acts.get(act), section_id=section, section_number=sections.get(section),
+            register_date=_as_date(r.get('register_date')),
+            police_station_id=station, police_station_name=stations.get(station),
+        ))
+    return out
+
+
 def save_tadipar(case, extra=None, write=True):
-    from apps.crimetab.models.service_tabs import TadiparRecord
+    from apps.crimetab.models.service_tabs import TadiparCrimeChartEntry, TadiparRecord
     if not is_tadipar_case(case):
         return None
+    extra = extra if isinstance(extra, dict) else (case.extra_fields if isinstance(case.extra_fields, dict) else {})
     values = tadipar_values(case, extra)
+    found, chart = _chart_answer(extra)
+    if isinstance(chart, list):
+        values[CHART_KEY] = None  # rows go to their own table; the column keeps typed text only
     if write:
         TadiparRecord.objects.update_or_create(case=case, defaults={**values, 'updated_at': timezone.now()})
+        if isinstance(chart, list):
+            TadiparCrimeChartEntry.objects.filter(record_id=case.pk).delete()
+            TadiparCrimeChartEntry.objects.bulk_create(chart_rows(case, chart))
     return values
+
+
+# ------------------------------------------------------------------ Preventive
+
+PREVENTIVE_MODULES = ('preventive',)
+FORM_KEY = 'preventiveForm'
+
+# table column -> (path in the form document, kind). The form sends the document
+# under extra_fields['preventiveForm'] and copies a few answers to the top level.
+PREVENTIVE_FIELDS = {
+    'crime_no': (('caseRef', 'crimeNo'), 'text'),
+    'reg_date': (('caseRef', 'regDate'), 'date'),
+    'crime_category': (('caseRef', 'crimeCategory'), 'text'),
+    'case_status': (('caseRef', 'caseStatus'), 'text'),
+    'act': (('sections', 'act'), 'text'),
+    'selected_sections': (('sections', 'selectedSections'), 'list'),
+    'other_sections': (('sections', 'otherSections'), 'text'),
+    'has_preventive_no': (('istegasha', 'hasPreventiveNo'), 'yes_no'),
+    'preventive_section_act': (('istegasha', 'preventiveSectionAct'), 'text'),
+    'preventive_no': (('istegasha', 'preventiveNo'), 'text'),
+    'preventive_date': (('istegasha', 'preventiveDate'), 'date'),
+    'outward_no': (('istegasha', 'outwardNo'), 'text'),
+    'io_name': (('istegasha', 'ioName'), 'text'),
+    'risk_flag': (('riskAndStatus', 'riskFlag'), 'text'),
+    'action_status': (('riskAndStatus', 'actionStatus'), 'text'),
+    'remarks': (('riskAndStatus', 'remarks'), 'text'),
+}
+# top-level copies the form also writes (read when the document lacks the answer)
+PREVENTIVE_TOP = {
+    'crime_no': ('crimeNo', 'caseNumber'), 'act': (), 'preventive_section_act': ('preventiveSectionAct',),
+    'preventive_no': ('preventive_no',), 'preventive_date': ('preventive_date',), 'io_name': ('ioName',),
+    'action_status': ('actionStatus', 'preventive_action_status'), 'has_preventive_no': ('has_preventive_no',),
+}
+TEXT_SIZE = {'crime_no': 100, 'case_status': 100, 'preventive_no': 100, 'outward_no': 100, 'risk_flag': 100,
+             'action_status': 100}
+
+
+def is_preventive_case(case):
+    return (case.module_key or '').strip().lower() in PREVENTIVE_MODULES
+
+
+def _form_doc(extra):
+    doc = extra.get(FORM_KEY)
+    return doc if isinstance(doc, dict) else {}
+
+
+def _at(doc, path):
+    value = doc
+    for key in path:
+        value = value.get(key) if isinstance(value, dict) else None
+    return value
+
+
+def _yes_no(value):
+    if isinstance(value, bool):
+        return value
+    text = str(value or '').strip().lower()
+    return True if text in ('yes', 'true', '1') else False if text in ('no', 'false', '0') else None
+
+
+def preventive_values(case, extra=None):
+    extra = extra if isinstance(extra, dict) else (case.extra_fields if isinstance(case.extra_fields, dict) else {})
+    doc = _form_doc(extra)
+    values = {}
+    for column, (path, kind) in PREVENTIVE_FIELDS.items():
+        raw = _at(doc, path)
+        if raw in EMPTY:
+            raw = _first(extra, PREVENTIVE_TOP.get(column, ()))
+        if kind == 'date':
+            values[column] = _as_date(raw)
+        elif kind == 'yes_no':
+            values[column] = _yes_no(raw)
+        elif kind == 'list':
+            items = [str(v).strip() for v in raw if str(v).strip()] if isinstance(raw, list) else []
+            values[column] = json.dumps(items, ensure_ascii=False) if items else None
+        else:
+            text = _text_of(raw)
+            values[column] = text[:TEXT_SIZE.get(column, 255)] if text and column != 'remarks' else text
+    return values
+
+
+def preventive_items(case, values, extra):
+    """Unsaved preventive_action_items rows: one per named accused in the form's accused list."""
+    from apps.crimetab.models.common_form import PreventiveActionItems
+    doc = _form_doc(extra)
+    accused = doc.get('accusedList') if isinstance(doc.get('accusedList'), list) else extra.get('accusedList')
+    rows = []
+    for person in accused if isinstance(accused, list) else []:
+        name = _text_of(person.get('name')) if isinstance(person, dict) else None
+        if not name:
+            continue  # the form keeps an empty first entry
+        rows.append(PreventiveActionItems(
+            case=case, name=name[:150],
+            action_type=(values.get('preventive_section_act') or '')[:100],
+            action_date=values.get('preventive_date') or timezone.localdate(),
+            outward_number=(values.get('outward_no') or '')[:50] or None,
+            preventive_number=values.get('preventive_no'),
+            accused_action=(_text_of(person.get('actionType')) or '')[:100] or None,
+            bond_taken=_yes_no(person.get('bondTaken')),
+            bond_details=_text_of(person.get('bondDetails')),
+        ))
+    return rows
+
+
+def save_preventive(case, extra=None, write=True):
+    from apps.crimetab.models.common_form import PreventiveActionItems
+    from apps.crimetab.models.service_tabs import PreventiveRecord
+    if not is_preventive_case(case):
+        return None
+    extra = extra if isinstance(extra, dict) else (case.extra_fields if isinstance(case.extra_fields, dict) else {})
+    values = preventive_values(case, extra)
+    items = preventive_items(case, values, extra)
+    if write:
+        PreventiveRecord.objects.update_or_create(case=case, defaults={**values, 'updated_at': timezone.now()})
+        if FORM_KEY in extra:  # the form sends its accused list every time
+            PreventiveActionItems.objects.filter(case=case).delete()
+            PreventiveActionItems.objects.bulk_create(items)
+    return values
+
+
+def preventive_document(record, items):
+    """The answers as the form document holds them (only the ones the tables have)."""
+    doc = {}
+    for column, (path, kind) in PREVENTIVE_FIELDS.items():
+        value = getattr(record, column)
+        if value in EMPTY:
+            continue
+        if kind == 'date':
+            value = value.strftime('%d/%m/%Y')
+        elif kind == 'yes_no':
+            value = 'Yes' if value else 'No'
+        elif kind == 'list':
+            try:
+                value = json.loads(value)
+            except ValueError:
+                continue
+        doc.setdefault(path[0], {})[path[1]] = value
+    people = [{'name': i.name, 'actionType': i.accused_action or '',
+               'bondTaken': '' if i.bond_taken is None else ('Yes' if i.bond_taken else 'No'),
+               'bondDetails': i.bond_details or ''} for i in items if i.name]
+    if people:
+        doc['accusedList'] = people
+    return doc
+
+
+def _lay_preventive_over(extra, record):
+    items = list(record.case.preventive_action_items.all())
+    table_doc = preventive_document(record, items)
+    if not table_doc:
+        return
+    doc = extra.get(FORM_KEY) if isinstance(extra.get(FORM_KEY), dict) else {}
+    for part, answer in table_doc.items():
+        if part == 'accusedList':
+            doc[part] = answer
+            continue
+        current = doc.get(part) if isinstance(doc.get(part), dict) else {}
+        for key, value in answer.items():
+            if key in ('regDate', 'preventiveDate') and _as_date(current.get(key)) == _as_date(value):
+                continue  # same day: keep the form's own text
+            current[key] = value
+        doc[part] = current
+    extra[FORM_KEY] = doc
 
 
 # ------------------------------------------------------------------ all service tabs
@@ -334,6 +558,8 @@ TABS = {
                 tuple(LICENCE_TEXT) + tuple(LICENCE_DATES) + tuple(LICENCE_DATETIMES)),
     'tadipar': (is_tadipar_case, save_tadipar, 'tadipar',
                 tuple(TADIPAR_TEXT) + tuple(TADIPAR_NUMBERS) + tuple(TADIPAR_DATES)),
+    # its answers are laid back inside the form document (see _lay_preventive_over)
+    'preventive': (is_preventive_case, save_preventive, 'preventive_record', ()),
 }
 
 # related name -> date format the tab writes in its JSON (default: ISO)
@@ -377,6 +603,8 @@ def _shaped(value, current, date_format):
         return value.isoformat()
     if isinstance(value, int) and not isinstance(value, bool) and isinstance(current, str):
         return None if current.strip() == str(value) else str(value)  # numbers the app keeps as text
+    if isinstance(value, str) and isinstance(current, int) and not isinstance(current, bool):
+        return None if value.strip() == str(current) else value  # an id the app sends as a number
     return None if current == value else value
 
 
@@ -397,6 +625,28 @@ def lay_row_over(extra, row, keys, date_format=None):
     return extra
 
 
+def chart_answer_from_rows(entries):
+    """The Crime Chart as the app sends it: a list of row dicts, dates dd/mm/yyyy, ids as numbers."""
+    out = []
+    for e in sorted(entries, key=lambda x: x.row_no):
+        row = {'cr_number': e.cr_number, 'crime_head': e.crime_head, 'act_id': e.act_id,
+               'section_id': e.section_id,
+               'register_date': e.register_date.strftime('%d/%m/%Y') if e.register_date else None,
+               'police_station_id': e.police_station_id}
+        out.append({k: v for k, v in row.items() if v not in EMPTY})
+    return out
+
+
+def _lay_chart_over(extra, record):
+    entries = list(record.crime_chart.all())
+    if not entries:
+        return
+    answer = chart_answer_from_rows(entries)
+    for target in [extra] + [extra[n] for n in NESTED_COPIES if isinstance(extra.get(n), dict)]:
+        if target is extra or CHART_KEY in target:
+            target[CHART_KEY] = answer
+
+
 def overlay_service_tabs(extra, case, row=None):
     """For one case (detail API); `row` saves the query when the caller already has it."""
     for is_tab, _save, related_name, keys in TABS.values():
@@ -404,6 +654,10 @@ def overlay_service_tabs(extra, case, row=None):
             row = row if row is not None else _row(case, related_name)
             if row is not None:
                 lay_row_over(extra, row, keys, DATE_FORMATS.get(related_name))
+                if related_name == 'tadipar':
+                    _lay_chart_over(extra, row)
+                if related_name == 'preventive_record':
+                    _lay_preventive_over(extra, row)
             break
     return extra
 
@@ -411,12 +665,17 @@ def overlay_service_tabs(extra, case, row=None):
 def service_rows_by_case(records):
     """{case id: row} for a page of cases, one query per tab (case list API)."""
     from apps.crimetab.models.service_tabs import (
-        LicenceRecord, PassportPvrRecord, SamWarrantRecord, TadiparRecord)
+        LicenceRecord, PassportPvrRecord, PreventiveRecord, SamWarrantRecord, TadiparRecord)
     models = {'sam_warrant': SamWarrantRecord, 'passport_pvr': PassportPvrRecord, 'licence': LicenceRecord,
-              'tadipar': TadiparRecord}
+              'tadipar': TadiparRecord, 'preventive': PreventiveRecord}
     rows = {}
     for tab, (is_tab, _save, _rel, _keys) in TABS.items():
         ids = [r.pk for r in records if is_tab(r)]
         if ids:
-            rows.update({row.case_id: row for row in models[tab].objects.filter(case_id__in=ids)})
+            qs = models[tab].objects.filter(case_id__in=ids)
+            if tab == 'tadipar':
+                qs = qs.prefetch_related('crime_chart')
+            if tab == 'preventive':
+                qs = qs.select_related('case').prefetch_related('case__preventive_action_items')
+            rows.update({row.case_id: row for row in qs})
     return rows

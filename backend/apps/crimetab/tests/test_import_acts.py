@@ -98,7 +98,10 @@ class ImportActsTests(TestCase):
         sec19 = ActSection.objects.get(act__act_name=pocso, section_number='19')
         self.assertEqual(sorted(sec19.subsections.values_list('subsection_code', flat=True)),
                          ['1', '2(a)', '2(b)', '2(c)', '3', '4', '5', '6', '7'])
-        self.assertEqual(ActSection.objects.filter(act__act_name=pocso).count(), 31)
+        self.assertEqual(ActSection.objects.filter(act__act_name=pocso).count(), 36)
+        # Sexual Assault (7) and the punishment sections were added to POCSO.xlsx
+        self.assertEqual(set(ActSection.objects.filter(act__act_name=pocso, section_number__in=['4', '6', '7', '8', '10'])
+                             .values_list('section_number', flat=True)), {'4', '6', '7', '8', '10'})
         gambling = ActSection.objects.get(act__act_name__startswith='THE MAHARASHTRA PREVENTION',
                                           section_number='4')
         self.assertEqual(sorted(gambling.subsections.values_list('subsection_code', flat=True)),

@@ -48,3 +48,6 @@ npm-debug.log*
 secrets.json
 *.secrets.json
 frontend/secrets.json
+
+# Database backups hold personal data: never commit them
+*.dump
