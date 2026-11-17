@@ -453,7 +453,11 @@ class CaseRecord(models.Model):
         # Actually, if we just want to compute it:
         from apps.cases.constants import CC_ST_KEYS, DISPOSAL_KEYS
         from django.utils import timezone
-        
+
+        # 0. The commonForm copy is not stored: its answers move to the top level
+        from apps.cases.common_form_copy import fold_common_form
+        self.extra_fields = fold_common_form(self.extra_fields)
+
         has_disposal_key = False
         
         # Original AD Logic

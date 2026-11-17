@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import '../widgets/module_hub_screen_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -1908,26 +1909,9 @@ class _DarHubScreenState extends State<DarHubScreen>
           ),
         ),
         actions: [
-          // Add Case Button
-          ElevatedButton.icon(
+          ModuleHubScreenAppBar.buildAddCaseButton(
+            context: context,
             onPressed: _openNewCaseForm,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.navyMid,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            icon: const Icon(Icons.add_rounded, size: 16),
-            label: Text(
-              'Add Case',
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
           ),
           const SizedBox(width: 8),
 

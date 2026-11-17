@@ -609,6 +609,7 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                           bool isFullWidth(DynamicFieldDef f) =>
                               f.fieldType == 'textarea' ||
                               f.fieldType == 'repeating_group' ||
+                              f.fieldType == 'repeater' ||
                               f.fieldType == 'charges' ||
                               (f.fieldType == 'radio' && hasManyChoices(f));
                           final items = <Widget>[];

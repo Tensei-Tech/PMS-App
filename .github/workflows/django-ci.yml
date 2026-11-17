@@ -59,6 +59,9 @@ jobs:
       - name: Check for missing migrations
         run: python manage.py makemigrations --check --dry-run
 
+      - name: Check new migrations are safe (drop / rename / delete need a review)
+        run: python manage.py check_migration_safety
+
       - name: Run migrations
         run: python manage.py migrate
 

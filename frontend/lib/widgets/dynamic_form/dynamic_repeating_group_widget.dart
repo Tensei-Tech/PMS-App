@@ -118,6 +118,11 @@ class _DynamicRepeatingGroupWidgetState
     }
   }
 
+  /// The form values with this row's answers on top, so a row control that
+  /// follows another column (e.g. Section after the row's Act) reads the row.
+  Map<String, dynamic> _rowScoped(Map<String, dynamic> row) =>
+      {...?widget.formValues, ...row};
+
   /// A group limited to one row always shows that row, with no Add / Remove
   bool get _isSingleRow => widget.maxItems == 1;
 
@@ -150,8 +155,25 @@ class _DynamicRepeatingGroupWidgetState
 
   void _updateRowField(int index, String fieldKey, dynamic val) {
     if (index >= 0 && index < _rows.length) {
+      final old = _rows[index][fieldKey];
       _rows[index][fieldKey] = val;
+      if (old != null && old.toString() != (val?.toString() ?? '')) {
+        _clearDependents(index, fieldKey);
+      }
       widget.onChanged?.call(List.from(_rows));
+    }
+  }
+
+  /// Empties the row's columns that follow [fieldKey] (field_config
+  /// depends_on, e.g. Section after Act), and theirs in turn.
+  void _clearDependents(int index, String fieldKey, [int depth = 0]) {
+    if (depth > 5) return;
+    for (final child in widget.childFields) {
+      if (child.fieldConfig?['depends_on']?.toString() != fieldKey) continue;
+      if (_rows[index][child.fieldKey] == null) continue;
+      _rows[index][child.fieldKey] = null;
+      _rowControllers['${index}_${child.fieldKey}']?.clear();
+      _clearDependents(index, child.fieldKey, depth + 1);
     }
   }
 
@@ -255,7 +277,37 @@ class _DynamicRepeatingGroupWidgetState
           ],
         ),
         if (_rows.isEmpty)
-          const SizedBox.shrink()
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(top: 8),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: AppColors.lightBorder,
+                style: BorderStyle.solid,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.inbox_outlined,
+                  size: 16,
+                  color: AppColors.lightSubText.withValues(alpha: 0.7),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'No ${widget.fieldDef.fieldLabel} added yet',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: AppColors.lightSubText,
+                  ),
+                ),
+              ],
+            ),
+          )
         else
           ListView.separated(
             shrinkWrap: true,
@@ -340,18 +392,28 @@ class _DynamicRepeatingGroupWidgetState
             builder: (context, constraints) {
               final isWide = constraints.maxWidth > 550;
 
+              String? headingOf(DynamicFieldDef child) {
+                final h = child.fieldConfig?['heading']?.toString().trim();
+                return (h == null || h.isEmpty) ? null : h;
+              }
+
               Widget control(DynamicFieldDef child) {
                 final val = row[child.fieldKey];
                 final ctrl = _getController(index, child.fieldKey, val);
                 // A checkbox's own date-time (e.g. Inquest Panchanama) is
                 // kept in the row as '<key>_date'
                 final dateKey = '${child.fieldKey}_date';
+                final h = headingOf(child);
+                final isDuplicateHeading = h != null &&
+                    child.fieldLabel.trim().toLowerCase() ==
+                        h.trim().toLowerCase();
                 return DynamicControlFactory(
                   fieldDef: child,
                   controller: ctrl,
                   value: val,
                   readOnly: widget.readOnly,
-                  formValues: widget.formValues,
+                  hideLabel: isDuplicateHeading,
+                  formValues: _rowScoped(row),
                   dateController: child.fieldType == 'checkbox'
                       ? _getController(index, dateKey, row[dateKey])
                       : null,
@@ -371,10 +433,6 @@ class _DynamicRepeatingGroupWidgetState
 
               // field_config 'heading' puts a heading above that field, so
               // a long row reads in parts (e.g. Post Mortem, FSL / CA)
-              String? headingOf(DynamicFieldDef child) {
-                final h = child.fieldConfig?['heading']?.toString().trim();
-                return (h == null || h.isEmpty) ? null : h;
-              }
 
               Widget heading(String text, bool first) => Padding(
                     padding: EdgeInsets.only(top: first ? 0 : 6, bottom: 2),
@@ -694,7 +752,7 @@ class _DynamicRepeatingGroupWidgetState
                       controller: ctrl,
                       value: val,
                       readOnly: widget.readOnly,
-                      formValues: widget.formValues,
+                      formValues: _rowScoped(row),
                       onChanged: (newVal) {
                         _updateRowField(index, child.fieldKey, newVal);
                       },
@@ -716,7 +774,7 @@ class _DynamicRepeatingGroupWidgetState
                     controller: ctrl,
                     value: val,
                     readOnly: widget.readOnly,
-                    formValues: widget.formValues,
+                    formValues: _rowScoped(row),
                     onChanged: (newVal) {
                       _updateRowField(index, child.fieldKey, newVal);
                     },

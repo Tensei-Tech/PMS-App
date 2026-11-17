@@ -19,6 +19,11 @@ class BaseModuleProvider extends ChangeNotifier {
 
   bool _hasFetched = false;
   bool get hasFetched => _hasFetched;
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
+  bool get hasError => _errorMessage != null;
   StreamSubscription<ModuleRecord>? _caseUpdateSub;
   StreamSubscription<String>? _caseDeleteSub;
 
@@ -83,6 +88,9 @@ class BaseModuleProvider extends ChangeNotifier {
 
   Future<void> _fetchCases({bool forceRefresh = false}) async {
     if (_uid.isEmpty) return;
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
     try {
       final fetched = await _caseService.fetchCases(
         moduleKey: moduleKey,
@@ -116,6 +124,12 @@ class BaseModuleProvider extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint('[$moduleKey] CaseService fetch error: $e');
+      if (_records.isEmpty) {
+        _errorMessage = 'Failed to load cases. Check connection.';
+      }
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 

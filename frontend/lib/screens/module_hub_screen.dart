@@ -342,6 +342,19 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     }
   }
 
+  Future<void> _onRefresh() async {
+    if (widget.moduleKey != 'pending' &&
+        widget.moduleKey != 'disposal' &&
+        widget.moduleKey != 'absconded' &&
+        widget.moduleKey != 'monthly' &&
+        widget.moduleKey != 'sam_warrant') {
+      await _readProvider(context).refresh();
+    } else {
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (mounted) setState(() {});
+    }
+  }
+
   bool _isReportMode = false;
 
   List<ModuleRecord> _getConsolidatedRecords(BuildContext context) {
@@ -658,6 +671,26 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
         widget.moduleKey == 'undetected' ||
         widget.moduleKey == 'disposal');
 
+    final bool isProviderLoading = (widget.moduleKey != 'pending' &&
+            widget.moduleKey != 'disposal' &&
+            widget.moduleKey != 'absconded' &&
+            widget.moduleKey != 'monthly' &&
+            widget.moduleKey != 'sam_warrant')
+        ? (allRecords.isEmpty &&
+            (!_watchProvider(context).hasFetched ||
+                _watchProvider(context).isLoading))
+        : false;
+
+    final bool hasProviderError = (widget.moduleKey != 'pending' &&
+            widget.moduleKey != 'disposal' &&
+            widget.moduleKey != 'absconded' &&
+            widget.moduleKey != 'monthly' &&
+            widget.moduleKey != 'sam_warrant')
+        ? (allRecords.isEmpty &&
+            _watchProvider(context).hasError &&
+            !isProviderLoading)
+        : false;
+
     return Scaffold(
       backgroundColor: AppColors.lightBg,
       appBar: _buildAppBar(context, totalCount),
@@ -672,63 +705,83 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             _buildStatsRow(totalCount, disposalCount, pendingCount),
           if (isTheftOrFormIVStyle) _buildToolbar(displayRecords.length),
           Expanded(
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                if (widget.moduleKey == 'monthly') ...[
-                  // Monthly module is report-only (no records section).
-                  SliverToBoxAdapter(
-                      child: _buildMonthlyReport(context, allRecords)),
-                ] else if (widget.moduleKey == 'sam_warrant') ...[
-                  // Sam/Warrant module is report-only (fetching dynamically from database).
-                  SliverToBoxAdapter(
-                      child: _buildSamWarrantModuleReportOnly(context)),
-                ] else if (widget.moduleKey == 'pending') ...[
-                  SliverToBoxAdapter(
-                      child: _buildPendingModuleReportOnly(context)),
-                ] else if (widget.moduleLabel == 'Forms' &&
-                    widget.moduleKey == 'form_1_5') ...[
-                  SliverToBoxAdapter(
-                      child: _buildFormsModuleReportOnly(context)),
-                ] else ...[
-                  if (widget.moduleKey == 'disposal')
-                    SliverToBoxAdapter(child: _buildModuleTabs()),
-                  if (_isReportMode && widget.moduleKey == 'disposal')
+            child: RefreshIndicator(
+              color: AppColors.navyMid,
+              backgroundColor: Colors.white,
+              onRefresh: _onRefresh,
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                slivers: [
+                  if (widget.moduleKey == 'monthly') ...[
+                    // Monthly module is report-only (no records section).
                     SliverToBoxAdapter(
-                        child: _buildMonthlyReport(context, allRecords))
-                  else ...[
-                    if (displayRecords.isEmpty)
+                        child: _buildMonthlyReport(context, allRecords)),
+                  ] else if (widget.moduleKey == 'sam_warrant') ...[
+                    // Sam/Warrant module is report-only (fetching dynamically from database).
+                    SliverToBoxAdapter(
+                        child: _buildSamWarrantModuleReportOnly(context)),
+                  ] else if (widget.moduleKey == 'pending') ...[
+                    SliverToBoxAdapter(
+                        child: _buildPendingModuleReportOnly(context)),
+                  ] else if (widget.moduleLabel == 'Forms' &&
+                      widget.moduleKey == 'form_1_5') ...[
+                    SliverToBoxAdapter(
+                        child: _buildFormsModuleReportOnly(context)),
+                  ] else ...[
+                    if (widget.moduleKey == 'disposal')
+                      SliverToBoxAdapter(child: _buildModuleTabs()),
+                    if (_isReportMode && widget.moduleKey == 'disposal')
                       SliverToBoxAdapter(
-                        child: isTheftOrFormIVStyle
-                            ? FormIVEmptyCasesState(
-                                category: (widget.subCategory != null &&
-                                        widget.subCategory!.isNotEmpty)
-                                    ? widget.subCategory!
-                                    : widget.moduleLabel,
-                                readOnly: true,
-                                statusTab: selectedTab,
-                                onNewCase: null,
-                                selectedDateRange: _selectedDateRange,
-                                onClearDateFilter: () =>
-                                    setState(() => _selectedDateRange = null),
-                              )
-                            : _buildEmpty(),
-                      )
-                    else
-                      SliverPadding(
-                        padding: const EdgeInsets.all(AppSpacing.lg),
-                        sliver: SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (ctx, i) => _buildCard(ctx, displayRecords[i],
-                                index: i + 1),
-                            childCount: displayRecords.length,
+                          child: _buildMonthlyReport(context, allRecords))
+                    else ...[
+                      if (displayRecords.isEmpty)
+                        (isProviderLoading
+                            ? _buildSkeletonList()
+                            : (hasProviderError
+                                ? SliverToBoxAdapter(
+                                    child: _buildErrorCard(
+                                      _watchProvider(context).errorMessage ??
+                                          'Failed to load records.',
+                                    ),
+                                  )
+                                : SliverToBoxAdapter(
+                                    child: isTheftOrFormIVStyle
+                                        ? FormIVEmptyCasesState(
+                                            category:
+                                                (widget.subCategory != null &&
+                                                        widget.subCategory!
+                                                            .isNotEmpty)
+                                                    ? widget.subCategory!
+                                                    : widget.moduleLabel,
+                                            readOnly: true,
+                                            statusTab: selectedTab,
+                                            onNewCase: null,
+                                            selectedDateRange:
+                                                _selectedDateRange,
+                                            onClearDateFilter: () => setState(
+                                                () =>
+                                                    _selectedDateRange = null),
+                                          )
+                                        : _buildEmpty(),
+                                  )))
+                      else
+                        SliverPadding(
+                          padding: const EdgeInsets.all(AppSpacing.lg),
+                          sliver: SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (ctx, i) => _buildCard(ctx, displayRecords[i],
+                                  index: i + 1),
+                              childCount: displayRecords.length,
+                            ),
                           ),
                         ),
-                      ),
+                    ],
                   ],
+                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
                 ],
-                const SliverToBoxAdapter(child: SizedBox(height: 100)),
-              ],
+              ),
             ),
           ),
         ],
@@ -767,25 +820,9 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
     Widget? actionWidget;
     if (showAddButton) {
-      actionWidget = ElevatedButton.icon(
+      actionWidget = ModuleHubScreenAppBar.buildAddCaseButton(
+        context: context,
         onPressed: () => _openNewEntryForm(context),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.navyMid,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-        icon: const Icon(Icons.add_rounded, size: 16),
-        label: Text(
-          TranslationHelper.translate(context, 'Add Case'),
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
       );
     }
 
@@ -984,10 +1021,22 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
           future: BackendCaseService().fetchPendingCases(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(24.0),
-                  child: CircularProgressIndicator(color: AppColors.navyMid),
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: List.generate(
+                    4,
+                    (_) => Container(
+                      width: 100,
+                      height: 32,
+                      margin: const EdgeInsets.only(right: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                  ),
                 ),
               );
             }
@@ -1719,7 +1768,171 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
     );
   }
 
+  Widget _buildCaseCardSkeleton() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: AppColors.lightBorder.withValues(alpha: 0.6)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 90,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE2E8F0),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const Spacer(),
+              Container(
+                width: 64,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            width: 240,
+            height: 15,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE2E8F0),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: 160,
+            height: 12,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSkeletonList() {
+    return SliverPadding(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (_, __) => _buildCaseCardSkeleton(),
+          childCount: 4,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorCard(String error) {
+    return Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 400),
+        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.dangerRed.withValues(alpha: 0.3)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: AppColors.dangerRed.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.cloud_off_rounded,
+                size: 28,
+                color: AppColors.dangerRed,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              TranslationHelper.translate(context, 'Unable to load records'),
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.lightText,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              error,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                color: AppColors.lightSubText,
+                height: 1.3,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () {
+                _watchProvider(context).refresh();
+              },
+              icon: const Icon(Icons.refresh_rounded,
+                  size: 16, color: Colors.white),
+              label: Text(
+                TranslationHelper.translate(context, 'Retry'),
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.navyMid,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildEmpty() {
+    final bool hasFilter = _filter != 'All' ||
+        _searchCtrl.text.trim().isNotEmpty ||
+        _selectedDateRange != null;
+    final bool showAddButton = !(widget.readOnly ||
+        widget.moduleKey == 'detected' ||
+        widget.moduleKey == 'undetected' ||
+        widget.moduleKey == 'disposal');
+
     return Center(
       child: Container(
         constraints: const BoxConstraints(maxWidth: 400),
@@ -1765,8 +1978,11 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              TranslationHelper.translate(
-                  context, 'No registered entries found in this category.'),
+              hasFilter
+                  ? TranslationHelper.translate(
+                      context, 'Try clearing filters to see more results.')
+                  : TranslationHelper.translate(
+                      context, 'No registered entries found in this category.'),
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 fontSize: 12,
@@ -1774,6 +1990,49 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                 height: 1.3,
               ),
             ),
+            if (hasFilter) ...[
+              const SizedBox(height: 14),
+              OutlinedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _filter = 'All';
+                    _searchCtrl.clear();
+                    _selectedDateRange = null;
+                  });
+                },
+                icon: const Icon(Icons.filter_alt_off_rounded, size: 16),
+                label: Text(
+                  TranslationHelper.translate(context, 'Clear Filters'),
+                  style: GoogleFonts.poppins(
+                      fontSize: 12, fontWeight: FontWeight.w600),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.navyMid,
+                  side: const BorderSide(color: AppColors.navyMid),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ] else if (showAddButton) ...[
+              const SizedBox(height: 14),
+              ElevatedButton.icon(
+                onPressed: () => _openNewEntryForm(context),
+                icon: const Icon(Icons.add_rounded,
+                    size: 16, color: Colors.white),
+                label: Text(
+                  '${TranslationHelper.translate(context, 'Register')} ${TranslationHelper.translate(context, widget.moduleLabel)}',
+                  style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.navyMid,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ],
           ],
         ),
       ),

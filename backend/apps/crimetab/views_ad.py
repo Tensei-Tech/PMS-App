@@ -170,12 +170,13 @@ def _save(record, values, category, settings, station_name=None, created_by=None
     record.sub_category = category['name']
     record.case_number = number
     record.title = ' '.join(x for x in (category['name'], number) if x)
-    record.extra_fields = values
+    record.extra_fields = values  # kept for now: the Disposal rule reads it
     if station_name:
         record.station_name = station_name
     if created_by:
         record.created_by = created_by
     record.save()
+    svc.save_answers(record, values, svc.load_field_defs(settings))
     return record
 
 
@@ -219,8 +220,14 @@ class AdListCreateView(APIView):
         has_more = len(page) > page_size
         page = page[:page_size]
         results = []
+        try:
+            with TenantContext(schema):
+                answer_rows = svc.answer_rows_by_case(page, field_defs)
+        except DatabaseError as e:
+            logger.warning("[AD] list answers failed: %s", e)
+            return _err(settings, 'request_failed_message')
         for r in page:
-            values = svc.record_form_data(r, field_defs)
+            values = svc.record_form_data(r, field_defs, rows=answer_rows.get(r.pk, []))
             disposal = svc.is_disposal(r)
             results.append({
                 'id': r.id,

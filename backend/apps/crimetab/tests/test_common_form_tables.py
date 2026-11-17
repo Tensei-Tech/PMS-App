@@ -2,6 +2,7 @@ from io import StringIO
 
 from django.core.management import call_command
 from django.test import TestCase
+from django.utils import timezone
 
 from apps.cases.models import CaseRecord
 from apps.core.tenancy import TenantContext
@@ -252,3 +253,161 @@ class CommonFormCourtFilingTests(TestCase):
         self.assertIsNone(self._verdict())
         call_command('backfill_common_form_tables', '--schema', 'maharashtra', stdout=StringIO())
         self.assertEqual(self._verdict().cc_st_number, '3456789')
+
+
+class UnknownAccusedOnceTests(TestCase):
+
+    def setUp(self):
+        self.ctx = TenantContext('maharashtra')
+        self.ctx.__enter__()
+        self.case = CaseRecord.objects.create(id='TEST_UNK_1', case_number='CR/UNK/1', station_name='TEST')
+
+    def tearDown(self):
+        self.ctx.__exit__(None, None, None)
+
+    def test_saving_again_adds_no_second_unknown_or_unidentified(self):
+        from apps.crimetab.models.common_form import CasesPerson
+        extra = {'is_unknown_accused': True, 'approximate_age': '30', 'unidentified_gender': 'Male',
+                 'description': 'Tall, scar on left hand'}
+        for _ in range(3):
+            _save_case_child_entities(self.case, {'extra_fields': extra})
+        self.assertEqual(CasesPerson.objects.filter(case=self.case, role='unknown_accused').count(), 1)
+        self.assertEqual(CasesPerson.objects.filter(case=self.case, role='unidentified').count(), 1)
+
+
+class CommonFormFromTablesTests(TestCase):
+    """The case API (and so the edit form and the case PDF) reads the Common Form from its tables."""
+
+    def setUp(self):
+        self.bns = Act.objects.create(act_name='THE BHARATIYA NYAYA SANHITA (BNS), 2023')
+        self.s310 = ActSection.objects.create(act=self.bns, section_number='310', section_title='Dacoity')
+        self.ctx = TenantContext('maharashtra')
+        self.ctx.__enter__()
+        self.case = CaseRecord.objects.create(id='TEST_CF_READ', case_number='CR/CF/R', station_name='TEST')
+
+    def tearDown(self):
+        self.ctx.__exit__(None, None, None)
+
+    def _form(self):
+        from apps.crimetab.serializers import FullCaseDetailSerializer
+        self.case.refresh_from_db()
+        return FullCaseDetailSerializer(self.case).data['extra_fields']
+
+    def _save_then_drop_json(self, extra):
+        _save_case_child_entities(self.case, {'extra_fields': extra})
+        CaseRecord.objects.filter(pk=self.case.pk).update(extra_fields={})
+
+    def test_form_is_filled_from_tables_without_the_json(self):
+        self._save_then_drop_json({
+            'charges': [STALE_CHARGE], 'cctv_checked': True, 'cdr_sent_date': '05/11/2026',
+            'nafis_fingerprint': True, 'spot_panchanama': True, 'village_town': 'Beltarodi',
+            'registered_datetime': '07/10/2026 04:42', 'cc_st_number': '4567',
+            'complainant_name': 'Roch', 'complainant_age': '22',
+            'accused': [{'name': 'Rohit', 'age': '30', 'gender': 'Male'}],
+        })
+        form = self._form()
+        self.assertEqual(form['charges'][0]['act_id'], self.bns.act_id)
+        self.assertEqual(form['charges'][0]['section_number'], '310')
+        self.assertIs(form['cctv_checked'], True)
+        self.assertEqual(form['cdr_sent_date'], '05/11/2026')
+        self.assertIs(form['nafis_fingerprint'], True)
+        self.assertIs(form['spot_panchanama'], True)
+        self.assertFalse(form.get('seizure_panchanama'))  # unticked: no row, nothing added
+        self.assertEqual(form['village_town'], 'Beltarodi')
+        self.assertEqual(form['registered_datetime'], '07/10/2026 04:42')
+        self.assertEqual(form['cc_st_number'], '4567')
+        self.assertEqual((form['complainant_name'], form['complainant_age']), ('Roch', '22'))
+        self.assertEqual(form['accused'][0]['name'], 'Rohit')
+        self.assertEqual(form['accused'][0]['age'], '30')
+
+    def test_table_wins_in_both_copies_and_json_only_fields_stay(self):
+        extra = {'cctv_checked': True, 'medical_note': 'x',
+                 'accused': [{'name': 'Rohit', 'medical_date': '01/11/2026', 'age': ''}],
+                 'commonForm': {'cctv_checked': True}}
+        _save_case_child_entities(self.case, {'extra_fields': extra,
+                                              'accused': [{'name': 'Rohit', 'age': '30'}]})
+        CaseRecord.objects.filter(pk=self.case.pk).update(extra_fields={
+            **extra, 'cctv_checked': False, 'commonForm': {'cctv_checked': False}})
+        form = self._form()
+        self.assertIs(form['cctv_checked'], True)
+        self.assertIs(form['commonForm']['cctv_checked'], True)
+        self.assertEqual(form['medical_note'], 'x')
+        self.assertEqual(form['accused'][0]['medical_date'], '01/11/2026')
+        self.assertEqual(form['accused'][0]['age'], '30')  # blank in the JSON, filled from the table
+
+    def test_incident_date_guess_is_not_shown_as_entered(self):
+        from django.utils import timezone
+        from datetime import datetime
+        when = timezone.make_aware(datetime(2026, 10, 26, 15, 51))
+        CaseRecord.objects.filter(pk=self.case.pk).update(incident_date=when)
+        self.case.refresh_from_db()
+        # the save code puts the incident date into both tables when the form leaves them blank
+        _save_case_child_entities(self.case, {'extra_fields': {'village_town': 'X'},
+                                              'incident_date': when.isoformat()})
+        form = self._form()
+        self.assertNotIn('occurrence_datetime', form)
+        self.assertNotIn('registered_datetime', form)
+
+    def test_entered_date_only_answer_is_kept_as_typed(self):
+        self._save_then_drop_json({'regDate': '10/10/2026'})
+        CaseRecord.objects.filter(pk=self.case.pk).update(extra_fields={'registered_datetime': '10/10/2026'})
+        self.assertEqual(self._form()['registered_datetime'], '10/10/2026')
+
+    def test_reading_does_not_change_the_case(self):
+        _save_case_child_entities(self.case, {'extra_fields': {'cctv_checked': True}})
+        CaseRecord.objects.filter(pk=self.case.pk).update(extra_fields={'note': 'keep'})
+        from apps.crimetab.serializers import FullCaseDetailSerializer
+        self.case.refresh_from_db()
+        FullCaseDetailSerializer(self.case).data
+        self.assertEqual(self.case.extra_fields, {'note': 'keep'})
+        self.assertEqual(CaseRecord.objects.get(pk=self.case.pk).extra_fields, {'note': 'keep'})
+
+
+class InvestigationStepsAndCourtNameTests(TestCase):
+    """B2 / B3: witness summons, mobile spot recording, vehicle log book, tick dates, court name."""
+
+    def setUp(self):
+        self.ctx = TenantContext('maharashtra')
+        self.ctx.__enter__()
+        self.case = CaseRecord.objects.create(id='TEST_CF_STEPS', case_number='CR/CF/S', station_name='TEST')
+
+    def tearDown(self):
+        self.ctx.__exit__(None, None, None)
+
+    def _form(self):
+        from apps.crimetab.serializers import FullCaseDetailSerializer
+        self.case.refresh_from_db()
+        return FullCaseDetailSerializer(self.case).data['extra_fields']
+
+    def test_ticks_from_template_answers_with_their_dates(self):
+        _save_case_child_entities(self.case, {'extra_fields': {
+            'dynamic_extra_fields': {'witness_summons': 'true', 'mobile_spot_recording': 'false',
+                                     'vehicle_log_book_entry': 'Yes'},
+            'witness_summons_date': '05/11/2026', 'spot_panchanama': True, 'spot_panchanama_date': '04/11/2026'}})
+        rows = {r.item_name: r for r in ProceduralChecklist.objects.filter(case=self.case)}
+        self.assertEqual(set(rows), {'Witness Summons', 'Vehicle Log Book Entry', 'Spot Panchanama'})
+        self.assertEqual(timezone.localtime(rows['Witness Summons'].event_datetime).date().isoformat(), '2026-11-05')
+
+        CaseRecord.objects.filter(pk=self.case.pk).update(extra_fields={
+            'dynamic_extra_fields': {'witness_summons': 'false', 'mobile_spot_recording': '',
+                                     'vehicle_log_book_entry': 'No'}})
+        form = self._form()
+        self.assertIs(form['witness_summons'], True)
+        self.assertEqual(form['witness_summons_date'], '05/11/2026')
+        self.assertEqual(form['spot_panchanama_date'], '04/11/2026')
+        # the template copy keeps its own text shape
+        self.assertEqual(form['dynamic_extra_fields']['witness_summons'], 'true')
+        self.assertEqual(form['dynamic_extra_fields']['vehicle_log_book_entry'], 'Yes')
+        self.assertFalse(form['dynamic_extra_fields']['mobile_spot_recording'] in ('true', 'Yes', True))
+
+    def test_unticking_removes_the_row(self):
+        _save_case_child_entities(self.case, {'extra_fields': {'witness_summons': True}})
+        _save_case_child_entities(self.case, {'extra_fields': {'witness_summons': False}})
+        self.assertFalse(ProceduralChecklist.objects.filter(case=self.case).exists())
+
+    def test_court_name_saved_and_read_back(self):
+        from apps.crimetab.models.common_form import FinalVerdict
+        _save_case_child_entities(self.case, {'extra_fields': {'court_name': 'Nagpur Court ' + 'x' * 60}})
+        self.assertEqual(len(FinalVerdict.objects.get(case=self.case).court_name), 73)  # not cut to 50
+        CaseRecord.objects.filter(pk=self.case.pk).update(extra_fields={})
+        self.assertTrue(self._form()['court_name'].startswith('Nagpur Court'))
