@@ -157,3 +157,38 @@ class TadiparCrimeChartEntry(models.Model):
         db_table = 'tadipar_crime_chart_entries'
         verbose_name = 'Tadipar Crime Chart Entry'
         unique_together = ('record', 'row_no')
+
+
+class PreventiveRecord(models.Model):
+    """preventive_records: the case-level answers of a Preventive tab entry. Its accused are rows of
+    preventive_action_items (one per person, with the provision, number, date and bond)."""
+
+    case = models.OneToOneField(
+        'cases.CaseRecord',
+        on_delete=models.CASCADE,
+        primary_key=True,
+        db_column='case_id',
+        related_name='preventive_record',
+    )
+    crime_no = models.CharField(max_length=100, null=True, blank=True)
+    reg_date = models.DateField(null=True, blank=True)
+    crime_category = models.CharField(max_length=255, null=True, blank=True)
+    case_status = models.CharField(max_length=100, null=True, blank=True)
+    act = models.CharField(max_length=255, null=True, blank=True)
+    selected_sections = models.TextField(null=True, blank=True)  # JSON list, as the form sends it
+    other_sections = models.TextField(null=True, blank=True)
+    has_preventive_no = models.BooleanField(null=True, blank=True)
+    preventive_section_act = models.CharField(max_length=255, null=True, blank=True)
+    preventive_no = models.CharField(max_length=100, null=True, blank=True)
+    preventive_date = models.DateField(null=True, blank=True)
+    outward_no = models.CharField(max_length=100, null=True, blank=True)
+    io_name = models.CharField(max_length=255, null=True, blank=True)
+    risk_flag = models.CharField(max_length=100, null=True, blank=True)
+    action_status = models.CharField(max_length=100, null=True, blank=True)
+    remarks = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'preventive_records'
+        verbose_name = 'Preventive Record'
