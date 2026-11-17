@@ -11,7 +11,8 @@ class OfflineWarningDialog extends StatelessWidget {
   const OfflineWarningDialog({super.key});
 
   /// Convenient helper to display the offline modal popup
-  static Future<void> show(BuildContext context, {Future<void> Function()? onRetry}) {
+  static Future<void> show(BuildContext context,
+      {Future<void> Function()? onRetry}) {
     return AppErrorPopup.showNetworkError(context, onRetry: onRetry);
   }
 

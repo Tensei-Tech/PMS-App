@@ -58,7 +58,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
       child: Scaffold(
         backgroundColor: AppColors.lightBg,
         appBar: ModuleHubScreenAppBar(
-          title: TranslationHelper.translate(context, 'Notifications & Reminders'),
+          title:
+              TranslationHelper.translate(context, 'Notifications & Reminders'),
           subtitle: TranslationHelper.translate(
             context,
             'Directives, Case Reminders & System Alerts',
@@ -692,9 +693,7 @@ class _NotificationCard extends StatelessWidget {
         color: isUnread ? const Color(0xFFF8FAFC) : Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(
-          color: isUnread
-              ? const Color(0xFFBFDBFE)
-              : const Color(0xFFE2E8F0),
+          color: isUnread ? const Color(0xFFBFDBFE) : const Color(0xFFE2E8F0),
         ),
         boxShadow: [
           BoxShadow(
@@ -712,18 +711,16 @@ class _NotificationCard extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: isUnread
-                  ? const Color(0xFFE8F1FC)
-                  : const Color(0xFFF1F5F9),
+              color:
+                  isUnread ? const Color(0xFFE8F1FC) : const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: Icon(
               isUnread
                   ? Icons.notifications_active_rounded
                   : Icons.notifications_none_rounded,
-              color: isUnread
-                  ? const Color(0xFF1976D2)
-                  : AppColors.lightSubText,
+              color:
+                  isUnread ? const Color(0xFF1976D2) : AppColors.lightSubText,
               size: 20,
             ),
           ),

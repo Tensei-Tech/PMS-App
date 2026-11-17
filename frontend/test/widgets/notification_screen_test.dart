@@ -7,7 +7,9 @@ import 'package:khakhi_diary/screens/notification_screen.dart';
 import 'package:khakhi_diary/widgets/module_hub_screen_app_bar.dart';
 
 void main() {
-  testWidgets('NotificationScreen renders police theme AppBar, tabs, and empty state', (tester) async {
+  testWidgets(
+      'NotificationScreen renders police theme AppBar, tabs, and empty state',
+      (tester) async {
     tester.view.physicalSize = const Size(1200, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -19,7 +21,8 @@ void main() {
       MultiProvider(
         providers: [
           ChangeNotifierProvider<AuthProvider>.value(value: authProvider),
-          ChangeNotifierProvider<NotificationProvider>.value(value: notifProvider),
+          ChangeNotifierProvider<NotificationProvider>.value(
+              value: notifProvider),
         ],
         child: const MaterialApp(
           home: NotificationScreen(),
@@ -31,7 +34,8 @@ void main() {
     // Verify ModuleHubScreenAppBar renders with title & subtitle
     expect(find.byType(ModuleHubScreenAppBar), findsOneWidget);
     expect(find.text('Notifications & Reminders'), findsOneWidget);
-    expect(find.text('Directives, Case Reminders & System Alerts'), findsOneWidget);
+    expect(find.text('Directives, Case Reminders & System Alerts'),
+        findsOneWidget);
 
     // Verify tabs
     expect(find.text('Case Reminders'), findsOneWidget);
@@ -57,7 +61,8 @@ void main() {
     expect(find.text('No Case Reminders'), findsOneWidget);
   });
 
-  testWidgets('NotificationScreen displays notifications and Mark Read button', (tester) async {
+  testWidgets('NotificationScreen displays notifications and Mark Read button',
+      (tester) async {
     tester.view.physicalSize = const Size(1200, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -73,7 +78,8 @@ void main() {
       MultiProvider(
         providers: [
           ChangeNotifierProvider<AuthProvider>.value(value: authProvider),
-          ChangeNotifierProvider<NotificationProvider>.value(value: notifProvider),
+          ChangeNotifierProvider<NotificationProvider>.value(
+              value: notifProvider),
         ],
         child: const MaterialApp(
           home: NotificationScreen(),

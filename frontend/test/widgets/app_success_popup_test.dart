@@ -3,7 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:khakhi_diary/widgets/app_success_popup.dart';
 
 void main() {
-  testWidgets('AppSuccessPopup renders title, message, and close button', (tester) async {
+  testWidgets('AppSuccessPopup renders title, message, and close button',
+      (tester) async {
     tester.view.physicalSize = const Size(1200, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -42,7 +43,8 @@ void main() {
     expect(find.text('Reminder Sent'), findsNothing);
   });
 
-  testWidgets('AppSuccessPopup auto-closes after specified duration', (tester) async {
+  testWidgets('AppSuccessPopup auto-closes after specified duration',
+      (tester) async {
     tester.view.physicalSize = const Size(1200, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);

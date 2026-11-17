@@ -282,7 +282,8 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
                                         AppErrorPopup.show(
                                           context,
                                           title: 'Error',
-                                          message: 'Failed to send reminder: $e',
+                                          message:
+                                              'Failed to send reminder: $e',
                                         );
                                       }
                                     }

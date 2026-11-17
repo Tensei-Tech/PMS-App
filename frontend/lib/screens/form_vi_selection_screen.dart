@@ -1066,7 +1066,8 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1600),
         child: ListView.builder(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 5, AppSpacing.lg, 88),
+          padding:
+              const EdgeInsets.fromLTRB(AppSpacing.lg, 5, AppSpacing.lg, 88),
           itemCount: 4,
           itemBuilder: (_, __) => Container(
             margin: const EdgeInsets.only(bottom: 10),
@@ -1839,13 +1840,13 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                     ? (provider.isLoading
                         ? _buildCaseListSkeleton()
                         : _EmptyCasesState(
-                        category: _selectedCategory!,
-                        readOnly: _readOnly,
-                        statusTab: _selectedStatusTab,
-                        onNewCase: _showNewCaseFab ? _onNewCase : null,
-                        selectedDateRange: _selectedDateRange,
-                        onClearDateFilter: _clearDateFilter,
-                      ))
+                            category: _selectedCategory!,
+                            readOnly: _readOnly,
+                            statusTab: _selectedStatusTab,
+                            onNewCase: _showNewCaseFab ? _onNewCase : null,
+                            selectedDateRange: _selectedDateRange,
+                            onClearDateFilter: _clearDateFilter,
+                          ))
                     : Align(
                         alignment: Alignment.topCenter,
                         child: ConstrainedBox(
@@ -2196,7 +2197,7 @@ class _CategoryGridCardState extends State<_CategoryGridCard> {
           color: Colors.transparent,
           child: InkWell(
             onTap: () {
-                        widget.onTap();
+              widget.onTap();
             },
             borderRadius: BorderRadius.circular(12),
             child: Padding(
@@ -2529,7 +2530,8 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            TranslationHelper.translate(context, 'Quick Dispose'),
+                            TranslationHelper.translate(
+                                context, 'Quick Dispose'),
                             style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,

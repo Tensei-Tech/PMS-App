@@ -287,7 +287,8 @@ class _IradHubScreenState extends State<IradHubScreen> {
           ),
           const SizedBox(width: 6),
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: AppColors.navyMid, size: 20),
+            icon: const Icon(Icons.refresh_rounded,
+                color: AppColors.navyMid, size: 20),
             tooltip: 'Refresh',
             onPressed: _fetchIradData,
           ),
@@ -531,7 +532,8 @@ class _IradHubScreenState extends State<IradHubScreen> {
           Expanded(
             child: TextField(
               controller: _searchController,
-              style: GoogleFonts.poppins(fontSize: 13, color: AppColors.navyDark),
+              style:
+                  GoogleFonts.poppins(fontSize: 13, color: AppColors.navyDark),
               decoration: InputDecoration(
                 hintText: 'Search by CR No. or IO Name...',
                 hintStyle: GoogleFonts.poppins(
@@ -550,7 +552,8 @@ class _IradHubScreenState extends State<IradHubScreen> {
           ),
           if (_searchController.text.isNotEmpty)
             IconButton(
-              icon: const Icon(Icons.close_rounded, size: 18, color: AppColors.lightSubText),
+              icon: const Icon(Icons.close_rounded,
+                  size: 18, color: AppColors.lightSubText),
               onPressed: () {
                 _searchController.clear();
                 setState(() => _searchQuery = '');

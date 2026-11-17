@@ -58,7 +58,9 @@ void main() {
     );
   }
 
-  testWidgets('DARHubScreen summary cards appear in a single Row on mobile without wrapping', (tester) async {
+  testWidgets(
+      'DARHubScreen summary cards appear in a single Row on mobile without wrapping',
+      (tester) async {
     tester.view.physicalSize = const Size(380, 750);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -80,7 +82,8 @@ void main() {
     expect(filledPos.dy, equals(pendingPos.dy));
   });
 
-  testWidgets('DARHubScreen summary cards appear in a single Row on desktop', (tester) async {
+  testWidgets('DARHubScreen summary cards appear in a single Row on desktop',
+      (tester) async {
     tester.view.physicalSize = const Size(1200, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -100,7 +103,9 @@ void main() {
     expect(filledPos.dy, equals(pendingPos.dy));
   });
 
-  testWidgets('IRADHubScreen summary cards appear in a single Row on mobile without wrapping', (tester) async {
+  testWidgets(
+      'IRADHubScreen summary cards appear in a single Row on mobile without wrapping',
+      (tester) async {
     tester.view.physicalSize = const Size(380, 750);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -120,7 +125,8 @@ void main() {
     expect(filledPos.dy, equals(pendingPos.dy));
   });
 
-  testWidgets('IRADHubScreen summary cards appear in a single Row on desktop', (tester) async {
+  testWidgets('IRADHubScreen summary cards appear in a single Row on desktop',
+      (tester) async {
     tester.view.physicalSize = const Size(1200, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
