@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../services/api_config.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_error_popup.dart';
+import '../widgets/app_success_popup.dart';
 import 'filtered_pending_screen.dart';
 
 class ItssoHubScreen extends StatefulWidget {
@@ -383,9 +385,6 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
                                                   ),
                                                 ),
                                                 onPressed: () async {
-                                                  final messenger =
-                                                      ScaffoldMessenger.of(
-                                                          context);
                                                   final caseNumber =
                                                       caseItem['case_number'];
                                                   try {
@@ -393,23 +392,21 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
                                                       '$baseUrl/itsso/cases/${caseItem['id']}/action/',
                                                       body: {},
                                                     );
-                                                    if (mounted) {
-                                                      messenger.showSnackBar(
-                                                        SnackBar(
-                                                          content: Text(
-                                                              "Reminder sent to IO for case $caseNumber"),
-                                                        ),
-                                                      );
-                                                    }
+                                                    if (!context.mounted) return;
+                                                    AppSuccessPopup.show(
+                                                      context,
+                                                      title: 'Reminder Sent',
+                                                      message:
+                                                          "Reminder sent to IO for case $caseNumber",
+                                                    );
                                                   } catch (e) {
-                                                    if (mounted) {
-                                                      messenger.showSnackBar(
-                                                        SnackBar(
-                                                          content: Text(
-                                                              "Reminder sent to IO for case $caseNumber"),
-                                                        ),
-                                                      );
-                                                    }
+                                                    if (!context.mounted) return;
+                                                    AppErrorPopup.show(
+                                                      context,
+                                                      title: 'Error',
+                                                      message:
+                                                          'Failed to send reminder: $e',
+                                                    );
                                                   }
                                                 },
                                                 child: Text(

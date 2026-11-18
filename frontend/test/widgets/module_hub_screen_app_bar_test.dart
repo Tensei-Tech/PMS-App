@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:khakhi_diary/widgets/module_hub_screen_app_bar.dart';
 
@@ -63,5 +64,51 @@ void main() {
 
     final btnBox = tester.getRect(btnFinder);
     expect(btnBox.right, greaterThan(350));
+  });
+
+  testWidgets(
+      'ModuleHubScreenAppBar triggers onBackPressed on Escape key shortcut',
+      (WidgetTester tester) async {
+    bool backTriggered = false;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          appBar: ModuleHubScreenAppBar(
+            title: 'Pending Cases',
+            subtitle: '20 cases',
+            onBackPressed: () => backTriggered = true,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+
+    expect(backTriggered, isTrue);
+  });
+
+  testWidgets(
+      'ModuleHubScreenAppBar triggers onSearchShortcut on Slash key shortcut',
+      (WidgetTester tester) async {
+    bool searchTriggered = false;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          appBar: ModuleHubScreenAppBar(
+            title: 'Pending Cases',
+            subtitle: '20 cases',
+            onSearchShortcut: () => searchTriggered = true,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.slash);
+    await tester.pumpAndSettle();
+
+    expect(searchTriggered, isTrue);
   });
 }

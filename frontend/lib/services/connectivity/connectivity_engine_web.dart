@@ -68,24 +68,37 @@ class _WebConnectivityEngine implements ConnectivityEngine {
         return false;
       }
 
-      // 2. Active network probe: catches DevTools "Offline" throttling and real internet loss
-      final probeUri = Uri.parse(ApiConfig.rootHealthUrl).replace(
-        queryParameters: {
-          '_probe': DateTime.now().millisecondsSinceEpoch.toString(),
-        },
-      );
+      // 2. Active network probe: verify internet reachability without failing on offline local backend
       final client = http.Client();
       try {
+        final isLocal = ApiConfig.baseUrl.contains('127.0.0.1') ||
+            ApiConfig.baseUrl.contains('localhost');
+        if (!isLocal) {
+          final probeUri = Uri.parse(ApiConfig.rootHealthUrl).replace(
+            queryParameters: {
+              '_probe': DateTime.now().millisecondsSinceEpoch.toString(),
+            },
+          );
+          final response = await client
+              .get(probeUri)
+              .timeout(const Duration(milliseconds: 2500));
+          if (response.statusCode != 0) return true;
+        }
+      } catch (_) {}
+
+      // Fallback probe: Google DNS HTTPS (CORS Access-Control-Allow-Origin: * supported)
+      try {
         final response = await client
-            .get(probeUri)
-            .timeout(const Duration(milliseconds: 3500));
-        // Any HTTP response (200, 401, 404, etc.) proves network is active
-        return response.statusCode != 0;
+            .get(Uri.parse('https://dns.google/resolve?name=google.com'))
+            .timeout(const Duration(milliseconds: 2500));
+        return response.statusCode == 200;
+      } catch (_) {
+        // If probe fails (e.g. firewalled intranet), trust browser navigator.onLine
+        return web.window.navigator.onLine;
       } finally {
         client.close();
       }
     } catch (_) {
-      // Network failure, timeout, or DevTools Offline throttling
       return false;
     }
   }

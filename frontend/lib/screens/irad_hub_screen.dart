@@ -8,6 +8,8 @@ import '../services/api_service.dart';
 import '../services/api_config.dart';
 import '../theme/app_theme.dart';
 import '../modules/core/models/base_record.dart';
+import '../widgets/app_error_popup.dart';
+import '../widgets/app_success_popup.dart';
 import '../widgets/dynamic_form/dynamic_form_screen.dart';
 import '../widgets/sub_tab_host.dart';
 import '../utils/dynamic_map_pdf.dart';
@@ -533,33 +535,24 @@ class _IradHubScreenState extends State<IradHubScreen>
 
       if (!mounted) return;
       if (res.isSuccess) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Reminder sent to IO for case $crNo',
-              style: GoogleFonts.poppins(),
-            ),
-            backgroundColor: AppColors.successGreen,
-          ),
+        AppSuccessPopup.show(
+          context,
+          title: 'Reminder Sent',
+          message: 'Reminder sent to IO for case $crNo',
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              res.errorMessage ?? 'Failed to send reminder',
-              style: GoogleFonts.poppins(),
-            ),
-            backgroundColor: AppColors.dangerRed,
-          ),
+        AppErrorPopup.show(
+          context,
+          title: 'Reminder Failed',
+          message: res.errorMessage ?? 'Failed to send reminder',
         );
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error sending reminder: $e'),
-          backgroundColor: AppColors.dangerRed,
-        ),
+      AppErrorPopup.show(
+        context,
+        title: 'Error',
+        message: 'Error sending reminder: $e',
       );
     }
   }
@@ -1898,15 +1891,37 @@ class _IradHubScreenState extends State<IradHubScreen>
       backgroundColor: const Color(0xFFF6F8FF),
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 1,
-        iconTheme: const IconThemeData(color: AppColors.navyDark),
-        title: Text(
-          'IRAD (Integrated Road Accident Database)',
-          style: GoogleFonts.poppins(
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
             color: AppColors.navyDark,
-            fontWeight: FontWeight.w700,
-            fontSize: 16,
+            size: 20,
           ),
+          onPressed: () => Navigator.maybePop(context),
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'IRAD (Integrated Road Accident Database)',
+              style: GoogleFonts.poppins(
+                color: AppColors.navyDark,
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+              ),
+            ),
+            Text(
+              'National Database Collision Records',
+              style: GoogleFonts.poppins(
+                color: AppColors.lightSubText,
+                fontSize: 11,
+              ),
+            ),
+          ],
         ),
         actions: [
           ModuleHubScreenAppBar.buildAddCaseButton(
@@ -1950,11 +1965,12 @@ class _IradHubScreenState extends State<IradHubScreen>
           const SizedBox(width: 6),
 
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: AppColors.navyMid),
+            icon: const Icon(Icons.refresh_rounded,
+                color: AppColors.navyMid, size: 20),
             tooltip: 'Refresh',
             onPressed: _fetchIradData,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
         ],
         bottom: SubTabHost.appBarBottomAbove(
           context,
