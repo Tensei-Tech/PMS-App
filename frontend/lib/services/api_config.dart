@@ -120,6 +120,7 @@ class ApiConfig {
   // RTI Endpoints
   static String get rti => '$baseUrl/rti/';
   static String get rtiCounts => '$baseUrl/rti/counts/';
+  static String get rtiSummary => '$baseUrl/rti/summary/';
   static String get rtiConfig => '$baseUrl/rti/config/';
   static String get rtiChart => '$baseUrl/rti/chart/';
   static String get rtiReminders => '$baseUrl/rti/reminders/';

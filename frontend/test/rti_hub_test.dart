@@ -81,9 +81,14 @@ void main() {
 
       // Verify custom sub-tab labels from config
       expect(find.text('Total RTI'), findsOneWidget);
-      expect(find.text('Summary RTI'), findsOneWidget);
-      // Pending and Disposal tabs were removed
-      expect(find.text('Pending RTI'), findsNothing);
+      // One tab per outcome; a label missing from config keeps its default
+      expect(find.text('Pending RTI'), findsOneWidget);
+      expect(find.text('Replied'), findsOneWidget);
+      expect(find.text('Rejected'), findsOneWidget);
+      expect(find.text('Transferred'), findsOneWidget);
+      // The Summary tab (counts table) is last; no Disposal tab any more
+      expect(find.text('Summary'), findsOneWidget);
+      expect(find.text('Summary RTI'), findsNothing);
       expect(find.text('Resolved RTI'), findsNothing);
 
       // Verify custom Add button label from config

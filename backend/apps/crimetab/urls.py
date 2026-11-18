@@ -60,6 +60,7 @@ from apps.cases.views import (
 from apps.crimetab.views_rti import (
     RTIListCreateView,
     RTICountsView,
+    RTISummaryView,
     RTIConfigView,
     RTIOfficersView,
     RTIDetailView,
@@ -122,6 +123,7 @@ router.register(r'categories', CaseCategoryViewSet, basename='case-categories')
 urlpatterns = [
     # RTI API Endpoints
     path('rti/counts/', RTICountsView.as_view(), name='rti-counts'),
+    path('rti/summary/', RTISummaryView.as_view(), name='rti-summary'),
     path('rti/config/', RTIConfigView.as_view(), name='rti-config'),
     path('rti/chart/', RTIChartView.as_view(), name='rti-chart'),
     path('rti/reminders/seen/', RTIRemindersSeenView.as_view(), name='rti-reminders-seen'),
