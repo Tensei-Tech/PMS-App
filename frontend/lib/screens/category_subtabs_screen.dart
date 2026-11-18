@@ -37,7 +37,14 @@ class DashboardSubtab {
   final String screenKey;
   final String icon;
 
-  const DashboardSubtab(this.label, this.screenKey, this.icon);
+  /// For 'category': the linked case category; null = the one named [label]
+  final String? categoryName;
+
+  const DashboardSubtab(this.label, this.screenKey, this.icon,
+      {this.categoryName});
+
+  /// The "1 to 5" category this sub-tab lists
+  String get category => categoryName ?? label;
 }
 
 /// Sub-tabs of every dashboard tile, loaded once from the backend (table
@@ -65,12 +72,15 @@ class DashboardSubtabs {
     for (final r in active) {
       final parent = r['parent_key']?.toString() ?? '';
       if (parent.isEmpty) continue;
+      final linked = r['category_name']?.toString().trim() ?? '';
       byParent.putIfAbsent(parent, () => []).add(DashboardSubtab(
             r['label'].toString(),
             r['screen_key']?.toString() ?? 'category',
             r['icon']?.toString() ?? '',
+            categoryName: linked.isEmpty ? null : linked,
           ));
     }
+    TranslationHelper.registerRowLabels(active, 'label');
     _byParent = byParent;
   }
 
@@ -106,7 +116,7 @@ class DashboardSubtabs {
     switch (tab.screenKey) {
       case 'category':
         return (_) => FormIVSelectionScreen(
-              openCategory: tab.label,
+              openCategory: tab.category,
               customTitle: tab.label,
               mode: FormIVSelectionMode.browse,
             );
@@ -170,10 +180,14 @@ class CategorySubtabsScreen extends StatefulWidget {
   /// (category name in case_categories, icon)
   final List<(String, IconData)> subtabs;
 
+  /// Name shown for a category, when the sub-tab is named differently
+  final Map<String, String> labels;
+
   const CategorySubtabsScreen({
     super.key,
     required this.title,
     required this.subtabs,
+    this.labels = const {},
   });
 
   /// Dashboard tiles (by Classification.moduleKey) and their sub-tabs
@@ -210,8 +224,9 @@ class CategorySubtabsScreen extends StatefulWidget {
       return CategorySubtabsScreen(
         title: groups[moduleKey]?.$1 ?? title ?? moduleKey,
         subtabs: [
-          for (final t in rows) (t.label, DashboardSubtabs.iconFor(t.icon)),
+          for (final t in rows) (t.category, DashboardSubtabs.iconFor(t.icon)),
         ],
+        labels: {for (final t in rows) t.category: t.label},
       );
     }
     final group = groups[moduleKey];
@@ -233,9 +248,11 @@ class _CategorySubtabsScreenState extends State<CategorySubtabsScreen> {
     });
   }
 
-  static Widget _page(String category) => FormIVSelectionScreen(
+  String _label(String category) => widget.labels[category] ?? category;
+
+  Widget _page(String category) => FormIVSelectionScreen(
         openCategory: category,
-        customTitle: category,
+        customTitle: _label(category),
         mode: FormIVSelectionMode.browse,
       );
 
@@ -253,7 +270,7 @@ class _CategorySubtabsScreenState extends State<CategorySubtabsScreen> {
       return SubTabHost(
         tabs: [
           for (final (name, icon) in widget.subtabs)
-            SubTab(name, icon, (_) => _page(name)),
+            SubTab(_label(name), icon, (_) => _page(name)),
         ],
       );
     }
@@ -286,7 +303,7 @@ class _CategorySubtabsScreenState extends State<CategorySubtabsScreen> {
         itemBuilder: (context, i) {
           final (name, icon) = widget.subtabs[i];
           return CategoryGridCard(
-            category: TranslationHelper.translate(context, name),
+            category: TranslationHelper.translate(context, _label(name)),
             rawCategory: name,
             icon: icon,
             count: records

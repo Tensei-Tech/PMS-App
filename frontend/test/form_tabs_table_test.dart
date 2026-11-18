@@ -54,9 +54,13 @@ void main() {
     }
   }
 
+  List<Map<String, dynamic>> rows(List<String> names) => [
+        for (final n in names) {'tab_name': n}
+      ];
+
   testWidgets('"1 to 5" shows the form_1_5_tabs rows only', (tester) async {
     // "Missing" was on the app's hidden list; the table now decides
-    CaseService().setFormTabsCache('1_5', ['Theft', 'Murder', 'Missing']);
+    CaseService().setFormTabsCache('1_5', rows(['Theft', 'Murder', 'Missing']));
     await show(
         tester, const FormIVSelectionScreen(mode: FormIVSelectionMode.browse));
     expect(find.text('Theft'), findsOneWidget);
@@ -69,8 +73,24 @@ void main() {
     );
   });
 
+  testWidgets('A tab shows its own name and lists its linked category',
+      (tester) async {
+    CaseService().setFormTabsCache('1_5', [
+      {'tab_name': 'Killings', 'category_name': 'Murder'},
+    ]);
+    await show(
+        tester, const FormIVSelectionScreen(mode: FormIVSelectionMode.browse));
+    expect(find.text('Killings'), findsOneWidget);
+    expect(find.text('Murder'), findsNothing);
+    expect(CaseService.formTabCategory({'tab_name': 'Killings'}), 'Killings');
+    expect(
+        CaseService.formTabCategory(
+            {'tab_name': 'Killings', 'category_name': 'Murder'}),
+        'Murder');
+  });
+
   testWidgets('Part 6 shows the form_6_tabs rows only', (tester) async {
-    CaseService().setFormTabsCache('6', ['NDPS', 'POCSO']);
+    CaseService().setFormTabsCache('6', rows(['NDPS', 'POCSO']));
     await show(
         tester, const FormVISelectionScreen(mode: FormVISelectionMode.browse));
     expect(find.text('NDPS'), findsOneWidget);

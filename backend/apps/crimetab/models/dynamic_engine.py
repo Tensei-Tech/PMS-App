@@ -264,6 +264,14 @@ class DashboardTile(models.Model):
     section = models.CharField(max_length=20, choices=SECTION_CHOICES, default='cases')
     display_order = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
+    # The case category the tile opens (RTI, MPDA, POCSO ...); empty for tiles
+    # that are not one category (Monthly, Pending, Tadipar ...)
+    category = models.ForeignKey(
+        'crimetab.CaseCategory', on_delete=models.SET_NULL, null=True, blank=True,
+        db_column='category_id', related_name='+')
+    # Marathi / Hindi label; empty = the app's own translation of label
+    label_mr = models.CharField(max_length=150, blank=True, default='')
+    label_hi = models.CharField(max_length=150, blank=True, default='')
 
     class Meta:
         db_table = 'dashboard_tiles'
@@ -295,6 +303,12 @@ class DashboardSubtab(models.Model):
     icon = models.CharField(max_length=100, blank=True, default='')
     display_order = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
+    # For screen_key 'category': the "1 to 5" category the sub-tab lists
+    category = models.ForeignKey(
+        'crimetab.CaseCategory', on_delete=models.SET_NULL, null=True, blank=True,
+        db_column='category_id', related_name='+')
+    label_mr = models.CharField(max_length=150, blank=True, default='')
+    label_hi = models.CharField(max_length=150, blank=True, default='')
 
     class Meta:
         db_table = 'dashboard_subtabs'
@@ -309,14 +323,20 @@ class DashboardSubtab(models.Model):
 
 class FormTabBase(models.Model):
     """
-    One case-type tab of a Form screen. tab_name is shown on the tab and is the
-    case category it lists, so it must be spelled as in case_categories.
+    One case-type tab of a Form screen. tab_name is shown on the tab; category
+    is the case category it lists (without one, the tab lists the category
+    named tab_name).
     """
     id = models.BigAutoField(primary_key=True)
     tab_name = models.CharField(max_length=150, unique=True)
     category_code = models.CharField(max_length=100, blank=True, null=True)
     display_order = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
+    category = models.ForeignKey(
+        'crimetab.CaseCategory', on_delete=models.SET_NULL, null=True, blank=True,
+        db_column='category_id', related_name='+')
+    label_mr = models.CharField(max_length=150, blank=True, default='')
+    label_hi = models.CharField(max_length=150, blank=True, default='')
 
     class Meta:
         abstract = True

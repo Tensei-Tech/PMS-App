@@ -145,6 +145,12 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
   bool _isLoadingApiCategories = false;
   bool _isUsingFallbackCategories = false;
 
+  /// Tab name to show for a category, from form_6_tabs (a tab may be named
+  /// differently from the category it lists).
+  Map<String, String> _tabLabels = {};
+
+  String _tabLabel(String category) => _tabLabels[category] ?? category;
+
   List<String> get _filterOptions =>
       _apiCategories.isNotEmpty ? _apiCategories : kFormVICaseCategories;
 
@@ -168,9 +174,19 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
       // group 2 categories instead.
       final tabs = await CaseService().fetchFormTabs('6');
       if (tabs.isNotEmpty) {
+        TranslationHelper.registerRowLabels(tabs, 'tab_name');
+        final categories = <String>[];
+        final labels = <String, String>{};
+        for (final t in tabs) {
+          final category = CaseService.formTabCategory(t);
+          if (categories.contains(category)) continue;
+          categories.add(category);
+          labels[category] = t['tab_name'].toString().trim();
+        }
         if (mounted) {
           setState(() {
-            _apiCategories = tabs.toSet().toList();
+            _apiCategories = categories;
+            _tabLabels = labels;
             _isLoadingApiCategories = false;
             _isUsingFallbackCategories = false;
           });
@@ -1507,7 +1523,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
     } else {
       final transCategory = TranslationHelper.translate(
         context,
-        _selectedCategory!,
+        _tabLabel(_selectedCategory!),
       );
       final transCases = TranslationHelper.translate(context, 'cases');
       final prefix = _categoryBreadcrumb.isNotEmpty
@@ -1763,6 +1779,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
               Expanded(
                 child: _CategoryGridView(
                   categories: _currentDisplayCategories,
+                  labels: _tabLabels,
                   records: statusRecords,
                   getDescendantNames: _getDescendantCategoryNames,
                   onCategorySelected: _handleCategoryTap,
@@ -2079,6 +2096,7 @@ class FormVIStatusTabBar extends StatelessWidget {
 class _CategoryGridView extends StatelessWidget {
   const _CategoryGridView({
     required this.categories,
+    this.labels = const {},
     required this.records,
     required this.onCategorySelected,
     this.getDescendantNames,
@@ -2086,6 +2104,9 @@ class _CategoryGridView extends StatelessWidget {
   });
 
   final List<String> categories;
+
+  /// Tab name shown for a category (from form_6_tabs), if it differs
+  final Map<String, String> labels;
   final List<ModuleRecord> records;
   final ValueChanged<String> onCategorySelected;
   final Set<String> Function(String category)? getDescendantNames;
@@ -2137,8 +2158,8 @@ class _CategoryGridView extends StatelessWidget {
             final category = categories[index];
             final count = _countFor(category);
             final isAll = category == FormVISelectionScreen.allFilterLabel;
-            final transCategory =
-                TranslationHelper.translate(context, category);
+            final transCategory = TranslationHelper.translate(
+                context, labels[category] ?? category);
 
             return _CategoryGridCard(
               category: transCategory,

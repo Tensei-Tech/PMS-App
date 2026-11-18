@@ -2,7 +2,7 @@ import json
 import logging
 from typing import List, Dict, Any, Optional
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import F, Q
 from apps.crimetab.models.groupings import CaseCategory
 from apps.crimetab.models.dynamic_engine import (
     FieldTemplate,
@@ -169,7 +169,9 @@ def get_dashboard_tiles() -> List[Dict[str, Any]]:
             DashboardTile.objects.filter(is_active=True)
             .order_by('display_order', 'id')
             .values('id', 'label', 'module_key', 'icon', 'icon_type', 'color',
-                    'category_code', 'section', 'display_order', 'is_active')
+                    'category_code', 'section', 'display_order', 'is_active',
+                    'category_id', 'label_mr', 'label_hi',
+                    category_name=F('category__category_name'))
         )
     except Exception as e:
         # Table not there yet (migration 0191 not run): the app keeps its old grid
@@ -188,7 +190,8 @@ def get_dashboard_subtabs() -> List[Dict[str, Any]]:
             DashboardSubtab.objects.filter(is_active=True)
             .order_by('parent_key', 'display_order', 'id')
             .values('id', 'parent_key', 'label', 'screen_key', 'icon',
-                    'display_order', 'is_active')
+                    'display_order', 'is_active', 'category_id', 'label_mr', 'label_hi',
+                    category_name=F('category__category_name'))
         )
     except Exception as e:
         # Table not there yet (migration 0192 not run): the app keeps its own sub-tabs
@@ -209,7 +212,9 @@ def get_form_tabs(form: str) -> List[Dict[str, Any]]:
         return list(
             model.objects.filter(is_active=True)
             .order_by('display_order', 'id')
-            .values('id', 'tab_name', 'category_code', 'display_order', 'is_active')
+            .values('id', 'tab_name', 'category_code', 'display_order', 'is_active',
+                    'category_id', 'label_mr', 'label_hi',
+                    category_name=F('category__category_name'))
         )
     except Exception as e:
         # Table not there yet (migration 0193 not run): the app keeps its old tabs

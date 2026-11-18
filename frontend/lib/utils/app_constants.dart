@@ -77,12 +77,17 @@ class Classification {
   final dynamic categoryId;
   final String? categoryCode;
 
+  /// Name of the case category the tile opens, as in case_categories (from
+  /// the tile's category link); null when the tile is not one category.
+  final String? categoryName;
+
   const Classification(
     this.name,
     this.iconName,
     this.moduleKey, {
     this.categoryId,
     this.categoryCode,
+    this.categoryName,
   });
 
   // ── Part 1: Crime Statistics ──────────────────────────────────────────────
