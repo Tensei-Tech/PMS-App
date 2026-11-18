@@ -15,13 +15,13 @@ class RTIOutcomeTabFilterTests(TestCase):
 
     def setUp(self):
         day = datetime.date(2026, 10, 24)
+        # Only rows the database accepts: on PostgreSQL rti_applications allows
+        # at most one outcome (rti_one_outcome) and a rejection reason only
+        # with its date (rti_reject_reason).
         rows = {
             1: {},                                                    # pending
             2: {'replied_date': day},                                 # replied
-            3: {'replied_date': day, 'rejected_date': day,
-                'rejection_reason': 'x'},                             # reply wins
             4: {'rejected_date': day, 'rejection_reason': 'x'},       # rejected
-            5: {'rejection_reason': 'no date given'},                 # rejected
             6: {'transferred_to': 'DIG office'},                      # transferred
             7: {'transferred_to': '   '},                             # blank = pending
         }
@@ -33,13 +33,13 @@ class RTIOutcomeTabFilterTests(TestCase):
 
     def test_each_tab_gets_its_applications(self):
         self.assertEqual(self.serials('pending'), [1, 7])
-        self.assertEqual(self.serials('replied'), [2, 3])
-        self.assertEqual(self.serials('rejected'), [4, 5])
+        self.assertEqual(self.serials('replied'), [2])
+        self.assertEqual(self.serials('rejected'), [4])
         self.assertEqual(self.serials('transferred'), [6])
 
     def test_tabs_cover_every_application_once(self):
         found = sum((self.serials(o) for o in RTI_OUTCOMES), [])
-        self.assertEqual(sorted(found), [1, 2, 3, 4, 5, 6, 7])
+        self.assertEqual(sorted(found), [1, 2, 4, 6, 7])
 
     def test_matches_the_badge(self):
         for app in RTIApplication.objects.all():
