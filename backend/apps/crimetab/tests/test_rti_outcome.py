@@ -56,10 +56,16 @@ class RTISummaryViewTests(TestCase):
 
     def setUp(self):
         from apps.crimetab.models import OptionValue
-        for i, name in enumerate(['Crime record', 'Personal', 'Missing'], 1):
+        # On PostgreSQL migration 0029 seeds five types (Crime record ...
+        # Other); seed them on every database, then keep only the three this
+        # test uses, so the rows are the same on SQLite and PostgreSQL.
+        for i, name in enumerate(['Crime record', 'Personal', 'Missing',
+                                  'Accident record', 'Other'], 1):
             OptionValue.objects.update_or_create(
                 option_group='rti_info_type', option_value=name,
-                defaults={'display_order': i, 'is_active': True})
+                defaults={'display_order': i * 10, 'is_active': True})
+        OptionValue.objects.filter(option_group='rti_info_type').exclude(
+            option_value__in=['Crime record', 'Personal', 'Missing']).update(is_active=False)
         day = datetime.date(2026, 10, 24)
         rows = [
             ('Crime record', {'replied_date': day}),
