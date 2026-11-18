@@ -49,6 +49,7 @@ class IradCaseItem {
     final crNo = (m['cr_no'] ?? m['case_number'] ?? '—').toString();
     final act = (m['act_and_section'] ??
             m['sub_category'] ??
+            m['category_name'] ??
             m['title'] ??
             'Road Accident')
         .toString()
@@ -57,8 +58,12 @@ class IradCaseItem {
         .toString()
         .trim();
     final ioUid = (m['io_uid'] ?? m['assigned_officer_uid'] ?? '').toString();
-    final st = (m['status'] ?? 'Pending').toString().trim();
-    final stColor = (m['status_color'] ?? '#E74C3C').toString();
+    final st =
+        (m['status'] ?? m['irad_status'] ?? 'Pending').toString().trim();
+    final isCompleted =
+        st.toLowerCase() == 'filled' || st.toLowerCase() == 'completed';
+    final defaultColor = isCompleted ? '#2ECC71' : '#E74C3C';
+    final stColor = (m['status_color'] ?? defaultColor).toString();
     final station = (m['station_name'] ?? '').toString();
 
     DateTime incDt = now;
@@ -128,87 +133,6 @@ class IradFilterItem {
   });
 }
 
-const List<IradFilterItem> kIradFilterItems = [
-  // Overview
-  IradFilterItem(
-    key: 'all',
-    label: 'Total',
-    group: 'Overview',
-    icon: Icons.assignment_rounded,
-    color: AppColors.navyMid,
-  ),
-
-  // Status
-  IradFilterItem(
-    key: 'filled',
-    label: 'Filled',
-    group: 'Status',
-    icon: Icons.check_circle_rounded,
-    color: AppColors.successGreen,
-  ),
-  IradFilterItem(
-    key: 'pending',
-    label: 'Pending',
-    group: 'Status',
-    icon: Icons.pending_actions_rounded,
-    color: AppColors.dangerRed,
-  ),
-
-  // Accident Type / Act & Section
-  IradFilterItem(
-    key: 'road_accident',
-    label: 'Road Accident',
-    group: 'Accident Category',
-    icon: Icons.car_crash_rounded,
-    color: AppColors.navyMid,
-  ),
-  IradFilterItem(
-    key: 'normal_accident',
-    label: 'Other Accident',
-    group: 'Accident Category',
-    icon: Icons.minor_crash_rounded,
-    color: AppColors.navyMid,
-  ),
-  IradFilterItem(
-    key: 'death_rash_driving',
-    label: 'Death Due to Rash Driving',
-    group: 'Accident Category',
-    icon: Icons.warning_amber_rounded,
-    color: AppColors.navyMid,
-  ),
-  IradFilterItem(
-    key: 'hit_and_run',
-    label: 'Hit and Run',
-    group: 'Accident Category',
-    icon: Icons.speed_rounded,
-    color: AppColors.navyMid,
-  ),
-  IradFilterItem(
-    key: 'fatal',
-    label: 'Fatal Accident',
-    group: 'Accident Category',
-    icon: Icons.dangerous_rounded,
-    color: AppColors.navyMid,
-  ),
-  IradFilterItem(
-    key: 'non_fatal',
-    label: 'Non-Fatal Accident',
-    group: 'Accident Category',
-    icon: Icons.health_and_safety_rounded,
-    color: AppColors.navyMid,
-  ),
-];
-
-const Set<String> kIradStatusKeys = {'filled', 'pending'};
-const Set<String> kIradCategoryKeys = {
-  'road_accident',
-  'normal_accident',
-  'death_rash_driving',
-  'hit_and_run',
-  'fatal',
-  'non_fatal',
-};
-
 class IradHubScreen extends StatefulWidget {
   final String? stationName;
   const IradHubScreen({super.key, this.stationName});
@@ -233,6 +157,33 @@ class _IradHubScreenState extends State<IradHubScreen>
   // Multi-select active filter state
   Set<String> _selectedFilterKeys = {'all'};
 
+  // Dynamic filter items & category keys derived from real database cases
+  static const Set<String> _statusKeys = {'filled', 'pending'};
+  Set<String> _categoryKeys = {};
+  List<IradFilterItem> _filterItems = [
+    const IradFilterItem(
+      key: 'all',
+      label: 'Total',
+      group: 'Overview',
+      icon: Icons.assignment_rounded,
+      color: AppColors.navyMid,
+    ),
+    const IradFilterItem(
+      key: 'filled',
+      label: 'Filled',
+      group: 'Status',
+      icon: Icons.check_circle_rounded,
+      color: AppColors.successGreen,
+    ),
+    const IradFilterItem(
+      key: 'pending',
+      label: 'Pending',
+      group: 'Status',
+      icon: Icons.pending_actions_rounded,
+      color: AppColors.dangerRed,
+    ),
+  ];
+
   // Presentation data for tabs
   Map<String, List<IradCaseItem>>? _caseWiseData;
   List<Map<String, dynamic>>? _timeWiseData;
@@ -255,44 +206,49 @@ class _IradHubScreenState extends State<IradHubScreen>
   // FILTERING LOGIC
   // ---------------------------------------------------------------------------
 
+  static IconData _iconForCategory(String category) {
+    final lower = category.toLowerCase();
+    if (lower.contains('rash') || lower.contains('death')) {
+      return Icons.warning_amber_rounded;
+    }
+    if (lower.contains('hit') && lower.contains('run')) {
+      return Icons.speed_rounded;
+    }
+    if (lower.contains('fatal')) {
+      return Icons.dangerous_rounded;
+    }
+    if (lower.contains('non-fatal') || lower.contains('minor')) {
+      return Icons.health_and_safety_rounded;
+    }
+    if (lower.contains('road')) {
+      return Icons.car_crash_rounded;
+    }
+    return Icons.minor_crash_rounded;
+  }
+
   bool _caseMatchesSingleFilter(IradCaseItem c, String key) {
     final st = c.status.toLowerCase().trim();
     final isFilled = st == 'filled' || st == 'completed';
     final isPending = !isFilled;
 
-    final sub = (c.rawMap['sub_category'] ?? '').toString().toLowerCase();
-    final title = (c.rawMap['title'] ?? '').toString().toLowerCase();
-    final desc = (c.rawMap['description'] ?? '').toString().toLowerCase();
-    final combined = '${c.actAndSection.toLowerCase()} $sub $title $desc';
+    if (key == 'all') return true;
+    if (key == 'filled') return isFilled;
+    if (key == 'pending') return isPending;
 
-    switch (key) {
-      case 'all':
-        return true;
-      case 'filled':
-        return isFilled;
-      case 'pending':
-        return isPending;
-      case 'road_accident':
-        return combined.contains('road') || combined.contains('accident');
-      case 'normal_accident':
-        return combined.contains('normal') || combined.contains('other');
-      case 'death_rash_driving':
-        return combined.contains('rash') ||
-            combined.contains('death') ||
-            combined.contains('304') ||
-            combined.contains('106');
-      case 'hit_and_run':
-        return combined.contains('hit') && combined.contains('run');
-      case 'fatal':
-        return combined.contains('fatal') ||
-            combined.contains('death') ||
-            combined.contains('मृत्यू');
-      case 'non_fatal':
-        return !combined.contains('fatal') &&
-            !combined.contains('death') &&
-            !combined.contains('मृत्यू');
-    }
-    return false;
+    // Dynamic category match
+    final act = c.actAndSection.trim().toLowerCase();
+    final sub = (c.rawMap['sub_category'] ?? '').toString().trim().toLowerCase();
+    final catName =
+        (c.rawMap['category_name'] ?? '').toString().trim().toLowerCase();
+    final title = (c.rawMap['title'] ?? '').toString().trim().toLowerCase();
+    final keyLower = key.trim().toLowerCase();
+
+    return act == keyLower ||
+        sub == keyLower ||
+        catName == keyLower ||
+        act.contains(keyLower) ||
+        sub.contains(keyLower) ||
+        title.contains(keyLower);
   }
 
   bool _caseMatchesMultipleFilters(IradCaseItem c, Set<String> keys) {
@@ -303,8 +259,8 @@ class _IradHubScreenState extends State<IradHubScreen>
     final activeKeys = keys.where((k) => k != 'all').toSet();
     if (activeKeys.isEmpty) return true;
 
-    final selectedStatus = activeKeys.intersection(kIradStatusKeys);
-    final selectedCategories = activeKeys.intersection(kIradCategoryKeys);
+    final selectedStatus = activeKeys.intersection(_statusKeys);
+    final selectedCategories = activeKeys.intersection(_categoryKeys);
 
     if (selectedStatus.isNotEmpty) {
       if (!selectedStatus.any((k) => _caseMatchesSingleFilter(c, k))) {
@@ -324,24 +280,87 @@ class _IradHubScreenState extends State<IradHubScreen>
   void _recomputeFilterCounts(List<IradCaseItem> cases) {
     final counts = <String, int>{};
     counts['all'] = cases.length;
-    for (final item in kIradFilterItems) {
-      if (item.key == 'all') continue;
-      counts[item.key] =
-          cases.where((c) => _caseMatchesSingleFilter(c, item.key)).length;
+
+    int filledCount = 0;
+    int pendingCount = 0;
+
+    // Dynamically collect unique categories from real cases in database
+    final dynamicCategories = <String>{};
+
+    for (final c in cases) {
+      final st = c.status.toLowerCase().trim();
+      if (st == 'filled' || st == 'completed') {
+        filledCount++;
+      } else {
+        pendingCount++;
+      }
+
+      final cat = c.actAndSection.trim().isNotEmpty && c.actAndSection.trim() != '—'
+          ? c.actAndSection.trim()
+          : (c.rawMap['sub_category']?.toString().trim().isNotEmpty == true
+              ? c.rawMap['sub_category'].toString().trim()
+              : (c.rawMap['category_name']?.toString().trim().isNotEmpty == true
+                  ? c.rawMap['category_name'].toString().trim()
+                  : ''));
+      if (cat.isNotEmpty && cat != '—') {
+        dynamicCategories.add(cat);
+      }
     }
+
+    counts['filled'] = filledCount;
+    counts['pending'] = pendingCount;
+
+    final items = <IradFilterItem>[
+      const IradFilterItem(
+        key: 'all',
+        label: 'Total',
+        group: 'Overview',
+        icon: Icons.assignment_rounded,
+        color: AppColors.navyMid,
+      ),
+      const IradFilterItem(
+        key: 'filled',
+        label: 'Filled',
+        group: 'Status',
+        icon: Icons.check_circle_rounded,
+        color: AppColors.successGreen,
+      ),
+      const IradFilterItem(
+        key: 'pending',
+        label: 'Pending',
+        group: 'Status',
+        icon: Icons.pending_actions_rounded,
+        color: AppColors.dangerRed,
+      ),
+    ];
+
+    final sortedCategories = dynamicCategories.toList()..sort();
+    final catKeys = <String>{};
+
+    for (final cat in sortedCategories) {
+      catKeys.add(cat);
+      final count =
+          cases.where((c) => _caseMatchesSingleFilter(c, cat)).length;
+      counts[cat] = count;
+      items.add(
+        IradFilterItem(
+          key: cat,
+          label: cat,
+          group: 'Accident Category',
+          icon: _iconForCategory(cat),
+          color: AppColors.navyMid,
+        ),
+      );
+    }
+
+    _filterItems = items;
+    _categoryKeys = catKeys;
     _filterCounts = counts;
   }
 
   // ---------------------------------------------------------------------------
   // DATA FETCHING & TAB DATA DERIVATION
   // ---------------------------------------------------------------------------
-
-  bool _isAccidentCategoryCase(IradCaseItem c) {
-    final combined =
-        '${c.actAndSection} ${c.rawMap['sub_category'] ?? ''} ${c.rawMap['title'] ?? ''} ${c.rawMap['category_name'] ?? ''} ${c.rawMap['module_key'] ?? ''}'
-            .toLowerCase();
-    return combined.contains('accident') || combined.contains('rash');
-  }
 
   Future<void> _fetchIradData() async {
     setState(() {
@@ -371,20 +390,14 @@ class _IradHubScreenState extends State<IradHubScreen>
           if (results is Iterable) {
             for (final item in results) {
               if (item is Map) {
-                final c = IradCaseItem.fromMap(item);
-                if (_isAccidentCategoryCase(c)) {
-                  rawList.add(c);
-                }
+                rawList.add(IradCaseItem.fromMap(item));
               }
             }
           }
         } else if (data is Iterable) {
           for (final item in data) {
             if (item is Map) {
-              final c = IradCaseItem.fromMap(item);
-              if (_isAccidentCategoryCase(c)) {
-                rawList.add(c);
-              }
+              rawList.add(IradCaseItem.fromMap(item));
             }
           }
         }
@@ -517,7 +530,7 @@ class _IradHubScreenState extends State<IradHubScreen>
     if (_selectedFilterKeys.contains('all') || _selectedFilterKeys.isEmpty) {
       return 'Total';
     }
-    return kIradFilterItems
+    return _filterItems
         .where((i) => _selectedFilterKeys.contains(i.key))
         .map((i) => i.label)
         .join(', ');
@@ -558,13 +571,17 @@ class _IradHubScreenState extends State<IradHubScreen>
   }
 
   Future<void> _openNewCaseForm() async {
+    final defaultCat = _rawCases.isNotEmpty && _rawCases.first.actAndSection.isNotEmpty
+        ? _rawCases.first.actAndSection
+        : 'Road Accident';
+
     await Navigator.push(
       context,
       AppTheme.fadeSlideRoute(
-        page: const DynamicFormScreen(
+        page: DynamicFormScreen(
           moduleLabel: 'IRAD',
           moduleKey: 'irad',
-          subCategory: 'Road Accident',
+          subCategory: defaultCat,
         ),
       ),
     );
@@ -593,7 +610,9 @@ class _IradHubScreenState extends State<IradHubScreen>
               : 'irad',
           subCategory: (caseData['sub_category']?.toString().isNotEmpty == true)
               ? caseData['sub_category'].toString()
-              : 'Road Accident',
+              : (item.actAndSection.isNotEmpty
+                  ? item.actAndSection
+                  : 'Road Accident'),
           existingRecord: ModuleRecord(
             id: caseId,
             caseNumber: crNo,
@@ -606,7 +625,9 @@ class _IradHubScreenState extends State<IradHubScreen>
             accused: caseData['accused']?.toString() ?? '',
             location: caseData['location']?.toString() ?? '',
             incidentDate: item.incidentDate,
-            priority: 'Medium',
+            priority: (caseData['priority']?.toString().isNotEmpty == true)
+                ? caseData['priority'].toString()
+                : 'Medium',
             assignedOfficer: item.ioName,
             assignedOfficerUid: item.ioUid,
             status: item.status,
@@ -614,9 +635,9 @@ class _IradHubScreenState extends State<IradHubScreen>
             subCategory:
                 (caseData['sub_category']?.toString().isNotEmpty == true)
                     ? caseData['sub_category'].toString()
-                    : 'Road Accident',
+                    : item.actAndSection,
             extraFields: existingExtra,
-            createdBy: '',
+            createdBy: caseData['created_by']?.toString() ?? '',
             stationName: item.stationName.isNotEmpty
                 ? item.stationName
                 : (widget.stationName ?? ''),
@@ -694,7 +715,7 @@ class _IradHubScreenState extends State<IradHubScreen>
             final maxModalHeight = math.min(
                 480.0, math.max(260.0, media.size.height - topPos - 16.0));
 
-            final filteredItems = kIradFilterItems.where((item) {
+            final filteredItems = _filterItems.where((item) {
               if (searchQuery.isEmpty) return true;
               return item.label
                       .toLowerCase()
@@ -1125,9 +1146,9 @@ class _IradHubScreenState extends State<IradHubScreen>
       labelText = 'Total';
       leadingIcon = Icons.assignment_rounded;
     } else if (_selectedFilterKeys.length == 1) {
-      final item = kIradFilterItems.firstWhere(
+      final item = _filterItems.firstWhere(
         (i) => i.key == _selectedFilterKeys.first,
-        orElse: () => kIradFilterItems.first,
+        orElse: () => _filterItems.first,
       );
       labelText = item.label;
       leadingIcon = item.icon;
@@ -1269,7 +1290,7 @@ class _IradHubScreenState extends State<IradHubScreen>
       return const SizedBox.shrink();
     }
 
-    final activeItems = kIradFilterItems
+    final activeItems = _filterItems
         .where((i) => _selectedFilterKeys.contains(i.key))
         .toList();
     final filterLabels = activeItems.map((i) => i.label).join(', ');

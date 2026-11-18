@@ -55,18 +55,25 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
     try {
       final apiService = ApiService();
 
-      final caseRes = await apiService.get('$baseUrl/itsso/cases/');
+      final qp = <String>[];
+      if (widget.stationName.isNotEmpty &&
+          widget.stationName != 'All Stations') {
+        qp.add('station_name=${Uri.encodeComponent(widget.stationName)}');
+      }
+      final queryStr = qp.isNotEmpty ? '?${qp.join('&')}' : '';
+
+      final caseRes = await apiService.get('$baseUrl/itsso/cases/$queryStr');
       if (caseRes.isSuccess && caseRes.data != null) {
         var decoded = caseRes.data;
         caseWiseData = decoded is Map ? (decoded['results'] ?? []) : decoded;
       }
 
-      final timeRes = await apiService.get('$baseUrl/itsso/time-wise/');
+      final timeRes = await apiService.get('$baseUrl/itsso/time-wise/$queryStr');
       if (timeRes.isSuccess && timeRes.data != null) {
         timeWiseData = timeRes.data is List ? timeRes.data : [];
       }
 
-      final ioRes = await apiService.get('$baseUrl/itsso/io-wise/');
+      final ioRes = await apiService.get('$baseUrl/itsso/io-wise/$queryStr');
       if (ioRes.isSuccess && ioRes.data != null) {
         ioWiseData = ioRes.data is List ? ioRes.data : [];
       }
@@ -581,7 +588,7 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
       return _buildEmptyState(
         title: "No Officers Found",
         subtitle:
-            "POCSO cases mapped to investigating officers will appear here",
+            "ITSSO cases mapped to investigating officers will appear here",
         icon: Icons.badge_outlined,
       );
     }

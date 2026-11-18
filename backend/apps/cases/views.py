@@ -2878,6 +2878,10 @@ class ItssoCasesView(APIView):
             stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
             queryset = queryset.filter(station_name__in=stations)
 
+        target_station = request.query_params.get('station_name')
+        if target_station and target_station != 'All Stations':
+            queryset = queryset.filter(station_name=target_station)
+
         status_param = request.query_params.get('status')
         if status_param:
             st = status_param.lower().strip()
@@ -2933,6 +2937,10 @@ class ItssoIOWiseView(APIView):
         if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
             stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
             queryset = queryset.filter(station_name__in=stations)
+
+        target_station = request.query_params.get('station_name')
+        if target_station and target_station != 'All Stations':
+            queryset = queryset.filter(station_name=target_station)
             
         status_param = request.query_params.get('status')
         if status_param:
@@ -2971,6 +2979,10 @@ class ItssoTimeWiseView(APIView):
         if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
             stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
             queryset = queryset.filter(station_name__in=stations)
+
+        target_station = request.query_params.get('station_name')
+        if target_station and target_station != 'All Stations':
+            queryset = queryset.filter(station_name=target_station)
 
         status_param = request.query_params.get('status')
         if status_param:
