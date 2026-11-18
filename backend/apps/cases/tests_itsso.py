@@ -57,6 +57,49 @@ class ItssoCasesTests(TestCase):
             extra_fields={}
         )
 
+        # BNS Section 64 Case (Crime Against Women / Any module)
+        self.bns_64_case = CaseRecord.objects.create(
+            case_number='CR-201',
+            module_key='crime_women',
+            sub_category='Rape',
+            status='Pending',
+            assigned_officer='Officer C',
+            station_name='Central Station',
+            extra_fields={'section_act': 'Section 64 BNS'}
+        )
+
+        # BNS Section 65 Case
+        self.bns_65_case = CaseRecord.objects.create(
+            case_number='CR-202',
+            module_key='general_crime',
+            sub_category='Sexual Offences',
+            status='Pending',
+            assigned_officer='Officer D',
+            station_name='Central Station',
+            extra_fields={'acts_sections': [{'act': 'Bharatiya Nyaya Sanhita, 2023', 'section': '65'}]}
+        )
+
+        # BNS Section 70(2) Case
+        self.bns_70_2_case = CaseRecord.objects.create(
+            case_number='CR-203',
+            module_key='crime_women',
+            sub_category='Gang Rape',
+            status='Disposal',
+            assigned_officer='Officer E',
+            station_name='Central Station',
+            extra_fields={'section_act': 'section 70(2) BNS', 'charge_sheet_number': 'CS-702', 'charge_sheet_date': '2024-06-01'}
+        )
+
+        # BNS Section 62 Case
+        self.bns_62_case = CaseRecord.objects.create(
+            case_number='CR-204',
+            module_key='other_crime',
+            status='Pending',
+            assigned_officer='Officer F',
+            station_name='Central Station',
+            extra_fields={'section_act': 'SECTION 62 BNS'}
+        )
+
     def test_itsso_cases_api(self):
         url = reverse('itsso-cases')
         res = self.client.get(url)
@@ -67,6 +110,10 @@ class ItssoCasesTests(TestCase):
 
         self.assertIn('CR-101', case_numbers)
         self.assertIn('CR-102', case_numbers)
+        self.assertIn('CR-201', case_numbers)
+        self.assertIn('CR-202', case_numbers)
+        self.assertIn('CR-203', case_numbers)
+        self.assertIn('CR-204', case_numbers)
         self.assertNotIn('CR-103', case_numbers)
 
     def test_itsso_time_wise_api(self):

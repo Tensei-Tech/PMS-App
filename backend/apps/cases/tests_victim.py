@@ -75,3 +75,81 @@ class VictimCasesTests(TestCase):
         self.assertEqual(data['total_cases'], 3)
         self.assertIn('gender', data['stats'])
         self.assertIn('age', data['stats'])
+
+    def test_extract_case_victims_and_filter_matching(self):
+        """Test extraction of victims across commonForm, persons, and extra_fields."""
+        from apps.cases.views import extract_case_victims, case_matches_victim_filter
+
+        # Case with multiple nested victims in commonForm
+        multi_victim_case = CaseRecord.objects.create(
+            title='Multi Victim Case',
+            module_key='crime_women',
+            status='Pending',
+            extra_fields={
+                'commonForm': {
+                    'victims': [
+                        {'gender': 'Female', 'age': '24', 'pwd': False, 'condition': 'Injured'},
+                        {'gender': 'Male', 'age': '4', 'pwd': True, 'mentally_vulnerable': True, 'condition': 'Normal'},
+                        {'gender': 'Female', 'age': '65', 'pwd': False, 'condition': 'Deceased'}
+                    ]
+                }
+            }
+        )
+        victims = extract_case_victims(multi_victim_case)
+        self.assertEqual(len(victims), 3)
+
+        # Verify filters match correctly
+        self.assertTrue(case_matches_victim_filter(multi_victim_case, 'female'))
+        self.assertTrue(case_matches_victim_filter(multi_victim_case, 'male'))
+        self.assertTrue(case_matches_victim_filter(multi_victim_case, 'minor'))
+        self.assertTrue(case_matches_victim_filter(multi_victim_case, 'below_5'))
+        self.assertTrue(case_matches_victim_filter(multi_victim_case, 'senior'))
+        self.assertTrue(case_matches_victim_filter(multi_victim_case, 'above_60'))
+        self.assertTrue(case_matches_victim_filter(multi_victim_case, 'pwd'))
+        self.assertTrue(case_matches_victim_filter(multi_victim_case, 'mentally_vulnerable'))
+        self.assertTrue(case_matches_victim_filter(multi_victim_case, 'injured'))
+        self.assertTrue(case_matches_victim_filter(multi_victim_case, 'deceased'))
+
+    def test_missing_and_traced_victim_filters(self):
+        """Test tracing status classification for missing/kidnapping cases."""
+        from apps.cases.views import extract_case_victims, case_matches_victim_filter
+
+        # Pending missing case
+        missing_case = CaseRecord.objects.create(
+            title='Missing Boy',
+            module_key='missing',
+            status='Pending',
+            extra_fields={'victim_gender': 'Male', 'victim_age': 12}
+        )
+        v_missing = extract_case_victims(missing_case)
+        self.assertTrue(v_missing[0]['is_missing'])
+        self.assertFalse(v_missing[0]['is_traced'])
+        self.assertTrue(v_missing[0]['is_pending_tracing'])
+        self.assertTrue(case_matches_victim_filter(missing_case, 'missing'))
+        self.assertTrue(case_matches_victim_filter(missing_case, 'pending_tracing'))
+        self.assertFalse(case_matches_victim_filter(missing_case, 'traced'))
+
+        # Traced missing case
+        traced_case = CaseRecord.objects.create(
+            title='Traced Girl',
+            module_key='kidnapping',
+            status='Detected',
+            extra_fields={'victim_gender': 'Female', 'victim_age': 16}
+        )
+        v_traced = extract_case_victims(traced_case)
+        self.assertTrue(v_traced[0]['is_missing'])
+        self.assertTrue(v_traced[0]['is_traced'])
+        self.assertFalse(v_traced[0]['is_pending_tracing'])
+        self.assertTrue(case_matches_victim_filter(traced_case, 'missing'))
+        self.assertTrue(case_matches_victim_filter(traced_case, 'traced'))
+        self.assertFalse(case_matches_victim_filter(traced_case, 'pending_tracing'))
+
+    def test_victim_time_and_io_wise_filtered_views(self):
+        """Test that time-wise and IO-wise views accept victim_filter parameter."""
+        # Query with female filter
+        time_res = self.client.get(reverse('victim-time-wise'), {'victim_filter': 'female'})
+        self.assertEqual(time_res.status_code, status.HTTP_200_OK)
+
+        io_res = self.client.get(reverse('victim-io-wise'), {'victim_filter': 'minor'})
+        self.assertEqual(io_res.status_code, status.HTTP_200_OK)
+
