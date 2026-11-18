@@ -60,6 +60,8 @@ class RoadAccidentDarService:
             codes = list(CaseCategory.objects.filter(
                 Q(category_name__icontains='accident') |
                 Q(category_name__icontains='rash') |
+                Q(parent_category__category_name__icontains='accident') |
+                Q(category_code__startswith='ACC') |
                 Q(category_code__icontains='acc')
             ).values_list('category_code', flat=True))
             return [str(c).strip() for c in codes if c]
@@ -119,7 +121,7 @@ class RoadAccidentDarService:
                 dar_fields[k] = v
 
         for k, v in extra.items():
-            if (k.startswith('acc_dar') or k.startswith('dar_')) and k not in dar_fields:
+            if (k.startswith('acc_dar') or k.startswith('dar_') or 'dar' in k.lower()) and k not in dar_fields:
                 dar_fields[k] = v
 
         # 3. Dynamic template fields for DAR
@@ -127,7 +129,7 @@ class RoadAccidentDarService:
         try:
             template_dar_fields = list(
                 FieldTemplateField.objects.filter(
-                    Q(field_key__startswith='acc_dar') | Q(field_key__startswith='dar_')
+                    Q(field_key__startswith='acc_dar') | Q(field_key__startswith='dar_') | Q(section__icontains='dar')
                 ).values('field_key', 'is_required', 'field_label')
             )
         except Exception:
