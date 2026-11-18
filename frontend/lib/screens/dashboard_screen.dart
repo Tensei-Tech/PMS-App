@@ -134,7 +134,12 @@ import '../widgets/logout_confirm_dialog.dart';
 import 'profile_screen.dart';
 import 'station_access_grants_screen.dart';
 
+/// SVG icons that dashboard_tiles rows name (icon_type 'asset'), by label.
+final Map<String, String> _dashboardTileSvgByLabel = {};
+
 String? _getDashboardSvgPath(String label) {
+  final tileSvg = _dashboardTileSvgByLabel[label.toLowerCase()];
+  if (tileSvg != null) return tileSvg;
   final clean = label.toLowerCase().replaceAll(RegExp(r'[\s/._\\]+'), '');
   for (final tool in ServiceData.dashboardTools) {
     if (label.toLowerCase() == tool.label.toLowerCase() ||
@@ -2233,6 +2238,10 @@ class _HomeTabState extends State<_HomeTab> {
   String? _subscribedStationName;
   List<Map<String, dynamic>> _backendCategories = [];
 
+  /// Rows of the dashboard_tiles table. When present the whole grid (except
+  /// "Forms") is built from them; when empty the built-in grid is used.
+  List<Map<String, dynamic>> _dashboardTiles = [];
+
   @override
   void initState() {
     super.initState();
@@ -2256,12 +2265,59 @@ class _HomeTabState extends State<_HomeTab> {
   /// Database tiles (MPDA, History Sheeter ...) come from this list, so a
   /// failed or dropped request is retried instead of leaving them out.
   Future<void> _loadDashboardTools() async {
+    // Sub-tabs inside tiles (Murder, Passport/PVR/Licence, Disposal ...)
+    DashboardSubtabs.load();
     try {
+      // The dashboard_tiles table has every tile; its 'tools' rows are the
+      // dashboard tools. Older backends without it use the tools setting.
+      final tiles = (await CaseService().fetchDashboardTiles())
+          .where((t) => t['is_active'] != false)
+          .where((t) => t['module_key']?.toString() != 'licence')
+          .toList();
+      if (tiles.isNotEmpty) {
+        _dashboardTileSvgByLabel.clear();
+        for (final t in tiles) {
+          final icon = t['icon']?.toString() ?? '';
+          if (t['icon_type'] == 'asset' && icon.endsWith('.svg')) {
+            final label = (t['label']?.toString() ?? '').replaceAll('\n', ' ');
+            _dashboardTileSvgByLabel[label.toLowerCase()] = icon;
+          }
+        }
+        final tileTools = tiles
+            .where((t) => t['section'] == 'tools')
+            // 'id' is the tile's own id, not a category id
+            .map((t) => ServiceData.fromJson({...t}..remove('id')))
+            .toList();
+        for (final tool in tileTools) {
+          if (tool.assetPath != null && tool.assetPath!.endsWith('.svg')) {
+            CategoryIconHelper.registerSvgPath(tool.label, tool.assetPath!);
+            if (tool.moduleKey != null) {
+              CategoryIconHelper.registerSvgPath(
+                  tool.moduleKey!, tool.assetPath!);
+            }
+            if (tool.categoryCode != null) {
+              CategoryIconHelper.registerSvgPath(
+                  tool.categoryCode!, tool.assetPath!);
+            }
+          }
+        }
+        if (mounted) {
+          setState(() {
+            _dashboardTiles = tiles;
+            ServiceData.dashboardTools = tileTools;
+          });
+        }
+        return;
+      }
+
       final toolsData = await CaseService().fetchDashboardTools();
       if (toolsData.isNotEmpty) {
         final dynamicTools = toolsData
             .map((t) => ServiceData.fromJson(t))
             .where((t) => t.isActive)
+            // Licence lives as a tab inside the Passport/PVR/Licence tile, so
+            // it never gets a separate dashboard tile of its own.
+            .where((t) => t.moduleKey != 'licence')
             .toList();
         if (dynamicTools.isNotEmpty) {
           for (final tool in dynamicTools) {
@@ -3563,6 +3619,64 @@ class _HomeTabState extends State<_HomeTab> {
     return 'folder_special';
   }
 
+  /// The grid from the dashboard_tiles table, in its order. "Forms" is the one
+  /// tile the app adds itself, right after "Pending".
+  List<Classification> _tileClassifications() {
+    String norm(String s) =>
+        s.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+
+    // Category behind a tile (RTI, History Sheeter, MPDA ...): by its code,
+    // else by its name; standalone rows first.
+    Map<String, dynamic>? categoryFor(String code, String label) {
+      final rows = [
+        ..._backendCategories.where((r) => r['group'] == null),
+        ..._backendCategories.where((r) => r['group'] != null),
+      ];
+      Map<String, dynamic>? row;
+      if (code.isNotEmpty) {
+        for (final r in rows) {
+          if ((r['category_code']?.toString() ?? '').toUpperCase() ==
+              code.toUpperCase()) {
+            row = r;
+            break;
+          }
+        }
+      }
+      if (row == null) {
+        final n = norm(label);
+        for (final r in rows) {
+          if (norm(r['category_name']?.toString() ?? '') == n) {
+            row = r;
+            break;
+          }
+        }
+      }
+      return row;
+    }
+
+    final items = <Classification>[];
+    for (final t in _dashboardTiles) {
+      final label = t['label']?.toString() ?? '';
+      final moduleKey = t['module_key']?.toString() ?? '';
+      if (label.isEmpty || moduleKey.isEmpty) continue;
+      final code = t['category_code']?.toString();
+      final category = code == null ? null : categoryFor(code, label);
+      items.add(Classification(
+        label,
+        t['icon']?.toString() ?? '',
+        moduleKey,
+        categoryId: category?['category_id'] ?? category?['id'],
+        categoryCode: category?['category_code']?.toString() ?? code,
+      ));
+    }
+
+    final forms =
+        Classification.statsGroup.firstWhere((c) => c.name == 'Forms');
+    final pendingAt = items.indexWhere((c) => c.moduleKey == 'pending');
+    items.insert(pendingAt == -1 ? 0 : pendingAt + 1, forms);
+    return items;
+  }
+
   Widget _buildThreePartClassification(bool isWide) {
     final width = MediaQuery.of(context).size.width;
 
@@ -3743,7 +3857,9 @@ class _HomeTabState extends State<_HomeTab> {
     ];
     // Sections keep their order but flow on continuously, so no row is left
     // half empty; the grid is split into blocks of three rows.
-    final displayItems = [for (final section in sections) ...section];
+    final displayItems = _dashboardTiles.isNotEmpty
+        ? _tileClassifications()
+        : [for (final section in sections) ...section];
     final List<List<Classification>> groups = [];
     for (int i = 0; i < displayItems.length; i += itemsPerGroup) {
       groups.add(displayItems.sublist(
@@ -4015,11 +4131,12 @@ class _HomeTabState extends State<_HomeTab> {
           ),
         ),
       );
-    } else if (CategorySubtabsScreen.forTile(item.moduleKey) != null) {
+    } else if (CategorySubtabsScreen.forTile(item.moduleKey, title: label) !=
+        null) {
       Navigator.push(
         context,
         AppTheme.fadeSlideRoute(
-            page: CategorySubtabsScreen.forTile(item.moduleKey)!),
+            page: CategorySubtabsScreen.forTile(item.moduleKey, title: label)!),
       );
     } else if (item.moduleKey == 'hurt' || item.name == 'Hurt') {
       Navigator.push(

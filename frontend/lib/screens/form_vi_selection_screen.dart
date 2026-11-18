@@ -164,6 +164,19 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
   Future<void> _loadGroupCategories() async {
     setState(() => _isLoadingApiCategories = true);
     try {
+      // The tabs table (form_6_tabs); older backends without it list the
+      // group 2 categories instead.
+      final tabs = await CaseService().fetchFormTabs('6');
+      if (tabs.isNotEmpty) {
+        if (mounted) {
+          setState(() {
+            _apiCategories = tabs.toSet().toList();
+            _isLoadingApiCategories = false;
+            _isUsingFallbackCategories = false;
+          });
+        }
+        return;
+      }
       final cats = await CaseService().fetchGroupCategories(2);
       if (mounted) {
         if (cats.isNotEmpty) {

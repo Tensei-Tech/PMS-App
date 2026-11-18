@@ -245,6 +245,10 @@ urlpatterns = [
     path('categories/standalone/', CaseCategoryViewSet.as_view({'get': 'standalone'}), name='category-standalone'),
     path('categories/dashboard-tabs/', CaseCategoryViewSet.as_view({'get': 'dashboard_tabs'}), name='category-dashboard-tabs'),
     path('categories/dashboard-tools/', CaseCategoryViewSet.as_view({'get': 'dashboard_tools'}), name='category-dashboard-tools'),
+    path('categories/dashboard-tiles/', CaseCategoryViewSet.as_view({'get': 'dashboard_tiles'}), name='category-dashboard-tiles'),
+    path('categories/dashboard-subtabs/', CaseCategoryViewSet.as_view({'get': 'dashboard_subtabs'}), name='category-dashboard-subtabs'),
+    path('categories/form-1-5-tabs/', CaseCategoryViewSet.as_view({'get': 'form_1_5_tabs'}), name='category-form-1-5-tabs'),
+    path('categories/form-6-tabs/', CaseCategoryViewSet.as_view({'get': 'form_6_tabs'}), name='category-form-6-tabs'),
 
     # ID-based category routes (first priority)
     path('categories/<int:pk>/form-definition/', CaseCategoryViewSet.as_view({'get': 'form_definition'}), name='category-form-definition-by-id'),

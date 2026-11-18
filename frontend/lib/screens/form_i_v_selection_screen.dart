@@ -155,6 +155,10 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
   bool _isLoadingApiCategories = false;
   bool _isUsingFallbackCategories = false;
 
+  /// True when the tabs come from the form_1_5_tabs table, which alone decides
+  /// which tabs show (the built-in hidden list is then not applied).
+  bool _usingTabTable = false;
+
   List<String> get _filterOptions =>
       _apiCategories.isNotEmpty ? _apiCategories : kFormIVCaseCategories;
 
@@ -229,6 +233,20 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
   Future<void> _loadGroupCategories() async {
     setState(() => _isLoadingApiCategories = true);
     try {
+      // The tabs table (form_1_5_tabs); older backends without it list the
+      // group 1 categories instead.
+      final tabs = await CaseService().fetchFormTabs('1_5');
+      if (tabs.isNotEmpty) {
+        if (mounted) {
+          setState(() {
+            _apiCategories = tabs.toSet().toList();
+            _usingTabTable = true;
+            _isLoadingApiCategories = false;
+            _isUsingFallbackCategories = false;
+          });
+        }
+        return;
+      }
       final cats = await CaseService().fetchGroupCategories(1);
       if (mounted) {
         if (cats.isNotEmpty) {
@@ -266,7 +284,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
   List<String> get _currentDisplayCategories {
     if (_categoryBreadcrumb.isEmpty) {
       final options = List<String>.from(_filterOptions)
-          .where((cat) => !_isExcludedFromFormIV(cat))
+          .where((cat) => _usingTabTable || !_isExcludedFromFormIV(cat))
           .toList();
       // Tiles for categories only seen on saved cases are a fallback for when
       // the "1 to 5" list could not load; with the database list, a case under

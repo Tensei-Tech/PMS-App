@@ -321,6 +321,42 @@ class CaseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
             from apps.crimetab.services.dynamic_form_service import get_dashboard_tools
             return Response(get_dashboard_tools(target_schema))
 
+    @action(detail=False, methods=['get'], url_path='dashboard-tiles')
+    def dashboard_tiles(self, request):
+        """
+        GET /api/categories/dashboard-tiles/
+        Every active home dashboard tile (table dashboard_tiles), in display order.
+        """
+        from apps.core.tenancy import TenantContext, get_active_tenant_schema
+        target_schema = get_active_tenant_schema(request)
+        with TenantContext(target_schema):
+            from apps.crimetab.services.dynamic_form_service import get_dashboard_tiles
+            return Response(get_dashboard_tiles())
+
+    @action(detail=False, methods=['get'], url_path='dashboard-subtabs')
+    def dashboard_subtabs(self, request):
+        """
+        GET /api/categories/dashboard-subtabs/
+        Every active sub-tab of a dashboard tile (table dashboard_subtabs).
+        """
+        from apps.core.tenancy import TenantContext, get_active_tenant_schema
+        target_schema = get_active_tenant_schema(request)
+        with TenantContext(target_schema):
+            from apps.crimetab.services.dynamic_form_service import get_dashboard_subtabs
+            return Response(get_dashboard_subtabs())
+
+    @action(detail=False, methods=['get'], url_path='form-1-5-tabs')
+    def form_1_5_tabs(self, request):
+        """GET /api/categories/form-1-5-tabs/ - the "1 to 5" tabs (table form_1_5_tabs)."""
+        from apps.crimetab.services.dynamic_form_service import get_form_tabs
+        return Response(get_form_tabs('1_5'))
+
+    @action(detail=False, methods=['get'], url_path='form-6-tabs')
+    def form_6_tabs(self, request):
+        """GET /api/categories/form-6-tabs/ - the Part 6 tabs (table form_6_tabs)."""
+        from apps.crimetab.services.dynamic_form_service import get_form_tabs
+        return Response(get_form_tabs('6'))
+
     def retrieve(self, request, pk=None, *args, **kwargs):
         from apps.core.tenancy import TenantContext, get_active_tenant_schema
         target_schema = get_active_tenant_schema(request)

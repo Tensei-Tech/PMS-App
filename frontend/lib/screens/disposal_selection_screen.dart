@@ -18,7 +18,7 @@ class DisposalSelectionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return ModuleTabsScreen(
       title: title,
-      tabs: [
+      tabs: DashboardSubtabs.moduleTabs('disposal', stationName, [
         (
           'Form 1 to 5',
           Icons.description_rounded,
@@ -37,7 +37,7 @@ class DisposalSelectionScreen extends StatelessWidget {
                 groupTitle: 'Form 6',
               ),
         ),
-      ],
+      ]),
     );
   }
 }

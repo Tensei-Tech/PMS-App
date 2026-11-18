@@ -475,7 +475,109 @@ class CaseService {
   void clearCategoryCache() {
     _allCategoriesCache = null;
     _dashboardToolsCache = null;
+    _dashboardTilesCache = null;
+    _dashboardSubtabsCache = null;
+    _formTabsCache.clear();
     _childrenCache.clear();
+  }
+
+  final Map<String, List<String>> _formTabsCache = {};
+
+  /// Prime the Form tabs cache ([form] '1_5' or '6'), e.g. in tests.
+  void setFormTabsCache(String form, List<String> names) {
+    _formTabsCache[form] = names;
+  }
+
+  /// Case-type tabs of a Form screen, in display order: [form] '1_5' reads
+  /// table form_1_5_tabs ("1 to 5"), '6' reads form_6_tabs (Part 6).
+  /// Empty when the backend has no such table yet, so the screen keeps its
+  /// old list.
+  Future<List<String>> fetchFormTabs(String form,
+      {bool forceRefresh = false}) async {
+    if (!forceRefresh && _formTabsCache.containsKey(form)) {
+      return _formTabsCache[form]!;
+    }
+    final route = form == '6' ? 'form-6-tabs' : 'form-1-5-tabs';
+    try {
+      final response =
+          await _api.get('${ApiConfig.baseUrl}/categories/$route/');
+      if (response.isSuccess && response.data is List) {
+        final names = (response.data as List)
+            .whereType<Map>()
+            .where((t) => t['is_active'] != false)
+            .map((t) => (t['tab_name'] ?? '').toString().trim())
+            .where((n) => n.isNotEmpty)
+            .toList();
+        _formTabsCache[form] = names;
+        if (form == '6') {
+          updateDynamicFormVICategories(names);
+        } else {
+          updateDynamicFormIVCategories(names);
+        }
+        return names;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchFormTabs($form) exception: $e');
+      }
+    }
+    return _formTabsCache[form] ?? [];
+  }
+
+  List<Map<String, dynamic>>? _dashboardSubtabsCache;
+
+  /// Sub-tabs of dashboard tiles (table dashboard_subtabs):
+  /// GET /api/categories/dashboard-subtabs/. Empty when the backend has no
+  /// such table yet, so the screens keep their built-in sub-tabs.
+  Future<List<Map<String, dynamic>>> fetchDashboardSubtabs({
+    bool forceRefresh = false,
+  }) async {
+    if (!forceRefresh && _dashboardSubtabsCache != null) {
+      return _dashboardSubtabsCache!;
+    }
+    try {
+      final url = '${ApiConfig.baseUrl}/categories/dashboard-subtabs/';
+      final response = await _api.get(url);
+      if (response.isSuccess && response.data is List) {
+        _dashboardSubtabsCache = (response.data as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+        return _dashboardSubtabsCache!;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchDashboardSubtabs exception: $e');
+      }
+    }
+    return _dashboardSubtabsCache ?? [];
+  }
+
+  List<Map<String, dynamic>>? _dashboardTilesCache;
+
+  /// Every home dashboard tile (table dashboard_tiles), in display order:
+  /// GET /api/categories/dashboard-tiles/. Empty when the backend has no
+  /// such table yet, so the dashboard keeps its built-in grid.
+  Future<List<Map<String, dynamic>>> fetchDashboardTiles({
+    bool forceRefresh = false,
+  }) async {
+    if (!forceRefresh && _dashboardTilesCache != null) {
+      return _dashboardTilesCache!;
+    }
+    try {
+      final url = '${ApiConfig.baseUrl}/categories/dashboard-tiles/';
+      final response = await _api.get(url);
+      if (response.isSuccess && response.data is List) {
+        _dashboardTilesCache = (response.data as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+        return _dashboardTilesCache!;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] fetchDashboardTiles exception: $e');
+      }
+    }
+    return _dashboardTilesCache ?? [];
   }
 
   /// Prime or mock dashboard tools cache

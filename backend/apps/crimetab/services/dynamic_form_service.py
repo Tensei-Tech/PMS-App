@@ -158,6 +158,65 @@ def get_dashboard_tools(tenant_schema: Optional[str] = None) -> List[Dict[str, A
     return []
 
 
+def get_dashboard_tiles() -> List[Dict[str, Any]]:
+    """
+    Active home dashboard tiles from the dashboard_tiles table, in display order.
+    The app builds its whole grid from these (only "Forms" stays in the app).
+    """
+    from apps.crimetab.models.dynamic_engine import DashboardTile
+    try:
+        return list(
+            DashboardTile.objects.filter(is_active=True)
+            .order_by('display_order', 'id')
+            .values('id', 'label', 'module_key', 'icon', 'icon_type', 'color',
+                    'category_code', 'section', 'display_order', 'is_active')
+        )
+    except Exception as e:
+        # Table not there yet (migration 0191 not run): the app keeps its old grid
+        logger.warning(f"[dynamic_form_service] Failed to load dashboard tiles: {e}")
+        return []
+
+
+def get_dashboard_subtabs() -> List[Dict[str, Any]]:
+    """
+    Active sub-tabs of dashboard tiles (table dashboard_subtabs), grouped by
+    parent_key and in display order within each tile.
+    """
+    from apps.crimetab.models.dynamic_engine import DashboardSubtab
+    try:
+        return list(
+            DashboardSubtab.objects.filter(is_active=True)
+            .order_by('parent_key', 'display_order', 'id')
+            .values('id', 'parent_key', 'label', 'screen_key', 'icon',
+                    'display_order', 'is_active')
+        )
+    except Exception as e:
+        # Table not there yet (migration 0192 not run): the app keeps its own sub-tabs
+        logger.warning(f"[dynamic_form_service] Failed to load dashboard sub-tabs: {e}")
+        return []
+
+
+def get_form_tabs(form: str) -> List[Dict[str, Any]]:
+    """
+    Active case-type tabs of a Form screen, in display order:
+    form '1_5' -> table form_1_5_tabs ("1 to 5"), form '6' -> form_6_tabs (Part 6).
+    """
+    from apps.crimetab.models.dynamic_engine import Form15Tab, Form6Tab
+    model = {'1_5': Form15Tab, '6': Form6Tab}.get(form)
+    if model is None:
+        return []
+    try:
+        return list(
+            model.objects.filter(is_active=True)
+            .order_by('display_order', 'id')
+            .values('id', 'tab_name', 'category_code', 'display_order', 'is_active')
+        )
+    except Exception as e:
+        # Table not there yet (migration 0193 not run): the app keeps its old tabs
+        logger.warning(f"[dynamic_form_service] Failed to load form {form} tabs: {e}")
+        return []
+
+
 def auto_assign_category_sequences(category, extra_fields: dict, station_name: Optional[str] = None) -> dict:
     """
     Generic configuration-driven sequence auto-numbering.
