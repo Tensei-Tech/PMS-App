@@ -1,5 +1,6 @@
 """rti_outcome(): what happened to an RTI application (Replied / Rejected /
 Transferred), as the RTI detail API sends it."""
+import contextlib
 import datetime
 
 from django.test import SimpleTestCase, TestCase
@@ -80,7 +81,10 @@ class RTISummaryViewTests(TestCase):
 
         request = APIRequestFactory().get('/api/rti/summary/')
         request.user = type('User', (), {'station_name': 'S'})()
-        with mock.patch.object(views_rti, '_resolve_tenant_and_auth', return_value=('public', None)):
+        # Keep the connection's own schema: on PostgreSQL rti_applications lives in the
+        # state schema, not in public, so the view must not switch schemas here
+        with mock.patch.object(views_rti, '_resolve_tenant_and_auth', return_value=('test', None)), \
+                mock.patch.object(views_rti, 'TenantContext', contextlib.nullcontext):
             return views_rti.RTISummaryView().get(request).data
 
     def test_counts_by_type_and_outcome(self):
@@ -107,7 +111,10 @@ class RTISummaryViewTests(TestCase):
         request = APIRequestFactory().get('/api/rti/chart/', params)
         request.query_params = request.GET
         request.user = type('User', (), {'station_name': 'S'})()
-        with mock.patch.object(views_rti, '_resolve_tenant_and_auth', return_value=('public', None)):
+        # Keep the connection's own schema: on PostgreSQL rti_applications lives in the
+        # state schema, not in public, so the view must not switch schemas here
+        with mock.patch.object(views_rti, '_resolve_tenant_and_auth', return_value=('test', None)), \
+                mock.patch.object(views_rti, 'TenantContext', contextlib.nullcontext):
             data = views_rti.RTIChartView().get(request).data
         return data['count'], [r['sr_no'] for r in data['results']]
 
