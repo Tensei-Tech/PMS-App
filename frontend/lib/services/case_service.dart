@@ -2,7 +2,9 @@
 // PostgreSQL & Django REST powered Case Service replacing Cloud Firestore for module records.
 
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../modules/core/models/base_record.dart';
 import '../utils/app_constants.dart';
 import '../widgets/form_iv_category_button.dart';
@@ -475,8 +477,124 @@ class CaseService {
   void clearCategoryCache() {
     _allCategoriesCache = null;
     _dashboardToolsCache = null;
+    _tabListCache.clear();
     _childrenCache.clear();
   }
+
+  /// Lists of tabs from the database, kept per session (in memory) and on the
+  /// device (SharedPreferences), keyed by API route. When the backend cannot
+  /// be reached, or has no such table yet (empty list), the last list it sent
+  /// is used, so a phone with poor network keeps the right tabs.
+  final Map<String, List<Map<String, dynamic>>> _tabListCache = {};
+  static const String _deviceCachePrefix = 'tab_list_cache:';
+
+  Future<List<Map<String, dynamic>>> _fetchTabList(String route,
+      {bool forceRefresh = false}) async {
+    if (!forceRefresh && _tabListCache.containsKey(route)) {
+      return _tabListCache[route]!;
+    }
+    try {
+      final response = await _api.get('${ApiConfig.baseUrl}/$route');
+      if (response.isSuccess && response.data is List) {
+        final rows = (response.data as List)
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+        if (rows.isNotEmpty) {
+          _tabListCache[route] = rows;
+          await _saveOnDevice(route, rows);
+          return rows;
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[CaseService] _fetchTabList($route) exception: $e');
+      }
+    }
+    final saved = await _loadFromDevice(route);
+    if (saved.isNotEmpty) _tabListCache[route] = saved;
+    return saved;
+  }
+
+  Future<void> _saveOnDevice(
+      String route, List<Map<String, dynamic>> rows) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('$_deviceCachePrefix$route', jsonEncode(rows));
+    } catch (_) {
+      // a missing copy only means the built-in list is used offline
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> _loadFromDevice(String route) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString('$_deviceCachePrefix$route');
+      if (raw == null || raw.isEmpty) return [];
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return [];
+      return decoded
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  static String _formTabsRoute(String form) =>
+      form == '6' ? 'categories/form-6-tabs/' : 'categories/form-1-5-tabs/';
+
+  /// Prime the Form tabs list ([form] '1_5' or '6') with API-shaped rows,
+  /// e.g. in tests.
+  void setFormTabsCache(String form, List<Map<String, dynamic>> rows) {
+    _tabListCache[_formTabsRoute(form)] = rows;
+  }
+
+  /// Case-type tabs of a Form screen, in display order: [form] '1_5' reads
+  /// table form_1_5_tabs ("1 to 5"), '6' reads form_6_tabs (Part 6). Each row
+  /// has tab_name (shown), category_name (the linked case category, null when
+  /// not linked), label_mr / label_hi. Empty when neither the backend nor the
+  /// device has the list, so the screen keeps its old list.
+  Future<List<Map<String, dynamic>>> fetchFormTabs(String form,
+      {bool forceRefresh = false}) async {
+    final rows =
+        (await _fetchTabList(_formTabsRoute(form), forceRefresh: forceRefresh))
+            .where((t) => t['is_active'] != false)
+            .where((t) => (t['tab_name'] ?? '').toString().trim().isNotEmpty)
+            .toList();
+    final categories = rows.map(formTabCategory).toList();
+    if (form == '6') {
+      updateDynamicFormVICategories(categories);
+    } else {
+      updateDynamicFormIVCategories(categories);
+    }
+    return rows;
+  }
+
+  /// The case category a Form tab row lists: its linked category, else the
+  /// category named like the tab.
+  static String formTabCategory(Map<String, dynamic> row) {
+    final linked = row['category_name']?.toString().trim() ?? '';
+    return linked.isNotEmpty ? linked : row['tab_name'].toString().trim();
+  }
+
+  /// Sub-tabs of dashboard tiles (table dashboard_subtabs):
+  /// GET /api/categories/dashboard-subtabs/. Empty when neither the backend
+  /// nor the device has them, so the screens keep their built-in sub-tabs.
+  Future<List<Map<String, dynamic>>> fetchDashboardSubtabs({
+    bool forceRefresh = false,
+  }) =>
+      _fetchTabList('categories/dashboard-subtabs/',
+          forceRefresh: forceRefresh);
+
+  /// Every home dashboard tile (table dashboard_tiles), in display order:
+  /// GET /api/categories/dashboard-tiles/. Empty when neither the backend nor
+  /// the device has them, so the dashboard keeps its built-in grid.
+  Future<List<Map<String, dynamic>>> fetchDashboardTiles({
+    bool forceRefresh = false,
+  }) =>
+      _fetchTabList('categories/dashboard-tiles/', forceRefresh: forceRefresh);
 
   /// Prime or mock dashboard tools cache
   void setDashboardToolsCache(List<Map<String, dynamic>> tools) {

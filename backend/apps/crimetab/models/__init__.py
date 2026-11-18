@@ -12,6 +12,10 @@ from .dynamic_engine import (
     CaseExtraFieldValue,
     OptionValue,
     ModuleSetting,
+    DashboardTile,
+    DashboardSubtab,
+    Form15Tab,
+    Form6Tab,
 )
 from .rti import RTIApplication
 from .service_tabs import (LicenceRecord, PassportPvrRecord, PreventiveRecord, SamWarrantRecord,

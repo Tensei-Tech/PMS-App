@@ -87,7 +87,6 @@ import '../utils/category_icon_helper.dart';
 import '../widgets/app_logo.dart';
 import 'pending_hub_screen.dart';
 import 'itsso_hub_screen.dart';
-import 'dar_hub_screen.dart';
 import 'irad_hub_screen.dart';
 import 'undetected_hub_screen.dart';
 import 'detected_hub_screen.dart';
@@ -134,7 +133,16 @@ import '../widgets/logout_confirm_dialog.dart';
 import 'profile_screen.dart';
 import 'station_access_grants_screen.dart';
 
+/// SVG icons that dashboard_tiles rows name (icon_type 'asset'), by label.
+final Map<String, String> _dashboardTileSvgByLabel = {};
+
+/// module_key of every active dashboard tile, once dashboard_tiles has loaded
+/// (null before): the Add Case sheet offers only these.
+Set<String>? _activeTileKeys;
+
 String? _getDashboardSvgPath(String label) {
+  final tileSvg = _dashboardTileSvgByLabel[label.toLowerCase()];
+  if (tileSvg != null) return tileSvg;
   final clean = label.toLowerCase().replaceAll(RegExp(r'[\s/._\\]+'), '');
   for (final tool in ServiceData.dashboardTools) {
     if (label.toLowerCase() == tool.label.toLowerCase() ||
@@ -2233,6 +2241,10 @@ class _HomeTabState extends State<_HomeTab> {
   String? _subscribedStationName;
   List<Map<String, dynamic>> _backendCategories = [];
 
+  /// Rows of the dashboard_tiles table. When present the whole grid (except
+  /// "Forms") is built from them; when empty the built-in grid is used.
+  List<Map<String, dynamic>> _dashboardTiles = [];
+
   @override
   void initState() {
     super.initState();
@@ -2256,12 +2268,63 @@ class _HomeTabState extends State<_HomeTab> {
   /// Database tiles (MPDA, History Sheeter ...) come from this list, so a
   /// failed or dropped request is retried instead of leaving them out.
   Future<void> _loadDashboardTools() async {
+    // Sub-tabs inside tiles (Murder, Passport/PVR/Licence, Disposal ...)
+    DashboardSubtabs.load();
     try {
+      // The dashboard_tiles table has every tile; its 'tools' rows are the
+      // dashboard tools. Older backends without it use the tools setting.
+      final tiles = (await CaseService().fetchDashboardTiles())
+          .where((t) => t['is_active'] != false)
+          .where((t) => t['module_key']?.toString() != 'licence')
+          .toList();
+      if (tiles.isNotEmpty) {
+        TranslationHelper.registerRowLabels(tiles, 'label');
+        _activeTileKeys = {
+          for (final t in tiles) t['module_key']?.toString() ?? '',
+        };
+        _dashboardTileSvgByLabel.clear();
+        for (final t in tiles) {
+          final icon = t['icon']?.toString() ?? '';
+          if (t['icon_type'] == 'asset' && icon.endsWith('.svg')) {
+            final label = (t['label']?.toString() ?? '').replaceAll('\n', ' ');
+            _dashboardTileSvgByLabel[label.toLowerCase()] = icon;
+          }
+        }
+        final tileTools = tiles
+            .where((t) => t['section'] == 'tools')
+            // 'id' is the tile's own id, not a category id
+            .map((t) => ServiceData.fromJson({...t}..remove('id')))
+            .toList();
+        for (final tool in tileTools) {
+          if (tool.assetPath != null && tool.assetPath!.endsWith('.svg')) {
+            CategoryIconHelper.registerSvgPath(tool.label, tool.assetPath!);
+            if (tool.moduleKey != null) {
+              CategoryIconHelper.registerSvgPath(
+                  tool.moduleKey!, tool.assetPath!);
+            }
+            if (tool.categoryCode != null) {
+              CategoryIconHelper.registerSvgPath(
+                  tool.categoryCode!, tool.assetPath!);
+            }
+          }
+        }
+        if (mounted) {
+          setState(() {
+            _dashboardTiles = tiles;
+            ServiceData.dashboardTools = tileTools;
+          });
+        }
+        return;
+      }
+
       final toolsData = await CaseService().fetchDashboardTools();
       if (toolsData.isNotEmpty) {
         final dynamicTools = toolsData
             .map((t) => ServiceData.fromJson(t))
             .where((t) => t.isActive)
+            // Licence lives as a tab inside the Passport/PVR/Licence tile, so
+            // it never gets a separate dashboard tile of its own.
+            .where((t) => t.moduleKey != 'licence')
             .toList();
         if (dynamicTools.isNotEmpty) {
           for (final tool in dynamicTools) {
@@ -2929,11 +2992,18 @@ class _HomeTabState extends State<_HomeTab> {
   }
 
   static const List<Classification> _extraSearchClassifications = [
-    Classification('Prohibition', 'admin_panel', 'mpda'),
-    Classification('Gambling', 'monetization_on', 'coin'),
+    Classification('Prohibition', 'admin_panel', 'prohibition'),
+    Classification('Gambling', 'monetization_on', 'gambling'),
     Classification('RTI', 'description', 'application'),
     Classification('M.V Act', 'traffic', 'traffic'),
   ];
+
+  /// Tiles the dashboard search looks through: the dashboard_tiles grid
+  /// once it has loaded (so a hidden tile is not found), else the built-in
+  /// lists.
+  List<Classification> get _searchableTiles => _dashboardTiles.isNotEmpty
+      ? _tileClassifications()
+      : [...Classification.all, ..._extraSearchClassifications];
 
   List<({String title, String subtext, IconData icon, VoidCallback onTap})>
       _matchingMenuShortcuts(String q) {
@@ -3141,7 +3211,7 @@ class _HomeTabState extends State<_HomeTab> {
     final matchingFormIV = formIVCaseCategories
         .where((cat) => cat.toLowerCase().contains(q))
         .length;
-    final allClasses = [...Classification.all, ..._extraSearchClassifications];
+    final allClasses = _searchableTiles;
     final matchingClass = allClasses
         .where((c) => c.name.replaceAll('\n', ' ').toLowerCase().contains(q))
         .length;
@@ -3164,7 +3234,7 @@ class _HomeTabState extends State<_HomeTab> {
       return cat.toLowerCase().contains(q);
     }).toList();
 
-    final allClasses = [...Classification.all, ..._extraSearchClassifications];
+    final allClasses = _searchableTiles;
     final matchingClassifications = allClasses.where((c) {
       final name = c.name.replaceAll('\n', ' ').toLowerCase();
       return name.contains(q);
@@ -3563,6 +3633,73 @@ class _HomeTabState extends State<_HomeTab> {
     return 'folder_special';
   }
 
+  /// The grid from the dashboard_tiles table, in its order. "Forms" is the one
+  /// tile the app adds itself, right after "Pending".
+  List<Classification> _tileClassifications() {
+    String norm(String s) =>
+        s.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+
+    // Category behind a tile (RTI, History Sheeter, MPDA ...): by its code,
+    // else by its name; standalone rows first.
+    Map<String, dynamic>? categoryFor(String code, String label) {
+      final rows = [
+        ..._backendCategories.where((r) => r['group'] == null),
+        ..._backendCategories.where((r) => r['group'] != null),
+      ];
+      Map<String, dynamic>? row;
+      if (code.isNotEmpty) {
+        for (final r in rows) {
+          if ((r['category_code']?.toString() ?? '').toUpperCase() ==
+              code.toUpperCase()) {
+            row = r;
+            break;
+          }
+        }
+      }
+      if (row == null) {
+        final n = norm(label);
+        for (final r in rows) {
+          if (norm(r['category_name']?.toString() ?? '') == n) {
+            row = r;
+            break;
+          }
+        }
+      }
+      return row;
+    }
+
+    final items = <Classification>[];
+    for (final t in _dashboardTiles) {
+      final label = t['label']?.toString() ?? '';
+      final moduleKey = t['module_key']?.toString() ?? '';
+      if (label.isEmpty || moduleKey.isEmpty) continue;
+      final code = t['category_code']?.toString();
+      final linkedName = t['category_name']?.toString().trim() ?? '';
+      // The tile's category link (category_id); a backend without it gives
+      // only the code, so look the category up by code or name.
+      final category = t['category_id'] != null
+          ? null
+          : (code == null ? null : categoryFor(code, label));
+      items.add(Classification(
+        label,
+        t['icon']?.toString() ?? '',
+        moduleKey,
+        categoryId:
+            t['category_id'] ?? category?['category_id'] ?? category?['id'],
+        categoryCode: category?['category_code']?.toString() ?? code,
+        categoryName: linkedName.isNotEmpty
+            ? linkedName
+            : category?['category_name']?.toString(),
+      ));
+    }
+
+    final forms =
+        Classification.statsGroup.firstWhere((c) => c.name == 'Forms');
+    final pendingAt = items.indexWhere((c) => c.moduleKey == 'pending');
+    items.insert(pendingAt == -1 ? 0 : pendingAt + 1, forms);
+    return items;
+  }
+
   Widget _buildThreePartClassification(bool isWide) {
     final width = MediaQuery.of(context).size.width;
 
@@ -3743,7 +3880,9 @@ class _HomeTabState extends State<_HomeTab> {
     ];
     // Sections keep their order but flow on continuously, so no row is left
     // half empty; the grid is split into blocks of three rows.
-    final displayItems = [for (final section in sections) ...section];
+    final displayItems = _dashboardTiles.isNotEmpty
+        ? _tileClassifications()
+        : [for (final section in sections) ...section];
     final List<List<Classification>> groups = [];
     for (int i = 0; i < displayItems.length; i += itemsPerGroup) {
       groups.add(displayItems.sublist(
@@ -3806,286 +3945,92 @@ class _HomeTabState extends State<_HomeTab> {
     );
   }
 
+  /// Opens a dashboard tile. The screen is chosen by the tile's module_key
+  /// (dashboard_tiles.module_key), never by its label, so a label renamed in
+  /// the database cannot change or break where a tile goes. "Forms" is the
+  /// one tile built into the app.
   void _openClassificationItem(BuildContext context, Classification item) {
     final label = item.name.replaceAll('\n', ' ');
-    if (label.toUpperCase() == 'ITSSO') {
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: const ItssoHubScreen(stationName: 'All Stations'),
-        ),
-      );
+    final station = widget.auth.stationName;
+    void open(Widget page) =>
+        Navigator.push(context, AppTheme.fadeSlideRoute(page: page));
+
+    if (item.name == 'Forms') {
+      open(const ModuleHubScreen(
+        moduleLabel: 'Forms',
+        moduleKey: 'form_1_5',
+        readOnly: true,
+      ));
       return;
     }
-    if (label.toUpperCase() == DarIradScreen.title) {
-      // Two tabs: DAR and IRAD
-      final auth = context.read<AuthProvider>();
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: DarIradScreen(stationName: auth.stationName),
-        ),
-      );
-      return;
-    }
-    if (label.toUpperCase() == 'DAR' || item.moduleKey.toLowerCase() == 'dar') {
-      final auth = context.read<AuthProvider>();
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: DarHubScreen(stationName: auth.stationName),
-        ),
-      );
-      return;
-    }
-    if (label.toUpperCase() == 'IRAD' ||
-        label.toUpperCase() == 'IRDA' ||
-        item.moduleKey.toLowerCase() == 'irad' ||
-        item.moduleKey.toLowerCase() == 'irda') {
-      final auth = context.read<AuthProvider>();
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: IradHubScreen(stationName: auth.stationName),
-        ),
-      );
-      return;
-    }
-    if (item.name == 'I to V') {
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: const FormIVSelectionScreen(
-            mode: FormIVSelectionMode.browse,
-          ),
-        ),
-      );
-    } else if (item.name == 'VI') {
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: const FormVISelectionScreen(
-            mode: FormVISelectionMode.browse,
-          ),
-        ),
-      );
-    } else if (item.name == 'Forms') {
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: const ModuleHubScreen(
-            moduleLabel: 'Forms',
-            moduleKey: 'form_1_5',
-            readOnly: true,
-          ),
-        ),
-      );
-    } else if (item.name == 'Pending') {
-      final auth = context.read<AuthProvider>();
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: PendingHubScreen(stationName: auth.stationName),
-        ),
-      );
-    } else if (item.name == 'Undetected' || item.moduleKey == 'undetected') {
-      final auth = context.read<AuthProvider>();
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: UndetectedHubScreen(stationName: auth.stationName),
-        ),
-      );
-    } else if (item.name == 'Detected') {
-      final auth = context.read<AuthProvider>();
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: DetectedHubScreen(stationName: auth.stationName),
-        ),
-      );
-    } else if (item.name == 'Disposal') {
-      final auth = context.read<AuthProvider>();
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: DisposalSelectionScreen(stationName: auth.stationName),
-        ),
-      );
-    } else if (item.name == 'Arrested') {
-      final auth = context.read<AuthProvider>();
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: ArrestedHubScreen(stationName: auth.stationName),
-        ),
-      );
-    } else if (item.name == 'Repeat Offender') {
-      final auth = context.read<AuthProvider>();
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: RepeatOffenderSummaryScreen(stationName: auth.stationName),
-        ),
-      );
-    } else if (item.name == 'NAFIS' ||
-        item.name == NafisFingerprintScreen.title ||
-        item.moduleKey == 'nafis') {
-      // Two tabs: NAFIS and Fingerprint
-      final auth = context.read<AuthProvider>();
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: NafisFingerprintScreen(stationName: auth.stationName),
-        ),
-      );
-    } else if (item.name == 'E-Learning' ||
-        item.moduleKey == 'elearning' ||
-        item.name == 'E Learning') {
-      final auth = context.read<AuthProvider>();
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: ELearningScreen(stationName: auth.stationName),
-        ),
-      );
-    } else if (label.toLowerCase() == 'licence' ||
-        label.toLowerCase() == 'license' ||
-        item.name.toLowerCase() == 'licence' ||
-        item.name.toLowerCase() == 'license' ||
-        item.moduleKey == 'licence') {
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: LicenceHubScreen(stationName: widget.auth.stationName),
-        ),
-      );
-    } else if (label.toLowerCase().contains('passport') ||
-        item.name.toLowerCase().contains('passport') ||
-        item.moduleKey == 'passport') {
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: PassportLicenceScreen(stationName: widget.auth.stationName),
-        ),
-      );
-    } else if (item.moduleKey == 'service_tool' ||
-        ServiceData.dashboardTools.any((t) =>
-            t.label.toLowerCase() == label.toLowerCase() ||
-            (t.moduleKey != null && t.moduleKey == item.moduleKey))) {
-      final cleanLabel = label.trim().toLowerCase();
-      if (cleanLabel == 'history sheeter' || cleanLabel == 'history sheet') {
-        CategoryNavigationHelper.handleDashboardCategoryTap(
-          context: context,
-          categoryName: item.name,
+
+    final page = switch (item.moduleKey) {
+      'monthly' || 'sam_warrant' => ModuleHubScreen(
+          moduleLabel: label,
           moduleKey: item.moduleKey,
-          categoryId: item.categoryId,
-          categoryCode: item.categoryCode,
-          readOnly: false,
-        );
-      } else {
-        Navigator.push(
-          context,
-          AppTheme.fadeSlideRoute(
-            page: CaseFormScreen(categoryName: label),
-          ),
-        );
-      }
-    } else if (item.moduleKey == 'chain_snatching') {
-      // Same tab, case list and form as inside "1 to 5"
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: const FormIVSelectionScreen(
-            openCategory: 'Chain Snatching',
-            customTitle: 'Chain Snatching',
-            mode: FormIVSelectionMode.browse,
-          ),
+          readOnly: true,
         ),
-      );
-    } else if (item.moduleKey == 'kidnapping') {
-      // The combined "Kidnapping/Missing" tab of "1 to 5"
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: const FormIVSelectionScreen(
-            openCategory: 'Kidnapping/Missing',
-            customTitle: 'Kidnapping/Missing',
-            mode: FormIVSelectionMode.browse,
-          ),
+      'pending' => PendingHubScreen(stationName: station),
+      'detected' => DetectedHubScreen(stationName: station),
+      'undetected' => UndetectedHubScreen(stationName: station),
+      'disposal' => DisposalSelectionScreen(stationName: station),
+      'form_1_5' =>
+        const FormIVSelectionScreen(mode: FormIVSelectionMode.browse),
+      'form_6' => const FormVISelectionScreen(mode: FormVISelectionMode.browse),
+      'chain_snatching' => const FormIVSelectionScreen(
+          openCategory: 'Chain Snatching',
+          customTitle: 'Chain Snatching',
+          mode: FormIVSelectionMode.browse,
         ),
-      );
-    } else if (CategorySubtabsScreen.forTile(item.moduleKey) != null) {
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-            page: CategorySubtabsScreen.forTile(item.moduleKey)!),
-      );
-    } else if (item.moduleKey == 'hurt' || item.name == 'Hurt') {
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: const HurtCasesScreen(),
+      'kidnapping' => const FormIVSelectionScreen(
+          openCategory: 'Kidnapping/Missing',
+          customTitle: 'Kidnapping/Missing',
+          mode: FormIVSelectionMode.browse,
         ),
-      );
-    } else if (item.moduleKey == 'absconded' || item.name == 'Absconded') {
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: AbscondedHubScreen(stationName: widget.auth.stationName),
-        ),
-      );
-    } else if (item.moduleKey == 'juvenile' || item.name == 'Juvenile') {
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: JuvenileHubScreen(stationName: widget.auth.stationName),
-        ),
-      );
-    } else if (item.moduleKey == 'victim' || item.name == 'Victim') {
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: VictimHubScreen(stationName: widget.auth.stationName),
-        ),
-      );
-    } else if (item.moduleKey == 'muddemal' || item.name == 'Muddemal') {
-      Navigator.push(
-        context,
-        AppTheme.fadeSlideRoute(
-          page: const MuddemalMainScreen(),
-        ),
-      );
-    } else {
-      final isStatsItem = [
-        'Monthly',
-        'Pending',
-        'Disposal',
-        'Sam/Warrant',
-        'Sam Warrant'
-      ].contains(item.name);
-      if (isStatsItem) {
-        Navigator.push(
-          context,
-          AppTheme.fadeSlideRoute(
-            page: ModuleHubScreen(
-              moduleLabel: item.name.replaceAll('\n', ' '),
-              moduleKey: item.moduleKey,
-              readOnly: true,
-            ),
-          ),
-        );
-      } else {
-        CategoryNavigationHelper.handleDashboardCategoryTap(
-          context: context,
-          categoryName: item.name,
-          moduleKey: item.moduleKey,
-          categoryId: item.categoryId,
-          categoryCode: item.categoryCode,
-          readOnly: false,
-        );
-      }
+      'hurt' => const HurtCasesScreen(),
+      'arrested' => ArrestedHubScreen(stationName: station),
+      'absconded' => AbscondedHubScreen(stationName: station),
+      'juvenile' => JuvenileHubScreen(stationName: station),
+      'victim' => VictimHubScreen(stationName: station),
+      'muddemal' => const MuddemalMainScreen(),
+      'passport' => PassportLicenceScreen(stationName: station),
+      'licence' || 'license' => LicenceHubScreen(stationName: station),
+      'repeat_offender' => RepeatOffenderSummaryScreen(stationName: station),
+      'itsso' => const ItssoHubScreen(stationName: 'All Stations'),
+      'nafis' => NafisFingerprintScreen(stationName: station),
+      'dar' => DarIradScreen(stationName: station),
+      'irad' || 'irda' => IradHubScreen(stationName: station),
+      'elearning' => ELearningScreen(stationName: station),
+      _ => null,
+    };
+    if (page != null) {
+      open(page);
+      return;
     }
+
+    // Tiles with sub-tabs (Murder, Dacoity, Cheating, or any tile given
+    // "1 to 5" sub-tabs in dashboard_subtabs)
+    final subtabs = CategorySubtabsScreen.forTile(item.moduleKey, title: label);
+    if (subtabs != null) {
+      open(subtabs);
+      return;
+    }
+
+    // Dashboard tools (Tadipar ...) open their category's case form
+    if (ServiceData.dashboardTools.any((t) => t.moduleKey == item.moduleKey)) {
+      open(CaseFormScreen(categoryName: item.categoryName ?? label));
+      return;
+    }
+
+    // Everything else is one case category (POCSO, RTI, MPDA, N.C ...)
+    CategoryNavigationHelper.handleDashboardCategoryTap(
+      context: context,
+      categoryName: item.categoryName ?? item.name,
+      moduleKey: item.moduleKey,
+      categoryId: item.categoryId,
+      categoryCode: item.categoryCode,
+      readOnly: false,
+    );
   }
 
   Widget _buildClassificationGridItem(
@@ -6094,7 +6039,12 @@ class _AddCaseBottomSheetState extends State<_AddCaseBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    // Only case types whose dashboard tile is active (dashboard_tiles), so a
+    // tile hidden in the database is not offered here either
+    final activeKeys = _activeTileKeys;
     final filteredItems = Classification.addMenuAll
+        .where(
+            (item) => activeKeys == null || activeKeys.contains(item.moduleKey))
         .where((item) =>
             item.name.toLowerCase().contains(_searchQuery.toLowerCase()))
         .toList();

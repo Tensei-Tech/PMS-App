@@ -238,3 +238,129 @@ class ModuleSetting(models.Model):
         return f"{self.module_key}.{self.setting_key} = {self.setting_value}"
 
 
+class DashboardTile(models.Model):
+    """
+    One tile of the home dashboard grid (Monthly, Murder, RTI, Tadipar ...).
+
+    The app builds the grid from the active rows in display_order. Only the
+    "Forms" tile stays in the app itself. label is what the tile shows and how
+    the app knows which screen to open, so keep it as it is when editing a row.
+    Tiles in the 'tools' section are also the app's dashboard tools.
+    """
+    SECTION_CHOICES = [
+        ('stats', 'Crime statistics'),
+        ('cases', 'Case categories'),
+        ('special', 'Special acts and services'),
+        ('tools', 'Tools'),
+    ]
+
+    id = models.BigAutoField(primary_key=True)
+    label = models.CharField(max_length=150)
+    module_key = models.CharField(max_length=100, unique=True)
+    icon = models.CharField(max_length=255, blank=True, default='')
+    icon_type = models.CharField(max_length=20, default='material')
+    color = models.CharField(max_length=20, blank=True, null=True)
+    category_code = models.CharField(max_length=100, blank=True, null=True)
+    section = models.CharField(max_length=20, choices=SECTION_CHOICES, default='cases')
+    display_order = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    # The case category the tile opens (RTI, MPDA, POCSO ...); empty for tiles
+    # that are not one category (Monthly, Pending, Tadipar ...)
+    category = models.ForeignKey(
+        'crimetab.CaseCategory', on_delete=models.SET_NULL, null=True, blank=True,
+        db_column='category_id', related_name='+')
+    # Marathi / Hindi label; empty = the app's own translation of label
+    label_mr = models.CharField(max_length=150, blank=True, default='')
+    label_hi = models.CharField(max_length=150, blank=True, default='')
+
+    class Meta:
+        db_table = 'dashboard_tiles'
+        verbose_name = 'Dashboard Tile'
+        verbose_name_plural = 'Dashboard Tiles'
+        ordering = ['display_order', 'id']
+
+    def __str__(self):
+        return f"{self.display_order}. {self.label} ({self.module_key})"
+
+
+class DashboardSubtab(models.Model):
+    """
+    One sub-tab inside a dashboard tile (Murder -> Murder / Attempt to Murder,
+    Passport/PVR/Licence -> Passport / Licence / PVR, Disposal -> Form 1 to 5 /
+    Form 6 ...). parent_key is the tile's module_key.
+
+    screen_key says what the sub-tab opens:
+      'category'          the "1 to 5" tab whose case category is named label
+      'passport', 'licence', 'pvr', 'nafis', 'fingerprint', 'dar', 'irad',
+      'disposal_form_1_5', 'disposal_form_6'
+                          that module's screen
+      anything else       a "Coming soon" page
+    """
+    id = models.BigAutoField(primary_key=True)
+    parent_key = models.CharField(max_length=100)
+    label = models.CharField(max_length=150)
+    screen_key = models.CharField(max_length=100, default='category')
+    icon = models.CharField(max_length=100, blank=True, default='')
+    display_order = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    # For screen_key 'category': the "1 to 5" category the sub-tab lists
+    category = models.ForeignKey(
+        'crimetab.CaseCategory', on_delete=models.SET_NULL, null=True, blank=True,
+        db_column='category_id', related_name='+')
+    label_mr = models.CharField(max_length=150, blank=True, default='')
+    label_hi = models.CharField(max_length=150, blank=True, default='')
+
+    class Meta:
+        db_table = 'dashboard_subtabs'
+        verbose_name = 'Dashboard Sub-tab'
+        verbose_name_plural = 'Dashboard Sub-tabs'
+        ordering = ['parent_key', 'display_order', 'id']
+        unique_together = ('parent_key', 'label')
+
+    def __str__(self):
+        return f"{self.parent_key} -> {self.label} ({self.screen_key})"
+
+
+class FormTabBase(models.Model):
+    """
+    One case-type tab of a Form screen. tab_name is shown on the tab; category
+    is the case category it lists (without one, the tab lists the category
+    named tab_name).
+    """
+    id = models.BigAutoField(primary_key=True)
+    tab_name = models.CharField(max_length=150, unique=True)
+    category_code = models.CharField(max_length=100, blank=True, null=True)
+    display_order = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    category = models.ForeignKey(
+        'crimetab.CaseCategory', on_delete=models.SET_NULL, null=True, blank=True,
+        db_column='category_id', related_name='+')
+    label_mr = models.CharField(max_length=150, blank=True, default='')
+    label_hi = models.CharField(max_length=150, blank=True, default='')
+
+    class Meta:
+        abstract = True
+        ordering = ['display_order', 'id']
+
+    def __str__(self):
+        return f"{self.display_order}. {self.tab_name}"
+
+
+class Form15Tab(FormTabBase):
+    """The case-type tabs of "1 to 5" (Form I-V Cases): Murder, Theft, HBT ..."""
+
+    class Meta(FormTabBase.Meta):
+        db_table = 'form_1_5_tabs'
+        verbose_name = 'Form I-V Tab'
+        verbose_name_plural = 'Form I-V Tabs'
+
+
+class Form6Tab(FormTabBase):
+    """The case-type tabs of Part 6 (Form VI Cases): Prohibition, POCSO, NDPS ..."""
+
+    class Meta(FormTabBase.Meta):
+        db_table = 'form_6_tabs'
+        verbose_name = 'Form VI Tab'
+        verbose_name_plural = 'Form VI Tabs'
+
+

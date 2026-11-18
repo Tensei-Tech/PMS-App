@@ -15,6 +15,17 @@ def format_rti_serial(serial_year, serial_no):
         return f"{prefix}-{serial_year}/{serial_no}"
 
 
+def rti_outcome(instance):
+    """What happened to the application: 'Replied', 'Rejected', 'Transferred', or None (pending)."""
+    if instance.replied_date:
+        return 'Replied'
+    if instance.rejected_date or instance.rejection_reason:
+        return 'Rejected'
+    if instance.transferred_to and str(instance.transferred_to).strip():
+        return 'Transferred'
+    return None
+
+
 class RTIApplicationListSerializer(serializers.ModelSerializer):
     """
     Lightweight serializer for RTI paginated list views.
@@ -63,13 +74,6 @@ class RTIApplicationSerializer(serializers.ModelSerializer):
             if k not in ('rti_id', 'serial_year', 'serial_no', 'status', 'station_name'):
                 prefixed[f"rti_{k}"] = v
         prefixed['rti_assigned_officer'] = instance.assigned_officer_uid
-        if instance.replied_date:
-            prefixed['rti_outcome'] = 'Replied'
-        elif instance.rejected_date or instance.rejection_reason:
-            prefixed['rti_outcome'] = 'Rejected'
-        elif instance.transferred_to and str(instance.transferred_to).strip():
-            prefixed['rti_outcome'] = 'Transferred'
-        else:
-            prefixed['rti_outcome'] = None
+        prefixed['rti_outcome'] = rti_outcome(instance)
         ret.update(prefixed)
         return ret

@@ -7,6 +7,35 @@ class TranslationHelper {
   /// Cached active language code to avoid walking the Provider widget tree on every string.
   static String activeLanguageCode = 'en';
 
+  /// Marathi / Hindi labels a database row gives for its English label
+  /// (label_mr / label_hi of dashboard_tiles, dashboard_subtabs,
+  /// form_1_5_tabs, form_6_tabs). They win over the dictionary below, so a
+  /// tab renamed in the database keeps a translation.
+  static final Map<String, Map<String, String>> _rowLabels = {};
+
+  static String _labelKey(String text) =>
+      text.replaceAll('\n', ' ').trim().toLowerCase();
+
+  /// Remember a row's own translations of [label]; empty values are ignored.
+  static void registerLabel(String label, {String? mr, String? hi}) {
+    final byLang = <String, String>{
+      if (mr != null && mr.trim().isNotEmpty) 'mr': mr.trim(),
+      if (hi != null && hi.trim().isNotEmpty) 'hi': hi.trim(),
+    };
+    if (label.trim().isEmpty || byLang.isEmpty) return;
+    _rowLabels[_labelKey(label)] = byLang;
+  }
+
+  /// Register label_mr / label_hi of API rows whose English label is in
+  /// [labelField].
+  static void registerRowLabels(
+      Iterable<Map<String, dynamic>> rows, String labelField) {
+    for (final r in rows) {
+      registerLabel(r[labelField]?.toString() ?? '',
+          mr: r['label_mr']?.toString(), hi: r['label_hi']?.toString());
+    }
+  }
+
   /// Translates the input string based on the active locale.
   static String translate(BuildContext context, String? text) {
     if (text == null || text.isEmpty) return text ?? '';
@@ -24,6 +53,9 @@ class TranslationHelper {
     }
 
     final cleanText = text.replaceAll('\n', ' ').trim().toLowerCase();
+
+    final rowLabel = _rowLabels[cleanText]?[locale];
+    if (rowLabel != null) return rowLabel;
 
     // Short forms/acronyms that should remain untranslated in all languages:
     const shortForms = {

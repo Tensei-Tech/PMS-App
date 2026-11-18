@@ -52,6 +52,22 @@ class RtiService {
     return {'total': 0, 'pending': 0, 'disposal': 0};
   }
 
+  /// Summary tab: applications counted by Type of Info and outcome
+  /// ({info_label, grand_total_label, columns, rows, grand_total})
+  Future<Map<String, dynamic>> fetchSummary() async {
+    try {
+      final response = await _api.get(ApiConfig.rtiSummary);
+      if (response.isSuccess && response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[RtiService] fetchSummary error: $e');
+      }
+    }
+    return {};
+  }
+
   /// Fetch paginated RTI applications list
   Future<Map<String, dynamic>> fetchApplications({
     String status = 'all',
@@ -83,11 +99,21 @@ class RtiService {
     return {'count': 0, 'page': page, 'page_size': 20, 'results': []};
   }
 
-  /// Chart tab: all RTI applications of the station, one row each
-  Future<Map<String, dynamic>> fetchChart({int page = 1, String q = ''}) async {
+  /// RTI applications of the station, one row each. [outcome] = 'pending',
+  /// 'replied', 'rejected' or 'transferred' keeps only those; 'all' or empty
+  /// = every application.
+  /// [infoType] keeps only that Type of Info (a count clicked on the
+  /// Summary tab); null = every type.
+  Future<Map<String, dynamic>> fetchChart(
+      {int page = 1,
+      String q = '',
+      String outcome = 'all',
+      String? infoType}) async {
     try {
       final params = <String, String>{'page': page.toString()};
       if (q.trim().isNotEmpty) params['q'] = q.trim();
+      if (outcome.isNotEmpty && outcome != 'all') params['outcome'] = outcome;
+      if (infoType != null) params['info_type'] = infoType;
       final response = await _api.get(
         ApiConfig.rtiChart,
         queryParameters: params,

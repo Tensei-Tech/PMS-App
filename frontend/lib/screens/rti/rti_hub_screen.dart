@@ -11,6 +11,38 @@ import '../../widgets/custom_pdf_preview_dialog.dart';
 import '../../widgets/module_hub_screen_app_bar.dart';
 import '../../widgets/pdf_document_view_screen.dart';
 
+/// Badge colours (text, background, border) per RTI outcome: Replied green,
+/// Transferred blue, Rejected orange, Pending red.
+(Color, Color, Color) rtiOutcomeColors(String outcome) {
+  switch (outcome.toLowerCase()) {
+    case 'replied':
+    case 'disposal':
+      return (
+        const Color(0xFF2E7D32),
+        const Color(0xFFE8F5E9),
+        const Color(0xFFA5D6A7)
+      );
+    case 'transferred':
+      return (
+        const Color(0xFF0284C7),
+        const Color(0xFFE0F2FE),
+        const Color(0xFFBAE6FD)
+      );
+    case 'rejected':
+      return (
+        const Color(0xFFC2410C),
+        const Color(0xFFFFF7ED),
+        const Color(0xFFFED7AA)
+      );
+    default:
+      return (
+        const Color(0xFFD32F2F),
+        const Color(0xFFFFEBEE),
+        const Color(0xFFFFCDD2)
+      );
+  }
+}
+
 class RTIHubScreen extends StatefulWidget {
   final String categoryName;
   final String categoryCode;
@@ -35,13 +67,45 @@ class _RTIHubScreenState extends State<RTIHubScreen>
   Map<String, dynamic> _config = {};
   Map<String, dynamic> _counts = {'total': 0, 'pending': 0, 'disposal': 0};
 
-  // Search & Pagination per tab index (0=all, 1=summary chart)
-  final List<String> _statuses = ['all', 'chart'];
-  static const String _chartTab = 'chart';
-  final Map<int, List<dynamic>> _itemsMap = {0: [], 1: []};
-  final Map<int, int> _pageMap = {0: 1, 1: 1};
-  final Map<int, int> _totalCountMap = {0: 0, 1: 0};
-  final Map<int, bool> _loadingMap = {0: true, 1: true};
+  // Tabs: Total (every application), then one per outcome. Each shows the
+  // summary rows (outcome, assigned officer, reminder) filtered by
+  // /api/rti/chart/?outcome=; search and pagination are kept per tab.
+  final List<String> _statuses = const [
+    'all',
+    'pending',
+    'replied',
+    'rejected',
+    'transferred',
+    _summaryTab,
+  ];
+
+  /// Last tab: counts by Type of Info and outcome (/api/rti/summary/)
+  static const String _summaryTab = 'summary';
+  static const Map<String, String> _defaultTabLabels = {
+    'all': 'Total',
+    'pending': 'Pending',
+    'replied': 'Replied',
+    'rejected': 'Rejected',
+    'transferred': 'Transferred',
+    _summaryTab: 'Summary',
+  };
+  Map<String, dynamic> _summary = {};
+  bool _summaryLoading = true;
+
+  bool get _onSummaryTab => _statuses[_tabController.index] == _summaryTab;
+  final Map<int, List<dynamic>> _itemsMap = {for (var i = 0; i < 6; i++) i: []};
+  final Map<int, int> _pageMap = {for (var i = 0; i < 6; i++) i: 1};
+  final Map<int, int> _totalCountMap = {for (var i = 0; i < 6; i++) i: 0};
+  final Map<int, bool> _loadingMap = {for (var i = 0; i < 6; i++) i: true};
+
+  /// Reload every tab (after an application is added or edited, its
+  /// outcome may move it to another tab)
+  void _fetchAllTabs({int? page}) {
+    for (int i = 0; i < _statuses.length; i++) {
+      _fetchItemsForTab(i, page: i == _tabController.index ? page : 1);
+    }
+  }
+
   final TextEditingController _searchCtrl = TextEditingController();
   String _searchQuery = '';
   Timer? _searchDebounce;
@@ -65,7 +129,18 @@ class _RTIHubScreenState extends State<RTIHubScreen>
 
   void _onTabChanged() {
     if (_tabController.indexIsChanging) return;
+    setState(() {}); // the search bar is hidden on the Summary tab
     _fetchItemsForTab(_tabController.index);
+  }
+
+  Future<void> _fetchSummary() async {
+    setState(() => _summaryLoading = true);
+    final data = await _rtiService.fetchSummary();
+    if (!mounted) return;
+    setState(() {
+      _summary = data;
+      _summaryLoading = false;
+    });
   }
 
   Future<void> _initializeData() async {
@@ -91,19 +166,18 @@ class _RTIHubScreenState extends State<RTIHubScreen>
 
   Future<void> _fetchItemsForTab(int tabIndex, {int? page}) async {
     final status = _statuses[tabIndex];
+    if (status == _summaryTab) return _fetchSummary();
     final currentPage = page ?? _pageMap[tabIndex] ?? 1;
 
     setState(() {
       _loadingMap[tabIndex] = true;
     });
 
-    final data = status == _chartTab
-        ? await _rtiService.fetchChart(page: currentPage, q: _searchQuery)
-        : await _rtiService.fetchApplications(
-            status: status,
-            page: currentPage,
-            q: _searchQuery,
-          );
+    final data = await _rtiService.fetchChart(
+      page: currentPage,
+      q: _searchQuery,
+      outcome: status,
+    );
 
     if (!mounted) return;
 
@@ -125,7 +199,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
       setState(() {
         _searchQuery = val.trim();
       });
-      _fetchItemsForTab(_tabController.index, page: 1);
+      _fetchAllTabs(page: 1);
     });
   }
 
@@ -153,7 +227,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
 
     if (result == true) {
       await _refreshCounts();
-      _fetchItemsForTab(_tabController.index, page: 1);
+      _fetchAllTabs(page: 1);
     }
   }
 
@@ -191,7 +265,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
 
     if (result == true) {
       await _refreshCounts();
-      _fetchItemsForTab(_tabController.index);
+      _fetchAllTabs();
     }
   }
 
@@ -249,8 +323,10 @@ class _RTIHubScreenState extends State<RTIHubScreen>
   @override
   Widget build(BuildContext context) {
     final subTabLabels = (_config['sub_tab_labels'] as Map?) ?? {};
-    final labelAll = subTabLabels['all']?.toString() ?? 'Total';
-    final labelChart = subTabLabels['chart']?.toString() ?? '';
+    String tabLabel(String key) {
+      final configured = subTabLabels[key]?.toString().trim() ?? '';
+      return configured.isNotEmpty ? configured : _defaultTabLabels[key]!;
+    }
 
     final addButtonLabel =
         _config['add_button_label']?.toString() ?? 'Add RTI Application';
@@ -280,7 +356,8 @@ class _RTIHubScreenState extends State<RTIHubScreen>
       backgroundColor: AppColors.lightBg,
       appBar: ModuleHubScreenAppBar(
         title: TranslationHelper.translate(context, widget.categoryName),
-        subtitle: '${_counts['total'] ?? 0} Applications Registered',
+        // No count line under the title; the Total tab shows the count
+        subtitle: '',
         actionWidget: actionWidget,
         onBackPressed: () => Navigator.pop(context),
       ),
@@ -306,74 +383,79 @@ class _RTIHubScreenState extends State<RTIHubScreen>
                 fontSize: 13,
               ),
               tabs: [
-                Tab(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(TranslationHelper.translate(context, labelAll)),
-                      const SizedBox(width: 6),
-                      _buildCountBadge(
-                          _counts['total'] ?? 0, AppColors.navyDark),
-                    ],
+                for (final key in _statuses)
+                  Tab(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (key == _summaryTab) ...[
+                          const Icon(Icons.table_chart_rounded, size: 16),
+                          const SizedBox(width: 6),
+                        ],
+                        Text(TranslationHelper.translate(
+                            context, tabLabel(key))),
+                        if (key != _summaryTab) ...[
+                          const SizedBox(width: 6),
+                          _buildCountBadge(
+                            (_counts[key == 'all' ? 'total' : key] as num?)
+                                    ?.toInt() ??
+                                0,
+                            key == 'all'
+                                ? AppColors.navyDark
+                                : rtiOutcomeColors(key).$1,
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
-                ),
-                Tab(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.table_chart_rounded, size: 16),
-                      const SizedBox(width: 6),
-                      Text(TranslationHelper.translate(context, labelChart)),
-                    ],
-                  ),
-                ),
               ],
             ),
           ),
 
-          // Search Bar
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
-            child: TextField(
-              controller: _searchCtrl,
-              onChanged: _onSearchChanged,
-              decoration: InputDecoration(
-                hintText: TranslationHelper.translate(
-                  context,
-                  'Search by Sr. No. or Applicant Name...',
-                ),
-                prefixIcon:
-                    const Icon(Icons.search_rounded, color: AppColors.navyMid),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear_rounded, size: 18),
-                        onPressed: () {
-                          _searchCtrl.clear();
-                          setState(() => _searchQuery = '');
-                          _fetchItemsForTab(_tabController.index, page: 1);
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide:
-                      const BorderSide(color: AppColors.navyMid, width: 1.5),
+          // Search Bar (not on the Summary tab, which has no list)
+          if (!_onSummaryTab)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+              child: TextField(
+                controller: _searchCtrl,
+                onChanged: _onSearchChanged,
+                decoration: InputDecoration(
+                  hintText: TranslationHelper.translate(
+                    context,
+                    'Search by Sr. No. or Applicant Name...',
+                  ),
+                  prefixIcon: const Icon(Icons.search_rounded,
+                      color: AppColors.navyMid),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear_rounded, size: 18),
+                          onPressed: () {
+                            _searchCtrl.clear();
+                            setState(() => _searchQuery = '');
+                            _fetchAllTabs(page: 1);
+                          },
+                        )
+                      : null,
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide:
+                        const BorderSide(color: AppColors.navyMid, width: 1.5),
+                  ),
                 ),
               ),
             ),
-          ),
 
           // Tab Views
           Expanded(
@@ -381,11 +463,342 @@ class _RTIHubScreenState extends State<RTIHubScreen>
               controller: _tabController,
               children: [
                 for (int i = 0; i < _statuses.length; i++)
-                  _buildTabListContent(i),
+                  _statuses[i] == _summaryTab
+                      ? _buildSummaryTable()
+                      : _buildTabListContent(i),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Summary tab: applications by Type of Info (rows) and outcome (columns),
+  /// with a Grand Total row, as /api/rti/summary/ counts them. Styled like
+  /// the Monthly statement: a bordered table with a
+  /// tinted header row, thin column dividers and a gold grand-total row.
+  Widget _buildSummaryTable() {
+    if (_summaryLoading && _summary.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    final columns = ((_summary['columns'] as List?) ?? [])
+        .whereType<Map>()
+        .map((c) => Map<String, dynamic>.from(c))
+        .toList();
+    final rows = ((_summary['rows'] as List?) ?? [])
+        .whereType<Map>()
+        .map((r) => Map<String, dynamic>.from(r))
+        .toList();
+    if (columns.isEmpty || rows.isEmpty) {
+      return Center(
+        child: Text(
+          TranslationHelper.translate(
+              context,
+              _config['empty_list_message']?.toString() ??
+                  'No RTI applications found'),
+          style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.lightSubText),
+        ),
+      );
+    }
+    final grand = Map<String, dynamic>.from(
+        (_summary['grand_total'] as Map?) ?? const {});
+    final infoLabel = _summary['info_label']?.toString() ?? 'Type of Info';
+    final grandLabel =
+        _summary['grand_total_label']?.toString() ?? 'Grand Total';
+
+    const srWidth = 56.0, countWidth = 110.0, minInfoWidth = 220.0;
+    Widget divider() => Container(width: 0.6, color: AppColors.lightBorder);
+    Widget cell(String text, double width,
+            {bool header = false, bool bold = false, bool left = false}) =>
+        SizedBox(
+          width: width,
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+                horizontal: left ? 12 : 4, vertical: header ? 10 : 9),
+            child: Text(
+              text,
+              textAlign: left ? TextAlign.left : TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.poppins(
+                fontSize: header ? 10.5 : 11,
+                fontWeight: header || bold ? FontWeight.w700 : FontWeight.w500,
+                color:
+                    header || bold ? AppColors.navyDark : AppColors.lightText,
+                letterSpacing: header ? 0.3 : 0,
+              ),
+            ),
+          ),
+        );
+    // A count opens the applications behind it (that Type of Info - or all,
+    // on the Grand Total row - with that outcome), shown as a link the way
+    // the Monthly statement shows its clickable counts. Zero stays plain.
+    Widget countCell(Map<String, dynamic> r, String key, String? infoType,
+        {bool bold = false}) {
+      final n = (r[key] as num?)?.toInt() ?? 0;
+      if (n == 0) return cell('0', countWidth, bold: bold);
+      final columnLabel = columns
+              .firstWhere((c) => c['key'] == key,
+                  orElse: () => const {})['label']
+              ?.toString() ??
+          key;
+      final title = [
+        TranslationHelper.translate(context, infoType ?? grandLabel),
+        TranslationHelper.translate(context, columnLabel),
+      ].join(' · ');
+      return SizedBox(
+        width: countWidth,
+        child: Center(
+          child: InkWell(
+            borderRadius: BorderRadius.circular(4),
+            onTap: () => _openSummaryCases(
+              title: title,
+              infoType: infoType,
+              outcome: key == 'total' ? 'all' : key,
+            ),
+            child: Container(
+              margin: const EdgeInsets.symmetric(vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppColors.navyMid.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: AppColors.navyMid.withValues(alpha: 0.25),
+                  width: 0.8,
+                ),
+              ),
+              child: Text(
+                '$n',
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.navyMid,
+                  decoration: TextDecoration.underline,
+                  decorationStyle: TextDecorationStyle.dotted,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    Widget tableRow(List<Widget> cells, {Color? color, bool header = false}) =>
+        Container(
+          decoration: BoxDecoration(
+            color: color,
+            border: Border(
+              bottom: BorderSide(
+                  color: AppColors.lightBorder, width: header ? 1.2 : 0.5),
+            ),
+          ),
+          child: IntrinsicHeight(
+            child: Row(children: [
+              for (int i = 0; i < cells.length; i++) ...[
+                if (i > 0) divider(),
+                cells[i],
+              ],
+            ]),
+          ),
+        );
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          LayoutBuilder(builder: (context, constraints) {
+            final minWidth =
+                srWidth + minInfoWidth + countWidth * columns.length;
+            final width = constraints.maxWidth > minWidth
+                ? constraints.maxWidth
+                : minWidth;
+            final infoWidth =
+                width - srWidth - countWidth * columns.length - 0.6 * 6;
+            return Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(color: AppColors.lightBorder),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.02),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: SizedBox(
+                    width: width,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        tableRow(
+                          header: true,
+                          color: AppColors.navyDark.withValues(alpha: 0.07),
+                          [
+                            cell('SR NO', srWidth, header: true),
+                            cell(
+                                TranslationHelper.translate(context, infoLabel)
+                                    .toUpperCase(),
+                                infoWidth,
+                                header: true,
+                                left: true),
+                            for (final c in columns)
+                              cell(
+                                  TranslationHelper.translate(
+                                          context, c['label']?.toString() ?? '')
+                                      .toUpperCase(),
+                                  countWidth,
+                                  header: true),
+                          ],
+                        ),
+                        for (int i = 0; i < rows.length; i++)
+                          tableRow([
+                            cell('${i + 1}', srWidth),
+                            cell(
+                                TranslationHelper.translate(
+                                    context, rows[i]['info_type'].toString()),
+                                infoWidth,
+                                left: true),
+                            for (final c in columns)
+                              countCell(rows[i], c['key'].toString(),
+                                  rows[i]['info_type'].toString(),
+                                  bold: c['key'] == 'total'),
+                          ]),
+                        tableRow(
+                          color: AppColors.goldPrimary.withValues(alpha: 0.16),
+                          [
+                            cell('', srWidth),
+                            cell(
+                                TranslationHelper.translate(context, grandLabel)
+                                    .toUpperCase(),
+                                infoWidth,
+                                bold: true,
+                                left: true),
+                            for (final c in columns)
+                              countCell(grand, c['key'].toString(), null,
+                                  bold: true),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  /// The applications behind a Summary count, in a dialog with the same rows
+  /// (and Remind / Edit / View / PDF) as the other tabs.
+  Future<void> _openSummaryCases({
+    required String title,
+    required String? infoType,
+    required String outcome,
+  }) async {
+    Future<List<dynamic>> load() async {
+      final items = <dynamic>[];
+      for (var page = 1; page <= 50; page++) {
+        final data = await _rtiService.fetchChart(
+            page: page, outcome: outcome, infoType: infoType);
+        final results = (data['results'] as List?) ?? [];
+        items.addAll(results);
+        final total = (data['count'] as num?)?.toInt() ?? 0;
+        if (results.isEmpty || items.length >= total) break;
+      }
+      return items;
+    }
+
+    final future = load();
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        insetPadding: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md)),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1300, maxHeight: 720),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
+                decoration: const BoxDecoration(
+                  border:
+                      Border(bottom: BorderSide(color: AppColors.lightBorder)),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.navyDark,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: TranslationHelper.translate(context, 'Close'),
+                      icon: const Icon(Icons.close_rounded),
+                      onPressed: () => Navigator.pop(dialogContext),
+                    ),
+                  ],
+                ),
+              ),
+              Flexible(
+                child: FutureBuilder<List<dynamic>>(
+                  future: future,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState != ConnectionState.done) {
+                      return const Padding(
+                        padding: EdgeInsets.all(32),
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+                    final items = snapshot.data ?? const [];
+                    if (items.isEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: Text(
+                          TranslationHelper.translate(
+                              context,
+                              _config['empty_list_message']?.toString() ??
+                                  'No RTI applications found'),
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.poppins(
+                              fontSize: 13, color: AppColors.lightSubText),
+                        ),
+                      );
+                    }
+                    return ListView.separated(
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.all(14),
+                      itemCount: items.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      itemBuilder: (context, i) => _buildRTISummaryCard(
+                          Map<String, dynamic>.from(items[i] as Map), i + 1),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -455,9 +868,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
             itemBuilder: (context, i) {
               final item = items[i] as Map<String, dynamic>;
               final displayIndex = (currentPage - 1) * pageSize + i + 1;
-              return _statuses[tabIndex] == _chartTab
-                  ? _buildRTISummaryCard(item, displayIndex)
-                  : _buildRTIApplicationCard(item, displayIndex);
+              return _buildRTISummaryCard(item, displayIndex);
             },
           ),
         ),
@@ -701,32 +1112,17 @@ class _RTIHubScreenState extends State<RTIHubScreen>
     final isTransferred = infoGiven.toLowerCase().contains('transferred');
     final isRejected = infoGiven.toLowerCase().contains('rejected');
 
-    final Color statusColor;
-    final Color statusBg;
-    final Color statusBorder;
-    final String statusText;
-
-    if (isReplied) {
-      statusColor = const Color(0xFF2E7D32);
-      statusBg = const Color(0xFFE8F5E9);
-      statusBorder = const Color(0xFFA5D6A7);
-      statusText = infoGiven.isNotEmpty ? infoGiven : 'Replied';
-    } else if (isTransferred) {
-      statusColor = const Color(0xFF0284C7);
-      statusBg = const Color(0xFFE0F2FE);
-      statusBorder = const Color(0xFFBAE6FD);
-      statusText = 'Transferred';
-    } else if (isRejected) {
-      statusColor = const Color(0xFFD32F2F);
-      statusBg = const Color(0xFFFFEBEE);
-      statusBorder = const Color(0xFFFFCDD2);
-      statusText = 'Rejected';
-    } else {
-      statusColor = const Color(0xFFD32F2F);
-      statusBg = const Color(0xFFFFEBEE);
-      statusBorder = const Color(0xFFFFCDD2);
-      statusText = 'Pending';
-    }
+    final String outcome = isReplied
+        ? 'Replied'
+        : isTransferred
+            ? 'Transferred'
+            : isRejected
+                ? 'Rejected'
+                : 'Pending';
+    // Replied keeps its date ("Replied (24/10/2026)") from the summary row
+    final String statusText =
+        isReplied && infoGiven.isNotEmpty ? infoGiven : outcome;
+    final (statusColor, statusBg, statusBorder) = rtiOutcomeColors(outcome);
 
     final headers = (_config['chart_headers'] as Map?) ?? {};
     final rowActionLabels = (_config['row_action_labels'] as Map?) ?? {};
@@ -1094,338 +1490,6 @@ class _RTIHubScreenState extends State<RTIHubScreen>
       child: LayoutBuilder(
         builder: (context, constraints) {
           final isWide = constraints.maxWidth >= 1200;
-          if (isWide) {
-            return buildDetailsRow(true);
-          }
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: buildDetailsRow(false),
-          );
-        },
-      ),
-    );
-  }
-
-  /// Dedicated horizontal single-row case card for RTI Applications list (Total tab)
-  Widget _buildRTIApplicationCard(Map<String, dynamic> item, int index) {
-    final rtiId = item['rti_id'];
-    final serialDisplay = (item['serial_display'] ?? '-').toString().trim();
-    final applicantName = (item['applicant_name'] ?? '-').toString().trim();
-    final receivedDate = (item['received_date'] ?? '-').toString().trim();
-    final dueDate = (item['due_date'] ?? '-').toString().trim();
-    final infoType = (item['info_type'] ?? '-').toString().trim();
-    final status = (item['status'] ?? 'Pending').toString().trim();
-
-    final headers = (_config['chart_headers'] as Map?) ?? {};
-    final actionLabels = (_config['row_action_labels'] as Map?) ?? {};
-    final editLabel = actionLabels['edit']?.toString() ?? 'Edit';
-    final viewLabel = actionLabels['view']?.toString() ?? 'View';
-    final pdfLabel = actionLabels['pdf']?.toString() ?? 'PDF';
-
-    final isDisposal = status.toLowerCase() == 'disposal' ||
-        status.toLowerCase() == 'closed' ||
-        status.toLowerCase() == 'resolved';
-    final Color statusColor =
-        isDisposal ? const Color(0xFF2E7D32) : const Color(0xFFD32F2F);
-    final Color statusBg =
-        isDisposal ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE);
-    final Color statusBorder =
-        isDisposal ? const Color(0xFFA5D6A7) : const Color(0xFFFFCDD2);
-
-    Widget buildActionButtons() {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          _buildLabeledActionButton(
-            context: context,
-            icon: Icons.edit_outlined,
-            label: editLabel,
-            color: AppColors.navyDark,
-            onTap: () => _openEditModal(rtiId),
-          ),
-          const SizedBox(width: 6),
-          _buildLabeledActionButton(
-            context: context,
-            icon: Icons.visibility_outlined,
-            label: viewLabel,
-            color: AppColors.navyDark,
-            onTap: () => _openViewModal(rtiId),
-          ),
-          const SizedBox(width: 6),
-          _buildLabeledActionButton(
-            context: context,
-            icon: Icons.picture_as_pdf_outlined,
-            label: pdfLabel,
-            color: AppColors.navyDark,
-            onTap: () => _downloadPdf(rtiId, serialDisplay),
-          ),
-        ],
-      );
-    }
-
-    Widget buildDetailsRow(bool isExpandedMode) {
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // 0. Sr. No. Badge (Fixed width 46) - Neutral slate styling
-          Container(
-            height: 38,
-            width: 46,
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            alignment: Alignment.center,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  headers['sr_no']?.toString() ??
-                      TranslationHelper.translate(context, 'Sr.No'),
-                  style: GoogleFonts.poppins(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF64748B),
-                    height: 1.0,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '$index',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.navyDark,
-                    height: 1.0,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-
-          // 1. RTI No. Badge (Fixed width 95)
-          InkWell(
-            onTap: () => _openViewModal(rtiId),
-            borderRadius: BorderRadius.circular(6),
-            child: Tooltip(
-              message:
-                  TranslationHelper.translate(context, 'Click to see info'),
-              child: Container(
-                height: 38,
-                width: 95,
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: const Color(0xFFCBD5E1)),
-                ),
-                alignment: Alignment.center,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      headers['serial_no']?.toString() ??
-                          TranslationHelper.translate(context, 'RTI No.'),
-                      style: GoogleFonts.poppins(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF64748B),
-                        height: 1.0,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      serialDisplay,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
-                        height: 1.0,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          _buildDivider(),
-
-          // 2. Type of Info (Fixed width 140)
-          isExpandedMode
-              ? Expanded(
-                  flex: 3,
-                  child: _buildFieldColumn(
-                    context: context,
-                    label: 'Type of Info',
-                    value:
-                        (infoType.isEmpty || infoType == '-') ? '—' : infoType,
-                    icon: Icons.info_outline_rounded,
-                  ),
-                )
-              : _buildFieldColumn(
-                  context: context,
-                  width: 140,
-                  label: 'Type of Info',
-                  value: (infoType.isEmpty || infoType == '-') ? '—' : infoType,
-                  icon: Icons.info_outline_rounded,
-                ),
-
-          _buildDivider(),
-
-          // 3. Applicant Name (flex: 4)
-          isExpandedMode
-              ? Expanded(
-                  flex: 4,
-                  child: _buildFieldColumn(
-                    context: context,
-                    label: 'Applicant Name',
-                    value: (applicantName.isEmpty || applicantName == '-')
-                        ? '—'
-                        : applicantName,
-                    icon: Icons.person_outline_rounded,
-                  ),
-                )
-              : _buildFieldColumn(
-                  context: context,
-                  width: 200,
-                  label: 'Applicant Name',
-                  value: (applicantName.isEmpty || applicantName == '-')
-                      ? '—'
-                      : applicantName,
-                  icon: Icons.person_outline_rounded,
-                ),
-
-          _buildDivider(),
-
-          // 4. Received Date (flex: 2)
-          isExpandedMode
-              ? Expanded(
-                  flex: 2,
-                  child: _buildFieldColumn(
-                    context: context,
-                    label: 'Received Date',
-                    value: (receivedDate.isEmpty || receivedDate == '-')
-                        ? '—'
-                        : receivedDate,
-                    icon: Icons.calendar_today_outlined,
-                  ),
-                )
-              : _buildFieldColumn(
-                  context: context,
-                  width: 110,
-                  label: 'Received Date',
-                  value: (receivedDate.isEmpty || receivedDate == '-')
-                      ? '—'
-                      : receivedDate,
-                  icon: Icons.calendar_today_outlined,
-                ),
-
-          _buildDivider(),
-
-          // 5. Due Date (flex: 2)
-          isExpandedMode
-              ? Expanded(
-                  flex: 2,
-                  child: _buildFieldColumn(
-                    context: context,
-                    label: 'Due Date',
-                    value: (dueDate.isEmpty || dueDate == '-') ? '—' : dueDate,
-                    icon: Icons.event_available_outlined,
-                  ),
-                )
-              : _buildFieldColumn(
-                  context: context,
-                  width: 105,
-                  label: 'Due Date',
-                  value: (dueDate.isEmpty || dueDate == '-') ? '—' : dueDate,
-                  icon: Icons.event_available_outlined,
-                ),
-
-          _buildDivider(),
-
-          // 6. Status Badge (Fixed width 110)
-          Container(
-            height: 34,
-            width: 110,
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: statusBg,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: statusBorder),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: statusColor,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Tooltip(
-                    message: status,
-                    child: Text(
-                      TranslationHelper.translate(context, status),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: statusColor,
-                        height: 1.0,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          _buildDivider(),
-
-          // 7. Action buttons scrollable with card at the end
-          buildActionButtons(),
-        ],
-      );
-    }
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: const Color(0xFFCBD5E1),
-          width: 1.1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isWide = constraints.maxWidth >= 1040;
           if (isWide) {
             return buildDetailsRow(true);
           }

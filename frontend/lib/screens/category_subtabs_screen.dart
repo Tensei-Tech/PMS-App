@@ -6,11 +6,14 @@ import '../modules/licence/screens/licence_hub_screen.dart';
 import '../modules/passport/screens/passport_hub_screen.dart';
 import '../modules/pvr/providers/pvr_provider.dart';
 import '../modules/pvr/screens/pvr_hub_screen.dart';
+import '../services/case_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/app_constants.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/module_hub_screen_app_bar.dart';
 import '../widgets/sub_tab_host.dart';
 import 'dar_hub_screen.dart';
+import 'disposal_hub_screen.dart';
 import 'form_i_v_selection_screen.dart';
 import 'fingerprint_hub_screen.dart';
 import 'irad_hub_screen.dart';
@@ -24,6 +27,149 @@ int subtabColumns(double width) => width > 1200 ? 4 : (width > 850 ? 3 : 2);
 /// name (e.g. "Attempt to Murder") onto two lines.
 double subtabCardHeight(double width) => width > 550 ? 74 : 86;
 
+/// One sub-tab of a dashboard tile, from the dashboard_subtabs table.
+class DashboardSubtab {
+  final String label;
+
+  /// What it opens: 'category' (the "1 to 5" tab named [label]) or a module
+  /// ('passport', 'licence', 'pvr', 'nafis', 'fingerprint', 'dar', 'irad',
+  /// 'disposal_form_1_5', 'disposal_form_6'); anything else is "Coming soon".
+  final String screenKey;
+  final String icon;
+
+  /// For 'category': the linked case category; null = the one named [label]
+  final String? categoryName;
+
+  const DashboardSubtab(this.label, this.screenKey, this.icon,
+      {this.categoryName});
+
+  /// The "1 to 5" category this sub-tab lists
+  String get category => categoryName ?? label;
+}
+
+/// Sub-tabs of every dashboard tile, loaded once from the backend (table
+/// dashboard_subtabs). A tile with no rows keeps the sub-tabs built into the
+/// app, so nothing changes when the backend has no such table yet.
+class DashboardSubtabs {
+  static Map<String, List<DashboardSubtab>> _byParent = {};
+
+  static Future<void> load() async {
+    final rows = await CaseService().fetchDashboardSubtabs();
+    if (rows.isNotEmpty) setRows(rows);
+  }
+
+  /// Rows as the API sends them (parent_key, label, screen_key, icon,
+  /// display_order, is_active).
+  static void setRows(List<Map<String, dynamic>> rows) {
+    int order(Map<String, dynamic> r) =>
+        int.tryParse('${r['display_order']}') ?? 0;
+    final active = rows
+        .where((r) => r['is_active'] != false)
+        .where((r) => (r['label']?.toString() ?? '').isNotEmpty)
+        .toList()
+      ..sort((a, b) => order(a).compareTo(order(b)));
+    final byParent = <String, List<DashboardSubtab>>{};
+    for (final r in active) {
+      final parent = r['parent_key']?.toString() ?? '';
+      if (parent.isEmpty) continue;
+      final linked = r['category_name']?.toString().trim() ?? '';
+      byParent.putIfAbsent(parent, () => []).add(DashboardSubtab(
+            r['label'].toString(),
+            r['screen_key']?.toString() ?? 'category',
+            r['icon']?.toString() ?? '',
+            categoryName: linked.isEmpty ? null : linked,
+          ));
+    }
+    TranslationHelper.registerRowLabels(active, 'label');
+    _byParent = byParent;
+  }
+
+  static void clear() => _byParent = {};
+
+  /// The tile's sub-tabs, or null when the table has none for it.
+  static List<DashboardSubtab>? of(String parentKey) {
+    final tabs = _byParent[parentKey];
+    return (tabs == null || tabs.isEmpty) ? null : tabs;
+  }
+
+  static IconData iconFor(String name) {
+    switch (name) {
+      case 'gavel_rounded':
+        return Icons.gavel_rounded;
+      case 'lock_outline_rounded':
+        return Icons.lock_outline_rounded;
+      case 'receipt_long_outlined':
+        return Icons.receipt_long_outlined;
+      case 'badge_rounded':
+        return Icons.badge_rounded;
+      case 'fact_check_rounded':
+        return Icons.fact_check_rounded;
+      case 'touch_app_rounded':
+        return Icons.touch_app_rounded;
+      default:
+        return ServiceData.resolveIconData(name, '');
+    }
+  }
+
+  /// The page a sub-tab opens.
+  static WidgetBuilder pageFor(DashboardSubtab tab, String stationName) {
+    switch (tab.screenKey) {
+      case 'category':
+        return (_) => FormIVSelectionScreen(
+              openCategory: tab.category,
+              customTitle: tab.label,
+              mode: FormIVSelectionMode.browse,
+            );
+      case 'passport':
+        return (_) => PassportHubScreen(stationName: stationName);
+      case 'licence':
+        return (_) => LicenceHubScreen(stationName: stationName);
+      case 'pvr':
+        return (context) {
+          PvrProvider? existing;
+          try {
+            existing = context.read<PvrProvider>();
+          } catch (_) {}
+          return existing != null
+              ? PvrHubScreen(stationName: stationName)
+              : ChangeNotifierProvider(
+                  create: (_) => PvrProvider(),
+                  child: PvrHubScreen(stationName: stationName),
+                );
+        };
+      case 'nafis':
+        return (_) => NAFISHubScreen(stationName: stationName);
+      case 'fingerprint':
+        return (_) => FingerprintHubScreen(stationName: stationName);
+      case 'dar':
+        return (_) => DarHubScreen(stationName: stationName);
+      case 'irad':
+        return (_) => IradHubScreen(stationName: stationName);
+      case 'disposal_form_1_5':
+        return (_) => DisposalHubScreen(
+            stationName: stationName, groupId: 1, groupTitle: tab.label);
+      case 'disposal_form_6':
+        return (_) => DisposalHubScreen(
+            stationName: stationName, groupId: 2, groupTitle: tab.label);
+      default:
+        return (_) => ComingSoonScreen(title: tab.label);
+    }
+  }
+
+  /// A module tile's tabs from the table, else [builtIn].
+  static List<(String, IconData, WidgetBuilder)> moduleTabs(
+    String parentKey,
+    String stationName,
+    List<(String, IconData, WidgetBuilder)> builtIn,
+  ) {
+    final tabs = of(parentKey);
+    if (tabs == null) return builtIn;
+    return [
+      for (final t in tabs) (t.label, iconFor(t.icon), pageFor(t, stationName)),
+    ];
+  }
+}
+
 /// A dashboard tile that groups "1 to 5" categories as sub-tabs
 /// (e.g. Murder: Murder / Attempt to Murder), shown as the same compact cards
 /// with case counts as Accident's sub-categories. Each sub-tab opens the same
@@ -34,10 +180,14 @@ class CategorySubtabsScreen extends StatefulWidget {
   /// (category name in case_categories, icon)
   final List<(String, IconData)> subtabs;
 
+  /// Name shown for a category, when the sub-tab is named differently
+  final Map<String, String> labels;
+
   const CategorySubtabsScreen({
     super.key,
     required this.title,
     required this.subtabs,
+    this.labels = const {},
   });
 
   /// Dashboard tiles (by Classification.moduleKey) and their sub-tabs
@@ -66,7 +216,19 @@ class CategorySubtabsScreen extends StatefulWidget {
   };
 
   /// The screen for a dashboard tile's moduleKey, or null if it has no sub-tabs.
-  static CategorySubtabsScreen? forTile(String moduleKey) {
+  /// Sub-tabs come from the dashboard_subtabs table when it has "1 to 5"
+  /// category rows for the tile, else from [groups].
+  static CategorySubtabsScreen? forTile(String moduleKey, {String? title}) {
+    final rows = DashboardSubtabs.of(moduleKey);
+    if (rows != null && rows.every((t) => t.screenKey == 'category')) {
+      return CategorySubtabsScreen(
+        title: groups[moduleKey]?.$1 ?? title ?? moduleKey,
+        subtabs: [
+          for (final t in rows) (t.category, DashboardSubtabs.iconFor(t.icon)),
+        ],
+        labels: {for (final t in rows) t.category: t.label},
+      );
+    }
     final group = groups[moduleKey];
     if (group == null) return null;
     return CategorySubtabsScreen(title: group.$1, subtabs: group.$2);
@@ -86,9 +248,11 @@ class _CategorySubtabsScreenState extends State<CategorySubtabsScreen> {
     });
   }
 
-  static Widget _page(String category) => FormIVSelectionScreen(
+  String _label(String category) => widget.labels[category] ?? category;
+
+  Widget _page(String category) => FormIVSelectionScreen(
         openCategory: category,
-        customTitle: category,
+        customTitle: _label(category),
         mode: FormIVSelectionMode.browse,
       );
 
@@ -106,7 +270,7 @@ class _CategorySubtabsScreenState extends State<CategorySubtabsScreen> {
       return SubTabHost(
         tabs: [
           for (final (name, icon) in widget.subtabs)
-            SubTab(name, icon, (_) => _page(name)),
+            SubTab(_label(name), icon, (_) => _page(name)),
         ],
       );
     }
@@ -139,7 +303,7 @@ class _CategorySubtabsScreenState extends State<CategorySubtabsScreen> {
         itemBuilder: (context, i) {
           final (name, icon) = widget.subtabs[i];
           return CategoryGridCard(
-            category: TranslationHelper.translate(context, name),
+            category: TranslationHelper.translate(context, _label(name)),
             rawCategory: name,
             icon: icon,
             count: records
@@ -243,7 +407,7 @@ class PassportLicenceScreen extends StatelessWidget {
     return ModuleTabsScreen(
       title: passportLabel,
       columnsOverride: 3,
-      tabs: [
+      tabs: DashboardSubtabs.moduleTabs('passport', stationName, [
         (
           passportTabLabel,
           Icons.badge_rounded,
@@ -270,7 +434,7 @@ class PassportLicenceScreen extends StatelessWidget {
           Icons.assignment_ind_rounded,
           (_) => LicenceHubScreen(stationName: stationName),
         ),
-      ],
+      ]),
     );
   }
 }
@@ -287,7 +451,7 @@ class NafisFingerprintScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return ModuleTabsScreen(
       title: title,
-      tabs: [
+      tabs: DashboardSubtabs.moduleTabs('nafis', stationName, [
         (
           'NAFIS',
           Icons.fingerprint_rounded,
@@ -298,7 +462,7 @@ class NafisFingerprintScreen extends StatelessWidget {
           Icons.touch_app_rounded,
           (_) => FingerprintHubScreen(stationName: stationName),
         ),
-      ],
+      ]),
     );
   }
 }
@@ -371,7 +535,7 @@ class DarIradScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return ModuleTabsScreen(
       title: title,
-      tabs: [
+      tabs: DashboardSubtabs.moduleTabs('dar', stationName, [
         (
           'DAR',
           Icons.folder_rounded,
@@ -382,7 +546,7 @@ class DarIradScreen extends StatelessWidget {
           Icons.analytics_rounded,
           (_) => IradHubScreen(stationName: stationName),
         ),
-      ],
+      ]),
     );
   }
 }

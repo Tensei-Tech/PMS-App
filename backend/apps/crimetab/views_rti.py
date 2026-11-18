@@ -722,9 +722,35 @@ class RTIListCreateView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
+def rti_outcome_q(outcome):
+    """
+    Applications with this outcome, decided in the same order as the badge
+    ('Information Given'): a reply wins, then a rejection, then a transfer;
+    'pending' = none of them. None for an unknown outcome.
+    """
+    replied = Q(replied_date__isnull=False)
+    rejected = Q(rejected_date__isnull=False) | (
+        Q(rejection_reason__isnull=False) & ~Q(rejection_reason__regex=r'^\s*$'))
+    transferred = Q(transferred_to__isnull=False) & ~Q(transferred_to__regex=r'^\s*$')
+    return {
+        'replied': replied,
+        'rejected': ~replied & rejected,
+        'transferred': ~replied & ~rejected & transferred,
+        'pending': ~replied & ~rejected & ~transferred,
+    }.get((outcome or '').strip().lower())
+
+
+RTI_OUTCOMES = ('pending', 'replied', 'rejected', 'transferred')
+
+# Summary row for applications saved without a Type of Info
+RTI_INFO_TYPE_NOT_GIVEN = 'Not given'
+
+
 class RTICountsView(APIView):
     """
-    GET /api/rti/counts/ - {total, pending, disposal} from ONE SQL query, cached 30 to 60s per schema & station
+    GET /api/rti/counts/ - {total, pending, disposal, replied, rejected,
+    transferred} from ONE SQL query, cached 30 to 60s per schema & station.
+    pending = no outcome yet; disposal = replied + rejected + transferred.
     """
 
     def get(self, request):
@@ -745,17 +771,78 @@ class RTICountsView(APIView):
         with TenantContext(schema):
             counts = RTIApplication.objects.filter(station_name__iexact=station_name).aggregate(
                 total=Count('rti_id'),
-                pending=Count('rti_id', filter=Q(status='Pending')),
-                disposal=Count('rti_id', filter=Q(status='Disposal'))
+                **{o: Count('rti_id', filter=rti_outcome_q(o)) for o in RTI_OUTCOMES},
             )
 
-        data = {
-            'total': counts['total'] or 0,
-            'pending': counts['pending'] or 0,
-            'disposal': counts['disposal'] or 0
-        }
+        data = {key: counts[key] or 0 for key in ('total',) + RTI_OUTCOMES}
+        data['disposal'] = data['replied'] + data['rejected'] + data['transferred']
         cache.set(cache_key, data, timeout=45)
         return Response(data)
+
+
+class RTISummaryView(APIView):
+    """
+    GET /api/rti/summary/ - Summary tab: the station's RTI applications counted
+    by Type of Info (rows) and outcome (columns: replied, rejected, pending,
+    transferred, total), plus a grand total row. Rows = every active
+    rti_info_type option in display order (also those with no applications),
+    then any other Type of Info found on saved applications. One query.
+    """
+
+    COLUMNS = ('replied', 'rejected', 'pending', 'transferred')
+
+    def get(self, request):
+        schema, err = _resolve_tenant_and_auth(request, 'rti:view')
+        if err:
+            return err
+
+        user = request.user
+        station_name = getattr(user, 'station_name', '').strip()
+        if not station_name:
+            return Response({'error': 'User does not belong to a valid police station.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        settings_map = {
+            s.setting_key: s.setting_value for s in ModuleSetting.objects.filter(
+                module_key='rti', setting_key__startswith='tab_')
+        }
+        defaults = {'replied': 'Replied', 'rejected': 'Rejected', 'pending': 'Pending',
+                    'transferred': 'Transferred', 'total': 'Total'}
+        columns = [
+            {'key': key, 'label': (settings_map.get(f'tab_{key}_label') or defaults[key]).strip()}
+            for key in self.COLUMNS + ('total',)
+        ]
+        info_label = (settings_map.get('tab_summary_info_label') or 'Type of Info').strip()
+
+        info_types = list(
+            OptionValue.objects.filter(option_group='rti_info_type', is_active=True)
+            .order_by('display_order', 'id').values_list('option_value', flat=True))
+
+        with TenantContext(schema):
+            grouped = list(
+                RTIApplication.objects.filter(station_name__iexact=station_name)
+                .values('info_type')
+                .annotate(total=Count('rti_id'),
+                          **{o: Count('rti_id', filter=rti_outcome_q(o)) for o in self.COLUMNS})
+            )
+
+        by_type = {}
+        for g in grouped:
+            name = _safe_rti_str(g['info_type']) or RTI_INFO_TYPE_NOT_GIVEN
+            row = by_type.setdefault(name, {k: 0 for k in self.COLUMNS + ('total',)})
+            for k in self.COLUMNS + ('total',):
+                row[k] += g[k] or 0
+
+        names = info_types + [n for n in by_type if n not in info_types]
+        empty = {k: 0 for k in self.COLUMNS + ('total',)}
+        rows = [{'info_type': n, **by_type.get(n, empty)} for n in names]
+        grand_total = {k: sum(r[k] for r in rows) for k in self.COLUMNS + ('total',)}
+        return Response({
+            'info_label': info_label,
+            'grand_total_label': (settings_map.get('tab_summary_grand_total_label') or 'Grand Total').strip(),
+            'columns': columns,
+            'rows': rows,
+            'grand_total': grand_total,
+        })
 
 
 class RTIConfigView(APIView):
@@ -776,6 +863,9 @@ class RTIConfigView(APIView):
             'sub_tab_labels': {
                 'all': settings_map.get('tab_total_label', 'Total'),
                 'pending': settings_map.get('tab_pending_label', 'Pending'),
+                'replied': settings_map.get('tab_replied_label', 'Replied'),
+                'rejected': settings_map.get('tab_rejected_label', 'Rejected'),
+                'transferred': settings_map.get('tab_transferred_label', 'Transferred'),
                 'disposal': settings_map.get('tab_disposal_label', 'Disposal'),
                 'chart': settings_map.get('tab_chart_label', ''),
             },
@@ -855,9 +945,11 @@ def _rti_info_given(rti, date_fmt, template, separator):
 
 class RTIChartView(APIView):
     """
-    GET /api/rti/chart/?page=&q= - Chart tab: ALL RTI applications of the user's
-    station (pending and disposal), one row per application, in serial order.
-    Settings are read in one query; one query for the page plus one COUNT.
+    GET /api/rti/chart/?page=&q=&outcome=&info_type= - RTI applications of the user's
+    station, one row per application, in serial order. outcome = pending,
+    replied, rejected or transferred keeps only those (a tab each); absent or
+    'all' = every application. Settings are read in one query; one query for
+    the page plus one COUNT.
     """
 
     def get(self, request):
@@ -903,6 +995,16 @@ class RTIChartView(APIView):
 
         with TenantContext(schema):
             qs = RTIApplication.objects.filter(station_name__iexact=station_name)
+            outcome_filter = rti_outcome_q(request.query_params.get('outcome', ''))
+            if outcome_filter is not None:
+                qs = qs.filter(outcome_filter)
+            # Summary tab: a count clicked in a Type of Info row lists those cases
+            if 'info_type' in request.query_params:
+                info_type = request.query_params.get('info_type', '').strip()
+                if info_type and info_type != RTI_INFO_TYPE_NOT_GIVEN:
+                    qs = qs.filter(info_type__iexact=info_type)
+                else:
+                    qs = qs.filter(Q(info_type__isnull=True) | Q(info_type__regex=r'^\s*$'))
             q = request.query_params.get('q', '').strip()
             if q:
                 if q.isdigit():
