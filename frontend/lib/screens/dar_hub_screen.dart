@@ -384,8 +384,31 @@ class _DarHubScreenState extends State<DarHubScreen>
       if (res.isSuccess && res.data != null) {
         final data = res.data;
         final rawList = <DarCaseItem>[];
+        int statsTotal = 0;
+        int statsFilled = 0;
+        int statsPending = 0;
+        bool hasStats = false;
 
         if (data is Map) {
+          final stats = (data['stats'] is Map)
+              ? data['stats']
+              : ((data['summary'] is Map) ? data['summary'] : null);
+          if (stats != null) {
+            hasStats = true;
+            statsTotal = int.tryParse(stats['total_dar']?.toString() ?? '') ??
+                int.tryParse(stats['total']?.toString() ?? '') ??
+                0;
+            statsFilled = int.tryParse(stats['dar_filled']?.toString() ?? '') ??
+                int.tryParse(stats['dar_form_filled']?.toString() ?? '') ??
+                int.tryParse(stats['filled']?.toString() ?? '') ??
+                0;
+            statsPending =
+                int.tryParse(stats['dar_pending']?.toString() ?? '') ??
+                    int.tryParse(stats['dar_form_pending']?.toString() ?? '') ??
+                    int.tryParse(stats['pending']?.toString() ?? '') ??
+                    0;
+          }
+
           final results = data['results'] ?? data['cases'];
           if (results is Iterable) {
             for (final item in results) {
@@ -405,6 +428,12 @@ class _DarHubScreenState extends State<DarHubScreen>
         if (mounted) {
           _rawCases = rawList;
           _recomputeFilterCounts(rawList);
+          if (hasStats && rawList.isEmpty) {
+            _filterCounts['all'] = statsTotal;
+            _filterCounts['filled'] = statsFilled;
+            _filterCounts['pending'] = statsPending;
+          }
+          _isLoading = false;
           _applyCurrentFilter();
         }
         return;
@@ -1906,6 +1935,151 @@ class _DarHubScreenState extends State<DarHubScreen>
   // MAIN BUILD
   // ---------------------------------------------------------------------------
 
+  Widget _buildSummaryCards() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 650;
+
+        return Row(
+          children: [
+            Expanded(
+              child: _buildMetricCard(
+                title: isCompact ? 'Total' : 'Total DAR',
+                count: _filterCounts['all'] ?? _rawCases.length,
+                icon: Icons.assignment_outlined,
+                activeColor: const Color(0xFF1976D2),
+                iconBg: const Color(0xFFE8F1FC),
+                iconFg: const Color(0xFF1976D2),
+                isActive: _selectedFilterKeys.contains('all') ||
+                    _selectedFilterKeys.isEmpty,
+                isCompact: isCompact,
+                onTap: () {
+                  _applyFilterKeys({'all'});
+                },
+              ),
+            ),
+            SizedBox(width: isCompact ? 8 : 14),
+            Expanded(
+              child: _buildMetricCard(
+                title: isCompact ? 'Filled' : 'DAR Form Filled',
+                count: _filterCounts['filled'] ?? 0,
+                icon: Icons.check_circle_outline_rounded,
+                activeColor: const Color(0xFF2E7D32),
+                iconBg: const Color(0xFFE8F5E9),
+                iconFg: const Color(0xFF2E7D32),
+                isActive: _selectedFilterKeys.contains('filled'),
+                isCompact: isCompact,
+                onTap: () {
+                  _applyFilterKeys({'filled'});
+                },
+              ),
+            ),
+            SizedBox(width: isCompact ? 8 : 14),
+            Expanded(
+              child: _buildMetricCard(
+                title: isCompact ? 'Pending' : 'DAR Form Pending',
+                count: _filterCounts['pending'] ?? 0,
+                icon: Icons.pending_actions_rounded,
+                activeColor: const Color(0xFFE65100),
+                iconBg: const Color(0xFFFFF3E0),
+                iconFg: const Color(0xFFE65100),
+                isActive: _selectedFilterKeys.contains('pending'),
+                isCompact: isCompact,
+                onTap: () {
+                  _applyFilterKeys({'pending'});
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildMetricCard({
+    required String title,
+    required int count,
+    required IconData icon,
+    required Color activeColor,
+    required Color iconBg,
+    required Color iconFg,
+    required bool isActive,
+    required bool isCompact,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: isCompact ? 8 : 16,
+          vertical: isCompact ? 10 : 14,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isActive ? activeColor : const Color(0xFFE2E8F0),
+            width: isActive ? 2 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: isActive
+                  ? activeColor.withValues(alpha: 0.10)
+                  : Colors.black.withValues(alpha: 0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(isCompact ? 6 : 10),
+              decoration: BoxDecoration(
+                color: iconBg,
+                borderRadius: BorderRadius.circular(isCompact ? 6 : 8),
+              ),
+              child: Icon(
+                icon,
+                color: iconFg,
+                size: isCompact ? 16 : 22,
+              ),
+            ),
+            SizedBox(width: isCompact ? 6 : 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: isCompact ? 10.5 : 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.lightSubText,
+                    ),
+                  ),
+                  SizedBox(height: isCompact ? 1 : 2),
+                  Text(
+                    count.toString(),
+                    style: GoogleFonts.poppins(
+                      fontSize: isCompact ? 18 : 22,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyDark,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -2060,13 +2234,18 @@ class _DarHubScreenState extends State<DarHubScreen>
       body: SafeArea(
         child: Column(
           children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+              child: _buildSummaryCards(),
+            ),
+
             // Filter Bar with multi-select dropdown button
             _buildFilterBar(),
 
             // Tab Views
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
                 child: TabBarView(
                   controller: _tabController,
                   physics: const NeverScrollableScrollPhysics(),
