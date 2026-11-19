@@ -2584,6 +2584,8 @@ def apply_victim_filter_queryset(queryset, victim_filter):
 
     filtered_candidates = queryset.only('id', 'extra_fields', 'module_key', 'sub_category', 'status')
     matching_ids = [c.id for c in filtered_candidates if case_matches_victim_filter(c, victim_filter)]
+    if not matching_ids:
+        return queryset.none()
     return queryset.filter(id__in=matching_ids)
 
 
@@ -2600,6 +2602,10 @@ class VictimCaseWiseView(APIView):
             if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
                 stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                 queryset = queryset.filter(station_name__in=stations)
+
+            target_station = request.query_params.get('station_name')
+            if target_station and target_station != 'All Stations':
+                queryset = queryset.filter(station_name=target_station)
 
             category = request.query_params.get('category') or request.query_params.get('crime_type')
             if category:
@@ -2652,6 +2658,10 @@ class VictimStatsView(APIView):
             if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
                 stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                 queryset = queryset.filter(station_name__in=stations)
+
+            target_station = request.query_params.get('station_name')
+            if target_station and target_station != 'All Stations':
+                queryset = queryset.filter(station_name=target_station)
 
             stats = {
                 # Legacy keys for backward compatibility
@@ -2797,6 +2807,10 @@ class VictimTimeWiseView(APIView):
                 stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                 queryset = queryset.filter(station_name__in=stations)
 
+            target_station = request.query_params.get('station_name')
+            if target_station and target_station != 'All Stations':
+                queryset = queryset.filter(station_name=target_station)
+
             victim_filter = request.query_params.get('victim_filter') or request.query_params.get('filter_type')
             queryset = apply_victim_filter_queryset(queryset, victim_filter)
 
@@ -2840,6 +2854,10 @@ class VictimIOWiseView(APIView):
             if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
                 stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                 queryset = queryset.filter(station_name__in=stations)
+
+            target_station = request.query_params.get('station_name')
+            if target_station and target_station != 'All Stations':
+                queryset = queryset.filter(station_name=target_station)
 
             victim_filter = request.query_params.get('victim_filter') or request.query_params.get('filter_type')
             queryset = apply_victim_filter_queryset(queryset, victim_filter)
@@ -3618,64 +3636,18 @@ class SummonsWarrantReportView(APIView):
                 except (ValueError, TypeError):
                     cutoff_day = None
 
-            # Station / District filtering with multi-tenancy & hierarchical jurisdiction access checks
-            from apps.authentication.approval_scope import (
-                caller_level, STATE, DISTRICT, DIVISION, STATION,
-            )
-            from apps.stations.models import PoliceStation
-            from django.db.models import Q
-
-            level = caller_level(user)
-            desig = (getattr(user, 'designation', '') or '').strip().lower()
-            role = (getattr(user, 'role_id', '') or '').strip().lower()
-
-            if level < STATE:
-                if any(k in desig for k in ['dgp', 'ig', 'dig']) or role in ('super_admin', 'state_super_admin', 'admin'):
-                    level = STATE
-                elif any(k in desig for k in ['sp', 'cp', 'dcp']) or role in ('district_admin', 'city_admin'):
-                    level = max(level, DISTRICT)
-                elif any(k in desig for k in ['sdpo', 'acp', 'dy. sp', 'dysp', 'asp']) or role in ('division_admin',):
-                    level = max(level, DIVISION)
-
-            user_district = (getattr(user, 'district', None) or '').strip()
-            user_division = (getattr(user, 'division_name', None) or getattr(user, 'zone', None) or '').strip()
-
+            # Station / District filtering with multi-tenancy access checks
+            can_view_all = check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')
             target_station = request.query_params.get('station_name')
             target_district = request.query_params.get('district') or request.query_params.get('district_name')
             allowed_stations = None
 
-            if level >= STATE:
-                # State leadership / SuperAdmin: can see all stations or filter by requested district
-                pass
-            elif level == DISTRICT:
-                # District leadership: strictly limited to police stations under their district
-                target_district = user_district or target_district
-            elif level == DIVISION:
-                # Division head (SDPO / ACP): strictly police stations under their sub-division
-                div_stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
-                div_stations = [s for s in div_stations if s]
-                if user_division:
-                    div_qs = PoliceStation.objects.filter(
-                        Q(zone__iexact=user_division) |
-                        (Q(district_name__iexact=user_district) & Q(zone__iexact=user_division))
-                    )
-                    db_stations = list(div_qs.values_list('station_name', flat=True))
-                    div_stations = list(set(div_stations + db_stations))
-
-                if target_station:
-                    if target_station not in div_stations:
-                        raise exceptions.PermissionDenied("You do not have access to view data for this police station.")
-                    allowed_stations = [target_station]
-                else:
-                    allowed_stations = div_stations
-            else:
-                # Station level and regular officers (PL level and below): strictly their own assigned station(s)
+            if not can_view_all:
                 user_stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                 user_stations = [s for s in user_stations if s]
                 if target_station:
                     if target_station not in user_stations:
                         raise exceptions.PermissionDenied("You do not have access to view data for this police station.")
-                    allowed_stations = [target_station]
                 else:
                     allowed_stations = user_stations
 

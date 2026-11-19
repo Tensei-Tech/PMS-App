@@ -153,3 +153,73 @@ class VictimCasesTests(TestCase):
         io_res = self.client.get(reverse('victim-io-wise'), {'victim_filter': 'minor'})
         self.assertEqual(io_res.status_code, status.HTTP_200_OK)
 
+    def test_multiple_selected_victim_filters(self):
+        """Test combining multiple comma-separated victim filters."""
+        from apps.cases.views import case_matches_victim_filter, apply_victim_filter_queryset
+
+        case_adult_female = CaseRecord.objects.create(
+            title='Adult Female Victim',
+            module_key='crime_women',
+            status='Pending',
+            station_name='TUMSAR',
+            extra_fields={'victim_gender': 'Female', 'victim_age': 25}
+        )
+        case_minor_male = CaseRecord.objects.create(
+            title='Minor Male Victim',
+            module_key='pocso',
+            status='Pending',
+            station_name='TUMSAR',
+            extra_fields={'victim_gender': 'Male', 'victim_age': 10}
+        )
+        case_senior_pwd = CaseRecord.objects.create(
+            title='Senior PWD Victim',
+            module_key='missing',
+            status='Pending',
+            station_name='TUMSAR',
+            extra_fields={'victim_gender': 'Female', 'victim_age': 68, 'pwd': True}
+        )
+
+        # Multi-filter match: matches if case has a victim matching any of the active filters
+        self.assertTrue(case_matches_victim_filter(case_adult_female, 'female,minor'))
+        self.assertTrue(case_matches_victim_filter(case_minor_male, 'female,minor'))
+        self.assertFalse(case_matches_victim_filter(case_minor_male, 'senior,female'))
+        self.assertTrue(case_matches_victim_filter(case_senior_pwd, 'pwd,senior'))
+
+        # Queryset filtering with multi-filter
+        qs = CaseRecord.objects.filter(id__in=[case_adult_female.id, case_minor_male.id, case_senior_pwd.id])
+        filtered_qs = apply_victim_filter_queryset(qs, 'senior,pwd')
+        self.assertEqual(filtered_qs.count(), 1)
+        self.assertEqual(filtered_qs.first().id, case_senior_pwd.id)
+
+    def test_victim_station_filtering(self):
+        """Test that station_name query parameter isolates cases by station."""
+        st_case_1 = CaseRecord.objects.create(
+            title='Station A Victim Case',
+            module_key='crime_women',
+            status='Pending',
+            station_name='Station A',
+            extra_fields={'victim_gender': 'Female'}
+        )
+        st_case_2 = CaseRecord.objects.create(
+            title='Station B Victim Case',
+            module_key='crime_women',
+            status='Pending',
+            station_name='Station B',
+            extra_fields={'victim_gender': 'Female'}
+        )
+
+        # Test case-wise station filter
+        url_case_wise = reverse('victim-case-wise')
+        res_a = self.client.get(url_case_wise, {'station_name': 'Station A'})
+        self.assertEqual(res_a.status_code, status.HTTP_200_OK)
+        ids_a = [str(item['id']) for item in res_a.json().get('results', res_a.json())]
+        self.assertIn(str(st_case_1.id), ids_a)
+        self.assertNotIn(str(st_case_2.id), ids_a)
+
+        # Test stats station filter
+        url_stats = reverse('victim-stats')
+        res_stats_a = self.client.get(url_stats, {'station_name': 'Station A'})
+        self.assertEqual(res_stats_a.status_code, status.HTTP_200_OK)
+        # Should count only Station A
+        self.assertGreaterEqual(res_stats_a.json().get('total_cases', 0), 1)
+
