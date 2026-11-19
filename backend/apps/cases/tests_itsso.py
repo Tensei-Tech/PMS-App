@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 from apps.public_master.models import Role, Permission, RolePermission
 from apps.cases.serializers import ItssoCaseRecordSerializer
 from apps.cases.itsso_service import ItssoService, is_itsso_case
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, PropertyMock, patch
 
 User = get_user_model()
 
@@ -174,9 +174,10 @@ class ItssoCasesTests(TestCase):
             mock_charge_3,
         ]
 
-        case.charges = mock_charges_mgr
-        serializer = ItssoCaseRecordSerializer(case)
-        section_act = serializer.data.get('section_act')
+        with patch.object(CaseRecord, 'charges', new_callable=PropertyMock) as mock_charges:
+            mock_charges.return_value = mock_charges_mgr
+            serializer = ItssoCaseRecordSerializer(case)
+            section_act = serializer.data.get('section_act')
 
         self.assertIn('Sec. 64', section_act)
         self.assertIn('BNS', section_act)
