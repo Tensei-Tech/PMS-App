@@ -81,6 +81,12 @@ def get_itsso_cases_q() -> Q:
         )
 
     # 4. JSON structure tokens in extra_fields (acts_sections / charges list)
+    # Must be accompanied by BNS/Nyaya context to avoid false positives (e.g., Section 64 of unrelated acts)
+    bns_context_q = (
+        Q(extra_fields__icontains='bns') |
+        Q(extra_fields__icontains='nyaya') |
+        Q(extra_fields__icontains='bharatiya')
+    )
     json_sec_tokens = [
         '"section": "64"', "'section': '64'", '"section_number": "64"', "'section_number': '64'",
         '"section": "65"', "'section': '65'", '"section_number": "65"', "'section_number': '65'",
@@ -88,16 +94,17 @@ def get_itsso_cases_q() -> Q:
         '"section": "70(2)"', "'section': '70(2)'", '"section_number": "70(2)"', "'section_number': '70(2)'",
         '"section": "70 (2)"', "'section': '70 (2)'", '"section_number": "70 (2)"', "'section_number': '70 (2)'",
     ]
-    json_q = Q()
+    tokens_q = Q()
     for j_tok in json_sec_tokens:
-        json_q |= Q(extra_fields__icontains=j_tok)
+        tokens_q |= Q(extra_fields__icontains=j_tok)
 
     # 70 with subsection 2 in JSON
-    json_q |= (
+    tokens_q |= (
         (Q(extra_fields__icontains='"section_number": "70"') | Q(extra_fields__icontains='"section": "70"')) &
         (Q(extra_fields__icontains='"subsection_code": "2"') | Q(extra_fields__icontains='"subsection": "2"') |
          Q(extra_fields__icontains='"subsection_code": "(2)"') | Q(extra_fields__icontains='"subsection": "(2)"'))
     )
+    json_q = bns_context_q & tokens_q
 
     return base_q | charges_q | text_q | json_q
 
@@ -155,7 +162,7 @@ def is_itsso_case(case: Any) -> bool:
             for ch in charges_data:
                 if isinstance(ch, dict):
                     act_name = str(ch.get('act_name') or ch.get('act') or '').lower()
-                    is_bns = 'bns' in act_name or 'nyaya' in act_name or 'bharatiya' in act_name or not act_name
+                    is_bns = 'bns' in act_name or 'nyaya' in act_name or 'bharatiya' in act_name
                     sec_num = str(ch.get('section_number') or ch.get('section') or ch.get('section_id') or '').strip().lower()
                     subsec = str(ch.get('subsection_code') or ch.get('subsection') or ch.get('subsection_id') or '').strip().lower()
                     if is_bns:
@@ -167,7 +174,7 @@ def is_itsso_case(case: Any) -> bool:
             for ch in charges_data.values():
                 if isinstance(ch, dict):
                     act_name = str(ch.get('act') or ch.get('act_name') or '').lower()
-                    is_bns = 'bns' in act_name or 'nyaya' in act_name or 'bharatiya' in act_name or not act_name
+                    is_bns = 'bns' in act_name or 'nyaya' in act_name or 'bharatiya' in act_name
                     secs = ch.get('sections', [])
                     if isinstance(secs, str):
                         secs = [secs]

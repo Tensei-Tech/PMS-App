@@ -2584,6 +2584,8 @@ def apply_victim_filter_queryset(queryset, victim_filter):
 
     filtered_candidates = queryset.only('id', 'extra_fields', 'module_key', 'sub_category', 'status')
     matching_ids = [c.id for c in filtered_candidates if case_matches_victim_filter(c, victim_filter)]
+    if not matching_ids:
+        return queryset.none()
     return queryset.filter(id__in=matching_ids)
 
 
@@ -2600,6 +2602,10 @@ class VictimCaseWiseView(APIView):
             if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
                 stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                 queryset = queryset.filter(station_name__in=stations)
+
+            target_station = request.query_params.get('station_name')
+            if target_station and target_station != 'All Stations':
+                queryset = queryset.filter(station_name=target_station)
 
             category = request.query_params.get('category') or request.query_params.get('crime_type')
             if category:
@@ -2652,6 +2658,10 @@ class VictimStatsView(APIView):
             if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
                 stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                 queryset = queryset.filter(station_name__in=stations)
+
+            target_station = request.query_params.get('station_name')
+            if target_station and target_station != 'All Stations':
+                queryset = queryset.filter(station_name=target_station)
 
             stats = {
                 # Legacy keys for backward compatibility
@@ -2797,6 +2807,10 @@ class VictimTimeWiseView(APIView):
                 stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                 queryset = queryset.filter(station_name__in=stations)
 
+            target_station = request.query_params.get('station_name')
+            if target_station and target_station != 'All Stations':
+                queryset = queryset.filter(station_name=target_station)
+
             victim_filter = request.query_params.get('victim_filter') or request.query_params.get('filter_type')
             queryset = apply_victim_filter_queryset(queryset, victim_filter)
 
@@ -2840,6 +2854,10 @@ class VictimIOWiseView(APIView):
             if not (check_dynamic_permission(user, 'district:view_data') or check_dynamic_permission(user, 'state:view_all')):
                 stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
                 queryset = queryset.filter(station_name__in=stations)
+
+            target_station = request.query_params.get('station_name')
+            if target_station and target_station != 'All Stations':
+                queryset = queryset.filter(station_name=target_station)
 
             victim_filter = request.query_params.get('victim_filter') or request.query_params.get('filter_type')
             queryset = apply_victim_filter_queryset(queryset, victim_filter)

@@ -5,6 +5,9 @@ from django.urls import reverse
 from apps.cases.models import CaseRecord
 from django.contrib.auth import get_user_model
 from apps.public_master.models import Role, Permission, RolePermission
+from apps.cases.serializers import ItssoCaseRecordSerializer
+from apps.cases.itsso_service import ItssoService, is_itsso_case
+from unittest.mock import MagicMock
 
 User = get_user_model()
 
@@ -139,3 +142,74 @@ class ItssoCasesTests(TestCase):
         res = self.client.post(url)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.json().get('status'), 'success')
+
+    def test_itsso_serializer_with_nullable_act_and_section(self):
+        """Test that ItssoCaseRecordSerializer handles null act or section without raising AttributeError."""
+        case = CaseRecord(
+            case_number='CR-NULLABLE',
+            module_key='crime_women',
+            status='Pending',
+            extra_fields={}
+        )
+
+        mock_charge_1 = MagicMock()
+        mock_charge_1.act = None
+        mock_charge_1.section = MagicMock(section_number='64')
+        mock_charge_1.subsection = None
+
+        mock_charge_2 = MagicMock()
+        mock_charge_2.act = MagicMock(act_name='Bharatiya Nyaya Sanhita, 2023')
+        mock_charge_2.section = None
+        mock_charge_2.subsection = None
+
+        mock_charge_3 = MagicMock()
+        mock_charge_3.act = MagicMock(act_name='BNS')
+        mock_charge_3.section = MagicMock(section_number='70')
+        mock_charge_3.subsection = MagicMock(subsection_code='(2)')
+
+        mock_charges_mgr = MagicMock()
+        mock_charges_mgr.select_related.return_value.all.return_value = [
+            mock_charge_1,
+            mock_charge_2,
+            mock_charge_3,
+        ]
+
+        case.charges = mock_charges_mgr
+        serializer = ItssoCaseRecordSerializer(case)
+        section_act = serializer.data.get('section_act')
+
+        self.assertIn('Sec. 64', section_act)
+        self.assertIn('BNS', section_act)
+        self.assertIn('BNS Sec. 70(2)', section_act)
+
+    def test_itsso_rejection_of_non_bns_section_64(self):
+        """Ensure section 64 belonging to non-BNS acts (e.g. Customs Act, Bombay Police Act) is not falsely classified as ITSSO."""
+        non_bns_case = CaseRecord.objects.create(
+            case_number='CR-NON-BNS-64',
+            module_key='customs',
+            status='Pending',
+            station_name='Central Station',
+            extra_fields={'section': '64', 'act': 'Customs Act'}
+        )
+        self.assertFalse(is_itsso_case(non_bns_case))
+
+        # Check that it is not in the queryset
+        qs = ItssoService.get_itsso_cases_queryset()
+        self.assertNotIn(non_bns_case, qs)
+
+    def test_itsso_station_filtering(self):
+        """Test station_name filter query parameter on itsso-cases."""
+        other_st_case = CaseRecord.objects.create(
+            case_number='CR-OTHER-ST',
+            module_key='pocso',
+            status='Pending',
+            station_name='North Station',
+            extra_fields={}
+        )
+        url = reverse('itsso-cases')
+        res = self.client.get(url, {'station_name': 'Central Station'})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        results = res.json().get('results', res.json())
+        case_nums = [item['case_number'] for item in results]
+        self.assertIn('CR-101', case_nums)
+        self.assertNotIn('CR-OTHER-ST', case_nums)
