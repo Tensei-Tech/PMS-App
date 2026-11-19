@@ -290,3 +290,69 @@ class RoadAccidentSelectionTests(TestCase):
         self.assertEqual(RoadAccidentDarService.evaluate_case_dar(case)['status'], 'Filled')
         from apps.cases.irad_service import RoadAccidentIradService
         self.assertEqual(RoadAccidentIradService.evaluate_case_irad(case)['status'], 'Pending')
+
+    def test_road_accident_category_and_tab_detection(self):
+        """Verifies exact category detection for road accident cases and exclusion of non-road categories."""
+        c1 = self._case('CR/DET/1', 'Road Accident')
+        c2 = self._case('CR/DET/2', 'Death Due to Rash Driving')
+        c3 = self._case('CR/DET/3', 'Other Road Accident')
+        c4 = self._case('CR/DET/4', 'General', module='road_accident')
+        # Negative cases: must not be detected as road accident
+        c5 = self._case('CR/DET/5', 'Other Accident')
+        c6 = self._case('CR/DET/6', 'Industrial Accident')
+        c7 = self._case('CR/DET/7', 'Fire Accident')
+        c8 = self._case('CR/DET/8', 'Theft')
+
+        service = RoadAccidentDarService(station_name='TUMSAR')
+        detected_case_numbers = set(service.get_base_queryset().values_list('case_number', flat=True))
+
+        self.assertIn('CR/DET/1', detected_case_numbers)
+        self.assertIn('CR/DET/2', detected_case_numbers)
+        self.assertIn('CR/DET/3', detected_case_numbers)
+        self.assertIn('CR/DET/4', detected_case_numbers)
+
+        self.assertNotIn('CR/DET/5', detected_case_numbers)
+        self.assertNotIn('CR/DET/6', detected_case_numbers)
+        self.assertNotIn('CR/DET/7', detected_case_numbers)
+        self.assertNotIn('CR/DET/8', detected_case_numbers)
+
+    def test_dar_template_field_detection_and_no_broad_substring_pollution(self):
+        """
+        Verifies template-field detection:
+        - Only precise prefixes/exact keys (acc_dar*, dar_*, *_dar) or section='dar' are matched.
+        - Overly broad substrings (e.g. 'calendar_date', 'standard_sop', 'boundary_wall') are NOT matched as DAR fields.
+        """
+        from apps.crimetab.models.dynamic_engine import FieldTemplate, FieldTemplateField
+
+        # Create a dynamic field template with a required DAR field
+        template = FieldTemplate.objects.create(template_name='Road Accident Test Template')
+        dar_field = FieldTemplateField.objects.create(
+            template=template,
+            field_key='acc_dar_inspector_check',
+            field_label='DAR Inspection Done',
+            is_required=True,
+            section='dar',
+        )
+
+        # Case A: Has required DAR field marked 'Yes', plus arbitrary fields with 'dar' in name that shouldn't pollute
+        case_a = self._case('CR/TPL/1', 'Road Accident', extra={
+            'acc_dar_inspector_check': 'Yes',
+            'standard_procedure_done': 'No',  # has 'dar' in 'standard', must NOT cause Pending!
+            'calendar_year': '2026',           # has 'dar' in 'calendar', must NOT cause Pending!
+            'boundary_marked': 'No',          # has 'dar' in 'boundary', must NOT cause Pending!
+        })
+        res_a = RoadAccidentDarService.evaluate_case_dar(case_a)
+        # Should be Filled because only acc_dar_inspector_check is evaluated as DAR field
+        self.assertEqual(res_a['status'], 'Filled')
+
+        # Case B: Required DAR field is 'No'
+        case_b = self._case('CR/TPL/2', 'Road Accident', extra={
+            'acc_dar_inspector_check': 'No',
+            'standard_procedure_done': 'Yes',
+        })
+        res_b = RoadAccidentDarService.evaluate_case_dar(case_b)
+        self.assertEqual(res_b['status'], 'Pending')
+
+        # Clean up created template
+        dar_field.delete()
+        template.delete()

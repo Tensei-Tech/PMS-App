@@ -53,18 +53,12 @@ class RoadAccidentDarService:
     """
 
     @classmethod
-    def get_road_accident_category_codes(cls) -> List[str]:  # kept for callers; selection uses road_accident_case_q
-        """Dynamically fetch all accident and road-rash category codes from database."""
+    def get_road_accident_category_codes(cls) -> List[str]:
+        """Dynamically fetch all accident category codes from database that use the Road Accident form."""
         try:
-            from apps.crimetab.models.groupings import CaseCategory
-            codes = list(CaseCategory.objects.filter(
-                Q(category_name__icontains='accident') |
-                Q(category_name__icontains='rash') |
-                Q(parent_category__category_name__icontains='accident') |
-                Q(category_code__startswith='ACC') |
-                Q(category_code__icontains='acc')
-            ).values_list('category_code', flat=True))
-            return [str(c).strip() for c in codes if c]
+            from apps.cases.road_accident_cases import road_accident_categories
+            _ids, codes, _names = road_accident_categories()
+            return sorted(list(codes))
         except Exception:
             return []
 
@@ -121,7 +115,14 @@ class RoadAccidentDarService:
                 dar_fields[k] = v
 
         for k, v in extra.items():
-            if (k.startswith('acc_dar') or k.startswith('dar_') or 'dar' in k.lower()) and k not in dar_fields:
+            k_lower = str(k).strip().lower()
+            # Avoid overly broad substring matching like 'dar' in k.lower(); use precise prefixes or section tags
+            if (
+                k_lower.startswith('acc_dar')
+                or k_lower.startswith('dar_')
+                or k_lower == 'dar'
+                or k_lower.endswith('_dar')
+            ) and k not in dar_fields:
                 dar_fields[k] = v
 
         # 3. Dynamic template fields for DAR
@@ -129,7 +130,12 @@ class RoadAccidentDarService:
         try:
             template_dar_fields = list(
                 FieldTemplateField.objects.filter(
-                    Q(field_key__startswith='acc_dar') | Q(field_key__startswith='dar_') | Q(section__icontains='dar')
+                    Q(field_key__startswith='acc_dar')
+                    | Q(field_key__startswith='dar_')
+                    | Q(field_key__exact='dar')
+                    | Q(field_key__endswith='_dar')
+                    | Q(section__iexact='dar')
+                    | Q(section__startswith='dar_')
                 ).values('field_key', 'is_required', 'field_label')
             )
         except Exception:
