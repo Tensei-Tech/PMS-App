@@ -58,8 +58,7 @@ class DarCaseItem {
         .toString()
         .trim();
     final ioUid = (m['io_uid'] ?? m['assigned_officer_uid'] ?? '').toString();
-    final st =
-        (m['status'] ?? m['dar_status'] ?? 'Pending').toString().trim();
+    final st = (m['status'] ?? m['dar_status'] ?? 'Pending').toString().trim();
     final isCompleted =
         st.toLowerCase() == 'filled' || st.toLowerCase() == 'completed';
     final defaultColor = isCompleted ? '#2ECC71' : '#E74C3C';
@@ -237,7 +236,8 @@ class _DarHubScreenState extends State<DarHubScreen>
 
     // Dynamic category match
     final act = c.actAndSection.trim().toLowerCase();
-    final sub = (c.rawMap['sub_category'] ?? '').toString().trim().toLowerCase();
+    final sub =
+        (c.rawMap['sub_category'] ?? '').toString().trim().toLowerCase();
     final catName =
         (c.rawMap['category_name'] ?? '').toString().trim().toLowerCase();
     final title = (c.rawMap['title'] ?? '').toString().trim().toLowerCase();
@@ -295,7 +295,8 @@ class _DarHubScreenState extends State<DarHubScreen>
         pendingCount++;
       }
 
-      final cat = c.actAndSection.trim().isNotEmpty && c.actAndSection.trim() != '—'
+      final cat = c.actAndSection.trim().isNotEmpty &&
+              c.actAndSection.trim() != '—'
           ? c.actAndSection.trim()
           : (c.rawMap['sub_category']?.toString().trim().isNotEmpty == true
               ? c.rawMap['sub_category'].toString().trim()
@@ -339,8 +340,7 @@ class _DarHubScreenState extends State<DarHubScreen>
 
     for (final cat in sortedCategories) {
       catKeys.add(cat);
-      final count =
-          cases.where((c) => _caseMatchesSingleFilter(c, cat)).length;
+      final count = cases.where((c) => _caseMatchesSingleFilter(c, cat)).length;
       counts[cat] = count;
       items.add(
         DarFilterItem(
@@ -571,9 +571,10 @@ class _DarHubScreenState extends State<DarHubScreen>
   }
 
   Future<void> _openNewCaseForm() async {
-    final defaultCat = _rawCases.isNotEmpty && _rawCases.first.actAndSection.isNotEmpty
-        ? _rawCases.first.actAndSection
-        : 'Road Accident';
+    final defaultCat =
+        _rawCases.isNotEmpty && _rawCases.first.actAndSection.isNotEmpty
+            ? _rawCases.first.actAndSection
+            : 'Road Accident';
 
     await Navigator.push(
       context,
@@ -1290,9 +1291,8 @@ class _DarHubScreenState extends State<DarHubScreen>
       return const SizedBox.shrink();
     }
 
-    final activeItems = _filterItems
-        .where((i) => _selectedFilterKeys.contains(i.key))
-        .toList();
+    final activeItems =
+        _filterItems.where((i) => _selectedFilterKeys.contains(i.key)).toList();
     final filterLabels = activeItems.map((i) => i.label).join(', ');
     final activeCases = _getActiveFilteredCases();
     final count = activeCases.length;
