@@ -53,18 +53,12 @@ class RoadAccidentIradService:
     """
 
     @classmethod
-    def get_road_accident_category_codes(cls) -> List[str]:  # kept for callers; selection uses road_accident_case_q
-        """Dynamically fetch all accident and road-rash category codes from database."""
+    def get_road_accident_category_codes(cls) -> List[str]:
+        """Dynamically fetch all accident category codes from database that use the Road Accident form."""
         try:
-            from apps.crimetab.models.groupings import CaseCategory
-            codes = list(CaseCategory.objects.filter(
-                Q(category_name__icontains='accident') |
-                Q(category_name__icontains='rash') |
-                Q(parent_category__category_name__icontains='accident') |
-                Q(category_code__startswith='ACC') |
-                Q(category_code__icontains='acc')
-            ).values_list('category_code', flat=True))
-            return [str(c).strip() for c in codes if c]
+            from apps.cases.road_accident_cases import road_accident_categories
+            _ids, codes, _names = road_accident_categories()
+            return sorted(list(codes))
         except Exception:
             return []
 
@@ -121,14 +115,26 @@ class RoadAccidentIradService:
                 irad_fields[k] = v
 
         for k, v in extra.items():
-            if (k.startswith('acc_irad') or k.startswith('irad_') or 'irad' in k.lower()) and k not in irad_fields:
+            k_lower = str(k).strip().lower()
+            # Avoid overly broad substring matching like 'irad' in k.lower(); use precise prefixes or section tags
+            if (
+                k_lower.startswith('acc_irad')
+                or k_lower.startswith('irad_')
+                or k_lower == 'irad'
+                or k_lower.endswith('_irad')
+            ) and k not in irad_fields:
                 irad_fields[k] = v
 
         # 3. Dynamic template fields for IRAD
         try:
             template_irad_fields = list(
                 FieldTemplateField.objects.filter(
-                    Q(field_key__startswith='acc_irad') | Q(field_key__startswith='irad_') | Q(section__icontains='irad')
+                    Q(field_key__startswith='acc_irad')
+                    | Q(field_key__startswith='irad_')
+                    | Q(field_key__exact='irad')
+                    | Q(field_key__endswith='_irad')
+                    | Q(section__iexact='irad')
+                    | Q(section__startswith='irad_')
                 ).values('field_key', 'is_required', 'field_label')
             )
         except Exception:
