@@ -157,6 +157,13 @@ class VictimCasesTests(TestCase):
         """Test combining multiple comma-separated victim filters."""
         from apps.cases.views import case_matches_victim_filter, apply_victim_filter_queryset
 
+        case_minor_female = CaseRecord.objects.create(
+            title='Minor Female Victim',
+            module_key='crime_women',
+            status='Pending',
+            station_name='TUMSAR',
+            extra_fields={'victim_gender': 'Female', 'victim_age': 12}
+        )
         case_adult_female = CaseRecord.objects.create(
             title='Adult Female Victim',
             module_key='crime_women',
@@ -179,20 +186,29 @@ class VictimCasesTests(TestCase):
             extra_fields={'victim_gender': 'Female', 'victim_age': 68, 'pwd': True}
         )
 
-        # Multi-filter match: matches if case has a victim matching any of the active filters
-        self.assertTrue(case_matches_victim_filter(case_adult_female, 'female,minor'))
-        self.assertTrue(case_matches_victim_filter(case_minor_male, 'female,minor'))
-        self.assertFalse(case_matches_victim_filter(case_minor_male, 'senior,female'))
+        # Multi-filter match across groups (e.g. Gender AND Category):
+        # Case must satisfy both active groups
+        self.assertTrue(case_matches_victim_filter(case_minor_female, 'female,minor'))
+        self.assertFalse(case_matches_victim_filter(case_adult_female, 'female,minor'))
+        self.assertFalse(case_matches_victim_filter(case_minor_male, 'female,minor'))
+
+        # Within the same group (OR logic):
+        self.assertTrue(case_matches_victim_filter(case_adult_female, 'female,male'))
+        self.assertTrue(case_matches_victim_filter(case_minor_male, 'female,male'))
         self.assertTrue(case_matches_victim_filter(case_senior_pwd, 'pwd,senior'))
 
         # Queryset filtering with multi-filter
-        qs = CaseRecord.objects.filter(id__in=[case_adult_female.id, case_minor_male.id, case_senior_pwd.id])
-        filtered_qs = apply_victim_filter_queryset(qs, 'senior,pwd')
+        qs = CaseRecord.objects.filter(id__in=[case_minor_female.id, case_adult_female.id, case_minor_male.id, case_senior_pwd.id])
+        filtered_qs = apply_victim_filter_queryset(qs, 'female,minor')
         self.assertEqual(filtered_qs.count(), 1)
-        self.assertEqual(filtered_qs.first().id, case_senior_pwd.id)
+        self.assertEqual(filtered_qs.first().id, case_minor_female.id)
 
     def test_victim_station_filtering(self):
         """Test that station_name query parameter isolates cases by station."""
+        from apps.public_master.models import Permission, RolePermission
+        perm_dist, _ = Permission.objects.get_or_create(id='district:view_data', defaults={'module': 'cases'})
+        RolePermission.objects.get_or_create(role=self.role, permission=perm_dist, defaults={'is_granted': True})
+
         st_case_1 = CaseRecord.objects.create(
             title='Station A Victim Case',
             module_key='crime_women',
