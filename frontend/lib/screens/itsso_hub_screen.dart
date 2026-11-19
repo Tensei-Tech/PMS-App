@@ -68,7 +68,8 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
         caseWiseData = decoded is Map ? (decoded['results'] ?? []) : decoded;
       }
 
-      final timeRes = await apiService.get('$baseUrl/itsso/time-wise/$queryStr');
+      final timeRes =
+          await apiService.get('$baseUrl/itsso/time-wise/$queryStr');
       if (timeRes.isSuccess && timeRes.data != null) {
         timeWiseData = timeRes.data is List ? timeRes.data : [];
       }
@@ -399,7 +400,9 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
                                                       '$baseUrl/itsso/cases/${caseItem['id']}/action/',
                                                       body: {},
                                                     );
-                                                    if (!context.mounted) return;
+                                                    if (!context.mounted) {
+                                                      return;
+                                                    }
                                                     AppSuccessPopup.show(
                                                       context,
                                                       title: 'Reminder Sent',
@@ -407,7 +410,9 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
                                                           "Reminder sent to IO for case $caseNumber",
                                                     );
                                                   } catch (e) {
-                                                    if (!context.mounted) return;
+                                                    if (!context.mounted) {
+                                                      return;
+                                                    }
                                                     AppErrorPopup.show(
                                                       context,
                                                       title: 'Error',
