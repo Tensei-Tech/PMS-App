@@ -6,6 +6,7 @@ import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/dynamic_map_pdf.dart';
 import '../utils/excel_export_helper.dart';
+import '../utils/pdf_unicode_fonts.dart';
 import '../widgets/app_error_popup.dart';
 import '../widgets/app_success_popup.dart';
 import '../widgets/custom_pdf_preview_dialog.dart';
@@ -241,10 +242,11 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
       };
     }).toList();
 
+    final theme = await PdfUnicodeFonts.openSansTheme();
     final doc = DynamicMapPdf.buildLandscapeDataTableDocument(
+      theme: theme,
       title: 'ITSSO (POCSO) — Case Wise Records',
-      stationName: widget.stationName,
-      records: rows,
+      rows: rows,
       prependSerial: false,
       columnOrder: const [
         'Sr. No.',
