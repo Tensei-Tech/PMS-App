@@ -670,6 +670,8 @@ class ItssoCaseRecordSerializer(serializers.ModelSerializer):
                     return formatted
         if obj.description:
             return format_section_act(obj.description)
+        if obj.title and str(obj.title).lower() != 'pocso':
+            return format_section_act(obj.title)
         return ''
         
     def _has_charge_sheet(self, obj):
