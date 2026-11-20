@@ -428,34 +428,31 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
           const double cellFontSize = 11.5;
           const double headerFontSize = 11.5;
 
-          final availableWidth = constraints.maxWidth - 32.0;
-          final isMobile = availableWidth < 750;
+          final isNarrow = constraints.maxWidth < 750;
+          final cardPadding = isNarrow ? 10.0 : 16.0;
+          final availableWidth = constraints.maxWidth - (cardPadding * 2);
           final double tableWidth;
           final Map<int, TableColumnWidth> columnWidths;
 
-          if (isMobile) {
-            const srWidth = 48.0;
-            final colUnitW = (availableWidth - srWidth) / 4.5;
-            final colActionW = math.max(colUnitW * 1.2, 115.0);
-            tableWidth = srWidth + (colUnitW * 5) + colActionW;
-
-            columnWidths = <int, TableColumnWidth>{
-              0: const FixedColumnWidth(srWidth),
-              1: FixedColumnWidth(colUnitW),
-              2: FixedColumnWidth(colUnitW * 1.1),
-              3: FixedColumnWidth(colUnitW * 1.1),
-              4: FixedColumnWidth(colUnitW * 1.2),
-              5: FixedColumnWidth(colUnitW),
-              6: FixedColumnWidth(colActionW),
+          if (isNarrow) {
+            tableWidth = math.max(availableWidth, 810.0);
+            columnWidths = const <int, TableColumnWidth>{
+              0: FixedColumnWidth(50),
+              1: FixedColumnWidth(100),
+              2: FixedColumnWidth(120),
+              3: FixedColumnWidth(135),
+              4: FixedColumnWidth(140),
+              5: FixedColumnWidth(135),
+              6: FixedColumnWidth(130),
             };
           } else {
             tableWidth = math.max(availableWidth, 900.0);
             columnWidths = const <int, TableColumnWidth>{
               0: FixedColumnWidth(65),
-              1: FlexColumnWidth(1.2),
+              1: FlexColumnWidth(1.1),
               2: FlexColumnWidth(1.3),
               3: FlexColumnWidth(1.4),
-              4: FlexColumnWidth(1.6),
+              4: FlexColumnWidth(1.5),
               5: FlexColumnWidth(1.2),
               6: FlexColumnWidth(1.3),
             };
@@ -613,6 +610,8 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
               ),
               child: Text(
                 statusText,
+                maxLines: 1,
+                softWrap: false,
                 style: GoogleFonts.poppins(
                   color: isGreen
                       ? const Color(0xFF047857)
@@ -692,7 +691,7 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
                   ),
                 ],
               ),
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(cardPadding),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: Container(
@@ -1092,7 +1091,7 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
           preferredSize: const Size.fromHeight(48),
           child: Container(
             color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             child: TabBar(
               isScrollable: true,
               tabAlignment: TabAlignment.start,
@@ -1154,17 +1153,27 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
             ? const Center(
                 child: CircularProgressIndicator(color: AppColors.navyMid),
               )
-            : Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
-                child: TabBarView(
-                  controller: _tabController,
-                  physics: const NeverScrollableScrollPhysics(),
-                  children: [
-                    _buildCaseWiseTab(),
-                    _buildTimeWiseTab(),
-                    _buildIOWiseTab(),
-                  ],
-                ),
+            : LayoutBuilder(
+                builder: (context, constraints) {
+                  final isNarrow = constraints.maxWidth < 650;
+                  return Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      isNarrow ? 10 : 24,
+                      isNarrow ? 8 : 16,
+                      isNarrow ? 10 : 24,
+                      isNarrow ? 8 : 16,
+                    ),
+                    child: TabBarView(
+                      controller: _tabController,
+                      physics: const NeverScrollableScrollPhysics(),
+                      children: [
+                        _buildCaseWiseTab(),
+                        _buildTimeWiseTab(),
+                        _buildIOWiseTab(),
+                      ],
+                    ),
+                  );
+                },
               ),
       ),
     );
