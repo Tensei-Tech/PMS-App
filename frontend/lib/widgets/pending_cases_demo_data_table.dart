@@ -104,7 +104,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
           tableWidth = math.max(constraints.maxWidth, 900.0);
           columnWidths = isVictim
               ? const <int, TableColumnWidth>{
-                  0: IntrinsicColumnWidth(),
+                  0: FixedColumnWidth(65),
                   1: FlexColumnWidth(1.0),
                   2: FlexColumnWidth(1.2),
                   3: FlexColumnWidth(1.2),
@@ -115,7 +115,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                 }
               : isAbsconded
                   ? const <int, TableColumnWidth>{
-                      0: IntrinsicColumnWidth(),
+                      0: FixedColumnWidth(65),
                       1: FlexColumnWidth(1.2),
                       2: FlexColumnWidth(1.4),
                       3: FlexColumnWidth(1.4),
@@ -124,14 +124,14 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                     }
                   : isUndetected
                       ? const <int, TableColumnWidth>{
-                          0: IntrinsicColumnWidth(),
+                          0: FixedColumnWidth(65),
                           1: FlexColumnWidth(1.2),
                           2: FlexColumnWidth(1.5),
                           3: FlexColumnWidth(1.5),
                           4: FlexColumnWidth(1.8),
                         }
                       : const <int, TableColumnWidth>{
-                          0: IntrinsicColumnWidth(),
+                          0: FixedColumnWidth(65),
                           1: FlexColumnWidth(1.3),
                           2: FlexColumnWidth(1.2),
                           3: FlexColumnWidth(1.3),

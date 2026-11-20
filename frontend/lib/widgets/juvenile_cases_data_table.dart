@@ -48,7 +48,7 @@ class JuvenileCasesDataTable extends StatelessWidget {
         } else {
           tableWidth = math.max(constraints.maxWidth, 850.0);
           columnWidths = const <int, TableColumnWidth>{
-            0: IntrinsicColumnWidth(),
+            0: FixedColumnWidth(65),
             1: FlexColumnWidth(1.2),
             2: FlexColumnWidth(1.4),
             3: FlexColumnWidth(1.4),

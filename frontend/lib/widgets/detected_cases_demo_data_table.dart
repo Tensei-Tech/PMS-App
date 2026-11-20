@@ -48,7 +48,7 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
         } else {
           tableWidth = math.max(constraints.maxWidth, 800.0);
           columnWidths = const <int, TableColumnWidth>{
-            0: IntrinsicColumnWidth(),
+            0: FixedColumnWidth(65),
             1: FlexColumnWidth(1.1),
             2: FlexColumnWidth(1.3),
             3: FlexColumnWidth(1.3),
