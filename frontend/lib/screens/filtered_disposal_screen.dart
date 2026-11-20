@@ -5,6 +5,7 @@ import '../theme/app_theme.dart';
 import '../utils/dynamic_map_pdf.dart';
 import '../utils/excel_export_helper.dart';
 import '../utils/pdf_unicode_fonts.dart';
+import '../widgets/custom_pdf_preview_dialog.dart';
 import 'disposal_case_list_view.dart';
 
 class FilteredDisposalScreen extends StatefulWidget {
@@ -97,10 +98,12 @@ class _FilteredDisposalScreenState extends State<FilteredDisposalScreen> {
       ],
     );
 
-    await Printing.sharePdf(
-      bytes: await doc.save(),
-      filename:
+    await CustomPdfPreviewDialog.show(
+      context: context,
+      title: 'Disposal — ${widget.title}',
+      fileName:
           'Disposal_${widget.title.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}.pdf',
+      buildPdf: (_) async => doc.save(),
     );
   }
 
