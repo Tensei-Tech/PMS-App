@@ -267,3 +267,52 @@ class RoadAccidentIradTests(TestCase):
         url = reverse('irad-cases-list')
         response = self.client.get(url, {'station_name': 'NAGPUR_CITY'})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class RoadAccidentIradTemplateFieldTests(TestCase):
+    def test_irad_template_field_detection_and_no_broad_substring_pollution(self):
+        """
+        Verifies IRAD template-field detection:
+        - Only precise prefixes/exact keys (acc_irad*, irad_*, *_irad) or section='irad' are matched.
+        - Unrelated fields containing substring 'irad' (e.g. 'admirad_note', 'spirad_flag') are NOT matched.
+        """
+        from apps.crimetab.models.dynamic_engine import FieldTemplate, FieldTemplateField
+
+        template = FieldTemplate.objects.create(template_name='Road Accident IRAD Test Template')
+        irad_field = FieldTemplateField.objects.create(
+            template=template,
+            field_key='acc_irad_investigation_complete',
+            field_label='IRAD Complete',
+            is_required=True,
+            section='irad',
+        )
+
+        case_a = CaseRecord.objects.create(
+            case_number='CR/IRAD/TPL-1',
+            sub_category='Road Accident',
+            module_key='form_1_5',
+            station_name='TUMSAR',
+            extra_fields={
+                'acc_irad_investigation_complete': 'Yes',
+                'admirad_flag': 'No',  # has 'irad' substring, must NOT cause Pending!
+                'spirad_code': 'No',   # has 'irad' substring, must NOT cause Pending!
+            }
+        )
+        res_a = RoadAccidentIradService.evaluate_case_irad(case_a)
+        self.assertEqual(res_a['status'], 'Filled')
+
+        case_b = CaseRecord.objects.create(
+            case_number='CR/IRAD/TPL-2',
+            sub_category='Road Accident',
+            module_key='form_1_5',
+            station_name='TUMSAR',
+            extra_fields={
+                'acc_irad_investigation_complete': 'No',
+                'admirad_flag': 'Yes',
+            }
+        )
+        res_b = RoadAccidentIradService.evaluate_case_irad(case_b)
+        self.assertEqual(res_b['status'], 'Pending')
+
+        irad_field.delete()
+        template.delete()
