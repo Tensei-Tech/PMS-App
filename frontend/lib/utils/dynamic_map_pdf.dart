@@ -624,7 +624,7 @@ class DynamicMapPdf {
           ),
         ),
         build: (context) => [
-          pw.Table.fromTextArray(
+          pw.TableHelper.fromTextArray(
             context: context,
             headers: [
               if (effectivePrependSerial) 'Sr. No.',
@@ -671,7 +671,6 @@ class DynamicMapPdf {
             oddRowDecoration: const pw.BoxDecoration(
               color: PdfColor.fromInt(0xFFF8FAFC),
             ),
-            repeatHeader: true,
           ),
         ],
       ),
