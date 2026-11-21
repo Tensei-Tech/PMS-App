@@ -19,6 +19,7 @@ import '../../../utils/excel_export_helper.dart';
 import '../../../utils/pdf_unicode_fonts.dart';
 import '../../../utils/translation_helper.dart';
 import '../../../widgets/module_hub_screen_app_bar.dart';
+import '../../../widgets/sub_tab_host.dart';
 
 class PassportGroup {
   final DateTime date;
@@ -367,6 +368,7 @@ class _PassportHubScreenState extends State<PassportHubScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          ...SubTabHost.strip(context),
           // 1. Top Metric Cards (Total Received, Verified, Pending)
           Container(
             color: Colors.white,
