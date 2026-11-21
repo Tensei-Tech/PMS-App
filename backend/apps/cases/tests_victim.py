@@ -190,10 +190,27 @@ class VictimCasesTests(TestCase):
             station_name='TUMSAR',
             extra_fields={'victim_gender': 'Female', 'victim_age': 68, 'pwd': True}
         )
+        case_multi = CaseRecord.objects.create(
+            id=str(uuid.uuid4()),
+            title='Joint Multi-Victim Case',
+            module_key='crime_women',
+            status='Pending',
+            station_name='TUMSAR',
+            extra_fields={
+                'commonForm': {
+                    'victims': [
+                        {'gender': 'Female', 'age': 35},
+                        {'gender': 'Male', 'age': 8}
+                    ]
+                }
+            }
+        )
 
         # Multi-filter match across groups (e.g. Gender AND Category):
         # Case must satisfy both active groups
         self.assertTrue(case_matches_victim_filter(case_minor_female, 'female,minor'))
+        self.assertTrue(case_matches_victim_filter(case_multi, 'female,minor'))
+        self.assertTrue(case_matches_victim_filter(case_multi, 'female, minor'))
         self.assertFalse(case_matches_victim_filter(case_adult_female, 'female,minor'))
         self.assertFalse(case_matches_victim_filter(case_minor_male, 'female,minor'))
 
