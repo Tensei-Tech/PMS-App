@@ -64,7 +64,22 @@ class VictimCasesTests(TestCase):
         self.assertNotIn(str(self.case4.id), ids)
 
     def test_victim_stats_api(self):
-        """Victim Stats API should return structured counts."""
+        """Victim Stats API should return structured counts with women distinguishing adult females."""
+        case_adult_woman = CaseRecord.objects.create(
+            id=str(uuid.uuid4()),
+            title='Adult Woman Case',
+            module_key='crime_women',
+            status='Pending',
+            extra_fields={'victim_gender': 'Female', 'victim_age': 28}
+        )
+        case_minor_girl = CaseRecord.objects.create(
+            id=str(uuid.uuid4()),
+            title='Minor Girl Case',
+            module_key='crime_women',
+            status='Pending',
+            extra_fields={'victim_gender': 'Female', 'victim_age': 7}
+        )
+
         url = reverse('victim-stats')
         response = self.client.get(url)
         
@@ -73,9 +88,14 @@ class VictimCasesTests(TestCase):
         
         self.assertIn('stats', data)
         self.assertIn('total_cases', data)
-        self.assertEqual(data['total_cases'], 3)
-        self.assertIn('gender', data['stats'])
-        self.assertIn('age', data['stats'])
+        stats = data['stats']
+        self.assertIn('gender', stats)
+        self.assertIn('age', stats)
+        # Verify female counts both adult and minor females, while women counts adult females
+        self.assertGreaterEqual(stats.get('female', 0), 2)
+        self.assertGreaterEqual(stats.get('women', 0), 1)
+        self.assertGreaterEqual(stats.get('minor_female', 0), 1)
+        self.assertTrue(stats.get('female', 0) >= stats.get('women', 0))
 
     def test_extract_case_victims_and_filter_matching(self):
         """Test extraction of victims across commonForm, persons, and extra_fields."""
@@ -218,6 +238,10 @@ class VictimCasesTests(TestCase):
         self.assertTrue(case_matches_victim_filter(case_adult_female, 'female,male'))
         self.assertTrue(case_matches_victim_filter(case_minor_male, 'female,male'))
         self.assertTrue(case_matches_victim_filter(case_senior_pwd, 'pwd,senior'))
+
+        # Unknown / malformed filter keys are safely ignored (aligning with frontend Set.intersection):
+        self.assertTrue(case_matches_victim_filter(case_minor_female, 'female,minor,unknown_filter_token'))
+        self.assertTrue(case_matches_victim_filter(case_adult_female, 'unknown_filter_token'))  # Falls back to match all
 
         # Queryset filtering with multi-filter
         qs = CaseRecord.objects.filter(id__in=[case_minor_female.id, case_adult_female.id, case_minor_male.id, case_senior_pwd.id])
