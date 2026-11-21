@@ -4551,6 +4551,11 @@ class CommonFormState extends State<CommonForm> {
                           'PCR (00 Day)',
                           pcrCtrl,
                           keyboardType: TextInputType.number,
+                          // Optional; when filled, whole days up to 3 digits
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(3),
+                          ],
                         ),
                         _checkboxTile(
                           'MCR',
