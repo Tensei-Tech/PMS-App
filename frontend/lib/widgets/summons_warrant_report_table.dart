@@ -746,9 +746,7 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
           Text(
             label,
             style: GoogleFonts.poppins(
-                fontSize: 11,
-                color: textColor,
-                fontWeight: FontWeight.w600),
+                fontSize: 11, color: textColor, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 2),
           Text(
