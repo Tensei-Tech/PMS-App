@@ -108,7 +108,8 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
 
-      await tester.pumpWidget(buildApp(const VictimHubScreen()));
+      await tester.pumpWidget(
+          buildApp(const VictimHubScreen(stationName: 'Station 1')));
       await tester.pumpAndSettle();
 
       expect(find.byType(VictimHubScreen), findsOneWidget);
@@ -121,7 +122,8 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
 
-      await tester.pumpWidget(buildApp(const VictimHubScreen()));
+      await tester.pumpWidget(
+          buildApp(const VictimHubScreen(stationName: 'Station 1')));
       await tester.pumpAndSettle();
 
       expect(find.byType(VictimHubScreen), findsOneWidget);
@@ -135,7 +137,8 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
 
-      await tester.pumpWidget(buildApp(const ItssoHubScreen()));
+      await tester
+          .pumpWidget(buildApp(const ItssoHubScreen(stationName: 'Station 1')));
       await tester.pumpAndSettle();
 
       expect(find.byType(ItssoHubScreen), findsOneWidget);
@@ -148,7 +151,8 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
 
-      await tester.pumpWidget(buildApp(const ItssoHubScreen()));
+      await tester
+          .pumpWidget(buildApp(const ItssoHubScreen(stationName: 'Station 1')));
       await tester.pumpAndSettle();
 
       expect(find.byType(ItssoHubScreen), findsOneWidget);

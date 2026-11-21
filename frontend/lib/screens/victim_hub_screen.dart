@@ -1308,12 +1308,16 @@ class _VictimHubScreenState extends State<VictimHubScreen>
               color: AppColors.navyMid,
             ),
             const SizedBox(width: 8),
-            Text(
-              'Filter: $labelText',
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.navyDark,
+            Flexible(
+              child: Text(
+                'Filter: $labelText',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.navyDark,
+                ),
               ),
             ),
             const SizedBox(width: 8),
@@ -1350,22 +1354,24 @@ class _VictimHubScreenState extends State<VictimHubScreen>
 
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // Dropdown Menu Selector
-          _buildFilterDropdownButton(),
-
-          const Spacer(),
+          Flexible(
+            child: _buildFilterDropdownButton(),
+          ),
 
           // Clear action if active filter
-          if (isFiltered)
+          if (isFiltered) ...[
+            const SizedBox(width: 8),
             InkWell(
               onTap: () => _applyFilterKeys({'all'}),
               borderRadius: BorderRadius.circular(20),
               child: Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color: AppColors.dangerRed.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(20),
@@ -1381,9 +1387,9 @@ class _VictimHubScreenState extends State<VictimHubScreen>
                       size: 14,
                       color: AppColors.dangerRed,
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 4),
                     Text(
-                      'Clear Filter',
+                      'Clear',
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -1394,6 +1400,7 @@ class _VictimHubScreenState extends State<VictimHubScreen>
                 ),
               ),
             ),
+          ],
         ],
       ),
     );

@@ -98,42 +98,60 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   final Map<String, TextEditingController> _controllers = {};
   final Map<String, dynamic> _values = {};
 
-  // Accordion state: in Edit mode, single section open at a time.
-  // In View / Read-Only mode, all sections start expanded so the entire case record is immediately visible.
-  String? _expandedSectionKey;
+  // Every section starts open, in edit and view mode alike, so all entered
+  // data is visible; a section stays closed only when the user closes it.
   final Set<String> _collapsedReadOnlySections = {};
   bool _readOnlyAllCollapsed = false;
   bool _isHydrated = false;
   bool _isGeneratingPdf = false;
   bool _isSubmitting = false;
 
+  // Common form steps: 0 Case & people, 1 Investigation, 2 Court & closure
+  int _formStep = 0;
+
+  /// Sub-step shown within the current step (0 = x.1).
+  int _formSub = 0;
+
+  /// Step layout: section cards drop their own border and margin, since
+  /// they sit inside the folder-tab panel.
+  bool _flatSectionCards = false;
+
+  /// Sections that had an empty required field at the last Submit (shown
+  /// with a red ! in the section list until filled).
+  final Set<String> _errorSections = {};
+
+  /// Sub-steps from the last build, to jump to a section with an error.
+  List<List<_SubStep>> _lastSteps = const [];
+
+  void _goTo(int step, int sub) => setState(() {
+        _formStep = step;
+        _formSub = sub;
+      });
+
+  // Accused whose arrest & custody are shown; null = the first one
+  String? _focusedAccused;
+
+  /// Step layout shows one section at a time, so its sections are always
+  /// open (closing one would only leave a blank page)
+  bool get _sectionsAlwaysOpen => !widget.sectionsInDisplayOrder;
+
   bool _isSectionExpanded(String sectionKey) {
-    if (widget.readOnly) {
-      if (_readOnlyAllCollapsed) return false;
-      return !_collapsedReadOnlySections.contains(sectionKey);
-    }
-    return _expandedSectionKey == sectionKey;
+    if (_sectionsAlwaysOpen) return true;
+    if (_readOnlyAllCollapsed) return false;
+    return !_collapsedReadOnlySections.contains(sectionKey);
   }
 
   void _toggleSection(String sectionKey) {
+    if (_sectionsAlwaysOpen) return;
     setState(() {
-      if (widget.readOnly) {
-        if (_readOnlyAllCollapsed) {
-          _readOnlyAllCollapsed = false;
-          _collapsedReadOnlySections.clear();
-        }
-        if (_collapsedReadOnlySections.contains(sectionKey)) {
-          _collapsedReadOnlySections.remove(sectionKey);
-        } else {
-          _collapsedReadOnlySections.add(sectionKey);
-        }
+      if (_readOnlyAllCollapsed) {
+        _readOnlyAllCollapsed = false;
+        _collapsedReadOnlySections.clear();
+      }
+      if (_collapsedReadOnlySections.contains(sectionKey)) {
+        _collapsedReadOnlySections.remove(sectionKey);
       } else {
-        if (_expandedSectionKey == sectionKey) {
-          _expandedSectionKey = null; // Collapse if tapped again
-        } else {
-          _expandedSectionKey =
-              sectionKey; // Open this section, auto-collapse all others
-        }
+        _collapsedReadOnlySections.add(sectionKey);
       }
     });
   }
@@ -141,12 +159,6 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   bool get _chargesSectionExpanded =>
       _isSectionExpanded('Acts & Sections Filed');
   bool get _accusedSectionExpanded => _isSectionExpanded('Accused');
-  bool get _suspectedAccusedSectionExpanded =>
-      _isSectionExpanded('Suspected Accused');
-  bool get _unidentifiedAccusedSectionExpanded =>
-      _isSectionExpanded('Unidentified Accused');
-  bool get _unknownAccusedSectionExpanded =>
-      _isSectionExpanded('Unknown Accused');
   bool get _arrestSectionExpanded => _isSectionExpanded('Arrest');
   bool get _dischargeSectionExpanded => _isSectionExpanded('Discharge Accused');
   bool get _preventiveSectionExpanded =>
@@ -169,6 +181,32 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
 
   // Unknown Accused state
   final List<Map<String, dynamic>> _unknownAccusedList = [];
+
+  // Accused types ticked in the Accused card's type dropdown. A type that
+  // already has people in it counts as ticked even if not in this set.
+  final Set<String> _pickedAccusedTypes = {};
+
+  // The accused-type person open for editing. Other filled people collapse
+  // to their one-line header; adding a person opens it and folds the rest.
+  Map<String, dynamic>? _openPerson;
+
+  bool _personFilled(Map<String, dynamic> p) => [
+        'name',
+        'approximate_age',
+        'height',
+        'skin_colour',
+        'identification_mark',
+        'description',
+      ].any((k) => (p[k]?.toString().trim() ?? '').isNotEmpty);
+
+  /// Parent-controlled collapse for a person card (null = card decides,
+  /// as in read-only view).
+  bool? _personCollapsed(Map<String, dynamic> p) =>
+      widget.readOnly ? null : _personFilled(p) && !identical(p, _openPerson);
+
+  void _togglePerson(Map<String, dynamic> p) => setState(() {
+        _openPerson = (_personCollapsed(p) ?? false) ? p : null;
+      });
 
   // Arrest state
   final List<Map<String, dynamic>> _arrestRecordsList = [];
@@ -1907,11 +1945,34 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         }
       }
 
+      final missingSections = <String>{
+        for (final f in _formDef?.fields ?? <DynamicFieldDef>[])
+          if (f.isRequired &&
+              _isFieldVisible(f) &&
+              _fieldEmpty(f) &&
+              (f.section ?? '').isNotEmpty)
+            f.section!,
+      };
+      setState(() => _errorSections
+        ..clear()
+        ..addAll(missingSections));
+
       if (firstErrorField != null) {
         final sec = firstErrorField.section;
         if (sec != null && sec.isNotEmpty) {
           setState(() {
-            _expandedSectionKey = sec;
+            _collapsedReadOnlySections.remove(sec);
+            _readOnlyAllCollapsed = false;
+            _formStep = _stepOfSection(sec);
+            _formSub = 0;
+            for (var i = 0; i < _lastSteps.length; i++) {
+              final j = _lastSteps[i].indexWhere((x) => x.keys.contains(sec));
+              if (j >= 0) {
+                _formStep = i;
+                _formSub = j;
+                break;
+              }
+            }
           });
         }
       }
@@ -3692,6 +3753,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         final idx = sectionCounter++;
         sectionCards.add(
           DynamicSectionCard(
+            showToggle: !_sectionsAlwaysOpen,
             key: ValueKey('sec_${entry.key}'),
             sectionIndex: widget.showSectionNumbers ? idx : null,
             title: entry.key,
@@ -3716,6 +3778,12 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       }
     }
 
+    // Common form: each section card by its key, placed in rows below
+    _flatSectionCards = !widget.sectionsInDisplayOrder;
+
+    // Builders: each card is made once its sub-step number (1.2) is known
+    final byKey = <String, Widget Function(Object? idx)>{};
+    final extraCards = <MapEntry<String, Widget Function(Object? idx)>>[];
     for (final secKey in widget.sectionsInDisplayOrder
         ? const <String>[]
         : orderedSectionKeys) {
@@ -3724,135 +3792,22 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             !(widget.readOnly &&
                 _hideEmptyInViewMode &&
                 !_hasAnyLegalCharges)) {
-          final idx = sectionCounter++;
-          sectionCards.add(_buildLegalChargesSection(sectionIndex: idx));
+          byKey[secKey] =
+              (idx) => (_buildLegalChargesSection(sectionIndex: idx));
         }
       } else if (secKey == 'Special Section / Template Details') {
         final isEmpty = _isDynamicSectionEmpty(customFields);
         if (customFields.isNotEmpty &&
             !(widget.readOnly && _hideEmptyInViewMode && isEmpty)) {
-          final idx = sectionCounter++;
-          sectionCards.add(
-            DynamicSectionCard(
-              key: ValueKey('sec_$secKey'),
-              sectionIndex: idx,
-              title:
-                  'Special Section / Template Details (${customFields.length})',
-              icon: Icons.featured_play_list_rounded,
-              fields: customFields,
-              controllers: _controllers,
-              values: _values,
-              onValueChanged: _onDynamicFieldValueChanged,
-              readOnly: widget.readOnly,
-              isExpanded: _isSectionExpanded(secKey),
-              onToggle: () => _toggleSection(secKey),
-              accusedOptions: accusedOptions,
-              hideEmptyFields: _hideEmptyInViewMode,
-              designationOptions: _designationOptions,
-              preventiveOptions: _formDef?.preventiveItems,
-              stationId: currentStation,
-              copyOnTickRules: _copyOnTickRules,
-              fieldMaxLengths: widget.fieldMaxLengths,
-              allFormFields: fields,
-            ),
-          );
-        }
-      } else if (secKey == 'Remand & Custody') {
-        if (showSection(secKey) &&
-            !(widget.readOnly && _hideEmptyInViewMode && !_hasAnyCustodyData)) {
-          final idx = sectionCounter++;
-          sectionCards.add(_buildRemandCustodySection(sectionIndex: idx));
-        }
-      } else if (secKey == 'Preventive Action') {
-        if (showSection(secKey) &&
-            !(widget.readOnly &&
-                _hideEmptyInViewMode &&
-                !_hasAnyPreventiveData)) {
-          final idx = sectionCounter++;
-          sectionCards.add(_buildPreventiveActionSection(sectionIndex: idx));
-        }
-      } else if (secKey == 'Discharge Accused') {
-        if (showSection(secKey) &&
-            !(widget.readOnly &&
-                _hideEmptyInViewMode &&
-                !_hasAnyDischargeData)) {
-          final idx = sectionCounter++;
-          sectionCards.add(_buildDischargeAccusedSection(sectionIndex: idx));
-        }
-      } else if (secKey == 'Accused') {
-        final hasAccusedData = _accusedList.isNotEmpty &&
-            _accusedList
-                .any((a) => (a['name'] ?? '').toString().trim().isNotEmpty);
-        if (showSection(secKey) &&
-            !(widget.readOnly && _hideEmptyInViewMode && !hasAccusedData)) {
-          final idx = sectionCounter++;
-          sectionCards.add(_buildAccusedSection(sectionIndex: idx));
-        }
-      } else if (secKey == 'Suspected Accused') {
-        final hasSuspectData = _suspectedAccusedList.isNotEmpty &&
-            _suspectedAccusedList
-                .any((a) => (a['name'] ?? '').toString().trim().isNotEmpty);
-        if (showSection(secKey) &&
-            !(widget.readOnly && _hideEmptyInViewMode && !hasSuspectData)) {
-          final idx = sectionCounter++;
-          sectionCards.add(_buildSuspectedAccusedSection(sectionIndex: idx));
-        }
-      } else if (secKey == 'Unidentified Accused') {
-        final hasUnidentifiedData = _unidentifiedAccusedList.isNotEmpty &&
-            _unidentifiedAccusedList.any((a) =>
-                (a['gender'] ?? '').toString().trim().isNotEmpty ||
-                (a['age_range'] ?? '').toString().trim().isNotEmpty ||
-                (a['identifying_marks'] ?? '').toString().trim().isNotEmpty ||
-                (a['complexion'] ?? '').toString().trim().isNotEmpty ||
-                (a['height'] ?? '').toString().trim().isNotEmpty);
-        if (showSection(secKey) &&
-            !(widget.readOnly &&
-                _hideEmptyInViewMode &&
-                !hasUnidentifiedData)) {
-          final idx = sectionCounter++;
-          sectionCards.add(_buildUnidentifiedAccusedSection(sectionIndex: idx));
-        }
-      } else if (secKey == 'Unknown Accused') {
-        final hasUnknownData = _unknownAccusedList.isNotEmpty &&
-            _unknownAccusedList
-                .any((a) => (a['name'] ?? '').toString().trim().isNotEmpty);
-        if (showSection(secKey) &&
-            !(widget.readOnly && _hideEmptyInViewMode && !hasUnknownData)) {
-          final idx = sectionCounter++;
-          sectionCards.add(_buildUnknownAccusedSection(sectionIndex: idx));
-        }
-      } else if (secKey == 'Arrest') {
-        if (showSection(secKey) &&
-            !(widget.readOnly && _hideEmptyInViewMode && !_hasAnyArrestData)) {
-          final idx = sectionCounter++;
-          sectionCards.add(_buildArrestSection(sectionIndex: idx));
-        }
-      } else if (secKey == 'Scrutiny') {
-        if (showSection(secKey) &&
-            !(widget.readOnly &&
-                _hideEmptyInViewMode &&
-                !_hasAnyScrutinyData)) {
-          final idx = sectionCounter++;
-          sectionCards.add(_buildScrutinySection(sectionIndex: idx));
-        }
-      } else {
-        final secFields = groupedBySection[secKey];
-        if (secFields != null && secFields.isNotEmpty) {
-          final isEmpty = _isDynamicSectionEmpty(secFields);
-          if (!(widget.readOnly && _hideEmptyInViewMode && isEmpty)) {
-            final idx = sectionCounter++;
-            final displayTitle = secKey == 'Officer'
-                ? 'IO / Registered By'
-                : (secKey == 'Court Filing and Final Summary'
-                    ? 'Court Filing & Final Summary'
-                    : secKey);
-            sectionCards.add(
-              DynamicSectionCard(
+          byKey[secKey] = (idx) => DynamicSectionCard(
+                flat: _flatSectionCards,
+                showToggle: !_sectionsAlwaysOpen,
                 key: ValueKey('sec_$secKey'),
                 sectionIndex: idx,
-                title: displayTitle,
-                icon: _iconForSection(secKey),
-                fields: secFields,
+                title:
+                    'Special Section / Template Details (${customFields.length})',
+                icon: Icons.featured_play_list_rounded,
+                fields: customFields,
                 controllers: _controllers,
                 values: _values,
                 onValueChanged: _onDynamicFieldValueChanged,
@@ -3867,8 +3822,91 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                 copyOnTickRules: _copyOnTickRules,
                 fieldMaxLengths: widget.fieldMaxLengths,
                 allFormFields: fields,
-              ),
-            );
+                columns: 4,
+              );
+        }
+      } else if (secKey == 'Remand & Custody') {
+        if (showSection(secKey) &&
+            !(widget.readOnly && _hideEmptyInViewMode && !_hasAnyCustodyData)) {
+          byKey[secKey] = (idx) => (_buildRemandCustodySection(
+              sectionIndex: idx, onlyFor: _panelAccused()));
+        }
+      } else if (secKey == 'Preventive Action') {
+        if (showSection(secKey) &&
+            !(widget.readOnly &&
+                _hideEmptyInViewMode &&
+                !_hasAnyPreventiveData)) {
+          byKey[secKey] =
+              (idx) => (_buildPreventiveActionSection(sectionIndex: idx));
+        }
+      } else if (secKey == 'Discharge Accused') {
+        if (showSection(secKey) &&
+            !(widget.readOnly &&
+                _hideEmptyInViewMode &&
+                !_hasAnyDischargeData)) {
+          byKey[secKey] =
+              (idx) => (_buildDischargeAccusedSection(sectionIndex: idx));
+        }
+      } else if (secKey == 'Accused') {
+        // One Accused card holds all four accused types, picked from a
+        // multi-select dropdown inside it
+        final types = _accusedTypeKeys.where(showSection).toList();
+        if (types.isNotEmpty) {
+          byKey[secKey] =
+              (idx) => (_buildAccusedSection(sectionIndex: idx, types: types));
+        }
+      } else if (secKey == 'Suspected Accused' ||
+          secKey == 'Unidentified Accused' ||
+          secKey == 'Unknown Accused') {
+        // Shown inside the Accused card
+      } else if (secKey == 'Arrest') {
+        if (showSection(secKey) &&
+            !(widget.readOnly && _hideEmptyInViewMode && !_hasAnyArrestData)) {
+          byKey[secKey] = (idx) => (_buildArrestSection(
+              sectionIndex: idx, onlyFor: _panelAccused()));
+        }
+      } else if (secKey == 'Scrutiny') {
+        if (showSection(secKey) &&
+            !(widget.readOnly &&
+                _hideEmptyInViewMode &&
+                !_hasAnyScrutinyData)) {
+          byKey[secKey] = (idx) => (_buildScrutinySection(sectionIndex: idx));
+        }
+      } else {
+        final secFields = groupedBySection[secKey];
+        if (secFields != null && secFields.isNotEmpty) {
+          final isEmpty = _isDynamicSectionEmpty(secFields);
+          if (!(widget.readOnly && _hideEmptyInViewMode && isEmpty)) {
+            final displayTitle = secKey == 'Officer'
+                ? 'IO / Registered By'
+                : (secKey == 'Court Filing and Final Summary'
+                    ? 'Court Filing & Final Summary'
+                    : secKey);
+            byKey[secKey] = (idx) => DynamicSectionCard(
+                  flat: _flatSectionCards,
+                  showToggle: !_sectionsAlwaysOpen,
+                  key: ValueKey('sec_$secKey'),
+                  sectionIndex: idx,
+                  title: displayTitle,
+                  icon: _iconForSection(secKey),
+                  fields: secFields,
+                  controllers: _controllers,
+                  values: _values,
+                  onValueChanged: _onDynamicFieldValueChanged,
+                  readOnly: widget.readOnly,
+                  isExpanded: _isSectionExpanded(secKey),
+                  onToggle: () => _toggleSection(secKey),
+                  accusedOptions: accusedOptions,
+                  hideEmptyFields: _hideEmptyInViewMode,
+                  designationOptions: _designationOptions,
+                  preventiveOptions: _formDef?.preventiveItems,
+                  stationId: currentStation,
+                  copyOnTickRules: _copyOnTickRules,
+                  fieldMaxLengths: widget.fieldMaxLengths,
+                  allFormFields: fields,
+                  // PC: three fields per line (Panchnama four)
+                  columns: secKey == 'All Panchnama' ? 4 : 3,
+                );
           }
         }
       }
@@ -3890,9 +3928,11 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
         if (widget.readOnly && _hideEmptyInViewMode && isEmpty) {
           continue;
         }
-        final idx = sectionCounter++;
-        sectionCards.add(
-          DynamicSectionCard(
+        extraCards.add(MapEntry(
+          entry.key,
+          (idx) => DynamicSectionCard(
+            flat: _flatSectionCards,
+            showToggle: !_sectionsAlwaysOpen,
             key: ValueKey('sec_${entry.key}'),
             sectionIndex: idx,
             title: entry.key,
@@ -3912,18 +3952,111 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             copyOnTickRules: _copyOnTickRules,
             fieldMaxLengths: widget.fieldMaxLengths,
             allFormFields: fields,
+            columns: 4,
           ),
-        );
+        ));
       }
     }
 
     final screenWidth = MediaQuery.sizeOf(context).width;
     final isCompact = screenWidth < 600;
 
+    final useSteps = !widget.sectionsInDisplayOrder;
+    final isWideLayout = screenWidth >= 1000;
+    final steps = useSteps
+        ? _commonFormSteps(byKey, extraCards, isWideLayout)
+        : const <List<_SubStep>>[];
+    _lastSteps = steps;
+    final shownSteps = [
+      for (var i = 0; i < steps.length; i++)
+        if (steps[i].isNotEmpty) i,
+    ];
+    final step = shownSteps.contains(_formStep)
+        ? _formStep
+        : (shownSteps.isEmpty ? 0 : shownSteps.first);
+    final sub = steps.isEmpty
+        ? 0
+        : _formSub.clamp(0, (steps[step].length - 1).clamp(0, 1 << 20));
+
+    // Step layout fits the screen: step tabs and sub-step chips on top,
+    // the section in the middle (scrolls on its own), and the Previous /
+    // Submit / Next bar always visible at the bottom
+    if (useSteps && shownSteps.isNotEmpty) {
+      // Every sub-step stays built, so its fields keep their values and
+      // still take part in validation while another is shown; only the
+      // shown one is visible, and it scrolls on its own
+      final sectionArea = Stack(
+        // Full width for the shown section (the others are offstage)
+        fit: StackFit.passthrough,
+        children: [
+          for (var i = 0; i < steps.length; i++)
+            for (var j = 0; j < steps[i].length; j++)
+              Visibility(
+                key: ValueKey('substep_${i}_$j'),
+                visible: i == step && j == sub,
+                maintainState: true,
+                child: steps[i][j].card,
+              ),
+        ],
+      );
+      final nav = _buildSubStepNav(steps, shownSteps, step, sub);
+      final pad = isCompact ? 10.0 : AppSpacing.md;
+
+      // Step tabs on top, then the section in a panel with folder tabs
+      // (1.1, 1.2, ...), then the Previous / Submit / Next bar
+      final Widget body = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (shownSteps.length > 1)
+            Padding(
+              padding: EdgeInsets.symmetric(
+                  horizontal: steps[step].isEmpty ? 0 : _tabArrowGutter),
+              child: _buildStepTabs(shownSteps, step, isCompact),
+            ),
+          // Box only as tall as its section, the bar right under it; a long
+          // section scrolls inside the box and the bar stays on screen
+          Expanded(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Flexible(
+                    child: steps[step].isEmpty
+                        ? SingleChildScrollView(child: sectionArea)
+                        : _buildFolderTabPanel(
+                            steps[step], step, sub, sectionArea),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: steps[step].isEmpty ? 0 : _tabArrowGutter),
+                    child: nav,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+
+      return Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1080),
+          child: Form(
+            key: _formKey,
+            child: Padding(padding: EdgeInsets.all(pad), child: body),
+          ),
+        ),
+      );
+    }
+
     return Align(
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1100),
+        // Step layout: one section at a time in a centred, readable column
+        constraints: BoxConstraints(maxWidth: useSteps ? 1080 : 1100),
         child: Form(
           key: _formKey,
           child: ListView(
@@ -3932,7 +4065,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
               vertical: isCompact ? 12.0 : AppSpacing.lg,
             ),
             children: [
-              ...sectionCards,
+              if (!useSteps) ...sectionCards,
               SizedBox(height: isCompact ? 16 : 24),
 
               // Submit Button
@@ -4001,9 +4134,980 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     );
   }
 
+  // ── Common form layout: 3 steps, equal-width cards in rows ──────────────
+
+  // Step labels in the step header (shown bold, without a title above)
+  static const _stepHints = [
+    'FIR, complainant, accused, arrest',
+    'Investigation',
+    'Scrutiny, charge sheet',
+  ];
+
+  /// Step that holds a section: 0 case & people, 1 investigation, 2 closure.
+  int _stepOfSection(String section) {
+    final s = section.toLowerCase();
+    if (s.contains('scrutiny') ||
+        s.contains('court') ||
+        s.contains('final summary')) {
+      return 2;
+    }
+    const caseAndPeople = [
+      'crime registration',
+      'acts & sections',
+      'crime spot',
+      'complainant',
+      'accused',
+      'officer',
+      'responsibility',
+      'registered by',
+      'arrest',
+      'remand',
+      'custody',
+    ];
+    if (s.contains('discharge')) return 1;
+    return caseAndPeople.any(s.contains) ? 0 : 1;
+  }
+
+  /// Everyone who can have an arrest or custody record, in form order.
+  List<String> _panelPeople() {
+    final people = <String>[];
+    void add(String n) {
+      final t = n.trim();
+      if (t.isNotEmpty &&
+          !people.any((x) => x.toLowerCase() == t.toLowerCase())) {
+        people.add(t);
+      }
+    }
+
+    _getAvailableAccusedNames().forEach(add);
+    for (final r in _arrestRecordsList) {
+      add((r['arrested_person_name'] ?? r['person_name'] ?? r['name'] ?? '')
+          .toString());
+    }
+    _customCustodyPersons.forEach(add);
+    for (final r in _custodyRecordsList) {
+      add((r['name'] ?? r['person_name'] ?? '').toString());
+    }
+    return people;
+  }
+
+  /// The accused whose arrest & custody are shown (the first by default).
+  String? _panelAccused() {
+    final people = _panelPeople();
+    if (people.isEmpty) return null;
+    final f = _focusedAccused;
+    if (f != null && people.any((p) => p.toLowerCase() == f.toLowerCase())) {
+      return f;
+    }
+    return people.first;
+  }
+
+  /// Short names for the sub-step chips.
+  static const _subStepNames = {
+    'Crime Registration Info': 'Registration Info',
+    'Acts & Sections Filed': 'Acts & Sections',
+    'Officer': 'IO / Registered By',
+    'Arrest': 'Arrest & Custody',
+    'CCTV and CDR Investigation': 'CCTV & CDR',
+    'All Panchnama': 'Panchnama',
+    'Seizure Records': 'Seizure',
+    'Special Section / Template Details': 'Special Section',
+    'Court Filing and Final Summary': 'Court Filing & Summary',
+  };
+
+  /// The three steps, each split into numbered sub-steps (1.1, 1.2, ...),
+  /// one section card per sub-step. Sections the form does not have are
+  /// left out and the numbering closes up.
+  List<List<_SubStep>> _commonFormSteps(
+    Map<String, Widget Function(Object? idx)> byKey,
+    List<MapEntry<String, Widget Function(Object? idx)>> extraCards,
+    bool wide,
+  ) {
+    const plan = [
+      [
+        'Crime Registration Info',
+        'Acts & Sections Filed',
+        'Crime Spot',
+        'Complainant',
+        'Accused',
+        'Officer',
+        'Arrest',
+        'Absconding Accused',
+      ],
+      [
+        'CCTV and CDR Investigation',
+        'Vehicle Log Book',
+        'Evidence',
+        'All Panchnama',
+        'Seizure Records',
+        'Preventive Action',
+        'Discharge Accused',
+        'Special Section / Template Details',
+      ],
+      ['Scrutiny', 'Court Filing and Final Summary'],
+    ];
+
+    final steps = <List<_SubStep>>[];
+    for (var s = 0; s < plan.length; s++) {
+      final subs = <_SubStep>[];
+      String label() => '${s + 1}.${subs.length + 1}';
+      for (final key in plan[s]) {
+        if (key == 'Arrest') {
+          // Arrest and Remand & Custody share one sub-step, for the accused
+          // picked in the bar above them
+          final arrest = byKey['Arrest'];
+          final custody = byKey['Remand & Custody'];
+          if (arrest == null && custody == null) continue;
+          final l = label();
+          subs.add(_SubStep(
+            title: _subStepNames[key]!,
+            keys: const ['Arrest', 'Remand & Custody'],
+            card: _buildArrestCustodyPanel(arrest?.call(l), custody?.call(l)),
+          ));
+          continue;
+        }
+        final build = byKey[key];
+        if (build == null) continue;
+        subs.add(_SubStep(
+          title: _subStepNames[key] ?? key,
+          keys: key == 'Accused' ? _accusedTypeKeys : [key],
+          card: build(label()),
+        ));
+      }
+      if (s == 1) {
+        for (final e in extraCards) {
+          subs.add(
+              _SubStep(title: e.key, keys: [e.key], card: e.value(label())));
+        }
+      }
+      steps.add(subs);
+    }
+    return steps;
+  }
+
+  /// 1.7 Arrest & Custody: the accused on the left, and the picked one's
+  /// arrest and custody stacked on the right. Phones keep the picker bar
+  /// above the two cards.
+  Widget _buildArrestCustodyPanel(Widget? arrest, Widget? custody) {
+    final people = _panelPeople();
+    final cards = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (arrest != null) arrest,
+        if (arrest != null && custody != null) const SizedBox(height: 10),
+        if (custody != null) custody,
+      ],
+    );
+    if (MediaQuery.sizeOf(context).width < 840 || people.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [_buildAccusedPicker(), cards],
+      );
+    }
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(width: 240, child: _buildAccusedListPanel(people)),
+        const SizedBox(width: 14),
+        Expanded(child: cards),
+      ],
+    );
+  }
+
+  bool _personNamed(List<Map<String, dynamic>> list, String name) => list.any(
+      (p) =>
+          (p['name']?.toString().trim().toLowerCase() ?? '') ==
+          name.toLowerCase());
+
+  bool _isArrested(String name) => _arrestRecordsList.any((r) =>
+      (r['arrested_person_name'] ?? r['person_name'] ?? r['name'] ?? '')
+          .toString()
+          .trim()
+          .toLowerCase() ==
+      name.toLowerCase());
+
+  /// Left list of the accused: initials, name, type, and a green "Arrested"
+  /// once an arrest is recorded. Tap one to show their arrest and custody.
+  Widget _buildAccusedListPanel(List<String> people) {
+    final current = _panelAccused();
+    final arrested = people.where(_isArrested).length;
+
+    Widget pill(String text, Color bg, Color fg) => Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: BorderRadius.circular(5),
+          ),
+          child: Text(
+            text,
+            style: GoogleFonts.poppins(
+                fontSize: 10.5, fontWeight: FontWeight.w600, color: fg),
+          ),
+        );
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: _responsiveCardRadius(context),
+        border: Border.all(color: AppColors.lightBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Accused',
+                    style: GoogleFonts.poppins(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navyDark,
+                    ),
+                  ),
+                ),
+                Text(
+                  '$arrested of ${people.length} arrested',
+                  style: GoogleFonts.poppins(
+                      fontSize: 11.5, color: AppColors.lightSubText),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: AppColors.lightBorder),
+          Padding(
+            padding: const EdgeInsets.all(6),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final name in people)
+                  Builder(builder: (context) {
+                    final selected =
+                        name.toLowerCase() == current?.toLowerCase();
+                    final type = _personNamed(_accusedList, name)
+                        ? 'Accused'
+                        : (_personNamed(_suspectedAccusedList, name)
+                            ? 'Suspect'
+                            : null);
+                    final initials = name
+                        .split(RegExp(r'\s+'))
+                        .where((w) => w.isNotEmpty)
+                        .take(2)
+                        .map((w) => w[0].toUpperCase())
+                        .join();
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 2),
+                      child: Material(
+                        color: selected
+                            ? AppColors.navyMid.withValues(alpha: 0.08)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          onTap: () => setState(() => _focusedAccused = name),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 9),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(AppRadius.md),
+                              border: Border.all(
+                                color: selected
+                                    ? AppColors.navyMid.withValues(alpha: 0.35)
+                                    : Colors.transparent,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 32,
+                                  height: 32,
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: selected
+                                        ? AppColors.navyMid
+                                        : const Color(0xFFF1F5F9),
+                                  ),
+                                  child: Text(
+                                    initials,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: selected
+                                          ? Colors.white
+                                          : const Color(0xFF475569),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        name,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.navyDark,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 3),
+                                      Wrap(
+                                        spacing: 4,
+                                        runSpacing: 2,
+                                        children: [
+                                          if (type != null)
+                                            pill(type, const Color(0xFFF1F5F9),
+                                                const Color(0xFF475569)),
+                                          if (_isArrested(name))
+                                            pill(
+                                                'Arrested',
+                                                const Color(0xFFDCFCE7),
+                                                const Color(0xFF15803D)),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// "Arrest & custody for" bar: one choice per accused.
+  Widget _buildAccusedPicker() {
+    final people = _panelPeople();
+    if (people.length < 2) return const SizedBox.shrink();
+    final current = _panelAccused();
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: _responsiveCardRadius(context),
+        border: Border.all(color: AppColors.lightBorder),
+      ),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Text(
+            'Arrest & custody for',
+            style: GoogleFonts.poppins(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.navyDark,
+            ),
+          ),
+          for (final name in people)
+            ChoiceChip(
+              label: Text(name),
+              selected: name.toLowerCase() == current?.toLowerCase(),
+              onSelected: (_) => setState(() => _focusedAccused = name),
+              showCheckmark: false,
+              labelStyle: GoogleFonts.poppins(
+                fontSize: 13,
+                color: name.toLowerCase() == current?.toLowerCase()
+                    ? Colors.white
+                    : AppColors.navyDark,
+              ),
+              selectedColor: AppColors.navyMid,
+              backgroundColor: Colors.white,
+              side: const BorderSide(color: AppColors.lightBorder),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStepTabs(List<int> shown, int current, bool isCompact) {
+    if (MediaQuery.sizeOf(context).width >= 1000) {
+      return _buildDesktopStepper(shown, current);
+    }
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppColors.lightBorder)),
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            for (var n = 0; n < shown.length; n++)
+              InkWell(
+                onTap: () => _goTo(shown[n], 0),
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 16, 10),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: shown[n] == current
+                            ? AppColors.navyMid
+                            : Colors.transparent,
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      // Only the step's contents line, in bold (no number)
+                      Text(
+                        _stepHints[shown[n]],
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: shown[n] == current
+                              ? AppColors.navyDark
+                              : AppColors.lightSubText,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// PC stepper: finished steps show a green tick, the current step is
+  /// solid navy, and a line joins each step to the next.
+  Widget _buildDesktopStepper(List<int> shown, int current) {
+    const done = Color(0xFF2E7D32);
+    final at = shown.indexOf(current);
+    Widget stepItem(int n) {
+      final isOn = n == at;
+      return InkWell(
+        onTap: () => _goTo(shown[n], 0),
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Only the step's contents line, in bold (no title)
+              Text(
+                _stepHints[shown[n]],
+                style: GoogleFonts.poppins(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                  color: isOn ? AppColors.navyDark : AppColors.lightSubText,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: AppColors.lightBorder),
+      ),
+      child: Row(
+        children: [
+          for (var n = 0; n < shown.length; n++) ...[
+            if (n > 0)
+              Expanded(
+                child: Container(
+                  height: 2,
+                  margin: const EdgeInsets.symmetric(horizontal: 12),
+                  color: n <= at ? done : AppColors.lightBorder,
+                ),
+              ),
+            stepItem(n),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ── Step layout on wide screens: slim step bar, section list on the left
+  // with a status mark per section, the section and its buttons on the right
+
+  bool _fieldEmpty(DynamicFieldDef f) =>
+      _isBlankValue(_controllers[f.fieldKey]?.text ?? _values[f.fieldKey]);
+
+  /// Empty in the eyes of a user: nothing typed, unticked, or a table whose
+  /// rows are all blank (a repeating group starts with one empty row, which
+  /// is not "filled").
+  bool _isBlankValue(dynamic val) {
+    if (val == null || val == false) return true;
+    if (val is String) {
+      final t = val.trim();
+      return t.isEmpty || t == 'Select' || t == '--';
+    }
+    if (val is List) return val.every(_isBlankValue);
+    if (val is Map) return val.values.every(_isBlankValue);
+    return false;
+  }
+
+  /// done / error / none for a sub-step, from its required fields (or, for
+  /// a section without required fields, whether anything is filled in).
+  _SubStatus _subStatus(_SubStep s) {
+    final fields = (_formDef?.fields ?? const <DynamicFieldDef>[])
+        .where((f) => s.keys.contains(f.section) && _isFieldVisible(f))
+        .toList();
+    final required = fields.where((f) => f.isRequired).toList();
+    final missing = required.where(_fieldEmpty).length;
+
+    var customFilled = false;
+    if (s.keys.contains('Acts & Sections Filed')) {
+      final c = _values['charges'];
+      customFilled = c is List && c.isNotEmpty;
+    }
+    if (s.keys.contains('Accused')) {
+      customFilled =
+          _accusedTypeKeys.any((t) => _accusedTypeList(t).isNotEmpty);
+    }
+
+    if (missing > 0 && s.keys.any(_errorSections.contains)) {
+      return _SubStatus.error;
+    }
+    if (required.isNotEmpty) {
+      return missing == 0 ? _SubStatus.done : _SubStatus.none;
+    }
+    final anyFilled = customFilled || fields.any((f) => !_fieldEmpty(f));
+    return anyFilled ? _SubStatus.done : _SubStatus.none;
+  }
+
+  static const double _folderTabHeight = 42;
+
+  /// One key per folder tab, to scroll the open tab into first place.
+  final Map<String, GlobalKey> _folderTabKeys = {};
+  String? _folderTabShown;
+
+  /// After the tabs are drawn: scroll the strip so the open tab is the
+  /// first one in view (1.3 open -> 1.3 at the left edge).
+  void _scrollOpenTabFirst(String id) {
+    if (_folderTabShown == id) return;
+    _folderTabShown = id;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = _folderTabKeys[id]?.currentContext;
+      if (ctx == null || !ctx.mounted) return;
+      Scrollable.ensureVisible(
+        ctx,
+        alignment: 0,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutCubic,
+      );
+    });
+  }
+
+  /// Section panel with folder tabs on top (1.1 Registration Info, 1.2 Acts
+  /// & Sections, ...): the open tab is white and joins the panel below it,
+  /// the others sit behind in grey. The panel holds the shown section,
+  /// which scrolls on its own.
+  Widget _buildFolderTabPanel(
+      List<_SubStep> subs, int step, int current, Widget sectionArea) {
+    final isDesktop = MediaQuery.sizeOf(context).width >= 1000;
+    const radius = Radius.circular(10);
+
+    Widget tab(int j) {
+      final selected = j == current;
+      final error = _subStatus(subs[j]) == _SubStatus.error;
+      return Padding(
+        key: _folderTabKeys.putIfAbsent('${step}_$j', GlobalKey.new),
+        padding: const EdgeInsets.only(right: 4),
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: Material(
+            // Open tab: solid navy, like the section chips before
+            color: selected ? AppColors.navyMid : const Color(0xFFEFF2F7),
+            shape: RoundedRectangleBorder(
+              borderRadius: const BorderRadius.vertical(top: radius),
+              side: BorderSide(
+                color: selected ? AppColors.navyMid : const Color(0xFFE2E8F0),
+              ),
+            ),
+            child: InkWell(
+              borderRadius: const BorderRadius.vertical(top: radius),
+              onTap: () => _goTo(step, j),
+              child: Container(
+                height: _folderTabHeight,
+                padding: EdgeInsets.symmetric(horizontal: isDesktop ? 16 : 12),
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      subs[j].title,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12.5,
+                        fontWeight:
+                            selected ? FontWeight.w600 : FontWeight.w500,
+                        color:
+                            selected ? Colors.white : const Color(0xFF64748B),
+                      ),
+                    ),
+                    if (error) ...[
+                      const SizedBox(width: 6),
+                      Icon(Icons.error_rounded,
+                          size: 15,
+                          color: selected ? Colors.white : AppColors.dangerRed),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Small round arrow beside the tabs: previous / next section
+    Widget arrow(IconData icon, String tip, VoidCallback? onTap) => Padding(
+          padding: const EdgeInsets.only(top: 7),
+          child: Tooltip(
+            message: tip,
+            child: Material(
+              color: Colors.white,
+              shape: CircleBorder(
+                side: BorderSide(
+                  color: onTap == null
+                      ? const Color(0xFFE2E8F0)
+                      : AppColors.lightBorder,
+                ),
+              ),
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: onTap,
+                child: SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: Icon(
+                    icon,
+                    size: 20,
+                    color: onTap == null
+                        ? const Color(0xFFCBD5E1)
+                        : AppColors.navyMid,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+
+    _scrollOpenTabFirst('${step}_$current');
+
+    final panel = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Room after the last tab, so the strip can always slide the open
+        // tab to the first place (even when all tabs would fit)
+        SizedBox(
+          height: _folderTabHeight,
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  for (var j = 0; j < subs.length; j++) tab(j),
+                  if (current > 0) SizedBox(width: constraints.maxWidth),
+                ],
+              ),
+            ),
+          ),
+        ),
+        // The box: only as tall as the shown section; a long section
+        // scrolls inside it
+        Flexible(
+          child: Container(
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: AppColors.lightBorder),
+              borderRadius: const BorderRadius.only(
+                topRight: radius,
+                bottomLeft: radius,
+                bottomRight: radius,
+              ),
+            ),
+            child: SingleChildScrollView(child: sectionArea),
+          ),
+        ),
+      ],
+    );
+
+    // Arrows outside the panel, in gutters as wide as the indent of the
+    // step header and the bottom bar, so all three line up
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: _tabArrowGutter,
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: arrow(Icons.chevron_left_rounded, 'Previous section',
+                current > 0 ? () => _goTo(step, current - 1) : null),
+          ),
+        ),
+        Expanded(child: panel),
+        SizedBox(
+          width: _tabArrowGutter,
+          child: Align(
+            alignment: Alignment.topRight,
+            child: arrow(
+                Icons.chevron_right_rounded,
+                'Next section',
+                current < subs.length - 1
+                    ? () => _goTo(step, current + 1)
+                    : null),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Side gutter for the ‹ › arrows beside the tab panel; the step header
+  /// and the bottom bar are indented by the same amount.
+  static const double _tabArrowGutter = 38;
+
+  String get _submitLabel => _isSubmitting
+      ? 'Saving...'
+      : (isEdit
+          ? (widget.onSubmitCustom != null
+              ? 'Save Changes'
+              : 'Update Case Record')
+          : 'Submit');
+
+  /// Bottom bar of the step layout, in a white card under the section:
+  /// Previous on the left, where you are and a progress bar in the middle,
+  /// Next on the right. Submit sits beside Next (and replaces it on the very
+  /// last section), so it can be used at any time.
+  Widget _buildSubStepNav(
+      List<List<_SubStep>> steps, List<int> shown, int step, int sub,
+      {bool inPanel = false}) {
+    (int, int)? prev;
+    (int, int)? next;
+    if (sub > 0) {
+      prev = (step, sub - 1);
+    } else {
+      final at = shown.indexOf(step);
+      if (at > 0) prev = (shown[at - 1], steps[shown[at - 1]].length - 1);
+    }
+    if (sub < steps[step].length - 1) {
+      next = (step, sub + 1);
+    } else {
+      final at = shown.indexOf(step);
+      if (at >= 0 && at < shown.length - 1) next = (shown[at + 1], 0);
+    }
+    // Progress over all sections of all steps
+    var total = 0, done = 0;
+    for (final i in shown) {
+      if (i < step) done += steps[i].length;
+      total += steps[i].length;
+    }
+    done += sub + 1;
+
+    final w = MediaQuery.sizeOf(context).width;
+    final isDesktop = w >= 1000;
+    final isPhone = w < 600;
+    final isLast = next == null;
+
+    final btnShape = RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md));
+    final btnPad = EdgeInsets.symmetric(
+        horizontal: isPhone ? 12 : 18, vertical: isPhone ? 10 : 13);
+    final btnText =
+        GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600);
+
+    final prevBtn = prev == null
+        ? null
+        : OutlinedButton.icon(
+            onPressed: () => _goTo(prev!.$1, prev.$2),
+            icon: const Icon(Icons.arrow_back_rounded, size: 17),
+            label: Text(isPhone ? 'Back' : 'Previous', style: btnText),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.navyDark,
+              side: const BorderSide(color: AppColors.lightBorder),
+              shape: btnShape,
+              padding: btnPad,
+            ),
+          );
+
+    final nextBtn = next == null
+        ? null
+        : ElevatedButton.icon(
+            onPressed: () => _goTo(next!.$1, next.$2),
+            iconAlignment: IconAlignment.end,
+            icon: const Icon(Icons.arrow_forward_rounded, size: 17),
+            label: Text(
+              'Next',
+              overflow: TextOverflow.ellipsis,
+              style: btnText,
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.navyMid,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: btnShape,
+              padding: btnPad,
+            ),
+          );
+
+    final submitIcon = _isSubmitting
+        ? const SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2))
+        : const Icon(Icons.check_circle_outline_rounded, size: 17);
+    final Widget? submitBtn = widget.readOnly
+        ? null
+        : isLast
+            ? ElevatedButton.icon(
+                onPressed: _isSubmitting ? null : _submitForm,
+                icon: submitIcon,
+                label: Text(_submitLabel, style: btnText),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.navyMid,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: btnShape,
+                  padding: btnPad,
+                ),
+              )
+            : OutlinedButton.icon(
+                onPressed: _isSubmitting ? null : _submitForm,
+                icon: submitIcon,
+                label: Text(_submitLabel, style: btnText),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.navyMid,
+                  side: const BorderSide(color: AppColors.navyMid),
+                  shape: btnShape,
+                  padding: btnPad,
+                ),
+              );
+
+    final progress = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'Section $done of $total',
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.navyDark,
+          ),
+        ),
+        const SizedBox(height: 6),
+        SizedBox(
+          width: isDesktop ? 180 : 120,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: total == 0 ? 0 : done / total,
+              minHeight: 5,
+              backgroundColor: const Color(0xFFE2E8F0),
+              color: AppColors.navyMid,
+            ),
+          ),
+        ),
+      ],
+    );
+
+    final rightButtons = <Widget>[
+      if (submitBtn != null && !isLast) ...[
+        submitBtn,
+        const SizedBox(width: 10),
+      ],
+      if (nextBtn != null) Flexible(child: nextBtn),
+      if (isLast && submitBtn != null) submitBtn,
+    ];
+
+    return Container(
+      margin: inPanel ? EdgeInsets.zero : const EdgeInsets.only(top: 10),
+      padding: EdgeInsets.symmetric(
+          horizontal: isPhone ? 10 : 16, vertical: isPhone ? 10 : 12),
+      decoration: inPanel
+          ? const BoxDecoration(color: Color(0xFFFAFBFC))
+          : BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              border: Border.all(color: AppColors.lightBorder),
+            ),
+      child: isPhone
+          // Phone: progress on top, buttons on one line under it
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(child: progress),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    if (prevBtn != null) prevBtn,
+                    const Spacer(),
+                    ...rightButtons,
+                  ],
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: prevBtn ?? const SizedBox.shrink(),
+                  ),
+                ),
+                progress,
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: rightButtons,
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+
+  BoxDecoration _sectionCardDecoration(BuildContext context) {
+    if (_flatSectionCards) return const BoxDecoration(color: Colors.white);
+    return BoxDecoration(
+      color: Colors.white,
+      borderRadius: _responsiveCardRadius(context),
+      border: Border.all(color: AppColors.lightBorder),
+      boxShadow: [
+        BoxShadow(
+          color: AppColors.navyDark.withValues(alpha: 0.04),
+          blurRadius: 10,
+          offset: const Offset(0, 3),
+        ),
+      ],
+    );
+  }
+
   EdgeInsets _responsiveCardMargin(BuildContext context) {
-    final isCompact = MediaQuery.sizeOf(context).width < 600;
-    return EdgeInsets.only(bottom: isCompact ? 10.0 : 14.0);
+    if (_flatSectionCards) return EdgeInsets.zero;
+    final w = MediaQuery.sizeOf(context).width;
+    // PC: same spacing as the other section cards, so rows line up
+    if (w >= 1000) return const EdgeInsets.only(bottom: 6);
+    return EdgeInsets.only(bottom: w < 600 ? 10.0 : 14.0);
   }
 
   BorderRadius _responsiveCardRadius(BuildContext context) {
@@ -4022,7 +5126,12 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   }
 
   EdgeInsets _responsiveHeaderPadding(BuildContext context) {
-    final isCompact = MediaQuery.sizeOf(context).width < 600;
+    final w = MediaQuery.sizeOf(context).width;
+    // PC: same header height as the other section cards
+    if (w >= 1000) {
+      return const EdgeInsets.symmetric(horizontal: 16, vertical: 10);
+    }
+    final isCompact = w < 600;
     return EdgeInsets.symmetric(
       horizontal: isCompact ? 12 : 16,
       vertical: isCompact ? 11 : 14,
@@ -4034,31 +5143,41 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     return EdgeInsets.all(isCompact ? 12.0 : 16.0);
   }
 
-  Widget _buildSectionIndexBadge(int? sectionIndex, [IconData? fallbackIcon]) {
-    final isCompact = MediaQuery.sizeOf(context).width < 600;
+  Widget _buildSectionIndexBadge(Object? sectionIndex,
+      [IconData? fallbackIcon]) {
+    // PC: the same solid navy badge as the other section cards
+    final isDesktop = MediaQuery.sizeOf(context).width >= 1000;
     return Container(
-      width: isCompact ? 28 : 32,
-      height: isCompact ? 28 : 32,
+      // Grows for a longer label like "2.10"
+      constraints: BoxConstraints(
+        minWidth: isDesktop ? 32 : 38,
+        minHeight: isDesktop ? 32 : 38,
+        maxHeight: isDesktop ? 32 : 38,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 5),
       decoration: BoxDecoration(
-        color: AppColors.navyMid,
-        borderRadius: BorderRadius.circular(8),
+        color: isDesktop
+            ? AppColors.navyMid
+            : AppColors.navyMid.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(isDesktop ? 6 : 8),
       ),
       alignment: Alignment.center,
       child: sectionIndex != null
           ? Text(
               '$sectionIndex',
               style: GoogleFonts.poppins(
-                fontSize: isCompact ? 12.0 : 13.5,
+                fontSize: isDesktop ? 13.5 : 15,
                 fontWeight: FontWeight.w700,
-                color: Colors.white,
+                color: isDesktop ? Colors.white : AppColors.navyDark,
               ),
             )
           : Icon(fallbackIcon ?? Icons.article_outlined,
-              size: isCompact ? 16 : 18, color: Colors.white),
+              size: isDesktop ? 18 : 20,
+              color: isDesktop ? Colors.white : AppColors.navyMid),
     );
   }
 
-  Widget _buildLegalChargesSection({int? sectionIndex}) {
+  Widget _buildLegalChargesSection({Object? sectionIndex}) {
     List<dynamic>? initialCharges;
     try {
       if (widget.existingRecord != null) {
@@ -4151,67 +5270,62 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     return Container(
       key: const ValueKey('sec_Acts & Sections Filed'),
       margin: _responsiveCardMargin(context),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: _responsiveCardRadius(context),
-        border: Border.all(color: AppColors.lightBorder),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.navyDark.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
+      decoration: _sectionCardDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          InkWell(
-            onTap: () => _toggleSection('Acts & Sections Filed'),
-            borderRadius:
-                _responsiveHeaderBorderRadius(context, _chargesSectionExpanded),
-            child: Padding(
-              padding: _responsiveHeaderPadding(context),
-              child: Row(
-                children: [
-                  _buildSectionIndexBadge(sectionIndex, Icons.gavel_rounded),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Acts & Sections Filed$countSuffix',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
-                      ),
-                    ),
-                  ),
-                  Tooltip(
-                    message: _chargesSectionExpanded ? 'Collapse' : 'Expand',
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: AnimatedRotation(
-                        turns: _chargesSectionExpanded ? 0.5 : 0.0,
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeInOutCubic,
-                        child: const Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: AppColors.navyMid,
-                          size: 22,
+          // Inside the tab panel the tab names the section: no header
+          if (!_flatSectionCards)
+            InkWell(
+              onTap: () => _toggleSection('Acts & Sections Filed'),
+              borderRadius: _responsiveHeaderBorderRadius(
+                  context, _chargesSectionExpanded),
+              child: Padding(
+                padding: _responsiveHeaderPadding(context),
+                child: Row(
+                  children: [
+                    _buildSectionIndexBadge(sectionIndex, Icons.gavel_rounded),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Acts & Sections Filed$countSuffix',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.navyDark,
                         ),
                       ),
                     ),
-                  ),
-                ],
+                    // No collapse arrow in the step layout (sections stay open)
+                    if (!_sectionsAlwaysOpen)
+                      Tooltip(
+                        message:
+                            _chargesSectionExpanded ? 'Collapse' : 'Expand',
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: AnimatedRotation(
+                            turns: _chargesSectionExpanded ? 0.5 : 0.0,
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeInOutCubic,
+                            child: const Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              color: AppColors.navyMid,
+                              size: 22,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
-          ),
           AnimatedCrossFade(
             firstChild: const SizedBox(width: double.infinity, height: 0),
             secondChild: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Divider(height: 1, color: AppColors.lightBorder),
+                if (!_flatSectionCards)
+                  const Divider(height: 1, color: AppColors.lightBorder),
                 Padding(
                   padding: _responsiveBodyPadding(context),
                   child: RepeatingCascadingChargesSelector(
@@ -4421,7 +5535,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     return names.toList()..sort();
   }
 
-  Widget _buildDischargeAccusedSection({int? sectionIndex}) {
+  Widget _buildDischargeAccusedSection({Object? sectionIndex}) {
     if (widget.readOnly && _hideEmptyInViewMode && !_hasAnyDischargeData) {
       return const SizedBox.shrink();
     }
@@ -4429,92 +5543,87 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
 
     return Container(
       margin: _responsiveCardMargin(context),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: _responsiveCardRadius(context),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.navyDark.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-        border: Border.all(color: AppColors.lightBorder),
-      ),
+      decoration: _sectionCardDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Section Header
-          InkWell(
-            onTap: () => _toggleSection('Discharge Accused'),
-            borderRadius: _responsiveHeaderBorderRadius(
-                context, _dischargeSectionExpanded),
-            child: Padding(
-              padding: _responsiveHeaderPadding(context),
-              child: Row(
-                children: [
-                  _buildSectionIndexBadge(
-                      sectionIndex, Icons.person_remove_rounded),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Discharge Accused',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: _dischargedAccusedList.isNotEmpty
-                          ? AppColors.dangerRed.withValues(alpha: 0.12)
-                          : AppColors.navyMid.withValues(alpha: 0.07),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      _dischargedAccusedList.isNotEmpty
-                          ? '${_dischargedAccusedList.length} discharged'
-                          : '${availableAccused.length} available',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: _dischargedAccusedList.isNotEmpty
-                            ? AppColors.dangerRed
-                            : AppColors.navyMid,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Tooltip(
-                    message: _dischargeSectionExpanded ? 'Collapse' : 'Expand',
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: AnimatedRotation(
-                        turns: _dischargeSectionExpanded ? 0.5 : 0.0,
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeInOutCubic,
-                        child: const Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: AppColors.navyMid,
-                          size: 22,
+          // Inside the tab panel the tab names the section: no header
+          if (!_flatSectionCards)
+            InkWell(
+              onTap: () => _toggleSection('Discharge Accused'),
+              borderRadius: _responsiveHeaderBorderRadius(
+                  context, _dischargeSectionExpanded),
+              child: Padding(
+                padding: _responsiveHeaderPadding(context),
+                child: Row(
+                  children: [
+                    _buildSectionIndexBadge(
+                        sectionIndex, Icons.person_remove_rounded),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Discharge Accused',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.navyDark,
                         ),
                       ),
                     ),
-                  ),
-                ],
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: _dischargedAccusedList.isNotEmpty
+                            ? AppColors.dangerRed.withValues(alpha: 0.12)
+                            : AppColors.navyMid.withValues(alpha: 0.07),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        _dischargedAccusedList.isNotEmpty
+                            ? '${_dischargedAccusedList.length} discharged'
+                            : '${availableAccused.length} available',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: _dischargedAccusedList.isNotEmpty
+                              ? AppColors.dangerRed
+                              : AppColors.navyMid,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    // No collapse arrow in the step layout (sections stay open)
+                    if (!_sectionsAlwaysOpen)
+                      Tooltip(
+                        message:
+                            _dischargeSectionExpanded ? 'Collapse' : 'Expand',
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: AnimatedRotation(
+                            turns: _dischargeSectionExpanded ? 0.5 : 0.0,
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeInOutCubic,
+                            child: const Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              color: AppColors.navyMid,
+                              size: 22,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
-          ),
           AnimatedCrossFade(
             firstChild: const SizedBox(width: double.infinity, height: 0),
             secondChild: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Divider(height: 1, color: AppColors.lightBorder),
+                if (!_flatSectionCards)
+                  const Divider(height: 1, color: AppColors.lightBorder),
                 Padding(
                   padding: _responsiveBodyPadding(context),
                   child: Column(
@@ -4907,211 +6016,624 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     }
   }
 
-  Widget _buildAccusedSection({int? sectionIndex}) {
-    final hasData = _accusedList.isNotEmpty &&
-        _accusedList.any((a) => (a['name'] ?? '').toString().trim().isNotEmpty);
-    if (widget.readOnly && _hideEmptyInViewMode && !hasData) {
-      return const SizedBox.shrink();
-    }
-    return Container(
-      margin: _responsiveCardMargin(context),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: _responsiveCardRadius(context),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.navyDark.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
+  Widget _accusedBody() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (_accusedList.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'No accused persons added yet.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12.5,
+                    color: AppColors.lightSubText,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
+            ),
+          )
+        else ...[
+          ..._accusedList.asMap().entries.map((entry) {
+            final idx = entry.key;
+            final item = entry.value;
+            return _InlinePersonCard(
+              genderOptions: _genderOptions,
+              showMedical: true,
+              yesNoOptions: _yesNoOptions,
+              key: ObjectKey(item),
+              index: idx,
+              roleTitle: 'Accused',
+              data: item,
+              readOnly: widget.readOnly,
+              canRemove: !widget.readOnly,
+              collapsed: _personCollapsed(item),
+              onToggle: widget.readOnly ? null : () => _togglePerson(item),
+              onRemove: () {
+                setState(() {
+                  _accusedList.removeAt(idx);
+                  _syncPrimaryAccusedControllers();
+                });
+              },
+              onChanged: () {
+                // Typing keeps this card open
+                _openPerson = item;
+                if (idx == 0) {
+                  _syncPrimaryAccusedControllers();
+                }
+              },
+            );
+          }),
         ],
-        border: Border.all(color: AppColors.lightBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Bar
-          InkWell(
-            onTap: () => _toggleSection('Accused'),
-            borderRadius:
-                _responsiveHeaderBorderRadius(context, _accusedSectionExpanded),
-            child: Padding(
-              padding: _responsiveHeaderPadding(context),
+      ],
+    );
+  }
+
+  Widget _suspectedAccusedBody() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (_suspectedAccusedList.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'No suspected accused persons added yet.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12.5,
+                    color: AppColors.lightSubText,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
+            ),
+          )
+        else ...[
+          ..._suspectedAccusedList.asMap().entries.map((entry) {
+            final idx = entry.key;
+            final item = entry.value;
+            return _InlinePersonCard(
+              genderOptions: _genderOptions,
+              key: ObjectKey(item),
+              index: idx,
+              roleTitle: 'Suspect',
+              data: item,
+              readOnly: widget.readOnly,
+              canRemove: !widget.readOnly,
+              collapsed: _personCollapsed(item),
+              onToggle: widget.readOnly ? null : () => _togglePerson(item),
+              onRemove: () {
+                setState(() {
+                  _suspectedAccusedList.removeAt(idx);
+                  _syncPrimarySuspectedAccusedControllers();
+                });
+              },
+              onChanged: () {
+                // Typing keeps this card open
+                _openPerson = item;
+                if (idx == 0) {
+                  _syncPrimarySuspectedAccusedControllers();
+                }
+              },
+            );
+          }),
+        ],
+      ],
+    );
+  }
+
+  Widget _unidentifiedAccusedBody() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (_unidentifiedAccusedList.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'No unidentified accused persons added yet.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12.5,
+                    color: AppColors.lightSubText,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
+            ),
+          )
+        else ...[
+          ..._unidentifiedAccusedList.asMap().entries.map((entry) {
+            final idx = entry.key;
+            final item = entry.value;
+            return _InlineUnidentifiedAccusedCard(
+              genderOptions: _genderOptions,
+              key: ObjectKey(item),
+              index: idx,
+              data: item,
+              readOnly: widget.readOnly,
+              canRemove: !widget.readOnly,
+              collapsed: _personCollapsed(item),
+              onToggle: widget.readOnly ? null : () => _togglePerson(item),
+              onRemove: () {
+                setState(() {
+                  _unidentifiedAccusedList.removeAt(idx);
+                  _syncPrimaryUnidentifiedControllers();
+                });
+              },
+              onChanged: () {
+                // Typing keeps this card open
+                _openPerson = item;
+                if (idx == 0) {
+                  _syncPrimaryUnidentifiedControllers();
+                }
+              },
+            );
+          }),
+        ],
+      ],
+    );
+  }
+
+  Widget _unknownAccusedBody() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (_unknownAccusedList.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text(
+              'No unknown accused added yet. Click "+ Add" above to record unknown accused persons.',
+              style: GoogleFonts.poppins(
+                fontSize: 12.5,
+                color: AppColors.lightSubText,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          )
+        else
+          ..._unknownAccusedList.asMap().entries.map((entry) {
+            final idx = entry.key;
+            final item = entry.value;
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(color: AppColors.lightBorder),
+              ),
               child: Row(
                 children: [
-                  _buildSectionIndexBadge(
-                      sectionIndex, Icons.person_pin_rounded),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Accused',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
-                      ),
-                    ),
-                  ),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    width: 26,
+                    height: 26,
                     decoration: BoxDecoration(
-                      color: AppColors.navyMid.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: AppColors.navyMid.withValues(alpha: 0.18),
-                      ),
+                      color: AppColors.navyMid.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
                     ),
-                    child: Text(
-                      '${_accusedList.length} accused',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.navyMid,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Tooltip(
-                    message: _accusedSectionExpanded ? 'Collapse' : 'Expand',
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: AnimatedRotation(
-                        turns: _accusedSectionExpanded ? 0.5 : 0.0,
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeInOutCubic,
-                        child: const Icon(
-                          Icons.keyboard_arrow_down_rounded,
+                    child: Center(
+                      child: Text(
+                        '${idx + 1}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
                           color: AppColors.navyMid,
-                          size: 22,
                         ),
                       ),
                     ),
                   ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      item['name']?.toString().isNotEmpty == true
+                          ? item['name'].toString()
+                          : 'Unknown Accused #${idx + 1}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.navyDark,
+                      ),
+                    ),
+                  ),
+                  if (!widget.readOnly)
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline_rounded,
+                          size: 18, color: AppColors.dangerRed),
+                      onPressed: () {
+                        setState(() {
+                          _unknownAccusedList.removeAt(idx);
+                        });
+                      },
+                      tooltip: 'Remove',
+                      splashRadius: 16,
+                    ),
                 ],
+              ),
+            );
+          }),
+      ],
+    );
+  }
+
+  // ── Accused card: one card for all four accused types ─────────────────
+  static const _accusedTypeKeys = [
+    'Accused',
+    'Suspected Accused',
+    'Unidentified Accused',
+    'Unknown Accused',
+  ];
+
+  List<Map<String, dynamic>> _accusedTypeList(String type) {
+    switch (type) {
+      case 'Suspected Accused':
+        return _suspectedAccusedList;
+      case 'Unidentified Accused':
+        return _unidentifiedAccusedList;
+      case 'Unknown Accused':
+        return _unknownAccusedList;
+      default:
+        return _accusedList;
+    }
+  }
+
+  Widget _accusedTypeBody(String type) {
+    switch (type) {
+      case 'Suspected Accused':
+        return _suspectedAccusedBody();
+      case 'Unidentified Accused':
+        return _unidentifiedAccusedBody();
+      case 'Unknown Accused':
+        return _unknownAccusedBody();
+      default:
+        return _accusedBody();
+    }
+  }
+
+  void _syncAccusedType(String type) {
+    switch (type) {
+      case 'Suspected Accused':
+        _syncPrimarySuspectedAccusedControllers();
+      case 'Unidentified Accused':
+        _syncPrimaryUnidentifiedControllers();
+      case 'Unknown Accused':
+        break;
+      default:
+        _syncPrimaryAccusedControllers();
+    }
+  }
+
+  /// Adds a blank person of this accused type and opens it (folding the
+  /// others), from the "+ Add" next to the type's heading.
+  void _addAccusedOf(String type) {
+    setState(() {
+      final list = _accusedTypeList(type);
+      if (type == 'Unknown Accused') {
+        list.add({
+          'name': 'Unknown Accused #${list.length + 1}',
+          'role': 'unknown_accused',
+        });
+      } else if (type == 'Unidentified Accused') {
+        list.add(_openPerson = {'approximate_age': '', 'gender': ''});
+      } else {
+        list.add(_openPerson = {'name': '', 'gender': ''});
+      }
+      _syncAccusedType(type);
+    });
+  }
+
+  bool _isAccusedTypeShown(String type) =>
+      _pickedAccusedTypes.contains(type) || _accusedTypeList(type).isNotEmpty;
+
+  /// Ticks or unticks a type. Ticking opens it with one blank person;
+  /// unticking a type that has people asks before clearing them.
+  Future<void> _setAccusedType(String type, bool on) async {
+    final list = _accusedTypeList(type);
+    if (on) {
+      setState(() {
+        _pickedAccusedTypes.add(type);
+        if (list.isEmpty) {
+          list.add(type == 'Unknown Accused'
+              ? {'name': 'Unknown Accused #1', 'role': 'unknown_accused'}
+              : (_openPerson = {'name': '', 'gender': ''}));
+          _syncAccusedType(type);
+        }
+      });
+      return;
+    }
+    final hasData = list.any((p) => p.entries.any((e) =>
+        e.key != 'role' &&
+        e.value != null &&
+        e.value.toString().trim().isNotEmpty &&
+        !(type == 'Unknown Accused' && e.key == 'name')));
+    if (hasData) {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('Remove $type?'),
+          content: Text(
+              'This removes the ${list.length} ${type.toLowerCase()} entered '
+              'in this form.'),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                style:
+                    TextButton.styleFrom(foregroundColor: AppColors.dangerRed),
+                child: const Text('Remove')),
+          ],
+        ),
+      );
+      if (ok != true || !mounted) return;
+    }
+    setState(() {
+      _pickedAccusedTypes.remove(type);
+      list.clear();
+      _syncAccusedType(type);
+    });
+  }
+
+  /// Multi-select dropdown: tick any of the accused types to open them.
+  Widget _buildAccusedTypePicker(List<String> types) {
+    final picked = types.where(_isAccusedTypeShown).toList();
+    final fieldText =
+        picked.isEmpty ? 'Select accused type' : picked.join(', ');
+    return MenuAnchor(
+      style: MenuStyle(
+        backgroundColor: const WidgetStatePropertyAll(Colors.white),
+        shape: WidgetStatePropertyAll(RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md))),
+      ),
+      menuChildren: [
+        for (final t in types)
+          CheckboxMenuButton(
+            value: _isAccusedTypeShown(t),
+            closeOnActivate: false,
+            onChanged: (v) => _setAccusedType(t, v ?? false),
+            child: Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Text(
+                t,
+                style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.navyDark),
               ),
             ),
           ),
+      ],
+      builder: (context, controller, _) => InkWell(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        onTap: widget.readOnly
+            ? null
+            : () => controller.isOpen ? controller.close() : controller.open(),
+        child: InputDecorator(
+          isFocused: controller.isOpen,
+          decoration: InputDecoration(
+            isDense: true,
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            suffixIcon: Icon(
+              controller.isOpen
+                  ? Icons.arrow_drop_up_rounded
+                  : Icons.arrow_drop_down_rounded,
+              color: AppColors.navyMid,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderSide: const BorderSide(color: AppColors.lightBorder),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderSide: const BorderSide(color: AppColors.lightBorder),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderSide:
+                  const BorderSide(color: AppColors.navyMid, width: 1.5),
+            ),
+          ),
+          child: Text(
+            fieldText,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.poppins(
+              fontSize: 12.5,
+              fontWeight: picked.isEmpty ? FontWeight.w400 : FontWeight.w500,
+              color:
+                  picked.isEmpty ? const Color(0xFF94A3B8) : AppColors.navyDark,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Body of the Accused card: the type dropdown, then each ticked type's
+  /// people under its own heading.
+  Widget _mergedAccusedBody(List<String> types) {
+    final shown = types.where(_isAccusedTypeShown).toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (!widget.readOnly) ...[
+          Text(
+            'Accused type',
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF334155),
+            ),
+          ),
+          const SizedBox(height: 4),
+          _buildAccusedTypePicker(types),
+        ],
+        if (shown.isEmpty && widget.readOnly)
+          Text(
+            'No accused added.',
+            style: GoogleFonts.poppins(
+              fontSize: 12.5,
+              color: AppColors.lightSubText,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        for (final t in shown) ...[
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Container(
+                width: 4,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: AppColors.navyMid,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  t.toUpperCase(),
+                  style: GoogleFonts.poppins(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.8,
+                    color: AppColors.navyMid,
+                  ),
+                ),
+              ),
+              Text(
+                '${_accusedTypeList(t).length}',
+                style: GoogleFonts.poppins(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.lightSubText,
+                ),
+              ),
+              if (!widget.readOnly) ...[
+                const SizedBox(width: 8),
+                TextButton.icon(
+                  onPressed: () => _addAccusedOf(t),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.navyMid,
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: const Size(0, 30),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  icon: const Icon(Icons.add_rounded, size: 18),
+                  label: Text(
+                    'Add',
+                    style: GoogleFonts.poppins(
+                        fontSize: 12.5, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 8),
+          _accusedTypeBody(t),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildAccusedSection(
+      {Object? sectionIndex, List<String> types = const ['Accused']}) {
+    final total = types.fold<int>(0, (n, t) => n + _accusedTypeList(t).length);
+    return Container(
+      margin: _responsiveCardMargin(context),
+      decoration: _sectionCardDecoration(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header Bar
+          // Inside the tab panel the tab names the section: no header
+          if (!_flatSectionCards)
+            InkWell(
+              onTap: () => _toggleSection('Accused'),
+              borderRadius: _responsiveHeaderBorderRadius(
+                  context, _accusedSectionExpanded),
+              child: Padding(
+                padding: _responsiveHeaderPadding(context),
+                child: Row(
+                  children: [
+                    _buildSectionIndexBadge(
+                        sectionIndex, Icons.person_pin_rounded),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Accused',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.navyDark,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '$total accused',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.navyMid,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    // No collapse arrow in the step layout (sections stay open)
+                    if (!_sectionsAlwaysOpen)
+                      Tooltip(
+                        message:
+                            _accusedSectionExpanded ? 'Collapse' : 'Expand',
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: AnimatedRotation(
+                            turns: _accusedSectionExpanded ? 0.5 : 0.0,
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeInOutCubic,
+                            child: const Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              color: AppColors.navyMid,
+                              size: 22,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
           AnimatedCrossFade(
             firstChild: const SizedBox(width: double.infinity, height: 0),
             secondChild: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Divider(height: 1, color: AppColors.lightBorder),
+                if (!_flatSectionCards)
+                  const Divider(height: 1, color: AppColors.lightBorder),
                 Padding(
                   padding: _responsiveBodyPadding(context),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (_accusedList.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'No accused persons added yet.',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12.5,
-                                  color: AppColors.lightSubText,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              if (!widget.readOnly)
-                                OutlinedButton.icon(
-                                  onPressed: () {
-                                    setState(() {
-                                      _accusedList
-                                          .add({'name': '', 'gender': ''});
-                                      _syncPrimaryAccusedControllers();
-                                    });
-                                  },
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: AppColors.navyMid,
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16, vertical: 12),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                            AppRadius.md)),
-                                    side: const BorderSide(
-                                        color: AppColors.navyMid),
-                                  ),
-                                  icon: const Icon(Icons.add_rounded, size: 18),
-                                  label: Text(
-                                    'Add Accused',
-                                    style: GoogleFonts.poppins(
-                                        fontSize: 12.5,
-                                        fontWeight: FontWeight.w600),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        )
-                      else ...[
-                        ..._accusedList.asMap().entries.where((entry) {
-                          if (widget.readOnly && _hideEmptyInViewMode) {
-                            return (entry.value['name'] ?? '')
-                                .toString()
-                                .trim()
-                                .isNotEmpty;
-                          }
-                          return true;
-                        }).map((entry) {
-                          final idx = entry.key;
-                          final item = entry.value;
-                          return _InlinePersonCard(
-                            genderOptions: _genderOptions,
-                            showMedical: true,
-                            yesNoOptions: _yesNoOptions,
-                            key: ObjectKey(item),
-                            index: idx,
-                            roleTitle: 'Accused',
-                            data: item,
-                            readOnly: widget.readOnly,
-                            canRemove: !widget.readOnly,
-                            onRemove: () {
-                              setState(() {
-                                _accusedList.removeAt(idx);
-                                _syncPrimaryAccusedControllers();
-                              });
-                            },
-                            onChanged: () {
-                              if (idx == 0) {
-                                _syncPrimaryAccusedControllers();
-                              }
-                            },
-                          );
-                        }),
-                        if (!widget.readOnly) ...[
-                          const SizedBox(height: 4),
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              setState(() {
-                                _accusedList.add({'name': '', 'gender': ''});
-                                _syncPrimaryAccusedControllers();
-                              });
-                            },
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.navyMid,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(AppRadius.md)),
-                              side: const BorderSide(color: AppColors.navyMid),
-                            ),
-                            icon: const Icon(Icons.add_rounded, size: 18),
-                            label: Text(
-                              'Add Another Accused',
-                              style: GoogleFonts.poppins(
-                                  fontSize: 12.5, fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ],
-                  ),
+                  child: _mergedAccusedBody(types),
                 ),
               ],
             ),
@@ -5154,227 +6676,6 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     }
   }
 
-  Widget _buildSuspectedAccusedSection({int? sectionIndex}) {
-    final hasData = _suspectedAccusedList.isNotEmpty &&
-        _suspectedAccusedList
-            .any((a) => (a['name'] ?? '').toString().trim().isNotEmpty);
-    if (widget.readOnly && _hideEmptyInViewMode && !hasData) {
-      return const SizedBox.shrink();
-    }
-    return Container(
-      margin: _responsiveCardMargin(context),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: _responsiveCardRadius(context),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.navyDark.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-        border: Border.all(color: AppColors.lightBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Bar
-          InkWell(
-            onTap: () => _toggleSection('Suspected Accused'),
-            borderRadius: _responsiveHeaderBorderRadius(
-                context, _suspectedAccusedSectionExpanded),
-            child: Padding(
-              padding: _responsiveHeaderPadding(context),
-              child: Row(
-                children: [
-                  _buildSectionIndexBadge(
-                      sectionIndex, Icons.person_search_rounded),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Suspected Accused',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.navyMid.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: AppColors.navyMid.withValues(alpha: 0.18),
-                      ),
-                    ),
-                    child: Text(
-                      '${_suspectedAccusedList.length} suspected',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.navyMid,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Tooltip(
-                    message: _suspectedAccusedSectionExpanded
-                        ? 'Collapse'
-                        : 'Expand',
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: AnimatedRotation(
-                        turns: _suspectedAccusedSectionExpanded ? 0.5 : 0.0,
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeInOutCubic,
-                        child: const Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: AppColors.navyMid,
-                          size: 22,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          AnimatedCrossFade(
-            firstChild: const SizedBox(width: double.infinity, height: 0),
-            secondChild: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Divider(height: 1, color: AppColors.lightBorder),
-                Padding(
-                  padding: _responsiveBodyPadding(context),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (_suspectedAccusedList.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'No suspected accused persons added yet.',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12.5,
-                                  color: AppColors.lightSubText,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              if (!widget.readOnly)
-                                OutlinedButton.icon(
-                                  onPressed: () {
-                                    setState(() {
-                                      _suspectedAccusedList
-                                          .add({'name': '', 'gender': ''});
-                                      _syncPrimarySuspectedAccusedControllers();
-                                    });
-                                  },
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: AppColors.navyMid,
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16, vertical: 12),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                            AppRadius.md)),
-                                    side: const BorderSide(
-                                        color: AppColors.navyMid),
-                                  ),
-                                  icon: const Icon(Icons.add_rounded, size: 18),
-                                  label: Text(
-                                    'Add Suspected Accused',
-                                    style: GoogleFonts.poppins(
-                                        fontSize: 12.5,
-                                        fontWeight: FontWeight.w600),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        )
-                      else ...[
-                        ..._suspectedAccusedList.asMap().entries.where((entry) {
-                          if (widget.readOnly && _hideEmptyInViewMode) {
-                            return (entry.value['name'] ?? '')
-                                .toString()
-                                .trim()
-                                .isNotEmpty;
-                          }
-                          return true;
-                        }).map((entry) {
-                          final idx = entry.key;
-                          final item = entry.value;
-                          return _InlinePersonCard(
-                            genderOptions: _genderOptions,
-                            key: ObjectKey(item),
-                            index: idx,
-                            roleTitle: 'Suspect',
-                            data: item,
-                            readOnly: widget.readOnly,
-                            canRemove: !widget.readOnly,
-                            onRemove: () {
-                              setState(() {
-                                _suspectedAccusedList.removeAt(idx);
-                                _syncPrimarySuspectedAccusedControllers();
-                              });
-                            },
-                            onChanged: () {
-                              if (idx == 0) {
-                                _syncPrimarySuspectedAccusedControllers();
-                              }
-                            },
-                          );
-                        }),
-                        if (!widget.readOnly) ...[
-                          const SizedBox(height: 4),
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              setState(() {
-                                _suspectedAccusedList
-                                    .add({'name': '', 'gender': ''});
-                                _syncPrimarySuspectedAccusedControllers();
-                              });
-                            },
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.navyMid,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(AppRadius.md)),
-                              side: const BorderSide(color: AppColors.navyMid),
-                            ),
-                            icon: const Icon(Icons.add_rounded, size: 18),
-                            label: Text(
-                              'Add Another Suspected Accused',
-                              style: GoogleFonts.poppins(
-                                  fontSize: 12.5, fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            crossFadeState: _suspectedAccusedSectionExpanded
-                ? CrossFadeState.showSecond
-                : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 250),
-            sizeCurve: Curves.easeInOutCubic,
-          ),
-        ],
-      ),
-    );
-  }
-
   // ── Unidentified Accused Section & Helpers ───────────────────────────
   void _syncPrimaryUnidentifiedControllers() {
     if (_unidentifiedAccusedList.isNotEmpty) {
@@ -5396,227 +6697,6 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       _controllers['unidentified_address']?.text =
           first['address']?.toString() ?? '';
     }
-  }
-
-  Widget _buildUnidentifiedAccusedSection({int? sectionIndex}) {
-    final hasData = _unidentifiedAccusedList.isNotEmpty &&
-        _unidentifiedAccusedList.any((a) =>
-            (a['gender'] ?? '').toString().trim().isNotEmpty ||
-            (a['age_range'] ?? '').toString().trim().isNotEmpty ||
-            (a['identifying_marks'] ?? '').toString().trim().isNotEmpty ||
-            (a['complexion'] ?? '').toString().trim().isNotEmpty ||
-            (a['height'] ?? '').toString().trim().isNotEmpty);
-    if (widget.readOnly && _hideEmptyInViewMode && !hasData) {
-      return const SizedBox.shrink();
-    }
-    return Container(
-      margin: _responsiveCardMargin(context),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: _responsiveCardRadius(context),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.navyDark.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-        border: Border.all(color: AppColors.lightBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Bar
-          InkWell(
-            onTap: () => _toggleSection('Unidentified Accused'),
-            borderRadius: _responsiveHeaderBorderRadius(
-                context, _unidentifiedAccusedSectionExpanded),
-            child: Padding(
-              padding: _responsiveHeaderPadding(context),
-              child: Row(
-                children: [
-                  _buildSectionIndexBadge(
-                      sectionIndex, Icons.fingerprint_rounded),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Unidentified Accused',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.navyMid.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: AppColors.navyMid.withValues(alpha: 0.18),
-                      ),
-                    ),
-                    child: Text(
-                      '${_unidentifiedAccusedList.length} unidentified',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.navyMid,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Tooltip(
-                    message: _unidentifiedAccusedSectionExpanded
-                        ? 'Collapse'
-                        : 'Expand',
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: AnimatedRotation(
-                        turns: _unidentifiedAccusedSectionExpanded ? 0.5 : 0.0,
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeInOutCubic,
-                        child: const Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: AppColors.navyMid,
-                          size: 22,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          AnimatedCrossFade(
-            firstChild: const SizedBox(width: double.infinity, height: 0),
-            secondChild: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Divider(height: 1, color: AppColors.lightBorder),
-                Padding(
-                  padding: _responsiveBodyPadding(context),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (_unidentifiedAccusedList.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'No unidentified accused persons added yet.',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12.5,
-                                  color: AppColors.lightSubText,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              if (!widget.readOnly)
-                                OutlinedButton.icon(
-                                  onPressed: () {
-                                    setState(() {
-                                      _unidentifiedAccusedList.add({
-                                        'approximate_age': '',
-                                        'gender': ''
-                                      });
-                                      _syncPrimaryUnidentifiedControllers();
-                                    });
-                                  },
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: AppColors.navyMid,
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16, vertical: 12),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                            AppRadius.md)),
-                                    side: const BorderSide(
-                                        color: AppColors.navyMid),
-                                  ),
-                                  icon: const Icon(Icons.add_rounded, size: 18),
-                                  label: Text(
-                                    'Add Unidentified Accused',
-                                    style: GoogleFonts.poppins(
-                                        fontSize: 12.5,
-                                        fontWeight: FontWeight.w600),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        )
-                      else ...[
-                        ..._unidentifiedAccusedList
-                            .asMap()
-                            .entries
-                            .map((entry) {
-                          final idx = entry.key;
-                          final item = entry.value;
-                          return _InlineUnidentifiedAccusedCard(
-                            genderOptions: _genderOptions,
-                            key: ObjectKey(item),
-                            index: idx,
-                            data: item,
-                            readOnly: widget.readOnly,
-                            canRemove: !widget.readOnly,
-                            onRemove: () {
-                              setState(() {
-                                _unidentifiedAccusedList.removeAt(idx);
-                                _syncPrimaryUnidentifiedControllers();
-                              });
-                            },
-                            onChanged: () {
-                              if (idx == 0) {
-                                _syncPrimaryUnidentifiedControllers();
-                              }
-                            },
-                          );
-                        }),
-                        if (!widget.readOnly) ...[
-                          const SizedBox(height: 4),
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              setState(() {
-                                _unidentifiedAccusedList
-                                    .add({'approximate_age': '', 'gender': ''});
-                                _syncPrimaryUnidentifiedControllers();
-                              });
-                            },
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.navyMid,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(AppRadius.md)),
-                              side: const BorderSide(color: AppColors.navyMid),
-                            ),
-                            icon: const Icon(Icons.add_rounded, size: 18),
-                            label: Text(
-                              'Add Another Unidentified Accused',
-                              style: GoogleFonts.poppins(
-                                  fontSize: 12.5, fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            crossFadeState: _unidentifiedAccusedSectionExpanded
-                ? CrossFadeState.showSecond
-                : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 250),
-            sizeCurve: Curves.easeInOutCubic,
-          ),
-        ],
-      ),
-    );
   }
 
   // ── Arrest Section & Helpers ─────────────────────────────────────────
@@ -5766,7 +6846,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     }
   }
 
-  Widget _buildArrestSection({int? sectionIndex}) {
+  Widget _buildArrestSection({Object? sectionIndex, String? onlyFor}) {
     if (widget.readOnly && _hideEmptyInViewMode && !_hasAnyArrestData) {
       return const SizedBox.shrink();
     }
@@ -5784,6 +6864,11 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           !allDisplayNames.any((x) => x.toLowerCase() == n.toLowerCase())) {
         allDisplayNames.add(n);
       }
+    }
+    // Only the accused picked in the arrest & custody panel
+    if (onlyFor != null) {
+      allDisplayNames
+          .retainWhere((n) => n.toLowerCase() == onlyFor.toLowerCase());
     }
 
     final displayNamesToRender = (widget.readOnly && _hideEmptyInViewMode)
@@ -5805,89 +6890,80 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
 
     return Container(
       margin: _responsiveCardMargin(context),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: _responsiveCardRadius(context),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.navyDark.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-        border: Border.all(color: AppColors.lightBorder),
-      ),
+      decoration: _sectionCardDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header Bar
-          InkWell(
-            onTap: () => _toggleSection('Arrest'),
-            borderRadius:
-                _responsiveHeaderBorderRadius(context, _arrestSectionExpanded),
-            child: Padding(
-              padding: _responsiveHeaderPadding(context),
-              child: Row(
-                children: [
-                  _buildSectionIndexBadge(
-                      sectionIndex, Icons.front_hand_rounded),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Arrest',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.navyMid.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: AppColors.navyMid.withValues(alpha: 0.18),
-                      ),
-                    ),
-                    child: Text(
-                      '${_arrestRecordsList.length} arrested',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.navyMid,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Tooltip(
-                    message: _arrestSectionExpanded ? 'Collapse' : 'Expand',
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: AnimatedRotation(
-                        turns: _arrestSectionExpanded ? 0.5 : 0.0,
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeInOutCubic,
-                        child: const Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: AppColors.navyMid,
-                          size: 22,
+          // Inside the tab panel the tab names the section: no header
+          if (!_flatSectionCards)
+            InkWell(
+              onTap: () => _toggleSection('Arrest'),
+              borderRadius: _responsiveHeaderBorderRadius(
+                  context, _arrestSectionExpanded),
+              child: Padding(
+                padding: _responsiveHeaderPadding(context),
+                child: Row(
+                  children: [
+                    _buildSectionIndexBadge(
+                        sectionIndex, Icons.front_hand_rounded),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Arrest',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.navyDark,
                         ),
                       ),
                     ),
-                  ),
-                ],
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${_arrestRecordsList.length} arrested',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.navyMid,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    // No collapse arrow in the step layout (sections stay open)
+                    if (!_sectionsAlwaysOpen)
+                      Tooltip(
+                        message: _arrestSectionExpanded ? 'Collapse' : 'Expand',
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: AnimatedRotation(
+                            turns: _arrestSectionExpanded ? 0.5 : 0.0,
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeInOutCubic,
+                            child: const Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              color: AppColors.navyMid,
+                              size: 22,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
-          ),
           AnimatedCrossFade(
             firstChild: const SizedBox(width: double.infinity, height: 0),
             secondChild: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Divider(height: 1, color: AppColors.lightBorder),
+                if (!_flatSectionCards)
+                  const Divider(height: 1, color: AppColors.lightBorder),
                 Padding(
                   padding: _responsiveBodyPadding(context),
                   child: Column(
@@ -6426,15 +7502,11 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                           margin:
                                               const EdgeInsets.only(bottom: 8),
                                           decoration: BoxDecoration(
-                                            color: Colors.white,
+                                            color: const Color(0xFFF8FAFC),
                                             borderRadius: BorderRadius.circular(
                                                 AppRadius.md),
                                             border: Border.all(
-                                              color:
-                                                  record['release_on_notice'] ==
-                                                          true
-                                                      ? const Color(0xFFD97706)
-                                                      : AppColors.lightBorder,
+                                              color: AppColors.lightBorder,
                                             ),
                                           ),
                                           child: Column(
@@ -6443,8 +7515,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                                 value: record[
                                                         'release_on_notice'] ==
                                                     true,
-                                                activeColor:
-                                                    const Color(0xFFD97706),
+                                                activeColor: AppColors.navyMid,
                                                 title: Text(
                                                   'Release on Notice',
                                                   style: GoogleFonts.poppins(
@@ -6501,16 +7572,15 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                                           horizontal: 12,
                                                           vertical: 10),
                                                       decoration: BoxDecoration(
-                                                        color: const Color(
-                                                            0xFFFEF3C7),
+                                                        color: Colors.white,
                                                         borderRadius:
                                                             BorderRadius
                                                                 .circular(
                                                                     AppRadius
                                                                         .md),
                                                         border: Border.all(
-                                                            color: const Color(
-                                                                0xFFFCD34D)),
+                                                            color: AppColors
+                                                                .lightBorder),
                                                       ),
                                                       child: Row(
                                                         children: [
@@ -6518,8 +7588,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                                               Icons
                                                                   .access_time_rounded,
                                                               size: 16,
-                                                              color: Color(
-                                                                  0xFFD97706)),
+                                                              color: AppColors
+                                                                  .navyMid),
                                                           const SizedBox(
                                                               width: 8),
                                                           Expanded(
@@ -6536,8 +7606,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                                                 fontWeight:
                                                                     FontWeight
                                                                         .w500,
-                                                                color: const Color(
-                                                                    0xFF92400E),
+                                                                color: AppColors
+                                                                    .navyDark,
                                                               ),
                                                             ),
                                                           ),
@@ -6545,8 +7615,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                                               Icons
                                                                   .calendar_month_rounded,
                                                               size: 16,
-                                                              color: Color(
-                                                                  0xFFD97706)),
+                                                              color: AppColors
+                                                                  .navyMid),
                                                         ],
                                                       ),
                                                     ),
@@ -6561,15 +7631,11 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                           margin:
                                               const EdgeInsets.only(bottom: 8),
                                           decoration: BoxDecoration(
-                                            color: Colors.white,
+                                            color: const Color(0xFFF8FAFC),
                                             borderRadius: BorderRadius.circular(
                                                 AppRadius.md),
                                             border: Border.all(
-                                              color:
-                                                  record['anticipatory_bail'] ==
-                                                          true
-                                                      ? const Color(0xFF9333EA)
-                                                      : AppColors.lightBorder,
+                                              color: AppColors.lightBorder,
                                             ),
                                           ),
                                           child: Column(
@@ -6578,8 +7644,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                                 value: record[
                                                         'anticipatory_bail'] ==
                                                     true,
-                                                activeColor:
-                                                    const Color(0xFF9333EA),
+                                                activeColor: AppColors.navyMid,
                                                 title: Text(
                                                   'Anticipatory Bail',
                                                   style: GoogleFonts.poppins(
@@ -6636,16 +7701,15 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                                           horizontal: 12,
                                                           vertical: 10),
                                                       decoration: BoxDecoration(
-                                                        color: const Color(
-                                                            0xFFF3E8FF),
+                                                        color: Colors.white,
                                                         borderRadius:
                                                             BorderRadius
                                                                 .circular(
                                                                     AppRadius
                                                                         .md),
                                                         border: Border.all(
-                                                            color: const Color(
-                                                                0xFFD8B4FE)),
+                                                            color: AppColors
+                                                                .lightBorder),
                                                       ),
                                                       child: Row(
                                                         children: [
@@ -6653,8 +7717,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                                               Icons
                                                                   .access_time_rounded,
                                                               size: 16,
-                                                              color: Color(
-                                                                  0xFF9333EA)),
+                                                              color: AppColors
+                                                                  .navyMid),
                                                           const SizedBox(
                                                               width: 8),
                                                           Expanded(
@@ -6671,8 +7735,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                                                 fontWeight:
                                                                     FontWeight
                                                                         .w500,
-                                                                color: const Color(
-                                                                    0xFF6B21A8),
+                                                                color: AppColors
+                                                                    .navyDark,
                                                               ),
                                                             ),
                                                           ),
@@ -6680,8 +7744,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                                               Icons
                                                                   .calendar_month_rounded,
                                                               size: 16,
-                                                              color: Color(
-                                                                  0xFF9333EA)),
+                                                              color: AppColors
+                                                                  .navyMid),
                                                         ],
                                                       ),
                                                     ),
@@ -6694,15 +7758,11 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                         // Death of Accused
                                         Container(
                                           decoration: BoxDecoration(
-                                            color: Colors.white,
+                                            color: const Color(0xFFF8FAFC),
                                             borderRadius: BorderRadius.circular(
                                                 AppRadius.md),
                                             border: Border.all(
-                                              color:
-                                                  record['death_of_accused'] ==
-                                                          true
-                                                      ? AppColors.dangerRed
-                                                      : AppColors.lightBorder,
+                                              color: AppColors.lightBorder,
                                             ),
                                           ),
                                           child: Column(
@@ -6711,14 +7771,13 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                                 value: record[
                                                         'death_of_accused'] ==
                                                     true,
-                                                activeColor:
-                                                    AppColors.dangerRed,
+                                                activeColor: AppColors.navyMid,
                                                 title: Text(
                                                   'Death of Accused',
                                                   style: GoogleFonts.poppins(
                                                     fontSize: 13,
                                                     fontWeight: FontWeight.w600,
-                                                    color: AppColors.dangerRed,
+                                                    color: AppColors.navyDark,
                                                   ),
                                                 ),
                                                 controlAffinity:
@@ -6769,16 +7828,15 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                                           horizontal: 12,
                                                           vertical: 10),
                                                       decoration: BoxDecoration(
-                                                        color: const Color(
-                                                            0xFFFEE2E2),
+                                                        color: Colors.white,
                                                         borderRadius:
                                                             BorderRadius
                                                                 .circular(
                                                                     AppRadius
                                                                         .md),
                                                         border: Border.all(
-                                                            color: const Color(
-                                                                0xFFFCA5A5)),
+                                                            color: AppColors
+                                                                .lightBorder),
                                                       ),
                                                       child: Row(
                                                         children: [
@@ -6787,7 +7845,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                                                   .access_time_rounded,
                                                               size: 16,
                                                               color: AppColors
-                                                                  .dangerRed),
+                                                                  .navyMid),
                                                           const SizedBox(
                                                               width: 8),
                                                           Expanded(
@@ -6804,8 +7862,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                                                 fontWeight:
                                                                     FontWeight
                                                                         .w500,
-                                                                color: const Color(
-                                                                    0xFF991B1B),
+                                                                color: AppColors
+                                                                    .navyDark,
                                                               ),
                                                             ),
                                                           ),
@@ -6814,7 +7872,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                                                   .calendar_month_rounded,
                                                               size: 16,
                                                               color: AppColors
-                                                                  .dangerRed),
+                                                                  .navyMid),
                                                         ],
                                                       ),
                                                     ),
@@ -6849,230 +7907,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   }
 
   // ── Unknown Accused Repeating List Section ──────────────────────────────
-  Widget _buildUnknownAccusedSection({int? sectionIndex}) {
-    final hasData = _unknownAccusedList.isNotEmpty &&
-        _unknownAccusedList
-            .any((a) => (a['name'] ?? '').toString().trim().isNotEmpty);
-    if (widget.readOnly && _hideEmptyInViewMode && !hasData) {
-      return const SizedBox.shrink();
-    }
-    return Container(
-      margin: _responsiveCardMargin(context),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: _responsiveCardRadius(context),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.navyDark.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-        border: Border.all(color: AppColors.lightBorder),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Bar
-          InkWell(
-            onTap: () => _toggleSection('Unknown Accused'),
-            borderRadius: _responsiveHeaderBorderRadius(
-                context, _unknownAccusedSectionExpanded),
-            child: Padding(
-              padding: _responsiveHeaderPadding(context),
-              child: Row(
-                children: [
-                  _buildSectionIndexBadge(
-                      sectionIndex, Icons.help_outline_rounded),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Unknown Accused',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.navyMid.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: AppColors.navyMid.withValues(alpha: 0.18),
-                      ),
-                    ),
-                    child: Text(
-                      '${_unknownAccusedList.length} unknown accused',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.navyMid,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Tooltip(
-                    message:
-                        _unknownAccusedSectionExpanded ? 'Collapse' : 'Expand',
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: AnimatedRotation(
-                        turns: _unknownAccusedSectionExpanded ? 0.5 : 0.0,
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeInOutCubic,
-                        child: const Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: AppColors.navyMid,
-                          size: 22,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          AnimatedCrossFade(
-            firstChild: const SizedBox(width: double.infinity, height: 0),
-            secondChild: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Divider(height: 1, color: AppColors.lightBorder),
-                Padding(
-                  padding: _responsiveBodyPadding(context),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (_unknownAccusedList.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Text(
-                            'No unknown accused added yet. Click "+ Add Unknown Accused" below to record unknown accused persons.',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12.5,
-                              color: AppColors.lightSubText,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        )
-                      else
-                        ..._unknownAccusedList.asMap().entries.map((entry) {
-                          final idx = entry.key;
-                          final item = entry.value;
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF8FAFC),
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              border: Border.all(color: AppColors.lightBorder),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 26,
-                                  height: 26,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.navyMid
-                                        .withValues(alpha: 0.1),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      '${idx + 1}',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w700,
-                                        color: AppColors.navyMid,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    item['name']?.toString().isNotEmpty == true
-                                        ? item['name'].toString()
-                                        : 'Unknown Accused #${idx + 1}',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.navyDark,
-                                    ),
-                                  ),
-                                ),
-                                if (!widget.readOnly)
-                                  IconButton(
-                                    icon: const Icon(
-                                        Icons.delete_outline_rounded,
-                                        size: 18,
-                                        color: AppColors.dangerRed),
-                                    onPressed: () {
-                                      setState(() {
-                                        _unknownAccusedList.removeAt(idx);
-                                      });
-                                    },
-                                    tooltip: 'Remove',
-                                    splashRadius: 16,
-                                  ),
-                              ],
-                            ),
-                          );
-                        }),
-                      if (!widget.readOnly) ...[
-                        const SizedBox(height: 8),
-                        OutlinedButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              _unknownAccusedList.add({
-                                'name':
-                                    'Unknown Accused #${_unknownAccusedList.length + 1}',
-                                'role': 'unknown_accused',
-                              });
-                            });
-                          },
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.navyMid,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                            ),
-                            side: const BorderSide(color: AppColors.navyMid),
-                          ),
-                          icon: const Icon(Icons.add_rounded, size: 18),
-                          label: Text(
-                            'Add Unknown Accused',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            crossFadeState: _unknownAccusedSectionExpanded
-                ? CrossFadeState.showSecond
-                : CrossFadeState.showFirst,
-            duration: const Duration(milliseconds: 250),
-            sizeCurve: Curves.easeInOutCubic,
-          ),
-        ],
-      ),
-    );
-  }
-
   // ── Preventive Action for Multiple Accused Section ────────────────────────
-  Widget _buildPreventiveActionSection({int? sectionIndex}) {
+  Widget _buildPreventiveActionSection({Object? sectionIndex}) {
     if (widget.readOnly && _hideEmptyInViewMode && !_hasAnyPreventiveData) {
       return const SizedBox.shrink();
     }
@@ -7113,91 +7949,86 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     return Container(
       key: const ValueKey('sec_Preventive Action'),
       margin: _responsiveCardMargin(context),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: _responsiveCardRadius(context),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.navyDark.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-        border: Border.all(color: AppColors.lightBorder),
-      ),
+      decoration: _sectionCardDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Section Header with Toggle
-          InkWell(
-            onTap: () => _toggleSection('Preventive Action'),
-            borderRadius: _responsiveHeaderBorderRadius(
-                context, _preventiveSectionExpanded),
-            child: Padding(
-              padding: _responsiveHeaderPadding(context),
-              child: Row(
-                children: [
-                  _buildSectionIndexBadge(sectionIndex, Icons.shield_rounded),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      _formDef?.sectionTitles['preventive_action'] ??
-                          _formDef?.preventiveConfig?['section_title'] ??
-                          'Preventive Action',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: _preventiveActionsList.isNotEmpty
-                          ? AppColors.navyMid.withValues(alpha: 0.12)
-                          : AppColors.navyMid.withValues(alpha: 0.07),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      _preventiveActionsList.isNotEmpty
-                          ? '${_preventiveActionsList.length} action${_preventiveActionsList.length > 1 ? 's' : ''}'
-                          : '${allPeople.length} accused',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.navyMid,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Tooltip(
-                    message: _preventiveSectionExpanded ? 'Collapse' : 'Expand',
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: AnimatedRotation(
-                        turns: _preventiveSectionExpanded ? 0.5 : 0.0,
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeInOutCubic,
-                        child: const Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: AppColors.navyMid,
-                          size: 22,
+          // Inside the tab panel the tab names the section: no header
+          if (!_flatSectionCards)
+            InkWell(
+              onTap: () => _toggleSection('Preventive Action'),
+              borderRadius: _responsiveHeaderBorderRadius(
+                  context, _preventiveSectionExpanded),
+              child: Padding(
+                padding: _responsiveHeaderPadding(context),
+                child: Row(
+                  children: [
+                    _buildSectionIndexBadge(sectionIndex, Icons.shield_rounded),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _formDef?.sectionTitles['preventive_action'] ??
+                            _formDef?.preventiveConfig?['section_title'] ??
+                            'Preventive Action',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.navyDark,
                         ),
                       ),
                     ),
-                  ),
-                ],
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: _preventiveActionsList.isNotEmpty
+                            ? AppColors.navyMid.withValues(alpha: 0.12)
+                            : AppColors.navyMid.withValues(alpha: 0.07),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        _preventiveActionsList.isNotEmpty
+                            ? '${_preventiveActionsList.length} action${_preventiveActionsList.length > 1 ? 's' : ''}'
+                            : '${allPeople.length} accused',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.navyMid,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    // No collapse arrow in the step layout (sections stay open)
+                    if (!_sectionsAlwaysOpen)
+                      Tooltip(
+                        message:
+                            _preventiveSectionExpanded ? 'Collapse' : 'Expand',
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: AnimatedRotation(
+                            turns: _preventiveSectionExpanded ? 0.5 : 0.0,
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeInOutCubic,
+                            child: const Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              color: AppColors.navyMid,
+                              size: 22,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
-          ),
           AnimatedCrossFade(
             firstChild: const SizedBox(width: double.infinity, height: 0),
             secondChild: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Divider(height: 1, color: AppColors.lightBorder),
+                if (!_flatSectionCards)
+                  const Divider(height: 1, color: AppColors.lightBorder),
                 Padding(
                   padding: _responsiveBodyPadding(context),
                   child: Column(
@@ -7361,7 +8192,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       _pickDateForController(context, ctrl);
 
   // ── Remand & Custody for Multiple Accused Section ──────────────────────────
-  Widget _buildRemandCustodySection({int? sectionIndex}) {
+  Widget _buildRemandCustodySection({Object? sectionIndex, String? onlyFor}) {
     if (widget.readOnly && _hideEmptyInViewMode && !_hasAnyCustodyData) {
       return const SizedBox.shrink();
     }
@@ -7371,108 +8202,105 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       final n = (it['name'] ?? it['person_name'] ?? '').toString().trim();
       if (n.isNotEmpty) allPeople.add(n);
     }
-    final allPeopleList = (widget.readOnly && _hideEmptyInViewMode)
-        ? allPeople.where((name) {
-            final existingIdx = _custodyRecordsList.indexWhere(
-              (it) =>
-                  (it['name'] ?? it['person_name'] ?? '')
-                      .toString()
-                      .toLowerCase() ==
-                  name.toLowerCase(),
-            );
-            if (existingIdx < 0) return false;
-            return _recordHasCustodyData(_custodyRecordsList[existingIdx]);
-          }).toList()
-        : allPeople.toList();
-    final recordedCount =
-        _custodyRecordsList.where(_recordHasCustodyData).length;
+    final allPeopleList = allPeople.where((name) {
+      if (onlyFor != null && name.toLowerCase() != onlyFor.toLowerCase()) {
+        return false;
+      }
+      if (widget.readOnly && _hideEmptyInViewMode) {
+        final existingIdx = _custodyRecordsList.indexWhere(
+          (it) =>
+              (it['name'] ?? it['person_name'] ?? '')
+                  .toString()
+                  .toLowerCase() ==
+              name.toLowerCase(),
+        );
+        if (existingIdx < 0) return false;
+        return _recordHasCustodyData(_custodyRecordsList[existingIdx]);
+      }
+      return true;
+    }).toList();
 
     return Container(
       margin: _responsiveCardMargin(context),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: _responsiveCardRadius(context),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.navyDark.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-        border: Border.all(color: AppColors.lightBorder),
-      ),
+      decoration: _sectionCardDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Section Header with Toggle
-          InkWell(
-            onTap: () => _toggleSection('Remand & Custody'),
-            borderRadius:
-                _responsiveHeaderBorderRadius(context, _custodySectionExpanded),
-            child: Padding(
-              padding: _responsiveHeaderPadding(context),
-              child: Row(
-                children: [
-                  _buildSectionIndexBadge(
-                      sectionIndex, Icons.lock_clock_rounded),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Custody & Remand',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: recordedCount > 0
-                          ? AppColors.navyMid.withValues(alpha: 0.12)
-                          : AppColors.navyMid.withValues(alpha: 0.07),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      recordedCount > 0
-                          ? '$recordedCount recorded'
-                          : '${allPeopleList.length} accused',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.navyMid,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Tooltip(
-                    message: _custodySectionExpanded ? 'Collapse' : 'Expand',
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: AnimatedRotation(
-                        turns: _custodySectionExpanded ? 0.5 : 0.0,
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeInOutCubic,
-                        child: const Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: AppColors.navyMid,
-                          size: 22,
+          // Inside the tab panel the tab names the section: no header
+          if (!_flatSectionCards)
+            InkWell(
+              onTap: () => _toggleSection('Remand & Custody'),
+              borderRadius: _responsiveHeaderBorderRadius(
+                  context, _custodySectionExpanded),
+              child: Padding(
+                padding: _responsiveHeaderPadding(context),
+                child: Row(
+                  children: [
+                    _buildSectionIndexBadge(
+                        sectionIndex, Icons.lock_clock_rounded),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Custody & Remand',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.navyDark,
                         ),
                       ),
                     ),
-                  ),
-                ],
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: _custodyRecordsList.isNotEmpty
+                            ? AppColors.navyMid.withValues(alpha: 0.12)
+                            : AppColors.navyMid.withValues(alpha: 0.07),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        _custodyRecordsList.isNotEmpty
+                            ? '${_custodyRecordsList.length} recorded'
+                            : '${allPeopleList.length} accused',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.navyMid,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    // No collapse arrow in the step layout (sections stay open)
+                    if (!_sectionsAlwaysOpen)
+                      Tooltip(
+                        message:
+                            _custodySectionExpanded ? 'Collapse' : 'Expand',
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: AnimatedRotation(
+                            turns: _custodySectionExpanded ? 0.5 : 0.0,
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeInOutCubic,
+                            child: const Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              color: AppColors.navyMid,
+                              size: 22,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
-          ),
           AnimatedCrossFade(
             firstChild: const SizedBox(width: double.infinity, height: 0),
             secondChild: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Divider(height: 1, color: AppColors.lightBorder),
+                if (!_flatSectionCards)
+                  const Divider(height: 1, color: AppColors.lightBorder),
                 Padding(
                   padding: _responsiveBodyPadding(context),
                   child: Column(
@@ -7517,7 +8345,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                               ? _custodyRecordsList[existingIdx]
                               : null;
                           final isCustom = _customCustodyPersons.contains(name);
-                          final isExpanded = _expandedCustodyAccused == name;
+                          final isExpanded = onlyFor != null ||
+                              _expandedCustodyAccused == name;
 
                           return _CustodyAccusedCard(
                             key: ValueKey('custody_accused_$name'),
@@ -7541,29 +8370,6 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                                 : null,
                           );
                         }),
-                      ],
-                      if (!widget.readOnly) ...[
-                        const SizedBox(height: 4),
-                        OutlinedButton.icon(
-                          onPressed: _showAddCustomCustodyAccusedDialog,
-                          icon: const Icon(Icons.person_add_rounded, size: 16),
-                          label: Text(
-                            '+ Add other person for Remand & Custody',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.navyMid,
-                            side: const BorderSide(color: AppColors.navyMid),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 10),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                            ),
-                          ),
-                        ),
                       ],
                     ],
                   ),
@@ -7632,70 +8438,6 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     }
   }
 
-  void _showAddCustomCustodyAccusedDialog() {
-    final textCtrl = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.lg)),
-        title: Text(
-          'Add Accused / Arrested Person',
-          style: GoogleFonts.poppins(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: AppColors.navyDark),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Enter the name of the accused or arrested person for Remand & Custody:',
-              style: GoogleFonts.poppins(
-                  fontSize: 12, color: AppColors.lightSubText),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: textCtrl,
-              autofocus: true,
-              style:
-                  GoogleFonts.poppins(fontSize: 14, color: AppColors.navyDark),
-              decoration: InputDecoration(
-                hintText: 'e.g. Rahul Sharma',
-                prefixIcon: const Icon(Icons.person_outline_rounded,
-                    size: 20, color: AppColors.navyMid),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.md)),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancel',
-                style: GoogleFonts.poppins(color: AppColors.lightSubText)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final val = textCtrl.text.trim();
-              if (val.isNotEmpty) {
-                setState(() {
-                  _customCustodyPersons.add(val);
-                  _expandedCustodyAccused = val;
-                });
-              }
-              Navigator.pop(ctx);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.navyMid),
-            child: const Text('Add'),
-          ),
-        ],
-      ),
-    );
-  }
-
   String _getScrutinyVal(String key) {
     final ctrl = _controllers[key];
     if (ctrl != null && ctrl.text.trim().isNotEmpty) {
@@ -7704,7 +8446,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     return _values[key]?.toString().trim() ?? '';
   }
 
-  Widget _buildScrutinySection({int? sectionIndex}) {
+  Widget _buildScrutinySection({Object? sectionIndex}) {
     if (widget.readOnly && _hideEmptyInViewMode && !_hasAnyScrutinyData) {
       return const SizedBox.shrink();
     }
@@ -7744,84 +8486,78 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     return Container(
       key: const ValueKey('sec_Scrutiny'),
       margin: _responsiveCardMargin(context),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: _responsiveCardRadius(context),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.navyDark.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-        border: Border.all(color: AppColors.lightBorder),
-      ),
+      decoration: _sectionCardDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Section Header
-          InkWell(
-            onTap: () => _toggleSection('Scrutiny'),
-            borderRadius: _responsiveHeaderBorderRadius(
-                context, _scrutinySectionExpanded),
-            child: Padding(
-              padding: _responsiveHeaderPadding(context),
-              child: Row(
-                children: [
-                  _buildSectionIndexBadge(
-                      sectionIndex, Icons.rule_folder_rounded),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Scrutiny',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: activeCount > 0
-                          ? AppColors.navyMid.withValues(alpha: 0.12)
-                          : AppColors.navyMid.withValues(alpha: 0.07),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      activeCount == 4
-                          ? 'Completed (4/4)'
-                          : '$activeCount of 4 Recorded',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.navyMid,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Tooltip(
-                    message: _scrutinySectionExpanded ? 'Collapse' : 'Expand',
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: AnimatedRotation(
-                        turns: _scrutinySectionExpanded ? 0.5 : 0.0,
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeInOutCubic,
-                        child: const Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: AppColors.navyMid,
-                          size: 22,
+          // Inside the tab panel the tab names the section: no header
+          if (!_flatSectionCards)
+            InkWell(
+              onTap: () => _toggleSection('Scrutiny'),
+              borderRadius: _responsiveHeaderBorderRadius(
+                  context, _scrutinySectionExpanded),
+              child: Padding(
+                padding: _responsiveHeaderPadding(context),
+                child: Row(
+                  children: [
+                    _buildSectionIndexBadge(
+                        sectionIndex, Icons.rule_folder_rounded),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Scrutiny',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.navyDark,
                         ),
                       ),
                     ),
-                  ),
-                ],
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: activeCount > 0
+                            ? AppColors.navyMid.withValues(alpha: 0.12)
+                            : AppColors.navyMid.withValues(alpha: 0.07),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        activeCount == 4
+                            ? 'Completed (4/4)'
+                            : '$activeCount of 4 Recorded',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.navyMid,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    // No collapse arrow in the step layout (sections stay open)
+                    if (!_sectionsAlwaysOpen)
+                      Tooltip(
+                        message:
+                            _scrutinySectionExpanded ? 'Collapse' : 'Expand',
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: AnimatedRotation(
+                            turns: _scrutinySectionExpanded ? 0.5 : 0.0,
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeInOutCubic,
+                            child: const Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              color: AppColors.navyMid,
+                              size: 22,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
-          ),
 
           // Body Animated CrossFade
           AnimatedCrossFade(
@@ -7829,7 +8565,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
             secondChild: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Divider(height: 1, color: AppColors.lightBorder),
+                if (!_flatSectionCards)
+                  const Divider(height: 1, color: AppColors.lightBorder),
                 Padding(
                   padding: _responsiveBodyPadding(context),
                   child: Column(
@@ -8264,6 +9001,11 @@ class _InlinePersonCard extends StatefulWidget {
   final bool readOnly;
   final bool canRemove;
 
+  /// When set, the parent decides whether the card is collapsed and
+  /// [onToggle] is called on a header tap instead of toggling locally.
+  final bool? collapsed;
+  final VoidCallback? onToggle;
+
   /// Gender choices from the database (/api/options/gender/); empty uses the
   /// card's own list
   final List<String> genderOptions;
@@ -8282,6 +9024,8 @@ class _InlinePersonCard extends StatefulWidget {
     this.onChanged,
     this.readOnly = false,
     this.canRemove = false,
+    this.collapsed,
+    this.onToggle,
     this.genderOptions = const [],
     this.showMedical = false,
     this.yesNoOptions = const [],
@@ -8305,6 +9049,7 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
   String _selectedGender = '';
   String _medical = '';
   bool _isCollapsed = false;
+  bool get _collapsed => widget.collapsed ?? _isCollapsed;
 
   @override
   void initState() {
@@ -8371,7 +9116,7 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
     if (n.isNotEmpty) {
       return a.isNotEmpty ? '$n ($a yrs)' : n;
     }
-    return _isCollapsed ? 'Tap to enter name' : '';
+    return _collapsed ? 'Tap to enter name' : '';
   }
 
   @override
@@ -8431,6 +9176,7 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
     required String hint,
     bool isRequired = false,
     int maxLines = 1,
+    int? minLines,
     TextInputType? keyboardType,
     bool isAge = false,
     bool isMobile = false,
@@ -8439,7 +9185,9 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
   }) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isWide = constraints.maxWidth >= 280;
+        // PC: label above its box, like every other field
+        final isWide = constraints.maxWidth >= 280 &&
+            MediaQuery.sizeOf(context).width < 1000;
         final isMultiline = maxLines > 1;
 
         // Mobile / Aadhaar / PAN are optional, but when filled they must be
@@ -8478,6 +9226,7 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
               controller: controller,
               readOnly: widget.readOnly,
               maxLines: maxLines,
+              minLines: minLines,
               keyboardType: keyboardType,
               textCapitalization: isPan
                   ? TextCapitalization.characters
@@ -8584,7 +9333,11 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
             color: AppColors.navyDark,
           ),
         );
-        if (constraints.maxWidth < 280) {
+        // PC: label above its box, like every other field; the label sits
+        // beside the box only on a tablet-width card
+        final sideBySide = constraints.maxWidth >= 280 &&
+            MediaQuery.sizeOf(context).width < 1000;
+        if (!sideBySide) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -8674,7 +9427,9 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
     final genders = widget.genderOptions;
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isWide = constraints.maxWidth >= 280;
+        // PC: label above its box, like every other field
+        final isWide = constraints.maxWidth >= 280 &&
+            MediaQuery.sizeOf(context).width < 1000;
         if (!isWide) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -8770,8 +9525,10 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
+      margin: EdgeInsets.only(bottom: _collapsed ? 8 : 12),
+      padding: _collapsed
+          ? const EdgeInsets.symmetric(horizontal: 14, vertical: 8)
+          : const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -8781,7 +9538,8 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           InkWell(
-            onTap: () => setState(() => _isCollapsed = !_isCollapsed),
+            onTap: widget.onToggle ??
+                () => setState(() => _isCollapsed = !_isCollapsed),
             borderRadius: BorderRadius.circular(AppRadius.md),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 2),
@@ -8810,13 +9568,33 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: _isCollapsed
+                        color: _collapsed
                             ? AppColors.navyDark
                             : AppColors.lightSubText,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  // Done: fold this filled card (like the charges)
+                  if (!_collapsed &&
+                      widget.onToggle != null &&
+                      _nameCtrl.text.trim().isNotEmpty)
+                    TextButton.icon(
+                      onPressed: widget.onToggle,
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.navyMid,
+                        visualDensity: VisualDensity.compact,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        minimumSize: const Size(0, 30),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      icon: const Icon(Icons.check_rounded, size: 17),
+                      label: Text(
+                        'Done',
+                        style: GoogleFonts.poppins(
+                            fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
+                    ),
                   if (widget.canRemove && !widget.readOnly)
                     IconButton(
                       icon: const Icon(Icons.delete_outline_rounded,
@@ -8829,7 +9607,7 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
                     ),
                   const SizedBox(width: 4),
                   Icon(
-                    _isCollapsed
+                    _collapsed
                         ? Icons.keyboard_arrow_down_rounded
                         : Icons.keyboard_arrow_up_rounded,
                     color: AppColors.navyMid,
@@ -8839,21 +9617,23 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
               ),
             ),
           ),
-          if (!_isCollapsed) ...[
+          if (!_collapsed) ...[
             const SizedBox(height: 12),
             LayoutBuilder(
               builder: (context, constraints) {
-                final isWide = constraints.maxWidth > 550;
+                // PC: two fields per line even in a one-third-width box
+                final isWide = constraints.maxWidth >
+                    (MediaQuery.sizeOf(context).width >= 1000 ? 300 : 550);
                 final nameFld = _buildField(
                   label: 'Name',
                   controller: _nameCtrl,
-                  hint: 'Enter Name',
+                  hint: 'Full name',
                   isRequired: true,
                 );
                 final ageFld = _buildField(
                   label: 'Age',
                   controller: _ageCtrl,
-                  hint: 'Enter Age',
+                  hint: 'Years',
                   keyboardType: TextInputType.number,
                   isAge: true,
                 );
@@ -8866,14 +9646,14 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
                 final mobileFld = _buildField(
                   label: 'Mobile Number',
                   controller: _mobileCtrl,
-                  hint: 'Enter Mobile Number',
+                  hint: '10-digit number',
                   keyboardType: TextInputType.phone,
                   isMobile: true,
                 );
                 final aadhaarFld = _buildField(
                   label: 'Aadhar Number',
                   controller: _aadhaarCtrl,
-                  hint: 'Enter Aadhar Number',
+                  hint: 'XXXX XXXX XXXX',
                   keyboardType: TextInputType.number,
                   isAadhaar: true,
                 );
@@ -8896,8 +9676,17 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
                 final addrFld = _buildField(
                   label: 'Address',
                   controller: _addressCtrl,
-                  hint: 'Enter Address',
+                  hint: 'House no., street, area, city',
                   maxLines: 2,
+                );
+                // Beside Medical: starts one line high (same as the boxes
+                // next to it) and grows to three lines as the user types
+                final addrLineFld = _buildField(
+                  label: 'Address',
+                  controller: _addressCtrl,
+                  hint: 'House no., street, area, city',
+                  maxLines: 3,
+                  minLines: 1,
                 );
                 final medicalFlds = widget.showMedical
                     ? [
@@ -8944,28 +9733,68 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
                   );
                 }
 
-                final rows = <Widget>[];
-                for (int i = 0; i < visibleEntries.length; i += 2) {
-                  final first = visibleEntries[i];
-                  final second = (i + 1 < visibleEntries.length)
-                      ? visibleEntries[i + 1]
-                      : null;
-                  if (rows.isNotEmpty) rows.add(const SizedBox(height: 12));
-                  rows.add(
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(child: first),
-                        const SizedBox(width: 16),
-                        Expanded(child: second ?? const SizedBox.shrink()),
-                      ],
-                    ),
+                if (widget.readOnly) {
+                  final rows = <Widget>[];
+                  for (int i = 0; i < visibleEntries.length; i += 2) {
+                    final first = visibleEntries[i];
+                    final second = (i + 1 < visibleEntries.length)
+                        ? visibleEntries[i + 1]
+                        : null;
+                    if (rows.isNotEmpty) rows.add(const SizedBox(height: 12));
+                    rows.add(
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: first),
+                          const SizedBox(width: 16),
+                          Expanded(child: second ?? const SizedBox.shrink()),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: rows,
                   );
                 }
 
+                // PC: three fields per line on a wide card, two otherwise
+                final perLine = constraints.maxWidth >= 700 ? 3 : 2;
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: rows,
+                  children: [
+                    ..._personFieldRows([
+                      nameFld,
+                      ageFld,
+                      genderFld,
+                      occFld,
+                      mobileFld,
+                      aadhaarFld,
+                      panFld,
+                      relFld,
+                      casteFld,
+                    ], perLine),
+                    // Last line: Medical (and its date) with Address
+                    // beside them, filling the rest of the line
+                    if (medicalFlds.isEmpty)
+                      addrFld
+                    else
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (final m in medicalFlds) ...[
+                            Expanded(child: m),
+                            const SizedBox(width: 16),
+                          ],
+                          Expanded(
+                            flex: (perLine - medicalFlds.length)
+                                .clamp(1, perLine),
+                            child: addrLineFld,
+                          ),
+                        ],
+                      ),
+                  ],
                 );
               },
             ),
@@ -8985,6 +9814,11 @@ class _InlineUnidentifiedAccusedCard extends StatefulWidget {
   final bool readOnly;
   final bool canRemove;
 
+  /// When set, the parent decides whether the card is collapsed and
+  /// [onToggle] is called on a header tap instead of toggling locally.
+  final bool? collapsed;
+  final VoidCallback? onToggle;
+
   /// Gender choices from the database (/api/options/gender/); empty uses the
   /// card's own list
   final List<String> genderOptions;
@@ -8997,6 +9831,8 @@ class _InlineUnidentifiedAccusedCard extends StatefulWidget {
     this.onChanged,
     this.readOnly = false,
     this.canRemove = false,
+    this.collapsed,
+    this.onToggle,
     this.genderOptions = const [],
   });
 
@@ -9016,6 +9852,7 @@ class _InlineUnidentifiedAccusedCardState
   late final TextEditingController _addressCtrl;
   String _selectedGender = '';
   bool _isCollapsed = false;
+  bool get _collapsed => widget.collapsed ?? _isCollapsed;
 
   @override
   void initState() {
@@ -9062,7 +9899,7 @@ class _InlineUnidentifiedAccusedCardState
     if (h.isNotEmpty) parts.add(h);
     final s = _skinCtrl.text.trim();
     if (s.isNotEmpty) parts.add(s);
-    if (parts.isEmpty) return _isCollapsed ? 'Tap to enter details' : '';
+    if (parts.isEmpty) return _collapsed ? 'Tap to enter details' : '';
     return parts.join(' · ');
   }
 
@@ -9190,8 +10027,10 @@ class _InlineUnidentifiedAccusedCardState
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
+      margin: EdgeInsets.only(bottom: _collapsed ? 8 : 12),
+      padding: _collapsed
+          ? const EdgeInsets.symmetric(horizontal: 14, vertical: 8)
+          : const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -9201,7 +10040,8 @@ class _InlineUnidentifiedAccusedCardState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           InkWell(
-            onTap: () => setState(() => _isCollapsed = !_isCollapsed),
+            onTap: widget.onToggle ??
+                () => setState(() => _isCollapsed = !_isCollapsed),
             borderRadius: BorderRadius.circular(AppRadius.md),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 2),
@@ -9230,13 +10070,33 @@ class _InlineUnidentifiedAccusedCardState
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: _isCollapsed
+                        color: _collapsed
                             ? AppColors.navyDark
                             : AppColors.lightSubText,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  // Done: fold this filled card (like the charges)
+                  if (!_collapsed &&
+                      widget.onToggle != null &&
+                      _summaryText().isNotEmpty)
+                    TextButton.icon(
+                      onPressed: widget.onToggle,
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.navyMid,
+                        visualDensity: VisualDensity.compact,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        minimumSize: const Size(0, 30),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      icon: const Icon(Icons.check_rounded, size: 17),
+                      label: Text(
+                        'Done',
+                        style: GoogleFonts.poppins(
+                            fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
+                    ),
                   if (widget.canRemove && !widget.readOnly)
                     IconButton(
                       icon: const Icon(Icons.delete_outline_rounded,
@@ -9249,7 +10109,7 @@ class _InlineUnidentifiedAccusedCardState
                     ),
                   const SizedBox(width: 4),
                   Icon(
-                    _isCollapsed
+                    _collapsed
                         ? Icons.keyboard_arrow_down_rounded
                         : Icons.keyboard_arrow_up_rounded,
                     color: AppColors.navyMid,
@@ -9259,11 +10119,13 @@ class _InlineUnidentifiedAccusedCardState
               ),
             ),
           ),
-          if (!_isCollapsed) ...[
+          if (!_collapsed) ...[
             const SizedBox(height: 12),
             LayoutBuilder(
               builder: (context, constraints) {
-                final isWide = constraints.maxWidth > 550;
+                // PC: two fields per line even in a one-third-width box
+                final isWide = constraints.maxWidth >
+                    (MediaQuery.sizeOf(context).width >= 1000 ? 300 : 550);
                 final ageFld = _buildField(
                   label: 'Approximate Age',
                   controller: _ageCtrl,
@@ -9334,28 +10196,55 @@ class _InlineUnidentifiedAccusedCardState
                   );
                 }
 
-                final rows = <Widget>[];
-                for (int i = 0; i < visibleEntries.length; i += 2) {
-                  final first = visibleEntries[i];
-                  final second = (i + 1 < visibleEntries.length)
-                      ? visibleEntries[i + 1]
-                      : null;
-                  if (rows.isNotEmpty) rows.add(const SizedBox(height: 12));
-                  rows.add(
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(child: first),
-                        const SizedBox(width: 16),
-                        Expanded(child: second ?? const SizedBox.shrink()),
-                      ],
-                    ),
+                if (widget.readOnly) {
+                  final rows = <Widget>[];
+                  for (int i = 0; i < visibleEntries.length; i += 2) {
+                    final first = visibleEntries[i];
+                    final second = (i + 1 < visibleEntries.length)
+                        ? visibleEntries[i + 1]
+                        : null;
+                    if (rows.isNotEmpty) rows.add(const SizedBox(height: 12));
+                    rows.add(
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: first),
+                          const SizedBox(width: 16),
+                          Expanded(child: second ?? const SizedBox.shrink()),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: rows,
                   );
                 }
 
+                // PC: three fields per line on a wide card, two otherwise
+                final perLine = constraints.maxWidth >= 700 ? 3 : 2;
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: rows,
+                  children: [
+                    ..._personFieldRows([
+                      ageFld,
+                      genderFld,
+                      skinFld,
+                      heightFld,
+                      occFld,
+                      markFld,
+                    ], perLine),
+                    // Description and last-seen place side by side
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: descFld),
+                        const SizedBox(width: 16),
+                        Expanded(child: addrFld),
+                      ],
+                    ),
+                  ],
                 );
               },
             ),
@@ -9908,6 +10797,34 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
                         ),
                       ],
                     );
+                  } else if (MediaQuery.sizeOf(context).width >= 1000 &&
+                      constraints.maxWidth > 300) {
+                    // PC, narrow box: two fields per line
+                    Widget pair(Widget a, Widget b) => Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(child: a),
+                              const SizedBox(width: 12),
+                              Expanded(child: b),
+                            ],
+                          ),
+                        );
+                    return Column(
+                      children: [
+                        pair(
+                            _buildDateField('Action Date *', _dateCtrl,
+                                required: true),
+                            _buildOutwardField()),
+                        pair(_buildNumberField(),
+                            _buildDateField('Bond Date', _bondDateCtrl)),
+                        pair(
+                            _buildDateField(
+                                'Bond Cancellation Date', _bondCancelDateCtrl),
+                            const SizedBox()),
+                      ],
+                    );
                   } else {
                     return Column(
                       children: [
@@ -10291,6 +11208,19 @@ class _CustodyAccusedCardState extends State<_CustodyAccusedCard> {
                           controller: _pcrDaysCtrl,
                           readOnly: widget.readOnly,
                           keyboardType: TextInputType.number,
+                          // Optional; when filled, whole days up to 3 digits
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(3),
+                          ],
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                          validator: (v) {
+                            final t = v?.trim() ?? '';
+                            if (t.isEmpty) return null;
+                            return RegExp(r'^\d{1,3}$').hasMatch(t)
+                                ? null
+                                : 'Enter up to 3 digits';
+                          },
                           style: GoogleFonts.poppins(
                               fontSize: 13, color: AppColors.navyDark),
                           decoration: _fieldDeco('PCR (00 Day)', 'e.g. 7'),
@@ -10851,4 +11781,41 @@ class _CustodyAccusedCardState extends State<_CustodyAccusedCard> {
       ),
     );
   }
+}
+
+/// One numbered sub-step of the common form (e.g. 1.2 Acts & Sections).
+class _SubStep {
+  final String title;
+
+  /// Section names shown in it (to jump here when one has an error).
+  final List<String> keys;
+  final Widget card;
+
+  const _SubStep({required this.title, required this.keys, required this.card});
+}
+
+enum _SubStatus { done, error, none }
+
+/// Person card fields in rows of [perLine], 12px apart; a short last row
+/// keeps its empty slots so the columns stay aligned.
+List<Widget> _personFieldRows(List<Widget> cells, int perLine) {
+  final rows = <Widget>[];
+  for (var i = 0; i < cells.length; i += perLine) {
+    rows.add(Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var j = 0; j < perLine; j++) ...[
+            if (j > 0) const SizedBox(width: 16),
+            Expanded(
+              child:
+                  i + j < cells.length ? cells[i + j] : const SizedBox.shrink(),
+            ),
+          ],
+        ],
+      ),
+    ));
+  }
+  return rows;
 }

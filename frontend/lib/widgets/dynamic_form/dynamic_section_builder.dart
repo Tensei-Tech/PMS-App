@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 // lib/widgets/dynamic_form/dynamic_section_builder.dart
 // Groups database-driven fields into collapsible, highly legible police case sections.
 
@@ -18,11 +19,16 @@ class DynamicSectionCard extends StatefulWidget {
   final Function(String key, dynamic value) onValueChanged;
   final bool readOnly;
   final bool initiallyExpanded;
+
+  /// Fields per line when the card spans a wide row (2 otherwise)
+  final int columns;
   final bool? isExpanded;
   final VoidCallback? onToggle;
   final List<String>? accusedOptions;
   final Widget? headerAction;
-  final int? sectionIndex;
+
+  /// Badge text: a number (3) or a sub-step label ("1.2").
+  final Object? sectionIndex;
   final bool hideEmptyFields;
   final List<String>? designationOptions;
   final List<String>? preventiveOptions;
@@ -37,6 +43,12 @@ class DynamicSectionCard extends StatefulWidget {
   /// above its fields (see field_config 'card'). Default false.
   final bool showSectionHeadings;
 
+  /// No border or margin of its own (placed inside a panel).
+  final bool flat;
+
+  /// Show the collapse / expand arrow in the header.
+  final bool showToggle;
+
   const DynamicSectionCard({
     super.key,
     required this.title,
@@ -48,6 +60,7 @@ class DynamicSectionCard extends StatefulWidget {
     required this.onValueChanged,
     this.readOnly = false,
     this.initiallyExpanded = true,
+    this.columns = 2,
     this.isExpanded,
     this.onToggle,
     this.accusedOptions,
@@ -61,6 +74,8 @@ class DynamicSectionCard extends StatefulWidget {
     this.allFormFields,
     this.fieldMaxLengths,
     this.showSectionHeadings = false,
+    this.flat = false,
+    this.showToggle = true,
   });
 
   @override
@@ -278,116 +293,147 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
         ? baseFields.where((f) => !_isFieldEmpty(f)).toList()
         : baseFields;
 
-    if (widget.readOnly && widget.hideEmptyFields && visibleFields.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
     final screenWidth = MediaQuery.sizeOf(context).width;
     final isCompact = screenWidth < 600;
+    // PC layout only: phones and tablets keep their current look
+    final isDesktop = screenWidth >= 1000;
+
+    // "x of y filled" counts the fields a user types or picks a value in
+    final countable = visibleFields
+        .where((f) => f.fieldType != 'file' && f.fieldType != 'repeating_group')
+        .toList();
+    final filledCount = countable.where((f) => !_isFieldEmpty(f)).length;
 
     return Container(
-      margin: EdgeInsets.only(bottom: isCompact ? 5.0 : 6.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(isCompact ? AppRadius.md : AppRadius.lg),
-        boxShadow: const [],
-        border: Border.all(color: AppColors.lightBorder),
-      ),
+      margin: widget.flat
+          ? EdgeInsets.zero
+          : EdgeInsets.only(bottom: isCompact ? 5.0 : 6.0),
+      decoration: widget.flat
+          ? const BoxDecoration(color: Colors.white)
+          : BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(
+                  isCompact ? AppRadius.md : AppRadius.lg),
+              boxShadow: const [],
+              border: Border.all(color: AppColors.lightBorder),
+            ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Bar
-          InkWell(
-            onTap: _handleToggle,
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(isCompact ? AppRadius.md : AppRadius.lg),
-              bottom: Radius.circular(
-                  _isExpanded ? 0 : (isCompact ? AppRadius.md : AppRadius.lg)),
-            ),
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: isCompact ? 12 : 16,
-                vertical: isCompact ? 8 : 10,
+          // Header Bar (none inside a panel: the tab names the section)
+          if (!widget.flat)
+            InkWell(
+              onTap: _handleToggle,
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(isCompact ? AppRadius.md : AppRadius.lg),
+                bottom: Radius.circular(_isExpanded
+                    ? 0
+                    : (isCompact ? AppRadius.md : AppRadius.lg)),
               ),
-              child: Row(
-                children: [
-                  Container(
-                    width: isCompact ? 28 : 32,
-                    height: isCompact ? 28 : 32,
-                    decoration: BoxDecoration(
-                      color: AppColors.navyMid,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    alignment: Alignment.center,
-                    child: widget.sectionIndex != null
-                        ? Text(
-                            '${widget.sectionIndex}',
-                            style: GoogleFonts.poppins(
-                              fontSize: isCompact ? 12.0 : 13.5,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          )
-                        : Icon(widget.icon,
-                            size: isCompact ? 16 : 18, color: Colors.white),
-                  ),
-                  SizedBox(width: isCompact ? 10 : 12),
-                  Expanded(
-                    child: Text(
-                      widget.title,
-                      style: GoogleFonts.poppins(
-                        fontSize: isCompact ? 13.5 : 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
-                      ),
-                    ),
-                  ),
-                  if (widget.headerAction != null) ...[
-                    widget.headerAction!,
-                    const SizedBox(width: 8),
-                  ],
-                  if (visibleFields.length > 1)
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isCompact ? 12 : 16,
+                  vertical: isCompact ? 8 : 10,
+                ),
+                child: Row(
+                  children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
+                      // Grows for a longer label like "2.10"
+                      constraints: BoxConstraints(
+                        minWidth: isCompact ? 28 : 32,
+                        minHeight: isCompact ? 28 : 32,
+                        maxHeight: isCompact ? 28 : 32,
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
                       decoration: BoxDecoration(
-                        color: AppColors.navyMid.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppColors.navyMid.withValues(alpha: 0.18),
-                        ),
+                        // PC: solid navy number badge; phone keeps the tint
+                        color: isDesktop
+                            ? AppColors.navyMid
+                            : AppColors.navyMid.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(isDesktop ? 6 : 8),
                       ),
+                      alignment: Alignment.center,
+                      child: widget.sectionIndex != null
+                          ? Text(
+                              '${widget.sectionIndex}',
+                              style: GoogleFonts.poppins(
+                                fontSize: isCompact ? 12.0 : 13.5,
+                                fontWeight: FontWeight.w700,
+                                color: isDesktop
+                                    ? Colors.white
+                                    : AppColors.navyDark,
+                              ),
+                            )
+                          : Icon(widget.icon,
+                              size: isCompact ? 16 : 18,
+                              color:
+                                  isDesktop ? Colors.white : AppColors.navyMid),
+                    ),
+                    SizedBox(width: isCompact ? 10 : 12),
+                    Expanded(
                       child: Text(
-                        '${visibleFields.length} fields',
+                        widget.title,
                         style: GoogleFonts.poppins(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.navyMid,
+                          fontSize: isCompact ? 13.5 : 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.navyDark,
                         ),
                       ),
                     ),
-                  const SizedBox(width: 4),
-                  Tooltip(
-                    message: _isExpanded ? 'Collapse' : 'Expand',
-                    child: Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: AnimatedRotation(
-                        turns: _isExpanded ? 0.5 : 0.0,
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeInOutCubic,
-                        child: const Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: AppColors.navyMid,
-                          size: 22,
+                    if (widget.headerAction != null) ...[
+                      widget.headerAction!,
+                      const SizedBox(width: 8),
+                    ],
+                    if (isDesktop && !widget.readOnly && countable.isNotEmpty)
+                      Text(
+                        '$filledCount of ${countable.length} filled',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: filledCount == countable.length
+                              ? const Color(0xFF2E7D32)
+                              : AppColors.lightSubText,
+                        ),
+                      )
+                    else if (visibleFields.length > 1)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 7, vertical: 2.5),
+                        decoration: BoxDecoration(
+                          color: AppColors.navyMid.withValues(alpha: 0.07),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${visibleFields.length} fields',
+                          style: GoogleFonts.poppins(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.navyMid,
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                ],
+                    if (widget.showToggle) const SizedBox(width: 4),
+                    if (widget.showToggle)
+                      Tooltip(
+                        message: _isExpanded ? 'Collapse' : 'Expand',
+                        child: Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: AnimatedRotation(
+                            turns: _isExpanded ? 0.5 : 0.0,
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeInOutCubic,
+                            child: const Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              color: AppColors.navyMid,
+                              size: 22,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
-          ),
 
           // Fields Grid / Column with smooth AnimatedCrossFade
           AnimatedCrossFade(
@@ -395,7 +441,8 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
             secondChild: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Divider(height: 1, color: AppColors.lightBorder),
+                if (!widget.flat)
+                  const Divider(height: 1, color: AppColors.lightBorder),
                 if (visibleFields.isEmpty)
                   Padding(
                     padding: EdgeInsets.all(isCompact ? 10.0 : 12.0),
@@ -433,8 +480,11 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                     ),
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        final isWide = constraints.maxWidth > 600;
-                        Widget buildControl(DynamicFieldDef f) {
+                        // Two fields per line once a card is wide enough,
+                        // so cards in a 3-column row still pair fields
+                        final isWide = constraints.maxWidth > 340;
+                        Widget buildControl(DynamicFieldDef f,
+                            {bool oneLine = false}) {
                           final dateKey = '${f.fieldKey}_date';
                           TextEditingController? dateCtrl =
                               widget.controllers[dateKey];
@@ -493,6 +543,7 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
 
                           return DynamicControlFactory(
                             fieldDef: f,
+                            oneLineTextArea: oneLine,
                             controller: fieldCtrl,
                             value: widget.values[f.fieldKey],
                             onChanged: (val) {
@@ -614,35 +665,123 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                               (f.fieldType == 'radio' && hasManyChoices(f));
                           final items = <Widget>[];
                           final pending = <DynamicFieldDef>[];
+                          // Slots each pending field takes on its line
+                          final pendingW = <int>[];
+                          int used() => pendingW.fold(0, (a, b) => a + b);
+
+                          // Fields per line: the card's columns on a wide
+                          // card, otherwise two
+                          final cap =
+                              math.max(2, constraints.maxWidth ~/ 190).toInt();
+                          final perLine = widget.columns > 2
+                              ? widget.columns.clamp(2, cap).clamp(2, 6)
+                              : 2;
+                          // With three or more per line a text box (e.g.
+                          // Address) takes two slots instead of a full row
+                          bool wideBox(DynamicFieldDef f) =>
+                              perLine >= 3 && f.fieldType == 'textarea';
+
+                          Widget lineItem(
+                              DynamicFieldDef f, List<DynamicFieldDef> line) {
+                            final oneLine =
+                                f.fieldType == 'textarea' && line.length > 1;
+                            final control = buildControl(f, oneLine: oneLine);
+                            // level a checkbox with the boxes beside it,
+                            // below their labels
+                            if (isDesktop &&
+                                f.fieldType == 'checkbox' &&
+                                line.any((x) => x.fieldType != 'checkbox')) {
+                              return Padding(
+                                padding: const EdgeInsets.only(top: 22),
+                                child: control,
+                              );
+                            }
+                            return control;
+                          }
 
                           void flushPair() {
                             if (pending.isEmpty) return;
-                            final f1 = pending[0];
-                            final f2 = pending.length > 1 ? pending[1] : null;
+                            final line = [...pending];
+                            final widths = [...pendingW];
+                            final full = used() == perLine;
                             pending.clear();
+                            pendingW.clear();
+                            // PC: a field left alone on its line takes the
+                            // full width instead of leaving half empty
+                            if (isDesktop &&
+                                line.length == 1 &&
+                                line.first.fieldType != 'checkbox') {
+                              items.add(
+                                Padding(
+                                  padding: EdgeInsets.only(bottom: rowSpacing),
+                                  child: buildControl(line.first),
+                                ),
+                              );
+                              return;
+                            }
+                            // A full line keeps the grid; a short line with
+                            // three or more per line shares its width out
+                            // (no empty slots), with two per line it keeps
+                            // its empty half so columns stay aligned
+                            final slots =
+                                full || perLine >= 3 ? line.length : perLine;
                             items.add(
                               Padding(
                                 padding: EdgeInsets.only(bottom: rowSpacing),
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Expanded(
-                                      child: buildControl(f1),
-                                    ),
-                                    const SizedBox(width: 18),
-                                    Expanded(
-                                      child: f2 != null
-                                          ? buildControl(f2)
-                                          : const SizedBox.shrink(),
-                                    ),
+                                    for (var i = 0; i < slots; i++) ...[
+                                      if (i > 0) const SizedBox(width: 18),
+                                      Expanded(
+                                        flex: i < widths.length ? widths[i] : 1,
+                                        child: i >= line.length
+                                            ? const SizedBox.shrink()
+                                            : lineItem(line[i], line),
+                                      ),
+                                    ],
                                   ],
                                 ),
                               ),
                             );
                           }
 
-                          for (final f in fields) {
-                            if (isFullWidth(f)) {
+                          for (var fi = 0; fi < fields.length; fi++) {
+                            final f = fields[fi];
+                            // PC, two per line: a text box (e.g. Address)
+                            // shares its line with the next field when that
+                            // field would otherwise sit alone
+                            final next =
+                                fi + 1 < fields.length ? fields[fi + 1] : null;
+                            if (isDesktop &&
+                                perLine == 2 &&
+                                pending.isEmpty &&
+                                f.fieldType == 'textarea' &&
+                                next != null &&
+                                !isFullWidth(next) &&
+                                next.fieldType != 'checkbox' &&
+                                (fi + 2 >= fields.length ||
+                                    isFullWidth(fields[fi + 2]))) {
+                              items.add(
+                                Padding(
+                                  padding: EdgeInsets.only(bottom: rowSpacing),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                          child:
+                                              buildControl(f, oneLine: true)),
+                                      const SizedBox(width: 18),
+                                      Expanded(child: buildControl(next)),
+                                    ],
+                                  ),
+                                ),
+                              );
+                              fi++;
+                              continue;
+                            }
+                            if (isFullWidth(f) && !wideBox(f)) {
                               flushPair();
                               items.add(
                                 Padding(
@@ -650,10 +789,13 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                                   child: buildControl(f),
                                 ),
                               );
-                            } else {
-                              pending.add(f);
-                              if (pending.length == 2) flushPair();
+                              continue;
                             }
+                            final w = wideBox(f) ? 2 : 1;
+                            if (used() + w > perLine) flushPair();
+                            pending.add(f);
+                            pendingW.add(w);
+                            if (used() >= perLine) flushPair();
                           }
                           flushPair();
 
