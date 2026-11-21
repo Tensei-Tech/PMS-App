@@ -56,9 +56,14 @@ jobs:
           cat > ~/.gradle/init.d/plugin-repositories.gradle <<'EOF'
           beforeSettings { settings ->
               settings.pluginManagement.repositories {
-                  gradlePluginPortal()
-                  mavenCentral()
                   google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+              settings.dependencyResolutionManagement.repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
               }
           }
           EOF
