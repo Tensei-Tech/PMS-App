@@ -84,20 +84,57 @@ class PendingSummaryScreen extends StatelessWidget {
       flat.addAll(_rowsForBucket(dataset, section));
     }
     if (flat.isEmpty) return;
+
+    final rows = flat.asMap().entries.map((entry) {
+      final idx = entry.key;
+      final r = entry.value;
+      final rowMap = <String, dynamic>{
+        'Sr. No.': '${idx + 1}',
+        'Cr. No.': r['cr']?.trim().isNotEmpty == true ? r['cr']!.trim() : '—',
+        'Sec & Act':
+            r['sections']?.trim().isNotEmpty == true ? r['sections']!.trim() : '—',
+        'Head': r['head']?.trim().isNotEmpty == true ? r['head']!.trim() : '—',
+      };
+      if (isAbsconded) {
+        rowMap['Accused Name (फरार आरोपी)'] =
+            r['accused']?.trim().isNotEmpty == true ? r['accused']!.trim() : '—';
+      }
+      if (isVictim) {
+        rowMap['Name'] =
+            r['victim_name']?.trim().isNotEmpty == true ? r['victim_name']!.trim() : '—';
+        rowMap['Injured/Deceased'] =
+            r['injured_deceased']?.trim().isNotEmpty == true
+                ? r['injured_deceased']!.trim()
+                : '—';
+      }
+      rowMap['IO Name'] =
+          r['io']?.trim().isNotEmpty == true ? r['io']!.trim() : '—';
+      if (!isUndetected && !isAbsconded) {
+        rowMap['Police Station'] =
+            r['station']?.trim().isNotEmpty == true ? r['station']!.trim() : '—';
+      }
+      return rowMap;
+    }).toList();
+
+    final columnOrder = <String>[
+      'Sr. No.',
+      'Cr. No.',
+      'Sec & Act',
+      'Head',
+      if (isAbsconded) 'Accused Name (फरार आरोपी)',
+      if (isVictim) 'Name',
+      if (isVictim) 'Injured/Deceased',
+      'IO Name',
+      if (!isUndetected && !isAbsconded) 'Police Station',
+    ];
+
     final theme = await PdfUnicodeFonts.openSansTheme();
     final doc = DynamicMapPdf.buildLandscapeDataTableDocument(
       theme: theme,
       title: 'Pending Cases — Summary (all periods)',
-      rows: flat.map((e) => Map<String, dynamic>.from(e)).toList(),
+      rows: rows,
       prependSerial: false,
-      columnOrder: const [
-        'Sr. No.',
-        'Cr. No.',
-        'Sec & Act',
-        'Head',
-        'IO Name',
-        'Police Station',
-      ],
+      columnOrder: columnOrder,
     );
     await CustomPdfPreviewDialog.show(
       context: context,

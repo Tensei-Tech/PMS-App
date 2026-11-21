@@ -579,8 +579,15 @@ class DynamicMapPdf {
       effectiveKeys = allKeys.toList()..sort();
     }
 
+    final colWidths = <int, pw.TableColumnWidth>{};
+    if (effectivePrependSerial) {
+      colWidths[0] = const pw.FixedColumnWidth(36);
+    } else if (effectiveKeys.isNotEmpty && _isSerialKey(effectiveKeys[0])) {
+      colWidths[0] = const pw.FixedColumnWidth(36);
+    }
+
     doc.addPage(
-      pw.Page(
+      pw.MultiPage(
         theme: theme,
         pageFormat: PdfPageFormat.a4.landscape.copyWith(
           marginLeft: 18,
@@ -588,58 +595,85 @@ class DynamicMapPdf {
           marginTop: 18,
           marginBottom: 18,
         ),
-        build: (_) => pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-          children: [
-            pw.Container(
-              padding: const pw.EdgeInsets.all(10),
-              color: const PdfColor.fromInt(0xFF0A0E21),
-              child: pw.Text(
+        header: (context) => pw.Container(
+          margin: const pw.EdgeInsets.only(bottom: 8),
+          padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          decoration: const pw.BoxDecoration(
+            color: PdfColor.fromInt(0xFF0A0E21),
+            borderRadius: pw.BorderRadius.all(pw.Radius.circular(3)),
+          ),
+          child: pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Text(
                 title,
                 style: pw.TextStyle(
                   color: PdfColors.white,
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
-            ),
-            pw.SizedBox(height: 10),
-            pw.Table(
-              border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
-              defaultVerticalAlignment: pw.TableCellVerticalAlignment.top,
-              children: [
-                pw.TableRow(
-                  children: [
-                    if (effectivePrependSerial) _landscapeHeaderCell('Sr. No.'),
-                    ...effectiveKeys.map(
-                      (k) => _landscapeHeaderCell(pdfLabelForKey(k)),
-                    ),
-                  ],
+              pw.Text(
+                'Page ${context.pageNumber} of ${context.pagesCount}',
+                style: const pw.TextStyle(
+                  color: PdfColors.white,
+                  fontSize: 9,
                 ),
-                for (var i = 0; i < rows.length; i++)
-                  pw.TableRow(
-                    children: [
-                      if (effectivePrependSerial)
-                        _landscapeBodyCell('${i + 1}'),
-                      ...effectiveKeys.map(
-                        (k) {
-                          final v = rows[i][k];
-                          if (_isSerialKey(k)) {
-                            return _landscapeBodyCell(
-                              (v != null && v.toString().trim().isNotEmpty)
-                                  ? disp(v)
-                                  : '${i + 1}',
-                            );
-                          }
-                          return _landscapeBodyCell(disp(v));
-                        },
-                      ),
-                    ],
-                  ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
+        build: (context) => [
+          pw.Table.fromTextArray(
+            context: context,
+            headers: [
+              if (effectivePrependSerial) 'Sr. No.',
+              ...effectiveKeys.map(pdfLabelForKey),
+            ],
+            data: [
+              for (var i = 0; i < rows.length; i++)
+                [
+                  if (effectivePrependSerial) '${i + 1}',
+                  ...effectiveKeys.map(
+                    (k) {
+                      final v = rows[i][k];
+                      if (_isSerialKey(k)) {
+                        return (v != null && v.toString().trim().isNotEmpty)
+                            ? disp(v)
+                            : '${i + 1}';
+                      }
+                      return disp(v);
+                    },
+                  ),
+                ],
+            ],
+            columnWidths: colWidths.isNotEmpty ? colWidths : null,
+            border: pw.TableBorder.all(
+              color: const PdfColor.fromInt(0xFFCBD5E1),
+              width: 0.5,
+            ),
+            headerStyle: pw.TextStyle(
+              fontSize: 9,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.white,
+            ),
+            headerDecoration: const pw.BoxDecoration(
+              color: PdfColor.fromInt(0xFF0A0E21),
+            ),
+            headerHeight: 25,
+            headerAlignment: pw.Alignment.centerLeft,
+            headerPadding:
+                const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+            cellStyle: const pw.TextStyle(fontSize: 8.5),
+            cellAlignment: pw.Alignment.centerLeft,
+            cellPadding:
+                const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4.5),
+            oddRowDecoration: const pw.BoxDecoration(
+              color: PdfColor.fromInt(0xFFF8FAFC),
+            ),
+            repeatHeader: true,
+          ),
+        ],
       ),
     );
 
