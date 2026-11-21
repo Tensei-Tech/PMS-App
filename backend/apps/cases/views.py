@@ -2518,6 +2518,7 @@ GENDER_KEYS = {'male', 'male_victims', 'female', 'female_victims', 'transgender'
 SPECIAL_KEYS = {'adult', 'adult_victims', 'pwd', 'disability', 'minor', 'child', 'minor_under_18', 'minor_male', 'minor_female', 'women', 'senior', 'senior_citizen', 'senior_60_plus', 'senior_male', 'senior_female', 'mentally_vulnerable'}
 CONDITION_KEYS = {'injured', 'injured_victims', 'deceased', 'deceased_victims', 'missing', 'missing_victims', 'traced', 'victims_traced', 'pending_tracing', 'victims_pending_tracing'}
 AGE_KEYS = {'age_below_5', 'below_5', 'age_5_10', '5_10', 'age_11_15', '11_15', 'age_16_18', '16_18', 'age_18_59', '18_59', 'age_60_plus', '60_plus', '60_above', 'above_60', 'age_above_60'}
+KNOWN_VICTIM_FILTER_KEYS = GENDER_KEYS | SPECIAL_KEYS | CONDITION_KEYS | AGE_KEYS
 
 
 def case_matches_victim_filter(case, filter_key):
@@ -2527,18 +2528,19 @@ def case_matches_victim_filter(case, filter_key):
 
     raw_keys = [k.strip().lower() for k in str(filter_key).split(',') if k.strip()]
     raw_keys = [k for k in raw_keys if k not in ['all', 'total', 'total_victims']]
-    if not raw_keys:
+    # Align with frontend: ignore unknown or malformed keys (analogous to Set.intersection in Flutter)
+    valid_keys = [k for k in raw_keys if k in KNOWN_VICTIM_FILTER_KEYS]
+    if not valid_keys:
         return True
 
     victims = extract_case_victims(case)
     if not victims:
         return False
 
-    selected_gender = [k for k in raw_keys if k in GENDER_KEYS]
-    selected_special = [k for k in raw_keys if k in SPECIAL_KEYS]
-    selected_condition = [k for k in raw_keys if k in CONDITION_KEYS]
-    selected_age = [k for k in raw_keys if k in AGE_KEYS]
-    other_keys = [k for k in raw_keys if k not in GENDER_KEYS and k not in SPECIAL_KEYS and k not in CONDITION_KEYS and k not in AGE_KEYS]
+    selected_gender = [k for k in valid_keys if k in GENDER_KEYS]
+    selected_special = [k for k in valid_keys if k in SPECIAL_KEYS]
+    selected_condition = [k for k in valid_keys if k in CONDITION_KEYS]
+    selected_age = [k for k in valid_keys if k in AGE_KEYS]
 
     # 1. First check if any single victim satisfies all active groups
     for v in victims:
@@ -2550,8 +2552,6 @@ def case_matches_victim_filter(case, filter_key):
             continue
         if selected_age and not any(victim_matches_single_filter(v, k) for k in selected_age):
             continue
-        if other_keys and not any(victim_matches_single_filter(v, k) for k in other_keys):
-            continue
         return True
 
     # 2. Also check if the case as a whole satisfies each group across its victims
@@ -2562,8 +2562,6 @@ def case_matches_victim_filter(case, filter_key):
     if selected_condition and not any(any(victim_matches_single_filter(v, k) for k in selected_condition) for v in victims):
         return False
     if selected_age and not any(any(victim_matches_single_filter(v, k) for k in selected_age) for v in victims):
-        return False
-    if other_keys and not any(any(victim_matches_single_filter(v, k) for k in other_keys) for v in victims):
         return False
 
     return True
@@ -2579,7 +2577,8 @@ def apply_victim_filter_queryset(queryset, victim_filter):
 
     raw_keys = [k.strip().lower() for k in str(victim_filter).split(',') if k.strip()]
     raw_keys = [k for k in raw_keys if k not in ['all', 'total', 'total_victims']]
-    if not raw_keys:
+    valid_keys = [k for k in raw_keys if k in KNOWN_VICTIM_FILTER_KEYS]
+    if not valid_keys:
         return queryset
 
     filtered_candidates = queryset.only('id', 'extra_fields', 'module_key', 'sub_category', 'status')
@@ -2720,7 +2719,10 @@ class VictimStatsView(APIView):
                     elif g == 'female':
                         stats['female'] += 1
                         stats['gender']['female'] += 1
-                        stats['women'] += 1
+                        # 'women' tracks adult females (age >= 18 or unspecified in women crime modules),
+                        # distinct from minor girls counted under 'minor_female'.
+                        if age is None or age >= 18:
+                            stats['women'] += 1
                     elif g == 'transgender':
                         stats['transgender'] += 1
                         stats['gender']['transgender'] += 1

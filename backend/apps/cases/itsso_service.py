@@ -53,7 +53,7 @@ def get_itsso_cases_q() -> Q:
         )
     )
 
-    # 3. String tokens in extra_fields, description, or title
+    # 3. String tokens in extra_fields (charge attributes)
     sec_tokens = [
         # Section 64 BNS
         '64 BNS', '64-BNS', '64/BNS', 'BNS 64', 'BNS-64', 'BNS/64', '64 of BNS',
@@ -74,11 +74,7 @@ def get_itsso_cases_q() -> Q:
 
     text_q = Q()
     for token in sec_tokens:
-        text_q |= (
-            Q(extra_fields__icontains=token) |
-            Q(description__icontains=token) |
-            Q(title__icontains=token)
-        )
+        text_q |= Q(extra_fields__icontains=token)
 
     # 4. JSON structure tokens in extra_fields (acts_sections / charges list)
     # Must be accompanied by BNS/Nyaya context to avoid false positives (e.g., Section 64 of unrelated acts)
@@ -184,44 +180,43 @@ def is_itsso_case(case: Any) -> bool:
                             if s_str in ['64', '65', '62', '70(2)', '70 (2)']:
                                 return True
 
-    # 4. Text regex matching in title, description, and entire extra_fields string
-    combined_text = f"{title} {desc} "
-    if isinstance(extra, dict):
+    # 4. Text regex matching in extra_fields (charge attributes)
+    if isinstance(extra, dict) and extra:
         try:
-            combined_text += json.dumps(extra)
+            extra_text = json.dumps(extra)
         except Exception:
-            combined_text += str(extra)
+            extra_text = str(extra)
 
-    patterns = [
-        # Section 64 BNS
-        r'\b64\s*(?:\([^\)]*\)\s*)?(?:of\s+)?(?:the\s+)?bns\b',
-        r'\bbns\s*(?:sec(?:tion)?\.?\s*)?64\b',
-        r'64\s*bns',
-        r'bns\s*64',
-        r'64\s*bharatiya\s*nyaya',
-        # Section 65 BNS
-        r'\b65\s*(?:\([^\)]*\)\s*)?(?:of\s+)?(?:the\s+)?bns\b',
-        r'\bbns\s*(?:sec(?:tion)?\.?\s*)?65\b',
-        r'65\s*bns',
-        r'bns\s*65',
-        r'65\s*bharatiya\s*nyaya',
-        # Section 70(2) BNS
-        r'\b70\s*\(\s*2\s*\)\s*(?:of\s+)?(?:the\s+)?bns\b',
-        r'\bbns\s*(?:sec(?:tion)?\.?\s*)?70\s*\(\s*2\s*\)',
-        r'70\s*\(\s*2\s*\)\s*bns',
-        r'bns\s*70\s*\(\s*2\s*\)',
-        r'70\s*\(\s*2\s*\)\s*bharatiya\s*nyaya',
-        # Section 62 BNS
-        r'\b62\s*(?:\([^\)]*\)\s*)?(?:of\s+)?(?:the\s+)?bns\b',
-        r'\bbns\s*(?:sec(?:tion)?\.?\s*)?62\b',
-        r'62\s*bns',
-        r'bns\s*62',
-        r'62\s*bharatiya\s*nyaya',
-    ]
+        patterns = [
+            # Section 64 BNS
+            r'\b64\s*(?:\([^\)]*\)\s*)?(?:of\s+)?(?:the\s+)?bns\b',
+            r'\bbns\s*(?:sec(?:tion)?\.?\s*)?64\b',
+            r'64\s*bns',
+            r'bns\s*64',
+            r'64\s*bharatiya\s*nyaya',
+            # Section 65 BNS
+            r'\b65\s*(?:\([^\)]*\)\s*)?(?:of\s+)?(?:the\s+)?bns\b',
+            r'\bbns\s*(?:sec(?:tion)?\.?\s*)?65\b',
+            r'65\s*bns',
+            r'bns\s*65',
+            r'65\s*bharatiya\s*nyaya',
+            # Section 70(2) BNS
+            r'\b70\s*\(\s*2\s*\)\s*(?:of\s+)?(?:the\s+)?bns\b',
+            r'\bbns\s*(?:sec(?:tion)?\.?\s*)?70\s*\(\s*2\s*\)',
+            r'70\s*\(\s*2\s*\)\s*bns',
+            r'bns\s*70\s*\(\s*2\s*\)',
+            r'70\s*\(\s*2\s*\)\s*bharatiya\s*nyaya',
+            # Section 62 BNS
+            r'\b62\s*(?:\([^\)]*\)\s*)?(?:of\s+)?(?:the\s+)?bns\b',
+            r'\bbns\s*(?:sec(?:tion)?\.?\s*)?62\b',
+            r'62\s*bns',
+            r'bns\s*62',
+            r'62\s*bharatiya\s*nyaya',
+        ]
 
-    for p in patterns:
-        if re.search(p, combined_text, re.IGNORECASE):
-            return True
+        for p in patterns:
+            if re.search(p, extra_text, re.IGNORECASE):
+                return True
 
     return False
 

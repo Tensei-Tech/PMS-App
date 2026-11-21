@@ -198,6 +198,21 @@ class ItssoCasesTests(TestCase):
         qs = ItssoService.get_itsso_cases_queryset()
         self.assertNotIn(non_bns_case, qs)
 
+    def test_itsso_rejection_of_incidental_text_in_description(self):
+        """Ensure incidental narrative mentioning '64 BNS' without an actual charge is not classified as ITSSO."""
+        incidental_case = CaseRecord.objects.create(
+            case_number='CR-INCIDENTAL',
+            module_key='theft',
+            status='Pending',
+            station_name='Central Station',
+            title='Theft at BNS Colony',
+            description='Complainant was at Flat 64 BNS enclave when theft occurred.',
+            extra_fields={}
+        )
+        self.assertFalse(is_itsso_case(incidental_case))
+        qs = ItssoService.get_itsso_cases_queryset()
+        self.assertNotIn(incidental_case, qs)
+
     def test_itsso_station_filtering(self):
         """Test station_name filter query parameter on itsso-cases."""
         other_st_case = CaseRecord.objects.create(
