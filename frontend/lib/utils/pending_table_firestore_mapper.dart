@@ -119,7 +119,12 @@ String _sectionsLine(ModuleRecord r) {
 
   final direct = r.extraFields['sections'] ??
       r.extraFields['section_number'] ??
-      r.extraFields['section_id'];
+      r.extraFields['section_id'] ??
+      r.extraFields['section_act'] ??
+      r.extraFields['act_section'] ??
+      r.extraFields['section'] ??
+      r.extraFields['act'] ??
+      r.extraFields['acts'];
   if (direct is List) {
     for (final s in direct) {
       final st = s?.toString().trim();
@@ -147,6 +152,16 @@ String _sectionsLine(ModuleRecord r) {
   final unique = sectionsList.where((x) => seen.add(x)).toList();
   if (unique.isNotEmpty) {
     return unique.join(', ');
+  }
+
+  // Fallback: If subCategory or title itself contains an Act/Section like "498 (A) IPC"
+  final sub = (r.subCategory ?? '').trim();
+  if (RegExp(r'\d+.*(IPC|BNS|BNSS|MCOCA|NDPS|POCSO|Act|CRPC)', caseSensitive: false).hasMatch(sub)) {
+    return sub;
+  }
+  final title = r.title.trim();
+  if (RegExp(r'\d+.*(IPC|BNS|BNSS|MCOCA|NDPS|POCSO|Act|CRPC)', caseSensitive: false).hasMatch(title)) {
+    return title;
   }
 
   return '—';

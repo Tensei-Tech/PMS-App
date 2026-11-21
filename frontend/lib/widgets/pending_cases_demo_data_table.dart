@@ -221,16 +221,16 @@ class PendingCasesDemoDataTable extends StatelessWidget {
         }
 
         final headers = <Widget>[
-          headerCell('Sr. No'),
+          headerCell('Sr. No.'),
           headerCell('Cr. No.'),
-          headerCell('SEC & ACT'),
+          headerCell('Sec & Act'),
           if (!isVictim) headerCell('Head'),
           if (isAbsconded) headerCell('Accused Name (फरार आरोपी)'),
           if (isVictim) headerCell('Head'),
           if (isVictim) headerCell('Name'),
           if (isVictim) headerCell('Injured/Deceased'),
           headerCell('IO Name'),
-          if (!isUndetected && !isAbsconded) headerCell('Police station name'),
+          if (!isUndetected && !isAbsconded) headerCell('Police Station'),
         ];
 
         TableRow rowFor(int idx, Map<String, String> r) {
@@ -313,8 +313,9 @@ class PendingCasesDemoDataTable extends StatelessWidget {
             columnWidths: columnWidths,
             defaultVerticalAlignment: TableCellVerticalAlignment.middle,
             border: const TableBorder(
-              horizontalInside: BorderSide(color: Color(0xFFEDF2F7), width: 1),
-              verticalInside: BorderSide(color: Color(0xFFEDF2F7), width: 1),
+              horizontalInside: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+              verticalInside: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+              bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
             ),
             children: rows.isEmpty
                 ? [
@@ -334,29 +335,38 @@ class PendingCasesDemoDataTable extends StatelessWidget {
 
         final inner = Container(
           width: tableWidth,
-          height: containerHeight,
+          height: hasFiniteHeight ? containerHeight : null,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+            border: Border.all(color: const Color(0xFFCBD5E1)),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(9),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                headerTable,
-                Expanded(
-                  child: Scrollbar(
-                    thumbVisibility: true,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.vertical,
-                      child: bodyTable,
-                    ),
+            child: hasFiniteHeight
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      headerTable,
+                      Expanded(
+                        child: Scrollbar(
+                          thumbVisibility: true,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: bodyTable,
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      headerTable,
+                      bodyTable,
+                    ],
                   ),
-                ),
-              ],
-            ),
           ),
         );
 
