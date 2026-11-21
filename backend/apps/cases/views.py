@@ -2583,7 +2583,7 @@ def apply_victim_filter_queryset(queryset, victim_filter):
         return queryset
 
     filtered_candidates = queryset.only('id', 'extra_fields', 'module_key', 'sub_category', 'status')
-    matching_ids = [c.id for c in filtered_candidates if case_matches_victim_filter(c, victim_filter)]
+    matching_ids = [str(c.id) for c in filtered_candidates if case_matches_victim_filter(c, victim_filter)]
     if not matching_ids:
         return queryset.none()
     return queryset.filter(id__in=matching_ids)

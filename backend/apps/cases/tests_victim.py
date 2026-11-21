@@ -1,3 +1,4 @@
+import uuid
 from unittest.mock import patch
 from django.test import TestCase
 from rest_framework.test import APIClient
@@ -158,6 +159,7 @@ class VictimCasesTests(TestCase):
         from apps.cases.views import case_matches_victim_filter, apply_victim_filter_queryset
 
         case_minor_female = CaseRecord.objects.create(
+            id=str(uuid.uuid4()),
             title='Minor Female Victim',
             module_key='crime_women',
             status='Pending',
@@ -165,6 +167,7 @@ class VictimCasesTests(TestCase):
             extra_fields={'victim_gender': 'Female', 'victim_age': 12}
         )
         case_adult_female = CaseRecord.objects.create(
+            id=str(uuid.uuid4()),
             title='Adult Female Victim',
             module_key='crime_women',
             status='Pending',
@@ -172,6 +175,7 @@ class VictimCasesTests(TestCase):
             extra_fields={'victim_gender': 'Female', 'victim_age': 25}
         )
         case_minor_male = CaseRecord.objects.create(
+            id=str(uuid.uuid4()),
             title='Minor Male Victim',
             module_key='pocso',
             status='Pending',
@@ -179,6 +183,7 @@ class VictimCasesTests(TestCase):
             extra_fields={'victim_gender': 'Male', 'victim_age': 10}
         )
         case_senior_pwd = CaseRecord.objects.create(
+            id=str(uuid.uuid4()),
             title='Senior PWD Victim',
             module_key='missing',
             status='Pending',
@@ -201,7 +206,7 @@ class VictimCasesTests(TestCase):
         qs = CaseRecord.objects.filter(id__in=[case_minor_female.id, case_adult_female.id, case_minor_male.id, case_senior_pwd.id])
         filtered_qs = apply_victim_filter_queryset(qs, 'female,minor')
         self.assertEqual(filtered_qs.count(), 1)
-        self.assertEqual(filtered_qs.first().id, case_minor_female.id)
+        self.assertEqual(str(filtered_qs.first().id), str(case_minor_female.id))
 
     def test_victim_station_filtering(self):
         """Test that station_name query parameter isolates cases by station."""
@@ -210,6 +215,7 @@ class VictimCasesTests(TestCase):
         RolePermission.objects.get_or_create(role=self.role, permission=perm_dist, defaults={'is_granted': True})
 
         st_case_1 = CaseRecord.objects.create(
+            id=str(uuid.uuid4()),
             title='Station A Victim Case',
             module_key='crime_women',
             status='Pending',
@@ -217,6 +223,7 @@ class VictimCasesTests(TestCase):
             extra_fields={'victim_gender': 'Female'}
         )
         st_case_2 = CaseRecord.objects.create(
+            id=str(uuid.uuid4()),
             title='Station B Victim Case',
             module_key='crime_women',
             status='Pending',
