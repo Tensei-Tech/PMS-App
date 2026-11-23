@@ -152,6 +152,9 @@ class _SubTabStrip extends StatelessWidget implements PreferredSizeWidget {
       alignment: Alignment.center,
       child: Container(
         height: _trackHeight,
+        constraints: BoxConstraints(
+          maxWidth: count <= 2 ? 380 : (count * 160.0).clamp(380.0, 600.0),
+        ),
         decoration: BoxDecoration(
           color: const Color(0xFFF1F5F9),
           borderRadius: BorderRadius.circular(10),
