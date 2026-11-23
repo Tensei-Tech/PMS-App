@@ -3904,8 +3904,12 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                   copyOnTickRules: _copyOnTickRules,
                   fieldMaxLengths: widget.fieldMaxLengths,
                   allFormFields: fields,
-                  // PC: three fields per line (Panchnama four)
-                  columns: secKey == 'All Panchnama' ? 4 : 3,
+                  // PC: three fields per line (Panchnama, Complainant four;
+                  // IO / Registered By two: IO on one line, Registered By
+                  // below it)
+                  columns: secKey == 'All Panchnama' || secKey == 'Complainant'
+                      ? 4
+                      : (secKey == 'Officer' ? 2 : 3),
                 );
           }
         }
