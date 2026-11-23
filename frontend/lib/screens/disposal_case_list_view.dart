@@ -407,7 +407,7 @@ class _DisposalCaseListViewState extends State<DisposalCaseListView> {
         } else {
           tableWidth = math.max(constraints.maxWidth, 900.0);
           columnWidths = const <int, TableColumnWidth>{
-            0: IntrinsicColumnWidth(),
+            0: FixedColumnWidth(65),
             1: FlexColumnWidth(1.2),
             2: FlexColumnWidth(1.2),
             3: FlexColumnWidth(1.4),

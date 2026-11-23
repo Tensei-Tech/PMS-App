@@ -2100,12 +2100,12 @@ class _VictimHubScreenState extends State<VictimHubScreen>
                 );
               },
               icon: const Icon(
-                Icons.assessment_outlined,
+                Icons.picture_as_pdf_rounded,
                 color: Colors.white,
                 size: 16,
               ),
               label: Text(
-                'Summary',
+                'PDF',
                 style: GoogleFonts.poppins(
                   fontWeight: FontWeight.w600,
                   fontSize: 13,
