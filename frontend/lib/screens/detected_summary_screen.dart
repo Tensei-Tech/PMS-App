@@ -73,13 +73,14 @@ class DetectedSummaryScreen extends StatelessWidget {
       return <String, dynamic>{
         'Sr. No.': '${idx + 1}',
         'Cr. No.': r['cr']?.trim().isNotEmpty == true ? r['cr']!.trim() : '—',
-        'Sec & Act':
-            r['sections']?.trim().isNotEmpty == true ? r['sections']!.trim() : '—',
+        'Sec & Act': r['sections']?.trim().isNotEmpty == true
+            ? r['sections']!.trim()
+            : '—',
         'Head': r['head']?.trim().isNotEmpty == true ? r['head']!.trim() : '—',
-        'Accused Name':
-            r['accused']?.trim().isNotEmpty == true ? r['accused']!.trim() : '—',
-        'IO Name':
-            r['io']?.trim().isNotEmpty == true ? r['io']!.trim() : '—',
+        'Accused Name': r['accused']?.trim().isNotEmpty == true
+            ? r['accused']!.trim()
+            : '—',
+        'IO Name': r['io']?.trim().isNotEmpty == true ? r['io']!.trim() : '—',
       };
     }).toList();
 
@@ -98,6 +99,7 @@ class DetectedSummaryScreen extends StatelessWidget {
         'IO Name',
       ],
     );
+    if (!context.mounted) return;
     await CustomPdfPreviewDialog.show(
       context: context,
       title: 'Detected Cases — Summary Report',
@@ -326,16 +328,15 @@ class DetectedSummaryScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 8),
                       decoration: BoxDecoration(
-                        color: !anyRows
-                            ? Colors.grey.shade400
-                            : AppColors.navyMid,
+                        color:
+                            !anyRows ? Colors.grey.shade400 : AppColors.navyMid,
                         borderRadius: BorderRadius.circular(8),
                         boxShadow: !anyRows
                             ? []
                             : [
                                 BoxShadow(
-                                  color: AppColors.navyMid
-                                      .withValues(alpha: 0.25),
+                                  color:
+                                      AppColors.navyMid.withValues(alpha: 0.25),
                                   blurRadius: 4,
                                   offset: const Offset(0, 2),
                                 ),
@@ -371,8 +372,8 @@ class DetectedSummaryScreen extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.all(20),
                               decoration: BoxDecoration(
-                                color: AppColors.navyMid
-                                    .withValues(alpha: 0.06),
+                                color:
+                                    AppColors.navyMid.withValues(alpha: 0.06),
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: const Icon(Icons.verified_outlined,
@@ -391,11 +392,9 @@ class DetectedSummaryScreen extends StatelessWidget {
                         ),
                       )
                     : ListView(
-                        padding:
-                            const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.only(bottom: 16),
                         children: [
-                          for (final label
-                              in _getUniqueCategories(dataset))
+                          for (final label in _getUniqueCategories(dataset))
                             sectionBlock(label),
                         ],
                       ),

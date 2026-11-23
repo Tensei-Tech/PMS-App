@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:printing/printing.dart';
 import '../theme/app_theme.dart';
 import '../utils/dynamic_map_pdf.dart';
 import '../utils/excel_export_helper.dart';
@@ -97,6 +96,8 @@ class _FilteredDisposalScreenState extends State<FilteredDisposalScreen> {
         'IO Name',
       ],
     );
+
+    if (!mounted) return;
 
     await CustomPdfPreviewDialog.show(
       context: context,

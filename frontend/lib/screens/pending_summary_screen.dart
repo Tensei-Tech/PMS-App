@@ -5,7 +5,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 import '../modules/core/models/base_record.dart';
 import '../providers/auth_provider.dart';
@@ -91,17 +90,21 @@ class PendingSummaryScreen extends StatelessWidget {
       final rowMap = <String, dynamic>{
         'Sr. No.': '${idx + 1}',
         'Cr. No.': r['cr']?.trim().isNotEmpty == true ? r['cr']!.trim() : '—',
-        'Sec & Act':
-            r['sections']?.trim().isNotEmpty == true ? r['sections']!.trim() : '—',
+        'Sec & Act': r['sections']?.trim().isNotEmpty == true
+            ? r['sections']!.trim()
+            : '—',
         'Head': r['head']?.trim().isNotEmpty == true ? r['head']!.trim() : '—',
       };
       if (isAbsconded) {
         rowMap['Accused Name (फरार आरोपी)'] =
-            r['accused']?.trim().isNotEmpty == true ? r['accused']!.trim() : '—';
+            r['accused']?.trim().isNotEmpty == true
+                ? r['accused']!.trim()
+                : '—';
       }
       if (isVictim) {
-        rowMap['Name'] =
-            r['victim_name']?.trim().isNotEmpty == true ? r['victim_name']!.trim() : '—';
+        rowMap['Name'] = r['victim_name']?.trim().isNotEmpty == true
+            ? r['victim_name']!.trim()
+            : '—';
         rowMap['Injured/Deceased'] =
             r['injured_deceased']?.trim().isNotEmpty == true
                 ? r['injured_deceased']!.trim()
@@ -110,8 +113,9 @@ class PendingSummaryScreen extends StatelessWidget {
       rowMap['IO Name'] =
           r['io']?.trim().isNotEmpty == true ? r['io']!.trim() : '—';
       if (!isUndetected && !isAbsconded) {
-        rowMap['Police Station'] =
-            r['station']?.trim().isNotEmpty == true ? r['station']!.trim() : '—';
+        rowMap['Police Station'] = r['station']?.trim().isNotEmpty == true
+            ? r['station']!.trim()
+            : '—';
       }
       return rowMap;
     }).toList();
@@ -136,6 +140,7 @@ class PendingSummaryScreen extends StatelessWidget {
       prependSerial: false,
       columnOrder: columnOrder,
     );
+    if (!context.mounted) return;
     await CustomPdfPreviewDialog.show(
       context: context,
       title: 'Pending Cases — Summary Report',
@@ -376,8 +381,8 @@ class PendingSummaryScreen extends StatelessWidget {
                             ? []
                             : [
                                 BoxShadow(
-                                  color: AppColors.navyMid
-                                      .withValues(alpha: 0.25),
+                                  color:
+                                      AppColors.navyMid.withValues(alpha: 0.25),
                                   blurRadius: 4,
                                   offset: const Offset(0, 2),
                                 ),

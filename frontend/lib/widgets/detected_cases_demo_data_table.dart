@@ -120,9 +120,6 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
 
         final maxH = constraints.maxHeight;
         final hasFiniteHeight = maxH.isFinite;
-        // Size naturally when inside a ListView (infinite height context)
-        // so there's no dead whitespace below short tables
-        final double estHeight = 44.0 * (rows.length + 1) + 2.0;
 
         final headerTable = Container(
           decoration: const BoxDecoration(
@@ -132,8 +129,7 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
             columnWidths: columnWidths,
             defaultVerticalAlignment: TableCellVerticalAlignment.middle,
             border: const TableBorder(
-              verticalInside:
-                  BorderSide(color: Color(0xFFE2E8F0), width: 1),
+              verticalInside: BorderSide(color: Color(0xFFE2E8F0), width: 1),
               bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
             ),
             children: [
@@ -153,10 +149,8 @@ class DetectedCasesDemoDataTable extends StatelessWidget {
             columnWidths: columnWidths,
             defaultVerticalAlignment: TableCellVerticalAlignment.middle,
             border: const TableBorder(
-              horizontalInside:
-                  BorderSide(color: Color(0xFFE2E8F0), width: 1),
-              verticalInside:
-                  BorderSide(color: Color(0xFFE2E8F0), width: 1),
+              horizontalInside: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+              verticalInside: BorderSide(color: Color(0xFFE2E8F0), width: 1),
               bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
             ),
             children: rows.isEmpty

@@ -508,30 +508,6 @@ class DynamicMapPdf {
     return _buildHubKeyedMap(data, _sortedKeys(data));
   }
 
-  static pw.Widget _landscapeHeaderCell(String text) {
-    return pw.Container(
-      padding: const pw.EdgeInsets.all(6),
-      color: const PdfColor.fromInt(0xFF0A0E21),
-      alignment: pw.Alignment.centerLeft,
-      child: pw.Text(
-        text,
-        style: pw.TextStyle(
-          fontSize: 9,
-          fontWeight: pw.FontWeight.bold,
-          color: PdfColors.white,
-        ),
-      ),
-    );
-  }
-
-  static pw.Widget _landscapeBodyCell(String text) {
-    return pw.Container(
-      padding: const pw.EdgeInsets.all(6),
-      alignment: pw.Alignment.centerLeft,
-      child: pw.Text(text, style: const pw.TextStyle(fontSize: 9)),
-    );
-  }
-
   static bool _isSerialKey(String k) {
     final clean = k.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
     return clean == 'sr' ||

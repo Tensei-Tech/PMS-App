@@ -159,14 +159,24 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
         return ExcelExportHelper.formatSectionAct(act);
       }
     }
-    final title = (item['title'] ?? item['description'] ?? item['head'] ?? item['sub_category'] ?? '').toString().trim();
+    final title = (item['title'] ??
+            item['description'] ??
+            item['head'] ??
+            item['sub_category'] ??
+            '')
+        .toString()
+        .trim();
     if (title.isNotEmpty && title.toLowerCase() != 'pocso') return title;
     return '—';
   }
 
   static String _getChargeSheetInfo(Map<String, dynamic> item) {
     final cs = item['charge_sheet_date']?.toString().trim();
-    if (cs != null && cs.isNotEmpty && cs != 'Pending' && cs != '—' && cs != '-') {
+    if (cs != null &&
+        cs.isNotEmpty &&
+        cs != 'Pending' &&
+        cs != '—' &&
+        cs != '-') {
       return cs;
     }
     final ef = item['extra_fields'];
@@ -178,7 +188,8 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
       if (csNo != null && csNo.toString().trim().isNotEmpty) {
         return csNo.toString();
       }
-      final csDate = ef['charge_sheet_date'] ?? ef['chargeSheetDate'] ?? ef['cs_date'];
+      final csDate =
+          ef['charge_sheet_date'] ?? ef['chargeSheetDate'] ?? ef['cs_date'];
       if (csDate != null && csDate.toString().trim().isNotEmpty) {
         return csDate.toString().split('T')[0];
       }
@@ -202,15 +213,17 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
       final c = entry.value is Map<String, dynamic>
           ? entry.value as Map<String, dynamic>
           : Map<String, dynamic>.from(entry.value as Map);
-      final isGreen = c['itsso_status_color']?.toString().toLowerCase() == 'green' ||
-          c['itsso_status']?.toString().toLowerCase() == 'chargesheeted';
+      final isGreen =
+          c['itsso_status_color']?.toString().toLowerCase() == 'green' ||
+              c['itsso_status']?.toString().toLowerCase() == 'chargesheeted';
       return [
         c['sr_no']?.toString() ?? '${index + 1}',
         c['case_number']?.toString() ?? '—',
         _getSectionAct(c),
         _getChargeSheetInfo(c),
         c['assigned_officer']?.toString() ?? 'Unassigned',
-        c['itsso_status']?.toString() ?? (isGreen ? 'Chargesheeted' : 'Pending'),
+        c['itsso_status']?.toString() ??
+            (isGreen ? 'Chargesheeted' : 'Pending'),
         isGreen ? '—' : 'Remind to IO',
       ];
     }).toList();
@@ -229,15 +242,17 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
       final c = entry.value is Map<String, dynamic>
           ? entry.value as Map<String, dynamic>
           : Map<String, dynamic>.from(entry.value as Map);
-      final isGreen = c['itsso_status_color']?.toString().toLowerCase() == 'green' ||
-          c['itsso_status']?.toString().toLowerCase() == 'chargesheeted';
+      final isGreen =
+          c['itsso_status_color']?.toString().toLowerCase() == 'green' ||
+              c['itsso_status']?.toString().toLowerCase() == 'chargesheeted';
       return {
         'Sr. No.': c['sr_no']?.toString() ?? '${index + 1}',
         'CR No.': c['case_number']?.toString() ?? '—',
         'Section/Act': _getSectionAct(c),
         'Charge Sheet / CC No.': _getChargeSheetInfo(c),
         'IO Name': c['assigned_officer']?.toString() ?? 'Unassigned',
-        'Status': c['itsso_status']?.toString() ?? (isGreen ? 'Chargesheeted' : 'Pending'),
+        'Status': c['itsso_status']?.toString() ??
+            (isGreen ? 'Chargesheeted' : 'Pending'),
         'Action': isGreen ? '—' : 'Remind to IO',
       };
     }).toList();
@@ -258,6 +273,8 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
         'Action',
       ],
     );
+
+    if (!mounted) return;
 
     await CustomPdfPreviewDialog.show(
       context: context,
@@ -459,7 +476,8 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
           }
 
           Widget headerCell(String s) => Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
                 color: AppColors.navyDark,
                 alignment: Alignment.center,
                 child: Text(
@@ -477,7 +495,8 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
 
           Widget dataCell(Widget child, {Alignment align = Alignment.center}) =>
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
                 alignment: align,
                 child: child,
               );
@@ -519,9 +538,11 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
             final secAct = _getSectionAct(c);
             final csInfo = _getChargeSheetInfo(c);
             final io = (c['assigned_officer'] ?? 'Unassigned').toString();
-            final isGreen = c['itsso_status_color']?.toString().toLowerCase() == 'green' ||
+            final isGreen = c['itsso_status_color']?.toString().toLowerCase() ==
+                    'green' ||
                 c['itsso_status']?.toString().toLowerCase() == 'chargesheeted';
-            final statusText = c['itsso_status']?.toString() ?? (isGreen ? 'Chargesheeted' : 'Pending');
+            final statusText = c['itsso_status']?.toString() ??
+                (isGreen ? 'Chargesheeted' : 'Pending');
 
             final isReminded = remindedSet.contains(caseId);
             final isSending = sendingSet.contains(caseId);
@@ -560,7 +581,8 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFEF4444),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   minimumSize: const Size(85, 28),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -660,7 +682,8 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
               columnWidths: columnWidths,
               defaultVerticalAlignment: TableCellVerticalAlignment.middle,
               border: const TableBorder(
-                horizontalInside: BorderSide(color: Color(0xFFEDF2F7), width: 1),
+                horizontalInside:
+                    BorderSide(color: Color(0xFFEDF2F7), width: 1),
                 verticalInside: BorderSide(color: Color(0xFFEDF2F7), width: 1),
               ),
               children: [
@@ -1019,7 +1042,8 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
               onTap: _exportExcel,
               child: Container(
                 margin: const EdgeInsets.symmetric(vertical: 10),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: const Color(0xFF107C41),
                   borderRadius: BorderRadius.circular(8),
@@ -1054,7 +1078,8 @@ class _ItssoHubScreenState extends State<ItssoHubScreen>
               onTap: _exportPdf,
               child: Container(
                 margin: const EdgeInsets.symmetric(vertical: 10),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: AppColors.navyMid,
                   borderRadius: BorderRadius.circular(8),
