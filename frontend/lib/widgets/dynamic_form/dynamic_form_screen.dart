@@ -9484,8 +9484,8 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
                       addrFld
                     else
                       _personFlexRow([
-                        for (final w
-                            in last.sublist(last.length - last.length % perLine))
+                        for (final w in last
+                            .sublist(last.length - last.length % perLine))
                           MapEntry(w, 1),
                         MapEntry(addrLineFld, addrSlots),
                       ]),

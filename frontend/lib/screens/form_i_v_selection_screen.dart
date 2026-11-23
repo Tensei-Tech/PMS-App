@@ -1249,16 +1249,14 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
     if (dataset.isEmpty) return;
     final theme = await PdfUnicodeFonts.openSansTheme();
 
-    final catLabel =
-        _selectedCategory != null && _selectedCategory!.isNotEmpty
-            ? _selectedCategory!
-            : 'Form I-V';
+    final catLabel = _selectedCategory != null && _selectedCategory!.isNotEmpty
+        ? _selectedCategory!
+        : 'Form I-V';
 
     final rows = dataset.asMap().entries.map((entry) {
       final i = entry.key + 1;
       final r = entry.value;
-      final cr =
-          r.caseNumber.trim().isNotEmpty ? r.caseNumber.trim() : r.title;
+      final cr = r.caseNumber.trim().isNotEmpty ? r.caseNumber.trim() : r.title;
       final category =
           r.subCategory?.isNotEmpty == true ? r.subCategory! : catLabel;
 
@@ -1305,8 +1303,7 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
 
       final crimeDate = DateFormat('dd/MM/yyyy').format(r.incidentDate);
 
-      final status =
-          r.status.trim().isNotEmpty ? r.status.trim() : 'Pending';
+      final status = r.status.trim().isNotEmpty ? r.status.trim() : 'Pending';
 
       return {
         'Sr. No.': '$i',

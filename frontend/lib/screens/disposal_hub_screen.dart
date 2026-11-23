@@ -698,8 +698,8 @@ class _DisposalHubScreenState extends State<DisposalHubScreen>
                 '—')
             .toString();
         final courtNo = ExcelExportHelper.extractDisposalNumbers(r);
-        final io =
-            (r['assigned_officer'] ?? r['io_name'] ?? r['io'] ?? '—').toString();
+        final io = (r['assigned_officer'] ?? r['io_name'] ?? r['io'] ?? '—')
+            .toString();
         final crimeDate = r['incident_date'] != null
             ? DateFormat('dd/MM/yyyy').format(
                 DateTime.tryParse(r['incident_date'].toString()) ??
@@ -711,9 +711,10 @@ class _DisposalHubScreenState extends State<DisposalHubScreen>
           'CR No.': crNo,
           'Category': head,
           'Section / Act': secAct.isNotEmpty ? secAct : '—',
-          'Disposal No.': (courtNo.isNotEmpty && courtNo != '-' && courtNo != '—')
-              ? courtNo
-              : 'Disposed',
+          'Disposal No.':
+              (courtNo.isNotEmpty && courtNo != '-' && courtNo != '—')
+                  ? courtNo
+                  : 'Disposed',
           'IO Name': io,
           'Crime Date': crimeDate,
         };

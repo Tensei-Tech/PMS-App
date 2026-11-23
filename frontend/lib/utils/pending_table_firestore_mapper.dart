@@ -156,11 +156,15 @@ String _sectionsLine(ModuleRecord r) {
 
   // Fallback: If subCategory or title itself contains an Act/Section like "498 (A) IPC"
   final sub = (r.subCategory ?? '').trim();
-  if (RegExp(r'\d+.*(IPC|BNS|BNSS|MCOCA|NDPS|POCSO|Act|CRPC)', caseSensitive: false).hasMatch(sub)) {
+  if (RegExp(r'\d+.*(IPC|BNS|BNSS|MCOCA|NDPS|POCSO|Act|CRPC)',
+          caseSensitive: false)
+      .hasMatch(sub)) {
     return sub;
   }
   final title = r.title.trim();
-  if (RegExp(r'\d+.*(IPC|BNS|BNSS|MCOCA|NDPS|POCSO|Act|CRPC)', caseSensitive: false).hasMatch(title)) {
+  if (RegExp(r'\d+.*(IPC|BNS|BNSS|MCOCA|NDPS|POCSO|Act|CRPC)',
+          caseSensitive: false)
+      .hasMatch(title)) {
     return title;
   }
 
