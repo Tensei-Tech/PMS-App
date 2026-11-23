@@ -40,7 +40,7 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
     _pulseAnim = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
-    )..repeat(reverse: true);
+    );
   }
 
   @override
@@ -184,8 +184,27 @@ class _VoiceDictationButtonState extends State<VoiceDictationButton>
     );
   }
 
+  /// Pulse only while the mic is listening. A pulse left running when idle
+  /// makes the browser redraw the whole page every frame, which can make
+  /// Chrome drop the page's graphics (the screen blinks).
+  void _syncPulse(AnimationController c) {
+    final wantPulse = _isListening;
+    if (wantPulse == c.isAnimating && (wantPulse || c.value == 0)) return;
+    // After this frame: changing the animation mid-build is not allowed
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (_isListening) {
+        if (!c.isAnimating) c.repeat(reverse: true);
+      } else {
+        c.stop();
+        c.value = 0;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    _syncPulse(_pulseAnim);
     return AnimatedBuilder(
       animation: _pulseAnim,
       builder: (context, child) {

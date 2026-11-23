@@ -92,6 +92,10 @@ class _RepeatingCascadingChargesSelectorState
 
   final List<ChargeItemData> _charges = [];
 
+  // The charge open for editing. Other charges that have an Act and Section
+  // collapse to a one-line summary; tapping one opens it here.
+  ChargeItemData? _editing;
+
   // Cache sections by actId and subsections by sectionId
   final Map<String, List<Map<String, dynamic>>> _sectionsCache = {};
   final Map<String, List<Map<String, dynamic>>> _subsectionsCache = {};
@@ -111,6 +115,7 @@ class _RepeatingCascadingChargesSelectorState
       _loadingActs = false;
     });
 
+    _charges.clear();
     if (widget.initialCharges != null && widget.initialCharges!.isNotEmpty) {
       for (final raw in widget.initialCharges!) {
         if (raw is Map) {
@@ -126,6 +131,12 @@ class _RepeatingCascadingChargesSelectorState
         }
       }
     }
+    // Editable forms open with one blank charge so Act / Section /
+    // Subsection show straight away, without an "Add" step.
+    if (_charges.isEmpty && !widget.readOnly) {
+      _charges.add(ChargeItemData());
+    }
+    if (mounted) setState(() {});
 
     _notifyParent();
   }
@@ -136,7 +147,7 @@ class _RepeatingCascadingChargesSelectorState
     if (widget.initialCharges != oldWidget.initialCharges &&
         widget.initialCharges != null &&
         widget.initialCharges!.isNotEmpty &&
-        _charges.isEmpty) {
+        _charges.every((c) => c.isEmpty)) {
       _initData();
     }
   }
@@ -177,7 +188,9 @@ class _RepeatingCascadingChargesSelectorState
   void _addCharge() {
     if (widget.readOnly) return;
     setState(() {
-      _charges.add(ChargeItemData());
+      final fresh = ChargeItemData();
+      _charges.add(fresh);
+      _editing = fresh;
     });
     _notifyParent();
   }
@@ -186,6 +199,19 @@ class _RepeatingCascadingChargesSelectorState
     if (widget.readOnly) return;
     setState(() {
       _charges.removeAt(index);
+      // Keep one row on screen: removing the last charge just clears it.
+      if (_charges.isEmpty) _charges.add(ChargeItemData());
+    });
+    _notifyParent();
+  }
+
+  void _removeCharges(List<int> indices) {
+    if (widget.readOnly) return;
+    setState(() {
+      for (final i in [...indices]..sort((a, b) => b.compareTo(a))) {
+        _charges.removeAt(i);
+      }
+      if (_charges.isEmpty) _charges.add(ChargeItemData());
     });
     _notifyParent();
   }
@@ -212,6 +238,8 @@ class _RepeatingCascadingChargesSelectorState
       );
     }
 
+    // Only read-only views can have no charges (editable ones start with a
+    // blank row).
     if (_charges.isEmpty) {
       return Container(
         width: double.infinity,
@@ -244,30 +272,6 @@ class _RepeatingCascadingChargesSelectorState
                 color: const Color(0xFF64748B),
               ),
             ),
-            if (!widget.readOnly) ...[
-              const SizedBox(height: 12),
-              ElevatedButton.icon(
-                onPressed: _addCharge,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.navyMid,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                  ),
-                ),
-                icon: const Icon(Icons.add_rounded, size: 18),
-                label: Text(
-                  'Add Act & Section',
-                  style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
           ],
         ),
       );
@@ -295,25 +299,19 @@ class _RepeatingCascadingChargesSelectorState
             ),
           )
         else
-          ..._charges.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final charge = entry.value;
-            return _buildSingleChargeCard(idx, charge);
-          }),
-        const SizedBox(height: 10),
+          ..._buildChargeList(),
         if (!widget.readOnly &&
             (widget.maxCharges == null || _charges.length < widget.maxCharges!))
-          OutlinedButton.icon(
+          TextButton.icon(
             onPressed: _addCharge,
-            style: OutlinedButton.styleFrom(
+            style: TextButton.styleFrom(
               foregroundColor: AppColors.navyMid,
-              side: const BorderSide(color: AppColors.navyMid),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             ),
-            icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
+            icon: const Icon(Icons.add_rounded, size: 18),
             label: Text(
               'Add Another Charge',
               style: GoogleFonts.poppins(
@@ -324,6 +322,41 @@ class _RepeatingCascadingChargesSelectorState
           ),
       ],
     );
+  }
+
+  /// A filled charge that shows as a summary (not open for editing).
+  bool _isCollapsed(ChargeItemData c) =>
+      c.actId != null &&
+      c.sectionId != null &&
+      (widget.readOnly || !identical(c, _editing));
+
+  /// Collapsed charges of the same Act share one card listing all their
+  /// sections; the card sits where that Act's first collapsed charge is.
+  /// Charges being edited or not yet filled keep their own card in place.
+  List<Widget> _buildChargeList() {
+    final groups = <String, List<int>>{};
+    for (var i = 0; i < _charges.length; i++) {
+      if (_isCollapsed(_charges[i])) {
+        groups.putIfAbsent(_charges[i].actId.toString(), () => []).add(i);
+      }
+    }
+
+    final widgets = <Widget>[];
+    final shown = <String>{};
+    var groupNo = 0;
+    for (var i = 0; i < _charges.length; i++) {
+      final charge = _charges[i];
+      if (_isCollapsed(charge)) {
+        final key = charge.actId.toString();
+        if (shown.add(key)) {
+          groupNo++;
+          widgets.add(_buildActGroup(groupNo, groups[key]!));
+        }
+      } else {
+        widgets.add(_buildSingleChargeCard(i, charge));
+      }
+    }
+    return widgets;
   }
 
   Widget _buildSingleChargeCard(int index, ChargeItemData charge) {
@@ -337,109 +370,137 @@ class _RepeatingCascadingChargesSelectorState
         ? (_subsectionsCache[sectionIdKey] ?? [])
         : <Map<String, dynamic>>[];
 
+    final complete = charge.actId != null && charge.sectionId != null;
+
+    // Header: "CHARGE 1" on the left, Remove on the right. Remove is hidden
+    // while there is a single blank row, since there is nothing to remove.
+    final canRemove =
+        !widget.readOnly && (_charges.length > 1 || charge.isNotEmpty);
+    final header = Row(
+      children: [
+        Container(
+          width: 4,
+          height: 16,
+          decoration: BoxDecoration(
+            color: AppColors.navyMid,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          'CHARGE ${index + 1}',
+          style: GoogleFonts.poppins(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.8,
+            color: AppColors.navyMid,
+          ),
+        ),
+        const Spacer(),
+        if (complete && !widget.readOnly)
+          TextButton.icon(
+            onPressed: () => setState(() => _editing = null),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.navyMid,
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              minimumSize: const Size(0, 30),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            icon: const Icon(Icons.check_rounded, size: 17),
+            label: Text(
+              'Done',
+              style: GoogleFonts.poppins(
+                  fontSize: 12, fontWeight: FontWeight.w600),
+            ),
+          ),
+        if (canRemove)
+          TextButton.icon(
+            onPressed: () => _removeCharge(index),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.dangerRed,
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              minimumSize: const Size(0, 30),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            icon: const Icon(Icons.delete_outline_rounded, size: 17),
+            label: Text(
+              'Remove',
+              style: GoogleFonts.poppins(
+                  fontSize: 12, fontWeight: FontWeight.w600),
+            ),
+          ),
+      ],
+    );
+
+    final act = _labelled('Act / Law', true, _buildActDropdown(charge));
+    final section = _labelled(
+        'Section', true, _buildSectionDropdown(charge, availableSections));
+    final subsection = _labelled('Subsection', false,
+        _buildSubsectionDropdown(charge, availableSubsections));
+
+    // The header only appears when it says something: several charges to
+    // tell apart, or a filled charge that can be removed.
+    final showHeader = _charges.length > 1 || canRemove;
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.fromLTRB(12, showHeader ? 6 : 12, 12, 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(color: AppColors.lightBorder),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.navyMid,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  'Charge #${index + 1}',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              const Spacer(),
-              if (!widget.readOnly)
-                Tooltip(
-                  message: 'Remove Charge',
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(6),
-                    onTap: () => _removeCharge(index),
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.delete_outline_rounded,
-                            color: AppColors.dangerRed,
-                            size: 18,
-                          ),
-                          SizedBox(width: 4),
-                          Text(
-                            'Remove',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.dangerRed,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 14),
+          if (showHeader) ...[
+            SizedBox(height: 28, child: header),
+            const SizedBox(height: 4),
+          ],
           LayoutBuilder(
             builder: (context, constraints) {
-              final isWide = constraints.maxWidth >= 650;
-              if (isWide) {
+              // Wide: Act | Section | Subsection on one line
+              if (constraints.maxWidth >= 640) {
                 return Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      flex: 4,
-                      child: _buildActDropdown(charge),
-                    ),
+                    Expanded(flex: 4, child: act),
                     const SizedBox(width: 12),
-                    Expanded(
-                      flex: 4,
-                      child: _buildSectionDropdown(charge, availableSections),
-                    ),
+                    Expanded(flex: 3, child: section),
                     const SizedBox(width: 12),
-                    Expanded(
-                      flex: 3,
-                      child: _buildSubsectionDropdown(
-                          charge, availableSubsections),
+                    Expanded(flex: 3, child: subsection),
+                  ],
+                );
+              }
+              // Medium: Act on top, Section + Subsection side by side
+              if (constraints.maxWidth >= 340) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    act,
+                    const SizedBox(height: 10),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: section),
+                        const SizedBox(width: 10),
+                        Expanded(child: subsection),
+                      ],
                     ),
                   ],
                 );
               }
+              // Very narrow: one field per line
               return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _buildActDropdown(charge),
-                  const SizedBox(height: 12),
-                  _buildSectionDropdown(charge, availableSections),
-                  const SizedBox(height: 12),
-                  _buildSubsectionDropdown(charge, availableSubsections),
+                  act,
+                  const SizedBox(height: 10),
+                  section,
+                  const SizedBox(height: 10),
+                  subsection,
                 ],
               );
             },
@@ -449,11 +510,151 @@ class _RepeatingCascadingChargesSelectorState
     );
   }
 
+  /// One card per Act with all its sections on one line, e.g.
+  ///   BNS, 2023
+  ///   Sec 101 (a), Sec 109 (1)                         [remove]
+  /// Tapping a section opens it for editing (its own Remove is there).
+  Widget _buildActGroup(int groupNo, List<int> indices) {
+    final first = _charges[indices.first];
+    final textStyle = GoogleFonts.poppins(
+      fontSize: 12.5,
+      fontWeight: FontWeight.w600,
+      color: AppColors.navyDark,
+    );
+
+    String sectionLabel(ChargeItemData c) {
+      final secNo = 'Sec ${c.sectionNumber ?? ''}'.trim();
+      final sub = (c.subsectionCode ?? '').trim();
+      return sub.isEmpty ? secNo : '$secNo ($sub)';
+    }
+
+    final sections = Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        for (var n = 0; n < indices.length; n++)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              InkWell(
+                onTap: widget.readOnly
+                    ? null
+                    : () => setState(() => _editing = _charges[indices[n]]),
+                borderRadius: BorderRadius.circular(4),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Text(sectionLabel(_charges[indices[n]]),
+                      style: textStyle),
+                ),
+              ),
+              if (n < indices.length - 1) Text(', ', style: textStyle),
+            ],
+          ),
+      ],
+    );
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.fromLTRB(12, 6, 4, 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: AppColors.lightBorder),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 24,
+            height: 24,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.navyMid,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              '$groupNo',
+              style: GoogleFonts.poppins(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  first.actName ?? '',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF64748B),
+                  ),
+                ),
+                sections,
+              ],
+            ),
+          ),
+          if (!widget.readOnly)
+            IconButton(
+              tooltip: 'Remove all sections of this act',
+              onPressed: () => _removeCharges(indices),
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.delete_outline_rounded,
+                  size: 18, color: AppColors.dangerRed),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Field with its label above it ("Act / Law *", "Subsection (optional)").
+  Widget _labelled(String label, bool required, Widget field) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text.rich(
+          TextSpan(
+            text: label,
+            children: [
+              if (required)
+                const TextSpan(
+                  text: ' *',
+                  style: TextStyle(color: AppColors.dangerRed),
+                )
+            ],
+          ),
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF334155),
+          ),
+        ),
+        const SizedBox(height: 4),
+        field,
+      ],
+    );
+  }
+
+  static const _fieldTextSize = 12.5;
+  static const _fieldPadding =
+      EdgeInsets.symmetric(horizontal: 12, vertical: 10);
+
+  InputBorder _border(Color color, [double width = 1]) => OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        borderSide: BorderSide(color: color, width: width),
+      );
+
   Widget _buildActDropdown(ChargeItemData charge) {
     return _buildSearchableDropdown(
       key: ValueKey('act_${charge.actId}'),
       label: 'Act / Law *',
-      hint: 'Search Act (e.g. BNS, IPC)...',
+      hint: 'Search act (e.g. BNS, IPC)',
       initialSelection:
           _actsList.any((a) => a['id'] == charge.actId) ? charge.actId : null,
       isEnabled: !widget.readOnly,
@@ -472,6 +673,7 @@ class _RepeatingCascadingChargesSelectorState
       }).toList(),
       onSelected: (val) {
         setState(() {
+          _editing = charge;
           charge.actId = val;
           final match = _actsList.firstWhere(
             (a) => a['id'] == val,
@@ -502,10 +704,8 @@ class _RepeatingCascadingChargesSelectorState
       key: ValueKey('sec_${charge.actId}_${charge.sectionId}'),
       label: 'Section *',
       hint: charge.actId == null
-          ? 'Select Act first'
-          : (availableSections.isEmpty
-              ? 'Loading sections...'
-              : 'Search Section (e.g. 101, murder)...'),
+          ? 'Select act first'
+          : (availableSections.isEmpty ? 'Loading...' : 'Search (e.g. 103)'),
       initialSelection:
           availableSections.any((s) => s['id'] == charge.sectionId)
               ? charge.sectionId
@@ -529,6 +729,7 @@ class _RepeatingCascadingChargesSelectorState
       }).toList(),
       onSelected: (val) {
         setState(() {
+          _editing = charge;
           charge.sectionId = val;
           final match = availableSections.firstWhere(
             (s) => s['id'] == val,
@@ -559,163 +760,82 @@ class _RepeatingCascadingChargesSelectorState
             List<DropdownMenuEntry<dynamic>> entries, String filter)?
         filterCallback,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 12.5,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF334155),
-          ),
+    return DropdownMenu<dynamic>(
+      key: key,
+      expandedInsets: EdgeInsets.zero,
+      enabled: isEnabled,
+      initialSelection: initialSelection,
+      enableFilter: true,
+      requestFocusOnTap: true,
+      menuHeight: 320,
+      hintText: hint,
+      textStyle: GoogleFonts.poppins(
+        fontSize: _fieldTextSize,
+        fontWeight: FontWeight.w500,
+        color: AppColors.navyDark,
+      ),
+      trailingIcon: const Icon(Icons.arrow_drop_down_rounded, size: 20),
+      selectedTrailingIcon: const Icon(Icons.arrow_drop_up_rounded, size: 20),
+      inputDecorationTheme: InputDecorationTheme(
+        isDense: true,
+        filled: true,
+        fillColor: isEnabled ? Colors.white : const Color(0xFFF8FAFC),
+        contentPadding: _fieldPadding,
+        hintStyle: GoogleFonts.poppins(
+          fontSize: 12,
+          color: const Color(0xFF94A3B8),
         ),
-        const SizedBox(height: 6),
-        DropdownMenu<dynamic>(
-          key: key,
-          expandedInsets: EdgeInsets.zero,
-          enabled: isEnabled,
-          initialSelection: initialSelection,
-          enableFilter: true,
-          requestFocusOnTap: true,
-          menuHeight: 320,
-          leadingIcon: const Icon(
-            Icons.search_rounded,
-            size: 19,
-            color: AppColors.navyMid,
-          ),
-          hintText: hint,
-          textStyle: GoogleFonts.poppins(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: AppColors.navyDark,
-          ),
-          inputDecorationTheme: InputDecorationTheme(
-            filled: true,
-            fillColor: isEnabled ? Colors.white : const Color(0xFFF1F5F9),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            hintStyle: GoogleFonts.poppins(
-              fontSize: 12.5,
-              color: const Color(0xFF94A3B8),
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              borderSide: const BorderSide(color: AppColors.lightBorder),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              borderSide: const BorderSide(color: AppColors.lightBorder),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              borderSide:
-                  const BorderSide(color: AppColors.navyMid, width: 1.5),
-            ),
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-            ),
-          ),
-          filterCallback: filterCallback,
-          dropdownMenuEntries: entries,
-          onSelected: onSelected,
-        ),
-      ],
+        border: _border(AppColors.lightBorder),
+        enabledBorder: _border(AppColors.lightBorder),
+        focusedBorder: _border(AppColors.navyMid, 1.5),
+        disabledBorder: _border(const Color(0xFFE2E8F0)),
+      ),
+      filterCallback: filterCallback,
+      dropdownMenuEntries: entries,
+      onSelected: onSelected,
     );
   }
 
   Widget _buildSubsectionDropdown(
       ChargeItemData charge, List<Map<String, dynamic>> availableSubsections) {
-    return _buildDropdownField<dynamic>(
-      label: 'Subsection (Optional)',
+    // Same DropdownMenu as Act and Section, so all fields match in size.
+    return _buildSearchableDropdown(
+      key: ValueKey('sub_${charge.sectionId}_${charge.subsectionId}'),
+      label: 'Subsection',
       hint: charge.sectionId == null
-          ? 'Select Section first'
-          : (availableSubsections.isEmpty
-              ? 'None available'
-              : 'Select Subsection'),
-      value: availableSubsections.any((sub) => sub['id'] == charge.subsectionId)
-          ? charge.subsectionId
-          : null,
-      items: availableSubsections.map((sub) {
-        return DropdownMenuItem<dynamic>(
+          ? 'Optional'
+          : (availableSubsections.isEmpty ? 'None' : 'Optional'),
+      initialSelection:
+          availableSubsections.any((sub) => sub['id'] == charge.subsectionId)
+              ? charge.subsectionId
+              : null,
+      isEnabled: !widget.readOnly && availableSubsections.isNotEmpty,
+      filterCallback: (entries, filter) {
+        final query = filter.trim().toLowerCase();
+        if (query.isEmpty) return entries;
+        return entries
+            .where((e) => e.label.toLowerCase().contains(query))
+            .toList();
+      },
+      entries: availableSubsections.map((sub) {
+        return DropdownMenuEntry<dynamic>(
           value: sub['id'],
-          child: Text(
-            sub['display_name']?.toString() ?? 'Sub. ${sub['subsection_code']}',
-            overflow: TextOverflow.ellipsis,
-          ),
+          label: sub['display_name']?.toString() ??
+              'Sub. ${sub['subsection_code']}',
         );
       }).toList(),
-      onChanged: (widget.readOnly || availableSubsections.isEmpty)
-          ? null
-          : (val) {
-              setState(() {
-                charge.subsectionId = val;
-                final match = availableSubsections.firstWhere(
-                  (sub) => sub['id'] == val,
-                  orElse: () => {},
-                );
-                charge.subsectionCode = match['subsection_code']?.toString();
-              });
-              _notifyParent();
-            },
-    );
-  }
-
-  Widget _buildDropdownField<T>({
-    required String label,
-    required String hint,
-    required T? value,
-    required List<DropdownMenuItem<T>> items,
-    required ValueChanged<T?>? onChanged,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 12.5,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF334155),
-          ),
-        ),
-        const SizedBox(height: 6),
-        DropdownButtonFormField<T>(
-          initialValue: value,
-          isExpanded: true,
-          decoration: InputDecoration(
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            fillColor: Colors.white,
-            filled: true,
-            hintText: hint,
-            hintStyle: GoogleFonts.poppins(
-              fontSize: 13,
-              color: const Color(0xFF94A3B8),
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              borderSide: const BorderSide(color: AppColors.lightBorder),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              borderSide: const BorderSide(color: AppColors.lightBorder),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              borderSide:
-                  const BorderSide(color: AppColors.navyMid, width: 1.5),
-            ),
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              borderSide: BorderSide(color: Colors.grey.shade200),
-            ),
-          ),
-          items: items,
-          onChanged: onChanged,
-        ),
-      ],
+      onSelected: (val) {
+        setState(() {
+          _editing = charge;
+          charge.subsectionId = val;
+          final match = availableSubsections.firstWhere(
+            (sub) => sub['id'] == val,
+            orElse: () => {},
+          );
+          charge.subsectionCode = match['subsection_code']?.toString();
+        });
+        _notifyParent();
+      },
     );
   }
 }

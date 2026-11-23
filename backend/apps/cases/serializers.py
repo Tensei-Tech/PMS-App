@@ -668,6 +668,29 @@ class ItssoCaseRecordSerializer(serializers.ModelSerializer):
                 formatted = format_section_act(extra[key])
                 if formatted:
                     return formatted
+        # Also check relational charges (crime_case_acts_sections)
+        try:
+            charges = list(obj.charges.select_related('act', 'section', 'subsection').all())
+            if charges:
+                c_parts = []
+                for ch in charges:
+                    act_name = ch.act.act_name if ch.act else ''
+                    normalized = act_name.lower()
+                    a_name = 'BNS' if 'nyaya' in normalized or normalized == 'bns' else act_name
+                    s_num = ch.section.section_number if ch.section else ''
+                    if ch.subsection and ch.subsection.subsection_code:
+                        sub = str(ch.subsection.subsection_code).strip('()')
+                        s_num = f"{s_num}({sub})"
+                    if a_name and s_num:
+                        c_parts.append(f"{a_name} Sec. {s_num}".strip())
+                    elif s_num:
+                        c_parts.append(f"Sec. {s_num}".strip())
+                    elif a_name:
+                        c_parts.append(a_name.strip())
+                if c_parts:
+                    return ', '.join(c_parts)
+        except Exception:
+            pass
         if obj.description:
             return format_section_act(obj.description)
         if obj.title and str(obj.title).lower() != 'pocso':

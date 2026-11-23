@@ -106,6 +106,9 @@ void main() {
     // No search bar on the Summary tab
     expect(find.byType(TextField), findsNothing);
 
+    // Table fits available screen width via responsive LayoutBuilder
+    expect(find.byType(LayoutBuilder), findsWidgets);
+
     // A count opens the cases behind it: Accident record x Total (26)
     await tester.tap(find.text('26'));
     await tester.pumpAndSettle();
