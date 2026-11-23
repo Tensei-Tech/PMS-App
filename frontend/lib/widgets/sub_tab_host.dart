@@ -215,21 +215,31 @@ class _SubTabStrip extends StatelessWidget implements PreferredSizeWidget {
           child: SizedBox.expand(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Center(
-                child: AnimatedDefaultTextStyle(
-                  duration: _slide,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12.5,
-                    fontWeight:
-                        selected ? FontWeight.w600 : FontWeight.w500,
-                    color: fg.withValues(alpha: selected ? 1.0 : 0.85),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildIcon(
+                    tab,
+                    fg.withValues(alpha: selected ? 1.0 : 0.75),
                   ),
-                  child: Text(
-                    TranslationHelper.translate(context, tab.label),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  const SizedBox(width: 7),
+                  Flexible(
+                    child: AnimatedDefaultTextStyle(
+                      duration: _slide,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12.5,
+                        fontWeight:
+                            selected ? FontWeight.w600 : FontWeight.w500,
+                        color: fg.withValues(alpha: selected ? 1.0 : 0.85),
+                      ),
+                      child: Text(
+                        TranslationHelper.translate(context, tab.label),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
           ),
