@@ -1,3 +1,4 @@
+import uuid
 from unittest.mock import patch
 from django.test import TestCase
 from rest_framework.test import APIClient
@@ -63,7 +64,22 @@ class VictimCasesTests(TestCase):
         self.assertNotIn(str(self.case4.id), ids)
 
     def test_victim_stats_api(self):
-        """Victim Stats API should return structured counts."""
+        """Victim Stats API should return structured counts with women distinguishing adult females."""
+        case_adult_woman = CaseRecord.objects.create(
+            id=str(uuid.uuid4()),
+            title='Adult Woman Case',
+            module_key='crime_women',
+            status='Pending',
+            extra_fields={'victim_gender': 'Female', 'victim_age': 28}
+        )
+        case_minor_girl = CaseRecord.objects.create(
+            id=str(uuid.uuid4()),
+            title='Minor Girl Case',
+            module_key='crime_women',
+            status='Pending',
+            extra_fields={'victim_gender': 'Female', 'victim_age': 7}
+        )
+
         url = reverse('victim-stats')
         response = self.client.get(url)
         
@@ -72,6 +88,202 @@ class VictimCasesTests(TestCase):
         
         self.assertIn('stats', data)
         self.assertIn('total_cases', data)
-        self.assertEqual(data['total_cases'], 3)
-        self.assertIn('gender', data['stats'])
-        self.assertIn('age', data['stats'])
+        stats = data['stats']
+        self.assertIn('gender', stats)
+        self.assertIn('age', stats)
+        # Verify female counts both adult and minor females, while women counts adult females
+        self.assertGreaterEqual(stats.get('female', 0), 2)
+        self.assertGreaterEqual(stats.get('women', 0), 1)
+        self.assertGreaterEqual(stats.get('minor_female', 0), 1)
+        self.assertTrue(stats.get('female', 0) >= stats.get('women', 0))
+
+    def test_extract_case_victims_and_filter_matching(self):
+        """Test extraction of victims across commonForm, persons, and extra_fields."""
+        from apps.cases.views import extract_case_victims, case_matches_victim_filter
+
+        # Case with multiple nested victims in commonForm
+        multi_victim_case = CaseRecord.objects.create(
+            title='Multi Victim Case',
+            module_key='crime_women',
+            status='Pending',
+            extra_fields={
+                'commonForm': {
+                    'victims': [
+                        {'gender': 'Female', 'age': '24', 'pwd': False, 'condition': 'Injured'},
+                        {'gender': 'Male', 'age': '4', 'pwd': True, 'mentally_vulnerable': True, 'condition': 'Normal'},
+                        {'gender': 'Female', 'age': '65', 'pwd': False, 'condition': 'Deceased'}
+                    ]
+                }
+            }
+        )
+        victims = extract_case_victims(multi_victim_case)
+        self.assertEqual(len(victims), 3)
+
+        # Verify filters match correctly
+        self.assertTrue(case_matches_victim_filter(multi_victim_case, 'female'))
+        self.assertTrue(case_matches_victim_filter(multi_victim_case, 'male'))
+        self.assertTrue(case_matches_victim_filter(multi_victim_case, 'minor'))
+        self.assertTrue(case_matches_victim_filter(multi_victim_case, 'below_5'))
+        self.assertTrue(case_matches_victim_filter(multi_victim_case, 'senior'))
+        self.assertTrue(case_matches_victim_filter(multi_victim_case, 'above_60'))
+        self.assertTrue(case_matches_victim_filter(multi_victim_case, 'pwd'))
+        self.assertTrue(case_matches_victim_filter(multi_victim_case, 'mentally_vulnerable'))
+        self.assertTrue(case_matches_victim_filter(multi_victim_case, 'injured'))
+        self.assertTrue(case_matches_victim_filter(multi_victim_case, 'deceased'))
+
+    def test_missing_and_traced_victim_filters(self):
+        """Test tracing status classification for missing/kidnapping cases."""
+        from apps.cases.views import extract_case_victims, case_matches_victim_filter
+
+        # Pending missing case
+        missing_case = CaseRecord.objects.create(
+            title='Missing Boy',
+            module_key='missing',
+            status='Pending',
+            extra_fields={'victim_gender': 'Male', 'victim_age': 12}
+        )
+        v_missing = extract_case_victims(missing_case)
+        self.assertTrue(v_missing[0]['is_missing'])
+        self.assertFalse(v_missing[0]['is_traced'])
+        self.assertTrue(v_missing[0]['is_pending_tracing'])
+        self.assertTrue(case_matches_victim_filter(missing_case, 'missing'))
+        self.assertTrue(case_matches_victim_filter(missing_case, 'pending_tracing'))
+        self.assertFalse(case_matches_victim_filter(missing_case, 'traced'))
+
+        # Traced missing case
+        traced_case = CaseRecord.objects.create(
+            title='Traced Girl',
+            module_key='kidnapping',
+            status='Detected',
+            extra_fields={'victim_gender': 'Female', 'victim_age': 16}
+        )
+        v_traced = extract_case_victims(traced_case)
+        self.assertTrue(v_traced[0]['is_missing'])
+        self.assertTrue(v_traced[0]['is_traced'])
+        self.assertFalse(v_traced[0]['is_pending_tracing'])
+        self.assertTrue(case_matches_victim_filter(traced_case, 'missing'))
+        self.assertTrue(case_matches_victim_filter(traced_case, 'traced'))
+        self.assertFalse(case_matches_victim_filter(traced_case, 'pending_tracing'))
+
+    def test_victim_time_and_io_wise_filtered_views(self):
+        """Test that time-wise and IO-wise views accept victim_filter parameter."""
+        # Query with female filter
+        time_res = self.client.get(reverse('victim-time-wise'), {'victim_filter': 'female'})
+        self.assertEqual(time_res.status_code, status.HTTP_200_OK)
+
+        io_res = self.client.get(reverse('victim-io-wise'), {'victim_filter': 'minor'})
+        self.assertEqual(io_res.status_code, status.HTTP_200_OK)
+
+    def test_multiple_selected_victim_filters(self):
+        """Test combining multiple comma-separated victim filters."""
+        from apps.cases.views import case_matches_victim_filter, apply_victim_filter_queryset
+
+        case_minor_female = CaseRecord.objects.create(
+            id=str(uuid.uuid4()),
+            title='Minor Female Victim',
+            module_key='crime_women',
+            status='Pending',
+            station_name='TUMSAR',
+            extra_fields={'victim_gender': 'Female', 'victim_age': 12}
+        )
+        case_adult_female = CaseRecord.objects.create(
+            id=str(uuid.uuid4()),
+            title='Adult Female Victim',
+            module_key='crime_women',
+            status='Pending',
+            station_name='TUMSAR',
+            extra_fields={'victim_gender': 'Female', 'victim_age': 25}
+        )
+        case_minor_male = CaseRecord.objects.create(
+            id=str(uuid.uuid4()),
+            title='Minor Male Victim',
+            module_key='pocso',
+            status='Pending',
+            station_name='TUMSAR',
+            extra_fields={'victim_gender': 'Male', 'victim_age': 10}
+        )
+        case_senior_pwd = CaseRecord.objects.create(
+            id=str(uuid.uuid4()),
+            title='Senior PWD Victim',
+            module_key='missing',
+            status='Pending',
+            station_name='TUMSAR',
+            extra_fields={'victim_gender': 'Female', 'victim_age': 68, 'pwd': True}
+        )
+        case_multi = CaseRecord.objects.create(
+            id=str(uuid.uuid4()),
+            title='Joint Multi-Victim Case',
+            module_key='crime_women',
+            status='Pending',
+            station_name='TUMSAR',
+            extra_fields={
+                'commonForm': {
+                    'victims': [
+                        {'gender': 'Female', 'age': 35},
+                        {'gender': 'Male', 'age': 8}
+                    ]
+                }
+            }
+        )
+
+        # Multi-filter match across groups (e.g. Gender AND Category):
+        # Case must satisfy both active groups
+        self.assertTrue(case_matches_victim_filter(case_minor_female, 'female,minor'))
+        self.assertTrue(case_matches_victim_filter(case_multi, 'female,minor'))
+        self.assertTrue(case_matches_victim_filter(case_multi, 'female, minor'))
+        self.assertFalse(case_matches_victim_filter(case_adult_female, 'female,minor'))
+        self.assertFalse(case_matches_victim_filter(case_minor_male, 'female,minor'))
+
+        # Within the same group (OR logic):
+        self.assertTrue(case_matches_victim_filter(case_adult_female, 'female,male'))
+        self.assertTrue(case_matches_victim_filter(case_minor_male, 'female,male'))
+        self.assertTrue(case_matches_victim_filter(case_senior_pwd, 'pwd,senior'))
+
+        # Unknown / malformed filter keys are safely ignored (aligning with frontend Set.intersection):
+        self.assertTrue(case_matches_victim_filter(case_minor_female, 'female,minor,unknown_filter_token'))
+        self.assertTrue(case_matches_victim_filter(case_adult_female, 'unknown_filter_token'))  # Falls back to match all
+
+        # Queryset filtering with multi-filter
+        qs = CaseRecord.objects.filter(id__in=[case_minor_female.id, case_adult_female.id, case_minor_male.id, case_senior_pwd.id])
+        filtered_qs = apply_victim_filter_queryset(qs, 'female,minor')
+        self.assertEqual(filtered_qs.count(), 1)
+        self.assertEqual(str(filtered_qs.first().id), str(case_minor_female.id))
+
+    def test_victim_station_filtering(self):
+        """Test that station_name query parameter isolates cases by station."""
+        from apps.public_master.models import Permission, RolePermission
+        perm_dist, _ = Permission.objects.get_or_create(id='district:view_data', defaults={'module': 'cases'})
+        RolePermission.objects.get_or_create(role=self.role, permission=perm_dist, defaults={'is_granted': True})
+
+        st_case_1 = CaseRecord.objects.create(
+            id=str(uuid.uuid4()),
+            title='Station A Victim Case',
+            module_key='crime_women',
+            status='Pending',
+            station_name='Station A',
+            extra_fields={'victim_gender': 'Female'}
+        )
+        st_case_2 = CaseRecord.objects.create(
+            id=str(uuid.uuid4()),
+            title='Station B Victim Case',
+            module_key='crime_women',
+            status='Pending',
+            station_name='Station B',
+            extra_fields={'victim_gender': 'Female'}
+        )
+
+        # Test case-wise station filter
+        url_case_wise = reverse('victim-case-wise')
+        res_a = self.client.get(url_case_wise, {'station_name': 'Station A'})
+        self.assertEqual(res_a.status_code, status.HTTP_200_OK)
+        ids_a = [str(item['id']) for item in res_a.json().get('results', res_a.json())]
+        self.assertIn(str(st_case_1.id), ids_a)
+        self.assertNotIn(str(st_case_2.id), ids_a)
+
+        # Test stats station filter
+        url_stats = reverse('victim-stats')
+        res_stats_a = self.client.get(url_stats, {'station_name': 'Station A'})
+        self.assertEqual(res_stats_a.status_code, status.HTTP_200_OK)
+        # Should count only Station A
+        self.assertGreaterEqual(res_stats_a.json().get('total_cases', 0), 1)
+
