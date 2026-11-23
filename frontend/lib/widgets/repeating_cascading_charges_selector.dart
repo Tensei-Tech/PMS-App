@@ -205,6 +205,17 @@ class _RepeatingCascadingChargesSelectorState
     _notifyParent();
   }
 
+  void _removeCharges(List<int> indices) {
+    if (widget.readOnly) return;
+    setState(() {
+      for (final i in [...indices]..sort((a, b) => b.compareTo(a))) {
+        _charges.removeAt(i);
+      }
+      if (_charges.isEmpty) _charges.add(ChargeItemData());
+    });
+    _notifyParent();
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loadingActs) {
@@ -288,11 +299,7 @@ class _RepeatingCascadingChargesSelectorState
             ),
           )
         else
-          ..._charges.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final charge = entry.value;
-            return _buildSingleChargeCard(idx, charge);
-          }),
+          ..._buildChargeList(),
         if (!widget.readOnly &&
             (widget.maxCharges == null || _charges.length < widget.maxCharges!))
           TextButton.icon(
@@ -317,6 +324,41 @@ class _RepeatingCascadingChargesSelectorState
     );
   }
 
+  /// A filled charge that shows as a summary (not open for editing).
+  bool _isCollapsed(ChargeItemData c) =>
+      c.actId != null &&
+      c.sectionId != null &&
+      (widget.readOnly || !identical(c, _editing));
+
+  /// Collapsed charges of the same Act share one card listing all their
+  /// sections; the card sits where that Act's first collapsed charge is.
+  /// Charges being edited or not yet filled keep their own card in place.
+  List<Widget> _buildChargeList() {
+    final groups = <String, List<int>>{};
+    for (var i = 0; i < _charges.length; i++) {
+      if (_isCollapsed(_charges[i])) {
+        groups.putIfAbsent(_charges[i].actId.toString(), () => []).add(i);
+      }
+    }
+
+    final widgets = <Widget>[];
+    final shown = <String>{};
+    var groupNo = 0;
+    for (var i = 0; i < _charges.length; i++) {
+      final charge = _charges[i];
+      if (_isCollapsed(charge)) {
+        final key = charge.actId.toString();
+        if (shown.add(key)) {
+          groupNo++;
+          widgets.add(_buildActGroup(groupNo, groups[key]!));
+        }
+      } else {
+        widgets.add(_buildSingleChargeCard(i, charge));
+      }
+    }
+    return widgets;
+  }
+
   Widget _buildSingleChargeCard(int index, ChargeItemData charge) {
     final actIdKey = charge.actId?.toString();
     final availableSections = actIdKey != null
@@ -329,9 +371,6 @@ class _RepeatingCascadingChargesSelectorState
         : <Map<String, dynamic>>[];
 
     final complete = charge.actId != null && charge.sectionId != null;
-    if (complete && (widget.readOnly || !identical(charge, _editing))) {
-      return _buildChargeSummary(index, charge);
-    }
 
     // Header: "CHARGE 1" on the left, Remove on the right. Remove is hidden
     // while there is a single blank row, since there is nothing to remove.
@@ -471,101 +510,104 @@ class _RepeatingCascadingChargesSelectorState
     );
   }
 
-  /// One-line view of a filled charge: "1  BNS 2023 · Sec 100 - Culpable
-  /// homicide · Sub (1)", with edit and remove. Tap to edit.
-  Widget _buildChargeSummary(int index, ChargeItemData charge) {
-    final sec = [
-      'Sec ${charge.sectionNumber ?? ''}'.trim(),
-      if ((charge.sectionTitle ?? '').trim().isNotEmpty)
-        charge.sectionTitle!.trim(),
-    ].join(' - ');
-    final sub = (charge.subsectionCode ?? '').trim();
-    final detail = sub.isEmpty ? sec : '$sec  ·  Sub ($sub)';
+  /// One card per Act with all its sections on one line, e.g.
+  ///   BNS, 2023
+  ///   Sec 101 (a), Sec 109 (1)                         [remove]
+  /// Tapping a section opens it for editing (its own Remove is there).
+  Widget _buildActGroup(int groupNo, List<int> indices) {
+    final first = _charges[indices.first];
+    final textStyle = GoogleFonts.poppins(
+      fontSize: 12.5,
+      fontWeight: FontWeight.w600,
+      color: AppColors.navyDark,
+    );
 
-    final row = Row(
+    String sectionLabel(ChargeItemData c) {
+      final secNo = 'Sec ${c.sectionNumber ?? ''}'.trim();
+      final sub = (c.subsectionCode ?? '').trim();
+      return sub.isEmpty ? secNo : '$secNo ($sub)';
+    }
+
+    final sections = Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        Container(
-          width: 24,
-          height: 24,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: AppColors.navyMid,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(
-            '${index + 1}',
-            style: GoogleFonts.poppins(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        for (var n = 0; n < indices.length; n++)
+          Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                charge.actName ?? '',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: const Color(0xFF64748B),
+              InkWell(
+                onTap: widget.readOnly
+                    ? null
+                    : () => setState(() => _editing = _charges[indices[n]]),
+                borderRadius: BorderRadius.circular(4),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Text(sectionLabel(_charges[indices[n]]),
+                      style: textStyle),
                 ),
               ),
-              Text(
-                detail,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.navyDark,
-                ),
-              ),
+              if (n < indices.length - 1) Text(', ', style: textStyle),
             ],
           ),
-        ),
-        if (!widget.readOnly) ...[
-          IconButton(
-            tooltip: 'Edit',
-            onPressed: () => setState(() => _editing = charge),
-            visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.edit_outlined,
-                size: 18, color: AppColors.navyMid),
-          ),
-          IconButton(
-            tooltip: 'Remove',
-            onPressed: () => _removeCharge(index),
-            visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.delete_outline_rounded,
-                size: 18, color: AppColors.dangerRed),
-          ),
-        ],
       ],
     );
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Material(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.fromLTRB(12, 6, 4, 6),
+      decoration: BoxDecoration(
         color: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          side: const BorderSide(color: AppColors.lightBorder),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap:
-              widget.readOnly ? null : () => setState(() => _editing = charge),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 6, 4, 6),
-            child: row,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: AppColors.lightBorder),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 24,
+            height: 24,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.navyMid,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              '$groupNo',
+              style: GoogleFonts.poppins(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
           ),
-        ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  first.actName ?? '',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF64748B),
+                  ),
+                ),
+                sections,
+              ],
+            ),
+          ),
+          if (!widget.readOnly)
+            IconButton(
+              tooltip: 'Remove all sections of this act',
+              onPressed: () => _removeCharges(indices),
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.delete_outline_rounded,
+                  size: 18, color: AppColors.dangerRed),
+            ),
+        ],
       ),
     );
   }

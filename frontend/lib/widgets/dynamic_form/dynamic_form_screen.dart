@@ -186,6 +186,10 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   // already has people in it counts as ticked even if not in this set.
   final Set<String> _pickedAccusedTypes = {};
 
+  // The one accused type being added / edited now (the type dropdown picks
+  // one at a time). People of other types are kept, just not shown.
+  String? _activeAccusedType;
+
   // The accused-type person open for editing. Other filled people collapse
   // to their one-line header; adding a person opens it and folds the rest.
   Map<String, dynamic>? _openPerson;
@@ -3667,8 +3671,12 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
                 copyOnTickRules: _copyOnTickRules,
                 fieldMaxLengths: widget.fieldMaxLengths,
                 allFormFields: fields,
-                // PC: three fields per line (Panchnama four)
-                columns: secKey == 'All Panchnama' ? 4 : 3,
+                // PC: three fields per line (Panchnama, Complainant four;
+                // IO / Registered By two: IO on one line, Registered By
+                // below it)
+                columns: secKey == 'All Panchnama' || secKey == 'Complainant'
+                    ? 4
+                    : (secKey == 'Officer' ? 2 : 3),
               );
         }
       }
@@ -3896,9 +3904,9 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
 
   // Step labels in the step header (shown bold, without a title above)
   static const _stepHints = [
-    'FIR, complainant, accused, arrest',
+    'FIR',
     'Investigation',
-    'Scrutiny, charge sheet',
+    'Charge Sheet',
   ];
 
   /// Step that holds a section: 0 case & people, 1 investigation, 2 closure.
@@ -6136,11 +6144,31 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     });
   }
 
-  /// Multi-select dropdown: tick any of the accused types to open them.
+  /// The accused type open in the card: the one picked, else the first type
+  /// that has people, else none.
+  String? _currentAccusedType(List<String> types) {
+    if (_activeAccusedType != null && types.contains(_activeAccusedType)) {
+      return _activeAccusedType;
+    }
+    for (final t in types) {
+      if (_isAccusedTypeShown(t)) return t;
+    }
+    return null;
+  }
+
+  /// Picks the accused type to add now (one at a time). A type with no
+  /// people yet opens with one blank person; other types keep theirs.
+  void _pickAccusedType(String type) {
+    setState(() => _activeAccusedType = type);
+    if (_accusedTypeList(type).isEmpty) _setAccusedType(type, true);
+  }
+
+  /// Single-select dropdown: pick one accused type at a time. Each choice
+  /// shows how many people it already has.
   Widget _buildAccusedTypePicker(List<String> types) {
-    final picked = types.where(_isAccusedTypeShown).toList();
-    final fieldText =
-        picked.isEmpty ? 'Select accused type' : picked.join(', ');
+    final current = _currentAccusedType(types);
+    final picked = current == null ? const <String>[] : [current];
+    final fieldText = current ?? 'Select accused type';
     return MenuAnchor(
       style: MenuStyle(
         backgroundColor: const WidgetStatePropertyAll(Colors.white),
@@ -6149,14 +6177,21 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
       ),
       menuChildren: [
         for (final t in types)
-          CheckboxMenuButton(
-            value: _isAccusedTypeShown(t),
-            closeOnActivate: false,
-            onChanged: (v) => _setAccusedType(t, v ?? false),
+          MenuItemButton(
+            onPressed: () => _pickAccusedType(t),
+            leadingIcon: Icon(
+              t == current
+                  ? Icons.radio_button_checked_rounded
+                  : Icons.radio_button_unchecked_rounded,
+              size: 20,
+              color: t == current ? AppColors.navyMid : const Color(0xFF94A3B8),
+            ),
             child: Padding(
               padding: const EdgeInsets.only(right: 16),
               child: Text(
-                t,
+                _accusedTypeList(t).isEmpty
+                    ? t
+                    : '$t (${_accusedTypeList(t).length})',
                 style: GoogleFonts.poppins(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
@@ -6217,7 +6252,12 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   /// Body of the Accused card: the type dropdown, then each ticked type's
   /// people under its own heading.
   Widget _mergedAccusedBody(List<String> types) {
-    final shown = types.where(_isAccusedTypeShown).toList();
+    // Editing: only the type picked in the dropdown. Viewing: every type
+    // that has people.
+    final current = _currentAccusedType(types);
+    final shown = widget.readOnly
+        ? types.where(_isAccusedTypeShown).toList()
+        : [if (current != null) current];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -9392,8 +9432,6 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
                       const SizedBox(height: 12),
                       genderFld,
                       const SizedBox(height: 12),
-                      occFld,
-                      const SizedBox(height: 12),
                       mobileFld,
                       const SizedBox(height: 12),
                       aadhaarFld,
@@ -9403,6 +9441,8 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
                       relFld,
                       const SizedBox(height: 12),
                       casteFld,
+                      const SizedBox(height: 12),
+                      occFld,
                       const SizedBox(height: 12),
                       for (final f in medicalFlds) ...[
                         f,
@@ -9413,41 +9453,42 @@ class _InlinePersonCardState extends State<_InlinePersonCard> {
                   );
                 }
 
-                // PC: three fields per line on a wide card, two otherwise
-                final perLine = constraints.maxWidth >= 700 ? 3 : 2;
+                final perLine = _personPerLine(constraints.maxWidth);
+                // Same order as the Complainant card: Occupation after Caste
+                final cells = [
+                  nameFld,
+                  ageFld,
+                  genderFld,
+                  mobileFld,
+                  aadhaarFld,
+                  panFld,
+                  relFld,
+                  casteFld,
+                  occFld,
+                ];
+                // Fields left over after the full lines share the last
+                // line with Medical (and its date) and Address, which fills
+                // the rest; each stays under its column
+                final full = cells.length - cells.length % perLine;
+                final last = [...cells.sublist(full), ...medicalFlds];
+                final addrSlots = perLine - last.length % perLine;
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ..._personFieldRows([
-                      nameFld,
-                      ageFld,
-                      genderFld,
-                      occFld,
-                      mobileFld,
-                      aadhaarFld,
-                      panFld,
-                      relFld,
-                      casteFld,
-                    ], perLine),
-                    // Last line: Medical (and its date) with Address
-                    // beside them, filling the rest of the line
-                    if (medicalFlds.isEmpty)
+                    ..._personFieldRows(cells.sublist(0, full), perLine),
+                    if (last.length >= perLine)
+                      ..._personFieldRows(
+                          last.sublist(0, last.length - last.length % perLine),
+                          perLine),
+                    if (last.isEmpty)
                       addrFld
                     else
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          for (final m in medicalFlds) ...[
-                            Expanded(child: m),
-                            const SizedBox(width: 16),
-                          ],
-                          Expanded(
-                            flex: (perLine - medicalFlds.length)
-                                .clamp(1, perLine),
-                            child: addrLineFld,
-                          ),
-                        ],
-                      ),
+                      _personFlexRow([
+                        for (final w
+                            in last.sublist(last.length - last.length % perLine))
+                          MapEntry(w, 1),
+                        MapEntry(addrLineFld, addrSlots),
+                      ]),
                   ],
                 );
               },
@@ -9607,6 +9648,7 @@ class _InlineUnidentifiedAccusedCardState
     required TextEditingController controller,
     required String hint,
     int maxLines = 1,
+    int? minLines,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -9626,6 +9668,7 @@ class _InlineUnidentifiedAccusedCardState
           controller: controller,
           readOnly: widget.readOnly,
           maxLines: maxLines,
+          minLines: minLines,
           style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
           decoration: _inputDeco(hint),
         ),
@@ -9842,29 +9885,35 @@ class _InlineUnidentifiedAccusedCardState
                   );
                 }
 
-                // PC: three fields per line on a wide card, two otherwise
-                final perLine = constraints.maxWidth >= 700 ? 3 : 2;
+                // In the grid, Description and Place start one line high
+                // (level with the boxes beside them) and grow to three
+                final descLineFld = _buildField(
+                  label: 'Physical Description / Clothing',
+                  controller: _descCtrl,
+                  hint: 'Appearance or clothing',
+                  maxLines: 3,
+                  minLines: 1,
+                );
+                final addrLineFld = _buildField(
+                  label: 'Place / Area Last Seen',
+                  controller: _addressCtrl,
+                  hint: 'Enter Place / Location',
+                  maxLines: 3,
+                  minLines: 1,
+                );
+                final perLine = _personPerLine(constraints.maxWidth);
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ..._personFieldRows([
-                      ageFld,
-                      genderFld,
-                      skinFld,
-                      heightFld,
-                      occFld,
-                      markFld,
-                    ], perLine),
-                    // Description and last-seen place side by side
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(child: descFld),
-                        const SizedBox(width: 16),
-                        Expanded(child: addrFld),
-                      ],
-                    ),
-                  ],
+                  children: _personFieldRows([
+                    ageFld,
+                    genderFld,
+                    skinFld,
+                    heightFld,
+                    occFld,
+                    markFld,
+                    descLineFld,
+                    addrLineFld,
+                  ], perLine),
                 );
               },
             ),
@@ -11415,6 +11464,28 @@ class _SubStep {
 }
 
 enum _SubStatus { done, error, none }
+
+/// Fields per line on a PC person card: four on a wide card, three on a
+/// medium one, two otherwise.
+int _personPerLine(double width) => width >= 900
+    ? 4
+    : width >= 700
+        ? 3
+        : 2;
+
+/// One person card line of fields, each taking [MapEntry.value] grid slots,
+/// 16px apart like [_personFieldRows].
+Widget _personFlexRow(List<MapEntry<Widget, int>> cells) {
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      for (var i = 0; i < cells.length; i++) ...[
+        if (i > 0) const SizedBox(width: 16),
+        Expanded(flex: cells[i].value, child: cells[i].key),
+      ],
+    ],
+  );
+}
 
 /// Person card fields in rows of [perLine], 12px apart; a short last row
 /// keeps its empty slots so the columns stay aligned.
