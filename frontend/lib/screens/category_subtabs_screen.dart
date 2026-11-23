@@ -341,7 +341,7 @@ class ModuleTabsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (tabs.isNotEmpty) {
+    if (tabs.length == 2) {
       return SubTabHost(
         tabs: [
           for (final (name, icon, page) in tabs) SubTab(name, icon, page),
