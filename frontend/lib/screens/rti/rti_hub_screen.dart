@@ -510,7 +510,9 @@ class _RTIHubScreenState extends State<RTIHubScreen>
     final grandLabel =
         _summary['grand_total_label']?.toString() ?? 'Grand Total';
 
-    const srWidth = 56.0, countWidth = 110.0, minInfoWidth = 220.0;
+    const srWidth = 56.0;
+    const minInfoWidth = 200.0;
+    const minCountWidth = 84.0;
     Widget divider() => Container(width: 0.6, color: AppColors.lightBorder);
     Widget cell(String text, double width,
             {bool header = false, bool bold = false, bool left = false}) =>
@@ -518,7 +520,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
           width: width,
           child: Padding(
             padding: EdgeInsets.symmetric(
-                horizontal: left ? 12 : 4, vertical: header ? 10 : 9),
+                horizontal: left ? 16 : 4, vertical: header ? 10 : 9),
             child: Text(
               text,
               textAlign: left ? TextAlign.left : TextAlign.center,
@@ -537,10 +539,11 @@ class _RTIHubScreenState extends State<RTIHubScreen>
     // A count opens the applications behind it (that Type of Info - or all,
     // on the Grand Total row - with that outcome), shown as a link the way
     // the Monthly statement shows its clickable counts. Zero stays plain.
-    Widget countCell(Map<String, dynamic> r, String key, String? infoType,
+    Widget countCell(
+        Map<String, dynamic> r, String key, String? infoType, double width,
         {bool bold = false}) {
       final n = (r[key] as num?)?.toInt() ?? 0;
-      if (n == 0) return cell('0', countWidth, bold: bold);
+      if (n == 0) return cell('0', width, bold: bold);
       final columnLabel = columns
               .firstWhere((c) => c['key'] == key,
                   orElse: () => const {})['label']
@@ -551,7 +554,7 @@ class _RTIHubScreenState extends State<RTIHubScreen>
         TranslationHelper.translate(context, columnLabel),
       ].join(' · ');
       return SizedBox(
-        width: countWidth,
+        width: width,
         child: Center(
           child: InkWell(
             borderRadius: BorderRadius.circular(4),
@@ -561,8 +564,9 @@ class _RTIHubScreenState extends State<RTIHubScreen>
               outcome: key == 'total' ? 'all' : key,
             ),
             child: Container(
-              margin: const EdgeInsets.symmetric(vertical: 6),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              margin: const EdgeInsets.symmetric(vertical: 4),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 2.5),
               decoration: BoxDecoration(
                 color: AppColors.navyMid.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(4),
@@ -607,97 +611,100 @@ class _RTIHubScreenState extends State<RTIHubScreen>
         );
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          LayoutBuilder(builder: (context, constraints) {
-            final minWidth =
-                srWidth + minInfoWidth + countWidth * columns.length;
-            final width = constraints.maxWidth > minWidth
-                ? constraints.maxWidth
-                : minWidth;
-            final infoWidth =
-                width - srWidth - countWidth * columns.length - 0.6 * 6;
-            return Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(color: AppColors.lightBorder),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.02),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      child: LayoutBuilder(builder: (context, constraints) {
+        final dividerWidth = (columns.length + 1) * 0.6;
+        final minContentWidth = srWidth +
+            minInfoWidth +
+            (minCountWidth * columns.length) +
+            dividerWidth;
+        final tableWidth = constraints.maxWidth > minContentWidth
+            ? constraints.maxWidth
+            : minContentWidth;
+        final remainingWidth = tableWidth - srWidth - dividerWidth;
+        final infoWidth = constraints.maxWidth > minContentWidth
+            ? (remainingWidth * 0.30).clamp(minInfoWidth, remainingWidth * 0.40)
+            : minInfoWidth;
+        final countWidth = (remainingWidth - infoWidth) / columns.length;
+
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            border: Border.all(color: AppColors.lightBorder),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: SizedBox(
-                    width: width,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        tableRow(
-                          header: true,
-                          color: AppColors.navyDark.withValues(alpha: 0.07),
-                          [
-                            cell('SR NO', srWidth, header: true),
-                            cell(
-                                TranslationHelper.translate(context, infoLabel)
-                                    .toUpperCase(),
-                                infoWidth,
-                                header: true,
-                                left: true),
-                            for (final c in columns)
-                              cell(
-                                  TranslationHelper.translate(
-                                          context, c['label']?.toString() ?? '')
-                                      .toUpperCase(),
-                                  countWidth,
-                                  header: true),
-                          ],
-                        ),
-                        for (int i = 0; i < rows.length; i++)
-                          tableRow([
-                            cell('${i + 1}', srWidth),
-                            cell(
-                                TranslationHelper.translate(
-                                    context, rows[i]['info_type'].toString()),
-                                infoWidth,
-                                left: true),
-                            for (final c in columns)
-                              countCell(rows[i], c['key'].toString(),
-                                  rows[i]['info_type'].toString(),
-                                  bold: c['key'] == 'total'),
-                          ]),
-                        tableRow(
-                          color: AppColors.goldPrimary.withValues(alpha: 0.16),
-                          [
-                            cell('', srWidth),
-                            cell(
-                                TranslationHelper.translate(context, grandLabel)
-                                    .toUpperCase(),
-                                infoWidth,
-                                bold: true,
-                                left: true),
-                            for (final c in columns)
-                              countCell(grand, c['key'].toString(), null,
-                                  bold: true),
-                          ],
-                        ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SizedBox(
+                width: tableWidth,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    tableRow(
+                      header: true,
+                      color: AppColors.navyDark.withValues(alpha: 0.07),
+                      [
+                        cell('SR NO', srWidth, header: true),
+                        cell(
+                            TranslationHelper.translate(context, infoLabel)
+                                .toUpperCase(),
+                            infoWidth,
+                            header: true,
+                            left: true),
+                        for (final c in columns)
+                          cell(
+                              TranslationHelper.translate(
+                                      context, c['label']?.toString() ?? '')
+                                  .toUpperCase(),
+                              countWidth,
+                              header: true),
                       ],
                     ),
-                  ),
+                    for (int i = 0; i < rows.length; i++)
+                      tableRow([
+                        cell('${i + 1}', srWidth),
+                        cell(
+                            TranslationHelper.translate(
+                                context, rows[i]['info_type'].toString()),
+                            infoWidth,
+                            left: true),
+                        for (final c in columns)
+                          countCell(rows[i], c['key'].toString(),
+                              rows[i]['info_type'].toString(), countWidth,
+                              bold: c['key'] == 'total'),
+                      ]),
+                    tableRow(
+                      color: AppColors.goldPrimary.withValues(alpha: 0.16),
+                      [
+                        cell('', srWidth),
+                        cell(
+                            TranslationHelper.translate(context, grandLabel)
+                                .toUpperCase(),
+                            infoWidth,
+                            bold: true,
+                            left: true),
+                        for (final c in columns)
+                          countCell(
+                              grand, c['key'].toString(), null, countWidth,
+                              bold: true),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-            );
-          }),
-        ],
-      ),
+            ),
+          ),
+        );
+      }),
     );
   }
 

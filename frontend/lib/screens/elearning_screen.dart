@@ -31,6 +31,7 @@ class _ELearningScreenState extends State<ELearningScreen>
   List<ELearningRecord> _records = [];
   InchargeAnalyticsResponse? _analytics;
   String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
   String _selectedPlatform = 'All';
   String _selectedStatusFilter = 'completed'; // 'completed' or 'not_completed'
   bool _preferTableView = false;
@@ -64,6 +65,7 @@ class _ELearningScreenState extends State<ELearningScreen>
 
   @override
   void dispose() {
+    _searchController.dispose();
     _tabController?.dispose();
     super.dispose();
   }
@@ -1302,6 +1304,9 @@ class _ELearningScreenState extends State<ELearningScreen>
         tier == PoliceRoleTier.districtLeadership ||
         tier == PoliceRoleTier.superAdmin;
 
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 650;
+
     _initTabController();
 
     return Scaffold(
@@ -1309,119 +1314,136 @@ class _ELearningScreenState extends State<ELearningScreen>
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 1,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppColors.navyDark,
-            size: 20,
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
-        titleSpacing: 0,
-        title: Row(
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: const Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: AppColors.navyDark,
+                  size: 20,
+                ),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
+        titleSpacing: Navigator.canPop(context) ? 0 : 20,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppColors.navyMid.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.school_rounded,
-                color: AppColors.navyMid,
-                size: 20,
+            Text(
+              'E-Learning',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.poppins(
+                fontSize: isMobile ? 16 : 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.navyDark,
               ),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'E-Learning',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.navyDark,
-                    ),
-                  ),
-                  Text(
-                    'Station: ${widget.stationName.isNotEmpty ? widget.stationName : auth.stationName}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.lightSubText,
-                    ),
-                  ),
-                ],
+            Text(
+              'Station: ${widget.stationName.isNotEmpty ? widget.stationName : auth.stationName}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.poppins(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: AppColors.lightSubText,
               ),
             ),
           ],
         ),
         actions: [
-          IconButton(
-            tooltip: 'Refresh',
-            icon: const Icon(Icons.refresh_rounded,
-                color: AppColors.navyDark, size: 20),
-            onPressed: _loadData,
-          ),
-          const SizedBox(width: 4),
+          if (!isMobile) ...[
+            OutlinedButton(
+              onPressed: _loadData,
+              style: OutlinedButton.styleFrom(
+                backgroundColor: Colors.white,
+                side: const BorderSide(color: Color(0xFFCBD5E1)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              ),
+              child: Text(
+                'Refresh',
+                style: GoogleFonts.poppins(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.navyDark,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              onPressed: _showAddCourseDialog,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.navyDark,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              ),
+              child: Text(
+                'Add course record',
+                style: GoogleFonts.poppins(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+          ] else ...[
+            IconButton(
+              tooltip: 'Refresh',
+              icon: const Icon(Icons.refresh_rounded,
+                  color: AppColors.navyDark, size: 20),
+              onPressed: _loadData,
+            ),
+            IconButton(
+              tooltip: 'Add course record',
+              icon: const Icon(Icons.add_rounded,
+                  color: AppColors.navyDark, size: 22),
+              onPressed: _showAddCourseDialog,
+            ),
+            const SizedBox(width: 4),
+          ],
         ],
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: AppColors.navyMid,
+          indicatorColor: AppColors.navyDark,
           indicatorWeight: 3,
-          labelColor: AppColors.navyMid,
+          labelColor: AppColors.navyDark,
           unselectedLabelColor: AppColors.lightSubText,
           labelStyle:
-              GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 12.5),
+              GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13),
           unselectedLabelStyle:
-              GoogleFonts.poppins(fontWeight: FontWeight.w400, fontSize: 12.5),
+              GoogleFonts.poppins(fontWeight: FontWeight.w500, fontSize: 13),
           onTap: (index) {
             if (index == 1 && _courses.isEmpty) _loadCourses();
           },
           tabs: const [
-            Tab(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.school_rounded, size: 16),
-                  SizedBox(width: 6),
-                  Text('Course Records'),
-                ],
-              ),
-            ),
-            Tab(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.library_books_rounded, size: 16),
-                  SizedBox(width: 6),
-                  Text('Manage Courses'),
-                ],
-              ),
-            ),
+            Tab(text: 'Course records'),
+            Tab(text: 'Manage courses'),
           ],
         ),
       ),
-      // FAB: My Course for all users
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.navyDark,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add_task_rounded, color: Colors.white),
-        label: Text(
-          'My Course',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-        ),
-        onPressed: _showAddCourseDialog,
-      ),
+      // FAB: My Course for mobile users (desktop uses top-right action button)
+      floatingActionButton: isMobile
+          ? FloatingActionButton.extended(
+              backgroundColor: AppColors.navyDark,
+              foregroundColor: Colors.white,
+              icon: const Icon(Icons.add_task_rounded, color: Colors.white),
+              label: Text(
+                'My Course',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+              ),
+              onPressed: _showAddCourseDialog,
+            )
+          : null,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : TabBarView(
@@ -2017,10 +2039,324 @@ class _ELearningScreenState extends State<ELearningScreen>
     );
   }
 
+  String _formatCompletionDate(String dateStr) {
+    if (dateStr.trim().isEmpty) return '—';
+    try {
+      final parsed = DateTime.tryParse(dateStr.trim());
+      if (parsed != null) {
+        const months = [
+          'Jan',
+          'Feb',
+          'Mar',
+          'Apr',
+          'May',
+          'Jun',
+          'Jul',
+          'Aug',
+          'Sep',
+          'Oct',
+          'Nov',
+          'Dec'
+        ];
+        return '${parsed.day} ${months[parsed.month - 1]} ${parsed.year}';
+      }
+    } catch (_) {}
+    return dateStr;
+  }
+
+  Widget _buildStatusMetricCard({
+    required double width,
+    required bool isNarrow,
+    required String title,
+    required int count,
+    required int total,
+    IconData? icon,
+    String? customIconText,
+    required Color iconColor,
+    required Color iconBg,
+    required bool isActive,
+    required Color activeColor,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        width: width,
+        padding: EdgeInsets.symmetric(
+          horizontal: isNarrow ? 12 : 18,
+          vertical: isNarrow ? 10 : 14,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isActive ? activeColor : const Color(0xFFE2E8F0),
+            width: isActive ? 2 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: (isActive ? activeColor : Colors.black)
+                  .withValues(alpha: isActive ? 0.08 : 0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: isNarrow ? 36 : 40,
+              height: isNarrow ? 36 : 40,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: iconBg,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: customIconText != null
+                  ? Text(
+                      customIconText,
+                      style: GoogleFonts.poppins(
+                        color: iconColor,
+                        fontWeight: FontWeight.w800,
+                        fontSize: isNarrow ? 18 : 20,
+                      ),
+                    )
+                  : Icon(
+                      icon ?? Icons.check_rounded,
+                      color: iconColor,
+                      size: isNarrow ? 20 : 22,
+                    ),
+            ),
+            SizedBox(width: isNarrow ? 10 : 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: isNarrow ? 12 : 13,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  RichText(
+                    text: TextSpan(
+                      style: GoogleFonts.poppins(
+                        fontSize: isNarrow ? 20 : 24,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.navyDark,
+                      ),
+                      children: [
+                        TextSpan(
+                          text: '$count',
+                          style: TextStyle(
+                            color: activeColor,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        TextSpan(
+                          text: ' / $total',
+                          style: GoogleFonts.poppins(
+                            color: const Color(0xFF64748B),
+                            fontSize: isNarrow ? 13 : 15,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlatformDropdown({double? width, bool isExpanded = true}) {
+    final currentPlatform = _availablePlatforms.contains(_selectedPlatform)
+        ? _selectedPlatform
+        : 'All';
+
+    final dropdownWidget = Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: _selectedPlatform != 'All'
+              ? AppColors.navyMid
+              : const Color(0xFFCBD5E1),
+          width: _selectedPlatform != 'All' ? 1.5 : 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: isExpanded ? MainAxisSize.max : MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.layers_outlined,
+            size: 16,
+            color: _selectedPlatform != 'All'
+                ? AppColors.navyMid
+                : const Color(0xFF64748B),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: currentPlatform,
+                isDense: true,
+                isExpanded: true,
+                icon: const Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  size: 18,
+                  color: AppColors.navyDark,
+                ),
+                borderRadius: BorderRadius.circular(8),
+                dropdownColor: Colors.white,
+                elevation: 3,
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.navyDark,
+                ),
+                items: _availablePlatforms.map((platform) {
+                  final isAll = platform == 'All';
+                  return DropdownMenuItem<String>(
+                    value: platform,
+                    child: Text(
+                      isAll ? 'All platforms' : platform,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: isAll && _selectedPlatform == 'All'
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                        color: AppColors.navyDark,
+                      ),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (val) {
+                  if (val != null) {
+                    setState(() => _selectedPlatform = val);
+                  }
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (width != null) {
+      return SizedBox(width: width, child: dropdownWidget);
+    }
+    return dropdownWidget;
+  }
+
+  Widget _buildCompactSearchBar({double? width}) {
+    final searchWidget = Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: _searchQuery.isNotEmpty
+              ? AppColors.navyMid
+              : const Color(0xFFCBD5E1),
+          width: _searchQuery.isNotEmpty ? 1.5 : 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.search_rounded,
+            size: 18,
+            color: _searchQuery.isNotEmpty
+                ? AppColors.navyMid
+                : const Color(0xFF64748B),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              textAlignVertical: TextAlignVertical.center,
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                color: AppColors.navyDark,
+              ),
+              decoration: InputDecoration(
+                hintText: 'Search records...',
+                hintStyle: GoogleFonts.poppins(
+                  color: const Color(0xFF94A3B8),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w400,
+                ),
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+              onChanged: (val) {
+                setState(() => _searchQuery = val);
+              },
+            ),
+          ),
+          if (_searchQuery.isNotEmpty)
+            GestureDetector(
+              onTap: () {
+                _searchController.clear();
+                setState(() => _searchQuery = '');
+              },
+              child: const Padding(
+                padding: EdgeInsets.only(left: 6),
+                child: Icon(
+                  Icons.cancel_rounded,
+                  size: 16,
+                  color: Color(0xFF94A3B8),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+
+    if (width != null) {
+      return SizedBox(width: width, child: searchWidget);
+    }
+    return searchWidget;
+  }
+
   /// Tab 1: Completed Courses Directory
   Widget _buildCompletedCoursesTableTab() {
     final list = _filteredRecords;
-    final isMobile = MediaQuery.of(context).size.width < 650;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 650;
+    final isCompactToolbar = screenWidth < 768;
 
     return RefreshIndicator(
       onRefresh: _loadData,
@@ -2030,56 +2366,12 @@ class _ELearningScreenState extends State<ELearningScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Search and Filters Bar
-            Card(
-              elevation: 0,
-              color: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: const BorderSide(color: AppColors.lightBorder),
-              ),
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                child: Row(
-                  children: [
-                    const Icon(Icons.search_rounded,
-                        color: AppColors.lightSubText),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextField(
-                        style: GoogleFonts.poppins(fontSize: 13),
-                        decoration: InputDecoration(
-                          hintText:
-                              'Search by officer name, course, badge or platform...',
-                          hintStyle: GoogleFonts.poppins(
-                              color: AppColors.lightSubText, fontSize: 13),
-                          border: InputBorder.none,
-                          isDense: true,
-                        ),
-                        onChanged: (val) {
-                          setState(() => _searchQuery = val);
-                        },
-                      ),
-                    ),
-                    if (_searchQuery.isNotEmpty)
-                      IconButton(
-                        icon: const Icon(Icons.clear_rounded,
-                            size: 18, color: AppColors.lightSubText),
-                        onPressed: () => setState(() => _searchQuery = ''),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
-
-            // 2 Status Filter Options: Total / Completed vs Total / Not Completed
+            // 1. Metric Overview Cards (Completed vs Not Completed)
             LayoutBuilder(
               builder: (context, constraints) {
                 final isNarrow = constraints.maxWidth < 650;
                 final halfWidth = constraints.maxWidth >= 300
-                    ? (constraints.maxWidth - 10) / 2
+                    ? (constraints.maxWidth - 12) / 2
                     : constraints.maxWidth;
 
                 final apiTotal = _analytics?.summary.totalStationPersonnel ?? 0;
@@ -2109,325 +2401,160 @@ class _ELearningScreenState extends State<ELearningScreen>
                             : 0));
 
                 return Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
+                  spacing: 12,
+                  runSpacing: 12,
                   children: [
-                    // Option 1: Total / Completed
-                    InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () {
-                        setState(() => _selectedStatusFilter = 'completed');
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: halfWidth,
-                        padding: EdgeInsets.symmetric(
-                            horizontal: isNarrow ? 10 : 16,
-                            vertical: isNarrow ? 10 : 14),
-                        decoration: BoxDecoration(
-                          color: _selectedStatusFilter == 'completed'
-                              ? const Color(0xFFEFF6FF)
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: _selectedStatusFilter == 'completed'
-                                ? AppColors.navyMid
-                                : AppColors.lightBorder,
-                            width: _selectedStatusFilter == 'completed' ? 2 : 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: (_selectedStatusFilter == 'completed'
-                                      ? AppColors.navyMid
-                                      : Colors.black)
-                                  .withValues(alpha: 0.04),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: EdgeInsets.all(isNarrow ? 7 : 10),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF22C55E)
-                                    .withValues(alpha: 0.12),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.check_circle_rounded,
-                                color: const Color(0xFF16A34A),
-                                size: isNarrow ? 18 : 24,
-                              ),
-                            ),
-                            SizedBox(width: isNarrow ? 8 : 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    isNarrow ? 'Completed' : 'Completed Course',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: isNarrow ? 11.5 : 13,
-                                      fontWeight: FontWeight.w600,
-                                      color:
-                                          _selectedStatusFilter == 'completed'
-                                              ? AppColors.navyDark
-                                              : AppColors.lightSubText,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  RichText(
-                                    text: TextSpan(
-                                      style: GoogleFonts.poppins(
-                                        fontSize: isNarrow ? 16 : 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.navyDark,
-                                      ),
-                                      children: [
-                                        TextSpan(
-                                          text: '$completedCount',
-                                          style: const TextStyle(
-                                              color: Color(0xFF16A34A)),
-                                        ),
-                                        TextSpan(
-                                          text: ' / $totalPersonnel',
-                                          style: TextStyle(
-                                            color: Colors.grey.shade600,
-                                            fontSize: isNarrow ? 12 : 15,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (_selectedStatusFilter == 'completed')
-                              Icon(Icons.radio_button_checked,
-                                  color: AppColors.navyMid,
-                                  size: isNarrow ? 16 : 20)
-                            else
-                              Icon(Icons.radio_button_unchecked,
-                                  color: Colors.grey.shade400,
-                                  size: isNarrow ? 16 : 20),
-                          ],
-                        ),
-                      ),
+                    // Card 1: Completed Courses
+                    _buildStatusMetricCard(
+                      width: halfWidth,
+                      isNarrow: isNarrow,
+                      title: 'Completed courses',
+                      count: completedCount,
+                      total: totalPersonnel,
+                      icon: Icons.check_rounded,
+                      iconColor: const Color(0xFF16A34A),
+                      iconBg: const Color(0xFFDCFCE7),
+                      isActive: _selectedStatusFilter == 'completed',
+                      activeColor: const Color(0xFF16A34A),
+                      onTap: () =>
+                          setState(() => _selectedStatusFilter = 'completed'),
                     ),
-
-                    // Option 2: Total / Not Completed
-                    InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () {
-                        setState(() => _selectedStatusFilter = 'not_completed');
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: halfWidth,
-                        padding: EdgeInsets.symmetric(
-                            horizontal: isNarrow ? 10 : 16,
-                            vertical: isNarrow ? 10 : 14),
-                        decoration: BoxDecoration(
-                          color: _selectedStatusFilter == 'not_completed'
-                              ? const Color(0xFFFEF2F2)
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: _selectedStatusFilter == 'not_completed'
-                                ? AppColors.dangerRed
-                                : AppColors.lightBorder,
-                            width: _selectedStatusFilter == 'not_completed'
-                                ? 2
-                                : 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: (_selectedStatusFilter == 'not_completed'
-                                      ? AppColors.dangerRed
-                                      : Colors.black)
-                                  .withValues(alpha: 0.04),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: EdgeInsets.all(isNarrow ? 7 : 10),
-                              decoration: BoxDecoration(
-                                color:
-                                    AppColors.dangerRed.withValues(alpha: 0.12),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.pending_actions_rounded,
-                                color: AppColors.dangerRed,
-                                size: isNarrow ? 18 : 24,
-                              ),
-                            ),
-                            SizedBox(width: isNarrow ? 8 : 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    isNarrow ? 'Not Done' : 'Not Completed',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: isNarrow ? 11.5 : 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: _selectedStatusFilter ==
-                                              'not_completed'
-                                          ? AppColors.dangerRed
-                                          : AppColors.lightSubText,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  RichText(
-                                    text: TextSpan(
-                                      style: GoogleFonts.poppins(
-                                        fontSize: isNarrow ? 16 : 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.navyDark,
-                                      ),
-                                      children: [
-                                        TextSpan(
-                                          text: '$notCompletedCount',
-                                          style: const TextStyle(
-                                              color: AppColors.dangerRed),
-                                        ),
-                                        TextSpan(
-                                          text: ' / $totalPersonnel',
-                                          style: TextStyle(
-                                            color: Colors.grey.shade600,
-                                            fontSize: isNarrow ? 12 : 15,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (_selectedStatusFilter == 'not_completed')
-                              Icon(Icons.radio_button_checked,
-                                  color: AppColors.dangerRed,
-                                  size: isNarrow ? 16 : 20)
-                            else
-                              Icon(Icons.radio_button_unchecked,
-                                  color: Colors.grey.shade400,
-                                  size: isNarrow ? 16 : 20),
-                          ],
-                        ),
-                      ),
+                    // Card 2: Not Completed
+                    _buildStatusMetricCard(
+                      width: halfWidth,
+                      isNarrow: isNarrow,
+                      title: 'Not completed',
+                      count: notCompletedCount,
+                      total: totalPersonnel,
+                      customIconText: '!',
+                      iconColor: const Color(0xFFDC2626),
+                      iconBg: const Color(0xFFFEE2E2),
+                      isActive: _selectedStatusFilter == 'not_completed',
+                      activeColor: const Color(0xFFDC2626),
+                      onTap: () => setState(
+                          () => _selectedStatusFilter = 'not_completed'),
                     ),
                   ],
                 );
               },
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 18),
 
-            // Platform Filter Chips (only relevant when viewing completed course records)
-            if (_selectedStatusFilter == 'completed' &&
-                _availablePlatforms.length > 1) ...[
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: _availablePlatforms.map((platform) {
-                    final isSelected = _selectedPlatform == platform;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: ChoiceChip(
-                        label: Text(platform),
-                        selected: isSelected,
-                        selectedColor:
-                            AppColors.navyMid.withValues(alpha: 0.15),
-                        labelStyle: TextStyle(
-                          color:
-                              isSelected ? AppColors.navyMid : Colors.black87,
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.normal,
-                          fontSize: 12,
+            // 2. Section Header & Controls Toolbar
+            if (!isCompactToolbar)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _selectedStatusFilter == 'completed'
+                              ? 'Completed records (${list.length})'
+                              : 'Not completed records (${_filteredNotCompletedOfficers.length})',
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.navyDark,
+                          ),
                         ),
-                        onSelected: (selected) {
-                          if (selected) {
-                            setState(() => _selectedPlatform = platform);
-                          }
-                        },
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-              const SizedBox(height: 14),
-            ],
-
-            // Records Count and View Toggle Header (No Overflow!)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                        const SizedBox(height: 2),
+                        Text(
+                          _selectedStatusFilter == 'completed'
+                              ? 'Auto-synced with officer profiles'
+                              : 'Pending training status',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            color: const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  if (_selectedStatusFilter == 'completed' &&
+                      _availablePlatforms.length > 1) ...[
+                    _buildPlatformDropdown(width: 175, isExpanded: true),
+                    const SizedBox(width: 12),
+                  ],
+                  _buildCompactSearchBar(width: 340),
+                ],
+              )
+            else
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        _selectedStatusFilter == 'completed'
-                            ? 'Completed Records (${list.length})'
-                            : 'Officers Not Completed (${_filteredNotCompletedOfficers.length})',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.poppins(
-                          fontSize: isMobile ? 14 : 15,
-                          fontWeight: FontWeight.bold,
-                          color: _selectedStatusFilter == 'completed'
-                              ? AppColors.navyDark
-                              : AppColors.dangerRed,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _selectedStatusFilter == 'completed'
+                                  ? 'Completed records (${list.length})'
+                                  : 'Not completed records (${_filteredNotCompletedOfficers.length})',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.navyDark,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              _selectedStatusFilter == 'completed'
+                                  ? 'Auto-synced with officer profiles'
+                                  : 'Pending training status',
+                              style: GoogleFonts.poppins(
+                                fontSize: 11,
+                                color: const Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      Text(
-                        _selectedStatusFilter == 'completed'
-                            ? 'Auto-synced with Officer Profiles'
-                            : 'Pending Training Status',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.poppins(
-                          fontSize: 10.5,
-                          color: AppColors.lightSubText,
+                      if (isMobile)
+                        IconButton(
+                          icon: Icon(
+                            _preferTableView
+                                ? Icons.view_agenda_rounded
+                                : Icons.table_chart_rounded,
+                            color: AppColors.navyMid,
+                            size: 20,
+                          ),
+                          tooltip: _preferTableView
+                              ? 'Switch to Cards'
+                              : 'Switch to Table',
+                          onPressed: () => setState(
+                              () => _preferTableView = !_preferTableView),
                         ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      if (_selectedStatusFilter == 'completed' &&
+                          _availablePlatforms.length > 1) ...[
+                        Expanded(
+                          flex: 2,
+                          child: _buildPlatformDropdown(isExpanded: true),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      Expanded(
+                        flex: 3,
+                        child: _buildCompactSearchBar(),
                       ),
                     ],
                   ),
-                ),
-                if (isMobile)
-                  IconButton(
-                    icon: Icon(
-                      _preferTableView
-                          ? Icons.view_agenda_rounded
-                          : Icons.table_chart_rounded,
-                      color: AppColors.navyMid,
-                      size: 20,
-                    ),
-                    tooltip: _preferTableView
-                        ? 'Switch to Cards'
-                        : 'Switch to Table',
-                    onPressed: () =>
-                        setState(() => _preferTableView = !_preferTableView),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 12),
+                ],
+              ),
+            const SizedBox(height: 14),
 
-            // Content: Cards on Mobile (by default) or DataTable on Desktop / if preferTableView
+            // 3. Data Content
             if (_selectedStatusFilter == 'completed') ...[
               if (list.isEmpty)
                 Container(
@@ -2436,7 +2563,7 @@ class _ELearningScreenState extends State<ELearningScreen>
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.lightBorder),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
                   ),
                   child: Column(
                     children: [
@@ -2469,240 +2596,274 @@ class _ELearningScreenState extends State<ELearningScreen>
                       _buildMobileCompletedCard(i + 1, list[i]),
                 )
               else
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.lightBorder),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.03),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: DataTable(
-                        headingRowColor:
-                            WidgetStateProperty.all(AppColors.navyDark),
-                        dataRowMinHeight: 52,
-                        dataRowMaxHeight: 64,
-                        headingTextStyle: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12.5,
-                          color: Colors.white,
-                        ),
-                        columns: [
-                          DataColumn(
-                              label: Text('Sr. No.',
-                                  style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700))),
-                          DataColumn(
-                              label: Text('Officer Name',
-                                  style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700))),
-                          DataColumn(
-                              label: Text('Course Name',
-                                  style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700))),
-                          DataColumn(
-                              label: Text('Platform of Course',
-                                  style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700))),
-                          DataColumn(
-                              label: Text('Date of Completion',
-                                  style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700))),
-                          DataColumn(
-                              label: Text('Status',
-                                  style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700))),
-                        ],
-                        rows: list.asMap().entries.map((entry) {
-                          final index = entry.key + 1;
-                          final item = entry.value;
-
-                          return DataRow(
-                            color: WidgetStateProperty.resolveWith<Color?>(
-                                (states) => entry.key.isEven
-                                    ? Colors.white
-                                    : const Color(0xFFF6F8FF)),
-                            cells: [
-                              DataCell(
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blueGrey.shade50,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    '$index',
-                                    style: GoogleFonts.poppins(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.blueGrey.shade800,
-                                    ),
-                                  ),
-                                ),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.02),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
                               ),
-                              DataCell(
-                                GestureDetector(
-                                  onTap: () => _showCompletedCoursesPopup(item),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      CircleAvatar(
-                                        radius: 16,
-                                        backgroundColor: AppColors.navyMid,
-                                        child: Text(
-                                          item.officerName.isNotEmpty
-                                              ? item.officerName[0]
-                                                  .toUpperCase()
-                                              : 'P',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                    minWidth: constraints.maxWidth),
+                                child: DataTable(
+                                  horizontalMargin: 20,
+                                  columnSpacing: 24,
+                                  headingRowHeight: 46,
+                                  dataRowMinHeight: 48,
+                                  dataRowMaxHeight: 56,
+                                  headingRowColor: WidgetStateProperty.all(
+                                    const Color(0xFFF8FAFC),
+                                  ),
+                                  headingTextStyle: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12.5,
+                                    color: const Color(0xFF475569),
+                                  ),
+                                  columns: [
+                                    DataColumn(
+                                      label: Text(
+                                        '#',
+                                        style: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12.5,
+                                          color: const Color(0xFF475569),
                                         ),
                                       ),
-                                      const SizedBox(width: 10),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
+                                    ),
+                                    DataColumn(
+                                      label: Text(
+                                        'Officer',
+                                        style: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12.5,
+                                          color: const Color(0xFF475569),
+                                        ),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: Text(
+                                        'Course',
+                                        style: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12.5,
+                                          color: const Color(0xFF475569),
+                                        ),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: Text(
+                                        'Platform',
+                                        style: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12.5,
+                                          color: const Color(0xFF475569),
+                                        ),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Text(
-                                            item.officerName,
+                                            'Completed on',
+                                            style: GoogleFonts.poppins(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 12.5,
+                                              color: const Color(0xFF475569),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          const Icon(
+                                            Icons.arrow_downward_rounded,
+                                            size: 13,
+                                            color: Color(0xFF475569),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: Text(
+                                        'Status',
+                                        style: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12.5,
+                                          color: const Color(0xFF475569),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                  rows: list.asMap().entries.map((entry) {
+                                    final index = entry.key + 1;
+                                    final item = entry.value;
+
+                                    return DataRow(
+                                      color: WidgetStateProperty.resolveWith<
+                                          Color?>(
+                                        (states) => entry.key.isEven
+                                            ? Colors.white
+                                            : const Color(0xFFFBFBFD),
+                                      ),
+                                      cells: [
+                                        DataCell(
+                                          Text(
+                                            '$index',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 13,
+                                              color: AppColors.navyDark,
+                                            ),
+                                          ),
+                                        ),
+                                        DataCell(
+                                          InkWell(
+                                            onTap: () =>
+                                                _showCompletedCoursesPopup(
+                                                    item),
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 4),
+                                              child: Text(
+                                                item.officerName,
+                                                style: GoogleFonts.poppins(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 13,
+                                                  color: AppColors.navyDark,
+                                                  decoration:
+                                                      TextDecoration.underline,
+                                                  decorationColor:
+                                                      AppColors.navyDark,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        DataCell(
+                                          Text(
+                                            item.courseName,
                                             style: GoogleFonts.poppins(
                                               fontWeight: FontWeight.w600,
                                               fontSize: 13,
                                               color: AppColors.navyDark,
-                                              decoration:
-                                                  TextDecoration.underline,
-                                              decorationColor: AppColors.navyMid
-                                                  .withValues(alpha: 0.4),
                                             ),
                                           ),
-                                          Text(
-                                            'Tap to view completed courses',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 10,
-                                              color: AppColors.lightSubText,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Icon(Icons.keyboard_arrow_down_rounded,
-                                          size: 16,
-                                          color: AppColors.navyMid
-                                              .withValues(alpha: 0.6)),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              DataCell(
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.bookmark_border_rounded,
-                                        size: 16, color: Colors.blueGrey),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      item.courseName,
-                                      style: GoogleFonts.poppins(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              DataCell(
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFEFF6FF),
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(
-                                        color: const Color(0xFFBFDBFE)),
-                                  ),
-                                  child: Text(
-                                    item.platform,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF1D4ED8),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              DataCell(
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.calendar_month_outlined,
-                                        size: 15, color: Colors.black45),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      item.dateOfCompletion.isNotEmpty
-                                          ? item.dateOfCompletion
-                                          : 'N/A',
-                                      style: GoogleFonts.poppins(fontSize: 13),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              DataCell(
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: Colors.green.shade50,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                        color: Colors.green.shade200),
-                                  ),
-                                  child: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.check_circle_rounded,
-                                          size: 14,
-                                          color: AppColors.successGreen),
-                                      SizedBox(width: 4),
-                                      Text(
-                                        'Completed',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.successGreen,
                                         ),
-                                      ),
-                                    ],
-                                  ),
+                                        DataCell(
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 10, vertical: 3),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFF1F5F9),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              item.platform.isNotEmpty
+                                                  ? item.platform
+                                                  : '—',
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
+                                                color: const Color(0xFF475569),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        DataCell(
+                                          Text(
+                                            _formatCompletionDate(
+                                                item.dateOfCompletion),
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 12.5,
+                                              color: AppColors.navyDark,
+                                            ),
+                                          ),
+                                        ),
+                                        DataCell(
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 10, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFDCFCE7),
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(
+                                                  Icons.check_rounded,
+                                                  size: 13,
+                                                  color: Color(0xFF16A34A),
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  'Completed',
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 11.5,
+                                                    fontWeight: FontWeight.w600,
+                                                    color:
+                                                        const Color(0xFF16A34A),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding:
+                              const EdgeInsets.only(top: 12, left: 4, right: 4),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Showing ${list.length} of ${_records.length} records',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: const Color(0xFF64748B),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                'Rows per page: 25',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: const Color(0xFF64748B),
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
             ] else ...[
               if (_filteredNotCompletedOfficers.isEmpty)
@@ -2710,14 +2871,14 @@ class _ELearningScreenState extends State<ELearningScreen>
                   width: double.infinity,
                   padding: const EdgeInsets.all(32),
                   decoration: BoxDecoration(
-                    color: Colors.green.shade50,
+                    color: const Color(0xFFF0FDF4),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.green.shade200),
+                    border: Border.all(color: const Color(0xFFBBF7D0)),
                   ),
                   child: Row(
                     children: [
                       const Icon(Icons.verified_rounded,
-                          color: AppColors.successGreen, size: 32),
+                          color: Color(0xFF16A34A), size: 32),
                       const SizedBox(width: 14),
                       Expanded(
                         child: Column(
@@ -2728,7 +2889,7 @@ class _ELearningScreenState extends State<ELearningScreen>
                               style: GoogleFonts.poppins(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.successGreen,
+                                color: const Color(0xFF16A34A),
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -2752,220 +2913,252 @@ class _ELearningScreenState extends State<ELearningScreen>
                       i + 1, _filteredNotCompletedOfficers[i]),
                 )
               else
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.red.shade200),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.red.withValues(alpha: 0.04),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: DataTable(
-                        headingRowColor:
-                            WidgetStateProperty.all(AppColors.navyDark),
-                        dataRowMinHeight: 52,
-                        dataRowMaxHeight: 64,
-                        headingTextStyle: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12.5,
-                          color: Colors.white,
-                        ),
-                        columns: [
-                          DataColumn(
-                              label: Text('Sr. No.',
-                                  style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700))),
-                          DataColumn(
-                              label: Text('Officer Name',
-                                  style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700))),
-                          DataColumn(
-                              label: Text('Badge Number',
-                                  style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700))),
-                          DataColumn(
-                              label: Text('Designation',
-                                  style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700))),
-                          DataColumn(
-                              label: Text('Station',
-                                  style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700))),
-                          DataColumn(
-                              label: Text('Training Status',
-                                  style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700))),
-                        ],
-                        rows: _filteredNotCompletedOfficers
-                            .asMap()
-                            .entries
-                            .map((entry) {
-                          final idx = entry.key + 1;
-                          final off = entry.value;
-
-                          return DataRow(
-                            color: WidgetStateProperty.resolveWith<Color?>(
-                                (states) => entry.key.isEven
-                                    ? Colors.white
-                                    : const Color(0xFFF6F8FF)),
-                            cells: [
-                              DataCell(
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.red.shade50,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    '$idx',
-                                    style: GoogleFonts.poppins(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.red.shade800,
-                                    ),
-                                  ),
-                                ),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final notDoneList = _filteredNotCompletedOfficers;
+                    final totalNotDone =
+                        _analytics?.summary.personnelNotCompletedAny ??
+                            notDoneList.length;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.02),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
                               ),
-                              DataCell(
-                                GestureDetector(
-                                  onTap: () => _showPendingCoursesPopup(off),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      CircleAvatar(
-                                        radius: 16,
-                                        backgroundColor: Colors.red.shade400,
-                                        child: Text(
-                                          off.officerName.isNotEmpty
-                                              ? off.officerName[0].toUpperCase()
-                                              : 'O',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                    minWidth: constraints.maxWidth),
+                                child: DataTable(
+                                  horizontalMargin: 20,
+                                  columnSpacing: 24,
+                                  headingRowHeight: 46,
+                                  dataRowMinHeight: 48,
+                                  dataRowMaxHeight: 56,
+                                  headingRowColor: WidgetStateProperty.all(
+                                    const Color(0xFFF8FAFC),
+                                  ),
+                                  headingTextStyle: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12.5,
+                                    color: const Color(0xFF475569),
+                                  ),
+                                  columns: [
+                                    DataColumn(
+                                      label: Text(
+                                        '#',
+                                        style: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12.5,
+                                          color: const Color(0xFF475569),
                                         ),
                                       ),
-                                      const SizedBox(width: 10),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            off.officerName,
-                                            style: GoogleFonts.poppins(
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 13,
-                                              color: Colors.red.shade900,
-                                              decoration:
-                                                  TextDecoration.underline,
-                                              decorationColor:
-                                                  Colors.red.shade300,
-                                            ),
-                                          ),
-                                          Text(
-                                            'Tap to view pending courses',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 10,
-                                              color: Colors.red.shade400,
-                                            ),
-                                          ),
-                                        ],
+                                    ),
+                                    DataColumn(
+                                      label: Text(
+                                        'Officer',
+                                        style: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12.5,
+                                          color: const Color(0xFF475569),
+                                        ),
                                       ),
-                                      const SizedBox(width: 4),
-                                      Icon(Icons.keyboard_arrow_down_rounded,
-                                          size: 16, color: Colors.red.shade400),
-                                    ],
-                                  ),
+                                    ),
+                                    DataColumn(
+                                      label: Text(
+                                        'Badge Number',
+                                        style: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12.5,
+                                          color: const Color(0xFF475569),
+                                        ),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: Text(
+                                        'Designation',
+                                        style: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12.5,
+                                          color: const Color(0xFF475569),
+                                        ),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: Text(
+                                        'Station',
+                                        style: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12.5,
+                                          color: const Color(0xFF475569),
+                                        ),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: Text(
+                                        'Status',
+                                        style: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12.5,
+                                          color: const Color(0xFF475569),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                  rows:
+                                      notDoneList.asMap().entries.map((entry) {
+                                    final idx = entry.key + 1;
+                                    final off = entry.value;
+
+                                    return DataRow(
+                                      color: WidgetStateProperty.resolveWith<
+                                          Color?>(
+                                        (states) => entry.key.isEven
+                                            ? Colors.white
+                                            : const Color(0xFFFBFBFD),
+                                      ),
+                                      cells: [
+                                        DataCell(
+                                          Text(
+                                            '$idx',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 13,
+                                              color: AppColors.navyDark,
+                                            ),
+                                          ),
+                                        ),
+                                        DataCell(
+                                          InkWell(
+                                            onTap: () =>
+                                                _showPendingCoursesPopup(off),
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 4),
+                                              child: Text(
+                                                off.officerName,
+                                                style: GoogleFonts.poppins(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 13,
+                                                  color: AppColors.navyDark,
+                                                  decoration:
+                                                      TextDecoration.underline,
+                                                  decorationColor:
+                                                      AppColors.navyDark,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        DataCell(
+                                          Text(
+                                            off.badgeNumber.isNotEmpty
+                                                ? off.badgeNumber
+                                                : '—',
+                                            style: GoogleFonts.poppins(
+                                                fontSize: 13),
+                                          ),
+                                        ),
+                                        DataCell(
+                                          Text(
+                                            off.designation.isNotEmpty
+                                                ? off.designation
+                                                : 'Officer',
+                                            style: GoogleFonts.poppins(
+                                                fontSize: 13),
+                                          ),
+                                        ),
+                                        DataCell(
+                                          Text(
+                                            off.stationName.isNotEmpty
+                                                ? off.stationName
+                                                : '—',
+                                            style: GoogleFonts.poppins(
+                                                fontSize: 13),
+                                          ),
+                                        ),
+                                        DataCell(
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 10, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFFEE2E2),
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(
+                                                  Icons.pending_actions_rounded,
+                                                  size: 13,
+                                                  color: AppColors.dangerRed,
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  'Not Completed',
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 11.5,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: AppColors.dangerRed,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  }).toList(),
                                 ),
                               ),
-                              DataCell(Text(
-                                off.badgeNumber.isNotEmpty
-                                    ? off.badgeNumber
-                                    : '—',
-                                style: GoogleFonts.poppins(fontSize: 13),
-                              )),
-                              DataCell(Text(
-                                off.designation.isNotEmpty
-                                    ? off.designation
-                                    : 'Officer',
-                                style: GoogleFonts.poppins(fontSize: 13),
-                              )),
-                              DataCell(Text(
-                                off.stationName.isNotEmpty
-                                    ? off.stationName
-                                    : '—',
-                                style: GoogleFonts.poppins(fontSize: 13),
-                              )),
-                              DataCell(
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.red.shade50,
-                                    borderRadius: BorderRadius.circular(16),
-                                    border:
-                                        Border.all(color: Colors.red.shade300),
-                                  ),
-                                  child: Builder(
-                                    builder: (_) {
-                                      final completedCount = _records
-                                          .where((r) =>
-                                              r.officerUid == off.officerUid ||
-                                              r.officerName
-                                                      .trim()
-                                                      .toLowerCase() ==
-                                                  off.officerName
-                                                      .trim()
-                                                      .toLowerCase())
-                                          .length;
-                                      return Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          const Icon(
-                                            Icons.pending_actions_rounded,
-                                            size: 14,
-                                            color: AppColors.dangerRed,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            '$completedCount Course${completedCount == 1 ? '' : 's'} Completed',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.dangerRed,
-                                              fontSize: 11,
-                                            ),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  ),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding:
+                              const EdgeInsets.only(top: 12, left: 4, right: 4),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Showing ${notDoneList.length} of $totalNotDone records',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: const Color(0xFF64748B),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                'Rows per page: 25',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: const Color(0xFF64748B),
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
             ],
             const SizedBox(height: 80),

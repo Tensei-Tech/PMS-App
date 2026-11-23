@@ -92,14 +92,17 @@ void main() {
   });
 }
 
-/// Opens the first section (sections start collapsed in the accordion form).
+/// Opens the first section when it can be collapsed (accordion form). In the
+/// step-by-step form sections are always open and have no header to tap.
 Future<void> openFirstSection(WidgetTester tester) async {
-  final header = find
-      .descendant(
-          of: find.byType(DynamicSectionCard).first,
-          matching: find.byType(InkWell))
-      .first;
-  await tester.tap(header);
+  final headers = find.descendant(
+      of: find.byType(DynamicSectionCard).first,
+      matching: find.byType(InkWell));
+  if (find.byType(DynamicSectionCard).evaluate().isEmpty ||
+      headers.evaluate().isEmpty) {
+    return;
+  }
+  await tester.tap(headers.first);
   await tester.pumpAndSettle();
 }
 
