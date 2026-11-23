@@ -37,7 +37,7 @@ class PassportStatusCards extends StatelessWidget {
           _buildCard(
             context: context,
             filter: PassportStatusFilter.totalReceived,
-            title: TranslationHelper.translate(context, 'Total Verification'),
+            title: TranslationHelper.translate(context, 'Total'),
             count: totalReceivedCount,
             accentColor: const Color(0xFF1E40AF), // Deep Blue
             lightBg: const Color(0xFFEFF6FF),

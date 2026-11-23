@@ -325,7 +325,7 @@ class _PassportHubScreenState extends State<PassportHubScreen> {
 
     final transFilterLabel = switch (_selectedFilter) {
       PassportStatusFilter.totalReceived =>
-        TranslationHelper.translate(context, 'Total Verification'),
+        TranslationHelper.translate(context, 'Total'),
       PassportStatusFilter.verified =>
         TranslationHelper.translate(context, 'Verified'),
       PassportStatusFilter.pending =>
