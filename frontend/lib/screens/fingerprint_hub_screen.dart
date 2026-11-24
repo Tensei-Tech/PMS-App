@@ -14,6 +14,7 @@ import '../utils/excel_export_helper.dart';
 import '../utils/pdf_unicode_fonts.dart';
 import '../utils/translation_helper.dart';
 import '../widgets/dynamic_form/dynamic_form_screen.dart';
+import '../widgets/modern_date_filter_calendar.dart';
 import '../widgets/nafis_cases_data_table.dart';
 import '../widgets/sub_tab_host.dart';
 import 'nafis_summary_screen.dart';
@@ -57,6 +58,7 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
   final TextEditingController _searchCtrl = TextEditingController();
   String _searchQuery = '';
   DateTimeRange? _selectedDateRange;
+  String? _datePresetLabel;
 
   @override
   void initState() {
@@ -977,66 +979,20 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
   }
 
   Widget _buildDateFilterMenu(BuildContext context) {
-    return PopupMenuButton<String>(
-      tooltip: TranslationHelper.translate(context, 'Filter by Date'),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      icon: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: _selectedDateRange != null
-              ? const Color(0xFFEFF6FF)
-              : const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: _selectedDateRange != null
-                ? const Color(0xFF3B82F6)
-                : const Color(0xFFCBD5E1),
-          ),
-        ),
-        child: Icon(
-          Icons.calendar_today_rounded,
-          size: 16,
-          color: _selectedDateRange != null
-              ? const Color(0xFF3B82F6)
-              : AppColors.navyMid,
-        ),
-      ),
-      onSelected: (val) async {
-        final now = DateTime.now();
-        if (val == 'all') {
-          setState(() => _selectedDateRange = null);
-        } else if (val == 'today') {
-          setState(
-              () => _selectedDateRange = DateTimeRange(start: now, end: now));
-        } else if (val == 'week') {
-          setState(() => _selectedDateRange = DateTimeRange(
-                start: now.subtract(const Duration(days: 7)),
-                end: now,
-              ));
-        } else if (val == 'month') {
-          setState(() => _selectedDateRange = DateTimeRange(
-                start: now.subtract(const Duration(days: 30)),
-                end: now,
-              ));
-        } else if (val == 'custom') {
-          final range = await showDateRangePicker(
-            context: context,
-            firstDate: DateTime(2000),
-            lastDate: DateTime(2100),
-            initialDateRange: _selectedDateRange,
-          );
-          if (range != null) {
-            setState(() => _selectedDateRange = range);
-          }
-        }
+    return ModernDateFilterCalendar(
+      selectedDateRange: _selectedDateRange,
+      datePresetLabel: _datePresetLabel,
+      onDateRangeChanged: (range) {
+        setState(() {
+          _selectedDateRange = range;
+          if (range == null) _datePresetLabel = null;
+        });
       },
-      itemBuilder: (context) => [
-        const PopupMenuItem(value: 'all', child: Text('All Dates')),
-        const PopupMenuItem(value: 'today', child: Text('Today')),
-        const PopupMenuItem(value: 'week', child: Text('Last 7 Days')),
-        const PopupMenuItem(value: 'month', child: Text('Last 30 Days')),
-        const PopupMenuItem(value: 'custom', child: Text('Custom Range...')),
-      ],
+      onPresetLabelChanged: (preset) {
+        setState(() {
+          _datePresetLabel = preset;
+        });
+      },
     );
   }
 

@@ -19,6 +19,7 @@ import '../../../utils/excel_export_helper.dart';
 import '../../../utils/pdf_unicode_fonts.dart';
 import '../../../utils/translation_helper.dart';
 import '../../../widgets/module_hub_screen_app_bar.dart';
+import '../../../widgets/modern_date_filter_calendar.dart';
 import '../../../widgets/sub_tab_host.dart';
 
 class PvrGroup {
@@ -88,50 +89,11 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
 
   // ── Date Filter Helpers ───────────────────────────────────────────────────
 
-  void _applyDatePreset(String label, DateTimeRange? range) {
-    setState(() {
-      _datePresetLabel = range == null ? null : label;
-      _selectedDateRange = range;
-    });
-  }
-
   void _clearDateFilter() {
     setState(() {
       _datePresetLabel = null;
       _selectedDateRange = null;
     });
-  }
-
-  Future<void> _pickCustomDateRange() async {
-    final now = DateTime.now();
-    final picked = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(now.year + 1),
-      initialDateRange: _selectedDateRange ??
-          DateTimeRange(
-            start: DateTime(now.year, now.month, 1),
-            end: now,
-          ),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.navyMid,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: AppColors.navyDark,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null) {
-      final fmt = DateFormat('dd/MM/yyyy');
-      final label = '${fmt.format(picked.start)} - ${fmt.format(picked.end)}';
-      _applyDatePreset(label, picked);
-    }
   }
 
   // ── Monthly Grouping & Filtering ──────────────────────────────────────────
@@ -487,240 +449,20 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
   }
 
   Widget _buildDateFilterMenu(BuildContext context, {bool isNarrow = false}) {
-    final hasFilter = _selectedDateRange != null;
-    final now = DateTime.now();
-
-    return PopupMenuButton<String>(
-      tooltip: TranslationHelper.translate(context, 'Filter by Date'),
-      onSelected: (val) {
-        switch (val) {
-          case 'all':
-            _clearDateFilter();
-            break;
-          case 'under_1_month':
-            _applyDatePreset(
-              'Under 1 month',
-              DateTimeRange(
-                start: now.subtract(const Duration(days: 30)),
-                end: now,
-              ),
-            );
-            break;
-          case '1_to_3_months':
-            _applyDatePreset(
-              '1 to 3 months',
-              DateTimeRange(
-                start: now.subtract(const Duration(days: 90)),
-                end: now.subtract(const Duration(days: 30)),
-              ),
-            );
-            break;
-          case '3_to_6_months':
-            _applyDatePreset(
-              '3 to 6 months',
-              DateTimeRange(
-                start: now.subtract(const Duration(days: 180)),
-                end: now.subtract(const Duration(days: 90)),
-              ),
-            );
-            break;
-          case '6_to_12_months':
-            _applyDatePreset(
-              '6 to 12 months',
-              DateTimeRange(
-                start: now.subtract(const Duration(days: 365)),
-                end: now.subtract(const Duration(days: 180)),
-              ),
-            );
-            break;
-          case 'more_than_1_year':
-            _applyDatePreset(
-              'More than 1 year',
-              DateTimeRange(
-                start: DateTime(2000),
-                end: now.subtract(const Duration(days: 365)),
-              ),
-            );
-            break;
-          case 'under_3_months_total':
-            _applyDatePreset(
-              'Under 3 months (Total)',
-              DateTimeRange(
-                start: now.subtract(const Duration(days: 90)),
-                end: now,
-              ),
-            );
-            break;
-          case 'custom':
-            _pickCustomDateRange();
-            break;
-        }
+    return ModernDateFilterCalendar(
+      selectedDateRange: _selectedDateRange,
+      datePresetLabel: _datePresetLabel,
+      onDateRangeChanged: (range) {
+        setState(() {
+          _selectedDateRange = range;
+          if (range == null) _datePresetLabel = null;
+        });
       },
-      itemBuilder: (ctx) => [
-        PopupMenuItem(
-          value: 'all',
-          child: Row(
-            children: [
-              Icon(
-                _selectedDateRange == null
-                    ? Icons.check_circle_rounded
-                    : Icons.circle_outlined,
-                size: 16,
-                color: _selectedDateRange == null
-                    ? AppColors.navyMid
-                    : AppColors.lightSubText,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                TranslationHelper.translate(ctx, 'All Dates'),
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: _selectedDateRange == null
-                      ? FontWeight.w600
-                      : FontWeight.w500,
-                  color: AppColors.navyDark,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const PopupMenuDivider(),
-        _buildDateMenuItem(
-          ctx,
-          value: 'under_1_month',
-          label: 'Under 1 month',
-        ),
-        _buildDateMenuItem(
-          ctx,
-          value: '1_to_3_months',
-          label: '1 to 3 months',
-        ),
-        _buildDateMenuItem(
-          ctx,
-          value: '3_to_6_months',
-          label: '3 to 6 months',
-        ),
-        _buildDateMenuItem(
-          ctx,
-          value: '6_to_12_months',
-          label: '6 to 12 months',
-        ),
-        _buildDateMenuItem(
-          ctx,
-          value: 'more_than_1_year',
-          label: 'More than 1 year',
-        ),
-        _buildDateMenuItem(
-          ctx,
-          value: 'under_3_months_total',
-          label: 'Under 3 months (Total)',
-        ),
-        const PopupMenuDivider(),
-        PopupMenuItem(
-          value: 'custom',
-          child: Row(
-            children: [
-              const Icon(
-                Icons.date_range_rounded,
-                size: 16,
-                color: AppColors.navyMid,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                TranslationHelper.translate(ctx, 'Custom Date Range...'),
-                style: GoogleFonts.poppins(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.navyMid,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-      child: Container(
-        height: isNarrow ? 38 : 44,
-        padding: EdgeInsets.symmetric(horizontal: isNarrow ? 8 : 12),
-        decoration: BoxDecoration(
-          color: hasFilter ? const Color(0xFFEFF6FF) : Colors.white,
-          borderRadius: BorderRadius.circular(isNarrow ? 8 : 12),
-          border: Border.all(
-            color: hasFilter ? const Color(0xFF3B82F6) : AppColors.lightBorder,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.calendar_month_rounded,
-              size: isNarrow ? 14 : 18,
-              color:
-                  hasFilter ? const Color(0xFF1E40AF) : AppColors.lightSubText,
-            ),
-            SizedBox(width: isNarrow ? 4 : 8),
-            Text(
-              _datePresetLabel ??
-                  TranslationHelper.translate(context, 'Date Filter'),
-              style: GoogleFonts.poppins(
-                fontSize: isNarrow ? 11 : 13,
-                fontWeight: hasFilter ? FontWeight.w600 : FontWeight.w500,
-                color: hasFilter ? const Color(0xFF1E40AF) : AppColors.navyDark,
-              ),
-            ),
-            if (hasFilter) ...[
-              const SizedBox(width: 6),
-              InkWell(
-                onTap: _clearDateFilter,
-                child: const Icon(Icons.close_rounded,
-                    size: 15, color: Color(0xFFDC2626)),
-              ),
-            ] else ...[
-              const SizedBox(width: 4),
-              const Icon(Icons.arrow_drop_down_rounded,
-                  size: 20, color: AppColors.lightSubText),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  PopupMenuItem<String> _buildDateMenuItem(
-    BuildContext context, {
-    required String value,
-    required String label,
-  }) {
-    final isSelected = _datePresetLabel == label;
-
-    return PopupMenuItem<String>(
-      value: value,
-      child: Row(
-        children: [
-          Icon(
-            isSelected ? Icons.check_circle_rounded : Icons.circle_outlined,
-            size: 16,
-            color: isSelected ? AppColors.navyMid : AppColors.lightSubText,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              TranslationHelper.translate(context, label),
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: AppColors.navyDark,
-              ),
-            ),
-          ),
-        ],
-      ),
+      onPresetLabelChanged: (preset) {
+        setState(() {
+          _datePresetLabel = preset;
+        });
+      },
     );
   }
 

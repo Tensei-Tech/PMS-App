@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 import '../widgets/module_hub_screen_app_bar.dart';
+import '../widgets/modern_date_filter_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 import '../services/api_service.dart';
 import '../services/api_config.dart';
@@ -2371,42 +2371,6 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
     });
   }
 
-  void _clearDateFilter() {
-    setState(() {
-      _selectedDateRange = null;
-      _datePresetLabel = null;
-      _applySearch();
-    });
-  }
-
-  void _applyDatePreset(String label, DateTimeRange range) {
-    setState(() {
-      _selectedDateRange = range;
-      _datePresetLabel = label;
-      _applySearch();
-    });
-  }
-
-  Future<void> _pickCustomDateRange() async {
-    final now = DateTime.now();
-    final picked = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime(2000),
-      lastDate: now.add(const Duration(days: 365)),
-      initialDateRange: _selectedDateRange ??
-          DateTimeRange(
-            start: now.subtract(const Duration(days: 30)),
-            end: now,
-          ),
-    );
-    if (picked != null) {
-      _applyDatePreset(
-        '${DateFormat('dd/MM/yy').format(picked.start)} - ${DateFormat('dd/MM/yy').format(picked.end)}',
-        picked,
-      );
-    }
-  }
-
   Future<void> _exportPdf() async {
     if (_displayCases.isEmpty) return;
     final theme = await PdfUnicodeFonts.openSansTheme();
@@ -2448,196 +2412,21 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
   }
 
   Widget _buildDateFilterMenu(BuildContext context) {
-    final hasFilter = _selectedDateRange != null;
-    final now = DateTime.now();
-
-    return PopupMenuButton<String>(
-      tooltip: 'Filter by Date',
-      onSelected: (val) {
-        switch (val) {
-          case 'all':
-            _clearDateFilter();
-            break;
-          case 'under_1_month':
-            _applyDatePreset(
-              'Under 1 month',
-              DateTimeRange(
-                start: now.subtract(const Duration(days: 30)),
-                end: now,
-              ),
-            );
-            break;
-          case '1_to_3_months':
-            _applyDatePreset(
-              '1 to 3 months',
-              DateTimeRange(
-                start: now.subtract(const Duration(days: 90)),
-                end: now.subtract(const Duration(days: 30)),
-              ),
-            );
-            break;
-          case '3_to_6_months':
-            _applyDatePreset(
-              '3 to 6 months',
-              DateTimeRange(
-                start: now.subtract(const Duration(days: 180)),
-                end: now.subtract(const Duration(days: 90)),
-              ),
-            );
-            break;
-          case '6_to_12_months':
-            _applyDatePreset(
-              '6 to 12 months',
-              DateTimeRange(
-                start: now.subtract(const Duration(days: 365)),
-                end: now.subtract(const Duration(days: 180)),
-              ),
-            );
-            break;
-          case 'more_than_1_year':
-            _applyDatePreset(
-              'More than 1 year',
-              DateTimeRange(
-                start: DateTime(2000),
-                end: now.subtract(const Duration(days: 365)),
-              ),
-            );
-            break;
-          case 'under_3_months_total':
-            _applyDatePreset(
-              'Under 3 months (Total)',
-              DateTimeRange(
-                start: now.subtract(const Duration(days: 90)),
-                end: now,
-              ),
-            );
-            break;
-          case 'custom':
-            _pickCustomDateRange();
-            break;
-        }
+    return ModernDateFilterCalendar(
+      selectedDateRange: _selectedDateRange,
+      datePresetLabel: _datePresetLabel,
+      onDateRangeChanged: (range) {
+        setState(() {
+          _selectedDateRange = range;
+          if (range == null) _datePresetLabel = null;
+          _applySearch();
+        });
       },
-      itemBuilder: (ctx) => [
-        PopupMenuItem(
-          value: 'all',
-          child: Row(
-            children: [
-              Icon(
-                _selectedDateRange == null
-                    ? Icons.check_circle_rounded
-                    : Icons.circle_outlined,
-                size: 16,
-                color: _selectedDateRange == null
-                    ? AppColors.navyMid
-                    : AppColors.lightSubText,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'All Dates',
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: _selectedDateRange == null
-                      ? FontWeight.w600
-                      : FontWeight.w500,
-                  color: AppColors.navyDark,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const PopupMenuDivider(),
-        _buildDateMenuItem('under_1_month', 'Under 1 month'),
-        _buildDateMenuItem('1_to_3_months', '1 to 3 months'),
-        _buildDateMenuItem('3_to_6_months', '3 to 6 months'),
-        _buildDateMenuItem('6_to_12_months', '6 to 12 months'),
-        _buildDateMenuItem('more_than_1_year', 'More than 1 year'),
-        _buildDateMenuItem('under_3_months_total', 'Under 3 months (Total)'),
-        const PopupMenuDivider(),
-        PopupMenuItem(
-          value: 'custom',
-          child: Row(
-            children: [
-              const Icon(
-                Icons.date_range_rounded,
-                size: 16,
-                color: AppColors.navyMid,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Custom Date Range...',
-                style: GoogleFonts.poppins(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.navyMid,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-      child: Container(
-        height: 38,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        decoration: BoxDecoration(
-          color: hasFilter
-              ? AppColors.navyMid.withValues(alpha: 0.08)
-              : Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: hasFilter ? AppColors.navyMid : const Color(0xFFCBD5E1),
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.calendar_month_rounded,
-              size: 16,
-              color: hasFilter ? AppColors.navyMid : AppColors.lightSubText,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              _datePresetLabel ?? 'Date Filter',
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: hasFilter ? FontWeight.w600 : FontWeight.w500,
-                color: hasFilter ? AppColors.navyMid : AppColors.navyDark,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Icon(
-              Icons.arrow_drop_down_rounded,
-              size: 18,
-              color: hasFilter ? AppColors.navyMid : AppColors.lightSubText,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  PopupMenuItem<String> _buildDateMenuItem(String value, String label) {
-    final isSelected = _datePresetLabel == label;
-    return PopupMenuItem(
-      value: value,
-      child: Row(
-        children: [
-          Icon(
-            isSelected ? Icons.check_circle_rounded : Icons.circle_outlined,
-            size: 16,
-            color: isSelected ? AppColors.navyMid : AppColors.lightSubText,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 13,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-              color: AppColors.navyDark,
-            ),
-          ),
-        ],
-      ),
+      onPresetLabelChanged: (preset) {
+        setState(() {
+          _datePresetLabel = preset;
+        });
+      },
     );
   }
 
