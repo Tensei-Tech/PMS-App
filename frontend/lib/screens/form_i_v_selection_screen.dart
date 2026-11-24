@@ -22,6 +22,7 @@ import '../utils/category_icon_helper.dart';
 import '../utils/dynamic_map_pdf.dart';
 import '../utils/pdf_unicode_fonts.dart';
 import '../widgets/modern_date_filter_calendar.dart';
+import '../widgets/modern_date_sort_button.dart';
 import '../widgets/custom_pdf_preview_dialog.dart';
 import '../widgets/sub_tab_host.dart';
 
@@ -1380,9 +1381,13 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
         ),
         const SizedBox(width: 8),
 
-        // Sort by Date Toggle & Menu Button
-        PopupMenuButton<String>(
-          tooltip: TranslationHelper.translate(context, 'Sort by Date'),
+        // Modern Date Sort Button
+        ModernDateSortButton(
+          selectedKey: _dateField == FormIVDateField.createdAt
+              ? 'newest_created'
+              : (_dateSortOrder == FormIVDateSortOrder.newestFirst
+                  ? 'newest_incident'
+                  : 'oldest_incident'),
           onSelected: (val) {
             setState(() {
               switch (val) {
@@ -1398,140 +1403,9 @@ class _FormIVSelectionScreenState extends State<FormIVSelectionScreen> {
                   _dateField = FormIVDateField.createdAt;
                   _dateSortOrder = FormIVDateSortOrder.newestFirst;
                   break;
-                case 'oldest_created':
-                  _dateField = FormIVDateField.createdAt;
-                  _dateSortOrder = FormIVDateSortOrder.oldestFirst;
-                  break;
               }
             });
           },
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              value: 'newest_incident',
-              child: Row(
-                children: [
-                  Icon(
-                    _dateField == FormIVDateField.incidentDate &&
-                            _dateSortOrder == FormIVDateSortOrder.newestFirst
-                        ? Icons.check_circle_rounded
-                        : Icons.radio_button_unchecked_rounded,
-                    size: 16,
-                    color: const Color(0xFF1976D2),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Incident Date (Newest first)',
-                    style: GoogleFonts.poppins(fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: 'oldest_incident',
-              child: Row(
-                children: [
-                  Icon(
-                    _dateField == FormIVDateField.incidentDate &&
-                            _dateSortOrder == FormIVDateSortOrder.oldestFirst
-                        ? Icons.check_circle_rounded
-                        : Icons.radio_button_unchecked_rounded,
-                    size: 16,
-                    color: const Color(0xFF1976D2),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Incident Date (Oldest first)',
-                    style: GoogleFonts.poppins(fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            const PopupMenuDivider(),
-            PopupMenuItem(
-              value: 'newest_created',
-              child: Row(
-                children: [
-                  Icon(
-                    _dateField == FormIVDateField.createdAt &&
-                            _dateSortOrder == FormIVDateSortOrder.newestFirst
-                        ? Icons.check_circle_rounded
-                        : Icons.radio_button_unchecked_rounded,
-                    size: 16,
-                    color: const Color(0xFF1976D2),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Filing Date (Newest first)',
-                    style: GoogleFonts.poppins(fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: 'oldest_created',
-              child: Row(
-                children: [
-                  Icon(
-                    _dateField == FormIVDateField.createdAt &&
-                            _dateSortOrder == FormIVDateSortOrder.oldestFirst
-                        ? Icons.check_circle_rounded
-                        : Icons.radio_button_unchecked_rounded,
-                    size: 16,
-                    color: const Color(0xFF1976D2),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Filing Date (Oldest first)',
-                    style: GoogleFonts.poppins(fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFCBD5E1)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 4,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  _dateSortOrder == FormIVDateSortOrder.newestFirst
-                      ? Icons.arrow_downward_rounded
-                      : Icons.arrow_upward_rounded,
-                  size: 14,
-                  color: AppColors.navyMid,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  _dateSortOrder == FormIVDateSortOrder.newestFirst
-                      ? TranslationHelper.translate(context, 'Newest')
-                      : TranslationHelper.translate(context, 'Oldest'),
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.navyDark,
-                  ),
-                ),
-                const SizedBox(width: 2),
-                const Icon(
-                  Icons.arrow_drop_down_rounded,
-                  size: 16,
-                  color: AppColors.lightSubText,
-                ),
-              ],
-            ),
-          ),
         ),
         if (visibleRecords != null) ...[
           const SizedBox(width: 8),
