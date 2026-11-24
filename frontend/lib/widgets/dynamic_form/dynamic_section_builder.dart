@@ -699,11 +699,46 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                             return control;
                           }
 
+                          // Field count of the last short line that shared
+                          // its width out equally (null if the last line
+                          // kept the grid)
+                          int? prevSharedCount;
+                          // The last line filled the grid
+                          var prevFull = false;
+
                           void flushPair() {
                             if (pending.isEmpty) return;
                             final line = [...pending];
-                            final widths = [...pendingW];
+                            var widths = [...pendingW];
                             final full = used() == perLine;
+                            // Same number of fields as a short line just
+                            // above it: split equally so the columns line up
+                            // (e.g. Address | Occurrence under Village |
+                            // Area, not 2:1 against 1:1)
+                            if (prevSharedCount == line.length) {
+                              widths = List.filled(line.length, 1);
+                            }
+                            // Short line under a full grid line: keep the
+                            // grid so each field sits under a column (e.g.
+                            // Occupation under Aadhaar); a text box at the
+                            // end (Address) stretches over the spare slots
+                            final keepGrid = !full &&
+                                perLine >= 3 &&
+                                prevFull &&
+                                prevSharedCount != line.length;
+                            var spare = 0;
+                            if (keepGrid) {
+                              final rest = perLine - used();
+                              if (line.last.fieldType == 'textarea') {
+                                widths.last += rest;
+                              } else {
+                                spare = rest;
+                              }
+                            }
+                            prevSharedCount = !full && perLine >= 3 && !keepGrid
+                                ? line.length
+                                : null;
+                            prevFull = full || keepGrid;
                             pending.clear();
                             pendingW.clear();
                             // PC: a field left alone on its line takes the
@@ -723,8 +758,9 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                             // three or more per line shares its width out
                             // (no empty slots), with two per line it keeps
                             // its empty half so columns stay aligned
-                            final slots =
-                                full || perLine >= 3 ? line.length : perLine;
+                            final slots = full || perLine >= 3
+                                ? line.length + spare
+                                : perLine;
                             items.add(
                               Padding(
                                 padding: EdgeInsets.only(bottom: rowSpacing),
@@ -783,6 +819,8 @@ class _DynamicSectionCardState extends State<DynamicSectionCard> {
                             }
                             if (isFullWidth(f) && !wideBox(f)) {
                               flushPair();
+                              prevSharedCount = null;
+                              prevFull = false;
                               items.add(
                                 Padding(
                                   padding: EdgeInsets.only(bottom: rowSpacing),
