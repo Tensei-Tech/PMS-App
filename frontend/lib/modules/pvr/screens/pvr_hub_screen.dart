@@ -302,7 +302,7 @@ class _PvrHubScreenState extends State<PvrHubScreen> {
     return Scaffold(
       backgroundColor: AppColors.lightBg,
       appBar: ModuleHubScreenAppBar(
-        title: TranslationHelper.translate(context, 'PVR'),
+        title: TranslationHelper.translate(context, 'PVR Verification'),
         subtitle: '${widget.stationName} • $countLabel ($transFilterLabel)',
         actionWidget: ElevatedButton.icon(
           onPressed: () => PvrAddEditDialog.show(context, provider: provider),

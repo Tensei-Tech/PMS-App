@@ -27,7 +27,7 @@ void main() {
       (tester) async {
     await tester.pumpWidget(createTestWidget());
     await tester.pump();
-    expect(find.text('Passport/PVR/Licence'), findsOneWidget); // title
+    expect(find.text('Passport Verification'), findsOneWidget); // title
     expect(find.text('Passport'), findsOneWidget); // first tab
     expect(find.text('PVR'), findsOneWidget); // second tab
     expect(find.text('Licence'), findsOneWidget); // third tab
