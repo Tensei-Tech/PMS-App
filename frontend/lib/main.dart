@@ -229,6 +229,14 @@ class _PoliceMgmtAppState extends State<PoliceMgmtApp>
       navigatorKey: _navKey,
       scaffoldMessengerKey: rootScaffoldMessengerKey,
       theme: AppTheme.lightTheme(fontScale: settings.fontScale),
+      scrollBehavior: const MaterialScrollBehavior().copyWith(
+        dragDevices: {
+          PointerDeviceKind.touch,
+          PointerDeviceKind.mouse,
+          PointerDeviceKind.trackpad,
+          PointerDeviceKind.stylus,
+        },
+      ),
       locale: settings.locale,
       localizationsDelegates: const [
         AppLocalizations.delegate,

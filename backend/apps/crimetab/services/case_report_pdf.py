@@ -139,7 +139,7 @@ def build_case_report_pdf(case, data: dict, force_title: str) -> bytes:
                                  textColor=colors.HexColor('#263238'))
     value_style = ParagraphStyle('ValueStyle', parent=styles['Normal'], fontSize=10, leading=12,
                                  textColor=colors.HexColor('#000000'))
-    section_style = ParagraphStyle('SectionStyle', parent=styles['Normal'], fontSize=10.5, leading=13,
+    section_style = ParagraphStyle('SectionStyle', parent=styles['Normal'], fontSize=10, leading=12,
                                    textColor=colors.HexColor('#1A237E'))
 
     tab = (case.sub_category or case.module_key or 'Case').strip()
@@ -157,7 +157,10 @@ def build_case_report_pdf(case, data: dict, force_title: str) -> bytes:
         ('BACKGROUND', (1, 0), (1, -1), colors.HexColor('#FFFFFF')),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CFD8DC')),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('PADDING', (0, 0), (-1, -1), 5),
+        ('TOPPADDING', (0, 0), (-1, -1), 5.5),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 5.5),
+        ('LEFTPADDING', (0, 0), (-1, -1), 8),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
     ]
     rows = case_report_rows(case, data) or [('row', 'CR Number', case.case_number or '—')]
     for kind, label, value in rows:
@@ -168,7 +171,7 @@ def build_case_report_pdf(case, data: dict, force_title: str) -> bytes:
         else:
             table_data.append([Paragraph(f'<b>{saxutils.escape(label)}</b>', label_style),
                                Paragraph(saxutils.escape(value), value_style)])
-    table = Table(table_data, colWidths=[180, 340], repeatRows=0)
+    table = Table(table_data, colWidths=[180, 343.28], repeatRows=0)
     table.setStyle(TableStyle(style))
     story.append(table)
     doc.build(story)

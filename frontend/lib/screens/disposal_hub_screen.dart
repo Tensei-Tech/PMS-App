@@ -723,7 +723,6 @@ class _DisposalHubScreenState extends State<DisposalHubScreen>
           padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
           child: TabBarView(
             controller: _tabController,
-            physics: const NeverScrollableScrollPhysics(),
             children: [
               _buildCaseWiseTab(),
               _buildTimeWiseTab(),
