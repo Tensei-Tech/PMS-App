@@ -361,7 +361,7 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
                   child: TextField(
                     controller: _searchCtrl,
                     style: GoogleFonts.poppins(
-                        fontSize: 12.5, color: AppColors.navyDark),
+                        fontSize: 13.0, color: AppColors.navyDark),
                     decoration: InputDecoration(
                       isDense: true,
                       filled: true,
@@ -552,7 +552,7 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
                   child: Text(
                     opt.displayName,
                     style: GoogleFonts.poppins(
-                      fontSize: 12.5,
+                      fontSize: 12.0,
                       fontWeight:
                           isSelected ? FontWeight.w600 : FontWeight.w400,
                       color: AppColors.navyDark,
@@ -924,7 +924,7 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.poppins(
-                                    fontSize: 11.5,
+                                    fontSize: 12.0,
                                     fontWeight: FontWeight.w500,
                                     color: AppColors.navyMid,
                                   ),
@@ -966,7 +966,7 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
                                       TranslationHelper.translate(
                                           context, statusLabel),
                                       style: GoogleFonts.poppins(
-                                        fontSize: 11.5,
+                                        fontSize: 11.0,
                                         fontWeight: FontWeight.w600,
                                         color: statusFg,
                                       ),

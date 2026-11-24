@@ -2810,7 +2810,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                             Text(
                               'CR ',
                               style: GoogleFonts.poppins(
-                                fontSize: 9.5,
+                                fontSize: 10.0,
                                 fontWeight: FontWeight.w600,
                                 color: const Color(0xFF64748B),
                               ),
@@ -2821,7 +2821,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.poppins(
-                                  fontSize: 11.5,
+                                  fontSize: 12.0,
                                   fontWeight: FontWeight.w700,
                                   color: const Color(0xFF0F172A),
                                 ),
@@ -2855,7 +2855,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.poppins(
-                              fontSize: 10.5,
+                              fontSize: 10.0,
                               fontWeight: FontWeight.w600,
                               color: AppColors.goldPrimary,
                             ),
@@ -2981,7 +2981,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                             child: Text(
                               crimeDate,
                               style: GoogleFonts.poppins(
-                                fontSize: 11.5,
+                                fontSize: 12.0,
                                 fontWeight: FontWeight.w500,
                                 color: const Color(0xFF334155),
                               ),
@@ -3017,7 +3017,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
-                          fontSize: 10.5,
+                          fontSize: 10.0,
                           fontWeight: FontWeight.w700,
                           color: statusColor,
                         ),
@@ -3127,7 +3127,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   Text(
                     'CR ',
                     style: GoogleFonts.poppins(
-                      fontSize: 9.5,
+                      fontSize: 10.0,
                       fontWeight: FontWeight.w600,
                       color: const Color(0xFF64748B),
                     ),
@@ -3135,7 +3135,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                   Text(
                     crNo,
                     style: GoogleFonts.poppins(
-                      fontSize: 11.5,
+                      fontSize: 12.0,
                       fontWeight: FontWeight.w700,
                       color: const Color(0xFF0F172A),
                     ),
@@ -3325,7 +3325,7 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
                     TranslationHelper.translate(context, widget.moduleLabel),
                     style: GoogleFonts.poppins(
                       color: const Color(0xFF1976D2),
-                      fontSize: 12.5,
+                      fontSize: 12.0,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -3661,7 +3661,7 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.poppins(
-                    fontSize: 9.5,
+                    fontSize: 10.0,
                     fontWeight: FontWeight.w500,
                     color: const Color(0xFF64748B),
                     height: 1.1,
@@ -3678,7 +3678,7 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.poppins(
-                fontSize: 11.5,
+                fontSize: 12.0,
                 fontWeight: FontWeight.w600,
                 color: valueColor ?? AppColors.navyDark,
                 height: 1.15,
@@ -4104,7 +4104,7 @@ class _PreventiveModuleCaseCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
-                      fontSize: 11.5,
+                      fontSize: 12.0,
                       fontWeight: FontWeight.w700,
                       color: AppColors.navyDark,
                       height: 1.0,

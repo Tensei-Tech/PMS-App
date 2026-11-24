@@ -236,7 +236,7 @@ class _HurtCasesScreenState extends State<HurtCasesScreen> {
                                       'Filter cases by date and change sort order',
                                     ),
                                     style: GoogleFonts.poppins(
-                                      fontSize: 11.5,
+                                      fontSize: 12.0,
                                       color: AppColors.lightSubText,
                                     ),
                                   ),
@@ -573,7 +573,7 @@ class _HurtCasesScreenState extends State<HurtCasesScreen> {
                                     'Clear Filter',
                                   ),
                                   style: GoogleFonts.poppins(
-                                    fontSize: 12.5,
+                                    fontSize: 12.0,
                                     fontWeight: FontWeight.w600,
                                     color: Colors.red.shade700,
                                   ),
@@ -637,7 +637,7 @@ class _HurtCasesScreenState extends State<HurtCasesScreen> {
         child: Text(
           TranslationHelper.translate(context, label),
           style: GoogleFonts.poppins(
-            fontSize: 11.5,
+            fontSize: 12.0,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
             color: isSelected ? Colors.white : AppColors.navyDark,
           ),
@@ -688,7 +688,7 @@ class _HurtCasesScreenState extends State<HurtCasesScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
-                      fontSize: 11.5,
+                      fontSize: 12.0,
                       fontWeight:
                           isSelected ? FontWeight.w700 : FontWeight.w500,
                       color: isSelected
@@ -1125,7 +1125,7 @@ class _HurtCasesScreenState extends State<HurtCasesScreen> {
             child: Text(
               'Filtered by date: $label ($count cases found)',
               style: GoogleFonts.poppins(
-                fontSize: 11.5,
+                fontSize: 12.0,
                 fontWeight: FontWeight.w500,
                 color: const Color(0xFF1E40AF),
               ),

@@ -533,7 +533,7 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
-                      fontSize: 10.5,
+                      fontSize: 11.0,
                       fontWeight: FontWeight.w500,
                       color: AppColors.lightSubText,
                     ),
@@ -718,7 +718,7 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
                 child: TextField(
                   controller: _searchCtrl,
                   style: GoogleFonts.poppins(
-                      fontSize: 12.5, color: AppColors.navyDark),
+                      fontSize: 13.0, color: AppColors.navyDark),
                   decoration: InputDecoration(
                     isDense: true,
                     filled: true,

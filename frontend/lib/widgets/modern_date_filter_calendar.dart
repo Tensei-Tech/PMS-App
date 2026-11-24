@@ -736,7 +736,7 @@ class _ModernCalendarPopoverCardState
         Text(
           monthStr,
           style: GoogleFonts.poppins(
-            fontSize: 13.5,
+            fontSize: 14.0,
             fontWeight: FontWeight.w700,
             color: AppColors.navyDark,
           ),
@@ -1001,7 +1001,7 @@ class _ModernCalendarPopoverCardState
             summaryText,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.poppins(
-              fontSize: 11.5,
+              fontSize: 12.0,
               fontWeight: FontWeight.w600,
               color: AppColors.navyMid,
             ),

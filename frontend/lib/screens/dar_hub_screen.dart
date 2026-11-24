@@ -800,7 +800,7 @@ class _DarHubScreenState extends State<DarHubScreen>
                                     child: Text(
                                       'Filter DAR Cases',
                                       style: GoogleFonts.poppins(
-                                        fontSize: 14.5,
+                                        fontSize: 14.0,
                                         fontWeight: FontWeight.w700,
                                         color: AppColors.navyDark,
                                       ),
@@ -1033,7 +1033,7 @@ class _DarHubScreenState extends State<DarHubScreen>
                                                     overflow:
                                                         TextOverflow.ellipsis,
                                                     style: GoogleFonts.poppins(
-                                                      fontSize: 12.5,
+                                                      fontSize: 12.0,
                                                       fontWeight: isChecked
                                                           ? FontWeight.w700
                                                           : FontWeight.w500,
@@ -1064,7 +1064,7 @@ class _DarHubScreenState extends State<DarHubScreen>
                                                   child: Text(
                                                     '$count',
                                                     style: GoogleFonts.poppins(
-                                                      fontSize: 10.5,
+                                                      fontSize: 10.0,
                                                       fontWeight:
                                                           FontWeight.w700,
                                                       color: isChecked
@@ -1127,7 +1127,7 @@ class _DarHubScreenState extends State<DarHubScreen>
                                     label: Text(
                                       'Apply Filters',
                                       style: GoogleFonts.poppins(
-                                        fontSize: 12.5,
+                                        fontSize: 12.0,
                                         fontWeight: FontWeight.w700,
                                         color: Colors.white,
                                       ),
@@ -1347,14 +1347,14 @@ class _DarHubScreenState extends State<DarHubScreen>
               TextSpan(
                 text: 'Filtered by: ',
                 style: GoogleFonts.poppins(
-                  fontSize: 12.5,
+                  fontSize: 12.0,
                   color: AppColors.lightSubText,
                 ),
                 children: [
                   TextSpan(
                     text: filterLabels,
                     style: GoogleFonts.poppins(
-                      fontSize: 12.5,
+                      fontSize: 12.0,
                       fontWeight: FontWeight.w700,
                       color: AppColors.navyDark,
                     ),
@@ -1386,7 +1386,7 @@ class _DarHubScreenState extends State<DarHubScreen>
                   Text(
                     'Clear',
                     style: GoogleFonts.poppins(
-                      fontSize: 11.5,
+                      fontSize: 12.0,
                       fontWeight: FontWeight.w600,
                       color: AppColors.dangerRed,
                     ),
@@ -1454,7 +1454,7 @@ class _DarHubScreenState extends State<DarHubScreen>
                 Text(
                   subtitle,
                   style: GoogleFonts.poppins(
-                    fontSize: 12.5,
+                    fontSize: 12.0,
                     color: AppColors.lightSubText,
                   ),
                 ),
@@ -1465,7 +1465,7 @@ class _DarHubScreenState extends State<DarHubScreen>
                     icon: const Icon(Icons.clear_rounded, size: 16),
                     label: Text(
                       'Clear Filter',
-                      style: GoogleFonts.poppins(fontSize: 12.5),
+                      style: GoogleFonts.poppins(fontSize: 12.0),
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.navyMid,
@@ -1582,7 +1582,7 @@ class _DarHubScreenState extends State<DarHubScreen>
                           head,
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w600,
-                            fontSize: 14.5,
+                            fontSize: 14.0,
                             color: AppColors.navyDark,
                           ),
                         ),
@@ -1740,7 +1740,7 @@ class _DarHubScreenState extends State<DarHubScreen>
                           p,
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w600,
-                            fontSize: 14.5,
+                            fontSize: 14.0,
                             color: AppColors.navyDark,
                           ),
                         ),
@@ -1878,7 +1878,7 @@ class _DarHubScreenState extends State<DarHubScreen>
                               ioName,
                               style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w600,
-                                fontSize: 14.5,
+                                fontSize: 14.0,
                                 color: AppColors.navyDark,
                               ),
                             ),
@@ -2789,7 +2789,7 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
                                   child: Text(
                                     text,
                                     style: GoogleFonts.poppins(
-                                      fontSize: 12.5,
+                                      fontSize: 12.0,
                                       fontWeight: FontWeight.w700,
                                       color: Colors.white,
                                     ),
@@ -3027,7 +3027,7 @@ class _DarCasesDetailScreenState extends State<DarCasesDetailScreen> {
                                                                     GoogleFonts
                                                                         .poppins(
                                                                   fontSize:
-                                                                      11.5,
+                                                                      12.0,
                                                                   fontWeight:
                                                                       FontWeight
                                                                           .w600,

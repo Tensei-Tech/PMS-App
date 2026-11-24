@@ -533,7 +533,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                                       'Filter cases by date and change sort order',
                                     ),
                                     style: GoogleFonts.poppins(
-                                      fontSize: 11.5,
+                                      fontSize: 12.0,
                                       color: AppColors.lightSubText,
                                     ),
                                   ),
@@ -870,7 +870,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                                     'Clear Filter',
                                   ),
                                   style: GoogleFonts.poppins(
-                                    fontSize: 12.5,
+                                    fontSize: 12.0,
                                     fontWeight: FontWeight.w600,
                                     color: Colors.red.shade700,
                                   ),
@@ -934,7 +934,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
         child: Text(
           TranslationHelper.translate(context, label),
           style: GoogleFonts.poppins(
-            fontSize: 11.5,
+            fontSize: 12.0,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
             color: isSelected ? Colors.white : AppColors.navyDark,
           ),
@@ -985,7 +985,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
-                      fontSize: 11.5,
+                      fontSize: 12.0,
                       fontWeight:
                           isSelected ? FontWeight.w700 : FontWeight.w500,
                       color: isSelected
@@ -1530,7 +1530,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
             child: Text(
               'Filtered by date: $label ($count cases found)',
               style: GoogleFonts.poppins(
-                fontSize: 11.5,
+                fontSize: 12.0,
                 fontWeight: FontWeight.w500,
                 color: const Color(0xFF1E40AF),
               ),
@@ -2243,7 +2243,7 @@ class _CategoryGridCardState extends State<_CategoryGridCard> {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.poppins(
-                            fontSize: 12.5,
+                            fontSize: 12.0,
                             fontWeight: FontWeight.w600,
                             color: AppColors.navyDark,
                             height: 1.15,
@@ -2549,7 +2549,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                               'Mark case as disposed with court details',
                             ),
                             style: GoogleFonts.poppins(
-                              fontSize: 11.5,
+                              fontSize: 12.0,
                               color: AppColors.lightSubText,
                             ),
                           ),
@@ -2572,7 +2572,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                     'CC / ST Number (Optional)',
                   ),
                   style: GoogleFonts.poppins(
-                    fontSize: 12.5,
+                    fontSize: 12.0,
                     fontWeight: FontWeight.w600,
                     color: AppColors.navyDark,
                   ),
@@ -2581,13 +2581,13 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                 TextField(
                   controller: ccCtrl,
                   style: GoogleFonts.poppins(
-                    fontSize: 13.5,
+                    fontSize: 13.0,
                     color: AppColors.navyDark,
                   ),
                   decoration: InputDecoration(
                     hintText: 'e.g. CC/104/2026',
                     hintStyle: GoogleFonts.poppins(
-                      fontSize: 12.5,
+                      fontSize: 12.0,
                       color: AppColors.lightSubText.withValues(alpha: 0.6),
                     ),
                     filled: true,
@@ -2908,7 +2908,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                 Text(
                   TranslationHelper.translate(context, 'CR No.'),
                   style: GoogleFonts.poppins(
-                    fontSize: 8.5,
+                    fontSize: 9.0,
                     fontWeight: FontWeight.w600,
                     color: const Color(0xFF64748B),
                     height: 1.0,
@@ -3209,7 +3209,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                                       'Close',
                                     ),
                                     style: GoogleFonts.poppins(
-                                      fontSize: 11.5,
+                                      fontSize: 12.0,
                                       fontWeight: FontWeight.w600,
                                       color: const Color(0xFF64748B),
                                     ),
@@ -3497,7 +3497,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.poppins(
-                  fontSize: 9.5,
+                  fontSize: 10.0,
                   fontWeight: FontWeight.w500,
                   color: const Color(0xFF64748B),
                   height: 1.1,
@@ -3619,7 +3619,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                   Text(
                     'CR ',
                     style: GoogleFonts.poppins(
-                      fontSize: 9.5,
+                      fontSize: 10.0,
                       fontWeight: FontWeight.w600,
                       color: const Color(0xFF64748B),
                     ),
@@ -3627,7 +3627,7 @@ class _FormIVCaseCardState extends State<FormIVCaseCard> {
                   Text(
                     crNo,
                     style: GoogleFonts.poppins(
-                      fontSize: 11.5,
+                      fontSize: 12.0,
                       fontWeight: FontWeight.w700,
                       color: const Color(0xFF0F172A),
                     ),

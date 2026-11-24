@@ -801,7 +801,7 @@ class _IradHubScreenState extends State<IradHubScreen>
                                     child: Text(
                                       'Filter IRAD Cases',
                                       style: GoogleFonts.poppins(
-                                        fontSize: 14.5,
+                                        fontSize: 14.0,
                                         fontWeight: FontWeight.w700,
                                         color: AppColors.navyDark,
                                       ),
@@ -1034,7 +1034,7 @@ class _IradHubScreenState extends State<IradHubScreen>
                                                     overflow:
                                                         TextOverflow.ellipsis,
                                                     style: GoogleFonts.poppins(
-                                                      fontSize: 12.5,
+                                                      fontSize: 12.0,
                                                       fontWeight: isChecked
                                                           ? FontWeight.w700
                                                           : FontWeight.w500,
@@ -1065,7 +1065,7 @@ class _IradHubScreenState extends State<IradHubScreen>
                                                   child: Text(
                                                     '$count',
                                                     style: GoogleFonts.poppins(
-                                                      fontSize: 10.5,
+                                                      fontSize: 10.0,
                                                       fontWeight:
                                                           FontWeight.w700,
                                                       color: isChecked
@@ -1128,7 +1128,7 @@ class _IradHubScreenState extends State<IradHubScreen>
                                     label: Text(
                                       'Apply Filters',
                                       style: GoogleFonts.poppins(
-                                        fontSize: 12.5,
+                                        fontSize: 12.0,
                                         fontWeight: FontWeight.w700,
                                         color: Colors.white,
                                       ),
@@ -1348,14 +1348,14 @@ class _IradHubScreenState extends State<IradHubScreen>
               TextSpan(
                 text: 'Filtered by: ',
                 style: GoogleFonts.poppins(
-                  fontSize: 12.5,
+                  fontSize: 12.0,
                   color: AppColors.lightSubText,
                 ),
                 children: [
                   TextSpan(
                     text: filterLabels,
                     style: GoogleFonts.poppins(
-                      fontSize: 12.5,
+                      fontSize: 12.0,
                       fontWeight: FontWeight.w700,
                       color: AppColors.navyDark,
                     ),
@@ -1387,7 +1387,7 @@ class _IradHubScreenState extends State<IradHubScreen>
                   Text(
                     'Clear',
                     style: GoogleFonts.poppins(
-                      fontSize: 11.5,
+                      fontSize: 12.0,
                       fontWeight: FontWeight.w600,
                       color: AppColors.dangerRed,
                     ),
@@ -1455,7 +1455,7 @@ class _IradHubScreenState extends State<IradHubScreen>
                 Text(
                   subtitle,
                   style: GoogleFonts.poppins(
-                    fontSize: 12.5,
+                    fontSize: 12.0,
                     color: AppColors.lightSubText,
                   ),
                 ),
@@ -1466,7 +1466,7 @@ class _IradHubScreenState extends State<IradHubScreen>
                     icon: const Icon(Icons.clear_rounded, size: 16),
                     label: Text(
                       'Clear Filter',
-                      style: GoogleFonts.poppins(fontSize: 12.5),
+                      style: GoogleFonts.poppins(fontSize: 12.0),
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.navyMid,
@@ -1583,7 +1583,7 @@ class _IradHubScreenState extends State<IradHubScreen>
                           head,
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w600,
-                            fontSize: 14.5,
+                            fontSize: 14.0,
                             color: AppColors.navyDark,
                           ),
                         ),
@@ -1741,7 +1741,7 @@ class _IradHubScreenState extends State<IradHubScreen>
                           p,
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w600,
-                            fontSize: 14.5,
+                            fontSize: 14.0,
                             color: AppColors.navyDark,
                           ),
                         ),
@@ -1879,7 +1879,7 @@ class _IradHubScreenState extends State<IradHubScreen>
                               ioName,
                               style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w600,
-                                fontSize: 14.5,
+                                fontSize: 14.0,
                                 color: AppColors.navyDark,
                               ),
                             ),
@@ -2802,7 +2802,7 @@ class _IradCasesDetailScreenState extends State<IradCasesDetailScreen> {
                                   child: Text(
                                     text,
                                     style: GoogleFonts.poppins(
-                                      fontSize: 12.5,
+                                      fontSize: 12.0,
                                       fontWeight: FontWeight.w700,
                                       color: Colors.white,
                                     ),
@@ -3040,7 +3040,7 @@ class _IradCasesDetailScreenState extends State<IradCasesDetailScreen> {
                                                                     GoogleFonts
                                                                         .poppins(
                                                                   fontSize:
-                                                                      11.5,
+                                                                      12.0,
                                                                   fontWeight:
                                                                       FontWeight
                                                                           .w600,
