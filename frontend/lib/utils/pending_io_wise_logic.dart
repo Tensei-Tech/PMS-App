@@ -118,7 +118,9 @@ bool pendingRecordMatchesDashboardCategory({
       return r.moduleKey == 'it_act';
     case 'itsso':
     case 'ITSSO':
-      return true;
+      return r.moduleKey.trim().toLowerCase() == 'itsso' ||
+          (r.subCategory ?? '').trim().toLowerCase() == 'itsso' ||
+          r.firestoreCategoryDisplayName.trim().toLowerCase() == 'itsso';
     default:
       final sub = (r.subCategory ?? '').trim().toLowerCase();
       final mod = r.moduleKey.trim().toLowerCase();

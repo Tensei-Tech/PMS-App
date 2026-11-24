@@ -387,8 +387,8 @@ class _AddWarrantCaseDialogState extends State<AddWarrantCaseDialog> {
                       TextFormField(
                         controller: _accusedNameCtrl,
                         inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                            RegExp(r'[a-zA-Z\s\u0900-\u0965\u0970-\u097F.]'),
+                          FilteringTextInputFormatter.deny(
+                            RegExp(r'[0-9\u0966-\u096F]'),
                           ),
                         ],
                         decoration: _inputDecoration(
