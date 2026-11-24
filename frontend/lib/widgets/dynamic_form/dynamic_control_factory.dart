@@ -44,6 +44,11 @@ class DynamicControlFactory extends StatelessWidget {
   final List<String>? preventiveOptions;
   final bool hideLabel;
 
+  /// Text box (textarea) that starts one line high, with an icon at the
+  /// end, so it matches the height of a date field placed beside it; it
+  /// still grows up to three lines as the user types.
+  final bool oneLineTextArea;
+
   const DynamicControlFactory({
     super.key,
     required this.fieldDef,
@@ -58,6 +63,7 @@ class DynamicControlFactory extends StatelessWidget {
     this.allFields,
     this.onMultiFieldChanged,
     this.compact = false,
+    this.oneLineTextArea = false,
     this.formValues,
     this.maxLength,
     this.designationOptions,
@@ -105,7 +111,26 @@ class DynamicControlFactory extends StatelessWidget {
         lower == 'crime spot address') {
       return 'Address';
     }
+    // The card already names the section: "Complainant Age" shows as "Age"
+    final label = fieldDef.fieldLabel.trim();
+    final sec = (fieldDef.section ?? '').trim().split(RegExp(r'\s+')).first;
+    if (sec.length > 2 &&
+        label.toLowerCase().startsWith('${sec.toLowerCase()} ') &&
+        label.length > sec.length + 1) {
+      final rest = label.substring(sec.length + 1).trim();
+      return rest[0].toUpperCase() + rest.substring(1);
+    }
     return fieldDef.fieldLabel;
+  }
+
+  /// Placeholder that shows what to type, instead of "Enter <label>".
+  String get _smartHint {
+    final l = _displayLabel.toLowerCase();
+    if (l == 'name' || l == 'full name') return 'Full name';
+    if (l == 'age') return 'Years';
+    if (l.contains('mobile') || l.contains('phone')) return '10-digit number';
+    if (l.contains('address')) return 'House no., street, area, city';
+    return 'Enter $_displayLabel';
   }
 
   @override
@@ -198,6 +223,18 @@ class DynamicControlFactory extends StatelessWidget {
       {bool forceStacked = false, bool isMultiline = false}) {
     if (hideLabel) {
       return control;
+    }
+    // PC: label always above its box, like every other field, and the box
+    // takes the full width (a dropdown would otherwise shrink to its text)
+    if (!forceStacked && MediaQuery.sizeOf(context).width >= 1000) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildLabel(context),
+          const SizedBox(height: 6),
+          control,
+        ],
+      );
     }
     if (forceStacked) {
       return Column(
@@ -317,7 +354,7 @@ class DynamicControlFactory extends StatelessWidget {
   InputDecoration _inputDecoration(
       {String? hint, Widget? prefixIcon, Widget? suffixIcon}) {
     return InputDecoration(
-      hintText: hint ?? 'Enter $_displayLabel',
+      hintText: hint ?? _smartHint,
       hintStyle:
           GoogleFonts.poppins(fontSize: 12, color: AppColors.lightSubText),
       isDense: true,
@@ -487,7 +524,7 @@ class DynamicControlFactory extends StatelessWidget {
 
   Widget _buildTextArea(BuildContext context) {
     final hint = fieldDef.fieldLabel.toLowerCase().contains('address')
-        ? 'Enter Address'
+        ? 'House no., street, area, city'
         : (fieldDef.fieldLabel.toLowerCase().contains('description')
             ? 'Enter Description'
             : 'Enter ${fieldDef.fieldLabel}');
@@ -497,12 +534,24 @@ class DynamicControlFactory extends StatelessWidget {
         controller: controller,
         readOnly: effectiveReadOnly,
         maxLines: 3,
-        minLines: 2,
+        minLines: oneLineTextArea ? 1 : 2,
         onChanged: onChanged,
         inputFormatters: _lengthFormatters,
         maxLength: maxLength,
         style: GoogleFonts.poppins(fontSize: 13, color: AppColors.lightText),
-        decoration: _inputDecoration(hint: hint),
+        decoration: _inputDecoration(
+          hint: hint,
+          // Same end icon size as the date field's clock, so the two
+          // boxes are the same height side by side
+          suffixIcon: oneLineTextArea
+              ? Icon(
+                  fieldDef.fieldLabel.toLowerCase().contains('address')
+                      ? Icons.location_on_outlined
+                      : Icons.notes_rounded,
+                  size: 18,
+                  color: AppColors.navyMid)
+              : null,
+        ),
         validator: (v) {
           if (fieldDef.isRequired && (v == null || v.trim().isEmpty)) {
             return '${fieldDef.fieldLabel} is required';
@@ -1839,7 +1888,7 @@ class _DynamicDropdownWidgetState extends State<_DynamicDropdownWidget> {
         return emptyDecorator;
       }
       return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           widget.labelWidget,
           const SizedBox(height: 6),
@@ -1882,8 +1931,9 @@ class _DynamicDropdownWidgetState extends State<_DynamicDropdownWidget> {
     if (widget.labelWidget is SizedBox) {
       return dropdownControl;
     }
+    // Box takes the full width of its column, like the other fields
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         widget.labelWidget,
         dropdownControl,

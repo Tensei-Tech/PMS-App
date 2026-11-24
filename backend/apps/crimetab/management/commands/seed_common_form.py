@@ -104,12 +104,12 @@ class Command(BaseCommand):
             ('Complainant Name', 'complainant_name', 'common', 'text', False, 90),
             ('Complainant Age', 'complainant_age', 'common', 'number', False, 100),
             ('Complainant Gender', 'complainant_gender', 'common', 'dropdown', False, 110),
-            ('Complainant Occupation', 'complainant_occupation', 'common', 'text', False, 120),
             ('Complainant Mobile', 'complainant_mobile', 'common', 'text', False, 130),
             ('Complainant Aadhaar', 'complainant_aadhaar', 'common', 'text', False, 140),
             ('Complainant PAN', 'complainant_pan', 'common', 'text', False, 150),
             ('Complainant Religion', 'complainant_religion', 'common', 'text', False, 160),
             ('Complainant Caste', 'complainant_caste', 'common', 'text', False, 170),
+            ('Complainant Occupation', 'complainant_occupation', 'common', 'text', False, 175),
             ('Complainant Address', 'complainant_address', 'common', 'textarea', False, 180),
 
             # 5. Accused KYC

@@ -12,6 +12,10 @@ import 'common_form_screen.dart';
 import 'form_i_v_selection_screen.dart';
 import 'module_record_detail_screen.dart';
 import '../utils/ad_disposal_helper.dart';
+import '../utils/common_form_module.dart';
+import '../utils/dynamic_map_pdf.dart';
+import '../utils/pdf_unicode_fonts.dart';
+import '../widgets/custom_pdf_preview_dialog.dart';
 
 class HurtCasesScreen extends StatefulWidget {
   final bool readOnly;
@@ -754,7 +758,108 @@ class _HurtCasesScreenState extends State<HurtCasesScreen> {
     _openForm();
   }
 
-  Widget _buildDateAndSortControls() {
+  Future<void> _exportPdf(List<ModuleRecord> dataset) async {
+    if (dataset.isEmpty) return;
+    final theme = await PdfUnicodeFonts.openSansTheme();
+
+    final rows = dataset.asMap().entries.map((entry) {
+      final i = entry.key + 1;
+      final r = entry.value;
+      final cr = r.caseNumber.trim().isNotEmpty ? r.caseNumber.trim() : r.title;
+      final category =
+          r.subCategory?.isNotEmpty == true ? r.subCategory! : 'Hurt';
+
+      final doc = r.extraFields[kCommonFormExtraFieldsKey] is Map
+          ? Map<String, dynamic>.from(
+              r.extraFields[kCommonFormExtraFieldsKey] as Map)
+          : r.extraFields;
+      String sectionAct = '';
+      final charges = doc['charges'] ?? r.extraFields['charges'];
+      if (charges is Map && charges.isNotEmpty) {
+        final parts = <String>[];
+        for (final val in charges.values) {
+          if (val is Map) {
+            final act = val['act']?.toString().trim() ?? '';
+            final sections = val['sections'];
+            String secStr = '';
+            if (sections is List && sections.isNotEmpty) {
+              secStr = sections
+                  .map((s) => s.toString().trim())
+                  .where((s) => s.isNotEmpty && s != '{}' && s != '[]')
+                  .join(', ');
+            }
+            if (secStr.isNotEmpty && act.isNotEmpty) {
+              parts.add('$act $secStr');
+            } else if (secStr.isNotEmpty) {
+              parts.add(secStr);
+            } else if (act.isNotEmpty) {
+              parts.add(act);
+            }
+          }
+        }
+        sectionAct = parts.join(', ');
+      }
+
+      final accused =
+          (r.accused.isNotEmpty && r.accused != '-' && r.accused != '—')
+              ? r.accused
+              : (doc['accused_name']?.toString() ?? '—');
+
+      final officerLoc = [
+        r.assignedOfficer.trim(),
+        r.stationName.trim(),
+      ].where((s) => s.isNotEmpty && s != '-' && s != '—').join(' / ');
+
+      final crimeDate = DateFormat('dd/MM/yyyy').format(r.incidentDate);
+
+      final status = r.status.trim().isNotEmpty ? r.status.trim() : 'Pending';
+
+      return {
+        'Sr. No.': '$i',
+        'CR No.': cr.isNotEmpty ? cr : '—',
+        'Category': category,
+        'Section / Act': sectionAct.isNotEmpty ? sectionAct : '—',
+        'Accused Name': accused.isNotEmpty ? accused : '—',
+        'Officer / Location': officerLoc.isNotEmpty ? officerLoc : '—',
+        'Crime Date': crimeDate,
+        'Status': status,
+      };
+    }).toList();
+
+    final statusTitle = _selectedStatusTab == FormIVStatusTab.total
+        ? 'Total Cases'
+        : _selectedStatusTab == FormIVStatusTab.pending
+            ? 'Pending Cases'
+            : 'Disposal Cases';
+
+    final doc = DynamicMapPdf.buildLandscapeDataTableDocument(
+      theme: theme,
+      title: 'Hurt Cases Report — $statusTitle',
+      rows: rows,
+      prependSerial: false,
+      columnOrder: const [
+        'Sr. No.',
+        'CR No.',
+        'Category',
+        'Section / Act',
+        'Accused Name',
+        'Officer / Location',
+        'Crime Date',
+        'Status',
+      ],
+    );
+
+    if (!mounted) return;
+
+    await CustomPdfPreviewDialog.show(
+      context: context,
+      title: 'Hurt Cases Report',
+      fileName: 'Hurt_Cases_${DateTime.now().millisecondsSinceEpoch}.pdf',
+      buildPdf: (_) async => doc.save(),
+    );
+  }
+
+  Widget _buildDateAndSortControls(List<ModuleRecord> visibleRecords) {
     final hasDateFilter = _selectedDateRange != null;
     final dateText = hasDateFilter
         ? (_datePresetLabel ?? _formatDateRangeShort(_selectedDateRange!))
@@ -990,6 +1095,57 @@ class _HurtCasesScreenState extends State<HurtCasesScreen> {
             ),
           ),
         ),
+        const SizedBox(width: 8),
+
+        // PDF Export Button
+        InkWell(
+          onTap: visibleRecords.isNotEmpty
+              ? () => _exportPdf(visibleRecords)
+              : null,
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: visibleRecords.isNotEmpty
+                    ? const Color(0xFFCBD5E1)
+                    : const Color(0xFFE2E8F0),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 4,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.picture_as_pdf_outlined,
+                  size: 15,
+                  color: visibleRecords.isNotEmpty
+                      ? const Color(0xFFDC2626)
+                      : Colors.grey.shade400,
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  TranslationHelper.translate(context, 'PDF'),
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: visibleRecords.isNotEmpty
+                        ? AppColors.navyDark
+                        : Colors.grey.shade400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -1152,7 +1308,7 @@ class _HurtCasesScreenState extends State<HurtCasesScreen> {
                   ),
                 ),
                 const Spacer(),
-                _buildDateAndSortControls(),
+                _buildDateAndSortControls(visibleRecords),
               ],
             ),
           ),

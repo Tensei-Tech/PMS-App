@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import '../services/backend_case_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/dynamic_map_pdf.dart';
+import '../utils/excel_export_helper.dart';
+import '../utils/pdf_unicode_fonts.dart';
+import '../utils/translation_helper.dart';
+import '../widgets/custom_pdf_preview_dialog.dart';
+import 'disposal_case_list_view.dart';
 import 'filtered_disposal_screen.dart';
 import '../widgets/sub_tab_host.dart';
 
@@ -634,6 +641,160 @@ class _DisposalHubScreenState extends State<DisposalHubScreen>
     );
   }
 
+  Future<void> _exportDetailedPdf() async {
+    final groupTitle = widget.groupTitle ?? 'Form 1 to 5';
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: AppColors.navyMid),
+                SizedBox(height: 16),
+                Text('Fetching disposal cases for PDF...'),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    try {
+      final res = await _backend.fetchDisposalCases(
+        groupId: widget.groupId,
+        pageSize: 1000,
+      );
+      if (mounted) Navigator.pop(context);
+
+      final list =
+          (res?['results'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+      if (list.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No disposed case records found to export.'),
+            ),
+          );
+        }
+        return;
+      }
+
+      final theme = await PdfUnicodeFonts.openSansTheme();
+      final rows = list.asMap().entries.map((entry) {
+        final i = entry.key + 1;
+        final r = entry.value;
+        final srNo = r['sr_no']?.toString() ?? '$i';
+        final crNo =
+            (r['case_number'] ?? r['cr_no'] ?? r['cr'] ?? '—').toString();
+        final secAct = DisposalCaseListView.getSectionAct(r);
+        final head = (r['crime_type_name'] ??
+                r['head'] ??
+                r['crime_type'] ??
+                r['sub_category'] ??
+                '—')
+            .toString();
+        final courtNo = ExcelExportHelper.extractDisposalNumbers(r);
+        final io = (r['assigned_officer'] ?? r['io_name'] ?? r['io'] ?? '—')
+            .toString();
+        final crimeDate = r['incident_date'] != null
+            ? DateFormat('dd/MM/yyyy').format(
+                DateTime.tryParse(r['incident_date'].toString()) ??
+                    DateTime.now())
+            : (r['crime_date']?.toString() ?? '—');
+
+        return {
+          'Sr. No.': srNo,
+          'CR No.': crNo,
+          'Category': head,
+          'Section / Act': secAct.isNotEmpty ? secAct : '—',
+          'Disposal No.':
+              (courtNo.isNotEmpty && courtNo != '-' && courtNo != '—')
+                  ? courtNo
+                  : 'Disposed',
+          'IO Name': io,
+          'Crime Date': crimeDate,
+        };
+      }).toList();
+
+      final doc = DynamicMapPdf.buildLandscapeDataTableDocument(
+        theme: theme,
+        title: 'Disposal — $groupTitle (Detailed Cases Report)',
+        rows: rows,
+        prependSerial: false,
+        columnOrder: const [
+          'Sr. No.',
+          'CR No.',
+          'Category',
+          'Section / Act',
+          'Disposal No.',
+          'IO Name',
+          'Crime Date',
+        ],
+      );
+
+      if (mounted) {
+        await CustomPdfPreviewDialog.show(
+          context: context,
+          title: 'Disposal — $groupTitle Cases Report',
+          fileName: 'Disposal_${groupTitle}_All_Cases.pdf',
+          buildPdf: (_) async => doc.save(),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to generate PDF: $e')),
+        );
+      }
+    }
+  }
+
+  Widget _buildPdfButton() {
+    return InkWell(
+      onTap: _exportDetailedPdf,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFCBD5E1)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.picture_as_pdf_outlined,
+              size: 16,
+              color: Color(0xFFDC2626),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              TranslationHelper.translate(context, 'PDF'),
+              style: GoogleFonts.poppins(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: AppColors.navyDark,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -652,6 +813,14 @@ class _DisposalHubScreenState extends State<DisposalHubScreen>
             fontSize: 16,
           ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Center(
+              child: _buildPdfButton(),
+            ),
+          ),
+        ],
         // Form 1 to 5 | Form 6 switch above these tabs when opened from the
         // Disposal dashboard tile.
         bottom: SubTabHost.appBarBottomAbove(

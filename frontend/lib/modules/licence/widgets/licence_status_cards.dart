@@ -38,11 +38,9 @@ class LicenceStatusCards extends StatelessWidget {
             filter: LicenceStatusFilter.totalReceived,
             title: TranslationHelper.translate(context, 'Total Received'),
             count: totalReceivedCount,
-            icon: Icons.assignment_ind_rounded,
             accentColor: const Color(0xFF1E40AF), // Deep Blue
             lightBg: const Color(0xFFEFF6FF),
             borderColor: const Color(0xFFBFDBFE),
-            iconBg: const Color(0xFFDBEAFE),
             isCompact: isCompact,
           ),
           _buildCard(
@@ -50,11 +48,9 @@ class LicenceStatusCards extends StatelessWidget {
             filter: LicenceStatusFilter.approved,
             title: TranslationHelper.translate(context, 'Approved'),
             count: approvedCount,
-            icon: Icons.verified_rounded,
             accentColor: const Color(0xFF047857), // Emerald Green
             lightBg: const Color(0xFFECFDF5),
             borderColor: const Color(0xFFA7F3D0),
-            iconBg: const Color(0xFFD1FAE5),
             isCompact: isCompact,
           ),
           _buildCard(
@@ -62,11 +58,9 @@ class LicenceStatusCards extends StatelessWidget {
             filter: LicenceStatusFilter.rejected,
             title: TranslationHelper.translate(context, 'Rejected'),
             count: rejectedCount,
-            icon: Icons.cancel_rounded,
             accentColor: const Color(0xFFDC2626), // Crimson Red
             lightBg: const Color(0xFFFEF2F2),
             borderColor: const Color(0xFFFECACA),
-            iconBg: const Color(0xFFFEE2E2),
             isCompact: isCompact,
           ),
           _buildCard(
@@ -74,11 +68,9 @@ class LicenceStatusCards extends StatelessWidget {
             filter: LicenceStatusFilter.returned,
             title: TranslationHelper.translate(context, 'Returned'),
             count: returnedCount,
-            icon: Icons.assignment_return_rounded,
             accentColor: const Color(0xFF7C3AED), // Purple
             lightBg: const Color(0xFFF5F3FF),
             borderColor: const Color(0xFFDDD6FE),
-            iconBg: const Color(0xFFEDE9FE),
             isCompact: isCompact,
           ),
           _buildCard(
@@ -86,11 +78,9 @@ class LicenceStatusCards extends StatelessWidget {
             filter: LicenceStatusFilter.pending,
             title: TranslationHelper.translate(context, 'Pending'),
             count: pendingCount,
-            icon: Icons.hourglass_top_rounded,
             accentColor: const Color(0xFFD97706), // Warm Amber
             lightBg: const Color(0xFFFFFBEB),
             borderColor: const Color(0xFFFDE68A),
-            iconBg: const Color(0xFFFEF3C7),
             isCompact: isCompact,
           ),
         ];
@@ -140,18 +130,14 @@ class LicenceStatusCards extends StatelessWidget {
     required LicenceStatusFilter filter,
     required String title,
     required int count,
-    required IconData icon,
     required Color accentColor,
     required Color lightBg,
     required Color borderColor,
-    required Color iconBg,
     bool isCompact = false,
   }) {
     final isSelected = selectedFilter == filter;
 
-    final iconBoxSize = isCompact ? 30.0 : 38.0;
-    final iconSize = isCompact ? 15.0 : 18.0;
-    final cardPaddingH = isCompact ? 8.0 : 12.0;
+    final cardPaddingH = isCompact ? 10.0 : 14.0;
     final cardPaddingV = isCompact ? 8.0 : 10.0;
     final titleFontSize = isCompact ? 10.5 : 11.5;
     final countFontSize = isCompact ? 15.5 : 18.0;
@@ -188,22 +174,6 @@ class LicenceStatusCards extends StatelessWidget {
                 horizontal: cardPaddingH, vertical: cardPaddingV),
             child: Row(
               children: [
-                Container(
-                  width: iconBoxSize,
-                  height: iconBoxSize,
-                  decoration: BoxDecoration(
-                    color: iconBg,
-                    borderRadius: BorderRadius.circular(isCompact ? 8 : 10),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      icon,
-                      color: accentColor,
-                      size: iconSize,
-                    ),
-                  ),
-                ),
-                SizedBox(width: isCompact ? 6.0 : 10.0),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
