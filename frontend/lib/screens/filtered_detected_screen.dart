@@ -142,59 +142,64 @@ class _FilteredDetectedScreenState extends State<FilteredDetectedScreen> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  GestureDetector(
-                    onTap: _tableRows.isEmpty
-                        ? null
-                        : () {
-                            final sanitizedTitle = widget.title
-                                .replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_')
-                                .replaceAll(RegExp(r'_+'), '_');
-                            ExcelExportHelper.exportDetectedToExcel(
-                              dataset: _tableRows,
-                              filename: '${sanitizedTitle}_Cases.csv',
-                            );
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                    '${widget.title} exported to Excel successfully.'),
-                                backgroundColor: const Color(0xFF107C41),
-                              ),
-                            );
-                          },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: _tableRows.isEmpty
-                            ? Colors.grey.shade400
-                            : const Color(0xFF107C41),
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: _tableRows.isEmpty
-                            ? []
-                            : [
-                                BoxShadow(
-                                  color: const Color(0xFF107C41)
-                                      .withValues(alpha: 0.25),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
+                  MouseRegion(
+                    cursor: _tableRows.isEmpty
+                        ? SystemMouseCursors.basic
+                        : SystemMouseCursors.click,
+                    child: GestureDetector(
+                      onTap: _tableRows.isEmpty
+                          ? null
+                          : () {
+                              final sanitizedTitle = widget.title
+                                  .replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_')
+                                  .replaceAll(RegExp(r'_+'), '_');
+                              ExcelExportHelper.exportDetectedToExcel(
+                                dataset: _tableRows,
+                                filename: '${sanitizedTitle}_Cases.csv',
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                      '${widget.title} exported to Excel successfully.'),
+                                  backgroundColor: const Color(0xFF107C41),
                                 ),
-                              ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.table_chart_rounded,
-                              color: Colors.white, size: 18),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Excel',
-                            style: GoogleFonts.poppins(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                              );
+                            },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: _tableRows.isEmpty
+                              ? Colors.grey.shade400
+                              : const Color(0xFF107C41),
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: _tableRows.isEmpty
+                              ? []
+                              : [
+                                  BoxShadow(
+                                    color: const Color(0xFF107C41)
+                                        .withValues(alpha: 0.25),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.table_chart_rounded,
+                                color: Colors.white, size: 18),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Excel',
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),

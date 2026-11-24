@@ -2797,14 +2797,14 @@ class _IradCasesDetailScreenState extends State<IradCasesDetailScreen> {
                                   {Alignment align = Alignment.centerLeft}) {
                                 return Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 14),
+                                      horizontal: 16, vertical: 12),
                                   alignment: align,
                                   child: Text(
                                     text,
                                     style: GoogleFonts.poppins(
                                       fontSize: 12.0,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.navyDark,
                                     ),
                                   ),
                                 );
@@ -2828,9 +2828,17 @@ class _IradCasesDetailScreenState extends State<IradCasesDetailScreen> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.stretch,
                                     children: [
-                                      // ── Sticky Fixed Blue Header ──
+                                      // ── Sticky Fixed Header (Option A: Light Slate) ──
                                       Container(
-                                        color: AppColors.navyMid,
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xFFF8FAFC),
+                                          border: Border(
+                                            bottom: BorderSide(
+                                              color: Color(0xFFE2E8F0),
+                                              width: 1.0,
+                                            ),
+                                          ),
+                                        ),
                                         child: Table(
                                           columnWidths: columnWidths,
                                           defaultVerticalAlignment:
@@ -2838,7 +2846,7 @@ class _IradCasesDetailScreenState extends State<IradCasesDetailScreen> {
                                           children: [
                                             TableRow(
                                               decoration: const BoxDecoration(
-                                                  color: AppColors.navyMid),
+                                                  color: Color(0xFFF8FAFC)),
                                               children: [
                                                 headerCell('Sr. No.'),
                                                 headerCell('CR No.'),

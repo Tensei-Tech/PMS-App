@@ -45,7 +45,7 @@ class ModernDateFilterCalendar extends StatefulWidget {
     this.isNewestFirst,
     this.onSortOrderChanged,
     this.showSortCompanion = false,
-    this.height = 36.0,
+    this.height = 38.0,
     this.fontSize = 12.0,
     this.customEmptyLabel,
   });
@@ -231,15 +231,18 @@ class _ModernDateFilterCalendarState extends State<ModernDateFilterCalendar> {
             ),
             if (isFiltered) ...[
               const SizedBox(width: 4),
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: _clearFilter,
-                child: Padding(
-                  padding: const EdgeInsets.all(2),
-                  child: Icon(
-                    Icons.close_rounded,
-                    size: 14,
-                    color: Colors.red.shade700,
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _clearFilter,
+                  child: Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: Icon(
+                      Icons.close_rounded,
+                      size: 14,
+                      color: Colors.red.shade700,
+                    ),
                   ),
                 ),
               ),
@@ -636,42 +639,47 @@ class _ModernCalendarPopoverCardState
     final isSelected = _mode == mode;
 
     return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          if (mode == ModernDateFilterMode.today) {
-            _applyToday();
-          } else if (mode == ModernDateFilterMode.range) {
-            _applyRangePreset(_presetLabel ?? 'This Month');
-          } else {
-            setState(() {
-              _mode = ModernDateFilterMode.custom;
-              _isSelectingSecondDate = false;
-            });
-          }
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: isSelected ? Colors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(6),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.06),
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Text(
-            title,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-              color:
-                  isSelected ? const Color(0xFF1976D2) : AppColors.lightSubText,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            if (mode == ModernDateFilterMode.today) {
+              _applyToday();
+            } else if (mode == ModernDateFilterMode.range) {
+              _applyRangePreset(_presetLabel ?? 'This Month');
+            } else {
+              setState(() {
+                _mode = ModernDateFilterMode.custom;
+                _isSelectingSecondDate = false;
+              });
+            }
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: isSelected ? Colors.white : Colors.transparent,
+              borderRadius: BorderRadius.circular(6),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.06),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected
+                    ? const Color(0xFF1976D2)
+                    : AppColors.lightSubText,
+              ),
             ),
           ),
         ),
