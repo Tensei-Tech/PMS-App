@@ -291,7 +291,15 @@ class SummonsWarrantReportService:
         ).filter(q_filter).select_related('sam_warrant')
 
         # Multi-tenancy & Station/District filters
-        if self.station_name:
+        if self.allowed_stations is not None:
+            if self.station_name:
+                if self.station_name in self.allowed_stations:
+                    queryset = queryset.filter(station_name__iexact=self.station_name)
+                else:
+                    queryset = queryset.none()
+            else:
+                queryset = queryset.filter(station_name__in=self.allowed_stations)
+        elif self.station_name:
             queryset = queryset.filter(station_name__iexact=self.station_name)
         elif self.district_name:
             # Match stations belonging to this district
@@ -304,8 +312,6 @@ class SummonsWarrantReportService:
                 queryset = queryset.filter(station_name__in=st_names)
             else:
                 queryset = queryset.filter(station_name__iexact=self.district_name)
-        elif self.allowed_stations is not None:
-            queryset = queryset.filter(station_name__in=self.allowed_stations)
 
         return queryset
 
@@ -380,6 +386,8 @@ class SummonsWarrantReportService:
             # Ensure station exists in by_station dict
             for s_key in section_data:
                 if st_name and st_name not in section_data[s_key]['by_station']:
+                    if self.allowed_stations is not None and st_name not in self.allowed_stations:
+                        continue
                     section_data[s_key]['by_station'][st_name] = _empty_stats()
                     if st_name not in station_rows:
                         station_rows.append(st_name)
@@ -519,6 +527,11 @@ class SummonsWarrantReportService:
         """
         Retrieves ordered list of station names for the report rows.
         """
+        if self.allowed_stations is not None:
+            if self.station_name:
+                return [self.station_name] if self.station_name in self.allowed_stations else []
+            return sorted(list(self.allowed_stations))
+
         if self.station_name:
             return [self.station_name]
 
@@ -528,9 +541,6 @@ class SummonsWarrantReportService:
                 Q(district_name__iexact=self.district_name) | Q(district__name__iexact=self.district_name)
             ).order_by('station_name')
             station_names = list(ps_qs.values_list('station_name', flat=True))
-
-        if not station_names and self.allowed_stations:
-            station_names = list(self.allowed_stations)
 
         if not station_names:
             # Query distinct stations with existing records

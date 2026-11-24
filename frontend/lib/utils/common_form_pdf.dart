@@ -30,7 +30,6 @@ const _sec = PdfLayoutConstants.colorSecondary;
 const _muted = PdfLayoutConstants.colorMuted;
 const _bg = PdfLayoutConstants.colorRowAltBg;
 const _border = PdfLayoutConstants.colorBorder;
-const _headerBg = PdfLayoutConstants.colorHeaderBg;
 const _white = PdfLayoutConstants.colorWhite;
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -407,21 +406,6 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
 
   int secNum = 1;
 
-  final bool isMurder = m['isMurderCase'] == true ||
-      (m['category']?.toString().toLowerCase().contains('murder') ?? false) ||
-      (m['sub_category']?.toString().toLowerCase().contains('murder') ??
-          false) ||
-      (m['subCategory']?.toString().toLowerCase().contains('murder') ??
-          false) ||
-      (m['deceased'] is Map &&
-          ((m['deceased'] as Map)['name']?.toString().trim().isNotEmpty ==
-                  true ||
-              (m['deceased'] as Map)['mobile']?.toString().trim().isNotEmpty ==
-                  true ||
-              (m['deceased'] as Map)['aadhaar']?.toString().trim().isNotEmpty ==
-                  true));
-  final bool isPocso = m['isPocsoCase'] == true;
-
   // ── §1 Crime Registration ─────────────────────────────────────────────────
   final crNo =
       _v(m['crNo'] ?? m['case_number'] ?? m['cr_number'] ?? m['caseNumber']);
@@ -438,25 +422,32 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   final subCat = _v(m['subCategory'] ?? m['sub_category']);
   final firCopy = _v(m['firCopyPath']);
 
-  sections.add(
-    _card(
-      secNum++,
-      'CRIME REGISTRATION INFO',
-      _teal,
-      _grid2([
-        _f('Cr. No.', crNo),
-        _f('Registered Date', regDate),
-        if (occDate.isNotEmpty) _f('Occurrence Date & Time', occDate),
-        if (station.isNotEmpty) _f('Police Station', station),
-        if (district.isNotEmpty) _f('District', district),
-        if (cat.isNotEmpty && cat != crNo) _f('Category', cat),
-        if (subCat.isNotEmpty && subCat != cat) _f('Sub-Category', subCat),
-        _f('Unknown / Untraced', isUnknown ? 'Yes' : 'No'),
-        if (firCopy.isNotEmpty && firCopy != 'Not uploaded' && firCopy != '-')
-          _f('FIR Copy', firCopy, full: true),
-      ]),
-    ),
-  );
+  final regFields = [
+    if (crNo.isNotEmpty) _f('CR Number *', crNo),
+    if (regDate.isNotEmpty) _f('Registered Date', regDate),
+    if (occDate.isNotEmpty) _f('Occurrence Date & Time', occDate),
+    if (station.isNotEmpty) _f('Police Station', station),
+    if (district.isNotEmpty) _f('District', district),
+    if (cat.isNotEmpty && cat != crNo) _f('Category', cat),
+    if (subCat.isNotEmpty && subCat != cat) _f('Sub-Category', subCat),
+    if (isUnknown) _f('Unknown / Untraced', 'Yes'),
+    if (firCopy.isNotEmpty && firCopy != 'Not uploaded' && firCopy != '-')
+      _f('FIR Copy', firCopy, full: true),
+  ];
+  final activeReg = regFields
+      .where((f) => f.value.trim().isNotEmpty && f.value.trim() != '-')
+      .toList();
+  if (activeReg.isNotEmpty) {
+    sections.add(
+      _card(
+        secNum++,
+        'Crime Registration Info',
+        _teal,
+        _grid2(activeReg),
+        fieldCount: activeReg.length,
+      ),
+    );
+  }
 
   // ── §2 Acts & Sections Filed ───────────────────────────────────────────────
   final Map chargesMap;
@@ -494,30 +485,30 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   } else {
     chargesMap = {};
   }
-  sections.add(
-    _card(
-      secNum++,
-      'ACTS & SECTIONS FILED',
-      _teal,
-      chargesMap.isEmpty
-          ? _empty('No charges added.')
-          : pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: chargesMap.entries.toList().asMap().entries.map((e) {
-                final chargeNum = e.key + 1;
-                final data = (e.value.value is Map)
-                    ? (e.value.value as Map)
-                    : {'act': e.value.value.toString()};
-                final act = _v(data['act'] ?? data['act_name']);
-                final rawSecs = data['sections'] ?? data['section'];
-                final secs = (rawSecs is List)
-                    ? rawSecs.map((s) => s.toString()).toList()
-                    : (rawSecs != null ? [rawSecs.toString()] : <String>[]);
-                return _chargeBlock(chargeNum, act, secs);
-              }).toList(),
-            ),
-    ),
-  );
+  if (chargesMap.isNotEmpty) {
+    sections.add(
+      _card(
+        secNum++,
+        'Acts & Sections Filed',
+        _teal,
+        pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: chargesMap.entries.toList().asMap().entries.map((e) {
+            final chargeNum = e.key + 1;
+            final data = (e.value.value is Map)
+                ? (e.value.value as Map)
+                : {'act': e.value.value.toString()};
+            final act = _v(data['act'] ?? data['act_name']);
+            final rawSecs = data['sections'] ?? data['section'];
+            final secs = (rawSecs is List)
+                ? rawSecs.map((s) => s.toString()).toList()
+                : (rawSecs != null ? [rawSecs.toString()] : <String>[]);
+            return _chargeBlock(chargeNum, act, secs);
+          }).toList(),
+        ),
+      ),
+    );
+  }
 
   // ── §3 Crime Spot ─────────────────────────────────────────────────────────
   final spotVillage = _v(m['spotVillage'] ?? m['village_town']);
@@ -528,20 +519,27 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
       m['full_address']);
   final spotDist = _v(m['distance_from_ps']);
   final spotDir = _v(m['direction_from_ps']);
-  sections.add(
-    _card(
-      secNum++,
-      'CRIME SPOT',
-      _teal,
-      _grid2([
-        _f('Village / Town', spotVillage),
-        _f('Area Name', spotArea),
-        _f('Address', spotAddress, full: true),
-        if (spotDist.isNotEmpty) _f('Distance from PS', spotDist),
-        if (spotDir.isNotEmpty) _f('Direction from PS', spotDir),
-      ]),
-    ),
-  );
+  final spotFields = [
+    _f('Village / Town', spotVillage),
+    _f('Area Name', spotArea),
+    _f('Address', spotAddress, full: true),
+    if (spotDist.isNotEmpty) _f('Distance from PS', spotDist),
+    if (spotDir.isNotEmpty) _f('Direction from PS', spotDir),
+  ];
+  final activeSpot = spotFields
+      .where((f) => f.value.trim().isNotEmpty && f.value.trim() != '-')
+      .toList();
+  if (activeSpot.isNotEmpty) {
+    sections.add(
+      _card(
+        secNum++,
+        'Crime Spot',
+        _teal,
+        _grid2(activeSpot),
+        fieldCount: activeSpot.length,
+      ),
+    );
+  }
 
   final List<_FD> propWidgets = [];
 
@@ -664,8 +662,16 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
   // ── MODULE EXTRA SECTIONS (auto between Crime Spot and Complainant) ───────
   final middleExtras = <String, dynamic>{};
   for (final e in extraMap.entries.toList()) {
-    if (e.key.toLowerCase().endsWith('_extra')) {
-      middleExtras[e.key] = e.value;
+    if (e.key.toLowerCase().endsWith('_extra') && e.value is Map) {
+      final mapVal = Map<String, dynamic>.from(e.value as Map);
+      final hasData = mapVal.values.any((v) =>
+          v != null &&
+          v.toString().trim().isNotEmpty &&
+          v.toString().trim() != '-' &&
+          v.toString().trim() != 'false');
+      if (hasData) {
+        middleExtras[e.key] = e.value;
+      }
       extraMap.remove(e.key);
     }
   }
@@ -716,35 +722,39 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
     comp['address'] = m['complainant_address'];
   }
 
-  final bool isSexualComp = m['isSexualOffence'] == true ||
+  final isSexualComp = m['isSexualOffence'] == true ||
       (comp['name']?.toString().contains('Protected') ?? false);
-  sections.add(
-    _card(
-      secNum++,
-      'COMPLAINANT KYC',
-      _teal,
-      comp.isEmpty || _v(comp['name']).isEmpty
-          ? _empty('No complainant data.')
-          : _grid2([
-              _f(
-                'Name',
-                isSexualComp
-                    ? '[Victim Identity Protected - Sec 228A IPC / Sec 72 BNS]'
-                    : _v(comp['name']),
-              ),
-              _f('Age', _v(comp['age'])),
-              _f('Gender', _v(comp['gender'])),
-              _f('Occupation', _v(comp['occ'] ?? comp['occupation'])),
-              _f('Mobile', _v(comp['mobile'])),
-              _f('Aadhaar', _v(comp['aadhaar'])),
-              _f('Religion', _v(comp['religion'])),
-              _f('Caste', _v(comp['caste'])),
-              _f('PAN Number', _v(comp['pan'])),
-              if (_v(comp['address']).isNotEmpty)
-                _f('Address', _v(comp['address']), full: true),
-            ]),
+  final compFields = [
+    _f(
+      'Name',
+      isSexualComp
+          ? '[Victim Identity Protected - Sec 228A IPC / Sec 72 BNS]'
+          : _v(comp['name']),
     ),
-  );
+    _f('Age', _v(comp['age'])),
+    _f('Gender', _v(comp['gender'])),
+    _f('Occupation', _v(comp['occ'] ?? comp['occupation'])),
+    _f('Mobile', _v(comp['mobile'])),
+    _f('Aadhaar', _v(comp['aadhaar'])),
+    _f('Religion', _v(comp['religion'])),
+    _f('Caste', _v(comp['caste'])),
+    _f('PAN Number', _v(comp['pan'])),
+    if (_v(comp['address']).isNotEmpty)
+      _f('Address', _v(comp['address']), full: true),
+  ];
+  final activeComp = compFields
+      .where((f) => f.value.trim().isNotEmpty && f.value.trim() != '-')
+      .toList();
+  if (activeComp.isNotEmpty) {
+    sections.add(
+      _card(
+        secNum++,
+        'COMPLAINANT KYC',
+        _teal,
+        _grid2(activeComp),
+      ),
+    );
+  }
 
   // ── §6 Victim KYC ──────────────────────────────────────────────────────────
   final Map victim = (m['victim'] is Map)
@@ -754,29 +764,34 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
       (_v(victim['name']).isNotEmpty ||
           _v(victim['mobile']).isNotEmpty ||
           _v(victim['aadhaar']).isNotEmpty);
-  if (hasVictim || isPocso) {
-    sections.add(
-      _card(
-        secNum++,
-        'VICTIM KYC',
-        _teal,
-        victim.isEmpty
-            ? _empty('No victim data.')
-            : _grid2([
-                _f('Name', _v(victim['name'])),
-                _f('Age', _v(victim['age'])),
-                _f('Gender', _v(victim['gender'])),
-                _f('Occupation', _v(victim['occ'] ?? victim['occupation'])),
-                _f('Mobile', _v(victim['mobile'])),
-                _f('Aadhaar', _v(victim['aadhaar'])),
-                _f('Religion', _v(victim['religion'])),
-                _f('Caste', _v(victim['caste'])),
-                _f('PAN Number', _v(victim['pan'])),
-                if (_v(victim['address']).isNotEmpty)
-                  _f('Address', _v(victim['address']), full: true),
-              ]),
-      ),
-    );
+  if (hasVictim) {
+    final victimFields = [
+      _f('Name', _v(victim['name'])),
+      _f('Age', _v(victim['age'])),
+      _f('Gender', _v(victim['gender'])),
+      _f('Occupation', _v(victim['occ'] ?? victim['occupation'])),
+      _f('Mobile', _v(victim['mobile'])),
+      _f('Aadhaar', _v(victim['aadhaar'])),
+      _f('Religion', _v(victim['religion'])),
+      _f('Caste', _v(victim['caste'])),
+      _f('PAN Number', _v(victim['pan'])),
+      if (_v(victim['address']).isNotEmpty)
+        _f('Address', _v(victim['address']), full: true),
+    ];
+    final activeVictim = victimFields
+        .where((f) => f.value.trim().isNotEmpty && f.value.trim() != '-')
+        .toList();
+    if (activeVictim.isNotEmpty) {
+      sections.add(
+        _card(
+          secNum++,
+          'Victim KYC',
+          _teal,
+          _grid2(activeVictim),
+          fieldCount: activeVictim.length,
+        ),
+      );
+    }
   }
 
   // ── §7 Deceased KYC (Murder Cases) ─────────────────────────────────────────
@@ -787,29 +802,34 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
       (_v(deceased['name']).isNotEmpty ||
           _v(deceased['mobile']).isNotEmpty ||
           _v(deceased['aadhaar']).isNotEmpty);
-  if (isMurder || hasDeceased) {
-    sections.add(
-      _card(
-        secNum++,
-        'DECEASED KYC',
-        _teal,
-        deceased.isEmpty
-            ? _empty('No deceased data.')
-            : _grid2([
-                _f('Name', _v(deceased['name'])),
-                _f('Age', _v(deceased['age'])),
-                _f('Gender', _v(deceased['gender'])),
-                _f('Occupation', _v(deceased['occ'] ?? deceased['occupation'])),
-                _f('Mobile', _v(deceased['mobile'])),
-                _f('Aadhaar', _v(deceased['aadhaar'])),
-                _f('Religion', _v(deceased['religion'])),
-                _f('Caste', _v(deceased['caste'])),
-                _f('PAN Number', _v(deceased['pan'])),
-                if (_v(deceased['address']).isNotEmpty)
-                  _f('Address', _v(deceased['address']), full: true),
-              ]),
-      ),
-    );
+  if (hasDeceased) {
+    final deceasedFields = [
+      _f('Name', _v(deceased['name'])),
+      _f('Age', _v(deceased['age'])),
+      _f('Gender', _v(deceased['gender'])),
+      _f('Occupation', _v(deceased['occ'] ?? deceased['occupation'])),
+      _f('Mobile', _v(deceased['mobile'])),
+      _f('Aadhaar', _v(deceased['aadhaar'])),
+      _f('Religion', _v(deceased['religion'])),
+      _f('Caste', _v(deceased['caste'])),
+      _f('PAN Number', _v(deceased['pan'])),
+      if (_v(deceased['address']).isNotEmpty)
+        _f('Address', _v(deceased['address']), full: true),
+    ];
+    final activeDeceased = deceasedFields
+        .where((f) => f.value.trim().isNotEmpty && f.value.trim() != '-')
+        .toList();
+    if (activeDeceased.isNotEmpty) {
+      sections.add(
+        _card(
+          secNum++,
+          'Deceased Person KYC',
+          _teal,
+          _grid2(activeDeceased),
+          fieldCount: activeDeceased.length,
+        ),
+      );
+    }
   }
 
   // ── §8 Injured Person KYC ─────────────────────────────────────────────
@@ -899,16 +919,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
         _badge('Unknown / Untraced', _amber),
       ),
     );
-  } else if (accusedList.isEmpty) {
-    sections.add(
-      _card(
-        secNum++,
-        'ACCUSED DETAILS',
-        _teal,
-        _empty('No accused added.'),
-      ),
-    );
-  } else {
+  } else if (accusedList.isNotEmpty) {
     const accusedChunkSize = 2;
     final int baseSec = secNum++;
     for (var i = 0; i < accusedList.length; i += accusedChunkSize) {
@@ -930,10 +941,7 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
               final Map<String, dynamic> itemMap = (e.value is Map)
                   ? Map<String, dynamic>.from(e.value as Map)
                   : {'name': e.value.toString()};
-              return _personBlock(
-                'Accused #${idx + 1}',
-                itemMap,
-              );
+              return _personBlock('Accused #${idx + 1}', itemMap);
             }).toList(),
           ),
         ),
@@ -1084,21 +1092,32 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
       'cctvDateTime': m['cctv_datetime'] ?? m['cctvDateTime'] ?? '',
     };
   }
-  sections.add(
-    _card(
-      secNum++,
-      'IO / REGISTERED BY',
-      _teal,
-      _grid2([
-        _f('IO Designation', _v(cr8['ioDesig'])),
-        _f('IO Name', _v(cr8['ioName'])),
-        _f('Reg. By Desig.', _v(cr8['regDesig'])),
-        _f('Registrar Name', _v(cr8['regName'])),
-        _f('CCTV', _v(cr8['cctvValue'], or: 'Not set')),
-        _f('CCTV Date & Time', _v(cr8['cctvDateTime'])),
-      ]),
-    ),
-  );
+  final crFields = [
+    _f('IO Designation', _v(cr8['ioDesig'])),
+    _f('IO Name', _v(cr8['ioName'])),
+    _f('Reg. By Desig.', _v(cr8['regDesig'])),
+    _f('Registrar Name', _v(cr8['regName'])),
+    _f('CCTV', _v(cr8['cctvValue'], or: 'Not set')),
+    if (_v(cr8['cctvDateTime']).isNotEmpty)
+      _f('CCTV Date & Time', _v(cr8['cctvDateTime'])),
+  ];
+  final activeCr = crFields
+      .where((f) =>
+          f.value.trim().isNotEmpty &&
+          f.value.trim() != '-' &&
+          f.value.trim() != 'Not set')
+      .toList();
+  if (activeCr.isNotEmpty) {
+    sections.add(
+      _card(
+        secNum++,
+        'IO / REGISTERED BY',
+        _teal,
+        _grid2(activeCr),
+        fieldCount: activeCr.length,
+      ),
+    );
+  }
 
   // ── §14 Arrest & Release Status ─────────────────────────────────────
   List<dynamic> arrests = [];
@@ -1258,64 +1277,69 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
     }
   }
 
-  sections.add(
-    _card(
-      secNum++,
-      'PROCEDURAL DETAILS',
-      _teal,
-      pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          if (selectedProcedural.isNotEmpty) ...[
-            _grid2(selectedProcedural),
-            pw.SizedBox(height: 6),
+  final procGridFields = <_FD>[
+    if (m['eshakshValue'] == 'yes' || m['e_shakshya'] == true) ...[
+      _f('E-Shakshya', 'Yes'),
+      if (_v(m['eshakshDt']).isNotEmpty)
+        _f('E-Shakshya Date & Time', _v(m['eshakshDt'])),
+    ] else if (m['eshakshValue'] == 'no' &&
+        _v(m['eshakshReason']).isNotEmpty) ...[
+      _f('E-Shakshya', 'No'),
+      _f('Reason for No E-Shakshya', _v(m['eshakshReason'])),
+    ],
+    if (m['fingerprint_taken'] == true ||
+        m['fingerprint_taken']?.toString() == 'true')
+      _f('Fingerprints Taken', 'Yes'),
+    if (m['cctv_checked'] == true || m['cctv_checked']?.toString() == 'true')
+      _f('CCTV Footage Checked', 'Yes'),
+  ];
+  final vehicleGridFields = <_FD>[
+    if (_v(vuPdf['sdEntry']).isNotEmpty && _v(vuPdf['sdEntry']) != 'Not set')
+      _f('SD Entry of Vehicle No & Time', _v(vuPdf['sdEntry']).toUpperCase()),
+    if (_v(vuPdf['logBookEntry']).isNotEmpty &&
+        _v(vuPdf['logBookEntry']) != 'Not set')
+      _f('Log Book of Vehicle Entry', _v(vuPdf['logBookEntry']).toUpperCase()),
+    if (_v(vuPdf['caseDiaryEntry']).isNotEmpty &&
+        _v(vuPdf['caseDiaryEntry']) != 'Not set')
+      _f('Case Diary Vehicle Entry', _v(vuPdf['caseDiaryEntry']).toUpperCase()),
+  ];
+  if (selectedProcedural.isNotEmpty ||
+      procGridFields.isNotEmpty ||
+      vehicleGridFields.isNotEmpty) {
+    sections.add(
+      _card(
+        secNum++,
+        'PROCEDURAL DETAILS',
+        _teal,
+        pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            if (selectedProcedural.isNotEmpty) ...[
+              _grid2(selectedProcedural),
+              pw.SizedBox(height: 6),
+            ],
+            if (procGridFields.isNotEmpty) ...[
+              _grid2(procGridFields),
+              pw.SizedBox(height: 6),
+            ],
+            if (vehicleGridFields.isNotEmpty) ...[
+              pw.SizedBox(height: 2),
+              pw.Text(
+                'GOVERNMENT VEHICLE USAGE',
+                style: pw.TextStyle(
+                  fontSize: 9,
+                  fontWeight: pw.FontWeight.bold,
+                  color: _dark,
+                ),
+              ),
+              pw.SizedBox(height: 4),
+              _grid2(vehicleGridFields),
+            ],
           ],
-          _grid2([
-            _f(
-                'E-Shakshya',
-                _v(m['eshakshValue'],
-                    or: (m['e_shakshya'] == true ? 'Yes' : 'Not set'))),
-            if (m['eshakshValue'] == 'yes' &&
-                (m['eshakshDt']?.toString().isNotEmpty ?? false))
-              _f('E-Shakshya Date & Time', _v(m['eshakshDt']))
-            else if (m['eshakshValue'] == 'no' &&
-                (m['eshakshReason']?.toString().isNotEmpty ?? false))
-              _f('Reason for No E-Shakshya', _v(m['eshakshReason'])),
-            if (m['fingerprint_taken'] == true ||
-                m['fingerprint_taken']?.toString() == 'true')
-              _f('Fingerprints Taken', 'Yes'),
-            if (m['cctv_checked'] == true ||
-                m['cctv_checked']?.toString() == 'true')
-              _f('CCTV Footage Checked', 'Yes'),
-          ]),
-          pw.SizedBox(height: 8),
-          pw.Text(
-            'GOVERNMENT VEHICLE USAGE',
-            style: pw.TextStyle(
-              fontSize: 9,
-              fontWeight: pw.FontWeight.bold,
-              color: _dark,
-            ),
-          ),
-          pw.SizedBox(height: 4),
-          _grid2([
-            _f(
-              'SD Entry of Vehicle No & Time',
-              _v(vuPdf['sdEntry'], or: 'Not set').toUpperCase(),
-            ),
-            _f(
-              'Log Book of Vehicle Entry',
-              _v(vuPdf['logBookEntry'], or: 'Not set').toUpperCase(),
-            ),
-            _f(
-              'Case Diary Vehicle Entry',
-              _v(vuPdf['caseDiaryEntry'], or: 'Not set').toUpperCase(),
-            ),
-          ]),
-        ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 
   // ── §16 Seizure Records ─────────────────────────────────────────────
   List<dynamic> seizures = [];
@@ -1803,13 +1827,6 @@ List<pw.Widget> _buildAll(Map<String, dynamic> m, Map<String, dynamic> extra) {
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // EXTRA FIELDS — 100% DYNAMIC (Module-specific only, standard keys filtered)
-  // ══════════════════════════════════════════════════════════════════════════
-  if (extraMap.isNotEmpty) {
-    sections.add(_extraSection(extraMap));
-  }
-
   return sections;
 }
 
@@ -2132,75 +2149,116 @@ pw.Widget _card(
   dynamic num,
   String title,
   PdfColor accent,
-  pw.Widget body,
-) =>
-    pw.Container(
-      margin: const pw.EdgeInsets.only(bottom: PdfLayoutConstants.sectionGap),
-      decoration: pw.BoxDecoration(
-        color: _white,
-        borderRadius: pw.BorderRadius.circular(PdfLayoutConstants.borderRadius),
-        border: pw.Border.all(
-          color: _border,
-          width: PdfLayoutConstants.borderWidth,
-        ),
+  pw.Widget body, {
+  int? fieldCount,
+}) {
+  if (body is pw.SizedBox && body.child == null) {
+    return pw.SizedBox();
+  }
+  return pw.Container(
+    margin: const pw.EdgeInsets.only(bottom: 7),
+    decoration: pw.BoxDecoration(
+      color: _white,
+      borderRadius: pw.BorderRadius.circular(6),
+      border: pw.Border.all(
+        color: const PdfColor.fromInt(0xFFCBD5E1),
+        width: 0.8,
       ),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.Container(
-            padding: const pw.EdgeInsets.symmetric(
-              horizontal: 6,
-              vertical: 3.5,
+    ),
+    child: pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Container(
+          padding: const pw.EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: 5,
+          ),
+          decoration: const pw.BoxDecoration(
+            color: PdfColors.white,
+            borderRadius: pw.BorderRadius.only(
+              topLeft: pw.Radius.circular(6),
+              topRight: pw.Radius.circular(6),
             ),
-            decoration: const pw.BoxDecoration(
-              color: _headerBg,
-              borderRadius: pw.BorderRadius.only(
-                topLeft: pw.Radius.circular(3),
-                topRight: pw.Radius.circular(3),
+            border: pw.Border(
+              bottom: pw.BorderSide(
+                color: PdfColor.fromInt(0xFFE2E8F0),
+                width: 0.8,
               ),
             ),
-            child: pw.Row(
-              children: [
-                if (num.toString() != '0') ...[
-                  pw.Container(
-                    width: 13,
-                    height: 13,
-                    alignment: pw.Alignment.center,
-                    decoration: pw.BoxDecoration(
-                      color: _dark,
-                      borderRadius: pw.BorderRadius.circular(2),
-                    ),
-                    child: pw.Text(
-                      '$num',
-                      style: pw.TextStyle(
-                        fontSize: 7,
-                        fontWeight: pw.FontWeight.bold,
-                        color: _white,
-                      ),
-                    ),
+          ),
+          child: pw.Row(
+            children: [
+              if (num.toString() != '0') ...[
+                pw.Container(
+                  width: 16,
+                  height: 16,
+                  alignment: pw.Alignment.center,
+                  decoration: pw.BoxDecoration(
+                    color: const PdfColor.fromInt(0xFF1A237E),
+                    borderRadius: pw.BorderRadius.circular(3.5),
                   ),
-                  pw.SizedBox(width: 5),
-                ],
-                pw.Expanded(
                   child: pw.Text(
-                    _cleanText(title),
+                    '$num',
                     style: pw.TextStyle(
-                      fontSize: PdfLayoutConstants.sectionTitleFontSize,
+                      fontSize: 8.5,
                       fontWeight: pw.FontWeight.bold,
-                      color: _dark,
+                      color: _white,
                     ),
                   ),
                 ),
+                pw.SizedBox(width: 7),
               ],
-            ),
+              pw.Expanded(
+                child: pw.Text(
+                  _cleanText(title),
+                  style: pw.TextStyle(
+                    fontSize: 9.0,
+                    fontWeight: pw.FontWeight.bold,
+                    color: const PdfColor.fromInt(0xFF0F172A),
+                  ),
+                ),
+              ),
+              if (fieldCount != null && fieldCount > 1) ...[
+                pw.Container(
+                  padding:
+                      const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: pw.BoxDecoration(
+                    color: const PdfColor.fromInt(0xFFEEF2FF),
+                    borderRadius: pw.BorderRadius.circular(10),
+                    border: pw.Border.all(
+                      color: const PdfColor.fromInt(0xFFC7D2FE),
+                      width: 0.6,
+                    ),
+                  ),
+                  child: pw.Text(
+                    '$fieldCount fields',
+                    style: pw.TextStyle(
+                      fontSize: 6.5,
+                      fontWeight: pw.FontWeight.bold,
+                      color: const PdfColor.fromInt(0xFF1A237E),
+                    ),
+                  ),
+                ),
+                pw.SizedBox(width: 6),
+              ],
+              pw.Text(
+                'v',
+                style: const pw.TextStyle(
+                  fontSize: 7.0,
+                  color: PdfColor.fromInt(0xFF94A3B8),
+                ),
+              ),
+            ],
           ),
-          pw.Padding(
-            padding: PdfLayoutConstants.cardPadding,
-            child: body,
-          ),
-        ],
-      ),
-    );
+        ),
+        pw.Padding(
+          padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+          child: body,
+        ),
+      ],
+    ),
+  );
+}
 
 class _FD {
   const _FD(this.label, this.value, {this.full = false});
@@ -2213,30 +2271,44 @@ _FD _f(String label, String value, {bool full = false}) =>
     _FD(label, value, full: full);
 
 pw.Widget _grid2(List<_FD> fields) {
+  final activeFields = fields.where((f) {
+    final v = f.value.trim();
+    if (v.isEmpty ||
+        v == '-' ||
+        v == '—' ||
+        v == 'Not set' ||
+        v.toLowerCase() == 'null') {
+      return false;
+    }
+    return true;
+  }).toList();
+  if (activeFields.isEmpty) return pw.SizedBox();
+
   final rows = <pw.Widget>[];
   var i = 0;
-  while (i < fields.length) {
-    final f = fields[i];
+  while (i < activeFields.length) {
+    final f = activeFields[i];
     if (f.full) {
       rows.add(
         pw.Padding(
-          padding: const pw.EdgeInsets.only(bottom: PdfLayoutConstants.rowGap),
-          child: _fWidget(f.label, f.value),
+          padding: const pw.EdgeInsets.only(bottom: 5),
+          child: _fWidget(f.label, f.value, full: true),
         ),
       );
       i++;
     } else {
       final left = f;
-      final right =
-          (i + 1 < fields.length && !fields[i + 1].full) ? fields[i + 1] : null;
+      final right = (i + 1 < activeFields.length && !activeFields[i + 1].full)
+          ? activeFields[i + 1]
+          : null;
       rows.add(
         pw.Padding(
-          padding: const pw.EdgeInsets.only(bottom: PdfLayoutConstants.rowGap),
+          padding: const pw.EdgeInsets.only(bottom: 5),
           child: pw.Row(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            crossAxisAlignment: pw.CrossAxisAlignment.center,
             children: [
               pw.Expanded(child: _fWidget(left.label, left.value)),
-              pw.SizedBox(width: PdfLayoutConstants.fieldGap),
+              pw.SizedBox(width: 10),
               pw.Expanded(
                 child: right != null
                     ? _fWidget(right.label, right.value)
@@ -2255,52 +2327,56 @@ pw.Widget _grid2(List<_FD> fields) {
   );
 }
 
-pw.Widget _fWidget(String label, String value) => pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.Text(
-          _cleanText(label).toUpperCase(),
+pw.Widget _fWidget(String label, String value, {bool full = false}) {
+  final cleanVal = _cleanText(value);
+  return pw.Row(
+    crossAxisAlignment: pw.CrossAxisAlignment.center,
+    children: [
+      pw.SizedBox(
+        width: full ? 95 : 82,
+        child: pw.Text(
+          _cleanText(label),
           style: pw.TextStyle(
-            fontSize: PdfLayoutConstants.labelFontSize,
+            fontSize: 7.5,
             fontWeight: pw.FontWeight.bold,
-            color: _sec,
-            letterSpacing: 0.3,
+            color: const PdfColor.fromInt(0xFF1E293B),
           ),
         ),
-        pw.SizedBox(height: PdfLayoutConstants.labelValueGap),
-        pw.Container(
-          width: double.infinity,
-          padding: PdfLayoutConstants.cellPadding,
+      ),
+      pw.SizedBox(width: 6),
+      pw.Expanded(
+        child: pw.Container(
+          padding: const pw.EdgeInsets.symmetric(horizontal: 7, vertical: 4),
           decoration: pw.BoxDecoration(
-            color: _bg,
-            borderRadius: pw.BorderRadius.circular(2.5),
+            color: const PdfColor.fromInt(0xFFF8FAFC),
+            borderRadius: pw.BorderRadius.circular(3.5),
             border: pw.Border.all(
-              color: _border,
-              width: PdfLayoutConstants.borderWidth,
+              color: const PdfColor.fromInt(0xFFE2E8F0),
+              width: 0.8,
             ),
           ),
           child: pw.Text(
-            _cleanText(value),
-            style: pw.TextStyle(
-              fontSize: PdfLayoutConstants.valueFontSize,
-              color: (value.isEmpty || value == '-' || value == '—')
-                  ? _muted
-                  : _dark,
+            cleanVal,
+            style: const pw.TextStyle(
+              fontSize: 7.8,
+              color: PdfColor.fromInt(0xFF0F172A),
             ),
           ),
         ),
-      ],
-    );
+      ),
+    ],
+  );
+}
 
 pw.Widget _subCard(pw.Widget child) => pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 4),
       padding: const pw.EdgeInsets.all(5),
       decoration: pw.BoxDecoration(
-        color: _bg,
-        borderRadius: pw.BorderRadius.circular(3),
+        color: const PdfColor.fromInt(0xFFF8FAFC),
+        borderRadius: pw.BorderRadius.circular(4),
         border: pw.Border.all(
-          color: _border,
-          width: PdfLayoutConstants.borderWidth,
+          color: const PdfColor.fromInt(0xFFE2E8F0),
+          width: 0.8,
         ),
       ),
       child: child,
@@ -2308,28 +2384,39 @@ pw.Widget _subCard(pw.Widget child) => pw.Container(
 
 pw.Widget _personBlock(String title, Map<String, dynamic> person) =>
     pw.Container(
-      margin: const pw.EdgeInsets.only(bottom: 4),
-      padding: const pw.EdgeInsets.all(5),
+      margin: const pw.EdgeInsets.only(bottom: 5),
+      padding: const pw.EdgeInsets.all(6),
       decoration: pw.BoxDecoration(
-        color: _bg,
-        borderRadius: pw.BorderRadius.circular(3),
+        color: const PdfColor.fromInt(0xFFF8FAFC),
+        borderRadius: pw.BorderRadius.circular(4),
         border: pw.Border.all(
-          color: _border,
-          width: PdfLayoutConstants.borderWidth,
+          color: const PdfColor.fromInt(0xFFE2E8F0),
+          width: 0.8,
         ),
       ),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text(
-            _cleanText(title),
-            style: pw.TextStyle(
-              fontSize: 8,
-              fontWeight: pw.FontWeight.bold,
-              color: _dark,
+          pw.Container(
+            padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: pw.BoxDecoration(
+              color: const PdfColor.fromInt(0xFFEEF2FF),
+              borderRadius: pw.BorderRadius.circular(10),
+              border: pw.Border.all(
+                color: const PdfColor.fromInt(0xFFC7D2FE),
+                width: 0.6,
+              ),
+            ),
+            child: pw.Text(
+              _cleanText(title),
+              style: pw.TextStyle(
+                fontSize: 7.2,
+                fontWeight: pw.FontWeight.bold,
+                color: const PdfColor.fromInt(0xFF1A237E),
+              ),
             ),
           ),
-          pw.SizedBox(height: 3),
+          pw.SizedBox(height: 4),
           _grid2([
             _f('Name', _v(person['name'])),
             _f('Age', _v(person['age'])),
