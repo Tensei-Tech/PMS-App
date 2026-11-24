@@ -294,7 +294,6 @@ class _AdHubScreenState extends State<AdHubScreen>
       ),
       body: Column(
         children: [
-          _buildSubCategoryBar(),
           _buildStatusTabBar(),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
@@ -325,7 +324,7 @@ class _AdHubScreenState extends State<AdHubScreen>
 
   /// Sub-tabs (Suicide / Other ...) from the A.D. tab's child categories.
   /// Segmented switch matching the modern sub-tab strip across other hubs.
-  Widget _buildSubCategoryBar() {
+  Widget _buildSubCategorySegmentedTrack({double? maxWidth}) {
     final subs = _subCategories;
     final count = subs.length;
     if (count == 0) return const SizedBox.shrink();
@@ -334,70 +333,60 @@ class _AdHubScreenState extends State<AdHubScreen>
     final safeIndex =
         (selectedIndex >= 0 && selectedIndex < count) ? selectedIndex : 0;
 
+    final targetWidth =
+        maxWidth ?? (count <= 2 ? 260.0 : (count * 130.0).clamp(260.0, 480.0));
+
     return Container(
-      height: 50,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
-        ),
+      height: 38,
+      width: targetWidth,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      alignment: Alignment.center,
-      child: Container(
-        height: 38,
-        constraints: BoxConstraints(
-          maxWidth: count <= 2 ? 380 : (count * 160.0).clamp(380.0, 600.0),
-        ),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF1F5F9),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-        ),
-        padding: const EdgeInsets.all(3),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final segmentWidth = constraints.maxWidth / count;
-            return Stack(
-              children: [
-                // Sliding pill behind the selected tab
-                AnimatedPositioned(
-                  duration: const Duration(milliseconds: 200),
-                  curve: Curves.easeOutCubic,
-                  left: segmentWidth * safeIndex,
-                  top: 0,
-                  bottom: 0,
-                  width: segmentWidth,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.navyDark,
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.navyDark.withValues(alpha: 0.12),
-                          blurRadius: 4,
-                          offset: const Offset(0, 1.5),
-                        ),
-                      ],
-                    ),
+      padding: const EdgeInsets.all(3),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final segmentWidth = constraints.maxWidth / count;
+          return Stack(
+            children: [
+              // Sliding pill behind the selected tab
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOutCubic,
+                left: segmentWidth * safeIndex,
+                top: 0,
+                bottom: 0,
+                width: segmentWidth,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.navyDark,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.navyDark.withValues(alpha: 0.12),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1.5),
+                      ),
+                    ],
                   ),
                 ),
-                Row(
-                  children: [
-                    for (var i = 0; i < count; i++)
-                      Expanded(
-                        child: _buildSubCategorySegment(
-                          context,
-                          subs[i],
-                          i == safeIndex,
-                        ),
+              ),
+              Row(
+                children: [
+                  for (var i = 0; i < count; i++)
+                    Expanded(
+                      child: _buildSubCategorySegment(
+                        context,
+                        subs[i],
+                        i == safeIndex,
                       ),
-                  ],
-                ),
-              ],
-            );
-          },
-        ),
+                    ),
+                ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -505,7 +494,7 @@ class _AdHubScreenState extends State<AdHubScreen>
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isMobile = constraints.maxWidth < 600;
+        final isNarrow = constraints.maxWidth < 850;
 
         Widget buildTabItem(
           ({
@@ -521,7 +510,7 @@ class _AdHubScreenState extends State<AdHubScreen>
           final tabContent = Container(
             padding: EdgeInsets.symmetric(
               vertical: 12,
-              horizontal: isMobile ? 4 : 12,
+              horizontal: isNarrow ? 4 : 12,
             ),
             decoration: BoxDecoration(
               border: Border(
@@ -543,7 +532,7 @@ class _AdHubScreenState extends State<AdHubScreen>
                   Text(
                     TranslationHelper.translate(context, item.label),
                     style: GoogleFonts.poppins(
-                      fontSize: isMobile ? 12.5 : 13.5,
+                      fontSize: isNarrow ? 12.5 : 13.5,
                       fontWeight:
                           isSelected ? FontWeight.w700 : FontWeight.w500,
                       color: isSelected
@@ -564,7 +553,7 @@ class _AdHubScreenState extends State<AdHubScreen>
                     child: Text(
                       '${item.count}',
                       style: GoogleFonts.poppins(
-                        fontSize: isMobile ? 10.5 : 11,
+                        fontSize: isNarrow ? 10.5 : 11,
                         fontWeight: FontWeight.w700,
                         color: item.badgeFg,
                       ),
@@ -597,25 +586,39 @@ class _AdHubScreenState extends State<AdHubScreen>
               bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
             ),
           ),
-          child: Row(
-            children: [
-              if (isMobile)
-                Expanded(
-                  child: Row(
-                    children:
-                        tabs.map((t) => buildTabItem(t, expand: true)).toList(),
-                  ),
+          child: isNarrow
+              ? Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_subCategories.isNotEmpty) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        child: Center(
+                          child: _buildSubCategorySegmentedTrack(maxWidth: 380),
+                        ),
+                      ),
+                      const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                    ],
+                    Row(
+                      children: tabs
+                          .map((t) => buildTabItem(t, expand: true))
+                          .toList(),
+                    ),
+                  ],
                 )
-              else ...[
-                const SizedBox(width: 16),
-                for (final t in tabs) ...[
-                  buildTabItem(t, expand: false),
-                  const SizedBox(width: 16),
-                ],
-                const Spacer(),
-              ],
-            ],
-          ),
+              : Row(
+                  children: [
+                    const SizedBox(width: 16),
+                    for (final t in tabs) ...[
+                      buildTabItem(t, expand: false),
+                      const SizedBox(width: 16),
+                    ],
+                    const Spacer(),
+                    _buildSubCategorySegmentedTrack(),
+                    const SizedBox(width: 16),
+                  ],
+                ),
         );
       },
     );
