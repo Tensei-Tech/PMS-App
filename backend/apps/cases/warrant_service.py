@@ -291,10 +291,16 @@ class SummonsWarrantReportService:
         ).filter(q_filter).select_related('sam_warrant')
 
         # Multi-tenancy & Station/District filters
-        if self.station_name:
+        if self.allowed_stations is not None:
+            if self.station_name:
+                if self.station_name in self.allowed_stations:
+                    queryset = queryset.filter(station_name__iexact=self.station_name)
+                else:
+                    queryset = queryset.none()
+            else:
+                queryset = queryset.filter(station_name__in=self.allowed_stations)
+        elif self.station_name:
             queryset = queryset.filter(station_name__iexact=self.station_name)
-        elif self.allowed_stations is not None:
-            queryset = queryset.filter(station_name__in=self.allowed_stations)
         elif self.district_name:
             # Match stations belonging to this district
             st_names = list(
@@ -521,11 +527,13 @@ class SummonsWarrantReportService:
         """
         Retrieves ordered list of station names for the report rows.
         """
+        if self.allowed_stations is not None:
+            if self.station_name:
+                return [self.station_name] if self.station_name in self.allowed_stations else []
+            return sorted(list(self.allowed_stations))
+
         if self.station_name:
             return [self.station_name]
-
-        if self.allowed_stations is not None:
-            return sorted(list(self.allowed_stations))
 
         station_names: List[str] = []
         if self.district_name:

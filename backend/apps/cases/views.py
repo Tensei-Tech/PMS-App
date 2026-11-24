@@ -3670,6 +3670,17 @@ class SummonsWarrantReportView(APIView):
             elif level == DISTRICT:
                 # District leadership: strictly limited to police stations under their district
                 target_district = user_district or target_district
+                if user_district:
+                    dist_qs = PoliceStation.objects.filter(
+                        Q(district_name__iexact=user_district) | Q(district__name__iexact=user_district)
+                    )
+                    dist_stations = list(dist_qs.values_list('station_name', flat=True))
+                    if target_station:
+                        if dist_stations and target_station not in dist_stations:
+                            raise exceptions.PermissionDenied("You do not have access to view data for this police station outside your district.")
+                        allowed_stations = [target_station]
+                    elif dist_stations:
+                        allowed_stations = dist_stations
             elif level == DIVISION:
                 # Division head (SDPO / ACP): strictly police stations under their sub-division
                 div_stations = [getattr(user, 'station_name', '')] + (getattr(user, 'additional_stations', []) or [])
