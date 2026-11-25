@@ -17,6 +17,7 @@ import '../utils/pending_table_firestore_mapper.dart';
 import '../utils/case_visibility.dart';
 import '../widgets/custom_pdf_preview_dialog.dart';
 import '../widgets/pending_cases_demo_data_table.dart';
+import '../widgets/summary_category_filter_bar.dart';
 import 'pending_hub_screen.dart';
 
 class PendingSummaryScreen extends StatefulWidget {
@@ -156,103 +157,17 @@ class _PendingSummaryScreenState extends State<PendingSummaryScreen> {
     );
   }
 
-  Widget _buildFilterChip({
-    required String label,
-    required int count,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.navyDark : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: isSelected ? AppColors.navyDark : const Color(0xFFCBD5E1),
-              width: isSelected ? 1.5 : 1.0,
-            ),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: AppColors.navyDark.withValues(alpha: 0.15),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                label,
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  color: isSelected ? Colors.white : const Color(0xFF334155),
-                ),
-              ),
-              const SizedBox(width: 6),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? Colors.white.withValues(alpha: 0.2)
-                      : const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '$count',
-                  style: GoogleFonts.poppins(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w700,
-                    color: isSelected ? Colors.white : const Color(0xFF64748B),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildCategoryFilterBar(List<Map<String, String>> dataset) {
-    final categories = _getUniqueCategories(dataset);
-    if (categories.isEmpty || categories.length <= 1) {
-      return const SizedBox.shrink();
+    final counts = <String, int>{};
+    for (final r in dataset) {
+      final bucket = _bucketForRow(r);
+      counts[bucket] = (counts[bucket] ?? 0) + 1;
     }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            _buildFilterChip(
-              label: 'All',
-              count: dataset.length,
-              isSelected: _selectedCategory == 'All',
-              onTap: () => setState(() => _selectedCategory = 'All'),
-            ),
-            for (final cat in categories) ...[
-              const SizedBox(width: 8),
-              _buildFilterChip(
-                label: cat,
-                count: _rowsForBucket(dataset, cat).length,
-                isSelected: _selectedCategory == cat,
-                onTap: () => setState(() => _selectedCategory = cat),
-              ),
-            ],
-          ],
-        ),
-      ),
+    return SummaryCategoryFilterBar(
+      totalCount: dataset.length,
+      categoryCounts: counts,
+      selectedCategory: _selectedCategory,
+      onSelected: (cat) => setState(() => _selectedCategory = cat),
     );
   }
 
