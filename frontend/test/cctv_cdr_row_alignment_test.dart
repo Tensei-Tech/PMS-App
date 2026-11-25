@@ -56,8 +56,8 @@ void main() {
       final box = tester.getRect(find
           .ancestor(
               of: find.text('CCTV Checked'),
-              matching: find.byWidgetPredicate((w) =>
-                  w is Container && w.decoration is BoxDecoration))
+              matching: find.byWidgetPredicate(
+                  (w) => w is Container && w.decoration is BoxDecoration))
           .first);
       final dates = tester
           .widgetList(find.byType(TextFormField))

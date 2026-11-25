@@ -9648,8 +9648,8 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     if (afterKey != null) _scrutinyGrantSendKeys[fieldKey] = afterKey;
     final afterDate = afterKey == null
         ? null
-        : _parseDmy(_controllers[afterKey]?.text ??
-            _values[afterKey]?.toString());
+        : _parseDmy(
+            _controllers[afterKey]?.text ?? _values[afterKey]?.toString());
     // Grant date waits for its Send date (a saved one stays shown)
     final waiting =
         enabled && afterKey != null && afterDate == null && val.isEmpty;

@@ -61,10 +61,10 @@ Future<Map<String, dynamic>> _pump(WidgetTester tester,
 }
 
 /// The TextField drawn for the field with this label.
-TextField _box(WidgetTester tester, String label) => tester.widget<TextField>(
-    find.descendant(
-        of: find.ancestor(
-                of: find.text(label), matching: find.byType(Column))
+TextField _box(WidgetTester tester, String label) =>
+    tester.widget<TextField>(find.descendant(
+        of: find
+            .ancestor(of: find.text(label), matching: find.byType(Column))
             .first,
         matching: find.byType(TextField)));
 
