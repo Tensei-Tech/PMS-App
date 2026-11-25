@@ -2127,6 +2127,7 @@ class _HomeTabState extends State<_HomeTab> {
   final FirestoreService _firestore = FirestoreService();
   List<ModuleRecord> _recentRecords = [];
   StreamSubscription? _recentSub;
+  bool _isTileListView = false;
 
   Map<String, dynamic> _mapRecordToCaseMap(ModuleRecord r) {
     Color iconColor;
@@ -3890,9 +3891,53 @@ class _HomeTabState extends State<_HomeTab> {
           i, (i + itemsPerGroup).clamp(0, displayItems.length)));
     }
 
+    final listCols = width > 1050 ? 3 : (width > 650 ? 2 : 1);
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                TranslationHelper.translate(context, 'Modules'),
+                style: GoogleFonts.poppins(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.navyDark,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFCBD5E1)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _viewModeButton(
+                      icon: Icons.grid_view_rounded,
+                      label: 'Grid',
+                      isSelected: !_isTileListView,
+                      onTap: () => setState(() => _isTileListView = false),
+                    ),
+                    const SizedBox(width: 2),
+                    _viewModeButton(
+                      icon: Icons.view_list_rounded,
+                      label: 'List',
+                      isSelected: _isTileListView,
+                      onTap: () => setState(() => _isTileListView = true),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
         Container(
           decoration: BoxDecoration(
             color: Colors.white,
@@ -3908,41 +3953,168 @@ class _HomeTabState extends State<_HomeTab> {
           ),
           child: Padding(
             padding: const EdgeInsets.all(12),
-            child: Column(
-              children: List.generate(groups.length, (gi) {
-                final group = groups[gi];
-                final isLast = gi == groups.length - 1;
-                return Column(
-                  children: [
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: cols,
-                        childAspectRatio: isWide ? 0.84 : 0.76,
-                        mainAxisSpacing: 12,
-                        crossAxisSpacing: 12,
-                      ),
-                      itemCount: group.length,
-                      itemBuilder: (context, i) {
-                        return _buildClassificationGridItem(context, group[i]);
-                      },
+            child: _isTileListView
+                ? GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: listCols,
+                      mainAxisExtent: 54,
+                      mainAxisSpacing: 8,
+                      crossAxisSpacing: 10,
                     ),
-                    if (!isLast) ...[
-                      const SizedBox(height: 10),
-                      const Divider(
-                          height: 1,
-                          thickness: 1,
-                          color: AppColors.lightBorder),
-                      const SizedBox(height: 10),
-                    ],
-                  ],
-                );
-              }),
-            ),
+                    itemCount: displayItems.length,
+                    itemBuilder: (context, i) =>
+                        _buildClassificationListItem(context, displayItems[i]),
+                  )
+                : Column(
+                    children: List.generate(groups.length, (gi) {
+                      final group = groups[gi];
+                      final isLast = gi == groups.length - 1;
+                      return Column(
+                        children: [
+                          GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: cols,
+                              childAspectRatio: isWide ? 0.84 : 0.76,
+                              mainAxisSpacing: 12,
+                              crossAxisSpacing: 12,
+                            ),
+                            itemCount: group.length,
+                            itemBuilder: (context, i) {
+                              return _buildClassificationGridItem(
+                                  context, group[i]);
+                            },
+                          ),
+                          if (!isLast) ...[
+                            const SizedBox(height: 10),
+                            const Divider(
+                                height: 1,
+                                thickness: 1,
+                                color: AppColors.lightBorder),
+                            const SizedBox(height: 10),
+                          ],
+                        ],
+                      );
+                    }),
+                  ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _viewModeButton({
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 140),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.navyMid : Colors.transparent,
+            borderRadius: BorderRadius.circular(7),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 15,
+                color: isSelected ? Colors.white : AppColors.lightSubText,
+              ),
+              const SizedBox(width: 5),
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 11.5,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? Colors.white : AppColors.lightSubText,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildClassificationListItem(
+      BuildContext context, Classification item) {
+    final label = item.name.replaceAll('\n', ' ');
+    ServiceData? matchedTool;
+    for (final t in ServiceData.dashboardTools) {
+      if (t.label.toLowerCase() == label.toLowerCase() ||
+          (t.moduleKey != null && t.moduleKey == item.moduleKey)) {
+        matchedTool = t;
+        break;
+      }
+    }
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: Material(
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: const BorderSide(color: AppColors.lightBorder),
+        ),
+        child: InkWell(
+          onTap: () => _openClassificationItem(context, item),
+          borderRadius: BorderRadius.circular(10),
+          hoverColor: AppColors.navyMid.withValues(alpha: 0.06),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.navyDark.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Center(
+                    child: _buildGridIcon(
+                      item.name,
+                      matchedTool?.icon ?? _classIcon(item.iconName),
+                      AppColors.navyMid,
+                      20,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    TranslationHelper.translate(context, label),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.navyDark,
+                    ),
+                  ),
+                ),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  size: 18,
+                  color: AppColors.lightSubText,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
