@@ -503,39 +503,81 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.description_outlined,
-                color: Color(0xFF107C41)),
-            tooltip: 'Export to Excel',
-            onPressed: () {
-              if (_caseWiseList != null && _caseWiseList!.isNotEmpty) {
-                ExcelExportHelper.exportNafisToExcel(dataset: _caseWiseList!);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content:
-                        Text('NAFIS cases exported to Excel successfully.'),
-                    backgroundColor: Color(0xFF107C41),
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {
+                    if (_caseWiseList != null && _caseWiseList!.isNotEmpty) {
+                      ExcelExportHelper.exportNafisToExcel(
+                          dataset: _caseWiseList!);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                              'NAFIS cases exported to Excel successfully.'),
+                          backgroundColor: Color(0xFF107C41),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('No NAFIS cases to export.')),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.table_chart_rounded,
+                      color: Colors.white, size: 16),
+                  label: Text(
+                    'Excel',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12.5,
+                      color: Colors.white,
+                    ),
                   ),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('No NAFIS cases to export.')),
-                );
-              }
-            },
-          ),
-          IconButton(
-            icon:
-                const Icon(Icons.table_chart_rounded, color: AppColors.navyMid),
-            tooltip: 'All Cases Summary',
-            onPressed: () {
-              Navigator.push(
-                context,
-                AppTheme.fadeSlideRoute(
-                  page: NAFISSummaryScreen(stationName: widget.stationName),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF107C41),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
                 ),
-              );
-            },
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      AppTheme.fadeSlideRoute(
+                        page:
+                            NAFISSummaryScreen(stationName: widget.stationName),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.table_chart_rounded,
+                      color: Colors.white, size: 16),
+                  label: Text(
+                    'Summary',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12.5,
+                      color: Colors.white,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.navyMid,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
         // NAFIS | Fingerprint switch above these tabs when opened from the

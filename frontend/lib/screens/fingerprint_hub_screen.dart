@@ -544,19 +544,12 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.table_chart_outlined,
-                color: Color(0xFF16A34A)),
-            tooltip: 'Export to Excel',
-            onPressed:
-                visibleRows.isNotEmpty ? () => _exportExcel(visibleRows) : null,
-          ),
-          IconButton(
-            icon: const Icon(Icons.picture_as_pdf_outlined,
-                color: Color(0xFFDC2626)),
-            tooltip: 'Export PDF',
-            onPressed:
-                visibleRows.isNotEmpty ? () => _exportPdf(visibleRows) : null,
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: _buildExportButtons(visibleRows),
+            ),
           ),
         ],
         // NAFIS | Fingerprint switch above these tabs when opened from the
@@ -805,23 +798,8 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
               final actionWidgets = [
                 const SizedBox(width: 8),
                 _buildDateFilterMenu(context),
-                const SizedBox(width: 4),
-                IconButton(
-                  tooltip: TranslationHelper.translate(context, 'Export PDF'),
-                  onPressed: visibleRows.isNotEmpty
-                      ? () => _exportPdf(visibleRows)
-                      : null,
-                  icon: const Icon(Icons.picture_as_pdf_outlined,
-                      color: Color(0xFFDC2626), size: 20),
-                ),
-                IconButton(
-                  tooltip: TranslationHelper.translate(context, 'Export Excel'),
-                  onPressed: visibleRows.isNotEmpty
-                      ? () => _exportExcel(visibleRows)
-                      : null,
-                  icon: const Icon(Icons.table_chart_outlined,
-                      color: Color(0xFF16A34A), size: 20),
-                ),
+                const SizedBox(width: 8),
+                ..._buildExportButtons(visibleRows),
               ];
 
               if (isNarrow) {
@@ -1022,6 +1000,54 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
         ),
       ),
     );
+  }
+
+  List<Widget> _buildExportButtons(List<Map<String, dynamic>> visibleRows) {
+    final enabled = visibleRows.isNotEmpty;
+    return [
+      ElevatedButton.icon(
+        onPressed: enabled ? () => _exportExcel(visibleRows) : null,
+        icon: const Icon(Icons.table_chart_rounded,
+            color: Colors.white, size: 16),
+        label: Text(
+          'Excel',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            fontSize: 12.5,
+            color: Colors.white,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor:
+              enabled ? const Color(0xFF107C41) : Colors.grey.shade400,
+          disabledBackgroundColor: Colors.grey.shade400,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        ),
+      ),
+      const SizedBox(width: 8),
+      ElevatedButton.icon(
+        onPressed: enabled ? () => _exportPdf(visibleRows) : null,
+        icon: const Icon(Icons.picture_as_pdf_rounded,
+            color: Colors.white, size: 16),
+        label: Text(
+          'PDF',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            fontSize: 12.5,
+            color: Colors.white,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: enabled ? AppColors.navyMid : Colors.grey.shade400,
+          disabledBackgroundColor: Colors.grey.shade400,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        ),
+      ),
+    ];
   }
 
   Widget _buildDateFilterMenu(BuildContext context) {
