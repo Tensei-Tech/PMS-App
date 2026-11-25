@@ -27,6 +27,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
     this.isAbsconded = false,
     this.isVictim = false,
     this.isUndetected = false,
+    this.groupedData,
   });
 
   final bool isAd;
@@ -35,6 +36,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
   final bool isAbsconded;
   final bool isVictim;
   final bool isUndetected;
+  final Map<String, List<Map<String, String>>>? groupedData;
 
   @override
   Widget build(BuildContext context) {
@@ -141,8 +143,8 @@ class PendingCasesDemoDataTable extends StatelessWidget {
         }
 
         Widget headerCell(String s) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-              color: AppColors.navyMid,
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 9),
+              color: const Color(0xFFF8FAFC),
               alignment: Alignment.center,
               child: Text(
                 s,
@@ -151,7 +153,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                 style: GoogleFonts.poppins(
                   fontSize: headerFontSize,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                  color: AppColors.navyDark,
                   height: 1.15,
                 ),
               ),
@@ -233,12 +235,14 @@ class PendingCasesDemoDataTable extends StatelessWidget {
           if (!isUndetected && !isAbsconded) headerCell('Police Station'),
         ];
 
-        TableRow rowFor(int idx, Map<String, String> r) {
-          final bg = idx.isEven ? Colors.white : const Color(0xFFF6F8FF);
+        TableRow rowFor(int idx, Map<String, String> r, [int? customSerial]) {
+          final bg = (customSerial != null ? customSerial.isOdd : idx.isEven)
+              ? Colors.white
+              : const Color(0xFFF6F8FF);
           return TableRow(
             decoration: BoxDecoration(color: bg),
             children: [
-              dataCell('${serialOffset + idx + 1}'),
+              dataCell('${customSerial ?? (serialOffset + idx + 1)}'),
               clickableCrCell(r),
               dataCell(
                   r['sections']?.isNotEmpty == true ? r['sections']! : '—'),
@@ -277,27 +281,33 @@ class PendingCasesDemoDataTable extends StatelessWidget {
           );
         }
 
+        final isGrouped = groupedData != null && groupedData!.isNotEmpty;
+        final int totalRowsCount = isGrouped
+            ? groupedData!.values
+                .fold<int>(0, (prev, list) => prev + list.length)
+            : rows.length;
+
         final maxH = constraints.maxHeight;
         final hasFiniteHeight = maxH.isFinite;
-        final double estHeight = 44.0 * (rows.length + 1) + 20.0;
+        final double estHeight = 44.0 * (totalRowsCount + 1) + 20.0;
         final double containerHeight = hasFiniteHeight
             ? maxH
             : math.min(MediaQuery.of(context).size.height * 0.65, estHeight);
 
         final headerTable = Container(
           decoration: const BoxDecoration(
-            color: AppColors.navyMid,
+            color: Color(0xFFF8FAFC),
           ),
           child: Table(
             columnWidths: columnWidths,
             defaultVerticalAlignment: TableCellVerticalAlignment.middle,
             border: const TableBorder(
               verticalInside: BorderSide(color: Color(0xFFE2E8F0), width: 1),
-              bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+              bottom: BorderSide(color: Color(0xFFCBD5E1), width: 1.5),
             ),
             children: [
               TableRow(
-                decoration: const BoxDecoration(color: AppColors.navyMid),
+                decoration: const BoxDecoration(color: Color(0xFFF8FAFC)),
                 children: headers,
               ),
             ],
@@ -333,6 +343,102 @@ class PendingCasesDemoDataTable extends StatelessWidget {
           ),
         );
 
+        final List<Widget> groupWidgets = [];
+        if (isGrouped) {
+          var globalSerial = serialOffset;
+          for (final entry in groupedData!.entries) {
+            if (entry.value.isEmpty) continue;
+            groupWidgets.add(
+              Container(
+                width: tableWidth,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF1F5F9),
+                  border: Border(
+                    top: BorderSide(color: Color(0xFFCBD5E1), width: 1),
+                    bottom: BorderSide(color: Color(0xFFCBD5E1), width: 1),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: AppColors.navyMid.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Icon(
+                        Icons.category_outlined,
+                        size: 14,
+                        color: AppColors.navyMid,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      entry.key,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF1E293B),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFCBD5E1)),
+                      ),
+                      child: Text(
+                        '${entry.value.length} ${entry.value.length == 1 ? 'case' : 'cases'}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF475569),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+
+            groupWidgets.add(
+              Container(
+                decoration: const BoxDecoration(color: Colors.white),
+                child: Table(
+                  columnWidths: columnWidths,
+                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                  border: const TableBorder(
+                    horizontalInside:
+                        BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                    verticalInside:
+                        BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                    bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                  ),
+                  children: [
+                    for (var i = 0; i < entry.value.length; i++)
+                      rowFor(i, entry.value[i], ++globalSerial),
+                  ],
+                ),
+              ),
+            );
+          }
+        }
+
+        final Widget contentToScroll = isGrouped
+            ? (groupWidgets.isEmpty
+                ? bodyTable
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: groupWidgets,
+                  ))
+            : bodyTable;
+
         final inner = Container(
           width: tableWidth,
           height: hasFiniteHeight ? containerHeight : null,
@@ -353,7 +459,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                           thumbVisibility: true,
                           child: SingleChildScrollView(
                             scrollDirection: Axis.vertical,
-                            child: bodyTable,
+                            child: contentToScroll,
                           ),
                         ),
                       ),
@@ -364,7 +470,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       headerTable,
-                      bodyTable,
+                      contentToScroll,
                     ],
                   ),
           ),

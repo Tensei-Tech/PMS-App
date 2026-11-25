@@ -18,7 +18,7 @@ import '../utils/excel_export_helper.dart';
 import '../utils/case_visibility.dart';
 import '../widgets/arrested_cases_demo_data_table.dart';
 
-class ArrestedSummaryScreen extends StatelessWidget {
+class ArrestedSummaryScreen extends StatefulWidget {
   const ArrestedSummaryScreen({
     super.key,
     this.liveRows,
@@ -30,6 +30,13 @@ class ArrestedSummaryScreen extends StatelessWidget {
 
   /// Station scope for arrested Firestore read (ignored when [liveRows] is used).
   final String stationName;
+
+  @override
+  State<ArrestedSummaryScreen> createState() => _ArrestedSummaryScreenState();
+}
+
+class _ArrestedSummaryScreenState extends State<ArrestedSummaryScreen> {
+  String _selectedCategory = 'All';
 
   static bool _usingExplicitLive(List<Map<String, String>>? live) =>
       live != null && live.isNotEmpty;
@@ -86,6 +93,106 @@ class ArrestedSummaryScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildFilterChip({
+    required String label,
+    required int count,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.navyDark : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected ? AppColors.navyDark : const Color(0xFFCBD5E1),
+              width: isSelected ? 1.5 : 1.0,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: AppColors.navyDark.withValues(alpha: 0.15),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? Colors.white : const Color(0xFF334155),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? Colors.white.withValues(alpha: 0.2)
+                      : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '$count',
+                  style: GoogleFonts.poppins(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    color: isSelected ? Colors.white : const Color(0xFF64748B),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryFilterBar(List<Map<String, String>> dataset) {
+    final categories = _getUniqueCategories(dataset);
+    if (categories.isEmpty || categories.length <= 1) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _buildFilterChip(
+              label: 'All',
+              count: dataset.length,
+              isSelected: _selectedCategory == 'All',
+              onTap: () => setState(() => _selectedCategory = 'All'),
+            ),
+            for (final cat in categories) ...[
+              const SizedBox(width: 8),
+              _buildFilterChip(
+                label: cat,
+                count: _rowsForBucket(dataset, cat).length,
+                isSelected: _selectedCategory == cat,
+                onTap: () => setState(() => _selectedCategory = cat),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _builtContent(
     BuildContext context, {
     required List<Map<String, String>> dataset,
@@ -93,46 +200,21 @@ class ArrestedSummaryScreen extends StatelessWidget {
     required bool showDemoNote,
   }) {
     const title = 'Arrested Cases — Summary';
-    final anyRows = dataset.isNotEmpty;
+    final categories = _getUniqueCategories(dataset);
+    final isFiltered =
+        _selectedCategory != 'All' && categories.contains(_selectedCategory);
+    final visibleDataset =
+        isFiltered ? _rowsForBucket(dataset, _selectedCategory) : dataset;
+    final anyRows = visibleDataset.isNotEmpty;
 
-    Widget sectionBlock(String bucketLabel) {
-      final rows = _rowsForBucket(dataset, bucketLabel);
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Text(
-                bucketLabel,
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.navyDark,
-                ),
-              ),
-            ),
-            if (rows.isEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Text(
-                  'No cases',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.lightSubText,
-                  ),
-                ),
-              )
-            else
-              ArrestedCasesDemoDataTable(
-                isAd: false,
-                realDataRows: rows,
-              ),
-          ],
-        ),
-      );
+    final Map<String, List<Map<String, String>>> groupedMap = {};
+    if (!isFiltered) {
+      for (final cat in categories) {
+        final catRows = _rowsForBucket(dataset, cat);
+        if (catRows.isNotEmpty) {
+          groupedMap[cat] = catRows;
+        }
+      }
     }
 
     return Scaffold(
@@ -173,7 +255,9 @@ class ArrestedSummaryScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                '${dataset.length} Total',
+                isFiltered
+                    ? '${visibleDataset.length} of ${dataset.length}'
+                    : '${dataset.length} Total',
                 style: GoogleFonts.poppins(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
@@ -191,8 +275,8 @@ class ArrestedSummaryScreen extends StatelessWidget {
                     ? null
                     : () {
                         ExcelExportHelper.exportArrestedToExcel(
-                          dataset: dataset,
-                          filename: 'Arrested_Summary_All_Periods.csv',
+                          dataset: visibleDataset,
+                          filename: 'Arrested_Summary_Export.csv',
                         );
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -237,7 +321,8 @@ class ArrestedSummaryScreen extends StatelessWidget {
                   ? SystemMouseCursors.basic
                   : SystemMouseCursors.click,
               child: GestureDetector(
-                onTap: !anyRows ? null : () => _exportPdf(context, dataset),
+                onTap:
+                    !anyRows ? null : () => _exportPdf(context, visibleDataset),
                 child: Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -334,28 +419,92 @@ class ArrestedSummaryScreen extends StatelessWidget {
                     ],
                   );
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    isMobile ? 12 : 12,
-                    isMobile ? 10 : 10,
-                    isMobile ? 12 : 12,
-                    12,
+            return Padding(
+              padding: EdgeInsets.fromLTRB(
+                isMobile ? 12 : 24,
+                isMobile ? 10 : 20,
+                isMobile ? 12 : 24,
+                16,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  headerWidget,
+                  const SizedBox(height: 14),
+                  _buildCategoryFilterBar(dataset),
+                  Expanded(
+                    child: !anyRows
+                        ? Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.navyMid
+                                        .withValues(alpha: 0.06),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.lock_person_outlined,
+                                    size: 48,
+                                    color: AppColors.navyMid,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No Cases Found',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.navyDark,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'There are currently no arrested cases matching this category.',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 13,
+                                    color: AppColors.lightSubText,
+                                  ),
+                                ),
+                                if (isFiltered) ...[
+                                  const SizedBox(height: 14),
+                                  TextButton.icon(
+                                    onPressed: () => setState(
+                                        () => _selectedCategory = 'All'),
+                                    icon: const Icon(Icons.refresh_rounded,
+                                        size: 16),
+                                    label: const Text('View All Categories'),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          )
+                        : Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border:
+                                  Border.all(color: const Color(0xFFCBD5E1)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.02),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            padding: const EdgeInsets.all(12),
+                            child: ArrestedCasesDemoDataTable(
+                              isAd: false,
+                              realDataRows: isFiltered ? visibleDataset : null,
+                              groupedData: isFiltered ? null : groupedMap,
+                            ),
+                          ),
                   ),
-                  child: headerWidget,
-                ),
-                Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                    children: [
-                      for (final label in _getUniqueCategories(dataset))
-                        sectionBlock(label),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             );
           },
         ),
@@ -365,17 +514,17 @@ class ArrestedSummaryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (_usingExplicitLive(liveRows)) {
+    if (_usingExplicitLive(widget.liveRows)) {
       return _builtContent(
         context,
-        dataset: liveRows!,
+        dataset: widget.liveRows!,
         firedFromFirestoreExclusive: true,
         showDemoNote: false,
       );
     }
 
     return _LiveArrestedSummaryLoader(
-      fallbackStation: stationName,
+      fallbackStation: widget.stationName,
       buildContent: _builtContent,
     );
   }

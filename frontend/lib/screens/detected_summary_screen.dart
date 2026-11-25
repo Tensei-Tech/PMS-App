@@ -18,7 +18,7 @@ import '../utils/case_visibility.dart';
 import '../widgets/custom_pdf_preview_dialog.dart';
 import '../widgets/detected_cases_demo_data_table.dart';
 
-class DetectedSummaryScreen extends StatelessWidget {
+class DetectedSummaryScreen extends StatefulWidget {
   const DetectedSummaryScreen({
     super.key,
     this.liveRows,
@@ -30,6 +30,13 @@ class DetectedSummaryScreen extends StatelessWidget {
 
   /// Station scope for detected Firestore read (ignored when [liveRows] is used).
   final String stationName;
+
+  @override
+  State<DetectedSummaryScreen> createState() => _DetectedSummaryScreenState();
+}
+
+class _DetectedSummaryScreenState extends State<DetectedSummaryScreen> {
+  String _selectedCategory = 'All';
 
   static bool _usingExplicitLive(List<Map<String, String>>? live) =>
       live != null && live.isNotEmpty;
@@ -108,6 +115,106 @@ class DetectedSummaryScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildFilterChip({
+    required String label,
+    required int count,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.navyDark : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected ? AppColors.navyDark : const Color(0xFFCBD5E1),
+              width: isSelected ? 1.5 : 1.0,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: AppColors.navyDark.withValues(alpha: 0.15),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? Colors.white : const Color(0xFF334155),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? Colors.white.withValues(alpha: 0.2)
+                      : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '$count',
+                  style: GoogleFonts.poppins(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    color: isSelected ? Colors.white : const Color(0xFF64748B),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryFilterBar(List<Map<String, String>> dataset) {
+    final categories = _getUniqueCategories(dataset);
+    if (categories.isEmpty || categories.length <= 1) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _buildFilterChip(
+              label: 'All',
+              count: dataset.length,
+              isSelected: _selectedCategory == 'All',
+              onTap: () => setState(() => _selectedCategory = 'All'),
+            ),
+            for (final cat in categories) ...[
+              const SizedBox(width: 8),
+              _buildFilterChip(
+                label: cat,
+                count: _rowsForBucket(dataset, cat).length,
+                isSelected: _selectedCategory == cat,
+                onTap: () => setState(() => _selectedCategory = cat),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _builtContent(
     BuildContext context, {
     required List<Map<String, String>> dataset,
@@ -115,89 +222,21 @@ class DetectedSummaryScreen extends StatelessWidget {
     required bool showDemoNote,
   }) {
     const title = 'Detected Cases — Summary';
-    final anyRows = dataset.isNotEmpty;
+    final categories = _getUniqueCategories(dataset);
+    final isFiltered =
+        _selectedCategory != 'All' && categories.contains(_selectedCategory);
+    final visibleDataset =
+        isFiltered ? _rowsForBucket(dataset, _selectedCategory) : dataset;
+    final anyRows = visibleDataset.isNotEmpty;
 
-    Widget sectionBlock(String bucketLabel) {
-      final rows = _rowsForBucket(dataset, bucketLabel);
-      if (rows.isEmpty) return const SizedBox.shrink();
-      return Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: const BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: Color(0xFFF0F2F5)),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: AppColors.navyMid.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Icon(
-                      Icons.verified_outlined,
-                      size: 16,
-                      color: AppColors.navyMid,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      bucketLabel,
-                      style: GoogleFonts.poppins(
-                        fontSize: 14.5,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.navyMid.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      '${rows.length} ${rows.length == 1 ? 'Case' : 'Cases'}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyMid,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: DetectedCasesDemoDataTable(
-                isAd: false,
-                realDataRows: rows,
-              ),
-            ),
-          ],
-        ),
-      );
+    final Map<String, List<Map<String, String>>> groupedMap = {};
+    if (!isFiltered) {
+      for (final cat in categories) {
+        final catRows = _rowsForBucket(dataset, cat);
+        if (catRows.isNotEmpty) {
+          groupedMap[cat] = catRows;
+        }
+      }
     }
 
     return Scaffold(
@@ -238,7 +277,9 @@ class DetectedSummaryScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                '${dataset.length} Total',
+                isFiltered
+                    ? '${visibleDataset.length} of ${dataset.length}'
+                    : '${dataset.length} Total',
                 style: GoogleFonts.poppins(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
@@ -256,8 +297,8 @@ class DetectedSummaryScreen extends StatelessWidget {
                     ? null
                     : () {
                         ExcelExportHelper.exportDetectedToExcel(
-                          dataset: dataset,
-                          filename: 'Detected_Summary_All_Periods.csv',
+                          dataset: visibleDataset,
+                          filename: 'Detected_Summary_Export.csv',
                         );
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -301,7 +342,8 @@ class DetectedSummaryScreen extends StatelessWidget {
                   ? SystemMouseCursors.basic
                   : SystemMouseCursors.click,
               child: GestureDetector(
-                onTap: !anyRows ? null : () => _exportPdf(context, dataset),
+                onTap:
+                    !anyRows ? null : () => _exportPdf(context, visibleDataset),
                 child: Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -407,7 +449,8 @@ class DetectedSummaryScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   headerWidget,
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 14),
+                  _buildCategoryFilterBar(dataset),
                   Expanded(
                     child: !anyRows
                         ? Center(
@@ -433,15 +476,39 @@ class DetectedSummaryScreen extends StatelessWidget {
                                     color: AppColors.lightSubText,
                                   ),
                                 ),
+                                if (isFiltered) ...[
+                                  const SizedBox(height: 14),
+                                  TextButton.icon(
+                                    onPressed: () => setState(
+                                        () => _selectedCategory = 'All'),
+                                    icon: const Icon(Icons.refresh_rounded,
+                                        size: 16),
+                                    label: const Text('View All Categories'),
+                                  ),
+                                ],
                               ],
                             ),
                           )
-                        : ListView(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            children: [
-                              for (final label in _getUniqueCategories(dataset))
-                                sectionBlock(label),
-                            ],
+                        : Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border:
+                                  Border.all(color: const Color(0xFFCBD5E1)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.02),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            padding: const EdgeInsets.all(12),
+                            child: DetectedCasesDemoDataTable(
+                              isAd: false,
+                              realDataRows: isFiltered ? visibleDataset : null,
+                              groupedData: isFiltered ? null : groupedMap,
+                            ),
                           ),
                   ),
                 ],
@@ -455,17 +522,17 @@ class DetectedSummaryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (_usingExplicitLive(liveRows)) {
+    if (_usingExplicitLive(widget.liveRows)) {
       return _builtContent(
         context,
-        dataset: liveRows!,
+        dataset: widget.liveRows!,
         firedFromFirestoreExclusive: true,
         showDemoNote: false,
       );
     }
 
     return _LiveDetectedSummaryLoader(
-      fallbackStation: stationName,
+      fallbackStation: widget.stationName,
       buildContent: _builtContent,
     );
   }

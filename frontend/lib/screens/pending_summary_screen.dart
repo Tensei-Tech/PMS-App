@@ -19,7 +19,7 @@ import '../widgets/custom_pdf_preview_dialog.dart';
 import '../widgets/pending_cases_demo_data_table.dart';
 import 'pending_hub_screen.dart';
 
-class PendingSummaryScreen extends StatelessWidget {
+class PendingSummaryScreen extends StatefulWidget {
   const PendingSummaryScreen({
     super.key,
     this.liveRows,
@@ -47,6 +47,13 @@ class PendingSummaryScreen extends StatelessWidget {
 
   /// Whether this screen displays undetected cases
   final bool isUndetected;
+
+  @override
+  State<PendingSummaryScreen> createState() => _PendingSummaryScreenState();
+}
+
+class _PendingSummaryScreenState extends State<PendingSummaryScreen> {
+  String _selectedCategory = 'All';
 
   static bool _usingExplicitLive(List<Map<String, String>>? live) =>
       live != null && live.isNotEmpty;
@@ -95,13 +102,13 @@ class PendingSummaryScreen extends StatelessWidget {
             : '—',
         'Head': r['head']?.trim().isNotEmpty == true ? r['head']!.trim() : '—',
       };
-      if (isAbsconded) {
+      if (widget.isAbsconded) {
         rowMap['Accused Name (फरार आरोपी)'] =
             r['accused']?.trim().isNotEmpty == true
                 ? r['accused']!.trim()
                 : '—';
       }
-      if (isVictim) {
+      if (widget.isVictim) {
         rowMap['Name'] = r['victim_name']?.trim().isNotEmpty == true
             ? r['victim_name']!.trim()
             : '—';
@@ -112,7 +119,7 @@ class PendingSummaryScreen extends StatelessWidget {
       }
       rowMap['IO Name'] =
           r['io']?.trim().isNotEmpty == true ? r['io']!.trim() : '—';
-      if (!isUndetected && !isAbsconded) {
+      if (!widget.isUndetected && !widget.isAbsconded) {
         rowMap['Police Station'] = r['station']?.trim().isNotEmpty == true
             ? r['station']!.trim()
             : '—';
@@ -125,11 +132,11 @@ class PendingSummaryScreen extends StatelessWidget {
       'Cr. No.',
       'Sec & Act',
       'Head',
-      if (isAbsconded) 'Accused Name (फरार आरोपी)',
-      if (isVictim) 'Name',
-      if (isVictim) 'Injured/Deceased',
+      if (widget.isAbsconded) 'Accused Name (फरार आरोपी)',
+      if (widget.isVictim) 'Name',
+      if (widget.isVictim) 'Injured/Deceased',
       'IO Name',
-      if (!isUndetected && !isAbsconded) 'Police Station',
+      if (!widget.isUndetected && !widget.isAbsconded) 'Police Station',
     ];
 
     final theme = await PdfUnicodeFonts.openSansTheme();
@@ -149,98 +156,127 @@ class PendingSummaryScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildFilterChip({
+    required String label,
+    required int count,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.navyDark : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected ? AppColors.navyDark : const Color(0xFFCBD5E1),
+              width: isSelected ? 1.5 : 1.0,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: AppColors.navyDark.withValues(alpha: 0.15),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? Colors.white : const Color(0xFF334155),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? Colors.white.withValues(alpha: 0.2)
+                      : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '$count',
+                  style: GoogleFonts.poppins(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    color: isSelected ? Colors.white : const Color(0xFF64748B),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryFilterBar(List<Map<String, String>> dataset) {
+    final categories = _getUniqueCategories(dataset);
+    if (categories.isEmpty || categories.length <= 1) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _buildFilterChip(
+              label: 'All',
+              count: dataset.length,
+              isSelected: _selectedCategory == 'All',
+              onTap: () => setState(() => _selectedCategory = 'All'),
+            ),
+            for (final cat in categories) ...[
+              const SizedBox(width: 8),
+              _buildFilterChip(
+                label: cat,
+                count: _rowsForBucket(dataset, cat).length,
+                isSelected: _selectedCategory == cat,
+                onTap: () => setState(() => _selectedCategory = cat),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _builtContent(
     BuildContext context, {
     required List<Map<String, String>> dataset,
     required bool firedFromFirestoreExclusive,
     required bool showDemoNote,
   }) {
-    final anyRows = dataset.isNotEmpty;
+    final categories = _getUniqueCategories(dataset);
+    final isFiltered =
+        _selectedCategory != 'All' && categories.contains(_selectedCategory);
+    final visibleDataset =
+        isFiltered ? _rowsForBucket(dataset, _selectedCategory) : dataset;
+    final anyRows = visibleDataset.isNotEmpty;
 
-    Widget sectionBlock(String bucketLabel) {
-      final rows = _rowsForBucket(dataset, bucketLabel);
-      if (rows.isEmpty) return const SizedBox.shrink();
-      return Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: const BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: Color(0xFFF0F2F5)),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: AppColors.navyMid.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Icon(
-                      Icons.category_outlined,
-                      size: 16,
-                      color: AppColors.navyMid,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      bucketLabel,
-                      style: GoogleFonts.poppins(
-                        fontSize: 14.5,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.navyMid.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      '${rows.length} ${rows.length == 1 ? 'Case' : 'Cases'}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyMid,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: PendingCasesDemoDataTable(
-                isAd: false,
-                realDataRows: rows,
-                isAbsconded: isAbsconded,
-                isVictim: isVictim,
-                isUndetected: isUndetected,
-              ),
-            ),
-          ],
-        ),
-      );
+    final Map<String, List<Map<String, String>>> groupedMap = {};
+    if (!isFiltered) {
+      for (final cat in categories) {
+        final catRows = _rowsForBucket(dataset, cat);
+        if (catRows.isNotEmpty) {
+          groupedMap[cat] = catRows;
+        }
+      }
     }
 
     return Scaffold(
@@ -281,7 +317,9 @@ class PendingSummaryScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                '${dataset.length} Total',
+                isFiltered
+                    ? '${visibleDataset.length} of ${dataset.length}'
+                    : '${dataset.length} Total',
                 style: GoogleFonts.poppins(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
@@ -299,11 +337,11 @@ class PendingSummaryScreen extends StatelessWidget {
                     ? null
                     : () {
                         ExcelExportHelper.exportPendingToExcel(
-                          dataset: dataset,
-                          filename: 'Pending_Summary_All_Periods.csv',
-                          isAbsconded: isAbsconded,
-                          isVictim: isVictim,
-                          isUndetected: isUndetected,
+                          dataset: visibleDataset,
+                          filename: 'Pending_Summary_Export.csv',
+                          isAbsconded: widget.isAbsconded,
+                          isVictim: widget.isVictim,
+                          isUndetected: widget.isUndetected,
                         );
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -347,7 +385,8 @@ class PendingSummaryScreen extends StatelessWidget {
                   ? SystemMouseCursors.basic
                   : SystemMouseCursors.click,
               child: GestureDetector(
-                onTap: !anyRows ? null : () => _exportPdf(context, dataset),
+                onTap:
+                    !anyRows ? null : () => _exportPdf(context, visibleDataset),
                 child: Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -385,7 +424,7 @@ class PendingSummaryScreen extends StatelessWidget {
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              title,
+                              widget.title,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.poppins(
@@ -420,7 +459,7 @@ class PendingSummaryScreen extends StatelessWidget {
                           children: [
                             Flexible(
                               child: Text(
-                                title,
+                                widget.title,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.poppins(
@@ -453,7 +492,8 @@ class PendingSummaryScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   headerWidget,
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
+                  _buildCategoryFilterBar(dataset),
                   Expanded(
                     child: !anyRows
                         ? Center(
@@ -490,15 +530,42 @@ class PendingSummaryScreen extends StatelessWidget {
                                     color: AppColors.lightSubText,
                                   ),
                                 ),
+                                if (isFiltered) ...[
+                                  const SizedBox(height: 14),
+                                  TextButton.icon(
+                                    onPressed: () => setState(
+                                        () => _selectedCategory = 'All'),
+                                    icon: const Icon(Icons.refresh_rounded,
+                                        size: 16),
+                                    label: const Text('View All Categories'),
+                                  ),
+                                ],
                               ],
                             ),
                           )
-                        : ListView(
-                            padding: const EdgeInsets.only(bottom: 24),
-                            children: [
-                              for (final label in _getUniqueCategories(dataset))
-                                sectionBlock(label),
-                            ],
+                        : Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border:
+                                  Border.all(color: const Color(0xFFCBD5E1)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.02),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            padding: const EdgeInsets.all(12),
+                            child: PendingCasesDemoDataTable(
+                              isAd: false,
+                              realDataRows: isFiltered ? visibleDataset : null,
+                              groupedData: isFiltered ? null : groupedMap,
+                              isAbsconded: widget.isAbsconded,
+                              isVictim: widget.isVictim,
+                              isUndetected: widget.isUndetected,
+                            ),
                           ),
                   ),
                 ],
@@ -512,17 +579,17 @@ class PendingSummaryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (_usingExplicitLive(liveRows)) {
+    if (_usingExplicitLive(widget.liveRows)) {
       return _builtContent(
         context,
-        dataset: liveRows!,
+        dataset: widget.liveRows!,
         firedFromFirestoreExclusive: true,
         showDemoNote: false,
       );
     }
 
     return _LivePendingSummaryLoader(
-      fallbackStation: stationName,
+      fallbackStation: widget.stationName,
       buildContent: _builtContent,
     );
   }
