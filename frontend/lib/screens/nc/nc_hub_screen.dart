@@ -64,6 +64,7 @@ class _NcHubScreenState extends State<NcHubScreen>
           setState(() {});
         }
       });
+    _loading[_tab] = true;
     _scrollCtrl.addListener(_onScroll);
     _init();
   }
@@ -78,10 +79,13 @@ class _NcHubScreenState extends State<NcHubScreen>
   }
 
   Future<void> _init() async {
-    final cfg = await _service.fetchConfig(forceRefresh: true);
-    if (!mounted) return;
-    setState(() => _config = cfg);
-    await Future.wait([_refreshCounts(), _loadFirstPage(_tab)]);
+    final cfgFuture = _service.fetchConfig(forceRefresh: true);
+    final countsFuture = _refreshCounts();
+    final firstPageFuture = _loadFirstPage(_tab);
+
+    final cfg = await cfgFuture;
+    if (mounted) setState(() => _config = cfg);
+    await Future.wait([countsFuture, firstPageFuture]);
   }
 
   String _cfg(String group, String key) {
@@ -327,9 +331,10 @@ class _NcHubScreenState extends State<NcHubScreen>
   }
 
   Widget _buildList() {
+    final hasLoaded = _items.containsKey(_tab);
     final items = _items[_tab] ?? const [];
     final loading = _loading[_tab] == true;
-    if (items.isEmpty && loading) {
+    if (!hasLoaded || (items.isEmpty && loading)) {
       return const Center(child: CircularProgressIndicator());
     }
     if (items.isEmpty) {

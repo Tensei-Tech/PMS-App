@@ -1071,8 +1071,6 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
                         final receivedDateStr =
                             DateFormat('dd/MM/yyyy').format(r.incidentDate);
 
-                        final (statusBg, statusBorder, statusFg, statusIcon) =
-                            _getStatusStyle(r);
                         final statusLabel = LicenceProvider.isApprovedRecord(r)
                             ? 'Approved'
                             : LicenceProvider.isRejectedRecord(r)
@@ -1168,29 +1166,13 @@ class _LicenceHubScreenState extends State<LicenceHubScreen> {
                               ),
                             ),
                             DataCell(
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 5),
-                                decoration: BoxDecoration(
-                                  color: statusBg,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: statusBorder),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(statusIcon, size: 14, color: statusFg),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      TranslationHelper.translate(
-                                          context, statusLabel),
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w600,
-                                        color: statusFg,
-                                      ),
-                                    ),
-                                  ],
+                              Text(
+                                TranslationHelper.translate(
+                                    context, statusLabel),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.navyDark,
                                 ),
                               ),
                             ),

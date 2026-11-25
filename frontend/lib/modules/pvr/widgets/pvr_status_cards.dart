@@ -122,7 +122,6 @@ class PvrStatusCards extends StatelessWidget {
     final cardPaddingV = isCompact ? 8.0 : 10.0;
     final titleFontSize = isCompact ? 10.5 : 11.5;
     final countFontSize = isCompact ? 15.5 : 18.0;
-    final recordsFontSize = isCompact ? 9.0 : 10.5;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -172,31 +171,14 @@ class PvrStatusCards extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 1),
-                      Row(
-                        children: [
-                          Text(
-                            '$count',
-                            style: GoogleFonts.poppins(
-                              fontSize: countFontSize,
-                              fontWeight: FontWeight.w700,
-                              color:
-                                  isSelected ? accentColor : AppColors.navyDark,
-                            ),
-                          ),
-                          const SizedBox(width: 3),
-                          Flexible(
-                            child: Text(
-                              TranslationHelper.translate(context, 'records'),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.poppins(
-                                fontSize: recordsFontSize,
-                                fontWeight: FontWeight.w400,
-                                color: AppColors.lightSubText,
-                              ),
-                            ),
-                          ),
-                        ],
+                      Text(
+                        '$count',
+                        style: GoogleFonts.poppins(
+                          fontSize: countFontSize,
+                          fontWeight: FontWeight.w700,
+                          color:
+                              isSelected ? accentColor : AppColors.navyDark,
+                        ),
                       ),
                     ],
                   ),
