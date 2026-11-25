@@ -3706,12 +3706,12 @@ class _HomeTabState extends State<_HomeTab> {
     final width = MediaQuery.of(context).size.width;
 
     int cols = 4;
-    if (width > 1200) {
+    if (width > 1250) {
+      cols = 10;
+    } else if (width > 1000) {
       cols = 8;
-    } else if (width > 900) {
-      cols = 7;
-    } else if (width > 600) {
-      cols = 5;
+    } else if (width > 700) {
+      cols = 6;
     }
 
     final itemsPerGroup = cols * 3;
@@ -3891,7 +3891,8 @@ class _HomeTabState extends State<_HomeTab> {
           i, (i + itemsPerGroup).clamp(0, displayItems.length)));
     }
 
-    final listCols = width > 1050 ? 3 : (width > 650 ? 2 : 1);
+    final listCols =
+        width > 1150 ? 4 : (width > 850 ? 3 : (width > 550 ? 2 : 1));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -3959,9 +3960,9 @@ class _HomeTabState extends State<_HomeTab> {
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: listCols,
-                      mainAxisExtent: 54,
+                      mainAxisExtent: 48,
                       mainAxisSpacing: 8,
-                      crossAxisSpacing: 10,
+                      crossAxisSpacing: 8,
                     ),
                     itemCount: displayItems.length,
                     itemBuilder: (context, i) =>
@@ -3979,9 +3980,9 @@ class _HomeTabState extends State<_HomeTab> {
                             gridDelegate:
                                 SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: cols,
-                              childAspectRatio: isWide ? 0.84 : 0.76,
-                              mainAxisSpacing: 12,
-                              crossAxisSpacing: 12,
+                              childAspectRatio: isWide ? 0.85 : 0.78,
+                              mainAxisSpacing: 10,
+                              crossAxisSpacing: 10,
                             ),
                             itemCount: group.length,
                             itemBuilder: (context, i) {
@@ -4073,12 +4074,12 @@ class _HomeTabState extends State<_HomeTab> {
           borderRadius: BorderRadius.circular(10),
           hoverColor: AppColors.navyMid.withValues(alpha: 0.06),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
             child: Row(
               children: [
                 Container(
-                  width: 36,
-                  height: 36,
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
                     color: AppColors.navyDark.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(8),
@@ -4088,18 +4089,18 @@ class _HomeTabState extends State<_HomeTab> {
                       item.name,
                       matchedTool?.icon ?? _classIcon(item.iconName),
                       AppColors.navyMid,
-                      20,
+                      18,
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 9),
                 Expanded(
                   child: Text(
                     TranslationHelper.translate(context, label),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
-                      fontSize: 12.5,
+                      fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: AppColors.navyDark,
                     ),
@@ -4107,7 +4108,7 @@ class _HomeTabState extends State<_HomeTab> {
                 ),
                 const Icon(
                   Icons.chevron_right_rounded,
-                  size: 18,
+                  size: 16,
                   color: AppColors.lightSubText,
                 ),
               ],
@@ -4256,7 +4257,7 @@ class _HomeTabState extends State<_HomeTab> {
               // Fixed two-line label area: one- and two-line labels take the same
               // height, so every icon box in a row has the same size and position.
               SizedBox(
-                height: MediaQuery.textScalerOf(context).scale(34.0),
+                height: MediaQuery.textScalerOf(context).scale(32.0),
                 child: Align(
                   alignment: Alignment.topCenter,
                   child: Text(
@@ -4265,9 +4266,9 @@ class _HomeTabState extends State<_HomeTab> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
-                        fontSize: 11,
+                        fontSize: 10.5,
                         fontWeight: FontWeight.w600,
-                        height: 1.2,
+                        height: 1.18,
                         color: AppColors.lightText),
                   ),
                 ),
