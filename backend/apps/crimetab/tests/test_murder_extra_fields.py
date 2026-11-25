@@ -8,6 +8,8 @@ from apps.crimetab.models.groupings import CaseCategory, CaseCategoryGroup
 from apps.crimetab.services.dynamic_form_service import get_form_definition
 
 mig = importlib.import_module('apps.crimetab.migrations.0114_murder_extra_fields')
+# 0198 later made the Post-Mortem & FSL Yes / No radios checkboxes
+mig_0198 = importlib.import_module('apps.crimetab.migrations.0198_murder_post_mortem_checkboxes')
 KEYS = {k for _, k, *_ in mig.FIELDS}
 
 
@@ -33,6 +35,8 @@ class MurderExtraFieldsTests(TestCase):
         self.assertFalse(KEYS & set(self._fields(self.other)))
 
     def test_kyc_types_and_dates_on_yes(self):
+        # Same end state whether or not the database already ran 0198
+        mig_0198.forwards(django_apps, None)
         fields = self._fields(self.murder)
         self.assertEqual(fields['murder_deceased_mobile']['field_type'], 'mobile')
         self.assertEqual(fields['murder_deceased_aadhaar']['field_type'], 'aadhaar')
@@ -40,8 +44,8 @@ class MurderExtraFieldsTests(TestCase):
         for date_key in ('murder_postmortem_date', 'murder_pm_report_date', 'murder_viscera_fsl_date'):
             parent = fields[date_key]['depends_on_field_key']
             self.assertEqual(date_key, f'{parent}_date')
-            self.assertEqual(fields[date_key]['depends_on_value'], 'Yes')
-            self.assertEqual(fields[parent]['field_type'], 'radio')
+            self.assertEqual(fields[date_key]['depends_on_value'], mig_0198.TICKED)
+            self.assertEqual(fields[parent]['field_type'], 'checkbox')
 
     def test_idempotent_and_reversible(self):
         mig.forwards(django_apps, None)

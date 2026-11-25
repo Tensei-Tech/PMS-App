@@ -21,7 +21,9 @@ class FslReportReceivedLabelTests(TestCase):
                                           field_label='FSL Report Date', field_type='date')
 
     def label(self, key):
-        return FieldTemplateField.objects.get(field_key=key).field_label
+        # Only this test's rows: a migrated database has the real ones too
+        return FieldTemplateField.objects.get(
+            template__template_name='TEST Murder Extra', field_key=key).field_label
 
     def test_renamed(self):
         mig.forwards(django_apps, None)
