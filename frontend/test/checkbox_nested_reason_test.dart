@@ -58,8 +58,8 @@ void main() {
               title: 'Vehicle Log Book',
               icon: Icons.menu_book_outlined,
               fields: const [_box, _date, _reason],
-              controllers: {},
-              values: {'vehicle_log_book_entry': true},
+              controllers: Map<String, TextEditingController>.of({}),
+              values: Map<String, dynamic>.of({'vehicle_log_book_entry': true}),
               onValueChanged: (_, __) {},
               columns: 2,
             ),
@@ -72,7 +72,8 @@ void main() {
     expect(find.text('Log Book Entry Reason'), findsNothing,
         reason: 'the reason has no separate label above it');
     final inBox = find.descendant(
-      of: find.ancestor(
+      of: find
+          .ancestor(
               of: find.text('Vehicle Log Book Entry'),
               matching: find.byType(Container))
           .first,

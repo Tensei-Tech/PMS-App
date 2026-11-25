@@ -39,7 +39,7 @@ Widget _card(Map<String, dynamic> values) => MaterialApp(
               title: 'Evidence',
               icon: Icons.inventory_2_outlined,
               fields: const [_box, _date],
-              controllers: {},
+              controllers: Map<String, TextEditingController>.of({}),
               values: values,
               onValueChanged: (_, __) {},
               columns: 3,
@@ -63,8 +63,10 @@ void main() {
     expect(find.text('E-Shakshya Date'), findsNothing,
         reason: 'the date has no separate label');
     final inBox = find.descendant(
-      of: find.ancestor(
-          of: find.text('E-Shakshya'), matching: find.byType(Container)).first,
+      of: find
+          .ancestor(
+              of: find.text('E-Shakshya'), matching: find.byType(Container))
+          .first,
       matching: find.byType(TextFormField),
     );
     expect(inBox, findsOneWidget, reason: 'the date field is inside the card');
@@ -108,8 +110,8 @@ void main() {
               title: 'Post-Mortem & FSL',
               icon: Icons.science_outlined,
               fields: const [pmBox, pmDate],
-              controllers: {},
-              values: {'murder_postmortem': answer},
+              controllers: Map<String, TextEditingController>.of({}),
+              values: Map<String, dynamic>.of({'murder_postmortem': answer}),
               onValueChanged: (_, __) {},
               columns: 4,
             ),
@@ -121,8 +123,7 @@ void main() {
     testWidgets('saved "$answer": ticked, date inside', (tester) async {
       await tester.pumpWidget(pmCard(answer));
       await tester.pump();
-      expect(
-          tester.widget<Checkbox>(find.byType(Checkbox)).value, isTrue);
+      expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isTrue);
       expect(find.byType(TextFormField), findsOneWidget);
       expect(find.text('Date'), findsNothing);
     });
@@ -132,8 +133,7 @@ void main() {
     testWidgets('saved "$answer": unticked, no date', (tester) async {
       await tester.pumpWidget(pmCard(answer));
       await tester.pump();
-      expect(
-          tester.widget<Checkbox>(find.byType(Checkbox)).value, isFalse);
+      expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isFalse);
       expect(find.byType(TextFormField), findsNothing);
     });
   }

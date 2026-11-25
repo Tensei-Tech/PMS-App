@@ -21,8 +21,8 @@ DynamicFieldDef _f(int id, String label, String key, String section) =>
       section: section,
     );
 
-Future<void> _pump(WidgetTester tester, String title,
-    List<DynamicFieldDef> fields) async {
+Future<void> _pump(
+    WidgetTester tester, String title, List<DynamicFieldDef> fields) async {
   tester.view.physicalSize = const Size(1400, 900);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
@@ -37,7 +37,7 @@ Future<void> _pump(WidgetTester tester, String title,
             icon: Icons.description_outlined,
             fields: fields,
             controllers: controllers,
-            values: <String, dynamic>{},
+            values: Map<String, dynamic>.of({}),
             onValueChanged: (_, __) {},
             columns: 2,
           ),
