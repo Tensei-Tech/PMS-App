@@ -2681,9 +2681,9 @@ class _HomeTabState extends State<_HomeTab> {
           ),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              _buildSearchBar(),
-              const SizedBox(height: AppSpacing.md),
               _buildNewsCarousel(newsProvider, isWide),
+              const SizedBox(height: AppSpacing.md),
+              _buildModulesToolbar(isWide, showToggle: !_hasActiveSearch),
               if (_hasActiveSearch) ...[
                 const SizedBox(height: AppSpacing.md),
                 _buildMatchingModuleTabs(_searchQuery),
@@ -2694,7 +2694,8 @@ class _HomeTabState extends State<_HomeTab> {
                   const SizedBox(height: AppSpacing.md),
                   _buildNoResults(),
                 ],
-              ],
+              ] else
+                const SizedBox(height: AppSpacing.sm),
             ]),
           ),
         ),
@@ -2775,6 +2776,73 @@ class _HomeTabState extends State<_HomeTab> {
               ),
             ),
           ],
+        ],
+      ],
+    );
+  }
+
+  Widget _buildModulesToolbar(bool isWide, {required bool showToggle}) {
+    final title = Text(
+      TranslationHelper.translate(context, 'Modules'),
+      style: GoogleFonts.poppins(
+        fontSize: 13.5,
+        fontWeight: FontWeight.w700,
+        color: AppColors.navyDark,
+      ),
+    );
+    final toggle = Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFCBD5E1)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _viewModeButton(
+            icon: Icons.grid_view_rounded,
+            label: 'Grid',
+            isSelected: !_isTileListView,
+            onTap: () => setState(() => _isTileListView = false),
+          ),
+          const SizedBox(width: 2),
+          _viewModeButton(
+            icon: Icons.view_list_rounded,
+            label: 'List',
+            isSelected: _isTileListView,
+            onTap: () => setState(() => _isTileListView = true),
+          ),
+        ],
+      ),
+    );
+
+    if (!isWide) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildSearchBar(),
+          if (showToggle) ...[
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [title, toggle],
+            ),
+          ],
+        ],
+      );
+    }
+
+    return Row(
+      children: [
+        if (showToggle) ...[
+          title,
+          const SizedBox(width: 12),
+        ],
+        Expanded(child: _buildSearchBar()),
+        if (showToggle) ...[
+          const SizedBox(width: 12),
+          toggle,
         ],
       ],
     );
@@ -3894,117 +3962,69 @@ class _HomeTabState extends State<_HomeTab> {
     final listCols =
         width > 1150 ? 4 : (width > 850 ? 3 : (width > 550 ? 2 : 1));
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                TranslationHelper.translate(context, 'Modules'),
-                style: GoogleFonts.poppins(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.navyDark,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(3),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFCBD5E1)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _viewModeButton(
-                      icon: Icons.grid_view_rounded,
-                      label: 'Grid',
-                      isSelected: !_isTileListView,
-                      onTap: () => setState(() => _isTileListView = false),
-                    ),
-                    const SizedBox(width: 2),
-                    _viewModeButton(
-                      icon: Icons.view_list_rounded,
-                      label: 'List',
-                      isSelected: _isTileListView,
-                      onTap: () => setState(() => _isTileListView = true),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        border: Border.all(color: AppColors.lightBorder, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
           ),
-        ),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(AppRadius.xl),
-            border: Border.all(color: AppColors.lightBorder, width: 1.5),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 14,
-                offset: const Offset(0, 5),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: _isTileListView
+            ? GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: listCols,
+                  mainAxisExtent: 48,
+                  mainAxisSpacing: 8,
+                  crossAxisSpacing: 8,
+                ),
+                itemCount: displayItems.length,
+                itemBuilder: (context, i) =>
+                    _buildClassificationListItem(context, displayItems[i]),
+              )
+            : Column(
+                children: List.generate(groups.length, (gi) {
+                  final group = groups[gi];
+                  final isLast = gi == groups.length - 1;
+                  return Column(
+                    children: [
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: cols,
+                          childAspectRatio: isWide ? 0.85 : 0.78,
+                          mainAxisSpacing: 10,
+                          crossAxisSpacing: 10,
+                        ),
+                        itemCount: group.length,
+                        itemBuilder: (context, i) {
+                          return _buildClassificationGridItem(
+                              context, group[i]);
+                        },
+                      ),
+                      if (!isLast) ...[
+                        const SizedBox(height: 10),
+                        const Divider(
+                            height: 1,
+                            thickness: 1,
+                            color: AppColors.lightBorder),
+                        const SizedBox(height: 10),
+                      ],
+                    ],
+                  );
+                }),
               ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: _isTileListView
-                ? GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: listCols,
-                      mainAxisExtent: 48,
-                      mainAxisSpacing: 8,
-                      crossAxisSpacing: 8,
-                    ),
-                    itemCount: displayItems.length,
-                    itemBuilder: (context, i) =>
-                        _buildClassificationListItem(context, displayItems[i]),
-                  )
-                : Column(
-                    children: List.generate(groups.length, (gi) {
-                      final group = groups[gi];
-                      final isLast = gi == groups.length - 1;
-                      return Column(
-                        children: [
-                          GridView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: cols,
-                              childAspectRatio: isWide ? 0.85 : 0.78,
-                              mainAxisSpacing: 10,
-                              crossAxisSpacing: 10,
-                            ),
-                            itemCount: group.length,
-                            itemBuilder: (context, i) {
-                              return _buildClassificationGridItem(
-                                  context, group[i]);
-                            },
-                          ),
-                          if (!isLast) ...[
-                            const SizedBox(height: 10),
-                            const Divider(
-                                height: 1,
-                                thickness: 1,
-                                color: AppColors.lightBorder),
-                            const SizedBox(height: 10),
-                          ],
-                        ],
-                      );
-                    }),
-                  ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
