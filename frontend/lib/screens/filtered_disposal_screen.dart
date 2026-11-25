@@ -113,124 +113,176 @@ class _FilteredDisposalScreenState extends State<FilteredDisposalScreen> {
     return Scaffold(
       backgroundColor: AppColors.lightBg,
       body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.lightBorder),
-                      ),
-                      child: const Icon(Icons.arrow_back_rounded,
-                          color: AppColors.navyMid, size: 20),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      widget.title,
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  MouseRegion(
-                    cursor: _records.isEmpty
-                        ? SystemMouseCursors.basic
-                        : SystemMouseCursors.click,
-                    child: GestureDetector(
-                      onTap: _records.isEmpty ? null : _exportExcel,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: _records.isEmpty
-                              ? Colors.grey.shade400
-                              : const Color(0xFF107C41),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.table_chart_rounded,
-                                color: Colors.white, size: 17),
-                            const SizedBox(width: 5),
-                            Text(
-                              'Excel',
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  MouseRegion(
-                    cursor: _records.isEmpty
-                        ? SystemMouseCursors.basic
-                        : SystemMouseCursors.click,
-                    child: GestureDetector(
-                      onTap: _records.isEmpty ? null : _exportPdf,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: _records.isEmpty
-                              ? Colors.grey.shade400
-                              : AppColors.navyMid,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.picture_as_pdf_rounded,
-                                color: Colors.white, size: 17),
-                            const SizedBox(width: 5),
-                            Text(
-                              'PDF',
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isMobile = constraints.maxWidth < 650;
+
+            final backButton = GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.lightBorder),
+                ),
+                child: const Icon(Icons.arrow_back_rounded,
+                    color: AppColors.navyMid, size: 20),
               ),
-            ),
-            Expanded(
-              child: DisposalCaseListView(
-                ioUid: widget.ioUid,
-                startDate: widget.startDate,
-                endDate: widget.endDate,
-                crimeType: widget.crimeType,
-                groupId: widget.groupId,
-                onRecordsLoaded: (records) {
-                  setState(() => _records = records);
-                },
+            );
+
+            final excelButton = MouseRegion(
+              cursor: _records.isEmpty
+                  ? SystemMouseCursors.basic
+                  : SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: _records.isEmpty ? null : _exportExcel,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: _records.isEmpty
+                        ? Colors.grey.shade400
+                        : const Color(0xFF107C41),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.table_chart_rounded,
+                          color: Colors.white, size: 17),
+                      const SizedBox(width: 5),
+                      Text(
+                        'Excel',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ],
+            );
+
+            final pdfButton = MouseRegion(
+              cursor: _records.isEmpty
+                  ? SystemMouseCursors.basic
+                  : SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: _records.isEmpty ? null : _exportPdf,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: _records.isEmpty
+                        ? Colors.grey.shade400
+                        : AppColors.navyMid,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.picture_as_pdf_rounded,
+                          color: Colors.white, size: 17),
+                      const SizedBox(width: 5),
+                      Text(
+                        'PDF',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+
+            final headerWidget = isMobile
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          backButton,
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              widget.title,
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.navyDark,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          excelButton,
+                          const SizedBox(width: 8),
+                          pdfButton,
+                        ],
+                      ),
+                    ],
+                  )
+                : Row(
+                    children: [
+                      backButton,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          widget.title,
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.navyDark,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      excelButton,
+                      const SizedBox(width: 8),
+                      pdfButton,
+                    ],
+                  );
+
+            return Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    isMobile ? 12 : 12,
+                    isMobile ? 10 : 10,
+                    isMobile ? 12 : 12,
+                    12,
+                  ),
+                  child: headerWidget,
+                ),
+                Expanded(
+                  child: DisposalCaseListView(
+                    ioUid: widget.ioUid,
+                    startDate: widget.startDate,
+                    endDate: widget.endDate,
+                    crimeType: widget.crimeType,
+                    groupId: widget.groupId,
+                    onRecordsLoaded: (records) {
+                      setState(() => _records = records);
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
