@@ -46,6 +46,12 @@ def backwards(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
+    reviewed_dangerous = (
+        'Deletes one form-config row (Common Form field mobile_spot_recording_date), '
+        'no case data; saved dates stay in case records. Applied on the shared DB '
+        '2026-11-24; backwards recreates the field.'
+    )
+
     dependencies = [
         ('crimetab', '0196_complainant_occupation_after_caste'),
     ]
