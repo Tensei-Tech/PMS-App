@@ -145,7 +145,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
         Widget headerCell(String s, {Alignment align = Alignment.center}) =>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
-              color: const Color(0xFFF8FAFC),
+              color: AppColors.navyMid,
               alignment: align,
               child: Text(
                 s,
@@ -156,7 +156,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                 style: GoogleFonts.poppins(
                   fontSize: headerFontSize,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.navyDark,
+                  color: Colors.white,
                   height: 1.15,
                 ),
               ),
@@ -305,18 +305,18 @@ class PendingCasesDemoDataTable extends StatelessWidget {
 
         final headerTable = Container(
           decoration: const BoxDecoration(
-            color: Color(0xFFF8FAFC),
+            color: AppColors.navyMid,
           ),
           child: Table(
             columnWidths: columnWidths,
             defaultVerticalAlignment: TableCellVerticalAlignment.middle,
             border: const TableBorder(
-              verticalInside: BorderSide(color: Color(0xFFE2E8F0), width: 1),
-              bottom: BorderSide(color: Color(0xFFCBD5E1), width: 1.5),
+              verticalInside: BorderSide(color: Color(0x33FFFFFF), width: 1),
+              bottom: BorderSide(color: AppColors.navyDark, width: 1.5),
             ),
             children: [
               TableRow(
-                decoration: const BoxDecoration(color: Color(0xFFF8FAFC)),
+                decoration: const BoxDecoration(color: AppColors.navyMid),
                 children: headers,
               ),
             ],
@@ -363,10 +363,10 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                 decoration: const BoxDecoration(
-                  color: Color(0xFFF1F5F9),
+                  color: Color(0xFFEEF2FF),
                   border: Border(
-                    top: BorderSide(color: Color(0xFFCBD5E1), width: 1),
-                    bottom: BorderSide(color: Color(0xFFCBD5E1), width: 1),
+                    top: BorderSide(color: Color(0xFFC7D2FE), width: 1),
+                    bottom: BorderSide(color: Color(0xFFC7D2FE), width: 1),
                   ),
                 ),
                 child: Row(
@@ -374,7 +374,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: AppColors.navyMid.withValues(alpha: 0.1),
+                        color: AppColors.navyMid.withValues(alpha: 0.14),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: const Icon(
@@ -389,7 +389,7 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                       style: GoogleFonts.poppins(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF1E293B),
+                        color: AppColors.navyDark,
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -399,14 +399,14 @@ class PendingCasesDemoDataTable extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFCBD5E1)),
+                        border: Border.all(color: const Color(0xFFC7D2FE)),
                       ),
                       child: Text(
                         '${entry.value.length} ${entry.value.length == 1 ? 'case' : 'cases'}',
                         style: GoogleFonts.poppins(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF475569),
+                          color: AppColors.navyMid,
                         ),
                       ),
                     ),
