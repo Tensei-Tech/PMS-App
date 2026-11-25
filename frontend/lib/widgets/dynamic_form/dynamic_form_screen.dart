@@ -124,9 +124,37 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   List<List<_SubStep>> _lastSteps = const [];
 
   void _goTo(int step, int sub) => setState(() {
+        _untickBoxesWithoutDate();
         _formStep = step;
         _formSub = sub;
       });
+
+  /// Checkboxes that need their date ("<key>_date", shown inside the
+  /// box's card once ticked): Murder Post-Mortem & FSL.
+  static const _boxesNeedingDate = [
+    'murder_postmortem',
+    'murder_pm_report',
+    'murder_viscera_fsl',
+    'murder_fsl_report',
+  ];
+
+  /// On leaving a section, a box above that was ticked but left without
+  /// its date is unticked again.
+  void _untickBoxesWithoutDate() {
+    for (final k in _boxesNeedingDate) {
+      final v = _values[k];
+      final ticked = v == true || v == 'true' || v == 'Yes' || v == 1;
+      if (!ticked) continue;
+      final dateKey = '${k}_date';
+      final date = (_controllers[dateKey]?.text ?? _values[dateKey] ?? '')
+          .toString()
+          .trim();
+      if (date.isNotEmpty) continue;
+      _values[k] = false;
+      _controllers[k]?.text = '';
+      _values.remove(dateKey);
+    }
+  }
 
   // Accused whose arrest & custody are shown; null = the first one
   String? _focusedAccused;
@@ -9615,13 +9643,13 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
     );
   }
 
-  /// Clears a Grant date that is no longer after its step's Send date
-  /// (e.g. the Send date was moved later).
+  /// Clears a Grant date that is now before its step's Send date
+  /// (e.g. the Send date was moved later). The same day is kept.
   void _dropGrantsNotAfterSend() {
     for (final e in _scrutinyGrantSendKeys.entries) {
       final grant = _parseDmy(_controllers[e.key]?.text);
       final send = _parseDmy(_controllers[e.value]?.text);
-      if (grant != null && send != null && !grant.isAfter(send)) {
+      if (grant != null && send != null && grant.isBefore(send)) {
         _controllers[e.key]?.clear();
         _values[e.key] = '';
       }
@@ -9632,7 +9660,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
   final Map<String, String> _scrutinyGrantSendKeys = {};
 
   /// [afterKey]: the Send date of the same step. A Grant date can only be
-  /// picked once that is set, and only for a day after it.
+  /// picked once that is set, starting on that same day.
   Widget _buildScrutinyDateField({
     required String label,
     required String fieldKey,
@@ -9679,7 +9707,7 @@ class _DynamicFormScreenState extends State<DynamicFormScreen> {
           onTap: (enabled && !widget.readOnly)
               ? () async {
                   await _pickDateForController(context, ctrl,
-                      firstDate: afterDate?.add(const Duration(days: 1)));
+                      firstDate: afterDate);
                   _values[fieldKey] = ctrl.text.trim();
                   _dropGrantsNotAfterSend();
                   setState(() {});
@@ -11426,27 +11454,32 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text.rich(
-          TextSpan(
-            text: label,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppColors.navyDark,
-            ),
-            children: [
-              if (required)
-                const TextSpan(
-                  text: ' *',
-                  style: TextStyle(
-                    color: AppColors.dangerRed,
-                    fontWeight: FontWeight.bold,
+        // One line, shrunk a little if the box is narrow, never cut off
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text.rich(
+            TextSpan(
+              text: label,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.navyDark,
+              ),
+              children: [
+                if (required)
+                  const TextSpan(
+                    text: ' *',
+                    style: TextStyle(
+                      color: AppColors.dangerRed,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-            ],
+              ],
+            ),
+            maxLines: 1,
+            softWrap: false,
           ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 8),
         field,
@@ -11454,8 +11487,10 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
     );
   }
 
+  /// [compact]: the five-on-one-line PC layout (hint "Select date",
+  /// smaller padding, calendar icon close to the right edge).
   Widget _buildDateField(String label, TextEditingController ctrl,
-      {bool required = false}) {
+      {bool required = false, bool compact = false}) {
     return _labelled(
         label,
         required: required,
@@ -11469,19 +11504,26 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
             color: AppColors.navyDark,
           ),
           decoration: InputDecoration(
-            hintText: 'DD/MM/YYYY',
+            hintText: compact ? 'Select date' : 'DD/MM/YYYY',
             hintStyle: GoogleFonts.poppins(
                 fontSize: 12, color: AppColors.lightSubText),
             filled: true,
             fillColor: Colors.white,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            contentPadding: EdgeInsets.symmetric(
+                horizontal: compact ? 10 : 14, vertical: 12),
             suffixIcon: IconButton(
               icon: const Icon(Icons.calendar_month_rounded,
                   size: 20, color: AppColors.navyMid),
               onPressed: widget.readOnly ? null : () => _pickDate(ctrl),
               tooltip: 'Select date',
+              padding: compact ? EdgeInsets.zero : null,
+              constraints: compact
+                  ? const BoxConstraints(minWidth: 34, minHeight: 34)
+                  : null,
             ),
+            suffixIconConstraints: compact
+                ? const BoxConstraints(minWidth: 34, minHeight: 34)
+                : null,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.md),
               borderSide: const BorderSide(color: AppColors.lightBorder),
@@ -11499,9 +11541,9 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
         ));
   }
 
-  Widget _buildOutwardField() {
+  Widget _buildOutwardField({bool compact = false}) {
     return _labelled(
-        'Outward Number',
+        compact ? 'Outward No.' : 'Outward Number',
         TextFormField(
           controller: _outwardCtrl,
           readOnly: widget.readOnly,
@@ -11517,8 +11559,8 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
                 fontSize: 12, color: AppColors.lightSubText),
             filled: true,
             fillColor: Colors.white,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            contentPadding: EdgeInsets.symmetric(
+                horizontal: compact ? 10 : 14, vertical: 12),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.md),
               borderSide: const BorderSide(color: AppColors.lightBorder),
@@ -11536,9 +11578,9 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
         ));
   }
 
-  Widget _buildNumberField() {
+  Widget _buildNumberField({bool compact = false}) {
     return _labelled(
-        'Preventive Number',
+        compact ? 'Preventive No.' : 'Preventive Number',
         TextFormField(
           controller: _numberCtrl,
           readOnly: widget.readOnly,
@@ -11549,13 +11591,13 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
           ),
           onChanged: (_) => _notifySave(),
           decoration: InputDecoration(
-            hintText: 'Enter preventive number',
+            hintText: compact ? 'Number' : 'Enter preventive number',
             hintStyle: GoogleFonts.poppins(
                 fontSize: 12, color: AppColors.lightSubText),
             filled: true,
             fillColor: Colors.white,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            contentPadding: EdgeInsets.symmetric(
+                horizontal: compact ? 10 : 14, vertical: 12),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.md),
               borderSide: const BorderSide(color: AppColors.lightBorder),
@@ -11752,6 +11794,30 @@ class _PreventivePersonCardState extends State<_PreventivePersonCard> {
               LayoutBuilder(
                 builder: (context, constraints) {
                   final isWide = constraints.maxWidth > 650;
+                  // PC: all five on one line, short one-line names
+                  if (MediaQuery.sizeOf(context).width >= 1000 &&
+                      constraints.maxWidth >= 600) {
+                    final cells = [
+                      _buildDateField('Action Date', _dateCtrl,
+                          required: true, compact: true),
+                      _buildOutwardField(compact: true),
+                      _buildNumberField(compact: true),
+                      _buildDateField('Bond Date', _bondDateCtrl,
+                          compact: true),
+                      _buildDateField(
+                          'Bond Cancellation Date', _bondCancelDateCtrl,
+                          compact: true),
+                    ];
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (var i = 0; i < cells.length; i++) ...[
+                          if (i > 0) const SizedBox(width: 8),
+                          Expanded(child: cells[i]),
+                        ],
+                      ],
+                    );
+                  }
                   if (isWide) {
                     return Column(
                       children: [
@@ -12111,11 +12177,29 @@ class _CustodyAccusedCardState extends State<_CustodyAccusedCard> {
         child: child,
       );
 
-  /// Surety details (opened by Bail): four fields per line on a wide card
+  /// Surety details (opened by Bail). PC: four fields per line, no PAN box
   /// (Name | Age | Gender | Occupation, Mobile | Aadhaar | Relation |
-  /// Address), two or one per line when narrower. Labels sit above the
-  /// boxes on one line each, so every box starts at the same height. No PAN
-  /// box: a PAN saved earlier is kept as it is.
+  /// Address); a PAN saved earlier is kept. Phone / tablet as before: three,
+  /// two or one per line, with PAN. Labels sit above the boxes on one line
+  /// each, so every box starts at the same height.
+  /// The Surety details card, so Bail can scroll it into view.
+  final GlobalKey _suretyCardKey = GlobalKey();
+
+  /// After Bail opens the surety card, scroll just enough that the whole
+  /// card is on screen (nothing moves if it already is).
+  void _scrollSuretyIntoView() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = _suretyCardKey.currentContext;
+      if (ctx == null || !mounted) return;
+      Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOutCubic,
+        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+      );
+    });
+  }
+
   Widget _buildSuretyCard() {
     InputDecoration deco(String hint) => InputDecoration(
           hintText: hint,
@@ -12208,22 +12292,32 @@ class _CustodyAccusedCardState extends State<_CustodyAccusedCard> {
     final genders = widget.genderOptions.isNotEmpty
         ? widget.genderOptions
         : const ['Male', 'Female', 'Transgender'];
-    final cells = <Widget>[
-      text('Name', _suretyNameCtrl, 'Full name'),
-      text('Age', _suretyAgeCtrl, 'e.g. 45', keyboard: TextInputType.number),
-      dropdown('Gender', _suretyGender, genders, 'Select gender',
-          (v) => _suretyGender = v),
-      text('Occupation', _suretyOccCtrl, 'Occupation'),
-      text('Mobile', _suretyMobileCtrl, '10-digit number',
-          keyboard: TextInputType.phone),
-      text('Aadhaar', _suretyAadhaarCtrl, 'XXXX XXXX XXXX',
-          keyboard: TextInputType.number),
-      dropdown('Relation with accused', _suretyRelation, widget.relationChoices,
-          'Select relation', (v) => _suretyRelation = v),
-      text('Address', _suretyAddressCtrl, 'Residential address'),
-    ];
+    // PC: no PAN box, four per line. Phone / tablet keep the PAN box.
+    List<Widget> cellsFor(bool pc) => [
+          text('Name', _suretyNameCtrl, 'Full name'),
+          text('Age', _suretyAgeCtrl, 'e.g. 45',
+              keyboard: TextInputType.number),
+          dropdown('Gender', _suretyGender, genders, 'Select gender',
+              (v) => _suretyGender = v),
+          text('Occupation', _suretyOccCtrl, 'Occupation'),
+          text('Mobile', _suretyMobileCtrl, '10-digit number',
+              keyboard: TextInputType.phone),
+          text('Aadhaar', _suretyAadhaarCtrl, 'XXXX XXXX XXXX',
+              keyboard: TextInputType.number),
+          if (!pc)
+            text('PAN', _suretyPanCtrl, 'ABCDE1234F',
+                caps: TextCapitalization.characters),
+          dropdown(
+              'Relation with accused',
+              _suretyRelation,
+              widget.relationChoices,
+              'Select relation',
+              (v) => _suretyRelation = v),
+          text('Address', _suretyAddressCtrl, 'Residential address'),
+        ];
 
     return Container(
+      key: _suretyCardKey,
       margin: const EdgeInsets.only(top: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -12259,7 +12353,11 @@ class _CustodyAccusedCardState extends State<_CustodyAccusedCard> {
           ),
           const SizedBox(height: 12),
           LayoutBuilder(builder: (context, c) {
-            final perLine = c.maxWidth >= 760 ? 4 : (c.maxWidth >= 380 ? 2 : 1);
+            final pc =
+                MediaQuery.sizeOf(context).width >= 1000 && c.maxWidth >= 600;
+            final perLine =
+                pc ? 4 : (c.maxWidth >= 600 ? 3 : (c.maxWidth >= 380 ? 2 : 1));
+            final cells = cellsFor(pc);
             final rows = <Widget>[];
             for (var i = 0; i < cells.length; i += perLine) {
               rows.add(Padding(
@@ -12517,6 +12615,7 @@ class _CustodyAccusedCardState extends State<_CustodyAccusedCard> {
                                     }
                                   });
                                   _notifyChange();
+                                  if (_isBail) _scrollSuretyIntoView();
                                 },
                           controlAffinity: ListTileControlAffinity.leading,
                           dense: true,
