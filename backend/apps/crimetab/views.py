@@ -1251,13 +1251,18 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
     allowed_prev_types = None
 
     def _check_prev_type(act_type):
-        # Allowed provisions come from public.option_values, not a hardcoded list
+        # Listed provisions come from public.option_values; the form's "Other"
+        # lets the officer type one that is not listed, so any non-empty text
+        # that fits the column (100) is accepted too
         nonlocal allowed_prev_types
         if allowed_prev_types is None:
             allowed_prev_types = set(get_preventive_action_types())
-        if act_type not in allowed_prev_types:
+        if act_type in allowed_prev_types:
+            return act_type
+        typed = str(act_type or '').strip()
+        if not typed or len(typed) > 100:
             raise ValueError(f"Invalid preventive action type: '{act_type}'.")
-        return act_type
+        return typed
 
     if prev_actions is not None and isinstance(prev_actions, list):
         PreventiveActionItems.objects.filter(case=case).delete()
@@ -1277,7 +1282,7 @@ def _save_case_child_entities(case: CaseRecord, data: dict):
                         role='accused'
                     )
                 if act_type and act_date:
-                    _check_prev_type(act_type)
+                    act_type = _check_prev_type(act_type)
                     b_dt = _parse_d(pa.get('bond_date') or pa.get('bondDate'))
                     b_c_dt = _parse_d(pa.get('bond_cancellation_date') or pa.get('bondCancellationDate'))
                     PreventiveActionItems.objects.update_or_create(
