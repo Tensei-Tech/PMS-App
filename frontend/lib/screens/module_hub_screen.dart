@@ -1590,135 +1590,111 @@ class _ModuleHubScreenState extends State<ModuleHubScreen> {
 
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(color: AppColors.lightBorder),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      TranslationHelper.translate(
-                          context, 'Summons & Warrant Report'),
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navyDark,
-                      ),
-                    ),
-                    Text(
-                      monthYearLabel,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.goldPrimary,
-                      ),
-                    ),
-                  ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Compact Month/Year selector
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                TranslationHelper.translate(
+                    context, 'Summons & Warrant Report'),
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.navyDark,
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // Month/Year selector (compact)
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      border: Border.all(color: AppColors.lightBorder),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<int>(
-                        value: _reportMonth,
-                        isExpanded: true,
-                        icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                            color: AppColors.navyMid),
-                        items: List.generate(
-                          12,
-                          (i) => DropdownMenuItem(
-                            value: i + 1,
-                            child: Text(
-                              TranslationHelper.translate(context, months[i]),
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, fontWeight: FontWeight.w600),
-                            ),
-                          ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                width: 165,
+                height: 40,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFCBD5E1)),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<int>(
+                    value: _reportMonth,
+                    isExpanded: true,
+                    icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                        color: AppColors.navyMid),
+                    items: List.generate(
+                      12,
+                      (i) => DropdownMenuItem(
+                        value: i + 1,
+                        child: Text(
+                          TranslationHelper.translate(context, months[i]),
+                          style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.navyDark),
                         ),
-                        onChanged: (v) {
-                          if (v != null) {
-                            setState(() => _reportMonth = v);
-                          }
-                        },
                       ),
                     ),
+                    onChanged: (v) {
+                      if (v != null) {
+                        setState(() => _reportMonth = v);
+                      }
+                    },
                   ),
                 ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    border: Border.all(color: AppColors.lightBorder),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<int>(
-                      value: _reportYear,
-                      icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                          color: AppColors.navyMid),
-                      items: List.generate(
-                        5,
-                        (i) {
-                          final y = DateTime.now().year - i;
-                          return DropdownMenuItem(
-                            value: y,
-                            child: Text(
-                              '$y',
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13, fontWeight: FontWeight.w600),
-                            ),
-                          );
-                        },
-                      ),
-                      onChanged: (v) {
-                        if (v != null) {
-                          setState(() => _reportYear = v);
-                        }
+              ),
+              Container(
+                width: 96,
+                height: 40,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFCBD5E1)),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<int>(
+                    value: _reportYear,
+                    isExpanded: true,
+                    icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                        color: AppColors.navyMid),
+                    items: List.generate(
+                      5,
+                      (i) {
+                        final y = DateTime.now().year - i;
+                        return DropdownMenuItem(
+                          value: y,
+                          child: Text(
+                            '$y',
+                            style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.navyDark),
+                          ),
+                        );
                       },
                     ),
+                    onChanged: (v) {
+                      if (v != null) {
+                        setState(() => _reportYear = v);
+                      }
+                    },
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
 
-            const SizedBox(height: 16),
+          const SizedBox(height: 14),
 
-            // Dynamic Summons & Warrant Report Table from database API
-            SummonsWarrantReportTable(
-              selectedYear: _reportYear,
-              selectedMonth: _reportMonth,
-            ),
-          ],
-        ),
+          // Dynamic Summons & Warrant Report Table from database API
+          SummonsWarrantReportTable(
+            selectedYear: _reportYear,
+            selectedMonth: _reportMonth,
+          ),
+        ],
       ),
     );
   }
