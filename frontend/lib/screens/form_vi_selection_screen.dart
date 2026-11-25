@@ -19,6 +19,7 @@ import '../widgets/dynamic_form/dynamic_form_screen.dart';
 import '../utils/category_icon_helper.dart';
 import '../utils/dynamic_map_pdf.dart';
 import '../utils/pdf_unicode_fonts.dart';
+import '../widgets/modern_date_filter_calendar.dart';
 import '../widgets/custom_pdf_preview_dialog.dart';
 
 /// Controls where a Form VI category tap navigates.
@@ -1264,85 +1265,32 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
   }
 
   Widget _buildDateAndSortControls([List<ModuleRecord>? visibleRecords]) {
-    final hasDateFilter = _selectedDateRange != null;
-    final dateText = hasDateFilter
-        ? (_datePresetLabel ?? _formatDateRangeShort(_selectedDateRange!))
-        : TranslationHelper.translate(context, 'Date Filter');
-
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Calendar Date Picker Button
-        InkWell(
-          onTap: _showDateFilterDialog,
-          borderRadius: BorderRadius.circular(8),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            padding: EdgeInsets.fromLTRB(
-              hasDateFilter ? 8 : 10,
-              6,
-              hasDateFilter ? 4 : 10,
-              6,
-            ),
-            decoration: BoxDecoration(
-              color: hasDateFilter ? const Color(0xFFE8F1FC) : Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: hasDateFilter
-                    ? const Color(0xFF1976D2)
-                    : const Color(0xFFCBD5E1),
-                width: hasDateFilter ? 1.3 : 1.0,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: hasDateFilter
-                      ? const Color(0xFF1976D2).withValues(alpha: 0.12)
-                      : Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 4,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.calendar_month_rounded,
-                  size: 15,
-                  color: hasDateFilter
-                      ? const Color(0xFF1976D2)
-                      : AppColors.navyMid,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  dateText,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight:
-                        hasDateFilter ? FontWeight.w600 : FontWeight.w500,
-                    color: hasDateFilter
-                        ? const Color(0xFF1976D2)
-                        : AppColors.navyDark,
-                  ),
-                ),
-                if (hasDateFilter) ...[
-                  const SizedBox(width: 4),
-                  InkWell(
-                    onTap: _clearDateFilter,
-                    borderRadius: BorderRadius.circular(12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(2),
-                      child: Icon(
-                        Icons.close_rounded,
-                        size: 14,
-                        color: Colors.red.shade700,
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
+        // Modern Calendar Date Filter Popover (Today, Range, Custom)
+        ModernDateFilterCalendar(
+          selectedDateRange: _selectedDateRange,
+          datePresetLabel: _datePresetLabel,
+          onDateRangeChanged: (range) {
+            setState(() {
+              _selectedDateRange = range;
+              if (range == null) _datePresetLabel = null;
+            });
+          },
+          onPresetLabelChanged: (preset) {
+            setState(() {
+              _datePresetLabel = preset;
+            });
+          },
+          isNewestFirst: _dateSortOrder == FormVIDateSortOrder.newestFirst,
+          onSortOrderChanged: (newest) {
+            setState(() {
+              _dateSortOrder = newest
+                  ? FormVIDateSortOrder.newestFirst
+                  : FormVIDateSortOrder.oldestFirst;
+            });
+          },
         ),
         const SizedBox(width: 8),
 
@@ -1580,7 +1528,7 @@ class _FormVISelectionScreenState extends State<FormVISelectionScreen> {
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              'Filtered by $fieldName: $label ($count cases found)',
+              'Filtered by date: $label ($count cases found)',
               style: GoogleFonts.poppins(
                 fontSize: 11.5,
                 fontWeight: FontWeight.w500,
