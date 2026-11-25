@@ -600,14 +600,7 @@ class _SummonsWarrantReportTableState extends State<SummonsWarrantReportTable> {
                   ),
                 ),
               ],
-              const SizedBox(width: 4),
-              IconButton(
-                tooltip: 'Refresh Report',
-                onPressed: _fetchReport,
-                icon:
-                    const Icon(Icons.refresh_rounded, color: AppColors.navyMid),
-              ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 8),
               ElevatedButton.icon(
                 onPressed: _exportPdf,
                 icon: const Icon(Icons.picture_as_pdf_rounded,
