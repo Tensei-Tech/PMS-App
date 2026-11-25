@@ -505,12 +505,12 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: const Color(0xFF0D9488).withValues(alpha: 0.1),
+                color: AppColors.navyMid.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
                 Icons.touch_app_rounded,
-                color: Color(0xFF0D9488),
+                color: AppColors.navyMid,
                 size: 22,
               ),
             ),
@@ -1078,12 +1078,12 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
               leading: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0D9488).withValues(alpha: 0.1),
+                  color: AppColors.navyMid.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
                   Icons.access_time_rounded,
-                  color: Color(0xFF0D9488),
+                  color: AppColors.navyMid,
                   size: 22,
                 ),
               ),
@@ -1103,12 +1103,12 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
                         const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
                       color: count > 0
-                          ? const Color(0xFFFFEBEE)
+                          ? AppColors.navyMid.withValues(alpha: 0.08)
                           : Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: count > 0
-                            ? const Color(0xFFEF5350)
+                            ? AppColors.navyMid.withValues(alpha: 0.18)
                             : Colors.grey.shade300,
                       ),
                     ),
@@ -1118,7 +1118,7 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
                         color: count > 0
-                            ? const Color(0xFFC62828)
+                            ? AppColors.navyMid
                             : Colors.grey.shade700,
                       ),
                     ),
@@ -1173,9 +1173,9 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               leading: CircleAvatar(
-                backgroundColor: const Color(0xFF0D9488).withValues(alpha: 0.1),
+                backgroundColor: AppColors.navyMid.withValues(alpha: 0.08),
                 child:
-                    const Icon(Icons.person_rounded, color: Color(0xFF0D9488)),
+                    const Icon(Icons.person_rounded, color: AppColors.navyMid),
               ),
               title: Text(
                 ioName,
@@ -1200,12 +1200,12 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: count > 0
-                          ? const Color(0xFFFFEBEE)
+                          ? AppColors.navyMid.withValues(alpha: 0.08)
                           : Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: count > 0
-                            ? const Color(0xFFEF5350)
+                            ? AppColors.navyMid.withValues(alpha: 0.18)
                             : Colors.grey.shade300,
                       ),
                     ),
@@ -1215,7 +1215,7 @@ class _FingerprintHubScreenState extends State<FingerprintHubScreen>
                         fontWeight: FontWeight.w700,
                         fontSize: 12,
                         color: count > 0
-                            ? const Color(0xFFC62828)
+                            ? AppColors.navyMid
                             : Colors.grey.shade700,
                       ),
                     ),

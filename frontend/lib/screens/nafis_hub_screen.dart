@@ -316,12 +316,12 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
                         const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
                       color: count > 0
-                          ? const Color(0xFFFFEBEE)
+                          ? AppColors.navyMid.withValues(alpha: 0.08)
                           : Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: count > 0
-                            ? const Color(0xFFEF5350)
+                            ? AppColors.navyMid.withValues(alpha: 0.18)
                             : Colors.grey.shade300,
                       ),
                     ),
@@ -331,7 +331,7 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
                         color: count > 0
-                            ? const Color(0xFFC62828)
+                            ? AppColors.navyMid
                             : Colors.grey.shade700,
                       ),
                     ),
@@ -413,12 +413,12 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: count > 0
-                          ? const Color(0xFFFFEBEE)
+                          ? AppColors.navyMid.withValues(alpha: 0.08)
                           : Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: count > 0
-                            ? const Color(0xFFEF5350)
+                            ? AppColors.navyMid.withValues(alpha: 0.18)
                             : Colors.grey.shade300,
                       ),
                     ),
@@ -428,7 +428,7 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
                         fontWeight: FontWeight.w700,
                         fontSize: 12,
                         color: count > 0
-                            ? const Color(0xFFC62828)
+                            ? AppColors.navyMid
                             : Colors.grey.shade700,
                       ),
                     ),
@@ -464,12 +464,12 @@ class _NAFISHubScreenState extends State<NAFISHubScreen>
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: const Color(0xFF673AB7).withValues(alpha: 0.1),
+                color: AppColors.navyMid.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
                 Icons.fingerprint_rounded,
-                color: Color(0xFF673AB7),
+                color: AppColors.navyMid,
                 size: 22,
               ),
             ),
